@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Compiler
         {
             return Regex.Matches(sourceCode, "( Min|Avg|Max|Sum\\()(.*?)(\\))")
              .OfType<Match>()
-             .Select(m => m.Groups.Count > 0 ? m.Groups[0].Value.Replace("Sum(", "").Replace("Min(", "").Replace("Max(", "").Replace("Avg(", "").Replace(")", "") : "");
+             .Select(m => m.Groups.Count > 0 ? m.Groups[0].Value.Trim().Replace("Sum(", "").Replace("Min(", "").Replace("Max(", "").Replace("Avg(", "").Replace(")", "") : "");
         }
     }
 }
