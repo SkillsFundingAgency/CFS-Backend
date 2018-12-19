@@ -605,7 +605,7 @@ namespace CalculateFunding.Services.Results.Services
                         Value = 100,
                         Date = DateTimeOffset.Now,
                         Commment = "comment",
-                        CalculationnResultId = resultId,
+                        CalculationResultId = resultId,
                         ProviderId = providerId,
                         SpecificationId = specificationId
                     }
@@ -678,7 +678,7 @@ namespace CalculateFunding.Services.Results.Services
                     m.First().Key == providerId &&
                     m.First().Value.Id == $"{resultId}_version_1" &&
                     m.First().Value.ProviderId == providerId &&
-                    m.First().Value.CalculationnResultId == resultId &&
+                    m.First().Value.CalculationResultId == resultId &&
                     m.First().Value.Author.Id == "author-1" &&
                     m.First().Value.Author.Name == "author1" &&
                     m.First().Value.Commment == "comment" &&
@@ -722,7 +722,7 @@ namespace CalculateFunding.Services.Results.Services
                         Value = 100,
                         Date = DateTimeOffset.Now,
                         Commment = "comment",
-                        CalculationnResultId = resultId,
+                        CalculationResultId = resultId,
                         ProviderId = providerId,
                         SpecificationId = specificationId
                     }
@@ -795,7 +795,7 @@ namespace CalculateFunding.Services.Results.Services
                     m.First().Key == "prov-1" &&
                     m.First().Value.Id == $"{resultId}_version_1" &&
                     m.First().Value.ProviderId == "prov-1" &&
-                    m.First().Value.CalculationnResultId == resultId &&
+                    m.First().Value.CalculationResultId == resultId &&
                     m.First().Value.Author.Id == "author-1" &&
                     m.First().Value.Author.Name == "author1" &&
                     m.First().Value.Commment == "comment" &&

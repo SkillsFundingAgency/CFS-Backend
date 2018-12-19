@@ -9,17 +9,17 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("id")]
         public override string Id
         {
-            get { return $"{CalculationnResultId}_version_{Version}"; }
+            get { return $"{CalculationResultId}_version_{Version}"; }
         }
 
         [JsonProperty("entityId")]
         public override string EntityId
         {
-            get { return $"{CalculationnResultId}"; }
+            get { return $"{CalculationResultId}"; }
         }
 
         [JsonProperty("allocationResultId")]
-        public string CalculationnResultId { get; set; }
+        public string CalculationResultId { get; set; }
 
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }

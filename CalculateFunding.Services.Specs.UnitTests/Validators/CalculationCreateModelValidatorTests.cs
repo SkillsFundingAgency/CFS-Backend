@@ -52,7 +52,17 @@ namespace CalculateFunding.Services.Specs.Validators
             CalculationCreateModel model = CreateModel();
             model.AllocationLineId = string.Empty;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -71,7 +81,17 @@ namespace CalculateFunding.Services.Specs.Validators
             CalculationCreateModel model = CreateModel();
             model.PolicyId = string.Empty;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -96,7 +116,17 @@ namespace CalculateFunding.Services.Specs.Validators
             CalculationCreateModel model = CreateModel();
             model.Description = string.Empty;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -121,7 +151,17 @@ namespace CalculateFunding.Services.Specs.Validators
             CalculationCreateModel model = CreateModel();
             model.Name = string.Empty;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -146,7 +186,17 @@ namespace CalculateFunding.Services.Specs.Validators
             CalculationCreateModel model = CreateModel();
             model.CalculationType = (CalculationType)5222;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -171,6 +221,14 @@ namespace CalculateFunding.Services.Specs.Validators
             CalculationCreateModel model = CreateModel();
 
             ISpecificationsRepository repository = CreateSpecificationsRepository(true);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            repository
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
 
             CalculationCreateModelValidator validator = CreateValidator(repository);
 
@@ -191,12 +249,22 @@ namespace CalculateFunding.Services.Specs.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenValidModel_ValidIsTrue()
+        public void Validate_GivenValidModelForFundingCalculation_ValidIsTrue()
         {
             //Arrange
             CalculationCreateModel model = CreateModel();
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -325,6 +393,53 @@ namespace CalculateFunding.Services.Specs.Validators
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
+            List<FundingStream> fundingStreams = new List<FundingStream>();
+            fundingStreams.Add(new FundingStream()
+            {
+                Id = "fs1",
+                Name = "Funding Stream 1",
+                AllocationLines = new List<AllocationLine>()
+                    {
+                        new AllocationLine()
+                        {
+                            Id="al1",
+                            Name= "Allocation Line 1",
+                        }
+                    }
+            });
+
+            fundingStreams.Add(new FundingStream()
+            {
+                Id = "fs2",
+                Name = "Funding Stream 2",
+                AllocationLines = new List<AllocationLine>()
+                    {
+                        new AllocationLine()
+                        {
+                            Id="al2",
+                            Name= "Allocation Line 2",
+                        }
+                    }
+            });
+
+            fundingStreams.Add(new FundingStream()
+            {
+                Id = "fs3",
+                Name = "Funding Stream 3",
+                AllocationLines = new List<AllocationLine>()
+                    {
+                        new AllocationLine()
+                        {
+                            Id=allocationLineid,
+                            Name= "Allocation Line which should be found",
+                        }
+                    }
+            });
+
+            specsRepo
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
             CalculationCreateModelValidator validator = CreateValidator(specsRepo);
 
             //Act
@@ -355,7 +470,17 @@ namespace CalculateFunding.Services.Specs.Validators
             model.CalculationType = CalculationType.Baseline;
             model.AllocationLineId = null;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -673,6 +798,190 @@ namespace CalculateFunding.Services.Specs.Validators
                 .ErrorMessage
                 .Should()
                 .Be("This specification already has an existing Baseline calculation associated with it. Please choose a different allocation line ID to create a Baseline calculation for.");
+        }
+
+        [TestMethod]
+        public void Validate_GivenValidModelWithNumberCalculation_WhenNoFundingStreamsReturned_ThenValidIsFalse()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel();
+            model.CalculationType = CalculationType.Number;
+
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion()
+                {
+                    Policies = new List<Policy>()
+                    {
+                        new Policy()
+                        {
+                            Id = "pol1",
+                            Name = "Policy 1",
+                            Calculations = new List<Calculation>()
+                            {
+                                new Calculation()
+                                {
+                                    Id = "fundingCalc1",
+                                    Name = "Funding Calculation",
+                                    AllocationLine = new Reference(allocationLineid, "Allocation Name"),
+                                    CalculationType = CalculationType.Funding,
+                                },
+                                new Calculation()
+                                {
+                                    Id = "baselineCalculation1",
+                                    Name = "Baseline Calculation 1",
+                                    AllocationLine = new Reference("existingBaselineAllocationLineId", "Baseline"),
+                                    CalculationType = CalculationType.Baseline,
+                                },
+                            }
+                        }
+                    }
+                }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            List<FundingStream> fundingStreams = null;
+            specsRepo
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .First()
+                .Should()
+                .BeOfType<ValidationFailure>()
+                .Which
+                .ErrorMessage
+                .Should()
+                .Be("Unable to query funding streams, result returned null");
+        }
+
+        [TestMethod]
+        public void Validate_GivenValidModelWithNumberCalculation_WhenFundingStreamProvidedNotFound_ThenValidIsFalse()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel();
+            model.CalculationType = CalculationType.Number;
+
+            ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion()
+                {
+                    Policies = new List<Policy>()
+                    {
+                        new Policy()
+                        {
+                            Id = "pol1",
+                            Name = "Policy 1",
+                            Calculations = new List<Calculation>()
+                            {
+                                new Calculation()
+                                {
+                                    Id = "fundingCalc1",
+                                    Name = "Funding Calculation",
+                                    AllocationLine = new Reference(allocationLineid, "Allocation Name"),
+                                    CalculationType = CalculationType.Funding,
+                                },
+                                new Calculation()
+                                {
+                                    Id = "baselineCalculation1",
+                                    Name = "Baseline Calculation 1",
+                                    AllocationLine = new Reference("existingBaselineAllocationLineId", "Baseline"),
+                                    CalculationType = CalculationType.Baseline,
+                                },
+                            }
+                        }
+                    }
+                }
+            };
+
+            specsRepo
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            List<FundingStream> fundingStreams = new List<FundingStream>();
+            fundingStreams.Add(new FundingStream()
+            {
+                Id = "fs1",
+                Name = "Funding Stream 1",
+                AllocationLines = new List<AllocationLine>()
+                    {
+                        new AllocationLine()
+                        {
+                            Id="al1",
+                            Name= "Allocation Line 1",
+                        }
+                    }
+            });
+
+            fundingStreams.Add(new FundingStream()
+            {
+                Id = "fs2",
+                Name = "Funding Stream 2",
+                AllocationLines = new List<AllocationLine>()
+                    {
+                        new AllocationLine()
+                        {
+                            Id="al2",
+                            Name= "Allocation Line 2",
+                        }
+                    }
+            });
+
+            fundingStreams.Add(new FundingStream()
+            {
+                Id = "fs3",
+                Name = "Funding Stream 3",
+                AllocationLines = new List<AllocationLine>()
+                    {
+                        new AllocationLine()
+                        {
+                            Id="al3",
+                            Name= "Allocation Line which should be found",
+                        }
+                    }
+            });
+
+            specsRepo
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .First()
+                .Should()
+                .BeOfType<ValidationFailure>()
+                .Which
+                .ErrorMessage
+                .Should()
+                .Be("Unable to find Allocation Line with provided ID");
         }
 
         static CalculationCreateModel CreateModel()

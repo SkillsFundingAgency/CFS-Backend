@@ -1675,35 +1675,24 @@ namespace CalculateFunding.Services.Specs
                 calculation.IsPublic = false;
             }
 
-            if (editModel.CalculationType == CalculationType.Funding || editModel.CalculationType == CalculationType.Baseline)
+            FundingStream currentFundingStream = null;
+            if (!string.IsNullOrWhiteSpace(editModel.AllocationLineId))
             {
-                FundingStream currentFundingStream = null;
-                if (!string.IsNullOrWhiteSpace(editModel.AllocationLineId))
+                string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
+                IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
+                foreach (FundingStream fundingStream in fundingStreams)
                 {
-                    string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
-                    IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
-                    foreach (FundingStream fundingStream in fundingStreams)
+                    AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == editModel.AllocationLineId);
+                    if (allocationLine != null)
                     {
-                        AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == editModel.AllocationLineId);
-                        if (allocationLine != null)
-                        {
-                            calculation.AllocationLine = allocationLine;
-                            currentFundingStream = fundingStream;
-                            break;
-                        }
-                    }
-                    if (currentFundingStream == null)
-                    {
-                        return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {editModel.AllocationLineId}");
+                        calculation.AllocationLine = allocationLine;
+                        currentFundingStream = fundingStream;
+                        break;
                     }
                 }
-            }
-
-            if (calculation.CalculationType != editModel.CalculationType)
-            {
-                if (calculation.CalculationType == CalculationType.Number)
+                if (currentFundingStream == null)
                 {
-                    calculation.AllocationLine = null;
+                    return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {editModel.AllocationLineId}");
                 }
             }
 

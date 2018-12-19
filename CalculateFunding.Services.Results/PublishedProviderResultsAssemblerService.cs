@@ -152,7 +152,7 @@ namespace CalculateFunding.Services.Results
                         publishedProviderCalculationResult.ParentPolicy = new PolicySummary(parentPolicy.Id, parentPolicy.Name, parentPolicy.Description);
                     }
 
-                    publishedProviderCalculationResult.Current.CalculationnResultId = publishedProviderCalculationResult.Id;
+                    publishedProviderCalculationResult.Current.CalculationResultId = publishedProviderCalculationResult.Id;
 
                     publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
                 }
