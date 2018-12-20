@@ -31,7 +31,6 @@ namespace CalculateFunding.Services.Results
 {
     public class ResultsService : IResultsService, IHealthChecker
     {
-
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
@@ -46,6 +45,8 @@ namespace CalculateFunding.Services.Results
         private readonly IProviderImportMappingService _providerImportMappingService;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
+        private readonly ICalculationsRepository _calculationRepository;
+        private readonly Polly.Policy _calculationsRepositoryPolicy;
 
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
@@ -58,7 +59,8 @@ namespace CalculateFunding.Services.Results
             IResultsResilliencePolicies resiliencePolicies,
             IProviderImportMappingService providerImportMappingService,
             ICacheProvider cacheProvider,
-            IMessengerService messengerService)
+            IMessengerService messengerService,
+            ICalculationsRepository calculationRepository)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -71,6 +73,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(providerImportMappingService, nameof(providerImportMappingService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
 
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -86,6 +89,8 @@ namespace CalculateFunding.Services.Results
             _providerImportMappingService = providerImportMappingService;
             _cacheProvider = cacheProvider;
             _messengerService = messengerService;
+            _calculationRepository = calculationRepository;
+            _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -503,6 +508,35 @@ namespace CalculateFunding.Services.Results
 
 
             return new NoContentResult();
+        }
+
+        public async Task<IActionResult> HasCalculationResults(string calculationId)
+        {
+            Guard.IsNullOrWhiteSpace(calculationId, nameof(calculationId));
+
+            Models.Calcs.Calculation calculation = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationRepository.GetCalculationById(calculationId));
+            
+            if(calculation == null)
+            {
+                _logger.Error($"Calculation could not be found for calculation id '{calculationId}'");
+
+                return new NotFoundObjectResult($"Calculation could not be found for calculation id '{calculationId}'");
+            }
+            bool hasCalculationsResults = false;
+
+            ProviderResult providerResult = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSingleProviderResultBySpecificationId(calculation.SpecificationId));
+
+            if(providerResult != null)
+            {
+                CalculationResult calculationResult = providerResult.CalculationResults?.FirstOrDefault(m => string.Equals(m.Calculation.Id, calculationId, StringComparison.InvariantCultureIgnoreCase));
+
+                if(calculationResult != null)
+                {
+                    hasCalculationsResults = true;
+                }
+            }
+
+            return new OkObjectResult(hasCalculationsResults);
         }
 
         private static string GetParameter(HttpRequest request, string name)

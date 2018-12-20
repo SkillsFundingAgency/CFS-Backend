@@ -22,5 +22,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Policy PublishedProviderCalculationResultsRepository { get; set; }
 
         Policy PublishedProviderResultsRepository { get; set; }
+
+        Policy CalculationsRepository { get; set; }
     }
 }

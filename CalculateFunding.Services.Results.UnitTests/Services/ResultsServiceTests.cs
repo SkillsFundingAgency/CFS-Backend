@@ -1202,6 +1202,222 @@ namespace CalculateFunding.Services.Results.Services
                 .KeyExists<List<ProviderSummary>>(Arg.Any<string>());
         }
 
+        [TestMethod]
+        public async Task HasCalculationResults_GivenCalculationNotFound_ReturnNotFoundResult()
+        {
+            //Arrange
+            const string calculationId = "calc-1";
+            
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(calculationId))
+                .Returns((Models.Calcs.Calculation)null);
+
+            ILogger logger = CreateLogger();
+
+            ResultsService resultsService = CreateResultsService(logger: logger, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.HasCalculationResults(calculationId);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<NotFoundObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"Calculation could not be found for calculation id '{calculationId}'");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Calculation could not be found for calculation id '{calculationId}'"));
+        }
+
+        [TestMethod]
+        public async Task HasCalculationResults_GivenProviderResultNotFoundForSpecification_ReturnHasCalculationResultsFalse()
+        {
+            //Arrange
+            const string calculationId = "calc-1";
+            const string specificationId = "spec-1";
+
+            Models.Calcs.Calculation calculation = new Models.Calcs.Calculation
+            {
+                Id = calculationId,
+                SpecificationId = specificationId
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(calculationId))
+                .Returns(calculation);
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetSingleProviderResultBySpecificationId(Arg.Is(specificationId))
+                .Returns((ProviderResult)null);
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.HasCalculationResults(calculationId);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(false);
+        }
+
+        [TestMethod]
+        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoCalculations_ReturnHasCalculationResultsFalse()
+        {
+            //Arrange
+            const string calculationId = "calc-1";
+            const string specificationId = "spec-1";
+
+            Models.Calcs.Calculation calculation = new Models.Calcs.Calculation
+            {
+                Id = calculationId,
+                SpecificationId = specificationId
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(calculationId))
+                .Returns(calculation);
+
+            ProviderResult providerResult = new ProviderResult();
+  
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetSingleProviderResultBySpecificationId(Arg.Is(specificationId))
+                .Returns(providerResult);
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.HasCalculationResults(calculationId);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(false);
+        }
+
+        [TestMethod]
+        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoMatchingCalculations_ReturnHasCalculationResultsFalse()
+        {
+            //Arrange
+            const string calculationId = "calc-1";
+            const string specificationId = "spec-1";
+
+            Models.Calcs.Calculation calculation = new Models.Calcs.Calculation
+            {
+                Id = calculationId,
+                SpecificationId = specificationId
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(calculationId))
+                .Returns(calculation);
+
+            ProviderResult providerResult = new ProviderResult
+            {
+                SpecificationId = specificationId,
+                CalculationResults = new List<CalculationResult>
+                {
+                    new CalculationResult
+                    {
+                        Calculation = new Reference
+                        {
+                            Id = "calc-2"
+                        }
+                    }
+                }
+            };
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetSingleProviderResultBySpecificationId(Arg.Is(specificationId))
+                .Returns(providerResult);
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.HasCalculationResults(calculationId);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(false);
+        }
+
+        [TestMethod]
+        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationWithMatchingCalculation_ReturnHasCalculationResultsTrue()
+        {
+            //Arrange
+            const string calculationId = "calc-1";
+            const string specificationId = "spec-1";
+
+            Models.Calcs.Calculation calculation = new Models.Calcs.Calculation
+            {
+                Id = calculationId,
+                SpecificationId = specificationId
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(calculationId))
+                .Returns(calculation);
+
+            ProviderResult providerResult = new ProviderResult
+            {
+                SpecificationId = specificationId,
+                CalculationResults = new List<CalculationResult>
+                {
+                    new CalculationResult
+                    {
+                        Calculation = new Reference
+                        {
+                            Id = "calc-1"
+                        }
+                    }
+                }
+            };
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetSingleProviderResultBySpecificationId(Arg.Is(specificationId))
+                .Returns(providerResult);
+
+            ResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository, calculationsRepository: calculationsRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.HasCalculationResults(calculationId);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(true);
+        }
+
         static ResultsService CreateResultsService(ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
             IMapper mapper = null,
@@ -1213,7 +1429,8 @@ namespace CalculateFunding.Services.Results.Services
             IResultsResilliencePolicies resiliencePolicies = null,
             IProviderImportMappingService providerImportMappingService = null,
             ICacheProvider cacheProvider = null,
-            IMessengerService messengerService = null)
+            IMessengerService messengerService = null,
+            ICalculationsRepository calculationsRepository = null)
         {
             return new ResultsService(
                 logger ?? CreateLogger(),
@@ -1227,7 +1444,8 @@ namespace CalculateFunding.Services.Results.Services
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
                 providerImportMappingService ?? CreateProviderImportMappingService(),
                 cacheProvider ?? CreateCacheProvider(),
-                messengerService ?? CreateMessengerService());
+                messengerService ?? CreateMessengerService(),
+                calculationsRepository ?? CreateCalculationsRepository());
         }
 
         static ISearchRepository<AllocationNotificationFeedIndex> CreateAllocationNotificationFeedSearchRepository()
@@ -1288,6 +1506,11 @@ namespace CalculateFunding.Services.Results.Services
         static ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
+        }
+
+        static ICalculationsRepository CreateCalculationsRepository()
+        {
+            return Substitute.For<ICalculationsRepository>();
         }
 
         static SpecificationCurrentVersion CreateSpecification(string specificationId)

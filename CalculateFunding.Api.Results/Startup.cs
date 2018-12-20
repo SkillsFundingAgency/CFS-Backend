@@ -148,6 +148,9 @@ namespace CalculateFunding.Api.Results
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
+               .AddSingleton<ICalculationsRepository, CalculationsRepository>();
+
+            builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
@@ -190,6 +193,8 @@ namespace CalculateFunding.Api.Results
 
             builder.AddSpecificationsInterServiceClient(Configuration);
 
+            builder.AddCalcsInterServiceClient(Configuration);
+
             builder.AddPolicySettings(Configuration);
 
             builder.AddHttpContextAccessor();
@@ -227,7 +232,8 @@ namespace CalculateFunding.Api.Results
                     AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                    PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

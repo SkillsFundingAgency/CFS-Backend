@@ -7,6 +7,7 @@ using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Newtonsoft.Json;
@@ -91,6 +92,20 @@ namespace CalculateFunding.Services.Results
             IQueryable<decimal> result = _cosmosRepository.RawQuery<decimal>(sql, 1, true);
 
             return Task.FromResult<decimal>(result.AsEnumerable().First());
+        }
+
+        public async Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId, 1);
+
+            if (providerResults.IsNullOrEmpty())
+            {
+                return null;
+            }
+
+            return providerResults.First();
         }
     }
 }

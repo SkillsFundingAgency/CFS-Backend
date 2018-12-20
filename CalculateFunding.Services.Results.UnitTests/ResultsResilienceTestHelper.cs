@@ -16,7 +16,8 @@ namespace CalculateFunding.Services.Results.UnitTests
                 AllocationNotificationFeedSearchRepository = Policy.NoOpAsync(),
                 ProviderProfilingRepository = Policy.NoOpAsync(),
                 PublishedProviderCalculationResultsRepository = Policy.NoOpAsync(),
-                PublishedProviderResultsRepository = Policy.NoOpAsync()
+                PublishedProviderResultsRepository = Policy.NoOpAsync(),
+                CalculationsRepository = Policy.NoOpAsync()
             };
         }
     }

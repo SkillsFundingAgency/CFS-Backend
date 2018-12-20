@@ -147,5 +147,12 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return await _publishedResultsService.ReIndexAllocationNotificationFeeds();
         }
+
+        [Route("api/results/hasCalculationResults/{calculationId}")]
+        [HttpGet]
+        public async Task<IActionResult> HasCalculationResults(string calculationId)
+        {
+            return await _resultsService.HasCalculationResults(calculationId);
+        }
     }
 }

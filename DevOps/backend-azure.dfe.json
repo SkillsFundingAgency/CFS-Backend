@@ -1771,6 +1771,14 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
+              "name": "calcsClient:ApiKey",
+              "value": "[parameters('ApiKeyCalcs')]"
+            },
+            {
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
+            },
+            {
               "name": "SearchServiceName",
               "value": "[variables('azureSearchName')]"
             },
@@ -2969,6 +2977,14 @@
             {
               "name": "specificationsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "calcsClient:ApiKey",
+              "value": "[parameters('ApiKeyCalcs')]"
+            },
+            {
+              "name": "calcsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-calcs.azurewebsites.net/api/')]"
             },
             {
               "name": "SearchServiceName",
