@@ -507,14 +507,17 @@ namespace CalculateFunding.Services.Calculator
                     {
                         Dictionary<string, List<decimal>> cachedCalculationAggregationsPart = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Dictionary<string, List<decimal>>>(messageProperties.CalculationsAggregationsBatchCacheKey));
 
-                        foreach (KeyValuePair<string, List<decimal>> cachedAggregations in cachedCalculationAggregationsPart)
+                        if (!cachedCalculationAggregationsPart.IsNullOrEmpty())
                         {
-                            if (!cachedCalculationAggregations.ContainsKey(cachedAggregations.Key))
+                            foreach (KeyValuePair<string, List<decimal>> cachedAggregations in cachedCalculationAggregationsPart)
                             {
-                                cachedCalculationAggregations.Add(cachedAggregations.Key, new List<decimal>());
-                            }
+                                if (!cachedCalculationAggregations.ContainsKey(cachedAggregations.Key))
+                                {
+                                    cachedCalculationAggregations.Add(cachedAggregations.Key, new List<decimal>());
+                                }
 
-                            cachedCalculationAggregations[cachedAggregations.Key].AddRange(cachedAggregations.Value);
+                                cachedCalculationAggregations[cachedAggregations.Key].AddRange(cachedAggregations.Value);
+                            }
                         }
                     }
 
