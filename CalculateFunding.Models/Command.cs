@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models
+﻿using CalculateFunding.Common.Models;
+
+namespace CalculateFunding.Models
 {
     public class Command
     {

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <DebugType>full</DebugType>
   </PropertyGroup>
 
@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Repositories.Common.Cosmos\CalculateFunding.Repositories.Common.Cosmos.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />

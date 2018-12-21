@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using CalculateFunding.Models.Results;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Calcs

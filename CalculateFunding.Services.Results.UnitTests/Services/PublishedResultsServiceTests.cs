@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using AutoMapper;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;

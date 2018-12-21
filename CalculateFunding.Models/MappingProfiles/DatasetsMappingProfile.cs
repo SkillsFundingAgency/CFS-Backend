@@ -12,7 +12,7 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(c => c.BlobUrl, opt => opt.Ignore())
                 .ForMember(c => c.DatasetId, opt => opt.Ignore())
                 .ForMember(c => c.Author, opt => opt.Ignore())
-                .ForMember(c => c.Version, opt => opt.UseValue(1));
+                .ForMember(c => c.Version, opt => opt.MapFrom(c => 1));
 
             CreateMap<DatasetVersionUpdateModel, NewDatasetVersionResponseModel>()
                 .ForMember(c => c.BlobUrl, opt => opt.Ignore())

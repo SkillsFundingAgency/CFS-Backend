@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -140,7 +140,9 @@ namespace CalculateFunding.Services.Calcs.Services
         static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<Calculation> validator = Substitute.For<IValidator<Calculation>>();
 

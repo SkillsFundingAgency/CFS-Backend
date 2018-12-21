@@ -6,7 +6,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
@@ -180,7 +180,7 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
-            IEnumerable<CalculationVersion> history = await _calculationVersionsRepositoryPolicy.ExecuteAsync(() =>_calculationVersionRepository.GetVersions(calculationId));
+            IEnumerable<CalculationVersion> history = await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.GetVersions(calculationId));
 
             if (history.IsNullOrEmpty())
             {
@@ -781,7 +781,7 @@ namespace CalculateFunding.Services.Calcs
 
                     string correlationId = request.GetCorrelationId();
 
-                   
+
 
                     IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(calculation.SpecificationId));
 
@@ -845,7 +845,7 @@ namespace CalculateFunding.Services.Calcs
 
             BuildProject buildProject = null;
 
-            if(updateBuildProject)
+            if (updateBuildProject)
             {
                 buildProject = await UpdateBuildProject(calculation.SpecificationId);
             }
@@ -855,7 +855,7 @@ namespace CalculateFunding.Services.Calcs
             await UpdateSearch(calculation, specificationSummary.Name);
 
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
-            await UpdateCalculationInCache(calculation, currentVersion);           
+            await UpdateCalculationInCache(calculation, currentVersion);
 
             return new UpdateCalculationResult()
             {
@@ -1122,23 +1122,23 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(statusCountModels);
         }
 
-		public async Task<IActionResult> GetCalculationByCalculationSpecificationId(string calculationSpecificationId)
-		{
-			if (calculationSpecificationId.IsNullOrEmpty())
-			{
-				return new BadRequestObjectResult($"nameof(calculationSpecificationId) was null or empty");
-			}
+        public async Task<IActionResult> GetCalculationByCalculationSpecificationId(string calculationSpecificationId)
+        {
+            if (calculationSpecificationId.IsNullOrEmpty())
+            {
+                return new BadRequestObjectResult($"nameof(calculationSpecificationId) was null or empty");
+            }
 
-			Calculation calculationFound = await _calculationsRepository.GetCalculationByCalculationSpecificationId(calculationSpecificationId);
-			if (calculationFound != null)
-			{
-				return new OkObjectResult(calculationFound);
-			}
+            Calculation calculationFound = await _calculationsRepository.GetCalculationByCalculationSpecificationId(calculationSpecificationId);
+            if (calculationFound != null)
+            {
+                return new OkObjectResult(calculationFound);
+            }
 
-			return new NotFoundObjectResult($"No result was found for {calculationSpecificationId}");
-		}
+            return new NotFoundObjectResult($"No result was found for {calculationSpecificationId}");
+        }
 
-		async Task UpdateSearch(Calculation calculation, string specificationName)
+        async Task UpdateSearch(Calculation calculation, string specificationName)
         {
             IEnumerable<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
             {

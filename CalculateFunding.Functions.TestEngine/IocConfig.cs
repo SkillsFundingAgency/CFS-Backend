@@ -1,7 +1,7 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;

@@ -1,5 +1,5 @@
 ﻿using System;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;

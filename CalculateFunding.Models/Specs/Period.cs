@@ -1,4 +1,5 @@
 ﻿using System;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Models.Specs
 {

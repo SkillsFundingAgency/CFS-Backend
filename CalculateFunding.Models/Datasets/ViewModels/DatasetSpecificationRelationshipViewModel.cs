@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Datasets.ViewModels
+﻿using CalculateFunding.Common.Models;
+
+namespace CalculateFunding.Models.Datasets.ViewModels
 {
     public class DatasetSpecificationRelationshipViewModel : Reference
     {
@@ -12,6 +14,6 @@
 
         public string RelationshipDescription { get; set; }
 
-		public bool IsProviderData { get; set; }
+        public bool IsProviderData { get; set; }
     }
 }

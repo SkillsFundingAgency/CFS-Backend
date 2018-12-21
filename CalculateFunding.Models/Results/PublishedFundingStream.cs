@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 

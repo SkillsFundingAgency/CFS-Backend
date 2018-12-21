@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Datasets.Schema;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets.Schema;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Datasets

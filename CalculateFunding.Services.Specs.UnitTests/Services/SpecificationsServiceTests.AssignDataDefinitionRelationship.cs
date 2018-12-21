@@ -1,24 +1,24 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Specs.Interfaces;
-using FluentValidation;
-using FluentValidation.Results;
-using Serilog;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
-using Newtonsoft.Json;
-using CalculateFunding.Models;
-using System.Net;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
-using Microsoft.Azure.ServiceBus;
-using System.Linq;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Specs.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(newSpecVersion);
 
 
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, 
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository,
                 searchRepository: searchRepository, specificationVersionRepository: versionRepository);
 
             //Act
@@ -236,7 +236,7 @@ namespace CalculateFunding.Services.Specs.Services
             ILogger logger = CreateLogger();
 
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            
+
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())

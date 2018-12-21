@@ -1,9 +1,9 @@
 ﻿using System;
 using AutoMapper;
-using CalculateFunding.Models;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;

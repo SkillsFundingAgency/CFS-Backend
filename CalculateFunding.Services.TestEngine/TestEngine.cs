@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.TestRunner
             {
                 _logger.Warning("No provider results were supplied to execute tests");
             }
-            else if(!testScenarios.Any())
+            else if (!testScenarios.Any())
             {
                 _logger.Warning("No test scenarios were supplied to execute tests");
             }

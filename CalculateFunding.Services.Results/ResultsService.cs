@@ -6,12 +6,12 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -515,8 +515,8 @@ namespace CalculateFunding.Services.Results
             Guard.IsNullOrWhiteSpace(calculationId, nameof(calculationId));
 
             Models.Calcs.Calculation calculation = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationRepository.GetCalculationById(calculationId));
-            
-            if(calculation == null)
+
+            if (calculation == null)
             {
                 _logger.Error($"Calculation could not be found for calculation id '{calculationId}'");
 
@@ -526,11 +526,11 @@ namespace CalculateFunding.Services.Results
 
             ProviderResult providerResult = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSingleProviderResultBySpecificationId(calculation.SpecificationId));
 
-            if(providerResult != null)
+            if (providerResult != null)
             {
                 CalculationResult calculationResult = providerResult.CalculationResults?.FirstOrDefault(m => string.Equals(m.Calculation.Id, calculationId, StringComparison.InvariantCultureIgnoreCase));
 
-                if(calculationResult != null)
+                if (calculationResult != null)
                 {
                     hasCalculationsResults = true;
                 }

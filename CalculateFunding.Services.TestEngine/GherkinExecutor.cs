@@ -1,21 +1,20 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Models;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Services.TestRunner.Interfaces;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using System;
-using CalculateFunding.Models.Gherkin;
-using CalculateFunding.Services.Core.Helpers;
-using Polly;
-using System.Diagnostics;
-using Newtonsoft.Json;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Models.Health;
+using CalculateFunding.Services.TestRunner.Interfaces;
+using Newtonsoft.Json;
+using Polly;
 
 namespace CalculateFunding.Services.TestRunner
 {
@@ -52,7 +51,7 @@ namespace CalculateFunding.Services.TestRunner
             return health;
         }
 
-        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets, 
+        public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets,
             IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
         {
 
@@ -77,7 +76,7 @@ namespace CalculateFunding.Services.TestRunner
                     scenarioResult.TotalSteps = parseResult.StepActions.Count;
 
                     scenarioResult.StepsExecuted = 0;
-                   
+
                     foreach (var action in parseResult.StepActions)
                     {
                         GherkinParseResult result = action.Execute(providerResult, datasets);
@@ -101,7 +100,7 @@ namespace CalculateFunding.Services.TestRunner
                         {
                             scenarioResult.Errors.AddRange(result.Errors);
                         }
-                       
+
                         scenarioResult.StepsExecuted++;
                     }
                 }

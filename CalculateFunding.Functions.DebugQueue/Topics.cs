@@ -6,14 +6,14 @@ using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
-using Microsoft.Extensions.Logging;
+using Microsoft.Azure.WebJobs.Host;
 
 namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Topics
     {
         [FunctionName("on-edit-specification")]
-        public static async Task RunOnEditSpecificationEvent([QueueTrigger(ServiceBusConstants.TopicNames.EditSpecification, Connection = "AzureConnectionString")] string item, ILogger logger)
+        public static async Task RunOnEditSpecificationEvent([QueueTrigger(ServiceBusConstants.TopicNames.EditSpecification, Connection = "AzureConnectionString")] string item, TraceWriter logger)
         {
             Message message = Helpers.ConvertToMessage<Models.Specs.SpecificationVersionComparisonModel>(item);
 
@@ -23,7 +23,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError("Error while executing Calcs OnEditSpecificationEvent", ex);
+                logger.Error("Error while executing Calcs OnEditSpecificationEvent", ex);
             }
 
             try
@@ -32,7 +32,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError("Error while executing TestEngine OnEditSpecificationEvent", ex);
+                logger.Error("Error while executing TestEngine OnEditSpecificationEvent", ex);
             }
 
             try
@@ -41,17 +41,17 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError("Error while executing Users OnEditSpecificationEvent", ex);
+                logger.Error("Error while executing Users OnEditSpecificationEvent", ex);
             }
 
-            logger.LogInformation($"C# Queue trigger function processed: {item}");
+            logger.Info($"C# Queue trigger function processed: {item}");
         }
 
         [FunctionName("on-job-completion")]
         public static async Task OnJobCompletion(
             [QueueTrigger(ServiceBusConstants.TopicNames.JobNotifications, Connection = "AzureConnectionString")] string item,
             [SignalR(HubName = JobConstants.NotificationsHubName)] IAsyncCollector<SignalRMessage> signalRMessages,
-            ILogger logger)
+            TraceWriter logger)
         {
             Message message = Helpers.ConvertToMessage<JobNotification>(item);
 
@@ -69,19 +69,19 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError("Error while executing Jobs Completion Event", ex);
+                logger.Error("Error while executing Jobs Completion Event", ex);
             }
 
             try
             {
-                await Notifications.OnNotificationEventTrigger.Run(message, signalRMessages, logger);
+                await Notifications.OnNotificationEventTrigger.Run(message, signalRMessages);
             }
             catch (Exception ex)
             {
-                logger.LogError("Error while executing Notification Event", ex);
+                logger.Error("Error while executing Notification Event", ex);
             }
 
-            logger.LogInformation($"C# Queue trigger function processed: {item}");
+            logger.Info($"C# Queue trigger function processed: {item}");
         }
     }
 }

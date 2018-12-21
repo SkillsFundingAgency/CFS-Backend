@@ -1,26 +1,27 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
     public class ProviderResult : IIdentifiable
     {
-	    [JsonProperty("id")]
-		public string Id { get; set; }
+        [JsonProperty("id")]
+        public string Id { get; set; }
 
-		[JsonProperty("specificationId")]
+        [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
-		[JsonProperty("provider")]
+        [JsonProperty("provider")]
         public ProviderSummary Provider { get; set; }
 
         [JsonProperty("calcResults")]
         public List<CalculationResult> CalculationResults { get; set; }
 
-	    [JsonProperty("allocationLineResults")]
-	    public List<AllocationLineResult> AllocationLineResults { get; set; }
+        [JsonProperty("allocationLineResults")]
+        public List<AllocationLineResult> AllocationLineResults { get; set; }
 
-		[JsonProperty("sourceDatasets")]
+        [JsonProperty("sourceDatasets")]
         public List<object> SourceDatasets { get; set; }
     }
 

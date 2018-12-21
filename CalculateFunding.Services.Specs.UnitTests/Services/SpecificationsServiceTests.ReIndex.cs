@@ -1,16 +1,16 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Specs.Interfaces;
-using FluentValidation;
-using Serilog;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Specs.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs.Services
 {

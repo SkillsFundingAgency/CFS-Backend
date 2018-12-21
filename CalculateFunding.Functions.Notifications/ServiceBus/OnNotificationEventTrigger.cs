@@ -10,7 +10,6 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Functions.Notifications
 {
@@ -22,8 +21,7 @@ namespace CalculateFunding.Functions.Notifications
                 ServiceBusConstants.TopicNames.JobNotifications,
                 ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,
                 Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]Message message,
-            [SignalR(HubName = JobConstants.NotificationsHubName)] IAsyncCollector<SignalRMessage> signalRMessages,
-            ILogger log)
+            [SignalR(HubName = JobConstants.NotificationsHubName)] IAsyncCollector<SignalRMessage> signalRMessages)
         {
             // Send message body (JobNotification) to SignalR as body
             Guard.ArgumentNotNull(message, nameof(message));

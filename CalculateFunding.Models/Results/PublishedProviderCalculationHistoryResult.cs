@@ -1,7 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using CalculateFunding.Common.Models;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {

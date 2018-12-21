@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Api.External.V2.Models;
 using CalculateFunding.Api.External.V2.Services;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;

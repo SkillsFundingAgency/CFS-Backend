@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets.Schema;
 using Newtonsoft.Json;
 
@@ -43,7 +44,9 @@ namespace CalculateFunding.Models.Results
         public int GetNextVersion()
         {
             if (History == null || !History.Any())
+            {
                 return 1;
+            }
 
             int maxVersion = History.Max(m => m.Version);
 

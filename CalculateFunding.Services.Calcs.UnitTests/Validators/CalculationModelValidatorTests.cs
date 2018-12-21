@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Validators
 {

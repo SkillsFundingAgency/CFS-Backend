@@ -1,4 +1,8 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
@@ -7,11 +11,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.UnitTests
 {
@@ -123,7 +122,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IEnumerable<ScenarioResult> scenarioResults = new[]
             {
-                new ScenarioResult  { Scenario = new Models.Reference("sceanrio=id", "scenario name") }
+                new ScenarioResult  { Scenario = new Reference("sceanrio=id", "scenario name") }
             };
 
             ILogger logger = CreateLogger();
@@ -170,5 +169,5 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             return Substitute.For<ILogger>();
         }
 
-    }  
+    }
 }

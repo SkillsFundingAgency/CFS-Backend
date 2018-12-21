@@ -1,7 +1,7 @@
 ﻿using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
@@ -50,7 +50,7 @@ namespace CalculateFunding.Api.Scenarios
             app.UseHttpsRedirection();
 
             app.UseMiddleware<LoggedInUserMiddleware>();
-	        app.UseMiddleware<ApiKeyMiddleware>();
+            app.UseMiddleware<ApiKeyMiddleware>();
 
             app.UseMvc();
 

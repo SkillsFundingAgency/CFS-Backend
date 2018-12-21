@@ -1,8 +1,12 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Versioning;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -13,10 +17,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios
 {
@@ -29,8 +29,8 @@ namespace CalculateFunding.Services.Scenarios
         private readonly ISpecificationsRepository _specificationsRepository;
 
         public ScenariosSearchService(
-            ISearchRepository<ScenarioIndex> searchRepository, 
-            IScenariosRepository scenariosRepository, 
+            ISearchRepository<ScenarioIndex> searchRepository,
+            IScenariosRepository scenariosRepository,
             ISpecificationsRepository specificationsRepository,
             ILogger logger)
         {
@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Scenarios
                 Models.Specs.SpecificationSummary specificationSummary = null;
                 if (!specifications.ContainsKey(testScenario.SpecificationId))
                 {
-                    specificationSummary = await  _specificationsRepository.GetSpecificationSummaryById(testScenario.SpecificationId);
+                    specificationSummary = await _specificationsRepository.GetSpecificationSummaryById(testScenario.SpecificationId);
                     specifications.Add(testScenario.SpecificationId, specificationSummary);
                 }
                 else

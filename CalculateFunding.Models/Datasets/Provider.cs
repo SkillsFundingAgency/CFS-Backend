@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Datasets

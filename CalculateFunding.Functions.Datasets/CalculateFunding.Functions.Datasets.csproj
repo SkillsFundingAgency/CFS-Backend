@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
 
@@ -12,11 +12,11 @@
 
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="7.0.1" />
+    <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="5.0.2" />
-    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.3" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.23" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.24" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 

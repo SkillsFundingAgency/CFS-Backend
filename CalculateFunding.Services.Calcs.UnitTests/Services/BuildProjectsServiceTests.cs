@@ -1,36 +1,36 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Jobs;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Compiler.Languages;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.Compiler.Interfaces;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.AspNetCore.Mvc;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using System.Linq;
-using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
-using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.Languages;
-using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Models.Jobs;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -642,11 +642,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -690,11 +690,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 <",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -743,11 +743,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 >",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -796,11 +796,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 £",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -849,11 +849,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 =",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -902,11 +902,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 %",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -955,11 +955,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 +",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -1008,11 +1008,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 *",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -1061,11 +1061,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 /",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -1114,11 +1114,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 -",
                     Description = "test calc",
-                    AllocationLine = new Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Models.Reference>
+                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Reference>
                     {
-                        new Models.Reference{ Id = "policy1", Name="policy one"}
+                        new Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -1335,7 +1335,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
 
             //Act
@@ -1413,7 +1413,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, 
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
 
             //Act
@@ -1652,9 +1652,9 @@ namespace CalculateFunding.Services.Calcs.Services
             await buildProjectsService.UpdateDeadLetteredJobLog(message);
 
             //Assert
-           logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to add a job log for job id '{jobId}'"));
+            logger
+                 .Received(1)
+                 .Error(Arg.Any<Exception>(), Arg.Is($"Failed to add a job log for job id '{jobId}'"));
         }
 
         [TestMethod]
@@ -1709,7 +1709,7 @@ namespace CalculateFunding.Services.Calcs.Services
             message.UserProperties.Add("jobId", jobId);
 
             IJobsRepository jobsRepository = CreateJobsRepository();
-            
+
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsJobServiceEnabled()
@@ -1906,7 +1906,7 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsRepository
                 .When(x => x.CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>()))
                 .Do(y => jobModelsToTest = y.Arg<IEnumerable<JobCreateModel>>());
-                
+
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
@@ -2003,7 +2003,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Message
                 .Should()
                 .Be($"Failed to create child jobs for parent job: '{parentJobId}'");
-                
+
 
             await
                 jobsRepository
@@ -2018,7 +2018,7 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.Count(p => p.Trigger.EntityType == nameof(Job)) == 10 &&
                             m.Count(p => p.Trigger.Message == $"Triggered by parent job with id: '{parentJob.Id}") == 10
                         ));
-            
+
             logger
                 .Received(1)
                 .Error($"Only 5 child jobs from 10 were created with parent id: '{parentJob.Id}'");
@@ -2492,7 +2492,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             IList<Job> jobs = new List<Job>();
 
-            for(int i=1; i<=count; i++)
+            for (int i = 1; i <= count; i++)
             {
                 jobs.Add(new Job
                 {

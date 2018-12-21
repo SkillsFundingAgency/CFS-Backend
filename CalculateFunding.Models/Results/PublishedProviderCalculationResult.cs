@@ -1,10 +1,9 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using System;
+using System.Text;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CalculateFunding.Models.Results
 {

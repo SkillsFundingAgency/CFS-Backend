@@ -1,24 +1,24 @@
-﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Versioning;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Calcs.Interfaces;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
-using NSubstitute;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using FluentAssertions;
+using Microsoft.Azure.ServiceBus;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -525,9 +525,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
 
             CalculationService service = CreateCalculationService(
-                calculationsRepository, 
-                logger, 
-                buildProjectsRepository: buildProjectsRepository, 
+                calculationsRepository,
+                logger,
+                buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
                 featureToggle: featureToggle,
                 jobsRepository: jobsRepository,
@@ -654,7 +654,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 messengerService: messengerService);
 
             // Act
-            Func<Task> test = async() => await service.UpdateCalculationsForSpecification(message);
+            Func<Task> test = async () => await service.UpdateCalculationsForSpecification(message);
 
             // Assert
             test

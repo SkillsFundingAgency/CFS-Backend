@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;

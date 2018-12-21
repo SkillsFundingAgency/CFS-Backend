@@ -1,16 +1,13 @@
 ﻿using System;
-using CalculateFunding.Models;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Scenarios;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Services.Scenarios.Validators;
 using FluentValidation;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,7 +20,9 @@ namespace CalculateFunding.Functions.Scenarios
         public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(config);
+            }
 
             return _serviceProvider;
         }

@@ -1,15 +1,14 @@
-﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Jobs;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Jobs.Interfaces;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Jobs;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Jobs.Interfaces;
 
 namespace CalculateFunding.Services.Jobs.Repositories
 {
@@ -52,7 +51,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
             DocumentEntity<JobDefinition> jobDefinition = await _cosmosRepository.ReadAsync<JobDefinition>(jobDefinitionId);
 
-            if(jobDefinition != null)
+            if (jobDefinition != null)
             {
                 return jobDefinition.Content;
             }

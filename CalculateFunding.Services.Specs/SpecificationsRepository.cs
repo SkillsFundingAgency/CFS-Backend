@@ -1,18 +1,17 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.Specs.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Net;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Models.Versioning;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -34,7 +33,7 @@ namespace CalculateFunding.Services.Specs
                 Name = nameof(SpecificationsRepository)
             };
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _repository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
-            
+
             return health;
         }
 
@@ -42,7 +41,7 @@ namespace CalculateFunding.Services.Specs
         {
             DocumentEntity<Period> period = await _repository.ReadAsync<Period>(periodId);
 
-            if(period == null || period.Content == null)
+            if (period == null || period.Content == null)
             {
                 return null;
             }
@@ -86,7 +85,7 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IEnumerable<Specification>> GetSpecifications()
         {
-           IEnumerable<DocumentEntity<Specification>> results = await _repository.GetAllDocumentsAsync<Specification>();
+            IEnumerable<DocumentEntity<Specification>> results = await _repository.GetAllDocumentsAsync<Specification>();
 
             return results.Select(c => c.Content);
         }
@@ -110,14 +109,14 @@ namespace CalculateFunding.Services.Specs
 
             specifications = specifications.Where(m => m.Current.FundingStreams.Any(fs => fs.Id == fundingStreamId));
 
-            return Task.FromResult(specifications);   
+            return Task.FromResult(specifications);
         }
 
         public Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId)
         {
             IQueryable<Specification> specificationsQuery =
               _repository.Query<Specification>()
-                  .Where(m => m.IsSelectedForFunding  && m.Current.FundingPeriod.Id == fundingPeriodId);
+                  .Where(m => m.IsSelectedForFunding && m.Current.FundingPeriod.Id == fundingPeriodId);
 
             IEnumerable<Specification> specifications = specificationsQuery.AsEnumerable().ToList();
 
@@ -144,7 +143,9 @@ namespace CalculateFunding.Services.Specs
         {
             var specification = await GetSpecificationById(specificationId);
             if (specification == null)
+            {
                 return null;
+            }
 
             return specification.Current.GetCalculations().FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
         }
@@ -153,7 +154,9 @@ namespace CalculateFunding.Services.Specs
         {
             var specification = await GetSpecificationById(specificationId);
             if (specification == null)
+            {
                 return null;
+            }
 
             return specification.Current.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
         }
@@ -162,7 +165,9 @@ namespace CalculateFunding.Services.Specs
         {
             var specification = await GetSpecificationById(specificationId);
             if (specification == null)
+            {
                 return null;
+            }
 
             return specification.Current.GetCalculations();
         }
@@ -171,7 +176,9 @@ namespace CalculateFunding.Services.Specs
         {
             var specification = await GetSpecificationById(specificationId);
             if (specification == null)
+            {
                 return null;
+            }
 
             return specification.Current.GetPolicyByName(policyByName);
         }
@@ -180,7 +187,9 @@ namespace CalculateFunding.Services.Specs
         {
             var specification = await GetSpecificationById(specificationId);
             if (specification == null)
+            {
                 return null;
+            }
 
             return specification.Current.GetPolicy(policyId);
         }

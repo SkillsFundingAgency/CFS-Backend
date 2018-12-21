@@ -1,19 +1,19 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
+using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.Extensions.Primitives;
-using System.Linq.Expressions;
-using System.Linq;
-using CalculateFunding.Models;
-using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Specs.Services
 {

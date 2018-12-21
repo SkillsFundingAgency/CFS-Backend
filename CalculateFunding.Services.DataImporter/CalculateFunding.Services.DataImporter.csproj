@@ -1,7 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <DebugType>full</DebugType>
   </PropertyGroup>
 
@@ -9,7 +9,6 @@
     <PackageReference Include="CsvHelper" Version="6.1.0" />
     <PackageReference Include="EPPlus.Core" Version="1.5.4" />
     <PackageReference Include="FluentValidation" Version="7.6.104" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

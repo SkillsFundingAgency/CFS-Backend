@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Models.Specs
 {

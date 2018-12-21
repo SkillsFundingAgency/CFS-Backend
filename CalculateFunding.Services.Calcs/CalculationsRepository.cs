@@ -2,10 +2,10 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Health;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;

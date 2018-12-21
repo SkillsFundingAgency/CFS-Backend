@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
     <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
   </PropertyGroup>
@@ -19,12 +19,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.SignalRService" Version="1.0.0-preview1-10025" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Host.Storage" Version="3.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.1.1" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.23" />
-    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.2" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Host.Storage" Version="3.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="2.2.0" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.24" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 

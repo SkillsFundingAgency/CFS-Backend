@@ -1,19 +1,19 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Specs.Interfaces;
-using Serilog;
+using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.Extensions.Primitives;
-using CalculateFunding.Models;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Caching;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs.Services
 {

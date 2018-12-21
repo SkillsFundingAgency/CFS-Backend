@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -1632,7 +1633,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
             IDatasetsAggregationsRepository datasetsAggregationsRepository = CreateDatasetsAggregationsRepository();
-            
+
             DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
             {
                 DatasetVersion = new DatasetRelationshipVersion()
@@ -1879,7 +1880,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await
                 datasetsAggregationsRepository
                     .Received(1)
-                    .CreateDatasetAggregations(Arg.Is<DatasetAggregations>( 
+                    .CreateDatasetAggregations(Arg.Is<DatasetAggregations>(
                         m => m.DatasetRelationshipId == relationshipId &&
                              m.SpecificationId == SpecificationId &&
                              m.Fields.Count() == 4 &&
@@ -3461,7 +3462,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 featureToggle: featureToggle);
 
             // Act
-            Func<Task> test = async() => await service.ProcessDataset(message);
+            Func<Task> test = async () => await service.ProcessDataset(message);
 
             // Assert
             test
@@ -3489,7 +3490,7 @@ namespace CalculateFunding.Services.Datasets.Services
             logger
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{SpecificationId}'"));
-           
+
         }
     }
 }

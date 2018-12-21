@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Datasets
+﻿using CalculateFunding.Common.Models;
+
+namespace CalculateFunding.Models.Datasets
 {
     public class DefinitionSpecificationRelationship : Reference
     {

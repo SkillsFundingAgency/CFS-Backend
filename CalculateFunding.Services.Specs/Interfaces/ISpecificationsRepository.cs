@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using CalculateFunding.Models.Specs;
-using System;
-using System.Linq.Expressions;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net;
-using CalculateFunding.Repositories.Common.Cosmos;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {

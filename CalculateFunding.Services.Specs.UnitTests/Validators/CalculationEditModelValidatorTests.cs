@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;

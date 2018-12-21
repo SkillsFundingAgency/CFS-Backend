@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Claims;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Helpers;

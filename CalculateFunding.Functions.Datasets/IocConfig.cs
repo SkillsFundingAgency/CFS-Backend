@@ -1,11 +1,11 @@
 ﻿using System;
 using AutoMapper;
-using CalculateFunding.Models;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;

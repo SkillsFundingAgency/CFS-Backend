@@ -1,10 +1,10 @@
-﻿using CalculateFunding.Models;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Common.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -31,12 +31,16 @@ namespace CalculateFunding.Services.Core.Extensions
         public static T GetPayloadAsInstanceOf<T>(this Message message)
         {
             if (message.Body == null)
+            {
                 return default(T);
+            }
 
             var json = Encoding.UTF8.GetString(message.Body);
 
             if (string.IsNullOrWhiteSpace(json))
+            {
                 return default(T);
+            }
 
             return JsonConvert.DeserializeObject<T>(json);
         }
@@ -44,7 +48,7 @@ namespace CalculateFunding.Services.Core.Extensions
         public static string GetCorrelationId(this Message message)
         {
             string correlationId = Guid.NewGuid().ToString();
-           
+
             if (message.UserProperties.ContainsKey("sfa-correlationId") && message.UserProperties["sfa-correlationId"] != null)
             {
                 correlationId = message.UserProperties["sfa-correlationId"].ToString();

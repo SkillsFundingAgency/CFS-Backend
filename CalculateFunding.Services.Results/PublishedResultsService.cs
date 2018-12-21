@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;

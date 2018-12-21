@@ -1,8 +1,8 @@
-﻿using CalculateFunding.Models.Results;
-using CalculateFunding.Repositories.Common.Cosmos;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.Services.TestRunner.Interfaces
 {

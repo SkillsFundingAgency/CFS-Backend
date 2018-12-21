@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
@@ -100,7 +101,7 @@ namespace CalculateFunding.Services.Results
                     Minor = DynamicExtensions.PropertyExists(existingResult, "minor") ? (int)existingResult.minor : 0,
                     Major = DynamicExtensions.PropertyExists(existingResult, "major") ? (int)existingResult.major : 0,
                     UpdatedAt = (DateTimeOffset?)existingResult.updatedAt,
-                    Version =  DynamicExtensions.PropertyExists(existingResult, "version") ? (int)existingResult.version : 0,
+                    Version = DynamicExtensions.PropertyExists(existingResult, "version") ? (int)existingResult.version : 0,
                 };
 
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);

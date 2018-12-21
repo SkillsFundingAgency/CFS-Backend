@@ -1,7 +1,12 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Interfaces.Caching;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -10,11 +15,6 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -265,7 +265,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     FundingPeriodId = "18/19",
                     CalculationType = "Number",
                     SpecificationId = specificationId,
-                    PublishStatus =  PublishStatus.Draft,
+                    PublishStatus = PublishStatus.Draft,
                 });
 
             await calculationsRepository

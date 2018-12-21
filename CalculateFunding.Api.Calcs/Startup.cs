@@ -1,7 +1,7 @@
 ﻿using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;

@@ -1,16 +1,14 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -25,7 +23,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, 
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
                 specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, buildProjectsRepository: buildProjectsRepository);
 
             const string specificationId = "specId";
@@ -69,7 +67,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     DecimalPlaces = 6,
                 }
             };
-            
+
             calculations.Add(calc1);
 
             Calculation calc2 = new Calculation()
@@ -89,7 +87,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     DecimalPlaces = 6,
                 }
             };
-            
+
             calculations.Add(calc2);
 
             calculationsRepository
@@ -164,7 +162,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, 
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
                 specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, buildProjectsRepository: buildProjectsRepository);
 
             const string specificationId = "specId";
@@ -208,7 +206,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     DecimalPlaces = 6,
                 }
             };
-            
+
             calculations.Add(calc1);
 
             Calculation calc2 = new Calculation()
@@ -228,7 +226,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     DecimalPlaces = 6,
                 }
             };
-            
+
             calculations.Add(calc2);
 
             calculationsRepository
@@ -302,7 +300,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository, 
+            CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
                 specificationRepository: specificationRepository, calculationVersionRepository: versionRepository);
 
             const string specificationId = "specId";
@@ -346,7 +344,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     DecimalPlaces = 6,
                 }
             };
-            
+
             calculations.Add(calc1);
 
             Calculation calc2 = new Calculation()
@@ -366,7 +364,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     DecimalPlaces = 6,
                 }
             };
-            
+
             calculations.Add(calc2);
 
             calculationsRepository

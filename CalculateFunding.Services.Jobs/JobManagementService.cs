@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
@@ -370,11 +370,11 @@ namespace CalculateFunding.Services.Jobs
                 throw new Exception("Failed to retrieve job definitions when processing timed out jobs");
             }
 
-            foreach(Job job in nonCompletedJobs)
+            foreach (Job job in nonCompletedJobs)
             {
                 JobDefinition jobDefinition = jobDefinitions.FirstOrDefault(m => m.Id == job.JobDefinitionId);
 
-                if(jobDefinition == null)
+                if (jobDefinition == null)
                 {
                     _logger.Error($"Failed to find job definition : '{job.JobDefinitionId}' for job id: '{job.Id}'");
 
@@ -386,7 +386,7 @@ namespace CalculateFunding.Services.Jobs
 
                     TimeSpan timeout = jobDefinition.Timeout;
 
-                    if(DateTimeOffset.UtcNow > jobStartDate.Add(timeout))
+                    if (DateTimeOffset.UtcNow > jobStartDate.Add(timeout))
                     {
                         _logger.Information($"Job with id: '{job.Id}' as exceeded its maximum timeout threshold");
 

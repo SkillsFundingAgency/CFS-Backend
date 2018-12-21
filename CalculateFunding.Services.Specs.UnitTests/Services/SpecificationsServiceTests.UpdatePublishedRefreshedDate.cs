@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -188,7 +189,7 @@ namespace CalculateFunding.Services.Specs.Services
                 Current = new SpecificationVersion
                 {
                     Description = "test",
-                    FundingPeriod = new Models.Reference { Id = "fp1", Name = "funding period 1" },
+                    FundingPeriod = new Reference { Id = "fp1", Name = "funding period 1" },
                     FundingStreams = new List<FundingStream>
                     {
                         new FundingStream{ Id = "fs1", Name = "funding stream 1" }
@@ -245,7 +246,7 @@ namespace CalculateFunding.Services.Specs.Services
                 Current = new SpecificationVersion
                 {
                     Description = "test",
-                    FundingPeriod = new Models.Reference { Id = "fp1", Name = "funding period 1" },
+                    FundingPeriod = new Reference { Id = "fp1", Name = "funding period 1" },
                     FundingStreams = new List<FundingStream>
                     {
                         new FundingStream{ Id = "fs1", Name = "funding stream 1" }

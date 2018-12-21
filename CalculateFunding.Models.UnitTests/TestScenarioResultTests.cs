@@ -1,3 +1,4 @@
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

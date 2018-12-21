@@ -1,10 +1,11 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -20,7 +21,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using System;
 
 namespace CalculateFunding.Api.Results
 {

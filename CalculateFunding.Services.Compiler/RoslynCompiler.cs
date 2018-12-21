@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Datasets;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Serilog;
@@ -62,12 +61,13 @@ namespace CalculateFunding.Services.Compiler
             stopwatch.Stop();
             Logger.Information($"Compilation complete success = {compilerOutput.Success} ({stopwatch.ElapsedMilliseconds}ms)");
 
-            compilerOutput.CompilerMessages = result.Diagnostics.Where(x  => x.Severity != DiagnosticSeverity.Hidden)
-                .Select(x => new CompilerMessage {
-	                    Message = x.GetMessage(),
-				        Severity = (Severity)x.Severity,
-				        Location = GetLocation(x)
-                    })
+            compilerOutput.CompilerMessages = result.Diagnostics.Where(x => x.Severity != DiagnosticSeverity.Hidden)
+                .Select(x => new CompilerMessage
+                {
+                    Message = x.GetMessage(),
+                    Severity = (Severity)x.Severity,
+                    Location = GetLocation(x)
+                })
                 .ToList();
 
             foreach (var compilerMessage in compilerOutput.CompilerMessages)
@@ -89,31 +89,31 @@ namespace CalculateFunding.Services.Compiler
             return compilerOutput;
         }
 
-	    private SourceLocation GetLocation(Diagnostic diagnostic)
-	    {
-		    var span = diagnostic.Location.GetMappedLineSpan();
+        private SourceLocation GetLocation(Diagnostic diagnostic)
+        {
+            var span = diagnostic.Location.GetMappedLineSpan();
 
-		    Reference owner = null;
+            Reference owner = null;
 
-		    var split = span.Path?.Split('|');
-		    if (split != null && split.Length == 2)
-		    {
-			    owner = new Reference(split.First(), split.Last());
-		    }
+            var split = span.Path?.Split('|');
+            if (split != null && split.Length == 2)
+            {
+                owner = new Reference(split.First(), split.Last());
+            }
 
-			return new SourceLocation
-			{
-				Owner = owner,
-				StartLine = span.StartLinePosition.Line,
-				StartChar = span.StartLinePosition.Character,
-				EndLine = span.EndLinePosition.Line,
-				EndChar = span.EndLinePosition.Character
-			};
-	    }
+            return new SourceLocation
+            {
+                Owner = owner,
+                StartLine = span.StartLinePosition.Line,
+                StartChar = span.StartLinePosition.Character,
+                EndLine = span.EndLinePosition.Line,
+                EndChar = span.EndLinePosition.Character
+            };
+        }
 
         protected abstract IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles);
 
-	    protected abstract EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles);
+        protected abstract EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles);
 
         IDictionary<string, string> ICompiler.GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles)
         {

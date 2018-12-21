@@ -1,9 +1,8 @@
-﻿using CalculateFunding.Models.Specs;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Text;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Specs;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
@@ -16,7 +15,7 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
-      
+
         [JsonProperty("title")]
         public string Title { get; set; }
 

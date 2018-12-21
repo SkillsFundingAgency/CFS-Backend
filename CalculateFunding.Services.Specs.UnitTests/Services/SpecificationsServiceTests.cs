@@ -1,22 +1,22 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using System.Text;
+using AutoMapper;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
-using Serilog;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Collections.Generic;
-using System.Text;
-using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Models;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Models.Specs.Messages;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Common.FeatureToggles;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -134,7 +134,9 @@ namespace CalculateFunding.Services.Specs.Services
         static IValidator<PolicyCreateModel> CreatePolicyValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<PolicyCreateModel> validator = Substitute.For<IValidator<PolicyCreateModel>>();
 
@@ -148,7 +150,9 @@ namespace CalculateFunding.Services.Specs.Services
         static IValidator<PolicyEditModel> CreateEditPolicyValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<PolicyEditModel> validator = Substitute.For<IValidator<PolicyEditModel>>();
 
@@ -162,7 +166,9 @@ namespace CalculateFunding.Services.Specs.Services
         static IValidator<SpecificationCreateModel> CreateSpecificationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<SpecificationCreateModel> validator = Substitute.For<IValidator<SpecificationCreateModel>>();
 
@@ -176,7 +182,9 @@ namespace CalculateFunding.Services.Specs.Services
         static IValidator<SpecificationEditModel> CreateEditSpecificationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<SpecificationEditModel> validator = Substitute.For<IValidator<SpecificationEditModel>>();
 
@@ -190,7 +198,9 @@ namespace CalculateFunding.Services.Specs.Services
         static IValidator<CalculationCreateModel> CreateCalculationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<CalculationCreateModel> validator = Substitute.For<IValidator<CalculationCreateModel>>();
 
@@ -204,7 +214,9 @@ namespace CalculateFunding.Services.Specs.Services
         static IValidator<CalculationEditModel> CreateEditCalculationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<CalculationEditModel> validator = Substitute.For<IValidator<CalculationEditModel>>();
 
@@ -218,7 +230,9 @@ namespace CalculateFunding.Services.Specs.Services
         static IValidator<AssignDefinitionRelationshipMessage> CreateAssignDefinitionRelationshipMessageValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<AssignDefinitionRelationshipMessage> validator = Substitute.For<IValidator<AssignDefinitionRelationshipMessage>>();
 
@@ -310,7 +324,7 @@ namespace CalculateFunding.Services.Specs.Services
 
         static IEnumerable<FundingStream> CreateFundingStreams()
         {
-            return new []
+            return new[]
             {
                 new FundingStream
                 {

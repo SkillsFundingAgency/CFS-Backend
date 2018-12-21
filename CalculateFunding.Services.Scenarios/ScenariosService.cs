@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Health;

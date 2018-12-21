@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Models;
-using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -14,14 +14,18 @@ namespace CalculateFunding.Services.Core.Extensions
         public static async Task<string> GetRawBodyStringAsync(this HttpRequest request, Encoding encoding = null)
         {
             if (encoding == null)
+            {
                 encoding = Encoding.UTF8;
+            }
 
             if (request.Body != null)
             {
                 using (StreamReader reader = new StreamReader(request.Body, encoding))
                 {
                     if (request.Body.CanSeek)
+                    {
                         request.Body.Seek(0, SeekOrigin.Begin);
+                    }
 
                     return await reader.ReadToEndAsync();
                 }
@@ -70,7 +74,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
             Claim idClaim = request.HttpContext.User.Claims.FirstOrDefault(m => m.Type == ClaimTypes.Sid);
 
-            if(idClaim != null)
+            if (idClaim != null)
             {
                 reference.Id = idClaim.Value;
             }

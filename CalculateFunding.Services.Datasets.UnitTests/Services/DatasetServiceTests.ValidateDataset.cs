@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;

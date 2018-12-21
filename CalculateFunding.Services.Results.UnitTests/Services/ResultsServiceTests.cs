@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -1207,7 +1206,7 @@ namespace CalculateFunding.Services.Results.Services
         {
             //Arrange
             const string calculationId = "calc-1";
-            
+
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
                 .GetCalculationById(Arg.Is(calculationId))
@@ -1291,7 +1290,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(calculation);
 
             ProviderResult providerResult = new ProviderResult();
-  
+
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository
                 .GetSingleProviderResultBySpecificationId(Arg.Is(specificationId))

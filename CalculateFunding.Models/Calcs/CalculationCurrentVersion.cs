@@ -1,6 +1,6 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
-using System;
 
 namespace CalculateFunding.Models.Calcs
 {

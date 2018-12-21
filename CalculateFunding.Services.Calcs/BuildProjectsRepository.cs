@@ -1,12 +1,12 @@
-﻿using System.Linq;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.Calcs.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -43,13 +43,13 @@ namespace CalculateFunding.Services.Calcs
         //}
 
         public Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
-	    {
-		    IEnumerable<BuildProject> buildProjects = _cosmosRepository.Query<BuildProject>().Where(x => x.SpecificationId == specificiationId).ToList();
+        {
+            IEnumerable<BuildProject> buildProjects = _cosmosRepository.Query<BuildProject>().Where(x => x.SpecificationId == specificiationId).ToList();
 
             return Task.FromResult(buildProjects.FirstOrDefault());
-	    }
+        }
 
-		public Task<HttpStatusCode> CreateBuildProject(BuildProject buildProject)
+        public Task<HttpStatusCode> CreateBuildProject(BuildProject buildProject)
         {
             return _cosmosRepository.CreateAsync(buildProject);
         }

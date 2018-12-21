@@ -1,6 +1,6 @@
 ﻿using System;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Interfaces;

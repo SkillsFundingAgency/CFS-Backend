@@ -1,3 +1,4 @@
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets.Schema;
 using Newtonsoft.Json;
 

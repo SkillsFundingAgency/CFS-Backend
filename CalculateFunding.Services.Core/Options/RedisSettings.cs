@@ -2,6 +2,6 @@
 {
     public class RedisSettings
     {
-		public string CacheConnection { get; set; }
+        public string CacheConnection { get; set; }
     }
 }

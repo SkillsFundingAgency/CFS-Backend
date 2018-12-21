@@ -1,30 +1,30 @@
 ﻿using System;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Calcs;
+using CalculateFunding.Services.Calcs.CodeGen;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Calcs.Validators;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.CodeMetadataGenerator;
+using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Compiler.Languages;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Services;
+using FluentValidation;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calcs;
-using CalculateFunding.Models.Calcs;
-using FluentValidation;
-using CalculateFunding.Services.Calcs.Validators;
-using CalculateFunding.Services.Compiler.Interfaces;
-using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.Languages;
-using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.Calcs.CodeGen;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
-using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
-using CalculateFunding.Services.CodeMetadataGenerator;
-using CalculateFunding.Services.Core.Options;
 using Polly.Bulkhead;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Repositories.Common.Cosmos;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Models;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Repositories.Common.Search;
 
 namespace CalculateFunding.Functions.Calcs
 {
@@ -35,7 +35,9 @@ namespace CalculateFunding.Functions.Calcs
         public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(config);
+            }
 
             return _serviceProvider;
         }
@@ -52,7 +54,9 @@ namespace CalculateFunding.Functions.Calcs
         public static IServiceProvider Build(Message message, IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(message, config);
+            }
 
             IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
 

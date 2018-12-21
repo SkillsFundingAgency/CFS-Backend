@@ -1,22 +1,19 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.Validators;
+using CalculateFunding.Services.Validators;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using FluentValidation;
-using CalculateFunding.Services.Specs.Validators;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Models.Specs.Messages;
-using CalculateFunding.Services.Validators;
-using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Models;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Repositories.Common.Cosmos;
-using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Functions.Specs
 {
@@ -27,7 +24,9 @@ namespace CalculateFunding.Functions.Specs
         public static IServiceProvider Build(IConfigurationRoot config)
         {
             if (_serviceProvider == null)
+            {
                 _serviceProvider = BuildServiceProvider(config);
+            }
 
             return _serviceProvider;
         }

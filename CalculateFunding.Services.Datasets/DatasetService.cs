@@ -3,18 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using AutoMapper;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -117,7 +115,7 @@ namespace CalculateFunding.Services.Datasets
             string json = await request.GetRawBodyStringAsync();
 
             CreateNewDatasetModel model = JsonConvert.DeserializeObject<CreateNewDatasetModel>(json);
-        
+
             if (model == null)
             {
                 _logger.Error("Null model name was provided to CreateNewDataset");

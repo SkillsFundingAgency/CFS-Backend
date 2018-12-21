@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -222,8 +223,8 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-           IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new[]
-           {
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new[]
+            {
                 new PublishedProviderCalculationResult
                 {
                     Current = new PublishedProviderCalculationResultVersion
@@ -305,7 +306,7 @@ namespace CalculateFunding.Services.Results.Services
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
                 .Returns(Task.CompletedTask);
-            
+
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
             publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
                 .Returns(ex => { throw new Exception("Error saving published calculation results"); });
@@ -491,7 +492,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string,PublishedProviderCalculationResultVersion>>>(m => m.Count() == 1));
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedProviderCalculationResultVersion>>>(m => m.Count() == 1));
         }
 
         [TestMethod]
@@ -650,7 +651,7 @@ namespace CalculateFunding.Services.Results.Services
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
-            
+
             // Act
             await resultsService.PublishProviderResults(message);
 
@@ -790,7 +791,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 calcsVersionRepository
                 .Received(1)
-                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string,PublishedProviderCalculationResultVersion>>>(
+                .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedProviderCalculationResultVersion>>>(
                     m => m.Count() == 1 &&
                     m.First().Key == "prov-1" &&
                     m.First().Value.Id == $"{resultId}_version_1" &&
@@ -1346,7 +1347,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns((publishedProviderResults, existingToRemove));
 
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
-           
+
             publishedProviderResultsRepository
                 .GetPublishedProviderResultForId("c3BlYy0xMTIzQUFBQUE=", "123")
                 .Returns(existingProviderResultToRemove);

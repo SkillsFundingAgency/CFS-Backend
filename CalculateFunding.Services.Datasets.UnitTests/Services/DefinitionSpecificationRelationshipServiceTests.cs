@@ -1,8 +1,18 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
 using FluentValidation;
@@ -15,17 +25,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -145,7 +144,7 @@ namespace CalculateFunding.Services.Datasets.Services
             string specificationId = Guid.NewGuid().ToString();
 
             Models.Datasets.Schema.DatasetDefinition definition = new Models.Datasets.Schema.DatasetDefinition();
-           
+
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
                 DatasetDefinitionId = datasetDefinitionId,
@@ -173,7 +172,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetSpecificationSummaryById(Arg.Any<string>())
                 .Returns((SpecificationSummary)null);
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, 
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 datasetRepository: datasetRepository, specificationsRepository: specificationsRepository);
 
             //Act
@@ -672,7 +671,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
                 .Returns(relationships);
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, 
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
                 specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
 
             //Act
@@ -730,7 +729,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = relationshipId,
                 Name = relationshipName
             });
-                
+
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
             datasetRepository
@@ -807,8 +806,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Specification = new Reference { Id = specificationId },
                 Id = relationshipId,
                 Name = relationshipName,
-                DatasetDefinition = new Reference { Id  = definitionId },
-				IsSetAsProviderData = true
+                DatasetDefinition = new Reference { Id = definitionId },
+                IsSetAsProviderData = true
             });
 
 
@@ -863,13 +862,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should()
                 .Be(relationshipId);
 
-	        content
-		        .First()
-		        .IsProviderData
-		        .Should()
-		        .BeTrue();
+            content
+                .First()
+                .IsProviderData
+                .Should()
+                .BeTrue();
 
-			content
+            content
                .First()
                .Name
                .Should()
@@ -923,7 +922,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     Id = datasetId,
                     Version = 1
                 },
-				IsSetAsProviderData = true
+                IsSetAsProviderData = true
             });
 
 
@@ -984,13 +983,13 @@ namespace CalculateFunding.Services.Datasets.Services
                .Should()
                .Be(relationshipName);
 
-	        content
-		        .First()
-		        .IsProviderData
-		        .Should()
-		        .BeTrue();
+            content
+                .First()
+                .IsProviderData
+                .Should()
+                .BeTrue();
 
-			logger
+            logger
                 .Received(1)
                 .Warning($"Dataset could not be found for Id {datasetId}");
         }
@@ -1044,7 +1043,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     Id = datasetId,
                     Version = 1
                 },
-				IsSetAsProviderData = true
+                IsSetAsProviderData = true
             });
 
             Dataset dataset = new Dataset
@@ -1131,13 +1130,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should()
                 .Be(1);
 
-	        content
-		        .First()
-		        .IsProviderData
-		        .Should()
-		        .BeTrue();
+            content
+                .First()
+                .IsProviderData
+                .Should()
+                .BeTrue();
 
-			content
+            content
                .First()
                .RelationshipDescription
                .Should()
@@ -1576,19 +1575,21 @@ namespace CalculateFunding.Services.Datasets.Services
 
         static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
-            IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null, 
-            IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null )
+            IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null,
+            IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
                 specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
-                messengerService ?? CreateMessengerService(), datasetService ?? CreateDatasetService(), 
+                messengerService ?? CreateMessengerService(), datasetService ?? CreateDatasetService(),
                 calcsRepository ?? CreateCalcsRepository(), definitionsService ?? CreateDefinitionService(), cacheProvider ?? CreateCacheProvider());
         }
 
         static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<CreateDefinitionSpecificationRelationshipModel> validator = Substitute.For<IValidator<CreateDefinitionSpecificationRelationshipModel>>();
 

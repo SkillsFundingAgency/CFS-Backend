@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Models.Specs
 {
@@ -7,7 +8,11 @@ namespace CalculateFunding.Models.Specs
     {
         public static Policy GetPolicy(this Policy policy, string id)
         {
-            if (policy.Id == id) return policy;
+            if (policy.Id == id)
+            {
+                return policy;
+            }
+
             return policy.SubPolicies?.FirstOrDefault(x => x.GetPolicy(id) != null);
         }
 
@@ -16,14 +21,18 @@ namespace CalculateFunding.Models.Specs
             foreach (Policy policy in specification.Policies)
             {
                 if (policy.Id == id)
+                {
                     return policy;
+                }
 
                 if (policy.SubPolicies != null)
                 {
                     foreach (Policy subPolicy in policy.SubPolicies)
                     {
                         if (subPolicy.Id == id)
+                        {
                             return subPolicy;
+                        }
                     }
                 }
             }
@@ -39,7 +48,9 @@ namespace CalculateFunding.Models.Specs
                     foreach (Policy subPolicy in policy.SubPolicies)
                     {
                         if (subPolicy.Id == id)
+                        {
                             return policy;
+                        }
                     }
                 }
             }
@@ -94,7 +105,9 @@ namespace CalculateFunding.Models.Specs
                 Policy specPolicy = policy.GetPolicyByName(name);
 
                 if (specPolicy != null)
+                {
                     return specPolicy;
+                }
             }
 
             return null;

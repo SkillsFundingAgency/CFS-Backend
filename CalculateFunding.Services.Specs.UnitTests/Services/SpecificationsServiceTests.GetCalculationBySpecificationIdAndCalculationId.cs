@@ -1,17 +1,18 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
-using Serilog;
+using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.Extensions.Primitives;
-using AutoMapper;
-using CalculateFunding.Services.Core.Extensions;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -174,7 +175,7 @@ namespace CalculateFunding.Services.Specs.Services
                                     Name = "Calc On Policy 1",
                                     CalculationType = CalculationType.Number,
                                     Description = "Testing",
-                                    AllocationLine = new Models.Reference("al2", "Allocation Line 2"),
+                                    AllocationLine = new Reference("al2", "Allocation Line 2"),
                                 }
                             },
                         },
@@ -190,7 +191,7 @@ namespace CalculateFunding.Services.Specs.Services
                                     Name = "Calc Name",
                                     CalculationType =CalculationType.Funding,
                                     Description = "Test",
-                                    AllocationLine = new Models.Reference("al1", "Allocation Line 1"),
+                                    AllocationLine = new Reference("al1", "Allocation Line 1"),
                                 }
                             }
                         }
@@ -231,7 +232,7 @@ namespace CalculateFunding.Services.Specs.Services
                     PolicyName = "Pol2",
                     PolicyId = "pol2",
                     Id = CalculationId,
-                    AllocationLine = new Models.Reference("al1", "Allocation Line 1"),
+                    AllocationLine = new Reference("al1", "Allocation Line 1"),
                     Description = "Test",
                     Name = "Calc Name",
                     CalculationType = CalculationType.Funding,

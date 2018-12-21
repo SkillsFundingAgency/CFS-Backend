@@ -1,4 +1,5 @@
 ﻿using System;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Models.Scenarios

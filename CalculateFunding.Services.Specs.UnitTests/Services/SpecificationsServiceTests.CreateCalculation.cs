@@ -1,31 +1,31 @@
-﻿using AutoMapper;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Specs.Interfaces;
-using FluentValidation;
-using FluentValidation.Results;
-using Serilog;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using Microsoft.Extensions.Primitives;
-using System.Linq.Expressions;
-using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
-using CalculateFunding.Models;
+using System.Linq.Expressions;
 using System.Net;
 using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Specs.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Specs.Services
 {
@@ -324,12 +324,12 @@ namespace CalculateFunding.Services.Specs.Services
                 Name = PolicyName,
             };
 
-	        Specification specification = CreateSpecification();
-	        specification.Current.Policies = new[] {policy};
-		    specification.Current.FundingStreams = new List<Reference>()
-		    {
-			    new Reference {Id = FundingStreamId}
-		    };
+            Specification specification = CreateSpecification();
+            specification.Current.Policies = new[] { policy };
+            specification.Current.FundingStreams = new List<Reference>()
+            {
+                new Reference {Id = FundingStreamId}
+            };
 
             CalculationCreateModel model = new CalculationCreateModel
             {
@@ -396,21 +396,21 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-	        ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
-	        mockSearchRepository
-		        .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-		        .Returns(new List<IndexError>());
+            ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
+            mockSearchRepository
+                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+                .Returns(new List<IndexError>());
 
-	        SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-	        newSpecVersion.PublishStatus = PublishStatus.Updated;
-	        newSpecVersion.Version = 2;
-			IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
-	        mockVersionRepository
-		        .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-		        .Returns(newSpecVersion);
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.PublishStatus = PublishStatus.Updated;
+            newSpecVersion.Version = 2;
+            IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
+            mockVersionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
 
-	        SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
-		        mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
+                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository);
 
 
             //Act
@@ -437,12 +437,12 @@ namespace CalculateFunding.Services.Specs.Services
                             m["user-name"] == Username &&
                             m["sfa-correlationId"] == SfaCorrelationId));
 
-	        await
-		        mockSearchRepository
-			        .Received(1)
-			        .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-				        m => m.First().Id == SpecificationId &&
-				             m.First().Status == newSpecVersion.PublishStatus.ToString()));
+            await
+                mockSearchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
+                        m => m.First().Id == SpecificationId &&
+                             m.First().Status == newSpecVersion.PublishStatus.ToString()));
 
         }
 
@@ -475,14 +475,14 @@ namespace CalculateFunding.Services.Specs.Services
                 Name = PolicyName,
             };
 
-			Specification specification = CreateSpecification();
-	        specification.Current.Policies = new[] { policy };
-	        specification.Current.FundingStreams = new List<Reference>()
-	        {
-		        new Reference {Id = FundingStreamId}
-	        };
+            Specification specification = CreateSpecification();
+            specification.Current.Policies = new[] { policy };
+            specification.Current.FundingStreams = new List<Reference>()
+            {
+                new Reference {Id = FundingStreamId}
+            };
 
-			CalculationCreateModel model = new CalculationCreateModel
+            CalculationCreateModel model = new CalculationCreateModel
             {
                 SpecificationId = SpecificationId,
                 PolicyId = PolicyId,
@@ -547,17 +547,17 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-	        SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-	        newSpecVersion.PublishStatus = PublishStatus.Updated;
-	        newSpecVersion.Version = 2;
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.PublishStatus = PublishStatus.Updated;
+            newSpecVersion.Version = 2;
 
-	        IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
-	        mockVersionRepository
-		        .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-		        .Returns(newSpecVersion);
+            IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
+            mockVersionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
 
-	        SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
-		        mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
+                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -584,137 +584,137 @@ namespace CalculateFunding.Services.Specs.Services
                             m["sfa-correlationId"] == SfaCorrelationId));
         }
 
-		[TestMethod]
-		public void CreateCalculation_WhenSomethingGoesDuringIndexing_ShouldThrowException()
-		{
-			//Arrange
-			const string errorMessage = "Encountered 802 error code";
+        [TestMethod]
+        public void CreateCalculation_WhenSomethingGoesDuringIndexing_ShouldThrowException()
+        {
+            //Arrange
+            const string errorMessage = "Encountered 802 error code";
 
-			AllocationLine allocationLine = new AllocationLine
-			{
-				Id = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345",
-				Name = "test alloctaion"
-			};
+            AllocationLine allocationLine = new AllocationLine
+            {
+                Id = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345",
+                Name = "test alloctaion"
+            };
 
-			List<FundingStream> fundingStreams = new List<FundingStream>();
+            List<FundingStream> fundingStreams = new List<FundingStream>();
 
-			FundingStream fundingStream = new FundingStream
-			{
-				AllocationLines = new List<AllocationLine>
-				{
-					allocationLine
-				},
-				Id = FundingStreamId
-			};
+            FundingStream fundingStream = new FundingStream
+            {
+                AllocationLines = new List<AllocationLine>
+                {
+                    allocationLine
+                },
+                Id = FundingStreamId
+            };
 
-			fundingStreams.Add(fundingStream);
+            fundingStreams.Add(fundingStream);
 
-			Policy policy = new Policy
-			{
-				Id = PolicyId,
-				Name = PolicyName,
-			};
+            Policy policy = new Policy
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
 
-			Specification specification = CreateSpecification();
-			specification.Current.Policies = new[] { policy };
-			specification.Current.FundingStreams = new List<Reference>()
-			{
-				new Reference {Id = FundingStreamId}
-			};
+            Specification specification = CreateSpecification();
+            specification.Current.Policies = new[] { policy };
+            specification.Current.FundingStreams = new List<Reference>()
+            {
+                new Reference {Id = FundingStreamId}
+            };
 
-			CalculationCreateModel model = new CalculationCreateModel
-			{
-				SpecificationId = SpecificationId,
-				PolicyId = PolicyId,
-				AllocationLineId = AllocationLineId
-			};
+            CalculationCreateModel model = new CalculationCreateModel
+            {
+                SpecificationId = SpecificationId,
+                PolicyId = PolicyId,
+                AllocationLineId = AllocationLineId
+            };
 
-			string json = JsonConvert.SerializeObject(model);
-			byte[] byteArray = Encoding.UTF8.GetBytes(json);
-			MemoryStream stream = new MemoryStream(byteArray);
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
 
-			ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-			{
-				new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-			});
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
 
-			HttpContext context = Substitute.For<HttpContext>();
-			context
-				.User
-				.Returns(principle);
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
 
-			HttpRequest request = Substitute.For<HttpRequest>();
-			request
-				.Body
-				.Returns(stream);
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
 
-			request
-				.HttpContext
-				.Returns(context);
+            request
+                .HttpContext
+                .Returns(context);
 
-			IHeaderDictionary headerDictionary = new HeaderDictionary();
-			headerDictionary
-				.Add("sfa-correlationId", new StringValues(SfaCorrelationId));
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("sfa-correlationId", new StringValues(SfaCorrelationId));
 
-			request
-				.Headers
-				.Returns(headerDictionary);
+            request
+                .Headers
+                .Returns(headerDictionary);
 
-			ILogger logger = CreateLogger();
+            ILogger logger = CreateLogger();
 
-			ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-			specificationsRepository
-				.GetSpecificationById(Arg.Is(SpecificationId))
-				.Returns(specification);
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
 
-			specificationsRepository
-				.GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-				.Returns(fundingStreams);
+            specificationsRepository
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+                .Returns(fundingStreams);
 
-			specificationsRepository
-				.UpdateSpecification(Arg.Is(specification))
-				.Returns(HttpStatusCode.OK);
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
 
-			Calculation calculation = new Calculation
-			{
-				AllocationLine = new Reference()
-			};
+            Calculation calculation = new Calculation
+            {
+                AllocationLine = new Reference()
+            };
 
-			IMapper mapper = CreateMapper();
-			mapper
-				.Map<Calculation>(Arg.Any<CalculationCreateModel>())
-				.Returns(calculation);
+            IMapper mapper = CreateMapper();
+            mapper
+                .Map<Calculation>(Arg.Any<CalculationCreateModel>())
+                .Returns(calculation);
 
-			IMessengerService messengerService = CreateMessengerService();
+            IMessengerService messengerService = CreateMessengerService();
 
-			ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
-			mockSearchRepository
-				.Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-				.Returns(new List<IndexError>() { new IndexError(){ErrorMessage = errorMessage } });
+            ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
+            mockSearchRepository
+                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+                .Returns(new List<IndexError>() { new IndexError() { ErrorMessage = errorMessage } });
 
-			SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-			newSpecVersion.PublishStatus = PublishStatus.Updated;
-			newSpecVersion.Version = 2;
-			IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
-			mockVersionRepository
-				.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-				.Returns(newSpecVersion);
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.PublishStatus = PublishStatus.Updated;
+            newSpecVersion.Version = 2;
+            IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
+            mockVersionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
 
-			SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
-				mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
+                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository);
 
 
-			//Act
-			Func<Task<IActionResult>> createCalculation = async () => await service.CreateCalculation(request);
+            //Act
+            Func<Task<IActionResult>> createCalculation = async () => await service.CreateCalculation(request);
 
-			//Assert
-			createCalculation
-				.Should()
-				.Throw<ApplicationException>()
-				.Which
-				.Message
-				.Should()
-				.Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
-		}
-	}
+            //Assert
+            createCalculation
+                .Should()
+                .Throw<ApplicationException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
+        }
+    }
 }

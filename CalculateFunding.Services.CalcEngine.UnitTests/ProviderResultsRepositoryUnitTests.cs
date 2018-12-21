@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Repositories.Common.Cosmos.Interfaces;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -49,7 +50,7 @@ namespace CalculateFunding.Services.Calculator
                     {
                         new AllocationLineResult
                         {
-                            AllocationLine = new Models.Reference{ Id = "alloc 1", Name = "Allocation one" },
+                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
                             Value = 1112.3M
                         }
                     },
@@ -57,9 +58,9 @@ namespace CalculateFunding.Services.Calculator
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Models.Reference { Id = "alloc1", Name = "Allocation one" },
-                            Calculation = new Models.Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Models.Reference { Id = "calc1", Name = "calculation one" },
+                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
+                            Calculation = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Funding,
                             Value = 1112.3M
                         }
@@ -105,7 +106,7 @@ namespace CalculateFunding.Services.Calculator
                     {
                         new AllocationLineResult
                         {
-                            AllocationLine = new Models.Reference{ Id = "alloc 1", Name = "Allocation one" },
+                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
                             Value = 1112.3M
                         }
                     },
@@ -113,9 +114,9 @@ namespace CalculateFunding.Services.Calculator
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Models.Reference { Id = "alloc1", Name = "Allocation one" },
-                            Calculation = new Models.Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Models.Reference { Id = "calc1", Name = "calculation one" },
+                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
+                            Calculation = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Funding,
                             Value = 1112.3M
                         }
@@ -182,7 +183,7 @@ namespace CalculateFunding.Services.Calculator
                     {
                         new AllocationLineResult
                         {
-                            AllocationLine = new Models.Reference{ Id = "alloc 1", Name = "Allocation one" },
+                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
                             Value = 1112.3M
                         }
                     },
@@ -190,9 +191,9 @@ namespace CalculateFunding.Services.Calculator
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Models.Reference { Id = "alloc1", Name = "Allocation one" },
-                            Calculation = new Models.Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Models.Reference { Id = "calc1", Name = "calculation one" },
+                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
+                            Calculation = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Funding,
                             Value = null
                         }
@@ -238,7 +239,7 @@ namespace CalculateFunding.Services.Calculator
                     {
                         new AllocationLineResult
                         {
-                            AllocationLine = new Models.Reference{ Id = "alloc 1", Name = "Allocation one" },
+                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
                             Value = 1112.3M
                         }
                     },
@@ -246,9 +247,9 @@ namespace CalculateFunding.Services.Calculator
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Models.Reference { Id = "alloc1", Name = "Allocation one" },
-                            Calculation = new Models.Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Models.Reference { Id = "calc1", Name = "calculation one" },
+                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
+                            Calculation = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Funding,
                             Value = null
                         }

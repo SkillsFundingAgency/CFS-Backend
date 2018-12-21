@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -207,7 +205,7 @@ namespace CalculateFunding.Services.Calculator
 
             foreach (var property in type.GetProperties().Where(x => x.CanWrite).ToArray())
             {
-                
+
                 switch (property.Name)
                 {
                     case "DateOpened":

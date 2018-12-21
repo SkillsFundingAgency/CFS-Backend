@@ -1,7 +1,6 @@
-﻿using CalculateFunding.Models.Versioning;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Versioning;
 
 namespace CalculateFunding.Models.Datasets.ViewModels
 {

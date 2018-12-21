@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Repositories.Common.Cosmos;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
 {

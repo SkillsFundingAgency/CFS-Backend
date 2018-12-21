@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -275,7 +274,7 @@ namespace CalculateFunding.Services.Calculator
                     Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
                     Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
                 .Returns(new ProviderResult()
-                {});
+                { });
 
             calculationEngineServiceTestsHelper
                 .MockEngineSettings
@@ -669,7 +668,7 @@ namespace CalculateFunding.Services.Calculator
                 .Message
                 .Should()
                 .Be($"Could not find the parent job with job id: '{jobId}'");
-               
+
             await
                 calculationEngineServiceTestsHelper
                     .MockJobsRepository
@@ -763,9 +762,9 @@ namespace CalculateFunding.Services.Calculator
                     {
                         CalculationResults = new List<CalculationResult>
                         {
-                            new CalculationResult { Value = 10, Calculation = new Models.Reference { Name = "Calc1" } },
-                            new CalculationResult { Value = 20, Calculation = new Models.Reference { Name = "Calc2" } },
-                            new CalculationResult { Value = 30, Calculation = new Models.Reference { Name = "Calc3" } }
+                            new CalculationResult { Value = 10, Calculation = new Reference { Name = "Calc1" } },
+                            new CalculationResult { Value = 20, Calculation = new Reference { Name = "Calc2" } },
+                            new CalculationResult { Value = 30, Calculation = new Reference { Name = "Calc3" } }
                         }
                     });
 
@@ -810,7 +809,7 @@ namespace CalculateFunding.Services.Calculator
                     .Received()
                     .SetAsync<Dictionary<string, List<decimal>>>(Arg.Any<string>(),
                         Arg.Is<Dictionary<string, List<decimal>>>(
-                            m => m.Count == 3 && 
+                            m => m.Count == 3 &&
                                  m["Calc1"].Count == 20 &&
                                  m["Calc2"].Count == 20 &&
                                  m["Calc3"].Count == 20
@@ -1143,7 +1142,7 @@ namespace CalculateFunding.Services.Calculator
                 .FeatureToggle
                 .IsJobServiceEnabled()
                 .Returns(true);
-;
+            ;
             Message message = new Message();
             message.UserProperties.Add("jobId", jobId);
 

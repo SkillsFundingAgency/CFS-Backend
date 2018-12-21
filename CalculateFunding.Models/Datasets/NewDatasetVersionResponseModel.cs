@@ -1,8 +1,10 @@
-﻿namespace CalculateFunding.Models.Datasets
+﻿using CalculateFunding.Common.Models;
+
+namespace CalculateFunding.Models.Datasets
 {
     public class NewDatasetVersionResponseModel : CreateNewDatasetModel
     {
-        public string BlobUrl { get; set;  }
+        public string BlobUrl { get; set; }
 
         public string DatasetId { get; set; }
 

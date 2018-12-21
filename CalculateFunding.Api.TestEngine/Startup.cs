@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
@@ -21,12 +17,9 @@ using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Bulkhead;
 

@@ -1,8 +1,6 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Calcs
 {

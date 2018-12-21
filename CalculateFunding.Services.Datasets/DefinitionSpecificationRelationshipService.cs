@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Datasets
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
             ILogger logger, ISpecificationsRepository specificationsRepository,
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator,
-            IMessengerService messengerService, IDatasetService datasetService, 
+            IMessengerService messengerService, IDatasetService datasetService,
             ICalcsRepository calcsRepository, IDefinitionsService definitionService, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
@@ -407,7 +407,7 @@ namespace CalculateFunding.Services.Datasets
 
             IList<DatasetSchemaRelationshipModel> schemaRelationshipModels = new List<DatasetSchemaRelationshipModel>();
 
-            foreach(DefinitionSpecificationRelationship definitionSpecificationRelationship in relationships)
+            foreach (DefinitionSpecificationRelationship definitionSpecificationRelationship in relationships)
             {
                 string relationshipName = definitionSpecificationRelationship.Name;
                 string datasetName = VisualBasicTypeGenerator.GenerateIdentifier(relationshipName);
@@ -420,10 +420,10 @@ namespace CalculateFunding.Services.Datasets
                     RelationshipName = relationshipName,
                     Fields = datasetDefinition.TableDefinitions.SelectMany(m => m.FieldDefinitions.Select(f => new DatasetSchemaRelationshipField
                     {
-                         Name = f.Name,
-                         SourceName = VisualBasicTypeGenerator.GenerateIdentifier(f.Name),
-                         SourceRelationshipName = datasetName,
-                         IsAggregable = f.IsAggregable
+                        Name = f.Name,
+                        SourceName = VisualBasicTypeGenerator.GenerateIdentifier(f.Name),
+                        SourceRelationshipName = datasetName,
+                        IsAggregable = f.IsAggregable
                     }))
                 });
             }
@@ -433,12 +433,12 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(DefinitionSpecificationRelationship relationship)
         {
-			DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel
-			{
-				Id = relationship.Id,
-				Name = relationship.Name,
-				RelationshipDescription = relationship.Description,
-				IsProviderData = relationship.IsSetAsProviderData
+            DatasetSpecificationRelationshipViewModel relationshipViewModel = new DatasetSpecificationRelationshipViewModel
+            {
+                Id = relationship.Id,
+                Name = relationship.Name,
+                RelationshipDescription = relationship.Description,
+                IsProviderData = relationship.IsSetAsProviderData
             };
 
             if (relationship.DatasetVersion != null)

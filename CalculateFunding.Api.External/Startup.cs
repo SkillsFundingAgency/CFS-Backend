@@ -5,12 +5,12 @@ using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -63,7 +63,7 @@ namespace CalculateFunding.Api.External
                     options.Audience = azureADConfig.GetValue<string>("Audience");
                 });
 
-            services.AddMvcCore().AddVersionedApiExplorer(
+            services.AddVersionedApiExplorer(
                 options =>
                 {
                     options.GroupNameFormat = "'v'VVV";

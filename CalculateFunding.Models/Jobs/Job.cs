@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Jobs

@@ -7,18 +7,11 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Models;
-using CalculateFunding.Models.Calcs;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
 using FluentValidation;
@@ -26,7 +19,6 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -411,6 +403,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should()
                 .Be(1);
         }
+
 
         [TestMethod]
         public async Task DownloadDatasetFile_GivenNoDatasetIdProvided_ReturnsBadRequest()

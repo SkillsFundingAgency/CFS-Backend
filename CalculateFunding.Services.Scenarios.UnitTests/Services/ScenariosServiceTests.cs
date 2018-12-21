@@ -1,35 +1,34 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using NSubstitute;
-using Serilog;
-using CalculateFunding.Services.Scenarios.Interfaces;
-using FluentValidation;
-using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Repositories.Common.Search;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using Newtonsoft.Json;
 using System.IO;
-using FluentValidation.Results;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Models;
-using System.Net;
 using System.Linq;
-using CalculateFunding.Models.Results;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Versioning;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Scenarios.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.Extensions.Primitives;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Versioning;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Models.Gherkin;
-using CalculateFunding.Services.Core.Interfaces;
+using Microsoft.Extensions.Primitives;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -919,7 +918,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             ILogger logger = CreateLogger();
-            
+
             IEnumerable<TestScenario> scenarios = new[]
             {
                 new TestScenario
@@ -1047,7 +1046,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             TestScenarioVersion testScenarioVersion = testScenarios.ElementAt(1).Current.Clone() as TestScenarioVersion;
             testScenarioVersion.Gherkin = expectedChangedGherkin;
-            
+
             versionRepository
                 .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
                 .Returns(testScenarioVersion);
@@ -1159,14 +1158,14 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             TestScenarioVersion testScenarioVersion1 = testScenarios.ElementAt(0).Current.Clone() as TestScenarioVersion;
             testScenarioVersion1.Gherkin = expectedChangedGherkin;
-            
+
             TestScenarioVersion testScenarioVersion2 = testScenarios.ElementAt(1).Current.Clone() as TestScenarioVersion;
             testScenarioVersion2.Gherkin = expectedChangedGherkin2;
 
             versionRepository
                 .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
                 .Returns(testScenarioVersion1, testScenarioVersion2);
-                
+
             // Act
             int updateCount = await service.UpdateTestScenarioCalculationGherkin(comparison);
 
@@ -1216,7 +1215,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
             IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
 
-            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider : cacheProvider, versionRepository: versionRepository);
+            ScenariosService service = CreateScenariosService(scenariosRepository: scenariosRepository, cacheProvider: cacheProvider, versionRepository: versionRepository);
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
@@ -1598,7 +1597,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
         static ScenariosService CreateScenariosService(ILogger logger = null, IScenariosRepository scenariosRepository = null,
            ISpecificationsRepository specificationsRepository = null, IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
-           ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null, IMessengerService messengerService = null, 
+           ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null, IMessengerService messengerService = null,
            IBuildProjectRepository buildProjectRepository = null, IVersionRepository<TestScenarioVersion> versionRepository = null)
         {
             return new ScenariosService(logger ?? CreateLogger(), scenariosRepository ?? CreateScenariosRepository(), specificationsRepository ?? CreateSpecificationsRepository(),
@@ -1645,7 +1644,9 @@ namespace CalculateFunding.Services.Scenarios.Services
         static IValidator<CreateNewTestScenarioVersion> CreateValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<CreateNewTestScenarioVersion> validator = Substitute.For<IValidator<CreateNewTestScenarioVersion>>();
 

@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
@@ -122,6 +122,6 @@ namespace CalculateFunding.Api.Specs
             builder.AddHttpContextAccessor();
 
             builder.AddHealthCheckMiddleware();
-        } 
+        }
     }
 }

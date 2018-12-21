@@ -1,14 +1,15 @@
-﻿using CalculateFunding.Models.Health;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Scenarios.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios
 {
@@ -25,7 +26,7 @@ namespace CalculateFunding.Services.Scenarios
         public async Task<ServiceHealth> IsHealthOk()
         {
             var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
-            
+
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(ScenariosRepository)
@@ -54,7 +55,9 @@ namespace CalculateFunding.Services.Scenarios
             DocumentEntity<TestScenario> scenario = await _cosmosRepository.ReadAsync<TestScenario>(testScenarioId);
 
             if (scenario == null)
+            {
                 return null;
+            }
 
             CurrentTestScenario currentTestScenario = new CurrentTestScenario
             {

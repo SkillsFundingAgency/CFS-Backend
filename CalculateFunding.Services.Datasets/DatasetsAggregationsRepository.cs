@@ -1,13 +1,11 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Health;
-using CalculateFunding.Repositories.Common.Cosmos;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
 {
