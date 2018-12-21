@@ -290,8 +290,6 @@ namespace CalculateFunding.Services.Datasets.Services
                .Be(UserId);
         }
 
-
-
         [TestMethod]
         async public Task GetDatasetsByDefinitionId_WhenNoDefinitionIdIsProvided_ReturnsBadRequest()
         {
@@ -414,7 +412,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Be(1);
         }
 
-       
         [TestMethod]
         public async Task DownloadDatasetFile_GivenNoDatasetIdProvided_ReturnsBadRequest()
         {

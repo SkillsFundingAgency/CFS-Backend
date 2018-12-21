@@ -191,6 +191,9 @@ namespace CalculateFunding.Services.Datasets
                     SpecificationNames = m.Result.SpecificationNames,
                     Description = m.Result.Description,
                     Version = m.Result.Version,
+                    ChangeNote = m.Result.ChangeNote,
+                    LastUpdatedByName = m.Result.LastUpdatedByName,
+                    LastUpdatedById = m.Result.LastUpdatedById
                 });
             }
         }

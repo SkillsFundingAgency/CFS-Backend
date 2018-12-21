@@ -22,5 +22,11 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public IEnumerable<string> SpecificationNames { get; set; }
 
         public int Version { get; set; }
+
+        public string ChangeNote { get; set; }
+
+        public string LastUpdatedByName { get; set; }
+
+        public string LastUpdatedById { get; set; }
     }
 }

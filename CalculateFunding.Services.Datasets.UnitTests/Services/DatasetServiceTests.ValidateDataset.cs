@@ -926,7 +926,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "authorId", authorId },
                     { "datasetId", datasetId },
                     { "name", name },
-                    { "description", description },
+                    { "description", description }
                 };
 
             GetDatasetBlobModel model = new GetDatasetBlobModel
@@ -1010,7 +1010,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
-                d.Current.Commment == null
+                string.IsNullOrWhiteSpace(d.Current.Commment)
                 ));
 
             // Ensure the rest of the properties are set
@@ -1033,8 +1033,11 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().Name == name &&
                     d.First().Status == "Draft" &&
                     d.First().Version == 1 &&
-                    d.First().Description == description
-                    ));
+                    d.First().Description == description &&
+                    d.First().LastUpdatedById == authorId &&
+                    d.First().LastUpdatedByName == authorName &&
+                    d.First().ChangeNote == ""
+              ));
 
             await cacheProvider
                  .Received(1)
@@ -1074,6 +1077,7 @@ namespace CalculateFunding.Services.Datasets.Services
                     { "datasetId", datasetId },
                     { "name", name },
                     { "description", initialDescription },
+                    { "comment", updateComment },
                 };
 
             GetDatasetBlobModel model = new GetDatasetBlobModel
@@ -1216,7 +1220,10 @@ namespace CalculateFunding.Services.Datasets.Services
                     d.First().Name == name &&
                     d.First().Status == "Draft" &&
                     d.First().Version == 2 &&
-                    d.First().Description == updatedDescription
+                    d.First().Description == updatedDescription &&
+                     d.First().LastUpdatedById == authorId &&
+                    d.First().LastUpdatedByName == authorName &&
+                    d.First().ChangeNote == updateComment
                     ));
 
             await cacheProvider

@@ -22,6 +22,9 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("description")]
         public string Description { get; set; }
 
+        [JsonProperty("changeNote")]
+        public string ChangeNote { get; set; }
+
         [IsFacetable, IsFilterable]
         [JsonProperty("version")]
         public int Version { get; set; }
@@ -48,6 +51,12 @@ namespace CalculateFunding.Models.Datasets
         [IsFilterable, IsSortable]
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }
+
+        [JsonProperty("lastUpdatedByName")]
+        public string LastUpdatedByName { get; set; }
+
+        [JsonProperty("lastUpdatedById")]
+        public string LastUpdatedById{ get; set; }
 
         [JsonProperty("specificationIds")]
         public string[] SpecificationIds { get; set; }

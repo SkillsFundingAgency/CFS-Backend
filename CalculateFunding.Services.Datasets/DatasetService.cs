@@ -603,6 +603,9 @@ namespace CalculateFunding.Services.Datasets
                     Status = Enum.GetName(typeof(PublishStatus), dataset.Content.Current.PublishStatus),
                     Description = dataset.Content.Description,
                     Version = dataset.Content.Current.Version,
+                    ChangeNote = dataset.Content.Current.Commment,
+                    LastUpdatedByName = dataset.Content.Current.Author?.Name,
+                    LastUpdatedById = dataset.Content.Current.Author?.Id
                 };
 
                 searchEntries.Add(datasetIndex);
@@ -688,6 +691,7 @@ namespace CalculateFunding.Services.Datasets
             metadataModel.DataDefinitionId = metadata.ContainsKey("dataDefinitionId") ? metadata["dataDefinitionId"] : string.Empty;
             metadataModel.Name = metadata.ContainsKey("name") ? metadata["name"] : string.Empty;
             metadataModel.Description = metadata.ContainsKey("description") ? HttpUtility.UrlDecode(metadata["description"]) : string.Empty;
+            metadataModel.Comment = metadata.ContainsKey("comment") ? metadata["comment"] : string.Empty;
 
             var validationResult = await _datasetMetadataModelValidator.ValidateAsync(metadataModel);
 
@@ -706,6 +710,7 @@ namespace CalculateFunding.Services.Datasets
                 PublishStatus = PublishStatus.Draft,
                 BlobName = blob.Name,
                 RowCount = rowCount,
+                Commment = metadataModel.Comment
             };
 
             Dataset dataset = new Dataset
@@ -821,6 +826,9 @@ namespace CalculateFunding.Services.Datasets
                     LastUpdatedDate = DateTimeOffset.Now,
                     Description = dataset.Description,
                     Version = dataset.Current.Version,
+                    ChangeNote = dataset.Current.Commment,
+                    LastUpdatedById = dataset.Current.Author?.Id,
+                    LastUpdatedByName = dataset.Current.Author?.Name
                 }
             });
         }
