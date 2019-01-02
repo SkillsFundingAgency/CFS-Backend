@@ -243,10 +243,16 @@
         "description": "The identifier of the Azure AD Tenant."
       }
     },
-    "AzureAdAudience": {
+    "AzureAdAudienceExternal": {
       "type": "string",
       "metadata": {
         "description": "The identifier of the audience used by the External Api."
+      }
+    },
+	  "AzureAdAudienceProfiling": {
+      "type": "string",
+      "metadata": {
+        "description": "The identifier of the audience used by the Profiling Api."
       }
     },
     "AzureAdAuthority": {
@@ -2751,7 +2757,7 @@
             },
             {
               "name": "AzureAd:Audience",
-              "value": "[parameters('AzureAdAudience')]"
+              "value": "[parameters('AzureAdAudienceExternal')]"
             },
             {
               "name": "AzureAd:Authority",
@@ -3490,6 +3496,18 @@
             {
               "name": "WEBSITE_RUN_FROM_PACKAGE",
               "value": "1"
+            },
+            {
+              "name": "AzureAd:TenantId",
+              "value": "[parameters('AzureAdTenantId')]"
+            },
+            {
+              "name": "AzureAd:Audience",
+              "value": "[parameters('AzureAdAudienceProfiling')]"
+            },
+            {
+              "name": "AzureAd:Authority",
+              "value": "[parameters('AzureAdAuthority')]"
             }
           ]
         }
