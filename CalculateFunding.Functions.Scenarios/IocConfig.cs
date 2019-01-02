@@ -2,7 +2,9 @@
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Scenarios;
 using CalculateFunding.Services.Scenarios.Interfaces;
@@ -10,6 +12,8 @@ using CalculateFunding.Services.Scenarios.Validators;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Polly.Bulkhead;
 
 namespace CalculateFunding.Functions.Scenarios
 {
@@ -49,6 +53,12 @@ namespace CalculateFunding.Functions.Scenarios
             builder
                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
+            builder
+              .AddSingleton<IJobsRepository, JobsRepository>();
+
+            builder
+              .AddSingleton<ICalcsRepository, CalcsRepository>();
+
             builder.AddSingleton<IVersionRepository<TestScenarioVersion>, VersionRepository<TestScenarioVersion>>((ctx) =>
             {
                 CosmosDbSettings scenariosVersioningDbSettings = new CosmosDbSettings();
@@ -74,6 +84,8 @@ namespace CalculateFunding.Functions.Scenarios
                 builder.AddCosmosDb(config);
             }
 
+            builder.AddJobsInterServiceClient(config);
+
             builder.AddSearch(config);
 
             builder.AddServiceBus(config);
@@ -85,6 +97,25 @@ namespace CalculateFunding.Functions.Scenarios
             builder.AddLogging("CalculateFunding.Functions.Scenarios");
 
             builder.AddTelemetry();
+
+            builder.AddFeatureToggling(config);
+
+            builder.AddPolicySettings(config);
+
+            builder.AddSingleton<IScenariosResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                Policy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
+
+                return new ScenariosResiliencePolicies()
+                {
+                    CalcsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+            });
         }
     }
 }

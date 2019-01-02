@@ -5,14 +5,18 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -39,7 +43,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         const string name = "scenario name";
         const string description = "scenario description";
         const string scenario = "scenario";
-        const string scenarioid = "scenario-id";
+        const string scenarioId = "scenario-id";
 
         [TestMethod]
         async public Task SaveVersion_GivenNullScenarioVersion_ReturnsBadRequestObject()
@@ -294,7 +298,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
-            model.Id = scenarioid;
+            model.Id = scenarioId;
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -319,7 +323,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             TestScenario testScenario = new TestScenario
             {
-                Id = scenarioid,
+                Id = scenarioId,
                 SpecificationId = specificationId,
                 Name = name,
                 Current = new TestScenarioVersion()
@@ -332,7 +336,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
-                .GetTestScenarioById(Arg.Is(scenarioid))
+                .GetTestScenarioById(Arg.Is(scenarioId))
                 .Returns(testScenario);
 
             scenariosRepository
@@ -393,7 +397,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
-            model.Id = scenarioid;
+            model.Id = scenarioId;
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -426,7 +430,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             TestScenario testScenario = new TestScenario
             {
-                Id = scenarioid,
+                Id = scenarioId,
                 SpecificationId = specificationId,
                 Name = name,
                 Current = testScenarioVersion
@@ -434,7 +438,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
-                .GetTestScenarioById(Arg.Is(scenarioid))
+                .GetTestScenarioById(Arg.Is(scenarioId))
                 .Returns(testScenario);
 
             scenariosRepository
@@ -467,7 +471,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
-            model.Id = scenarioid;
+            model.Id = scenarioId;
             model.Scenario = "updated gherkin";
 
             string json = JsonConvert.SerializeObject(model);
@@ -501,7 +505,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             TestScenario testScenario = new TestScenario
             {
-                Id = scenarioid,
+                Id = scenarioId,
                 SpecificationId = specificationId,
                 Name = name,
                 Current = testScenarioVersion
@@ -509,7 +513,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
-                .GetTestScenarioById(Arg.Is(scenarioid))
+                .GetTestScenarioById(Arg.Is(scenarioId))
                 .Returns(testScenario);
 
             scenariosRepository
@@ -544,7 +548,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             await scenariosRepository
                 .Received(1)
-                .GetCurrentTestScenarioById(Arg.Is(scenarioid));
+                .GetCurrentTestScenarioById(Arg.Is(scenarioId));
 
             await
               versionRepository
@@ -557,7 +561,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
-            model.Id = scenarioid;
+            model.Id = scenarioId;
             model.Description = "updated description";
 
             string json = JsonConvert.SerializeObject(model);
@@ -591,7 +595,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             TestScenario testScenario = new TestScenario
             {
-                Id = scenarioid,
+                Id = scenarioId,
                 SpecificationId = specificationId,
                 Name = name,
                 Current = testScenarioVersion
@@ -599,7 +603,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
-                .GetTestScenarioById(Arg.Is(scenarioid))
+                .GetTestScenarioById(Arg.Is(scenarioId))
                 .Returns(testScenario);
 
             scenariosRepository
@@ -633,12 +637,484 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             await scenariosRepository
                 .Received(1)
-                .GetCurrentTestScenarioById(Arg.Is(scenarioid));
+                .GetCurrentTestScenarioById(Arg.Is(scenarioId));
 
             await
               versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(testScenarioVersion));
+        }
+
+        [TestMethod]
+        async public Task SaveVersion_GivenIsJobServiceFeatureToggleEnabledButNoCalculationsFound_DoesNotCreateAllocationsJob()
+        {
+            //Arrange
+            CreateNewTestScenarioVersion model = CreateModel();
+            model.Id = scenarioId;
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
+                FundingPeriod = new Reference("period-id", "period name")
+            };
+
+            TestScenario testScenario = new TestScenario
+            {
+                Id = scenarioId,
+                SpecificationId = specificationId,
+                Name = name,
+                Current = new TestScenarioVersion()
+                {
+                    Description = description,
+                    FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                }
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioId))
+                .Returns(testScenario);
+
+            scenariosRepository
+                .SaveTestScenario(Arg.Any<TestScenario>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
+
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns((IEnumerable<Models.Calcs.CalculationCurrentVersion>)null);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+
+            ScenariosService service = CreateScenariosService(logger: logger,
+                scenariosRepository: scenariosRepository,
+                searchRepository: searchrepository,
+                specificationsRepository: specificationsRepository,
+                versionRepository: versionRepository,
+                featureToggle: featureToggle,
+                calcsRepository: calcsRepository,
+                jobsRepository: jobsRepository);
+
+            //Act
+            IActionResult result = await service.SaveVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await
+                jobsRepository
+                .DidNotReceive()
+                .CreateJob(Arg.Any<JobCreateModel>());
+
+            logger
+                .Received(1)
+                .Information($"No calculations found to test for specification id: '{specificationId}'");  
+        }
+
+        [TestMethod]
+        async public Task SaveVersion_GivenIsJobServiceFeatureToggleEnabledButCreatingJobThrowsException_ReturnsIntrenalServerError()
+        {
+            //Arrange
+            CreateNewTestScenarioVersion model = CreateModel();
+            model.Id = scenarioId;
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
+                FundingPeriod = new Reference("period-id", "period name")
+            };
+
+            TestScenario testScenario = new TestScenario
+            {
+                Id = scenarioId,
+                SpecificationId = specificationId,
+                Name = name,
+                Current = new TestScenarioVersion()
+                {
+                    Description = description,
+                    FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                }
+            };
+
+            IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = new[]
+            {
+                new Models.Calcs.CalculationCurrentVersion
+                {
+                    SourceCode = "return 100"
+                }
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioId))
+                .Returns(testScenario);
+
+            scenariosRepository
+                .SaveTestScenario(Arg.Any<TestScenario>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
+
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calculations);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .When(x => x.CreateJob(Arg.Any<JobCreateModel>()))
+                .Do(x => { throw new Exception(); });
+
+            ScenariosService service = CreateScenariosService(logger: logger,
+                scenariosRepository: scenariosRepository,
+                searchRepository: searchrepository,
+                specificationsRepository: specificationsRepository,
+                versionRepository: versionRepository,
+                featureToggle: featureToggle,
+                calcsRepository: calcsRepository,
+                jobsRepository: jobsRepository);
+
+            //Act
+            IActionResult result = await service.SaveVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
+                .Should()
+                .Be($"An error occurred attempting to execute calculations prior to running tests on specification '{specificationId}'");
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'"));
+        }
+
+        [TestMethod]
+        async public Task SaveVersion_GivenIsJobServiceFeatureToggleEnabledAndJobCreatedForNonAggregatedCalculation_ReturnsOKResult()
+        {
+            //Arrange
+            CreateNewTestScenarioVersion model = CreateModel();
+            model.Id = scenarioId;
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
+                FundingPeriod = new Reference("period-id", "period name")
+            };
+
+            TestScenario testScenario = new TestScenario
+            {
+                Id = scenarioId,
+                SpecificationId = specificationId,
+                Name = name,
+                Current = new TestScenarioVersion()
+                {
+                    Description = description,
+                    FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                }
+            };
+
+            IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = new[]
+            {
+                new Models.Calcs.CalculationCurrentVersion
+                {
+                    SourceCode = "return 100"
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                Id = "job-id-1"
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioId))
+                .Returns(testScenario);
+
+            scenariosRepository
+                .SaveTestScenario(Arg.Any<TestScenario>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
+
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calculations);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(job);
+
+            ScenariosService service = CreateScenariosService(logger: logger,
+                scenariosRepository: scenariosRepository,
+                searchRepository: searchrepository,
+                specificationsRepository: specificationsRepository,
+                versionRepository: versionRepository,
+                featureToggle: featureToggle,
+                calcsRepository: calcsRepository,
+                jobsRepository: jobsRepository);
+
+            //Act
+            IActionResult result = await service.SaveVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+               
+            logger
+                .Received(1)
+                .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'"));
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(m => 
+                        m.SpecificationId == specificationId && 
+                        m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                        !string.IsNullOrWhiteSpace(m.CorrelationId) &&
+                        m.Properties["specification-id"] == specificationId &&
+                        m.Properties.ContainsKey("ignore-save-provider-results") &&
+                        m.Trigger.EntityId == scenarioId &&
+                        m.Trigger.EntityType == nameof(TestScenario) &&
+                        m.Trigger.Message == $"Saving test scenario: '{scenarioId}'"));
+        }
+
+        [TestMethod]
+        async public Task SaveVersion_GivenIsJobServiceFeatureToggleEnabledAndJobCreatedForAggregatedCalculation_ReturnsOKResult()
+        {
+            //Arrange
+            CreateNewTestScenarioVersion model = CreateModel();
+            model.Id = scenarioId;
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                FundingStreams = new List<Reference>()
+                {
+                    new Reference("fs-id", "fs-name"),
+                },
+                FundingPeriod = new Reference("period-id", "period name")
+            };
+
+            TestScenario testScenario = new TestScenario
+            {
+                Id = scenarioId,
+                SpecificationId = specificationId,
+                Name = name,
+                Current = new TestScenarioVersion()
+                {
+                    Description = description,
+                    FundingStreamIds = specification.FundingStreams.Select(s => s.Id),
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                }
+            };
+
+            IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = new[]
+            {
+                new Models.Calcs.CalculationCurrentVersion
+                {
+                    SourceCode = "return Sum(Calc1)"
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob,
+                Id = "job-id-1"
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenarioById(Arg.Is(scenarioId))
+                .Returns(testScenario);
+
+            scenariosRepository
+                .SaveTestScenario(Arg.Any<TestScenario>())
+                .Returns(HttpStatusCode.OK);
+
+            ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
+
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
+                .Returns(testScenarioVersion);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(calculations);
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(job);
+
+            ScenariosService service = CreateScenariosService(logger: logger,
+                scenariosRepository: scenariosRepository,
+                searchRepository: searchrepository,
+                specificationsRepository: specificationsRepository,
+                versionRepository: versionRepository,
+                featureToggle: featureToggle,
+                calcsRepository: calcsRepository,
+                jobsRepository: jobsRepository);
+
+            //Act
+            IActionResult result = await service.SaveVersion(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob}' created with id: '{job.Id}'"));
+
+            await
+                jobsRepository
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(m =>
+                        m.SpecificationId == specificationId &&
+                        m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob &&
+                        !string.IsNullOrWhiteSpace(m.CorrelationId) &&
+                        m.Properties["specification-id"] == specificationId &&
+                        m.Properties.ContainsKey("ignore-save-provider-results") &&
+                        m.Trigger.EntityId == scenarioId &&
+                        m.Trigger.EntityType == nameof(TestScenario) &&
+                        m.Trigger.Message == $"Saving test scenario: '{scenarioId}'"));
         }
 
         [TestMethod]
@@ -670,7 +1146,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                { "scenarioId", new StringValues(scenarioid) }
+                { "scenarioId", new StringValues(scenarioId) }
 
             });
 
@@ -683,7 +1159,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
-                .GetTestScenarioById(Arg.Is(scenarioid))
+                .GetTestScenarioById(Arg.Is(scenarioId))
                 .Returns((TestScenario)null);
 
             ScenariosService service = CreateScenariosService(logger, scenariosRepository);
@@ -703,7 +1179,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                { "scenarioId", new StringValues(scenarioid) }
+                { "scenarioId", new StringValues(scenarioId) }
 
             });
 
@@ -716,7 +1192,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
-                .GetTestScenarioById(Arg.Is(scenarioid))
+                .GetTestScenarioById(Arg.Is(scenarioId))
                 .Returns(new TestScenario());
 
             ScenariosService service = CreateScenariosService(logger, scenariosRepository);
@@ -759,7 +1235,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                { "scenarioId", new StringValues(scenarioid) }
+                { "scenarioId", new StringValues(scenarioId) }
             });
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -771,7 +1247,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
-                .GetCurrentTestScenarioById(Arg.Is(scenarioid))
+                .GetCurrentTestScenarioById(Arg.Is(scenarioId))
                 .Returns((CurrentTestScenario)null);
 
             ScenariosService service = CreateScenariosService(logger, scenariosRepository);
@@ -791,7 +1267,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                { "scenarioId", new StringValues(scenarioid) }
+                { "scenarioId", new StringValues(scenarioId) }
             });
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -803,7 +1279,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
-                .GetCurrentTestScenarioById(Arg.Is(scenarioid))
+                .GetCurrentTestScenarioById(Arg.Is(scenarioId))
                 .Returns(new CurrentTestScenario());
 
             ScenariosService service = CreateScenariosService(logger, scenariosRepository);
@@ -1595,15 +2071,35 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Warning("Null or invalid SpecificationId provided to UpdateScenarioForCalculation");
         }
 
-        static ScenariosService CreateScenariosService(ILogger logger = null, IScenariosRepository scenariosRepository = null,
-           ISpecificationsRepository specificationsRepository = null, IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
-           ISearchRepository<ScenarioIndex> searchRepository = null, ICacheProvider cacheProvider = null, IMessengerService messengerService = null,
-           IBuildProjectRepository buildProjectRepository = null, IVersionRepository<TestScenarioVersion> versionRepository = null)
+        static ScenariosService CreateScenariosService(
+            ILogger logger = null, 
+            IScenariosRepository scenariosRepository = null,
+            ISpecificationsRepository specificationsRepository = null, 
+            IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
+            ISearchRepository<ScenarioIndex> searchRepository = null, 
+            ICacheProvider cacheProvider = null, 
+            IMessengerService messengerService = null,
+            IBuildProjectRepository buildProjectRepository = null, 
+            IVersionRepository<TestScenarioVersion> versionRepository = null,
+            IJobsRepository jobsRepository = null,
+            IFeatureToggle featureToggle = null,
+            ICalcsRepository calcsRepository = null,
+            IScenariosResiliencePolicies scenariosResiliencePolicies = null)
         {
-            return new ScenariosService(logger ?? CreateLogger(), scenariosRepository ?? CreateScenariosRepository(), specificationsRepository ?? CreateSpecificationsRepository(),
-                createNewTestScenarioVersionValidator ?? CreateValidator(), searchRepository ?? CreateSearchRepository(),
-                cacheProvider ?? CreateCacheProvider(), messengerService ?? CreateMessengerService(), buildProjectRepository ?? CreateBuildProjectRepository(),
-                versionRepository ?? CreateVersionRepository());
+            return new ScenariosService(
+                logger ?? CreateLogger(), 
+                scenariosRepository ?? CreateScenariosRepository(), 
+                specificationsRepository ?? CreateSpecificationsRepository(),
+                createNewTestScenarioVersionValidator ?? CreateValidator(), 
+                searchRepository ?? CreateSearchRepository(),
+                cacheProvider ?? CreateCacheProvider(), 
+                messengerService ?? CreateMessengerService(), 
+                buildProjectRepository ?? CreateBuildProjectRepository(),
+                versionRepository ?? CreateVersionRepository(),
+                jobsRepository ?? CreateJobsRepository(),
+                featureToggle ?? CreateFeatureToggle(),
+                calcsRepository ?? CreateCalcsRepository(),
+                scenariosResiliencePolicies ?? ScenariosResilienceTestHelper.GenerateTestPolicies());
         }
 
         static IVersionRepository<TestScenarioVersion> CreateVersionRepository()
@@ -1660,6 +2156,21 @@ namespace CalculateFunding.Services.Scenarios.Services
         static ISearchRepository<ScenarioIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<ScenarioIndex>>();
+        }
+
+        static ICalcsRepository CreateCalcsRepository()
+        {
+            return Substitute.For<ICalcsRepository>();
+        }
+
+        static IJobsRepository CreateJobsRepository()
+        {
+            return Substitute.For<IJobsRepository>();
+        }
+
+        static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
 
         static CreateNewTestScenarioVersion CreateModel()

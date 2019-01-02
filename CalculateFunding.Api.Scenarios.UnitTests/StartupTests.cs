@@ -36,8 +36,10 @@ namespace CalculateFunding.Api.Scenarios.UnitTests
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
                 { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
                 { "specificationsClient:ApiKey", "Local" },
-                { "calcsClient:ApiEndpoint", "https://localhost:7005/api/" },
-                { "calcsClient:ApiKey", "Local" }
+                { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
+                { "calcsClient:ApiKey", "Local" },
+                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
+                { "jobsClient:ApiKey", "Local" }
             };
 
             return configData;

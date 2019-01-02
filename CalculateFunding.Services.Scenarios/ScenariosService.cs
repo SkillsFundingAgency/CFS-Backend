@@ -4,14 +4,17 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Health;
+using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -41,6 +44,11 @@ namespace CalculateFunding.Services.Scenarios
         private readonly IMessengerService _messengerService;
         private readonly IBuildProjectRepository _buildProjectRepository;
         private readonly IVersionRepository<TestScenarioVersion> _versionRepository;
+        private readonly IJobsRepository _jobsRepository;
+        private readonly IFeatureToggle _featureToggle;
+        private readonly ICalcsRepository _calcsRepository;
+        private readonly Polly.Policy _jobsRepositoryPolicy;
+        private readonly Polly.Policy _calcsRepositoryPolicy;
 
         public ScenariosService(
             ILogger logger,
@@ -51,7 +59,11 @@ namespace CalculateFunding.Services.Scenarios
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
             IBuildProjectRepository buildProjectRepository,
-            IVersionRepository<TestScenarioVersion> versionRepository)
+            IVersionRepository<TestScenarioVersion> versionRepository,
+            IJobsRepository jobsRepository,
+            IFeatureToggle featureToggle,
+            ICalcsRepository calcsRepository,
+            IScenariosResiliencePolicies scenariosResiliencePolicies)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
@@ -62,6 +74,10 @@ namespace CalculateFunding.Services.Scenarios
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
+            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
+            Guard.ArgumentNotNull(scenariosResiliencePolicies, nameof(scenariosResiliencePolicies));
 
             _scenariosRepository = scenariosRepository;
             _logger = logger;
@@ -73,6 +89,11 @@ namespace CalculateFunding.Services.Scenarios
             _buildProjectRepository = buildProjectRepository;
             _cacheProvider = cacheProvider;
             _versionRepository = versionRepository;
+            _jobsRepository = jobsRepository;
+            _featureToggle = featureToggle;
+            _calcsRepository = calcsRepository;
+            _jobsRepositoryPolicy = scenariosResiliencePolicies.JobsRepository;
+            _calcsRepositoryPolicy = scenariosResiliencePolicies.CalcsRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -133,7 +154,7 @@ namespace CalculateFunding.Services.Scenarios
                 return new StatusCodeResult(412);
             }
 
-            Reference user = request.GetUser();
+            Reference user = request.GetUserOrDefault();
 
             if (testScenario == null)
             {
@@ -200,7 +221,45 @@ namespace CalculateFunding.Services.Scenarios
 
             await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
 
-            await SendGenerateAllocationsMessage(specification.Id, request);
+            if (_featureToggle.IsJobServiceEnabled())
+            {
+                IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = await _calcsRepositoryPolicy.ExecuteAsync(() => _calcsRepository.GetCurrentCalculationsBySpecificationId(specification.Id));
+
+                if (calculations.IsNullOrEmpty())
+                {
+                    _logger.Information($"No calculations found to test for specification id: '{specification.Id}'");
+                }
+                else
+                {
+                    string correlationId = request.GetCorrelationId();
+
+                    try
+                    {
+                        Trigger trigger = new Trigger
+                        {
+                            EntityId = testScenario.Id,
+                            EntityType = nameof(TestScenario),
+                            Message = $"Saving test scenario: '{testScenario.Id}'"
+                        };
+
+                        bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(calculations.Select(m => m.SourceCode));
+
+                        Job job = await SendInstructAllocationsToJobService(specification.Id, user, trigger, correlationId, generateCalculationAggregations);
+
+                        _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specification.Id}'");
+
+                        return new InternalServerErrorResult($"An error occurred attempting to execute calculations prior to running tests on specification '{specification.Id}'");
+                    }
+                }
+            }
+            else
+            {
+                await SendGenerateAllocationsMessage(specification.Id, request);
+            }
 
             CurrentTestScenario testScenarioResult = await _scenariosRepository.GetCurrentTestScenarioById(testScenario.Id);
 
@@ -432,7 +491,7 @@ namespace CalculateFunding.Services.Scenarios
             return properties;
         }
 
-        Task SendGenerateAllocationsMessage(string specificationId, HttpRequest request)
+        private async Task SendGenerateAllocationsMessage(string specificationId, HttpRequest request)
         {
             IDictionary<string, string> properties = request.BuildMessageProperties();
 
@@ -440,9 +499,30 @@ namespace CalculateFunding.Services.Scenarios
 
             properties.Add("ignore-save-provider-results", "true");
 
-            return _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
+            await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
                 null,
                 properties);
+            
+        }
+
+        private async Task<Job> SendInstructAllocationsToJobService(string specificationId, Reference user, Trigger trigger, string correlationId, bool generateAggregations = false)
+        {
+            JobCreateModel job = new JobCreateModel
+            {
+                InvokerUserDisplayName = user.Name,
+                InvokerUserId = user.Id,
+                JobDefinitionId = generateAggregations ? JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob : JobConstants.DefinitionNames.CreateInstructAllocationJob,
+                SpecificationId = specificationId,
+                Properties = new Dictionary<string, string>
+                {
+                    { "specification-id", specificationId },
+                    { "ignore-save-provider-results", "true" }
+                },
+                Trigger = trigger,
+                CorrelationId = correlationId
+            };
+
+            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJob(job));
         }
 
         ScenarioIndex CreateScenarioIndexFromScenario(TestScenario testScenario, SpecificationSummary specification)
