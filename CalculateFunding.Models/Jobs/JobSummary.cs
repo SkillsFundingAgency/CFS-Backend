@@ -34,5 +34,8 @@ namespace CalculateFunding.Models.Jobs
 
         [JsonProperty("lastUpdated")]
         public DateTimeOffset LastUpdated { get; set; }
+
+        [JsonProperty("created")]
+        public DateTimeOffset Created { get; set; }
     }
 }

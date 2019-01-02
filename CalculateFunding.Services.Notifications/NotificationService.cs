@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Notifications
                     new SignalRMessage
                     {
                         Target = JobConstants.NotificationsTargetFunction,
-                        GroupName = $"{JobConstants.NotificationChannels.SpecificationPrefix}{jobNotification.SpecificationId}",
+                        GroupName = $"{JobConstants.NotificationChannels.SpecificationPrefix}{jobNotification.SpecificationId.Replace("-", "")}",
                         Arguments = new[] { jobNotification }
                     });
             }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
@@ -13,20 +14,20 @@ namespace CalculateFunding.Services.Jobs
     {
         private List<Job> testData = new List<Job>
         {
-            new Job { CompletionStatus = CompletionStatus.Succeeded, Id = "job1", JobDefinitionId = "jobType1", Outcome = "Job Completed Successfully", RunningStatus = RunningStatus.Completed, SpecificationId = "spec123", Trigger = new Trigger { EntityId = "entity1" }},
-            new Job { CompletionStatus = CompletionStatus.Succeeded, Id = "job2", JobDefinitionId = "jobType1", Outcome = "Job Completed Successfully", RunningStatus = RunningStatus.Completed, SpecificationId = "spec456", Trigger = new Trigger { EntityId = "entity2" }},
-            new Job { CompletionStatus = CompletionStatus.Failed, Id = "job3", JobDefinitionId = "jobType2", Outcome = "Job Completed with Error", RunningStatus = RunningStatus.Completed, SpecificationId = "spec789", Trigger = new Trigger { EntityId = "entity3" }},
-            new Job { CompletionStatus = CompletionStatus.Cancelled, Id = "job4", JobDefinitionId = "jobType3", Outcome = "Job was Cancelled", RunningStatus = RunningStatus.Completed, SpecificationId = "spec100", Trigger = new Trigger { EntityId = "entity4" }},
-            new Job { CompletionStatus = CompletionStatus.Superseded, Id = "job5", JobDefinitionId = "jobType4", Outcome = "Job was Superseded", RunningStatus = RunningStatus.Completed, SpecificationId = "spec313", Trigger = new Trigger { EntityId = "entity5" }},
-            new Job { CompletionStatus = CompletionStatus.Failed, Id = "job6", JobDefinitionId = "jobType1", Outcome = "Job Completed with Error", RunningStatus = RunningStatus.Completed, SpecificationId = "spec345", Trigger = new Trigger { EntityId = "entity6" }},
-            new Job { CompletionStatus = null, Id = "job7", JobDefinitionId = "jobType2", Outcome = "", RunningStatus = RunningStatus.Queued, SpecificationId = "spec056", Trigger = new Trigger { EntityId = "entity7" }},
-            new Job { CompletionStatus = CompletionStatus.Superseded, Id = "job8", JobDefinitionId = "jobType6", Outcome = "Job was Superseded", RunningStatus = RunningStatus.Completed, SpecificationId = "spec589", Trigger = new Trigger { EntityId = "entity8" }},
-            new Job { CompletionStatus = CompletionStatus.TimedOut, Id = "job9", JobDefinitionId = "jobType2", Outcome = "Job Timed Out", RunningStatus = RunningStatus.Completed, SpecificationId = "spec901", Trigger = new Trigger { EntityId = "entity9" }},
-            new Job { CompletionStatus = CompletionStatus.TimedOut, Id = "job10", JobDefinitionId = "jobType3", Outcome = "Job Timed Out", RunningStatus = RunningStatus.Completed, SpecificationId = "spec711", Trigger = new Trigger { EntityId = "entity10" }},
-            new Job { CompletionStatus = CompletionStatus.Cancelled, Id = "job11", JobDefinitionId = "jobType2", Outcome = "Job was Cancelled", RunningStatus = RunningStatus.Completed, SpecificationId = "spec321", Trigger = new Trigger { EntityId = "entity11" }},
-            new Job { CompletionStatus = null, Id = "job12", JobDefinitionId = "jobType2", Outcome = "", RunningStatus = RunningStatus.InProgress, SpecificationId = "spec345", Trigger = new Trigger { EntityId = "entity6" }},
-            new Job { CompletionStatus = null, Id = "job13", JobDefinitionId = "jobType6", Outcome = "Job Completed Successfully", RunningStatus = RunningStatus.InProgress, SpecificationId = "spec123", Trigger = new Trigger { EntityId = "entity1" }},
-            new Job { CompletionStatus = CompletionStatus.Succeeded, Id = "job14", ParentJobId = "job1", JobDefinitionId = "jobType3", Outcome = "Job Completed Successfully", RunningStatus = RunningStatus.Completed, SpecificationId = "spec123", Trigger = new Trigger { EntityId = "entity99", Message = "Triggered by parent" }, InvokerUserDisplayName = "Test User", InvokerUserId = "testuser" }
+            new Job { Created = DateTimeOffset.Parse("2018-12-15T10:34:00.000Z"), CompletionStatus = CompletionStatus.Succeeded, Id = "job1", JobDefinitionId = "jobType1", Outcome = "Job Completed Successfully", RunningStatus = RunningStatus.Completed, SpecificationId = "spec123", Trigger = new Trigger { EntityId = "entity1" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-15T13:13:00.000Z"), CompletionStatus = CompletionStatus.Succeeded, Id = "job2", JobDefinitionId = "jobType1", Outcome = "Job Completed Successfully", RunningStatus = RunningStatus.Completed, SpecificationId = "spec456", Trigger = new Trigger { EntityId = "entity2" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-16T09:34:00.000Z"), CompletionStatus = CompletionStatus.Failed, Id = "job3", JobDefinitionId = "jobType2", Outcome = "Job Completed with Error", RunningStatus = RunningStatus.Completed, SpecificationId = "spec789", Trigger = new Trigger { EntityId = "entity3" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-16T10:12:00.000Z"), CompletionStatus = CompletionStatus.Cancelled, Id = "job4", JobDefinitionId = "jobType3", Outcome = "Job was Cancelled", RunningStatus = RunningStatus.Completed, SpecificationId = "spec100", Trigger = new Trigger { EntityId = "entity4" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-16T10:32:00.000Z"), CompletionStatus = CompletionStatus.Superseded, Id = "job5", JobDefinitionId = "jobType4", Outcome = "Job was Superseded", RunningStatus = RunningStatus.Completed, SpecificationId = "spec313", Trigger = new Trigger { EntityId = "entity5" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-16T15:45:00.000Z"), CompletionStatus = CompletionStatus.Failed, Id = "job6", JobDefinitionId = "jobType1", Outcome = "Job Completed with Error", RunningStatus = RunningStatus.Completed, SpecificationId = "spec345", Trigger = new Trigger { EntityId = "entity6" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-17T10:58:00.000Z"), CompletionStatus = null, Id = "job7", JobDefinitionId = "jobType2", Outcome = "", RunningStatus = RunningStatus.Queued, SpecificationId = "spec056", Trigger = new Trigger { EntityId = "entity7" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-17T10:59:00.000Z"), CompletionStatus = CompletionStatus.Superseded, Id = "job8", JobDefinitionId = "jobType6", Outcome = "Job was Superseded", RunningStatus = RunningStatus.Completed, SpecificationId = "spec589", Trigger = new Trigger { EntityId = "entity8" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-17T11:25:00.000Z"), CompletionStatus = CompletionStatus.TimedOut, Id = "job9", JobDefinitionId = "jobType2", Outcome = "Job Timed Out", RunningStatus = RunningStatus.Completed, SpecificationId = "spec901", Trigger = new Trigger { EntityId = "entity9" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-18T10:10:00.000Z"), CompletionStatus = CompletionStatus.TimedOut, Id = "job10", JobDefinitionId = "jobType3", Outcome = "Job Timed Out", RunningStatus = RunningStatus.Completed, SpecificationId = "spec711", Trigger = new Trigger { EntityId = "entity10" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-18T16:59:00.000Z"), CompletionStatus = CompletionStatus.Cancelled, Id = "job11", JobDefinitionId = "jobType2", Outcome = "Job was Cancelled", RunningStatus = RunningStatus.Completed, SpecificationId = "spec321", Trigger = new Trigger { EntityId = "entity11" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-19T08:12:00.000Z"), CompletionStatus = null, Id = "job12", JobDefinitionId = "jobType2", Outcome = "", RunningStatus = RunningStatus.InProgress, SpecificationId = "spec345", Trigger = new Trigger { EntityId = "entity6" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-20T12:34:00.000Z"), CompletionStatus = null, Id = "job13", JobDefinitionId = "jobType6", Outcome = "Job Completed Successfully", RunningStatus = RunningStatus.InProgress, SpecificationId = "spec123", Trigger = new Trigger { EntityId = "entity1" }},
+            new Job { Created = DateTimeOffset.Parse("2018-12-20T15:15:00.000Z"), CompletionStatus = CompletionStatus.Succeeded, Id = "job14", ParentJobId = "job1", JobDefinitionId = "jobType3", Outcome = "Job Completed Successfully", RunningStatus = RunningStatus.Completed, SpecificationId = "spec123", Trigger = new Trigger { EntityId = "entity99", Message = "Triggered by parent" }, InvokerUserDisplayName = "Test User", InvokerUserId = "testuser" }
         };
 
         [TestMethod]
@@ -698,6 +699,7 @@ namespace CalculateFunding.Services.Jobs
             item.ParentJobId.Should().Be("job1");
             item.RunningStatus.Should().Be(RunningStatus.Completed);
             item.SpecificationId.Should().Be("spec123");
+            item.Created.Should().Be(DateTimeOffset.Parse("2018-12-20T15:15:00.000Z"));
         }
     }
 }

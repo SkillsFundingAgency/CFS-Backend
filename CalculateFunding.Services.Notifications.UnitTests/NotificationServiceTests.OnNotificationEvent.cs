@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
                     c => c.Target == JobConstants.NotificationsTargetFunction &&
                     c.Arguments.Length == 1 &&
                     c.Arguments.First() != null &&
-                    c.GroupName == $"{JobConstants.NotificationChannels.SpecificationPrefix}{SpecificationId}"));
+                    c.GroupName == $"{JobConstants.NotificationChannels.SpecificationPrefix}{SpecificationId.Replace("-", "")}"));
         }
 
         [TestMethod]
@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Notifications.UnitTests
                     c => c.Target == JobConstants.NotificationsTargetFunction &&
                     c.Arguments.Length == 1 &&
                     c.Arguments.First() != null &&
-                    c.GroupName == $"{JobConstants.NotificationChannels.SpecificationPrefix}{SpecificationId}"));
+                    c.GroupName == $"{JobConstants.NotificationChannels.SpecificationPrefix}{SpecificationId.Replace("-", "")}"));
 
             await generatedMessages
                .Received(0)

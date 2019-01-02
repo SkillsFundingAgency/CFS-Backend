@@ -17,7 +17,7 @@
         {
             public const string All = "notifications";
 
-            public const string SpecificationPrefix = "spec-";
+            public const string SpecificationPrefix = "spec";
 
             public const string ParentJobs = "parentjobs";
 
