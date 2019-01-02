@@ -2488,6 +2488,134 @@ namespace CalculateFunding.Services.Calcs.Services
                     .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
         }
 
+        [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectButNoScopedProviderssAndIsJobServiceEnabledOn_DoesNotCreateChildJobs()
+        {
+            //Arrange
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(0);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobsRepository jobsRepository = CreateJobsRepository();
+            jobsRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob);
+
+            jobsRepository
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(CreateJobs());
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(new[]
+                {
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 1",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return Sum(Calc2)"
+                        }
+                    },
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 2",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return 1000"
+                        }
+                    },
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 3",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return Sum(Calc4)"
+                        }
+                    },
+                    new Models.Calcs.Calculation
+                    {
+                        Name = "Calc 4",
+                        Current = new CalculationVersion
+                        {
+                            SourceCode = "return 1000"
+                        }
+                    }
+                });
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository, calculationsRepository: calculationsRepository);
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            await
+                providerResultsRepository
+                    .DidNotReceive()
+                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
+
+            await
+                jobsRepository
+                    .DidNotReceive()
+                    .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>());
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"No scoped providers set for specification '{specificationId}'"));
+        }
+
+
         private IEnumerable<Job> CreateJobs(int count = 10)
         {
             IList<Job> jobs = new List<Job>();

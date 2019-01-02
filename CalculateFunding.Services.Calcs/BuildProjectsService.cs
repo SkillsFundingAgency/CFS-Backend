@@ -241,6 +241,12 @@ namespace CalculateFunding.Services.Calcs
             {
                 try
                 {
+                    if (!allJobProperties.Any())
+                    {
+                        _logger.Information($"No scoped providers set for specification '{specificationId}'");
+                        return;
+                    }
+
                     IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(job, allJobProperties);
 
                     int newJobsCount = newJobs.Count();
