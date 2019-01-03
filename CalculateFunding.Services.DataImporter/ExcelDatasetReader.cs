@@ -117,13 +117,13 @@ namespace CalculateFunding.Services.DataImporter
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<bool>());
 				        break;
 			        case FieldType.Integer:
-				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<int>());
+				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<int?>());
 				        break;
 			        case FieldType.Float:
-				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<double>());
+				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<double?>());
 				        break;
 			        case FieldType.Decimal:
-				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<decimal>());
+				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<decimal?>());
 				        break;
 			        case FieldType.DateTime:
 				        try
