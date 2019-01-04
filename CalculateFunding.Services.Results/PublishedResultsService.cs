@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Messages;
 using CalculateFunding.Models.Results.Search;
@@ -25,7 +25,6 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
 using Microsoft.AspNetCore.Http;
@@ -176,8 +175,7 @@ namespace CalculateFunding.Services.Results
         }
 
         public async Task<ServiceHealth> IsHealthOk()
-        {
-
+        {				  
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 

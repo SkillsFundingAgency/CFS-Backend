@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.1" />
     <PackageReference Include="LINQKit.Core" Version="1.1.15" />
   </ItemGroup>
 

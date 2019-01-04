@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
-using CalculateFunding.Api.Common.Extensions;
-using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Extensions;

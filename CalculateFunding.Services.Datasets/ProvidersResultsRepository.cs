@@ -3,11 +3,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Models.Health;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Linq;
 using AutoMapper;
-using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;

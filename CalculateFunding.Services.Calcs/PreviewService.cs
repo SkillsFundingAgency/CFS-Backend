@@ -1,7 +1,6 @@
 ﻿using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Health;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeGeneration;
@@ -12,7 +11,6 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +19,7 @@ using Serilog;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Calcs
 {

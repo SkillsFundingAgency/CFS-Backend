@@ -3,10 +3,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Users;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Users.Interfaces;
 
 namespace CalculateFunding.Services.Users

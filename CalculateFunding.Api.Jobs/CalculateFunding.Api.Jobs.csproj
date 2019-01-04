@@ -12,12 +12,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.WebApi" Version="1.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.5.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Api.Common\CalculateFunding.Api.Common.csproj" />
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Jobs\CalculateFunding.Services.Jobs.csproj" />
   </ItemGroup>

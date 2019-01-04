@@ -3,8 +3,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Health;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 

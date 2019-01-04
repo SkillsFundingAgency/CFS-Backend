@@ -5,7 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Health;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;

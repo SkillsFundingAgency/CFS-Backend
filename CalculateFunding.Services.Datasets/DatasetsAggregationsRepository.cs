@@ -2,9 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Health;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets

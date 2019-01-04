@@ -4,10 +4,9 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Jobs;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Jobs.Interfaces;
 
 namespace CalculateFunding.Services.Jobs.Repositories

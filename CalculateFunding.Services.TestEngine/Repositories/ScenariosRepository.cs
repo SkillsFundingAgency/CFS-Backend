@@ -1,16 +1,15 @@
-﻿using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Scenarios;
+﻿using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {

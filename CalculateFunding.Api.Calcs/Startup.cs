@@ -1,7 +1,7 @@
-﻿using CalculateFunding.Api.Common.Extensions;
-using CalculateFunding.Api.Common.Middleware;
-using CalculateFunding.Common.CosmosDb;
+﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
@@ -29,6 +29,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using CalculateFunding.Common.WebApi.Http;
+using CalculateFunding.Common.WebApi.Middleware;
 
 namespace CalculateFunding.Api.Calcs
 {
@@ -181,7 +182,7 @@ namespace CalculateFunding.Api.Calcs
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+	                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

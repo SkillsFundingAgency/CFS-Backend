@@ -1,7 +1,4 @@
 ﻿using AutoMapper;
-using CalculateFunding.Api.Common.Extensions;
-using CalculateFunding.Api.Common.Middleware;
-using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -13,7 +10,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.DataImporter;
@@ -31,10 +27,11 @@ using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using Polly;
 using Polly.Bulkhead;
-using CalculateFunding.Common.WebApi;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
-using IHealthChecker = CalculateFunding.Services.Core.Interfaces.Services.IHealthChecker;
+using CalculateFunding.Common.WebApi.Middleware;
 
 namespace CalculateFunding.Api.Datasets
 {

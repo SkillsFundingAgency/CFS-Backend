@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
-using CalculateFunding.Api.Common.Extensions;
-using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;

@@ -1,13 +1,13 @@
-﻿using CalculateFunding.Api.Common.Extensions;
-using CalculateFunding.Api.Common.Middleware;
-using CalculateFunding.Common.CosmosDb;
+﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
+using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Scenarios;

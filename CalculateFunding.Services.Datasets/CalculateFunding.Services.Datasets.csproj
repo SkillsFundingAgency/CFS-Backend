@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.1" />
     <PackageReference Include="FluentValidation" Version="7.6.104" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="YamlDotNet" Version="5.2.1" />

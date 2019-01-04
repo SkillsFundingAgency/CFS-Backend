@@ -14,8 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Models.Health;
+using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Datasets
 {

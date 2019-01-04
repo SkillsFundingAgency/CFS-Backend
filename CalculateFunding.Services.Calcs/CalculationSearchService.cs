@@ -1,12 +1,10 @@
 ﻿using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Health;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
@@ -16,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Calcs
 {

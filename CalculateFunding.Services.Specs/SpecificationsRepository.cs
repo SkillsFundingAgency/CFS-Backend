@@ -6,11 +6,10 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Health;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Services.Specs

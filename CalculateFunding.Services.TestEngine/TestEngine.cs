@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Health;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
