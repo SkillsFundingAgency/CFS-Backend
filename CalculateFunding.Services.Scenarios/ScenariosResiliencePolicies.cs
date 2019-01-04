@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Scenarios
     {
         public Policy CalcsRepository { get; set; }
 
-        public Policy JobsRepository { get; set; }
+        public Policy JobsApiClient { get; set; }
     }
 }

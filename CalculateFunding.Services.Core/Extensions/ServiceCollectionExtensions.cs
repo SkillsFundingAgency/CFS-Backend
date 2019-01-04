@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
+using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -31,6 +35,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -39,6 +44,10 @@ namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {
+        private static TimeSpan[] retryTimeSpans = new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) };
+        private static int numberOfExceptionsBeforeCircuitBreaker = 100;
+        private static TimeSpan circuitBreakerFailurePeriod = TimeSpan.FromMinutes(1);
+
         public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfiguration config, string collectionNameOverride = null)
         {
             CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
@@ -175,18 +184,21 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static IServiceCollection AddJobsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
+            builder.AddHttpClient(HttpClientKeys.Jobs,
+               c =>
+               {
+                   ApiOptions apiOptions = new ApiOptions();
+
+                   config.Bind("jobsClient", apiOptions);
+
+                   SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+               })
+               .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+               .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
+               .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
+           
             builder
-                 .AddSingleton<IJobsApiClientProxy, JobsApiProxy>((ctx) =>
-                 {
-                     ApiOptions apiOptions = new ApiOptions();
-
-                     config.Bind("jobsClient", apiOptions);
-
-                     ILogger logger = ctx.GetService<ILogger>();
-                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
-
-                     return new JobsApiProxy(apiOptions, logger, correlationIdProvider);
-                 });
+                .AddSingleton<IJobsApiClient, JobsApiClient>();
 
             return builder;
         }
@@ -467,6 +479,34 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             IConfigurationSection featuresConfig = config.GetSection("features");
             return new Features(featuresConfig);
+        }
+
+        private static void SetDefaultApiClientConfigurationOptions(HttpClient httpClient, ApiOptions options, IServiceCollection services)
+        {
+            Guard.ArgumentNotNull(httpClient, nameof(httpClient));
+            Guard.ArgumentNotNull(options, nameof(options));
+            Guard.ArgumentNotNull(services, nameof(services));
+
+            if (string.IsNullOrWhiteSpace(options.ApiEndpoint))
+            {
+                throw new InvalidOperationException("options EndPoint is null or empty string");
+            }
+
+            string baseAddress = options.ApiEndpoint;
+            if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
+            {
+                baseAddress = $"{baseAddress}/";
+            }
+
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            
+            httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
+            httpClient.DefaultRequestHeaders?.Add(ApiClientHeaders.ApiKey, options.ApiKey);
+           
+            httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+            httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
         }
     }
 }

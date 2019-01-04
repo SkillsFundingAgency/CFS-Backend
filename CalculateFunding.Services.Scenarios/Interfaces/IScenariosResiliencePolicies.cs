@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
     {
         Policy CalcsRepository { get; set; }
 
-        Policy JobsRepository { get; set; }
+        Policy JobsApiClient { get; set; }
     }
 }

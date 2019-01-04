@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Caching;
@@ -439,7 +441,7 @@ namespace CalculateFunding.Services.Calculator
             //Assert
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
 
@@ -465,11 +467,8 @@ namespace CalculateFunding.Services.Calculator
 
             BuildProject buildProject = CreateBuildProject();
 
-            JobViewModel jobViewModel = new JobViewModel
-            {
-                Id = jobId
-            };
-
+            ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId });
+           
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
             IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
@@ -493,7 +492,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(true);
 
             calculationEngineServiceTestsHelper
-                .MockJobsRepository
+                .MockJobsApiClient
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobViewModel);
 
@@ -545,13 +544,13 @@ namespace CalculateFunding.Services.Calculator
             //Assert
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
 
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
                         m => m.CompletedSuccessfully.Value &&
@@ -577,11 +576,7 @@ namespace CalculateFunding.Services.Calculator
 
             BuildProject buildProject = CreateBuildProject();
 
-            JobViewModel jobViewModel = new JobViewModel
-            {
-                Id = jobId,
-                CompletionStatus = CompletionStatus.Superseded
-            };
+            ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, CompletionStatus = CompletionStatus.Superseded });
 
             calculationEngineServiceTestsHelper
                 .FeatureToggle
@@ -589,7 +584,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(true);
 
             calculationEngineServiceTestsHelper
-                .MockJobsRepository
+                .MockJobsApiClient
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobViewModel);
 
@@ -611,14 +606,14 @@ namespace CalculateFunding.Services.Calculator
             //Assert
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
 
             calculationEngineServiceTestsHelper
                 .MockLogger
                 .Received(1)
-                .Information($"Received job with id: '{jobId}' is already in a completed state with status {jobViewModel.CompletionStatus.ToString()}");
+                .Information($"Received job with id: '{jobId}' is already in a completed state with status {jobViewModel.Content.CompletionStatus.ToString()}");
         }
 
         [TestMethod]
@@ -642,9 +637,9 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(true);
 
             calculationEngineServiceTestsHelper
-                .MockJobsRepository
+                .MockJobsApiClient
                 .GetJobById(Arg.Is(jobId))
-                .Returns((JobViewModel)null);
+                .Returns((ApiResponse<JobViewModel>)null);
 
             CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -671,7 +666,7 @@ namespace CalculateFunding.Services.Calculator
 
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
 
@@ -697,11 +692,7 @@ namespace CalculateFunding.Services.Calculator
 
             BuildProject buildProject = CreateBuildProject();
 
-            JobViewModel jobViewModel = new JobViewModel
-            {
-                Id = jobId,
-                JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob
-            };
+            ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob });
 
             Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>
             {
@@ -738,7 +729,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(true);
 
             calculationEngineServiceTestsHelper
-                .MockJobsRepository
+                .MockJobsApiClient
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobViewModel);
 
@@ -762,9 +753,9 @@ namespace CalculateFunding.Services.Calculator
                     {
                         CalculationResults = new List<CalculationResult>
                         {
-                            new CalculationResult { Value = 10, Calculation = new Reference { Name = "Calc1" } },
-                            new CalculationResult { Value = 20, Calculation = new Reference { Name = "Calc2" } },
-                            new CalculationResult { Value = 30, Calculation = new Reference { Name = "Calc3" } }
+                            new CalculationResult { Value = 10, Calculation = new Common.Models.Reference { Name = "Calc1" } },
+                            new CalculationResult { Value = 20, Calculation = new Common.Models.Reference { Name = "Calc2" } },
+                            new CalculationResult { Value = 30, Calculation = new Common.Models.Reference { Name = "Calc3" } }
                         }
                     });
 
@@ -817,7 +808,7 @@ namespace CalculateFunding.Services.Calculator
 
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .Received()
                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == true));
         }
@@ -845,10 +836,7 @@ namespace CalculateFunding.Services.Calculator
 
             BuildProject buildProject = CreateBuildProject();
 
-            JobViewModel jobViewModel = new JobViewModel
-            {
-                Id = jobId
-            };
+            ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId });
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
@@ -883,7 +871,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(true);
 
             calculationEngineServiceTestsHelper
-                .MockJobsRepository
+                .MockJobsApiClient
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobViewModel);
 
@@ -953,13 +941,13 @@ namespace CalculateFunding.Services.Calculator
             //Assert
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
 
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
                         m => m.CompletedSuccessfully.Value &&
@@ -985,10 +973,7 @@ namespace CalculateFunding.Services.Calculator
 
             BuildProject buildProject = CreateBuildProject();
 
-            JobViewModel jobViewModel = new JobViewModel
-            {
-                Id = jobId
-            };
+            ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId });
 
             IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
 
@@ -1023,7 +1008,7 @@ namespace CalculateFunding.Services.Calculator
                 .Returns(true);
 
             calculationEngineServiceTestsHelper
-                .MockJobsRepository
+                .MockJobsApiClient
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobViewModel);
 
@@ -1080,13 +1065,13 @@ namespace CalculateFunding.Services.Calculator
             //Assert
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.CompletedSuccessfully == null));
 
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(
                         m => m.CompletedSuccessfully.Value &&
@@ -1124,7 +1109,7 @@ namespace CalculateFunding.Services.Calculator
 
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }
@@ -1147,7 +1132,7 @@ namespace CalculateFunding.Services.Calculator
             message.UserProperties.Add("jobId", jobId);
 
             calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .When(x => x.AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>()))
                     .Do(x => { throw new Exception(); });
 
@@ -1174,6 +1159,8 @@ namespace CalculateFunding.Services.Calculator
                 Id = "job-log-id-1"
             };
 
+            ApiResponse<JobLog> jobLogResponse = new ApiResponse<JobLog>(HttpStatusCode.OK, jobLog);
+
             CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
                 new CalculationEngineServiceTestsHelper();
 
@@ -1186,9 +1173,9 @@ namespace CalculateFunding.Services.Calculator
             message.UserProperties.Add("jobId", jobId);
 
             calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
-                    .Returns(jobLog);
+                    .Returns(jobLogResponse);
 
             CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
@@ -1229,7 +1216,7 @@ namespace CalculateFunding.Services.Calculator
             //Assert
             await
                 calculationEngineServiceTestsHelper
-                    .MockJobsRepository
+                    .MockJobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }

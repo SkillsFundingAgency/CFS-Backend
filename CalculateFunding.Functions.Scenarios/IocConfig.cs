@@ -1,5 +1,7 @@
 ﻿using System;
+using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -54,10 +56,10 @@ namespace CalculateFunding.Functions.Scenarios
                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
-              .AddSingleton<IJobsRepository, JobsRepository>();
+              .AddSingleton<ICalcsRepository, CalcsRepository>();
 
             builder
-              .AddSingleton<ICalcsRepository, CalcsRepository>();
+                .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 
             builder.AddSingleton<IVersionRepository<TestScenarioVersion>, VersionRepository<TestScenarioVersion>>((ctx) =>
             {
@@ -113,7 +115,7 @@ namespace CalculateFunding.Functions.Scenarios
                 return new ScenariosResiliencePolicies()
                 {
                     CalcsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

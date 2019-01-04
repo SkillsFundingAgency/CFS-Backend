@@ -4,12 +4,13 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
@@ -44,10 +45,10 @@ namespace CalculateFunding.Services.Scenarios
         private readonly IMessengerService _messengerService;
         private readonly IBuildProjectRepository _buildProjectRepository;
         private readonly IVersionRepository<TestScenarioVersion> _versionRepository;
-        private readonly IJobsRepository _jobsRepository;
+        private readonly IJobsApiClient _jobsApiClient;
         private readonly IFeatureToggle _featureToggle;
         private readonly ICalcsRepository _calcsRepository;
-        private readonly Polly.Policy _jobsRepositoryPolicy;
+        private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly Polly.Policy _calcsRepositoryPolicy;
 
         public ScenariosService(
@@ -60,7 +61,7 @@ namespace CalculateFunding.Services.Scenarios
             IMessengerService messengerService,
             IBuildProjectRepository buildProjectRepository,
             IVersionRepository<TestScenarioVersion> versionRepository,
-            IJobsRepository jobsRepository,
+            IJobsApiClient jobsApiClient,
             IFeatureToggle featureToggle,
             ICalcsRepository calcsRepository,
             IScenariosResiliencePolicies scenariosResiliencePolicies)
@@ -74,7 +75,7 @@ namespace CalculateFunding.Services.Scenarios
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
-            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(scenariosResiliencePolicies, nameof(scenariosResiliencePolicies));
@@ -89,10 +90,10 @@ namespace CalculateFunding.Services.Scenarios
             _buildProjectRepository = buildProjectRepository;
             _cacheProvider = cacheProvider;
             _versionRepository = versionRepository;
-            _jobsRepository = jobsRepository;
+            _jobsApiClient = jobsApiClient;
             _featureToggle = featureToggle;
             _calcsRepository = calcsRepository;
-            _jobsRepositoryPolicy = scenariosResiliencePolicies.JobsRepository;
+            _jobsApiClientPolicy = scenariosResiliencePolicies.JobsApiClient;
             _calcsRepositoryPolicy = scenariosResiliencePolicies.CalcsRepository;
         }
 
@@ -522,7 +523,7 @@ namespace CalculateFunding.Services.Scenarios
                 CorrelationId = correlationId
             };
 
-            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJob(job));
+            return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
         }
 
         ScenarioIndex CreateScenarioIndexFromScenario(TestScenario testScenario, SpecificationSummary specification)

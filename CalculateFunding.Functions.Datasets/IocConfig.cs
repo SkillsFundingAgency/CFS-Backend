@@ -159,9 +159,6 @@ namespace CalculateFunding.Functions.Datasets
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
 
-            builder
-                .AddSingleton<IJobsRepository, JobsRepository>();
-
             builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
 
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
@@ -240,7 +237,7 @@ namespace CalculateFunding.Functions.Datasets
                     DatasetSearchService = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     DatasetDefinitionSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

@@ -1,5 +1,7 @@
 ﻿using System;
+using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
@@ -105,9 +107,6 @@ namespace CalculateFunding.Functions.Calcs
               .AddSingleton<IDatasetRepository, DatasetRepository>();
 
             builder
-               .AddSingleton<IJobsRepository, JobsRepository>();
-
-            builder
               .AddSingleton<IJobService, JobService>();
 
             builder
@@ -132,6 +131,9 @@ namespace CalculateFunding.Functions.Calcs
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
+
+            builder
+                .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
             {
@@ -189,7 +191,7 @@ namespace CalculateFunding.Functions.Calcs
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

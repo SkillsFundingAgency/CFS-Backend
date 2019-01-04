@@ -4,10 +4,12 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -642,11 +644,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -690,11 +692,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 <",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -743,11 +745,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 >",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -796,11 +798,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 £",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -849,11 +851,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 =",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -902,11 +904,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 %",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -955,11 +957,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 +",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -1008,11 +1010,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 *",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -1061,11 +1063,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 /",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -1114,11 +1116,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "calcId1",
                     Name = "calc 1 -",
                     Description = "test calc",
-                    AllocationLine = new Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Reference>
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
                     {
-                        new Reference{ Id = "policy1", Name="policy one"}
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
                     },
                     Current = new CalculationVersion
                     {
@@ -1357,21 +1359,21 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsJobServiceEnabled()
                 .Returns(true);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobsRepository: jobsRepository, featureToggle: featureToggle);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobsApiClient: jobsApiClient, featureToggle: featureToggle);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             await
-                jobsRepository
+                jobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
 
@@ -1600,7 +1602,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             Message message = new Message();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             ILogger logger = CreateLogger();
 
@@ -1609,7 +1611,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .IsJobServiceEnabled()
                 .Returns(true);
 
-            BuildProjectsService service = CreateBuildProjectsService(logger: logger, jobsRepository: jobsRepository, featureToggle: featureToggle);
+            BuildProjectsService service = CreateBuildProjectsService(logger: logger, jobsApiClient: jobsApiClient, featureToggle: featureToggle);
 
             //Act
             await service.UpdateDeadLetteredJobLog(message);
@@ -1620,7 +1622,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Error(Arg.Is("Missing job id from dead lettered message"));
 
             await
-                jobsRepository
+                jobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }
@@ -1634,8 +1636,8 @@ namespace CalculateFunding.Services.Calcs.Services
             Message message = new Message();
             message.UserProperties.Add("jobId", jobId);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                     .When(x => x.AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>()))
                     .Do(x => { throw new Exception(); });
 
@@ -1646,7 +1648,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .IsJobServiceEnabled()
                 .Returns(true);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsRepository: jobsRepository, logger: logger, featureToggle: featureToggle);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient, logger: logger, featureToggle: featureToggle);
 
             //Act
             await buildProjectsService.UpdateDeadLetteredJobLog(message);
@@ -1668,13 +1670,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = "job-log-id-1"
             };
 
+            ApiResponse<JobLog> jobLogResponse = new ApiResponse<JobLog>(HttpStatusCode.OK, jobLog);
+
             Message message = new Message();
             message.UserProperties.Add("jobId", jobId);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
-                .Returns(jobLog);
+                .Returns(jobLogResponse);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -1683,7 +1687,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsRepository: jobsRepository, logger: logger, featureToggle: featureToggle);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient, logger: logger, featureToggle: featureToggle);
 
             //Act
             await buildProjectsService.UpdateDeadLetteredJobLog(message);
@@ -1708,21 +1712,21 @@ namespace CalculateFunding.Services.Calcs.Services
             Message message = new Message();
             message.UserProperties.Add("jobId", jobId);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsJobServiceEnabled()
                 .Returns(false);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsRepository: jobsRepository, featureToggle: featureToggle);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient, featureToggle: featureToggle);
 
             //Act
             await buildProjectsService.UpdateDeadLetteredJobLog(message);
 
             //Assert
             await
-                jobsRepository
+                jobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }
@@ -1748,6 +1752,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = specificationId,
                 CorrelationId = "correlation-id-1"
             };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -1778,12 +1784,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
-                .Returns(parentJob);
+                .Returns(jobViewModelResponse);
 
-            jobsRepository
+            jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(CreateJobs());
 
@@ -1793,7 +1799,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -1805,7 +1811,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
                             m => m.Count() == 10 &&
@@ -1828,7 +1834,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information($"10 child jobs were created for parent id: '{parentJobId}'");
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
         }
@@ -1854,6 +1860,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = specificationId,
                 CorrelationId = "correlation-id-1"
             };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -1884,12 +1892,13 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
-                .GetJobById(Arg.Is(parentJobId))
-                .Returns(parentJob);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
-            jobsRepository
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(jobViewModelResponse);
+
+            jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(CreateJobs());
 
@@ -1899,11 +1908,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
-            jobsRepository
+            jobsApiClient
                 .When(x => x.CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>()))
                 .Do(y => jobModelsToTest = y.Arg<IEnumerable<JobCreateModel>>());
 
@@ -1945,6 +1954,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = specificationId
             };
 
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -1975,12 +1985,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
-                .Returns(parentJob);
+                .Returns(jobViewModelResponse);
 
-            jobsRepository
+            jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(CreateJobs(5));
 
@@ -1990,7 +2000,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -2006,7 +2016,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
                             m => m.Count() == 10 &&
@@ -2024,7 +2034,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Error($"Only 5 child jobs from 10 were created with parent id: '{parentJob.Id}'");
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
         }
@@ -2050,6 +2060,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = specificationId
             };
 
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -2080,10 +2091,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
-                .Returns((JobViewModel)null);
+                .Returns((ApiResponse<JobViewModel>)null);
 
             IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -2091,7 +2102,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -2110,7 +2121,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Error($"Could not find the parent job with job id: '{parentJobId}'");
 
             await
-                jobsRepository
+                jobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
         }
@@ -2137,6 +2148,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 CompletionStatus = CompletionStatus.Superseded
             };
 
+            ApiResponse<JobViewModel> jobResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, job);
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -2163,10 +2175,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .GetJobById(Arg.Is(jobId))
-                .Returns(job);
+                .Returns(jobResponse);
 
             IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -2174,7 +2186,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository);
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2185,7 +2197,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information($"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus.ToString()}");
 
             await
-                jobsRepository
+                jobsApiClient
                     .DidNotReceive()
                     .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
         }
@@ -2213,6 +2225,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
             };
 
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
             BuildProject buildProject = new BuildProject
@@ -2242,12 +2256,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
-                .Returns(parentJob);
+                .Returns(jobViewModelResponse);
 
-            jobsRepository
+            jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(CreateJobs());
 
@@ -2280,7 +2294,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository, calculationsRepository: calculationsRepository);
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2292,7 +2306,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
                             m => m.Count() == 10 &&
@@ -2326,7 +2340,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information($"10 child jobs were created for parent id: '{parentJobId}'");
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
         }
@@ -2353,6 +2367,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 CorrelationId = "correlation-id-1",
                 JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
             };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -2383,12 +2399,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
-                .Returns(parentJob);
+                .Returns(jobViewModelResponse);
 
-            jobsRepository
+            jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(CreateJobs());
 
@@ -2437,7 +2453,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository, calculationsRepository: calculationsRepository);
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2449,7 +2465,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
                             m => m.Count() == 10 &&
@@ -2483,7 +2499,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information($"10 child jobs were created for parent id: '{parentJobId}'");
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
         }
@@ -2510,6 +2526,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 CorrelationId = "correlation-id-1",
                 JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
             };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -2540,12 +2558,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
-                .Returns(parentJob);
+                .Returns(jobViewModelResponse);
 
-            jobsRepository
+            jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(CreateJobs());
 
@@ -2594,7 +2612,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsRepository: jobsRepository, calculationsRepository: calculationsRepository);
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2606,7 +2624,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
 
             await
-                jobsRepository
+                jobsApiClient
                     .DidNotReceive()
                     .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>());
 
@@ -2655,7 +2673,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationService calculationService = null,
             ICalculationsRepository calculationsRepository = null,
             IFeatureToggle featureToggle = null,
-            IJobsRepository jobsRepository = null)
+            IJobsApiClient jobsApiClient = null)
         {
             return new BuildProjectsService(
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
@@ -2670,7 +2688,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationService ?? CreateCalculationService(),
                 calculationsRepository ?? CreateCalculationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
-                jobsRepository ?? CreateJobsRepository(),
+                jobsApiClient ?? CreateJobsApiClient(),
                 CalcsResilienceTestHelper.GenerateTestPolicies());
         }
 
@@ -2743,9 +2761,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ICalculationsRepository>();
         }
 
-        private static IJobsRepository CreateJobsRepository()
+        private static IJobsApiClient CreateJobsApiClient()
         {
-            return Substitute.For<IJobsRepository>();
+            return Substitute.For<IJobsApiClient>();
         }
     }
 }

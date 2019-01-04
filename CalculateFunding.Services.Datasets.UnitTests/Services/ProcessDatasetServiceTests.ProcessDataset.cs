@@ -5,6 +5,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
@@ -12,7 +14,6 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -3034,8 +3035,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .IsJobServiceEnabled()
                 .Returns(true);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
 
@@ -3048,7 +3049,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                jobsRepository: jobsRepository,
+                jobsApiClient: jobsApiClient,
                 featureToggle: featureToggle);
 
             // Act
@@ -3056,7 +3057,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             await
-                 jobsRepository
+                 jobsApiClient
                      .Received(1)
                      .CreateJob(Arg.Is<JobCreateModel>(
                          m =>
@@ -3245,8 +3246,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .IsJobServiceEnabled()
                 .Returns(true);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob });
 
@@ -3259,7 +3260,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                jobsRepository: jobsRepository,
+                jobsApiClient: jobsApiClient,
                 featureToggle: featureToggle);
 
             // Act
@@ -3267,7 +3268,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             await
-                 jobsRepository
+                 jobsApiClient
                      .Received(1)
                      .CreateJob(Arg.Is<JobCreateModel>(
                          m =>
@@ -3444,8 +3445,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .IsJobServiceEnabled()
                 .Returns(true);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
@@ -3458,7 +3459,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                jobsRepository: jobsRepository,
+                jobsApiClient: jobsApiClient,
                 featureToggle: featureToggle);
 
             // Act
@@ -3473,7 +3474,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Be($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{SpecificationId}'");
 
             await
-                 jobsRepository
+                 jobsApiClient
                      .Received(1)
                      .CreateJob(Arg.Is<JobCreateModel>(
                          m =>

@@ -5,11 +5,12 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
@@ -719,7 +720,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns((IEnumerable<Models.Calcs.CalculationCurrentVersion>)null);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
@@ -728,7 +729,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 versionRepository: versionRepository,
                 featureToggle: featureToggle,
                 calcsRepository: calcsRepository,
-                jobsRepository: jobsRepository);
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -739,7 +740,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .BeOfType<OkObjectResult>();
 
             await
-                jobsRepository
+                jobsApiClient
                 .DidNotReceive()
                 .CreateJob(Arg.Any<JobCreateModel>());
 
@@ -830,8 +831,8 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(calculations);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .When(x => x.CreateJob(Arg.Any<JobCreateModel>()))
                 .Do(x => { throw new Exception(); });
 
@@ -842,7 +843,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 versionRepository: versionRepository,
                 featureToggle: featureToggle,
                 calcsRepository: calcsRepository,
-                jobsRepository: jobsRepository);
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -949,8 +950,8 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(calculations);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(job);
 
@@ -961,7 +962,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 versionRepository: versionRepository,
                 featureToggle: featureToggle,
                 calcsRepository: calcsRepository,
-                jobsRepository: jobsRepository);
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -976,7 +977,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'"));
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(m => 
                         m.SpecificationId == specificationId && 
@@ -1077,8 +1078,8 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(calculations);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(job);
 
@@ -1089,7 +1090,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 versionRepository: versionRepository,
                 featureToggle: featureToggle,
                 calcsRepository: calcsRepository,
-                jobsRepository: jobsRepository);
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -1104,7 +1105,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob}' created with id: '{job.Id}'"));
 
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(m =>
                         m.SpecificationId == specificationId &&
@@ -2081,7 +2082,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             IMessengerService messengerService = null,
             IBuildProjectRepository buildProjectRepository = null, 
             IVersionRepository<TestScenarioVersion> versionRepository = null,
-            IJobsRepository jobsRepository = null,
+            IJobsApiClient jobsApiClient = null,
             IFeatureToggle featureToggle = null,
             ICalcsRepository calcsRepository = null,
             IScenariosResiliencePolicies scenariosResiliencePolicies = null)
@@ -2096,7 +2097,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                 messengerService ?? CreateMessengerService(), 
                 buildProjectRepository ?? CreateBuildProjectRepository(),
                 versionRepository ?? CreateVersionRepository(),
-                jobsRepository ?? CreateJobsRepository(),
+                jobsApiClient ?? CreateJobsApiClient(),
                 featureToggle ?? CreateFeatureToggle(),
                 calcsRepository ?? CreateCalcsRepository(),
                 scenariosResiliencePolicies ?? ScenariosResilienceTestHelper.GenerateTestPolicies());
@@ -2163,9 +2164,9 @@ namespace CalculateFunding.Services.Scenarios.Services
             return Substitute.For<ICalcsRepository>();
         }
 
-        static IJobsRepository CreateJobsRepository()
+        static IJobsApiClient CreateJobsApiClient()
         {
-            return Substitute.For<IJobsRepository>();
+            return Substitute.For<IJobsApiClient>();
         }
 
         static IFeatureToggle CreateFeatureToggle()

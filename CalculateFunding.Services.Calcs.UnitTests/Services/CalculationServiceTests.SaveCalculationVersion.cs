@@ -23,10 +23,11 @@ using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Models.Jobs;
 using System.Security.Claims;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1518,8 +1519,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
@@ -1532,7 +1533,7 @@ namespace CalculateFunding.Services.Calcs.Services
                specificationRepository: specificationRepository,
                calculationVersionRepository: versionRepository,
                featureToggle: featureToggle,
-               jobsRepository: jobsRepository);
+               jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1560,7 +1561,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         Arg.Any<string>(),
                         Arg.Any<IDictionary<string, string>>());
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(
                         m => 
@@ -1675,8 +1676,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
@@ -1689,7 +1690,7 @@ namespace CalculateFunding.Services.Calcs.Services
                specificationRepository: specificationRepository,
                calculationVersionRepository: versionRepository,
                featureToggle: featureToggle,
-               jobsRepository: jobsRepository);
+               jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1717,7 +1718,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         Arg.Any<string>(),
                         Arg.Any<IDictionary<string, string>>());
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(
                         m =>
@@ -1841,8 +1842,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
@@ -1855,7 +1856,7 @@ namespace CalculateFunding.Services.Calcs.Services
                specificationRepository: specificationRepository,
                calculationVersionRepository: versionRepository,
                featureToggle: featureToggle,
-               jobsRepository: jobsRepository);
+               jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1876,7 +1877,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         Arg.Any<string>(),
                         Arg.Any<IDictionary<string, string>>());
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(
                         m =>
@@ -2113,8 +2114,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
@@ -2128,7 +2129,7 @@ namespace CalculateFunding.Services.Calcs.Services
                specificationRepository: specificationRepository,
                calculationVersionRepository: versionRepository,
                featureToggle: featureToggle,
-               jobsRepository: jobsRepository);
+               jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -2156,7 +2157,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         Arg.Any<string>(),
                         Arg.Any<IDictionary<string, string>>());
             await
-                jobsRepository
+                jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(
                         m =>

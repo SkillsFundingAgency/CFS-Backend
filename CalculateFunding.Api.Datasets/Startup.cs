@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
+using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -30,6 +31,10 @@ using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using Polly;
 using Polly.Bulkhead;
+using CalculateFunding.Common.WebApi;
+using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.WebApi.Http;
+using IHealthChecker = CalculateFunding.Services.Core.Interfaces.Services.IHealthChecker;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -183,7 +188,8 @@ namespace CalculateFunding.Api.Datasets
                .AddSingleton<ICalcsRepository, CalcsRepository>();
 
             builder
-                .AddSingleton<IJobsRepository, JobsRepository>();
+                .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
+
 
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
             builder
@@ -234,7 +240,7 @@ namespace CalculateFunding.Api.Datasets
                     DatasetSearchService = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     DatasetDefinitionSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

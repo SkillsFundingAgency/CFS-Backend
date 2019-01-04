@@ -19,6 +19,6 @@ namespace CalculateFunding.Services.Calcs
 
         public Policy MessagePolicy { get; set; }
 
-        public Policy JobsRepository { get; set; }
+        public Policy JobsApiClient { get; set; }
     }
 }

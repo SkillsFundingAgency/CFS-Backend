@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
@@ -27,6 +28,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using CalculateFunding.Common.WebApi.Http;
 
 namespace CalculateFunding.Api.Calcs
 {
@@ -125,9 +127,6 @@ namespace CalculateFunding.Api.Calcs
             builder
               .AddSingleton<IDatasetRepository, DatasetRepository>();
 
-            builder
-                .AddSingleton<IJobsRepository, JobsRepository>();
-
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
             {
                 CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
@@ -140,6 +139,9 @@ namespace CalculateFunding.Api.Calcs
 
                 return new VersionRepository<CalculationVersion>(resultsRepostory);
             });
+
+            builder
+                .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
 
             builder.AddUserProviderFromRequest();
 
@@ -179,7 +181,7 @@ namespace CalculateFunding.Api.Calcs
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

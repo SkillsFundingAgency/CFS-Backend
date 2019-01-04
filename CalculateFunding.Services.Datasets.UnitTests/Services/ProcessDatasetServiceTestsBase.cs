@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.FeatureToggles;
+﻿using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null,
             IDatasetsAggregationsRepository datasetsAggregationsRepository = null,
             IFeatureToggle featureToggle = null,
-            IJobsRepository jobsRepository = null)
+            IJobsApiClient jobsApiClient = null)
         {
 
             return new ProcessDatasetService(
@@ -55,7 +56,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetsAggregationsRepository ?? CreateDatasetsAggregationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
-                jobsRepository ?? CreateJobsRepository());
+                jobsApiClient ?? CreateJobsApiClient());
         }
 
         protected static IFeatureToggle CreateFeatureToggle()
@@ -72,9 +73,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return featureToggle;
         }
 
-        protected static IJobsRepository CreateJobsRepository()
+        protected static IJobsApiClient CreateJobsApiClient()
         {
-            return Substitute.For<IJobsRepository>();
+            return Substitute.For<IJobsApiClient>();
         }
 
         protected static IDatasetsAggregationsRepository CreateDatasetsAggregationsRepository()

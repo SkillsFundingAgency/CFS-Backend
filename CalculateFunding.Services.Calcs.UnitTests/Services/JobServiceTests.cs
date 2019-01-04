@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Jobs;
+﻿using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using FluentAssertions;
@@ -28,7 +29,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             JobService jobService = CreateJobService();
 
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             //Assert
             await
-                jobsRepository
+                jobsApiClient
                     .DidNotReceive()
                     .CreateJob(Arg.Any<JobCreateModel>());
         }
@@ -53,16 +54,16 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
-            JobService jobService = CreateJobService(jobsRepository);
+            JobService jobService = CreateJobService(jobsApiClient);
 
             //Act
             await jobService.CreateInstructAllocationJob(message);
 
             //Assert
             await
-                jobsRepository
+                jobsApiClient
                     .DidNotReceive()
                     .CreateJob(Arg.Any<JobCreateModel>());
         }
@@ -77,14 +78,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
             ILogger logger = CreateLogger();
 
-            JobService jobService = CreateJobService(jobsRepository, logger);
+            JobService jobService = CreateJobService(jobsApiClient, logger);
 
             //Act
             Func<Task> test = () => jobService.CreateInstructAllocationJob(message);
@@ -118,14 +119,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = "job-id-1"
             };
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(job);
 
             ILogger logger = CreateLogger();
 
-            JobService jobService = CreateJobService(jobsRepository, logger);
+            JobService jobService = CreateJobService(jobsApiClient, logger);
 
             //Act
             await jobService.CreateInstructAllocationJob(message);
@@ -137,14 +138,14 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
 
-        private static JobService CreateJobService(IJobsRepository jobsRepository = null, ILogger logger = null)
+        private static JobService CreateJobService(IJobsApiClient jobsApiClient = null, ILogger logger = null)
         {
-            return new JobService(jobsRepository ?? CreateJobsRepository(), logger ?? CreateLogger());
+            return new JobService(jobsApiClient ?? CreateJobsApiClient(), logger ?? CreateLogger());
         }
 
-        private static IJobsRepository CreateJobsRepository()
+        private static IJobsApiClient CreateJobsApiClient()
         {
-            return Substitute.For<IJobsRepository>();
+            return Substitute.For<IJobsApiClient>();
         }
 
         private static ILogger CreateLogger()

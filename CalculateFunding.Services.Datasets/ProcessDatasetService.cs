@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
@@ -13,7 +15,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
@@ -55,8 +56,8 @@ namespace CalculateFunding.Services.Datasets
         private readonly Policy _providerResultsRepositoryPolicy;
         private readonly IDatasetsAggregationsRepository _datasetsAggregationsRepository;
         private readonly IFeatureToggle _featureToggle;
-        private readonly Policy _jobsRepositoryPolicy;
-        private readonly IJobsRepository _jobsRepository;
+        private readonly Policy _jobsApiClientPolicy;
+        private readonly IJobsApiClient _jobsApiClient;
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
@@ -73,7 +74,7 @@ namespace CalculateFunding.Services.Datasets
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IDatasetsAggregationsRepository datasetsAggregationsRepository,
             IFeatureToggle featureToggle,
-            IJobsRepository jobsRepository)
+            IJobsApiClient jobsApiClient)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -86,7 +87,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(datasetsAggregationsRepository, nameof(datasetsAggregationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
-            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
 
             _datasetRepository = datasetRepository;
             _messengerService = messengerService;
@@ -102,8 +103,8 @@ namespace CalculateFunding.Services.Datasets
             _providerResultsRepositoryPolicy = datasetsResiliencePolicies.ProviderResultsRepository;
             _datasetsAggregationsRepository = datasetsAggregationsRepository;
             _featureToggle = featureToggle;
-            _jobsRepository = jobsRepository;
-            _jobsRepositoryPolicy = datasetsResiliencePolicies.JobsRepository;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -714,7 +715,7 @@ namespace CalculateFunding.Services.Datasets
                 CorrelationId = correlationId
             };
 
-            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJob(job));
+            return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
         }
     }
 }

@@ -1,5 +1,6 @@
-﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Jobs;
+﻿using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -13,12 +14,12 @@ namespace CalculateFunding.Services.Calcs
 {
     public class JobService : IJobService
     {
-        private readonly IJobsRepository _jobsRepository;
+        private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
 
-        public JobService(IJobsRepository jobsRepository, ILogger logger)
+        public JobService(IJobsApiClient JobsApiClient, ILogger logger)
         {
-            _jobsRepository = jobsRepository;
+            _jobsApiClient = JobsApiClient;
             _logger = logger;
         }
 
@@ -44,7 +45,7 @@ namespace CalculateFunding.Services.Calcs
                     Trigger = jobNotification.Trigger
                 };
 
-                Job newJob = await _jobsRepository.CreateJob(jobCreateModel);
+                Job newJob = await _jobsApiClient.CreateJob(jobCreateModel);
 
                 if(newJob == null)
                 {

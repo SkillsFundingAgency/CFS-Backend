@@ -1,6 +1,8 @@
 ﻿using CalculateFunding.Api.Common.Extensions;
 using CalculateFunding.Api.Common.Middleware;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -91,12 +93,12 @@ namespace CalculateFunding.Api.Scenarios
 
                 return new VersionRepository<TestScenarioVersion>(resultsRepostory);
             });
-
-            builder
-               .AddSingleton<IJobsRepository, JobsRepository>();
-
+           
             builder
               .AddSingleton<ICalcsRepository, CalcsRepository>();
+
+            builder
+               .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
 
             builder.AddUserProviderFromRequest();
 
@@ -141,7 +143,7 @@ namespace CalculateFunding.Api.Scenarios
                 return new ScenariosResiliencePolicies()
                 {
                     CalcsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

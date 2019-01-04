@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -48,8 +50,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IFeatureToggle _featureToggle;
-        private readonly IJobsRepository _jobsRepository;
-        private readonly Polly.Policy _jobsRepositoryPolicy;
+        private readonly IJobsApiClient _jobsApiClient;
+        private readonly Polly.Policy _jobsApiClientPolicy;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -64,7 +66,7 @@ namespace CalculateFunding.Services.Calcs
             ICalculationService calculationService,
             ICalculationsRepository calculationsRepository,
             IFeatureToggle featureToggle,
-            IJobsRepository jobsRepository,
+            IJobsApiClient jobsApiClient,
             ICalcsResilliencePolicies resilliencePolicies)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
@@ -79,7 +81,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
-            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
 
             _buildProjectsRepository = buildProjectsRepository;
@@ -95,8 +97,8 @@ namespace CalculateFunding.Services.Calcs
             _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
             _featureToggle = featureToggle;
-            _jobsRepository = jobsRepository;
-            _jobsRepositoryPolicy = resilliencePolicies.JobsRepository;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -134,14 +136,16 @@ namespace CalculateFunding.Services.Calcs
             {
                 string jobId = message.UserProperties["jobId"].ToString();
 
-                job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.GetJobById(jobId));
-
-                if (job == null)
+                ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
+                
+                if(response == null || response.Content == null)
                 {
                     _logger.Error($"Could not find the parent job with job id: '{jobId}'");
 
                     throw new Exception($"Could not find the parent job with job id: '{jobId}'");
                 }
+
+                job = response.Content;
 
                 if (job.CompletionStatus.HasValue)
                 {
@@ -150,7 +154,7 @@ namespace CalculateFunding.Services.Calcs
                     return;
                 }
 
-                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel()));
+                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new Common.ApiClient.Jobs.Models.JobLogUpdateModel()));
             }
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
@@ -502,7 +506,7 @@ namespace CalculateFunding.Services.Calcs
 
             string jobId = message.UserProperties["jobId"].ToString();
 
-            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            Common.ApiClient.Jobs.Models.JobLogUpdateModel jobLogUpdateModel = new Common.ApiClient.Jobs.Models.JobLogUpdateModel
             {
                 CompletedSuccessfully = false,
                 Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
@@ -510,9 +514,16 @@ namespace CalculateFunding.Services.Calcs
 
             try
             {
-                JobLog jobLog = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, jobLogUpdateModel));
+                ApiResponse<Common.ApiClient.Jobs.Models.JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
 
-                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to instruct allocations");
+                if (jobLogResponse == null || jobLogResponse.Content == null)
+                {
+                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
+                }
+                else
+                {
+                    _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLogResponse.Content.Id}' on job with id '{jobId}' while attempting to instruct allocations");
+                }
             }
             catch (Exception exception)
             {
@@ -599,7 +610,7 @@ namespace CalculateFunding.Services.Calcs
                 jobCreateModels.Add(jobCreateModel);
             }
 
-            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJobs(jobCreateModels));
+            return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJobs(jobCreateModels));
         }
     }
     

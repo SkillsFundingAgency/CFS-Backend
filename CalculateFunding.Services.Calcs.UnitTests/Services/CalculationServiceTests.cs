@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
@@ -43,7 +44,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ICacheProvider cacheProvider = null,
             ICalcsResilliencePolicies resilliencePolicies = null,
             IVersionRepository<CalculationVersion> calculationVersionRepository = null,
-            IJobsRepository jobsRepository = null,
+            IJobsApiClient jobsApiClient = null,
             IFeatureToggle featureToggle = null)
         {
             return new CalculationService
@@ -61,13 +62,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 cacheProvider ?? CreateCacheProvider(),
                 resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 calculationVersionRepository ?? CreateCalculationVersionRepository(),
-                jobsRepository ?? CreateJobsRepository(),
+                jobsApiClient ?? CreateJobsApiClient(),
                 featureToggle ?? CreateFeatureToggle());
         }
 
-        static IJobsRepository CreateJobsRepository()
+        static IJobsApiClient CreateJobsApiClient()
         {
-            return Substitute.For<IJobsRepository>();
+            return Substitute.For<IJobsApiClient>();
         }
 
         static IFeatureToggle CreateFeatureToggle()

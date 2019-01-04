@@ -1,9 +1,9 @@
 ﻿using System;
+using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.CalcEngine;
-using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
@@ -91,7 +91,7 @@ namespace CalculateFunding.Functions.CalcEngine
                .AddSingleton<IDatasetAggregationsRepository, DatasetAggregationsRepository>();
 
             builder
-                .AddSingleton<IJobsRepository, JobsRepository>();
+                .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);

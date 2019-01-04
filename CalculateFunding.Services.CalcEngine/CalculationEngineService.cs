@@ -7,14 +7,15 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CalcEngine;
-using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core.Caching;
@@ -54,8 +55,8 @@ namespace CalculateFunding.Services.Calculator
         private readonly IValidator<ICalculatorResiliencePolicies> _calculatorResiliencePoliciesValidator;
         private readonly IDatasetAggregationsRepository _datasetAggregationsRepository;
         private readonly IFeatureToggle _featureToggle;
-        private readonly IJobsRepository _jobsRepository;
-        private readonly Policy _jobsRepositoryPolicy;
+        private readonly IJobsApiClient _jobsApiClient;
+        private readonly Policy _jobsApiClientPolicy;
 
         public CalculationEngineService(
             ILogger logger,
@@ -71,7 +72,7 @@ namespace CalculateFunding.Services.Calculator
             IValidator<ICalculatorResiliencePolicies> calculatorResiliencePoliciesValidator,
             IDatasetAggregationsRepository datasetAggregationsRepository,
             IFeatureToggle featureToggle,
-            IJobsRepository jobsRepository)
+            IJobsApiClient jobsApiClient)
         {
             _calculatorResiliencePoliciesValidator = calculatorResiliencePoliciesValidator;
 
@@ -94,8 +95,8 @@ namespace CalculateFunding.Services.Calculator
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _datasetAggregationsRepository = datasetAggregationsRepository;
             _featureToggle = featureToggle;
-            _jobsRepository = jobsRepository;
-            _jobsRepositoryPolicy = resiliencePolicies.JobsRepository;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = resiliencePolicies.JobsRepository;
         }
 
         async public Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -281,9 +282,14 @@ namespace CalculateFunding.Services.Calculator
 
             try
             {
-                JobLog jobLog = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, jobLogUpdateModel));
+                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
 
-                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLog.Id}' on job with id '{jobId}' while attempting to generate allocations");
+                if(jobLogResponse == null || jobLogResponse.Content == null)
+                {
+                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
+                }
+
+                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLogResponse.Content.Id}' on job with id '{jobId}' while attempting to generate allocations");
             }
             catch (Exception exception)
             {
@@ -415,14 +421,16 @@ namespace CalculateFunding.Services.Calculator
                 return null;
             }
 
-            JobViewModel job = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.GetJobById(jobId));
+            ApiResponse<JobViewModel> jobResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
 
-            if (job == null)
+            if (jobResponse == null || jobResponse.Content == null)
             {
                 _logger.Error($"Could not find the parent job with job id: '{jobId}'");
 
                 throw new Exception($"Could not find the parent job with job id: '{jobId}'");
             }
+
+            JobViewModel job = jobResponse.Content;
 
             if (job.CompletionStatus.HasValue)
             {
@@ -431,7 +439,7 @@ namespace CalculateFunding.Services.Calculator
                 return null;
             }
 
-            await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(jobId, new JobLogUpdateModel()));
+            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new JobLogUpdateModel()));
 
             return job;
         }
@@ -562,7 +570,7 @@ namespace CalculateFunding.Services.Calculator
                 outcome = $"{itemsSucceeded} provider result calulation aggregations were generated successfully from {itemsProcessed} providers";
             }
 
-            await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.AddJobLog(messageProperties.JobId, new JobLogUpdateModel
+            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(messageProperties.JobId, new JobLogUpdateModel
             {
                 CompletedSuccessfully = true,
                 ItemsSucceeded = itemsSucceeded,

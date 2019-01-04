@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -519,8 +520,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
 
@@ -530,7 +531,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
                 featureToggle: featureToggle,
-                jobsRepository: jobsRepository,
+                jobsApiClient: jobsApiClient,
                 messengerService: messengerService);
 
             // Act
@@ -543,7 +544,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .SendToQueue<string>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
 
             await
-                 jobsRepository
+                 jobsApiClient
                      .Received(1)
                      .CreateJob(Arg.Is<JobCreateModel>(
                          m =>
@@ -639,8 +640,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
@@ -650,7 +651,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
                 featureToggle: featureToggle,
-                jobsRepository: jobsRepository,
+                jobsApiClient: jobsApiClient,
                 messengerService: messengerService);
 
             // Act
@@ -671,7 +672,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .SendToQueue<string>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
 
             await
-                 jobsRepository
+                 jobsApiClient
                      .Received(1)
                      .CreateJob(Arg.Is<JobCreateModel>(
                          m =>
@@ -767,8 +768,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IJobsRepository jobsRepository = CreateJobsRepository();
-            jobsRepository
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob });
 
@@ -778,7 +779,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
                 featureToggle: featureToggle,
-                jobsRepository: jobsRepository,
+                jobsApiClient: jobsApiClient,
                 messengerService: messengerService);
 
             // Act
@@ -791,7 +792,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     .SendToQueue<string>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
 
             await
-                 jobsRepository
+                 jobsApiClient
                      .Received(1)
                      .CreateJob(Arg.Is<JobCreateModel>(
                          m =>

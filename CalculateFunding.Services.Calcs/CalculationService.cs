@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
@@ -12,7 +14,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Health;
-using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -66,9 +67,9 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.Policy _specificationsRepositoryPolicy;
         private readonly Polly.Policy _buildProjectRepositoryPolicy;
         private readonly Polly.Policy _messagePolicy;
-        private readonly Polly.Policy _jobsRepositoryPolicy;
+        private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
-        private readonly IJobsRepository _jobsRepository;
+        private readonly IJobsApiClient _jobsApiClient;
         private readonly IFeatureToggle _featureToggle;
 
         public CalculationService(
@@ -86,7 +87,7 @@ namespace CalculateFunding.Services.Calcs
             ICacheProvider cacheProvider,
             ICalcsResilliencePolicies resilliencePolicies,
             IVersionRepository<CalculationVersion> calculationVersionRepository,
-            IJobsRepository jobsRepository,
+            IJobsApiClient jobsApiClient,
             IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
@@ -99,7 +100,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
-            Guard.ArgumentNotNull(jobsRepository, nameof(jobsRepository));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _calculationsRepository = calculationsRepository;
@@ -122,8 +123,8 @@ namespace CalculateFunding.Services.Calcs
             _buildProjectRepositoryPolicy = resilliencePolicies.BuildProjectRepositoryPolicy;
             _messagePolicy = resilliencePolicies.MessagePolicy;
             _calculationVersionsRepositoryPolicy = resilliencePolicies.CalculationsVersionsRepositoryPolicy;
-            _jobsRepository = jobsRepository;
-            _jobsRepositoryPolicy = resilliencePolicies.JobsRepository;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
             _featureToggle = featureToggle;
         }
 
@@ -1294,7 +1295,7 @@ namespace CalculateFunding.Services.Calcs
                 CorrelationId = correlationId
             };
 
-            return await _jobsRepositoryPolicy.ExecuteAsync(() => _jobsRepository.CreateJob(job));
+            return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
         }
 
         IDictionary<string, string> CreateMessageProperties(HttpRequest request)
