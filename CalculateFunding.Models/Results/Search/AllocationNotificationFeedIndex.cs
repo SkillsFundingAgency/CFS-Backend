@@ -98,6 +98,7 @@ namespace CalculateFunding.Models.Results.Search
         [JsonProperty("allocationLineFundingRoute")]
         public string AllocationLineFundingRoute { get; set; }
 
+        [IsFilterable]
         [JsonProperty("allocationLineContractRequired")]
         public bool AllocationLineContractRequired { get; set; }
 
@@ -165,5 +166,9 @@ namespace CalculateFunding.Models.Results.Search
         [IsFilterable]
         [JsonProperty("minorVersion")]
         public int? MinorVersion { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("isDeleted")]
+        public bool IsDeleted { get; set; }
     }
 }

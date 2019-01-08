@@ -35,6 +35,8 @@
             public const string FetchProviderProfile = "fetch-provider-profile";
 
             public const string MigrateResultVersions = "migrate-result-versions";
+
+            public const string MigrateFeedIndexId = "migrate-feed-index-id";
         }
 
         public static class TopicNames

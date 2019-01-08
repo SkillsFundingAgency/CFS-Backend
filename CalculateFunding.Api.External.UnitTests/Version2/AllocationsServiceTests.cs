@@ -21,32 +21,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
     public class AllocationsServiceTests
     {
         [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenInvalidVersion_ReturnsBadRequest()
-        {
-            //Arrange
-            int version = 0;
-
-            string allocationResultId = "12345";
-
-            AllocationsService service = CreateService();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, version, request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Invalid version supplied");
-        }
-
-        [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenNullResultFound_ReturnsNotFound()
+        public void GetAllocationByAllocationResultId_GivenNullResultFound_ReturnsNotFound()
         {
             //Arrange
             string allocationResultId = "12345";
@@ -61,7 +36,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             AllocationsService service = CreateService(resultsService);
 
             //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+            IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
 
             //Assert
             result
@@ -70,7 +45,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenResultFoundButNoHeaders_ReturnsBadRequest()
+        public void GetAllocationByAllocationResultId_GivenResultFoundButNoHeaders_ReturnsBadRequest()
         {
             //Arrange
             string allocationResultId = "12345";
@@ -86,13 +61,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             IPublishedResultsService resultsService = CreateResultsService();
             resultsService
-                .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultByVersionId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             AllocationsService service = CreateService(resultsService);
 
             //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+            IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
 
             //Assert
             result
@@ -101,7 +76,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenResultFound_ReturnsContentResult()
+        public void GetAllocationByAllocationResultId_GivenResultFound_ReturnsContentResult()
         {
             //Arrange
             string allocationResultId = "12345";
@@ -115,16 +90,17 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 .Returns(headerDictionary);
 
             PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
+            publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId = allocationResultId;
 
             IPublishedResultsService resultsService = CreateResultsService();
             resultsService
-                .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultByVersionId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             AllocationsService service = CreateService(resultsService);
 
             //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+            IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
 
             //Assert
             result
@@ -132,8 +108,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 .BeOfType<ContentResult>();
 
             ContentResult contentResult = result as ContentResult;
-
-            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.SpecificationId}{publishedProviderResult.ProviderId}{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
 
             AllocationModel allocationModel = JsonConvert.DeserializeObject<AllocationModel>(contentResult.Content);
 
@@ -141,7 +115,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 .Should()
                 .NotBeNull();
 
-            allocationModel.AllocationResultId.Should().Be(id);
+            allocationModel.AllocationResultId.Should().Be(allocationResultId);
             allocationModel.AllocationVersionNumber.Should().Be(1);
             allocationModel.AllocationStatus.Should().Be("Published");
             allocationModel.AllocationAmount.Should().Be(50);
@@ -157,126 +131,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
-        public async Task GetAllocationAndHistoryByAllocationResultId_GivenNullResultFound_ReturnsNotFound()
-        {
-            //Arrange
-            string allocationResultId = "12345";
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IPublishedResultsService resultsService = CreateResultsService();
-            resultsService
-                .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
-                .Returns((PublishedProviderResultWithHistory)null);
-
-            AllocationsService service = CreateService(resultsService);
-
-            //Act
-            IActionResult result = await service.GetAllocationAndHistoryByAllocationResultId(allocationResultId, request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<NotFoundResult>();
-        }
-
-        [TestMethod]
-        public async Task GetAllocationAndHistoryByAllocationResultId_GivenResultFoundButNoHeaders_ReturnsBadRequest()
-        {
-            //Arrange
-            string allocationResultId = "12345";
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            PublishedProviderResultWithHistory publishedProviderResult = CreatePublishedProviderResultWithHistory();
-
-            IPublishedResultsService resultsService = CreateResultsService();
-            resultsService
-                .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
-                .Returns(publishedProviderResult);
-
-            AllocationsService service = CreateService(resultsService);
-
-            //Act
-            IActionResult result = await service.GetAllocationAndHistoryByAllocationResultId(allocationResultId, request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestResult>();
-        }
-
-        [TestMethod]
-        public async Task GetAllocationAndHistoryByAllocationResultId_GivenResultFound_ReturnsContentResult()
-        {
-            //Arrange
-            string allocationResultId = "12345";
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            PublishedProviderResultWithHistory publishedProviderResult = CreatePublishedProviderResultWithHistory();
-
-
-            IPublishedResultsService resultsService = CreateResultsService();
-            resultsService
-                .GetPublishedProviderResultWithHistoryByAllocationResultId(Arg.Is(allocationResultId))
-                .Returns(publishedProviderResult);
-
-            AllocationsService service = CreateService(resultsService);
-
-            //Act
-            IActionResult result = await service.GetAllocationAndHistoryByAllocationResultId(allocationResultId, request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<ContentResult>();
-
-            ContentResult contentResult = result as ContentResult;
-
-            AllocationWithHistoryModel allocationModel = JsonConvert.DeserializeObject<AllocationWithHistoryModel>(contentResult.Content);
-
-            string id = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{publishedProviderResult.PublishedProviderResult.SpecificationId}{publishedProviderResult.PublishedProviderResult.ProviderId}{publishedProviderResult.PublishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
-
-            allocationModel
-                .Should()
-                .NotBeNull();
-
-            allocationModel.AllocationResultId.Should().Be(id);
-            allocationModel.AllocationVersionNumber.Should().Be(1);
-            allocationModel.AllocationStatus.Should().Be("Published");
-            allocationModel.AllocationAmount.Should().Be(50);
-            allocationModel.FundingStream.Id.Should().Be("fs-1");
-            allocationModel.FundingStream.Name.Should().Be("funding stream 1");
-            allocationModel.Period.Id.Should().Be("Ay12345");
-            allocationModel.Provider.UkPrn.Should().Be("1111");
-            allocationModel.Provider.Upin.Should().Be("2222");
-            allocationModel.Provider.OpenDate.Should().NotBeNull();
-            allocationModel.AllocationLine.Id.Should().Be("AAAAA");
-            allocationModel.AllocationLine.Name.Should().Be("test allocation line 1");
-            allocationModel.ProfilePeriods.Length.Should().Be(1);
-            allocationModel.History.Length.Should().Be(2);
-            allocationModel.History[0].AllocationVersionNumber.Should().Be(2);
-            allocationModel.History[0].AllocationAmount.Should().Be(40);
-            allocationModel.History[0].Status.Should().Be("Approved");
-            allocationModel.History[1].AllocationVersionNumber.Should().Be(1);
-            allocationModel.History[1].AllocationAmount.Should().Be(50);
-            allocationModel.History[1].Status.Should().Be("Held");
-        }
-
-        [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenMajorMinorFeatureToggleOn_ReturnsMajorMinorVersions()
+        public void GetAllocationByAllocationResultId_GivenMajorMinorFeatureToggleOn_ReturnsMajorMinorVersions()
         {
             //Arrange
             string allocationResultId = "12345";
@@ -295,7 +150,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             IPublishedResultsService resultsService = CreateResultsService();
             resultsService
-                .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultByVersionId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             IFeatureToggle features = CreateFeatureToggle();
@@ -306,7 +161,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             AllocationsService service = CreateService(resultsService, features);
 
             //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+            IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
 
             //Assert
             result
@@ -328,7 +183,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenMajorMinorFeatureToggleOff_ReturnsMajorMinorVersionsAsZero()
+        public void GetAllocationByAllocationResultId_GivenMajorMinorFeatureToggleOff_ReturnsMajorMinorVersionsAsZero()
         {
             //Arrange
             string allocationResultId = "12345";
@@ -345,7 +200,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             IPublishedResultsService resultsService = CreateResultsService();
             resultsService
-                .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultByVersionId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             IFeatureToggle features = CreateFeatureToggle();
@@ -356,7 +211,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             AllocationsService service = CreateService(resultsService, features);
 
             //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+            IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
 
             //Assert
             result

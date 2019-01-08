@@ -142,11 +142,11 @@ namespace CalculateFunding.Services.Results
             return Task.FromResult(results.AsEnumerable());
         }
 
-        public PublishedProviderResult GetPublishedProviderResultForId(string id)
+        public PublishedProviderResult GetPublishedProviderResultForId(string publishedProviderResultId)
         {
-            Guard.IsNullOrWhiteSpace(id, nameof(id));
+            Guard.IsNullOrWhiteSpace(publishedProviderResultId, nameof(publishedProviderResultId));
 
-            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.Id == id);
+            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.Id == publishedProviderResultId);
 
             return results.AsEnumerable().FirstOrDefault();
         }
@@ -169,6 +169,16 @@ namespace CalculateFunding.Services.Results
                 m.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Published);
 
             return Task.FromResult(results.AsEnumerable().FirstOrDefault());
+        }
+
+        public PublishedAllocationLineResultVersion GetPublishedProviderResultVersionForFeedIndexId(string feedIndexId)
+        {
+            Guard.IsNullOrWhiteSpace(feedIndexId, nameof(feedIndexId));
+
+            IQueryable<PublishedAllocationLineResultVersion> results = _cosmosRepository.Query<PublishedAllocationLineResultVersion>(enableCrossPartitionQuery: true).Where(m => 
+                m.FeedIndexId == feedIndexId);
+
+            return results.AsEnumerable().FirstOrDefault();
         }
 
         public async Task<IEnumerable<PublishedProviderResult>> GetAllNonHeldPublishedProviderResults()

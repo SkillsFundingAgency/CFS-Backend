@@ -13,6 +13,9 @@ namespace CalculateFunding.Models.Results
             get { return $"{PublishedProviderResultId}_version_{Version}"; }
         }
 
+        [JsonProperty("feedIndexId")]
+        public string FeedIndexId { get; set; }
+       
         [JsonProperty("entityId")]
         public override string EntityId
         {
@@ -53,6 +56,9 @@ namespace CalculateFunding.Models.Results
                 return $"{Major}.{Minor}";
             }
         }
+
+        [JsonProperty("title")]
+        public string Title { get; set; }
 
         public override VersionedItem Clone()
         {

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.14.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.15.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient" Version="1.0.6" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="1.0.5" />
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="1.0.2" />

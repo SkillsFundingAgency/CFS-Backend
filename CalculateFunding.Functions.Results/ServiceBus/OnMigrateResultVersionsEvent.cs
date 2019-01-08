@@ -31,7 +31,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.FetchProviderProfile}");
+                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.MigrateResultVersions}");
                     throw;
                 }
             }

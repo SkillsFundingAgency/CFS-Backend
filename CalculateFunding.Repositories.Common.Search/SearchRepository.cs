@@ -29,7 +29,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public SearchRepository(SearchRepositorySettings settings)
         {
-            _indexName = typeof(T).Name.ToLowerInvariant();
+            _indexName = typeof(T).Name.ToLowerInvariant() ;
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
         }

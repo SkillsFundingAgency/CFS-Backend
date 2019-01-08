@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Results\Search\AllocationNotificationFeedIndexTemp.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="5.0.2" />

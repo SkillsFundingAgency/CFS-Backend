@@ -243,6 +243,43 @@ namespace CalculateFunding.Services.Results
             };
         }
 
+        public PublishedAllocationLineResultVersion GetPublishedProviderResultVersionById(string id)
+        {
+            Guard.IsNullOrWhiteSpace(id, nameof(id));
+
+            PublishedAllocationLineResultVersion publishedProviderResultVersion = _publishedProviderResultsRepository.GetPublishedProviderResultVersionForFeedIndexId(id);
+
+            if (publishedProviderResultVersion == null)
+            {
+                return null;
+            }
+
+            return publishedProviderResultVersion;
+        }
+
+        public PublishedProviderResult GetPublishedProviderResultByVersionId(string id)
+        {
+            PublishedAllocationLineResultVersion version = GetPublishedProviderResultVersionById(id);
+
+            if(version == null)
+            {
+                return null;
+            };
+
+            string entityId = version.EntityId;
+
+            PublishedProviderResult publishedProviderResult = _publishedProviderResultsRepository.GetPublishedProviderResultForId(entityId);
+
+            if (publishedProviderResult == null)
+            {
+                return null;
+            }
+
+            publishedProviderResult.FundingStreamResult.AllocationLineResult.Current = version;
+
+            return publishedProviderResult;
+        }
+
         public async Task PublishProviderResults(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
@@ -354,6 +391,8 @@ namespace CalculateFunding.Services.Results
             {
                 publishedProviderResultsToSave.ForEach(m => _publishedAllocationLineLogicalResultVersionService.SetVersion(m.FundingStreamResult.AllocationLineResult.Current));
 
+                publishedProviderResultsToSave.ForEach(SetFeedIndexId);
+                
                 try
                 {
                     savePublishedResultsStopwatch.Start();
@@ -861,6 +900,8 @@ namespace CalculateFunding.Services.Results
 
                 try
                 {
+                    resultsToUpdate.ForEach(SetFeedIndexId);
+
                     await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(resultsToUpdate));
 
                     IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>> history = historyToSave.Select(m => new KeyValuePair<string, PublishedAllocationLineResultVersion>(m.ProviderId, m));
@@ -1011,6 +1052,7 @@ namespace CalculateFunding.Services.Results
             if (specification == null)
             {
                 _logger.Error($"Unable to locate a specification with id {specificationId}");
+                return;
             }
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationId(specificationId));
@@ -1018,6 +1060,7 @@ namespace CalculateFunding.Services.Results
             if (publishedProviderResults.IsNullOrEmpty())
             {
                 _logger.Warning($"No published provider results found for specification id {specificationId}");
+                return;
             }
 
             ConcurrentBag<PublishedAllocationLineResultVersion> updatedVersions = new ConcurrentBag<PublishedAllocationLineResultVersion>();
@@ -1114,6 +1157,166 @@ namespace CalculateFunding.Services.Results
 
                 throw new Exception(ex.Message);
             }
+        }
+
+        /// <summary>
+        /// This is to be removed once it has done its stuff
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public async Task MigrateFeedIndexId(Message message)
+        {
+            if (!message.UserProperties.ContainsKey("specification-id"))
+            {
+                _logger.Error("No specification id was present on the message");
+                throw new ArgumentException("Message must contain a specification id in user properties");
+            }
+
+            string specificationId = message.UserProperties["specification-id"].ToString();
+
+            SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
+
+            if (specification == null)
+            {
+                _logger.Error($"Unable to locate a specification with id {specificationId}");
+                return;
+            }
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationId(specificationId));
+
+            if (publishedProviderResults.IsNullOrEmpty())
+            {
+                _logger.Warning($"No published provider results found for specification id {specificationId}");
+                return;
+            }
+
+            ConcurrentBag<PublishedAllocationLineResultVersion> updatedVersions = new ConcurrentBag<PublishedAllocationLineResultVersion>();
+            ConcurrentBag<PublishedProviderResult> updatedResults = new ConcurrentBag<PublishedProviderResult>();
+
+            ConcurrentBag<PublishedProviderResult> updatedResultsToIndex = new ConcurrentBag<PublishedProviderResult>();
+
+            List<Task> allTasks = new List<Task>(publishedProviderResults.Count());
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 5);
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            IEnumerable<PublishedAllocationLineResultVersion> versions = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersions(publishedProviderResult.Id, publishedProviderResult.ProviderId));
+
+                            foreach (PublishedAllocationLineResultVersion version in versions)
+                            {
+                                SetFeedIndexId(publishedProviderResult, version);
+                                version.Title = $"Allocation {publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {version.Status.ToString()}";
+                                updatedVersions.Add(version);
+
+                                if (version.Status != AllocationLineStatus.Held)
+                                {
+                                    updatedResultsToIndex.Add(GetPublishedProviderResultToIndex(publishedProviderResult, version));
+                                }
+                            }
+
+                            SetFeedIndexId(publishedProviderResult);
+
+                            if (publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status != AllocationLineStatus.Held && !updatedResultsToIndex.Any(m =>
+                                        m.FundingStreamResult.AllocationLineResult.Current.FeedIndexId == publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId))
+                            {
+                                updatedResultsToIndex.Add(publishedProviderResult);
+                            }
+                            updatedResults.Add(publishedProviderResult);
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await Task.WhenAll(allTasks.ToArray());
+
+            foreach (Task task in allTasks)
+            {
+                if (task.Exception != null)
+                {
+                    throw task.Exception;
+                }
+            }
+
+            try
+            {
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.SaveVersions(updatedVersions));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "MigrationError: Failed to index save updated versions");
+
+                throw new Exception(ex.Message);
+            }
+
+            try
+            {
+                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(updatedResults));
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "MigrationError: Failed to save updated published results");
+
+                throw new Exception(ex.Message);
+            }
+
+            try
+            {
+                await UpdateAllocationNotificationsFeedIndex(updatedResultsToIndex, specification);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "MigrationError: Failed to index allocation feeds with updated results");
+
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<IActionResult> MigrateFeedIndexId(HttpRequest request)
+        {
+            IEnumerable<SpecificationSummary> specificationSummaries = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
+
+            foreach(SpecificationSummary specificationSummary in specificationSummaries)
+            {
+                IDictionary<string, string> properties = request.BuildMessageProperties();
+                properties["specification-id"] = specificationSummary.Id;
+
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.MigrateFeedIndexId, "", properties);
+            }
+
+            return new NoContentResult();
+        }
+
+        public async Task<IActionResult> MigrateVersionNumbers(HttpRequest request)
+        {
+            IEnumerable<SpecificationSummary> specificationSummaries = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
+
+            foreach (SpecificationSummary specificationSummary in specificationSummaries)
+            {
+                IDictionary<string, string> properties = request.BuildMessageProperties();
+                properties["specification-id"] = specificationSummary.Id;
+
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.MigrateResultVersions, "", properties);
+            }
+
+            return new NoContentResult();
+        }
+
+        private PublishedProviderResult GetPublishedProviderResultToIndex(PublishedProviderResult publishedProviderResult, PublishedAllocationLineResultVersion version)
+        {
+            string json = JsonConvert.SerializeObject(publishedProviderResult);
+
+            PublishedProviderResult clonedPublishedProviderResult = JsonConvert.DeserializeObject<PublishedProviderResult>(json);
+
+            clonedPublishedProviderResult.FundingStreamResult.AllocationLineResult.Current = version;
+
+            return clonedPublishedProviderResult;
         }
 
         private async Task<(PublishedProviderResult, long)> ProfileResult(FetchProviderProfilingMessageItem messageItem)
@@ -1282,8 +1485,6 @@ namespace CalculateFunding.Services.Results
 
                 AllocationNotificationFeedIndex feedIndex = new AllocationNotificationFeedIndex
                 {
-                    Id = publishedProviderResult.Id,
-                    Title = publishedProviderResult.Title,
                     Summary = publishedProviderResult.Summary,
                     DatePublished = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Published
                         ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Date : (DateTimeOffset?)null,
@@ -1334,6 +1535,18 @@ namespace CalculateFunding.Services.Results
                 {
                     feedIndex.MajorVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major;
                     feedIndex.MinorVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor;
+                }
+
+                if (_featureToggle.IsAllAllocationResultsVersionsInFeedIndexEnabled())
+                {
+                    feedIndex.Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId;
+                    feedIndex.IsDeleted = false;
+                    feedIndex.Title = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Title;
+                }
+                else
+                {
+                    feedIndex.Id = publishedProviderResult.Id;
+                    feedIndex.Title = publishedProviderResult.Title;
                 }
 
                 notifications.Add(feedIndex);
@@ -1427,6 +1640,22 @@ namespace CalculateFunding.Services.Results
             }
 
             CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{calculationProgress.SpecificationId}", calculationProgress, _cacheProvider);
+        }
+
+        private void SetFeedIndexId(PublishedProviderResult publishedProviderResult)
+        {
+            publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId
+                = $"{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}-{publishedProviderResult.FundingPeriod.Id}" +
+                 $"-{publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN}-v{publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major}-{publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor}";
+        }
+
+
+        //temporary until migration work finished
+        private void SetFeedIndexId(PublishedProviderResult publishedProviderResult, PublishedAllocationLineResultVersion version)
+        {
+             version.FeedIndexId
+                = $"{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}-{publishedProviderResult.FundingPeriod.Id}" +
+                 $"-{version.Provider.UKPRN}-v{version.Major}-{version.Minor}";
         }
     }
 }

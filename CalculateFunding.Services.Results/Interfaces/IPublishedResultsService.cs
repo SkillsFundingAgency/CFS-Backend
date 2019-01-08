@@ -18,5 +18,10 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> ReIndexAllocationNotificationFeeds();
         Task FetchProviderProfile(Message message);
         Task MigrateVersionNumbers(Message message);
+        Task MigrateFeedIndexId(Message message);
+        Task<IActionResult> MigrateFeedIndexId(HttpRequest request);
+        Task<IActionResult> MigrateVersionNumbers(HttpRequest request);
+        PublishedAllocationLineResultVersion GetPublishedProviderResultVersionById(string id);
+        PublishedProviderResult GetPublishedProviderResultByVersionId(string id);
     }
 }

@@ -250,7 +250,7 @@ namespace CalculateFunding.Services.Core.Extensions
               .AddSingleton<ISearchRepository<DatasetDefinitionIndex>, SearchRepository<DatasetDefinitionIndex>>();
 
             builder
-             .AddSingleton<ISearchRepository<AllocationNotificationFeedIndex>, SearchRepository<AllocationNotificationFeedIndex>>();
+                .AddSingleton<ISearchRepository<AllocationNotificationFeedIndex>, SearchRepository<AllocationNotificationFeedIndex>>();
 
             return builder;
         }
@@ -262,7 +262,6 @@ namespace CalculateFunding.Services.Core.Extensions
                 builder
                 .AddSingleton<IMessengerService, QueueMessengerService>((ctx) =>
                 {
-
                     return new QueueMessengerService("UseDevelopmentStorage=true");
                 });
             }

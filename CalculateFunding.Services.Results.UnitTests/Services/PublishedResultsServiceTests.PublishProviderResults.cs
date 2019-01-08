@@ -121,13 +121,33 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>()
             {
-                new PublishedProviderResult
+               new PublishedProviderResult()
                 {
-                    FundingStreamResult = new PublishedFundingStreamResult
+                    ProviderId = "1",
+                    FundingPeriod = new Period
+                    {
+                        Id = "fp-1"
+                    },
+                    FundingStreamResult = new PublishedFundingStreamResult()
                     {
                         AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = new AllocationLine()
+                            {
+                                Id = "AAAAA",
+                                Name = "Allocation line 1",
+                            },
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Value = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "1"
+                                }
+                            }
+                        }
                     }
-                }
+                },
             };
 
             IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new[]
@@ -205,6 +225,10 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult()
                 {
                     ProviderId = "1",
+                    FundingPeriod = new Period
+                    {
+                        Id = "fp-1"
+                    },
                     FundingStreamResult = new PublishedFundingStreamResult()
                     {
                         AllocationLineResult = new PublishedAllocationLineResult()
@@ -217,6 +241,12 @@ namespace CalculateFunding.Services.Results.Services
                             Current = new PublishedAllocationLineResultVersion()
                             {
                                 Value = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "99999"
+                                },
+                                Major = 2,
+                                Minor = 1
                             }
                         }
                     }
@@ -282,6 +312,8 @@ namespace CalculateFunding.Services.Results.Services
             thrownException.Message.Should().Be($"Failed to create published provider results for specification: {specificationId}");
             thrownException.InnerException.Should().NotBeNull();
             thrownException.InnerException.Message.Should().Be("Error saving published results version history");
+
+            publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current.FeedIndexId.Should().Be("AAAAA-fp-1-99999-v2-1");
         }
 
         [TestMethod]
@@ -953,6 +985,10 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResult()
                 {
                     ProviderId = "1",
+                    FundingPeriod = new Period
+                    {
+                        Id = "fp-1"
+                    },
                     FundingStreamResult = new PublishedFundingStreamResult()
                     {
                         AllocationLineResult = new PublishedAllocationLineResult()
@@ -965,6 +1001,12 @@ namespace CalculateFunding.Services.Results.Services
                             Current = new PublishedAllocationLineResultVersion()
                             {
                                 Value = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "99999"
+                                },
+                                Major = 1,
+                                Minor = 1
                             }
                         }
                     }
@@ -1052,6 +1094,8 @@ namespace CalculateFunding.Services.Results.Services
             mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall10, TimeSpan.FromHours(6), false);
             mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall11, TimeSpan.FromHours(6), false);
             mockCacheProvider.Received(11).SetAsync(Arg.Any<string>(), Arg.Any<SpecificationCalculationExecutionStatus>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+
+            publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current.FeedIndexId.Should().Be("AAAAA-fp-1-99999-v1-1");
         }
 
         [TestMethod]
@@ -1162,7 +1206,11 @@ namespace CalculateFunding.Services.Results.Services
                         {
                             Author = author,
                             Status = AllocationLineStatus.Held,
-                            Value = 1
+                            Value = 1,
+                            Provider = new ProviderSummary
+                            {
+                                UKPRN = "1234"
+                            }
                         }
                     }
                 }
@@ -1181,8 +1229,6 @@ namespace CalculateFunding.Services.Results.Services
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
             versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
                 .Returns(Task.CompletedTask);
-
-            bool hasCalcChanges = true;
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler

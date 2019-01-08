@@ -26,17 +26,12 @@ namespace CalculateFunding.Api.External.V2.Services
             _featureToggle = featureToggle;
         }
 
-        public async Task<IActionResult> GetAllocationByAllocationResultId(string allocationResultId, int? version, HttpRequest httpRequest)
+        public IActionResult GetAllocationByAllocationResultId(string allocationResultId, HttpRequest httpRequest)
         {
             Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
             Guard.ArgumentNotNull(httpRequest, nameof(httpRequest));
 
-            if (version.HasValue && version < 1)
-            {
-                return new BadRequestObjectResult("Invalid version supplied");
-            }
-
-            PublishedProviderResult publishedProviderResult = await _publishedResultsService.GetPublishedProviderResultByAllocationResultId(allocationResultId, version);
+            PublishedProviderResult publishedProviderResult = _publishedResultsService.GetPublishedProviderResultByVersionId(allocationResultId);
 
             if (publishedProviderResult == null)
             {
@@ -48,28 +43,12 @@ namespace CalculateFunding.Api.External.V2.Services
             return Formatter.ActionResult<AllocationModel>(httpRequest, allocation);
         }
 
-        public async Task<IActionResult> GetAllocationAndHistoryByAllocationResultId(string allocationResultId, HttpRequest httpRequest)
-        {
-            Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
-            Guard.ArgumentNotNull(httpRequest, nameof(httpRequest));
-
-            PublishedProviderResultWithHistory publishedProviderResultWithHistory = await _publishedResultsService.GetPublishedProviderResultWithHistoryByAllocationResultId(allocationResultId);
-
-            if (publishedProviderResultWithHistory == null)
-            {
-                return new NotFoundResult();
-            }
-
-            AllocationWithHistoryModel allocation = CreateAllocationWithHistoryModel(publishedProviderResultWithHistory);
-
-            return Formatter.ActionResult<AllocationModel>(httpRequest, allocation);
-        }
-
         AllocationModel CreateAllocation(PublishedProviderResult publishedProviderResult)
         {
             return new AllocationModel
             {
-                AllocationResultId = publishedProviderResult.Id,
+                AllocationResultTitle = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Title,
+                AllocationResultId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId,
                 AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
                 AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
                 AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major : 0,

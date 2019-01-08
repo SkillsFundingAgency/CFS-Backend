@@ -853,4 +853,367 @@
 		]
 	}</value>
   </data>
+  <data name="V2_Sample_Allocation" xml:space="preserve">
+    <value>{
+  "AllocationResultId": "PSG-002-1819DEV1-10073851-v1-0",
+  "AllocationResultTitle": "Allocation Academies was Published",
+  "FundingStream": {
+    "Id": "PSG",
+    "Name": "PE and Sport Premium Grant",
+    "ShortName": "PE and Sport",
+    "PeriodType": {
+      "Id": "AY",
+      "Name": "AY",
+      "StartDay": 1,
+      "StartMonth": 8,
+      "EndDay": 31,
+      "EndMonth": 7
+    }
+  },
+  "Period": {
+    "Id": "1819DEV1",
+    "Name": "2018/19-DEV1",
+    "StartYear": 2018,
+    "EndYear": 2019
+  },
+  "Provider": {
+    "Name": "Primrose Hill School",
+    "LegalName": "",
+    "UkPrn": "10073851",
+    "Upin": "",
+    "Urn": "100020",
+    "DfeEstablishmentNumber": "2475",
+    "EstablishmentNumber": "2022475",
+    "LaCode": "202",
+    "LocalAuthority": "Camden",
+    "Type": "LA maintained schools",
+    "SubType": "Community school",
+    "OpenDate": null,
+    "CloseDate": null,
+    "CrmAccountId": "",
+    "NavVendorNo": "",
+    "Status": "Open"
+  },
+  "AllocationLine": {
+    "Id": "PSG-002",
+    "Name": "Academies",
+    "ShortName": "Acad",
+    "FundingRoute": "Provider",
+    "ContractRequired": "N"
+  },
+  "AllocationVersionNumber": 3,
+  "AllocationMajorVersion": 1,
+  "AllocationMinorVersion": 0,
+  "AllocationStatus": "Published",
+  "AllocationAmount": 110.0,
+  "ProfilePeriods": [
+    {
+      "Period": "Oct",
+      "Occurrence": 1,
+      "PeriodYear": "2018",
+      "PeriodType": "CalendarMonth",
+      "ProfileValue": 64.17,
+      "DistributionPeriod": "AY1819DEV1"
+    },
+    {
+      "Period": "Apr",
+      "Occurrence": 1,
+      "PeriodYear": "2019",
+      "PeriodType": "CalendarMonth",
+      "ProfileValue": 45.83,
+      "DistributionPeriod": "AY1819DEV1"
+    }
+  ]
+}</value>
+    <comment>Sample allocation</comment>
+  </data>
+  <data name="V2_Sample_Allocation_Feeds" xml:space="preserve">
+    <value>{
+  "Id": "837af4ad08ab49709e5066aeee3a7422",
+  "Title": "Calculate Funding Service Allocation Feed",
+  "Author": {
+    "Email": "calculate-funding@education.gov.uk",
+    "Name": "Calculate Funding Service"
+  },
+  "Updated": "2019-01-08T11:18:21.1814346+00:00",
+  "Rights": "Copyright (C) 2018 Department for Education",
+  "Link": [
+    {
+      "Href": "https://dummy-url/api/v2/allocations/notifications/notifications?pageRef=1",
+      "Rel": "self"
+    },
+    {
+      "Href": "https://dummy-url/api/v2/allocations/notifications/notifications?pageRef=1",
+      "Rel": "first"
+    },
+    {
+      "Href": "https://dummy-url/api/v2/allocations/notifications/notifications?pageRef=1",
+      "Rel": "last"
+    },
+    {
+      "Href": "https://dummy-url/api/v2/allocations/notifications/notifications?pageRef=1",
+      "Rel": "previous"
+    },
+    {
+      "Href": "https://dummy-url/api/v2/allocations/notifications/notifications?pageRef=1",
+      "Rel": "next"
+    }
+  ],
+  "AtomEntry": [
+    {
+      "Id": "YPG01-1819-10078064-v2-0",
+      "Title": "Allocation 16-19 Bursaries - all providers 11/12 was Published",
+      "Summary": "UKPRN: 10078064, version 2.0",
+      "Published": "2018-12-14T15:35:17.067+00:00",
+      "Updated": "2018-12-14T15:35:17.067+00:00",
+      "Version": "28",
+      "Link": {
+        "Href": "Allocation",
+        "Rel": "https://dummy-url/api/v2/allocations//YPG01-1819-10078064-v2-0"
+      },
+      "Content": {
+        "Allocation": {
+          "AllocationResultId": "YPG01-1819-10078064-v2-0",
+          "FundingStream": {
+            "Id": "YPLRG",
+            "Name": "16-19 Bursaries - all providers 11/12",
+            "ShortName": null,
+            "PeriodType": {
+              "Id": "AY",
+              "Name": "Schools Academic Year",
+              "StartDay": 1,
+              "StartMonth": 8,
+              "EndDay": 31,
+              "EndMonth": 7
+            }
+          },
+          "Period": {
+             "Id": "1819",
+            "Name": "Schools Academic Year",
+            "StartYear": 2018,
+            "EndYear": 2019
+          },
+          "Provider": {
+            "Name": "Brookfield Primary School",
+            "LegalName": null,
+            "UkPrn": "10078064",
+            "Upin": "",
+            "Urn": "100011",
+            "DfeEstablishmentNumber": "2078",
+            "EstablishmentNumber": "2022078",
+            "LaCode": "202",
+            "LocalAuthority": "Camden",
+            "Type": "LA maintained schools",
+            "SubType": "Community school",
+            "OpenDate": null,
+            "CloseDate": null,
+            "CrmAccountId": "",
+            "NavVendorNo": "",
+            "Status": "Open"
+          },
+          "AllocationLine": {
+            "Id": "YPG01",
+            "Name": "16-19 Bursaries - all providers 11/12",
+            "ShortName": null,
+            "FundingRoute": "Provider",
+            "ContractRequired": "N"
+          },
+          "AllocationVersionNumber": 28,
+          "AllocationMajorVersion": 2,
+          "AllocationMinorVersion": 0,
+          "AllocationStatus": "Published",
+          "AllocationAmount": 352.0,
+          "ProfilePeriods": [
+            {
+              "Period": "Oct",
+              "Occurrence": 1,
+              "PeriodYear": "2018",
+              "PeriodType": "CalendarMonth",
+              "ProfileValue": 205.33,
+              "DistributionPeriod": "1819"
+            },
+            {
+              "Period": "Apr",
+              "Occurrence": 1,
+              "PeriodYear": "2019",
+              "PeriodType": "CalendarMonth",
+              "ProfileValue": 146.67,
+              "DistributionPeriod": "1819"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Id": "YPG01-1819-10063107-v2-0",
+      "Title": "Allocation 16-19 Bursaries - all providers 11/12 was Published",
+      "Summary": "UKPRN: 10063107, version 2.0",
+      "Published": "2018-12-07T14:54:58.042+00:00",
+      "Updated": "2018-12-07T14:54:58.042+00:00",
+      "Version": "9",
+      "Link": {
+        "Href": "Allocation",
+        "Rel": "https://dummy-url/api/v2/allocations//YPG01-1819-10063107-v2-0"
+      },
+      "Content": {
+        "Allocation": {
+          "AllocationResultId": "YPG01-1819-10063107-v2-0",
+          "FundingStream": {
+            "Id": "YPLRG",
+            "Name": "16-19 Bursaries - all providers 11/12",
+            "ShortName": null,
+            "PeriodType": {
+                "Id": "AY",
+              "Name": "Schools Academic Year",
+              "StartDay": 1,
+              "StartMonth": 8,
+              "EndDay": 31,
+              "EndMonth": 7
+            }
+          },
+          "Period": {
+            "Id": "1819",
+            "Name": "Schools Academic Year",
+            "StartYear": 2018,
+            "EndYear": 2019
+          },
+          "Provider": {
+            "Name": "Alderwood Primary School",
+            "LegalName": null,
+            "UkPrn": "10063107",
+            "Upin": "",
+            "Urn": "143601",
+            "DfeEstablishmentNumber": "2024",
+            "EstablishmentNumber": "2032024",
+            "LaCode": "203",
+            "LocalAuthority": "Greenwich",
+            "Type": "Academies",
+            "SubType": "Academy converter",
+            "OpenDate": "2017-06-30T23:00:00+00:00",
+            "CloseDate": "2017-06-30T23:00:00+00:00",
+            "CrmAccountId": "",
+            "NavVendorNo": "",
+            "Status": "Open"
+          },
+          "AllocationLine": {
+            "Id": "YPG01",
+            "Name": "16-19 Bursaries - all providers 11/12",
+            "ShortName": null,
+            "FundingRoute": "Provider",
+            "ContractRequired": "N"
+          },
+          "AllocationVersionNumber": 9,
+          "AllocationMajorVersion": 2,
+          "AllocationMinorVersion": 0,
+          "AllocationStatus": "Published",
+          "AllocationAmount": 190.0,
+          "ProfilePeriods": [
+            {
+              "Period": "Oct",
+              "Occurrence": 1,
+              "PeriodYear": "2018",
+              "PeriodType": "CalendarMonth",
+              "ProfileValue": 110.83,
+              "DistributionPeriod": "1819"
+            },
+            {
+              "Period": "Apr",
+              "Occurrence": 1,
+              "PeriodYear": "2019",
+              "PeriodType": "CalendarMonth",
+              "ProfileValue": 79.17,
+              "DistributionPeriod": "1819"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "Id": "YPG01-1819-10000101-v2-0",
+      "Title": "Allocation 16-19 Bursaries - all providers 11/12 was Published",
+      "Summary": "UKPRN: 10000101, version 2.0",
+      "Published": "2018-12-07T14:48:35.224+00:00",
+      "Updated": "2018-12-07T14:48:35.224+00:00",
+      "Version": "30",
+      "Link": {
+        "Href": "Allocation",
+        "Rel": "https://dummy-url/api/v2/allocations//YPG01-1819-10000101-v2-0"
+      },
+      "Content": {
+        "Allocation": {
+          "AllocationResultId": "YPG01-1819-10000101-v2-0",
+          "FundingStream": {
+            "Id": "YPLRG",
+            "Name": "16-19 Bursaries - all providers 11/12",
+            "ShortName": null,
+            "PeriodType": {
+                 "Id": "AY",
+              "Name": "Schools Academic Year",
+              "StartDay": 1,
+              "StartMonth": 8,
+              "EndDay": 31,
+              "EndMonth": 7
+            }
+          },
+          "Period": {
+            "Id": "1819",
+            "Name": "Schools Academic Year",
+            "StartYear": 2018,
+            "EndYear": 2019
+          },
+          "Provider": {
+            "Name": "Acland Burghley School",
+            "LegalName": null,
+            "UkPrn": "10000101",
+            "Upin": "",
+            "Urn": "100053",
+            "DfeEstablishmentNumber": "4285",
+            "EstablishmentNumber": "2024285",
+            "LaCode": "202",
+            "LocalAuthority": "Camden",
+            "Type": "LA maintained schools",
+            "SubType": "Community school",
+            "OpenDate": null,
+            "CloseDate": null,
+            "CrmAccountId": "",
+            "NavVendorNo": "",
+            "Status": "Open"
+          },
+          "AllocationLine": {
+            "Id": "YPG01",
+            "Name": "16-19 Bursaries - all providers 11/12",
+            "ShortName": null,
+            "FundingRoute": "Provider",
+            "ContractRequired": "N"
+          },
+          "AllocationVersionNumber": 30,
+          "AllocationMajorVersion": 2,
+          "AllocationMinorVersion": 0,
+          "AllocationStatus": "Published",
+          "AllocationAmount": 10.0,
+          "ProfilePeriods": [
+            {
+              "Period": "Oct",
+              "Occurrence": 1,
+              "PeriodYear": "2018",
+              "PeriodType": "CalendarMonth",
+              "ProfileValue": 5.83,
+              "DistributionPeriod": "1819"
+            },
+            {
+              "Period": "Apr",
+              "Occurrence": 1,
+              "PeriodYear": "2019",
+              "PeriodType": "CalendarMonth",
+              "ProfileValue": 4.17,
+              "DistributionPeriod": "1819"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}</value>
+    <comment>Sample allocation feed</comment>
+  </data>
 </root>

@@ -39,5 +39,15 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.Info($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName("on-migrate-feed-index-id")]
+        public static async Task RunMigrateResultFeedIndexes([QueueTrigger(ServiceBusConstants.QueueNames.MigrateFeedIndexId, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            await Functions.Results.ServiceBus.OnMigrateFeedIndexIdEvent.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
     }
 }

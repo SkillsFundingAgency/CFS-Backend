@@ -154,5 +154,19 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return await _resultsService.HasCalculationResults(calculationId);
         }
+
+        [Route("api/results/migrate-feed-index-id")]
+        [HttpPost]
+        public async Task<IActionResult> RunMigratefeedIndexId()
+        {
+            return await _publishedResultsService.MigrateFeedIndexId(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/results/migrate-version-numbers")]
+        [HttpPost]
+        public async Task<IActionResult> RunMigrateVersionNumbers()
+        {
+            return await _publishedResultsService.MigrateVersionNumbers(ControllerContext.HttpContext.Request);
+        }
     }
 }

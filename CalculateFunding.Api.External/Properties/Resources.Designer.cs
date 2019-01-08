@@ -254,6 +254,59 @@ namespace CalculateFunding.Api.External.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to {
+        ///  &quot;AllocationResultId&quot;: &quot;PSG-002-1819DEV1-10073851-v1-0&quot;,
+        ///  &quot;AllocationResultTitle&quot;: &quot;Allocation Academies was Published&quot;,
+        ///  &quot;FundingStream&quot;: {
+        ///    &quot;Id&quot;: &quot;PSG&quot;,
+        ///    &quot;Name&quot;: &quot;PE and Sport Premium Grant&quot;,
+        ///    &quot;ShortName&quot;: &quot;PE and Sport&quot;,
+        ///    &quot;PeriodType&quot;: {
+        ///      &quot;Id&quot;: &quot;AY&quot;,
+        ///      &quot;Name&quot;: &quot;AY&quot;,
+        ///      &quot;StartDay&quot;: 1,
+        ///      &quot;StartMonth&quot;: 8,
+        ///      &quot;EndDay&quot;: 31,
+        ///      &quot;EndMonth&quot;: 7
+        ///    }
+        ///  },
+        ///  &quot;Period&quot;: {
+        ///    &quot;Id&quot;: &quot;1819DEV1&quot;,
+        ///    &quot;Name&quot;: &quot;2018/19-DEV1&quot;,
+        ///    &quot;StartYear&quot;: 2018,
+        ///    &quot;EndYear&quot;: [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string V2_Sample_Allocation {
+            get {
+                return ResourceManager.GetString("V2_Sample_Allocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;Id&quot;: &quot;837af4ad08ab49709e5066aeee3a7422&quot;,
+        ///  &quot;Title&quot;: &quot;Calculate Funding Service Allocation Feed&quot;,
+        ///  &quot;Author&quot;: {
+        ///    &quot;Email&quot;: &quot;calculate-funding@education.gov.uk&quot;,
+        ///    &quot;Name&quot;: &quot;Calculate Funding Service&quot;
+        ///  },
+        ///  &quot;Updated&quot;: &quot;2019-01-08T11:18:21.1814346+00:00&quot;,
+        ///  &quot;Rights&quot;: &quot;Copyright (C) 2018 Department for Education&quot;,
+        ///  &quot;Link&quot;: [
+        ///    {
+        ///      &quot;Href&quot;: &quot;https://dummy-url/api/v2/allocations/notifications/notifications?pageRef=1&quot;,
+        ///      &quot;Rel&quot;: &quot;self&quot;
+        ///    },
+        ///    {
+        ///      &quot;Href&quot;: &quot;https://dummy-url/ [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string V2_Sample_Allocation_Feeds {
+            get {
+                return ResourceManager.GetString("V2_Sample_Allocation_Feeds", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
         ///		&quot;id&quot;: &quot;PSG&quot;,
         ///		&quot;name&quot;: &quot;PE and Sport Premium Grant&quot;,
         ///		&quot;shortName&quot;: &quot;PE and Sport&quot;,

@@ -32,6 +32,11 @@ namespace CalculateFunding.Api.External.V2.Models
         public string AllocationResultId { get; set; }
 
         /// <summary>
+        /// The current allocation result title
+        /// </summary>
+        public string AllocationResultTitle{ get; set; }
+
+        /// <summary>
         /// The funding stream associated with the allocation model
         /// </summary>
         public AllocationFundingStreamModel FundingStream { get; set; }

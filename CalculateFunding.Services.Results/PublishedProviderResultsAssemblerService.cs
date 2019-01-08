@@ -218,6 +218,8 @@ namespace CalculateFunding.Services.Results
                                     providerResult.FundingStreamResult.AllocationLineResult.Current.Major = existingResult.Major;
                                     providerResult.FundingStreamResult.AllocationLineResult.Current.Minor = existingResult.Minor;
 
+                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Title = $"Allocation {providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {providerResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
+
                                 }
                                 else
                                 {

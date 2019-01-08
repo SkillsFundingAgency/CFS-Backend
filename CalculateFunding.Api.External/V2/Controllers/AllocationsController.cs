@@ -27,8 +27,7 @@ namespace CalculateFunding.Api.External.V2.Controllers
         /// An optional specific version can be requested
         /// </summary>
         /// <param name="allocationId">The id of the requested allocation</param>
-        /// <param name="allocationVersion">An optional version reference for a specific version</param>
-        [HttpGet("{allocationId}/{allocationVersion?}")]
+        [HttpGet("{allocationId}")]
         [Produces(typeof(AllocationModel))]
         [SwaggerResponseExample(200, typeof(AllocationExamples))]
         [SwaggerOperation("getAllocationById")]
@@ -36,26 +35,10 @@ namespace CalculateFunding.Api.External.V2.Controllers
         [ProducesResponseType(typeof(AllocationModel), 200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(500)]
-        public Task<IActionResult> GetAllocation(string allocationId, int? allocationVersion = null)
+        public IActionResult GetAllocation(string allocationId)
         {
-            return _allocationsService.GetAllocationByAllocationResultId(allocationId, allocationVersion, Request);
+            return _allocationsService.GetAllocationByAllocationResultId(allocationId, Request);
         }
 
-        /// <summary>
-        /// Return a given allocation with its history. By default the latest published allocation is returned, or 404 if none is published.
-        /// </summary>
-        /// <param name="allocationId">The id of the requested allocation</param>
-        [HttpGet("{allocationId}/history")]
-        [Produces(typeof(AllocationWithHistoryModel))]
-        [SwaggerResponseExample(200, typeof(AllocationWithHistoryExamples))]
-        [SwaggerOperation("getAllocationAndHistoryById")]
-        [SwaggerOperationFilter(typeof(OperationFilter<AllocationWithHistoryModel>))]
-        [ProducesResponseType(typeof(AllocationModel), 200)]
-        [ProducesResponseType(401)]
-        [ProducesResponseType(500)]
-        public Task<IActionResult> GetAllocationAndHistory(string allocationId)
-        {
-            return _allocationsService.GetAllocationAndHistoryByAllocationResultId(allocationId, Request);
-        }
     }
 }

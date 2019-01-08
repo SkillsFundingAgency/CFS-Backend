@@ -249,7 +249,7 @@
         "description": "The identifier of the audience used by the External Api."
       }
     },
-	  "AzureAdAudienceProfiling": {
+    "AzureAdAudienceProfiling": {
       "type": "string",
       "metadata": {
         "description": "The identifier of the audience used by the Profiling Api."
@@ -312,6 +312,13 @@
       "type": "bool",
       "metadata": {
         "description": "Feature toggle to enable the major minor versioning"
+      }
+    },
+    "EnableAllAllocationVersionsInFeedIndex": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable the all allocation versions in feed index"
       }
     },
     "EnableDatasetAggregations": {
@@ -1827,6 +1834,10 @@
             {
               "name": "features:allocationLineMajorMinorVersioningEnabled",
               "value": "[parameters('EnableMajorMinorVersioning')]"
+            },
+            {
+              "name": "features:allAllocationResultsVersionsInFeedIndexEnabled",
+              "value": "[parameters('EnableAllAllocationVersionsInFeedIndex')]"
             }
           ]
         }
@@ -3023,6 +3034,10 @@
             {
               "name": "features:allocationLineMajorMinorVersioningEnabled",
               "value": "[parameters('EnableMajorMinorVersioning')]"
+            },
+            {
+              "name": "features:allAllocationResultsVersionsInFeedIndexEnabled",
+              "value": "[parameters('EnableAllAllocationVersionsInFeedIndex')]"
             }
           ]
         }

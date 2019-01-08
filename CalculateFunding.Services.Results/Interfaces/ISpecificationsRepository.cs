@@ -17,5 +17,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<Period> GetFundingPeriodById(string fundingPeriodId);
 
         Task<HttpStatusCode> UpdatePublishedRefreshedDate(string specificationId, DateTimeOffset publishedRefreshDate);
+
+        Task<IEnumerable<SpecificationSummary>> GetSpecificationSummaries();
     }
 }

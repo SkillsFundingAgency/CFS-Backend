@@ -347,6 +347,89 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        public async Task FetchProviderProfile_GivenFetchProviderProfileSucceedsAndMIsAllAllocationResultsVersionsInFeedIndexEnabled_UpdatesPublishedProviderResult()
+        {
+            // Arrange
+            PublishedProviderResult result = CreatePublishedProviderResults().First();
+            result.SpecificationId = specificationId;
+            result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+            result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
+            result.FundingStreamResult.AllocationLineResult.Current.Minor = 1;
+            result.FundingStreamResult.AllocationLineResult.Current.FeedIndexId = "feed-index-id-1";
+            result.FundingStreamResult.AllocationLineResult.Current.Title = "title";
+
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
+            requestModel.First().ProviderId = result.ProviderId;
+            requestModel.First().AllocationLineResultId = result.Id;
+
+            ProviderProfilingResponseModel profileResponse = new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                 {
+                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                 }
+            };
+
+            ILogger logger = Substitute.For<ILogger>();
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
+            publishedProviderResultsRepository
+                .GetPublishedProviderResultForId(Arg.Is(result.Id), Arg.Is(result.ProviderId))
+                .Returns(result);
+            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            providerProfilingRepository
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
+                .Returns(Task.FromResult(profileResponse));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(CreateSpecification(specificationId));
+
+            ISearchRepository<AllocationNotificationFeedIndex> feedsSearchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            IFeatureToggle featureToggler = Substitute.For<IFeatureToggle>();
+            featureToggler
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+            featureToggler
+                .IsAllAllocationResultsVersionsInFeedIndexEnabled()
+                .Returns(true);
+
+            PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
+                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, featureToggle: featureToggler);
+
+            string json = JsonConvert.SerializeObject(requestModel);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["specification-id"] = specificationId;
+
+            // Act
+            await service.FetchProviderProfile(message);
+
+            // Assert
+            result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
+            IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
+            await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
+
+            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => 
+                m.Count() == 1 && 
+                m.First().MajorVersion == 1 && 
+                m.First().MinorVersion == 1 &&
+                m.First().Title == "title" &&
+                m.First().Id == "feed-index-id-1"));
+
+            await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50
+            ));
+        }
+
+        [TestMethod]
         public async Task FetchProviderProfile_GivenFetchProviderProfileSucceedsAndMajorMinorIsDisabled_UpdatesPublishedProviderResultDoesNotIndexMajorMinor()
         {
             // Arrange

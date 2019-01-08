@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Results
     public class SpecificationsRepository : ISpecificationsRepository
     {
         private const string specsUrl = "specs/specification-summary-by-id?specificationId=";
+        private const string allSpecsUrl = "specs/specification-summaries";
         private const string currentSpecsUrl = "specs/specification-current-version-by-id?specificationId=";
         private const string fundingStreamsUrl = "specs/get-fundingstreams";
         private const string fundingPeriodUrl = "specs/get-fundingPeriod-by-id?fundingPeriodId=";
@@ -70,6 +71,11 @@ namespace CalculateFunding.Services.Results
             };
 
             return await _apiClient.PostAsync(url, model);
+        }
+
+        public async Task<IEnumerable<SpecificationSummary>> GetSpecificationSummaries()
+        {
+            return await _apiClient.GetAsync<IEnumerable<SpecificationSummary>>(allSpecsUrl);
         }
     }
 }
