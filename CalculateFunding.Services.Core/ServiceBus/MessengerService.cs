@@ -104,7 +104,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             Message message = null;
 
-            if (string.IsNullOrWhiteSpace(data))
+            if (!string.IsNullOrWhiteSpace(data))
             {
                 byte[] bytes = Encoding.UTF8.GetBytes(data);
 
