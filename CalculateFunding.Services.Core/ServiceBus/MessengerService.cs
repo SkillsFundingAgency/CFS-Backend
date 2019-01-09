@@ -57,13 +57,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
         public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties)
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
-
-            byte[] bytes = Encoding.UTF8.GetBytes(data);
-
-            Message message = new Message(bytes)
-            {
-                PartitionKey = Guid.NewGuid().ToString()
-            };
+            Message message = ConstructMessage(data);
 
             foreach (KeyValuePair<string, string> property in properties)
             {
@@ -94,12 +88,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             Guard.IsNullOrWhiteSpace(topicName, nameof(topicName));
 
-            byte[] bytes = Encoding.UTF8.GetBytes(data);
-
-            Message message = new Message(bytes)
-            {
-                PartitionKey = Guid.NewGuid().ToString()
-            };
+            Message message = ConstructMessage(data);
 
             foreach (KeyValuePair<string, string> property in properties)
             {
@@ -109,6 +98,30 @@ namespace CalculateFunding.Services.Core.ServiceBus
             TopicClient topicClient = GetTopicClient(topicName);
 
             await topicClient.SendAsync(message);
+        }
+
+        private static Message ConstructMessage(string data)
+        {
+            Message message = null;
+
+            if (string.IsNullOrWhiteSpace(data))
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(data);
+
+                message = new Message(bytes)
+                {
+                    PartitionKey = Guid.NewGuid().ToString()
+                };
+            }
+            else
+            {
+                message = new Message()
+                {
+                    PartitionKey = Guid.NewGuid().ToString()
+                };
+            }
+
+            return message;
         }
     }
 }
