@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.ServiceBus;
@@ -50,7 +51,14 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             string json = JsonConvert.SerializeObject(data);
 
-            byte[] bytes = Encoding.UTF8.GetBytes(json);
+            await SendToQueueAsJson(queueName, json, properties);
+        }
+
+        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties)
+        {
+            Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
+
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
 
             Message message = new Message(bytes)
             {
@@ -67,11 +75,6 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await queueClient.SendAsync(message);
         }
 
-        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties)
-        {
-            await SendToQueue(queueName, data, properties);
-        }
-
         private TopicClient GetTopicClient(string topicName)
         {
             return _topicClients.GetOrAdd(topicName, (key) =>
@@ -84,7 +87,14 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             string json = JsonConvert.SerializeObject(data);
 
-            byte[] bytes = Encoding.UTF8.GetBytes(json);
+            await SendToTopicAsJson(topicName, json, properties);
+        }
+
+        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties)
+        {
+            Guard.IsNullOrWhiteSpace(topicName, nameof(topicName));
+
+            byte[] bytes = Encoding.UTF8.GetBytes(data);
 
             Message message = new Message
             {
@@ -99,11 +109,6 @@ namespace CalculateFunding.Services.Core.ServiceBus
             TopicClient topicClient = GetTopicClient(topicName);
 
             await topicClient.SendAsync(message);
-        }
-
-        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties)
-        {
-            await SendToTopic(topicName, data, properties);
         }
     }
 }
