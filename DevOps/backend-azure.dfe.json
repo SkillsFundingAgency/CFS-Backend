@@ -307,6 +307,38 @@
         "description": "Feature toggle to enable the mock profiling api"
       }
     },
+    "CFSAPIAzureBearerTokenUrl": {
+      "type": "string",
+      "defaultValue": "https://login.microsoftonline.com/fad277c9-c60a-4da1-b5f3-b3b8b34a82f9/oauth2/v2.0/token",
+      "metadata": {
+        "description": "Url for acquiring token"
+      }
+    },
+    "CFSAPIAzureBearerTokenGrantType": {
+      "type": "string",
+      "defaultValue": "client_credentials",
+      "metadata": {
+        "description": "The grant type to use for acquiring token"
+      }
+    },
+    "CFSAPIAzureBearerTokenScope": {
+      "type": "string",
+      "metadata": {
+        "description": "Scope required for acquiring token"
+      }
+    },
+    "CFSAPIAzureBearerTokenClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Client id of the profiling application"
+      }
+    },
+    "CFSAPIAzureBearerTokenClientSecret": {
+      "type": "string",
+      "metadata": {
+        "description": "Client secret of the profiling application"
+      }
+    },
     "EnableMajorMinorVersioning": {
       "defaultValue": false,
       "type": "bool",
@@ -3551,6 +3583,10 @@
               "value": "profiling"
             },
             {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
               "name": "WEBSITE_TIME_ZONE",
               "value": "GMT Standard Time"
             },
@@ -3569,6 +3605,30 @@
             {
               "name": "AzureAd:Authority",
               "value": "[parameters('AzureAdAuthority')]"
+            },
+            {
+              "name": "cfsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-external.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "cfsApiTokenOptions:Url",
+              "value": "[parameters('CFSAPIAzureBearerTokenUrl')]"
+            },
+            {
+              "name": "cfsApiTokenOptions:GrantType",
+              "value": "[parameters('CFSAPIAzureBearerTokenGrantType')]"
+            },
+            {
+              "name": "cfsApiTokenOptions:Scope",
+              "value": "[parameters('CFSAPIAzureBearerTokenScope')]"
+            },
+            {
+              "name": "cfsApiTokenOptions:ClientId",
+              "value": "[parameters('CFSAPIAzureBearerTokenClientId')]"
+            },
+            {
+              "name": "cfsApiTokenOptions:ClientSecret",
+              "value": "[parameters('CFSAPIAzureBearerTokenClientSecret')]"
             }
           ]
         }
