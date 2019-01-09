@@ -272,6 +272,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationLine.ShortName.Should().Be("short-al1");
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationLine.FundingRoute.Should().Be("LA");
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationLine.ContractRequired.Should().Be("Y");
+            atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationResultTitle.Should().Be("test title 1");
             atomFeed.AtomEntry.ElementAt(1).Id.Should().Be("id-2");
             atomFeed.AtomEntry.ElementAt(1).Title.Should().Be("test title 2");
             atomFeed.AtomEntry.ElementAt(1).Summary.Should().Be("test summary 2");
@@ -313,6 +314,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationLine.ShortName.Should().Be("short-al2");
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationLine.FundingRoute.Should().Be("LA");
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationLine.ContractRequired.Should().Be("Y");
+            atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationResultTitle.Should().Be("test title 2");
             atomFeed.AtomEntry.ElementAt(2).Id.Should().Be("id-3");
             atomFeed.AtomEntry.ElementAt(2).Title.Should().Be("test title 3");
             atomFeed.AtomEntry.ElementAt(2).Summary.Should().Be("test summary 3");
@@ -353,6 +355,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationLine.ShortName.Should().Be("short-al3");
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationLine.FundingRoute.Should().Be("LA");
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationLine.ContractRequired.Should().Be("Y");
+            atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationResultTitle.Should().Be("test title 3");
         }
 
         [TestMethod]
