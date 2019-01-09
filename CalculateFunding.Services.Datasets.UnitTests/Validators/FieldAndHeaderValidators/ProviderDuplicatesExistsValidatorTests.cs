@@ -36,12 +36,13 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			IList<FieldValidationResult> result = validatorUnderTest.ValidateAllFields(fieldsBeingValidated);
 
 			// Assert
-			result
-				.Count.ShouldBeEquivalentTo(4);
+			result.Count.Should().Be(4);
+
 			result.All(e => e.ReasonOfFailure == FieldValidationResult.ReasonForFailure.DuplicateEntriesInTheProviderIdColumn).Should().BeTrue();
 
 			List<FieldValidationResult> urnErrors = result.Where(r => r.FieldValidated.Value.ToString() == "12345678").ToList();
-			urnErrors.Count.ShouldBeEquivalentTo(2);
+			urnErrors.Count.Should().Be(2);
+
 			ShouldContainCellReferenceForRowAndColumn(urnErrors, 2, 1)
 				.Should().BeTrue();
 			ShouldContainCellReferenceForRowAndColumn(urnErrors, 3, 1)
@@ -70,8 +71,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			IList<FieldValidationResult> result = validatorUnderTest.ValidateAllFields(fieldsBeingValidated);
 
 			// Assert
-			result
-				.Count.ShouldBeEquivalentTo(0);
+			result.Count.Should().Be(0);
 		}
 
 		[TestMethod]
@@ -105,7 +105,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			IList<FieldValidationResult> result = validatorUnderTest.ValidateAllFields(fieldsBeingValidated);
 
 			// Assert
-			result.Count.ShouldBeEquivalentTo(0);
+			result.Count.Should().Be(0);
 		}
 
 		private static bool ShouldContainCellReferenceForRowAndColumn(List<FieldValidationResult> fieldValidationResults, int row, int column)

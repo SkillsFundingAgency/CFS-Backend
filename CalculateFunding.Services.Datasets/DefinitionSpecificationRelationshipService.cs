@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
@@ -38,12 +41,22 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IDefinitionsService _definitionService;
         private readonly ICacheProvider _cacheProvider;
+        private readonly IFeatureToggle _featureToggle;
+        private readonly Polly.Policy _jobsApiClientPolicy;
+        private readonly IJobsApiClient _jobsApiClient;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
-            ILogger logger, ISpecificationsRepository specificationsRepository,
+            ILogger logger,
+            ISpecificationsRepository specificationsRepository,
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator,
-            IMessengerService messengerService, IDatasetService datasetService,
-            ICalcsRepository calcsRepository, IDefinitionsService definitionService, ICacheProvider cacheProvider)
+            IMessengerService messengerService,
+            IDatasetService datasetService,
+            ICalcsRepository calcsRepository,
+            IDefinitionsService definitionService,
+            ICacheProvider cacheProvider,
+            IDatasetsResiliencePolicies datasetsResiliencePolicies,
+            IFeatureToggle featureToggle,
+            IJobsApiClient jobsApiClient)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -54,6 +67,9 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(definitionService, nameof(definitionService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
 
             _datasetRepository = datasetRepository;
             _logger = logger;
@@ -64,6 +80,9 @@ namespace CalculateFunding.Services.Datasets
             _calcsRepository = calcsRepository;
             _definitionService = definitionService;
             _cacheProvider = cacheProvider;
+            _featureToggle = featureToggle;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -289,11 +308,45 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int)statusCode);
             }
 
-            IDictionary<string, string> properties = request.BuildMessageProperties();
-            properties.Add("specification-id", relationship.Specification.Id);
-            properties.Add("relationship-id", relationship.Id);
+            if (_featureToggle.IsJobServiceForMainActionsEnabled())
+            {
+                Reference user = request.GetUser();
 
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ProcessDataset, dataset, properties);
+                Trigger trigger = new Trigger
+                {
+                    EntityId = dataset.Id,
+                    EntityType = nameof(Dataset),
+                    Message = $"Mapping dataset: '{dataset.Id}'"
+                };
+
+                string correlationId = request.GetCorrelationId();
+
+                JobCreateModel job = new JobCreateModel
+                {
+                    InvokerUserDisplayName = user.Name,
+                    InvokerUserId = user.Id,
+                    JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
+                    MessageBody = JsonConvert.SerializeObject(dataset),
+                    Properties = new Dictionary<string, string>
+                        {
+                            { "specification-id", relationship.Specification.Id },
+                            { "relationship-id", relationship.Id }
+                        },
+                    SpecificationId = relationship.Specification.Id,
+                    Trigger = trigger,
+                    CorrelationId = correlationId
+                };
+
+                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+            }
+            else
+            {
+                IDictionary<string, string> properties = request.BuildMessageProperties();
+                properties.Add("specification-id", relationship.Specification.Id);
+                properties.Add("relationship-id", relationship.Id);
+
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ProcessDataset, dataset, properties);
+            }
 
             return new NoContentResult();
         }

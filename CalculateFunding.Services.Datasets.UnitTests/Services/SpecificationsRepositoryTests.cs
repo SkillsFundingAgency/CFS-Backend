@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             //Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should().ThrowExactly<ArgumentNullException>();
         }
 
 

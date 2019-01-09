@@ -6,6 +6,9 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -587,13 +590,120 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-               .ShouldNotThrow();
+               .Should().NotThrow();
 
             await cacheProvider
                 .Received(1)
                 .SetAsync(Arg.Is($"{CacheKeys.DatasetValidationStatus}:{operationId}"), Arg.Is<DatasetValidationStatusModel>(v =>
                 v.OperationId == operationId &&
                 v.ValidationFailures.Count == 3));
+        }
+
+        [TestMethod]
+        public async Task ValidateDataset_GivenJobServiceFeatureToggleEnabled_CallsJobServiceToQueueJob()
+        {
+            // Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = "dataset-id",
+                Version = 1,
+                Filename = "ds.xlsx",
+                Comment = "Change comment",
+                DefinitionId = DataDefintionId,
+                Description = "My change description",
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+               .DownloadToStreamAsync(Arg.Is(blob))
+               .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition()
+            {
+                Id = DataDefintionId,
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new List<DatasetDefinition>() { datasetDefinition };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForMainActionsEnabled()
+                .Returns(true);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                cacheProvider: cacheProvider,
+                messengerService: messengerService,
+                featureToggle: featureToggle,
+                jobsApiClient: jobsApiClient);
+
+            // Act
+            IActionResult result = await service.ValidateDataset(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<DatasetValidationStatusModel>()
+                .Should()
+                .NotBeNull();
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync<DatasetValidationStatusModel>(Arg.Is<string>(c => c.StartsWith(CacheKeys.DatasetValidationStatus) && c.Length > 40),
+                Arg.Is<DatasetValidationStatusModel>(s => !string.IsNullOrWhiteSpace(s.OperationId) && s.CurrentOperation == DatasetValidationStatus.Queued));
+
+            await jobsApiClient
+                .Received(1)
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob));
+
+            await messengerService
+                .DidNotReceive()
+                .SendToQueue(Arg.Any<string>(), Arg.Any<GetDatasetBlobModel>(), Arg.Any<IDictionary<string, string>>());
         }
 
         [TestMethod]
@@ -690,7 +800,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .ShouldNotThrow();
+                .Should().NotThrow();
 
             await cacheProvider
                 .Received(1)
@@ -786,7 +896,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .ShouldThrow<InvalidOperationException>()
+                .Should().Throw<InvalidOperationException>()
                 .WithMessage($"Failed to save dataset for id: {datasetId} with status code InternalServerError");
 
             logger
@@ -901,7 +1011,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .ShouldThrow<InvalidOperationException>()
+                .Should().Throw<InvalidOperationException>()
                 .WithMessage("Failed to save dataset for id: dataset-id in search with errors ");
         }
 
@@ -997,7 +1107,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .ShouldNotThrow();
+                .Should().NotThrow();
 
             // Ensure initial version is set
             await datasetRepository
@@ -1178,7 +1288,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .ShouldNotThrow();
+                .Should().NotThrow();
 
             // Ensure next version is set
             await datasetRepository
@@ -1366,7 +1476,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-               .ShouldThrow<InvalidOperationException>()
+               .Should().Throw<InvalidOperationException>()
                .WithMessage("Failed to save dataset or dataset version for id: dataset-id due to version mismatch. Expected next version to be 3 but request provided '2'");
 
             logger
@@ -1491,7 +1601,7 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
 
             action
-                .ShouldThrow<InvalidOperationException>()
+                .Should().Throw<InvalidOperationException>()
                 .WithMessage($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
 
             logger
@@ -1620,7 +1730,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .ShouldThrow<InvalidOperationException>()
+                .Should().Throw<InvalidOperationException>()
                 .WithMessage("Failed to save dataset for id: dataset-id with status code InternalServerError");
 
             logger
@@ -1629,7 +1739,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task OnValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenUpdatingSearchThenErrorIsThrown()
+        public void OnValidateDataset_GivenTableResultsAndMetadataValidatesAndSavesWhenUpdatingSearchThenErrorIsThrown()
         {
             //Arrange
             const int newDatasetVersion = 2;
@@ -1762,7 +1872,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             result
-                .ShouldThrow<InvalidOperationException>()
+                .Should().Throw<InvalidOperationException>()
                 .WithMessage("Failed to save dataset for id: dataset-id in search with errors Error in dataset ID for search");
 
             logger
@@ -2508,6 +2618,178 @@ namespace CalculateFunding.Services.Datasets.Services
                      s.ErrorMessage == "Unable to find a data definition for id: defId, for blob: dsid/v1/filename.xlsx" &&
                      s.OperationId == operationId
                      ));
+        }
+
+        [TestMethod]
+        public async Task OnValidateDataset_GivenJobServiceFeatureToggleEnabled_ThenUpdatesJobServiceWithProgress()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+
+            const string dataDefinitionId = "definition-id";
+            const string authorId = "author-id";
+            const string authorName = "author-name";
+            const string datasetId = "dataset-id";
+            const string name = "name";
+            const string description = "updated description";
+            const string operationId = "operationId";
+            const string jobId = "job-id";
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+                {
+                    { "dataDefinitionId", dataDefinitionId },
+                    { "authorName", authorName },
+                    { "authorId", authorId },
+                    { "datasetId", datasetId },
+                    { "name", name },
+                    { "description", description }
+                };
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = "dataset-id",
+                Version = 1,
+                Filename = "ds.xlsx",
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            Message message = new Message(byteArray);
+
+            message.UserProperties.Add("operation-id", operationId);
+            message.UserProperties.Add("jobId", jobId);
+
+            ILogger logger = CreateLogger();
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = dataDefinitionId
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            datasetRepository
+                .SaveDataset(Arg.Any<Dataset>())
+                .Returns(HttpStatusCode.OK);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
+            };
+
+            ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForMainActionsEnabled()
+                .Returns(true);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+
+            DatasetService service = CreateDatasetService(logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                searchRepository: searchRepository,
+                cacheProvider: cacheProvider,
+                featureToggle: featureToggle,
+                jobsApiClient: jobsApiClient);
+
+            // Act
+            Func<Task> result = async () => { await service.ValidateDataset(message); };
+
+            // Assert
+            result
+                .Should().NotThrow();
+
+            // Ensure initial version is set
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Current.Version == 1
+                ));
+
+            // Ensure comment is null
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                string.IsNullOrWhiteSpace(d.Current.Commment)
+                ));
+
+            // Ensure the rest of the properties are set
+            await datasetRepository
+                .Received(1)
+                .SaveDataset(Arg.Is<Dataset>(d =>
+                d.Definition.Id == dataDefinitionId &&
+                d.Current.Author.Name == authorName &&
+                d.Current.Author.Id == authorId &&
+                d.Name == name &&
+                d.Description == description
+                ));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<DatasetIndex>>(
+                    d => d.First().Id == datasetId &&
+                    d.First().DefinitionId == dataDefinitionId &&
+                    d.First().DefinitionName == datasetDefinition.Name &&
+                    d.First().Name == name &&
+                    d.First().Status == "Draft" &&
+                    d.First().Version == 1 &&
+                    d.First().Description == description &&
+                    d.First().LastUpdatedById == authorId &&
+                    d.First().LastUpdatedByName == authorName &&
+                    d.First().ChangeNote == ""
+              ));
+
+            await cacheProvider
+                 .Received(1)
+                 .SetAsync<DatasetValidationStatusModel>(
+                 Arg.Is<string>(a => a.StartsWith(CacheKeys.DatasetValidationStatus)),
+                 Arg.Is<DatasetValidationStatusModel>(s =>
+                     s.CurrentOperation == DatasetValidationStatus.Validated &&
+                     s.ErrorMessage == null &&
+                     s.OperationId == operationId
+                     ));
+
+            await jobsApiClient
+                .Received(1)
+                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 0 && !j.CompletedSuccessfully.HasValue));
+            await jobsApiClient
+                .Received(1)
+                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 25 && !j.CompletedSuccessfully.HasValue));
+            await jobsApiClient
+                .Received(1)
+                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 50 && !j.CompletedSuccessfully.HasValue));
+            await jobsApiClient
+                .Received(1)
+                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 75 && !j.CompletedSuccessfully.HasValue));
+            await jobsApiClient
+                .Received(1)
+                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 100 && j.CompletedSuccessfully == true));
         }
     }
 }

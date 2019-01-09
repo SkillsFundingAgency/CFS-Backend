@@ -4,6 +4,10 @@
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
     "CosmosDBDatabaseName": "calculate-funding",
-    "CosmosDBCollectionName": "datasets"
+    "CosmosDBCollectionName": "datasets",
+    "jobsClient:ApiEndpoint": "https://localhost:7010/api/",
+    "jobsClient:ApiKey": "Local",
+    "features:jobServiceEnabled": "true",
+    "features:jobServiceForMainActionsEnabled": "true"
   }
 }

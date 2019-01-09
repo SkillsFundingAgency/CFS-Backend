@@ -91,8 +91,8 @@ namespace CalculateFunding.Services.Datasets.Validators
 						out FieldValidationResult.ReasonForFailure reasonForFailure);
 					if (dictionaryContainsKey)
 					{
-						excelCell.Style.Fill.BackgroundColor.Rgb.ShouldBeEquivalentTo(
-							ToAsciRgbRepresentation(reasonForFailure.GetColorCodeForFailure()));
+						excelCell.Style.Fill.BackgroundColor.Rgb
+                            .Should().BeEquivalentTo(ToAsciRgbRepresentation(reasonForFailure.GetColorCodeForFailure()));
 					}
 					else
 					{
@@ -111,7 +111,7 @@ namespace CalculateFunding.Services.Datasets.Validators
 				row++, index++)
 			{
 				ExcelRange cell = headerErrorsWorksheet.Cells[row, 1];
-				cell.Value.ShouldBeEquivalentTo(headerErrors[index]);
+				cell.Value.Should().BeEquivalentTo(headerErrors[index]);
 			}
 
 			int endingRow = startingPointOfHeaders.Row + headerErrorsCount + 1;

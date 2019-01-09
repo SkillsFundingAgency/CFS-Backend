@@ -1331,7 +1331,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendToQueue<string>(
+                    .SendToQueueAsJson(
                         Arg.Is("TestQueue"), 
                         Arg.Is("a message"), 
                         Arg.Is<Dictionary<string, string>>(
@@ -1468,7 +1468,7 @@ namespace CalculateFunding.Services.Jobs.Services
             await
                 messengerService
                     .Received(1)
-                    .SendToTopic<string>(Arg.Is("TestTopic"), Arg.Any<string>(),
+                    .SendToTopicAsJson(Arg.Is("TestTopic"), Arg.Any<string>(),
                             Arg.Is<Dictionary<string, string>>(m => m.ContainsKey("jobId") && m["jobId"] == jobId));
         }
 
@@ -1577,7 +1577,7 @@ namespace CalculateFunding.Services.Jobs.Services
 
             IMessengerService messengerService = CreateMessengerService();
             messengerService
-                .When(x => x.SendToTopic<string>(Arg.Is("TestTopic"), Arg.Any<string>(), Arg.Any<Dictionary<string,string>>()))
+                .When(x => x.SendToTopicAsJson(Arg.Is("TestTopic"), Arg.Any<string>(), Arg.Any<Dictionary<string,string>>()))
                 .Do(x => { throw new Exception("Failed to send to topic"); });
 
 

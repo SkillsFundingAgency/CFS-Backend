@@ -2,10 +2,6 @@
 using CalculateFunding.Api.External.Swagger.OperationFilters;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
-using CalculateFunding.Api.External.V1.Models.Examples;
-using CalculateFunding.Models.External;
-using CsvHelper;
-using CsvHelper.Configuration;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Examples;

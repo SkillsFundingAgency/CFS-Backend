@@ -11,6 +11,10 @@
             public const string GenerateCalculationAggregationsJob = "GenerateCalculationAggregationsJob";
 
             public const string CreateInstructGenerateAggregationsAllocationJob = "CreateInstructGenerateAggregationsAllocationJob";
+
+            public const string ValidateDatasetJob = "ValidateDatasetJob";
+
+            public const string MapDatasetJob = "MapDatasetJob";
         }
 
         public static class NotificationChannels

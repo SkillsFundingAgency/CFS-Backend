@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -19,6 +20,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -131,7 +133,7 @@ namespace CalculateFunding.Services.Datasets
             return health;
         }
 
-        async public Task ProcessDataset(Message message)
+        public async Task ProcessDataset(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
@@ -139,17 +141,24 @@ namespace CalculateFunding.Services.Datasets
 
             Dataset dataset = message.GetPayloadAsInstanceOf<Dataset>();
 
+            string jobId = null;
+            if (_featureToggle.IsJobServiceForMainActionsEnabled())
+            {
+                jobId = message.UserProperties["jobId"].ToString();
+            }
+
             if (dataset == null)
             {
                 _logger.Error("A null dataset was provided to ProcessData");
-
-                throw new ArgumentNullException(nameof(dataset), "A null dataset was provided to ProcessDataset");
+                await UpdateJobStatus(jobId, false, 100, "Failed to Process - null dataset provided");
+                return;
             }
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
                 _logger.Error("Specification Id key is missing in ProcessDataset message properties");
-                throw new KeyNotFoundException("Specification Id key is missing in ProcessDataset message properties");
+                await UpdateJobStatus(jobId, false, 100, "Failed to Process - specification id not provided");
+                return;
             }
 
             string specificationId = message.UserProperties["specification-id"].ToString();
@@ -157,22 +166,23 @@ namespace CalculateFunding.Services.Datasets
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("A null or empty specification id was provided to ProcessData");
-
-                throw new ArgumentNullException(nameof(specificationId), "A null or empty specification id was provided to ProcessData");
+                await UpdateJobStatus(jobId, false, 100, "Failed to Process - specification if is null or empty");
+                return;
             }
 
             if (!message.UserProperties.ContainsKey("relationship-id"))
             {
                 _logger.Error("Relationship Id key is missing in ProcessDataset message properties");
-                throw new KeyNotFoundException("Relationship Id key is missing in ProcessDataset message properties");
+                await UpdateJobStatus(jobId, false, 100, "Failed to Process - relationship id not provided");
+                return;
             }
 
             string relationshipId = message.UserProperties["relationship-id"].ToString();
             if (string.IsNullOrWhiteSpace(relationshipId))
             {
                 _logger.Error("A null or empty relationship id was provided to ProcessDataset");
-
-                throw new ArgumentNullException(nameof(specificationId), "A null or empty relationship id was provided to ProcessData");
+                await UpdateJobStatus(jobId, false, 100, "Failed to Process - relationship id is null or empty");
+                return;
             }
 
             DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
@@ -180,7 +190,8 @@ namespace CalculateFunding.Services.Datasets
             if (relationship == null)
             {
                 _logger.Error($"Relationship not found for relationship id: {relationshipId}");
-                throw new ArgumentNullException(nameof(relationshipId), "A null or empty relationship returned from repository");
+                await UpdateJobStatus(jobId, false, 100, "Failed to Process - relationship not found");
+                return;
             }
 
             BuildProject buildProject = null;
@@ -190,9 +201,19 @@ namespace CalculateFunding.Services.Datasets
             try
             {
                 buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version, user);
+
+                await UpdateJobStatus(jobId, true, 100, "Processed Dataset");
+            }
+            catch (NonRetriableException argEx)
+            {
+                // This type of exception is not retriable so fail
+                _logger.Error(argEx, $"Failed to run ProcessDataset with exception: {argEx.Message} for relationship ID '{relationshipId}'");
+                await UpdateJobStatus(jobId, false, 100, $"Failed to run Process - {argEx.Message}");
+                return;
             }
             catch (Exception exception)
             {
+                // Unknown exception occurred so allow it to be retried
                 _logger.Error(exception, $"Failed to run ProcessDataset with exception: {exception.Message} for relationship ID '{relationshipId}'");
                 throw;
             }
@@ -218,9 +239,7 @@ namespace CalculateFunding.Services.Datasets
 
                         bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
 
-                        Job job = await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
-
-                        _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
+                        await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
                     }
                     catch (Exception ex)
                     {
@@ -349,7 +368,7 @@ namespace CalculateFunding.Services.Datasets
             if (datasetVersion == null)
             {
                 _logger.Error("Dataset version not found for dataset '{name}' ({id}) version '{version}'", dataset.Id, dataset.Name, version);
-                throw new InvalidOperationException($"Dataset version not found for dataset '{dataset.Name}' ({dataset.Name}) version '{version}'");
+                throw new NonRetriableException($"Dataset version not found for dataset '{dataset.Name}' ({dataset.Name}) version '{version}'");
             }
 
             string fullBlobName = datasetVersion.BlobName;
@@ -361,7 +380,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
 
-                throw new Exception($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
+                throw new NonRetriableException($"Unable to find a data definition for id: {dataDefinitionId}, for blob: {fullBlobName}");
             }
 
             BuildProject buildProject = await _calcsRepository.GetBuildProjectBySpecificationId(specificationId);
@@ -370,7 +389,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Unable to find a build project for specification id: {specificationId}");
 
-                throw new Exception($"Unable to find a build project for id: {specificationId}");
+                throw new NonRetriableException($"Unable to find a build project for id: {specificationId}");
             }
 
             TableLoadResult loadResult = await GetTableResult(fullBlobName, datasetDefinition);
@@ -379,7 +398,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Failed to load table result");
 
-                throw new Exception($"Failed to load table result");
+                throw new NonRetriableException($"Failed to load table result");
             }
 
             await PersistDataset(loadResult, dataset, datasetDefinition, buildProject, specificationId, relationshipId, version, user);
@@ -389,7 +408,6 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task<TableLoadResult> GetTableResult(string fullBlobName, DatasetDefinition datasetDefinition)
         {
-
             string dataset_cache_key = $"{CacheKeys.DatasetRows}:{datasetDefinition.Id}:{GetBlobNameCacheKey(fullBlobName)}".ToLowerInvariant();
 
             IEnumerable<TableLoadResult> tableLoadResults = await _cacheProvider.GetAsync<TableLoadResult[]>(dataset_cache_key);
@@ -401,7 +419,7 @@ namespace CalculateFunding.Services.Datasets
                 if (blob == null)
                 {
                     _logger.Error($"Failed to find blob with path: {fullBlobName}");
-                    throw new ArgumentException($"Failed to find blob with path: {fullBlobName}");
+                    throw new NonRetriableException($"Failed to find blob with path: {fullBlobName}");
                 }
 
                 using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
@@ -409,7 +427,7 @@ namespace CalculateFunding.Services.Datasets
                     if (datasetStream == null || datasetStream.Length == 0)
                     {
                         _logger.Error($"Invalid blob returned: {fullBlobName}");
-                        throw new ArgumentException($"Invalid blob returned: {fullBlobName}");
+                        throw new NonRetriableException($"Invalid blob returned: {fullBlobName}");
                     }
 
                     tableLoadResults = _excelDatasetReader.Read(datasetStream, datasetDefinition).ToList();
@@ -486,7 +504,7 @@ namespace CalculateFunding.Services.Datasets
                             Date = DateTimeOffset.Now.ToLocalTime(),
                             ProviderId = providerId,
                             Version = 1,
-                            PublishStatus = PublishStatus.Draft,
+                            PublishStatus = Models.Versioning.PublishStatus.Draft,
                             ProviderSourceDatasetId = sourceDataset.Id,
                             Author = user
                         };
@@ -697,7 +715,7 @@ namespace CalculateFunding.Services.Datasets
             return Convert.ToBase64String(plainTextBytes);
         }
 
-        private async Task<Job> SendInstructAllocationsToJobService(string providerCacheKey, string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool generateCalculationAggregations)
+        private async Task SendInstructAllocationsToJobService(string providerCacheKey, string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool generateCalculationAggregations)
         {
             JobCreateModel job = new JobCreateModel
             {
@@ -714,7 +732,29 @@ namespace CalculateFunding.Services.Datasets
                 CorrelationId = correlationId
             };
 
-            return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+            Job createdJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+            _logger.Information($"New job of type '{createdJob.JobDefinitionId}' created with id: '{createdJob.Id}'");
+            return;
+        }
+
+        private async Task UpdateJobStatus(string jobId, bool? completedSuccessfully, int percentComplete, string outcome = null)
+        {
+            if (_featureToggle.IsJobServiceForMainActionsEnabled())
+            {
+                JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+                {
+                    CompletedSuccessfully = completedSuccessfully,
+                    ItemsProcessed = percentComplete,
+                    Outcome = outcome
+                };
+
+                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+
+                if (jobLogResponse == null || jobLogResponse.Content == null)
+                {
+                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
+                }
+            }
         }
     }
 }

@@ -6,6 +6,9 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
@@ -1573,18 +1576,87 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BeOfType<NoContentResult>();
         }
 
-        static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
+        [TestMethod]
+        public async Task AssignDatasourceVersionToRelationship_JobServiceFeatureToggleSwitchedOn_CallsJobServiceInsteadOfQueuingDirectly()
+        {
+            //Arrange
+            string datasetId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+
+            AssignDatasourceModel model = new AssignDatasourceModel
+            {
+                DatasetId = datasetId,
+                RelationshipId = relationshipId,
+                Version = 1
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            Dataset dataset = new Dataset();
+            DefinitionSpecificationRelationship relationship = new DefinitionSpecificationRelationship
+            {
+                Specification = new Reference { Id = "spec-id" }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(dataset);
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(relationship);
+            datasetRepository
+                .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
+                .Returns(HttpStatusCode.OK);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle.IsJobServiceForMainActionsEnabled().Returns(true);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, featureToggle: featureToggle, jobsApiClient: jobsApiClient, messengerService: messengerService);
+
+            //Act
+            IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await jobsApiClient
+                .Received(1)
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == "MapDatasetJob" && j.SpecificationId == relationship.Specification.Id));
+
+            await messengerService
+                .DidNotReceive()
+                .SendToQueue(Arg.Any<string>(), Arg.Any<Dataset>(), Arg.Any<IDictionary<string, string>>());
+        }
+
+        private static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
             IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null,
-            IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null)
+            IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null, IFeatureToggle featureToggle = null, IJobsApiClient jobsApiClient = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
                 specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
                 messengerService ?? CreateMessengerService(), datasetService ?? CreateDatasetService(),
-                calcsRepository ?? CreateCalcsRepository(), definitionsService ?? CreateDefinitionService(), cacheProvider ?? CreateCacheProvider());
+                calcsRepository ?? CreateCalcsRepository(), definitionsService ?? CreateDefinitionService(), cacheProvider ?? CreateCacheProvider(),
+                DatasetsResilienceTestHelper.GenerateTestPolicies(), featureToggle ?? CreateFeatureToggle(), jobsApiClient ?? CreateJobsApiClient());
         }
 
-        static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
+        private static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -1600,44 +1672,54 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
-        static IDefinitionsService CreateDefinitionService()
+        private static IDefinitionsService CreateDefinitionService()
         {
             return Substitute.For<IDefinitionsService>();
         }
 
-        static ISpecificationsRepository CreateSpecificationsRepository()
+        private static ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
         }
 
-        static ICalcsRepository CreateCalcsRepository()
+        private static ICalcsRepository CreateCalcsRepository()
         {
             return Substitute.For<ICalcsRepository>();
         }
 
-        static IDatasetRepository CreateDatasetRepository()
+        private static IDatasetRepository CreateDatasetRepository()
         {
             return Substitute.For<IDatasetRepository>();
         }
 
-        static ILogger CreateLogger()
+        private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
 
-        static IDatasetService CreateDatasetService()
+        private static IDatasetService CreateDatasetService()
         {
             return Substitute.For<IDatasetService>();
         }
 
-        static IMessengerService CreateMessengerService()
+        private static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
         }
 
-        static ICacheProvider CreateCacheProvider()
+        private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
+        }
+
+        private static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
+        }
+
+        private static IJobsApiClient CreateJobsApiClient()
+        {
+            return Substitute.For<IJobsApiClient>();
         }
     }
 }

@@ -698,7 +698,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Should()
                 .BeOfType<OkObjectResult>()
                 .Which.Value
-                .ShouldBeEquivalentTo(new NewDatasetVersionResponseModel()
+                .Should().BeEquivalentTo(new NewDatasetVersionResponseModel()
                 {
                     DatasetId = datasetId,
                     Author = new Reference(authorId, authorName),
@@ -896,7 +896,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
-                .ShouldBeEquivalentTo(new DatasetVersionResponseViewModel()
+                .Should().BeEquivalentTo(new DatasetVersionResponseViewModel()
                 {
                     Id = datasetId,
                     Name = dataset.Name,
@@ -985,7 +985,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
-                .ShouldBeEquivalentTo(new DatasetVersionResponseViewModel()
+                .Should().BeEquivalentTo(new DatasetVersionResponseViewModel()
                 {
                     Id = datasetId,
                     Name = dataset.Name,

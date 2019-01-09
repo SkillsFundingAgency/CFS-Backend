@@ -1,12 +1,11 @@
-﻿using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
@@ -24,8 +23,8 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             try
             {
-                var queue = QueueClient.GetQueueReference(queueName);
-                var result = await queue.ExistsAsync();
+                CloudQueue queue = QueueClient.GetQueueReference(queueName);
+                bool result = await queue.ExistsAsync();
                 return (true, string.Empty);
             }
             catch (Exception ex)
@@ -49,6 +48,8 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
         public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties) where T : class
         {
+            Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
+
             QueueMessage<T> queueMessage = new QueueMessage<T>
             {
                 Data = data,
@@ -66,9 +67,36 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await queue.AddMessageAsync(message);
         }
 
-        public Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties) where T : class
+        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties)
         {
-            return SendToQueue<T>(topicName, data, properties);
+            Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
+
+            string propertiesJson = properties == null ? "null" : JsonConvert.SerializeObject(properties);
+
+            if (string.IsNullOrWhiteSpace(data))
+            {
+                data = "null";
+            }
+
+            string queueMessageJson = $"{{\"Data\":{data},\"UserProperties\":{propertiesJson}}}";
+
+            CloudQueue queue = QueueClient.GetQueueReference(queueName);
+
+            await queue.CreateIfNotExistsAsync();
+
+            CloudQueueMessage message = new CloudQueueMessage(queueMessageJson);
+
+            await queue.AddMessageAsync(message);
+        }
+
+        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties) where T : class
+        {
+            await SendToQueue<T>(topicName, data, properties);
+        }
+
+        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties)
+        {
+            await SendToQueueAsJson(topicName, data, properties);
         }
     }
 }

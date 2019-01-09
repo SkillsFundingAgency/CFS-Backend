@@ -6,13 +6,16 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -31,6 +34,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using OfficeOpenXml;
+using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Datasets
@@ -51,6 +55,9 @@ namespace CalculateFunding.Services.Datasets
         private readonly IProviderRepository _providerRepository;
         private readonly IValidator<ExcelPackage> _dataWorksheetValidator;
         private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
+        private readonly IFeatureToggle _featureToggle;
+        private readonly Policy _jobsApiClientPolicy;
+        private readonly IJobsApiClient _jobsApiClient;
 
         static IEnumerable<ProviderSummary> _providerSummaries = new List<ProviderSummary>();
 
@@ -67,8 +74,29 @@ namespace CalculateFunding.Services.Datasets
             ICacheProvider cacheProvider,
             IProviderRepository providerRepository,
             IValidator<ExcelPackage> dataWorksheetValidator,
-            IValidator<DatasetUploadValidationModel> datasetUploadValidator)
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator,
+            IDatasetsResiliencePolicies datasetsResiliencePolicies,
+            IFeatureToggle featureToggle,
+            IJobsApiClient jobsApiClient)
         {
+            Guard.ArgumentNotNull(blobClient, nameof(blobClient));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(createNewDatasetModelValidator, nameof(createNewDatasetModelValidator));
+            Guard.ArgumentNotNull(datasetVersionUpdateModelValidator, nameof(datasetVersionUpdateModelValidator));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(datasetMetadataModelValidator, nameof(datasetMetadataModelValidator));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(getDatasetBlobModelValidator, nameof(getDatasetBlobModelValidator));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(providerRepository, nameof(providerRepository));
+            Guard.ArgumentNotNull(dataWorksheetValidator, nameof(dataWorksheetValidator));
+            Guard.ArgumentNotNull(datasetUploadValidator, nameof(datasetUploadValidator));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+
             _blobClient = blobClient;
             _logger = logger;
             _datasetRepository = datasetRepository;
@@ -83,16 +111,19 @@ namespace CalculateFunding.Services.Datasets
             _providerRepository = providerRepository;
             _dataWorksheetValidator = dataWorksheetValidator;
             _datasetUploadValidator = datasetUploadValidator;
+            _featureToggle = featureToggle;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var blobHealth = await _blobClient.IsHealthOk();
+            (bool Ok, string Message) blobHealth = await _blobClient.IsHealthOk();
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
             string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
-            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
-            var cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
@@ -120,7 +151,7 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Error("Null model name was provided to CreateNewDataset");
                 return new BadRequestObjectResult("Null model name was provided");
             }
-            var validationResult = (await _createNewDatasetModelValidator.ValidateAsync(model)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _createNewDatasetModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
             {
@@ -157,7 +188,7 @@ namespace CalculateFunding.Services.Datasets
                 _logger.Warning($"Null model was provided to {nameof(DatasetVersionUpdate)}");
                 return new BadRequestObjectResult("Null model name was provided");
             }
-            var validationResult = (await _datasetVersionUpdateModelValidator.ValidateAsync(model)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _datasetVersionUpdateModelValidator.ValidateAsync(model)).PopulateModelState();
 
             if (validationResult != null)
             {
@@ -196,9 +227,9 @@ namespace CalculateFunding.Services.Datasets
 
         async public Task<IActionResult> GetDatasetByName(HttpRequest request)
         {
-            request.Query.TryGetValue("datasetName", out var dsName);
+            request.Query.TryGetValue("datasetName", out Microsoft.Extensions.Primitives.StringValues dsName);
 
-            var datasetName = dsName.FirstOrDefault();
+            string datasetName = dsName.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(datasetName))
             {
@@ -223,9 +254,9 @@ namespace CalculateFunding.Services.Datasets
 
         async public Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request)
         {
-            request.Query.TryGetValue("definitionId", out var definitionId);
+            request.Query.TryGetValue("definitionId", out Microsoft.Extensions.Primitives.StringValues definitionId);
 
-            var datasetDefinitionId = definitionId.FirstOrDefault();
+            string datasetDefinitionId = definitionId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(datasetDefinitionId))
             {
@@ -243,7 +274,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IActionResult> GetValidateDatasetStatus(HttpRequest request)
         {
-            request.Query.TryGetValue("operationId", out var operationIdParse);
+            request.Query.TryGetValue("operationId", out Microsoft.Extensions.Primitives.StringValues operationIdParse);
 
             string operationId = operationIdParse.FirstOrDefault();
 
@@ -326,12 +357,44 @@ namespace CalculateFunding.Services.Datasets
                 model.DatasetId = blob.Metadata["datasetId"];
             }
 
-            IDictionary<string, string> messageProperties = CreateMessageProperties(request);
-            messageProperties.Add("operation-id", responseModel.OperationId);
+            if (_featureToggle.IsJobServiceForMainActionsEnabled())
+            {
+                Reference user = request.GetUser();
 
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ValidateDataset, model, messageProperties);
+                Trigger trigger = new Trigger
+                {
+                    EntityId = model.DatasetId,
+                    EntityType = nameof(Dataset),
+                    Message = $"Validating dataset: '{model.DatasetId}' against definition: '{datasetDefinition.Name}'"
+                };
 
-            await _cacheProvider.SetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{responseModel.OperationId}", responseModel);
+                string correlationId = request.GetCorrelationId();
+
+                JobCreateModel job = new JobCreateModel
+                {
+                    InvokerUserDisplayName = user.Name,
+                    InvokerUserId = user.Id,
+                    JobDefinitionId = JobConstants.DefinitionNames.ValidateDatasetJob,
+                    MessageBody = JsonConvert.SerializeObject(model),
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "operation-id", responseModel.OperationId }
+                    },
+                    Trigger = trigger,
+                    CorrelationId = correlationId
+                };
+
+                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+            }
+            else
+            {
+                IDictionary<string, string> messageProperties = CreateMessageProperties(request);
+                messageProperties.Add("operation-id", responseModel.OperationId);
+
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ValidateDataset, model, messageProperties);
+            }
+
+            await _cacheProvider.SetAsync($"{CacheKeys.DatasetValidationStatus}:{responseModel.OperationId}", responseModel);
 
             return new OkObjectResult(responseModel);
         }
@@ -355,12 +418,20 @@ namespace CalculateFunding.Services.Datasets
 
             await SetValidationStatus(operationId, DatasetValidationStatus.Processing);
 
+            string jobId = null;
+            if (_featureToggle.IsJobServiceForMainActionsEnabled())
+            {
+                jobId = message.UserProperties["jobId"].ToString();
+
+                await UpdateJobStatus(jobId, null, 0);
+            }
+
             GetDatasetBlobModel model = message.GetPayloadAsInstanceOf<GetDatasetBlobModel>();
             if (model == null)
             {
                 _logger.Error("Null model was provided to ValidateDataset");
-
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, "Null model was provided to ValidateDataset");
+                await UpdateJobStatus(jobId, false, 100, "Failed Validation - Null model was provided to ValidateDataset");
 
                 return;
             }
@@ -370,6 +441,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"{nameof(GetDatasetBlobModel)} validation result returned null");
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} validation result returned null");
+                await UpdateJobStatus(jobId, false, 100, "Failed Validation - no validation result");
 
                 return;
             }
@@ -377,6 +449,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"{nameof(GetDatasetBlobModel)} model error: {{0}}", validationResult.Errors);
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} model error", ConvertToErrorDictionary(validationResult));
+                await UpdateJobStatus(jobId, false, 100, "Failed Validation - model errors");
 
                 return;
             }
@@ -387,8 +460,8 @@ namespace CalculateFunding.Services.Datasets
             if (blob == null)
             {
                 _logger.Error($"Failed to find blob with path: {fullBlobName}");
-
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Failed to find blob with path: {fullBlobName}");
+                await UpdateJobStatus(jobId, false, 100, "Failed Validation - file not found in blob storage");
                 return;
             }
 
@@ -399,14 +472,16 @@ namespace CalculateFunding.Services.Datasets
                 if (datasetStream == null || datasetStream.Length == 0)
                 {
                     _logger.Error($"Blob {blob.Name} contains no data");
-
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Blob {blob.Name} contains no data");
+                    await UpdateJobStatus(jobId, false, 100, "Failed validation - file contains no data");
+
                     return;
                 }
 
                 try
                 {
                     await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingExcelWorkbook);
+                    await UpdateJobStatus(jobId, null, 25);
 
                     using (ExcelPackage excel = new ExcelPackage(datasetStream))
                     {
@@ -415,6 +490,7 @@ namespace CalculateFunding.Services.Datasets
                         if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
                         {
                             await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
+                            await UpdateJobStatus(jobId, false, 100, "Failed validation - with validation errors");
                             return;
                         }
                     }
@@ -430,6 +506,7 @@ namespace CalculateFunding.Services.Datasets
                     validationResult.Errors.Add(new ValidationFailure(nameof(model.Filename), errorMessage));
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
+                    await UpdateJobStatus(jobId, false, 100, "Failed validation - the data source file type is invalid");
 
                     return;
                 }
@@ -444,10 +521,13 @@ namespace CalculateFunding.Services.Datasets
                     _logger.Error(errorMessage);
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
+                    await UpdateJobStatus(jobId, false, 100, "Failed Validation - invalid data definition");
+
                     return;
                 }
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
+                await UpdateJobStatus(jobId, null, 50);
 
                 (IDictionary<string, IEnumerable<string>> validationFailures, int rowCount) = await ValidateTableResults(datasetDefinition, blob);
 
@@ -461,6 +541,7 @@ namespace CalculateFunding.Services.Datasets
                         };
 
                         await SetValidationStatus(operationId, DatasetValidationStatus.SavingResults);
+                        await UpdateJobStatus(jobId, null, 75);
 
                         Dataset dataset;
 
@@ -476,6 +557,7 @@ namespace CalculateFunding.Services.Datasets
                         }
 
                         await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
+                        await UpdateJobStatus(jobId, true, 100, "Dataset passed validation");
                     }
                     catch (Exception exception)
                     {
@@ -488,6 +570,7 @@ namespace CalculateFunding.Services.Datasets
                 else
                 {
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, validationFailures: validationFailures);
+                    await UpdateJobStatus(jobId, false, 100, "Failed validation - table validation");
                 }
             }
         }
@@ -533,11 +616,31 @@ namespace CalculateFunding.Services.Datasets
             await _cacheProvider.SetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{status.OperationId}", status);
         }
 
+        private async Task UpdateJobStatus(string jobId, bool? completedSuccessfully, int percentComplete, string outcome = null)
+        {
+            if (_featureToggle.IsJobServiceForMainActionsEnabled())
+            {
+                JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+                {
+                    CompletedSuccessfully = completedSuccessfully,
+                    ItemsProcessed = percentComplete,
+                    Outcome = outcome
+                };
+
+                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+
+                if (jobLogResponse == null || jobLogResponse.Content == null)
+                {
+                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
+                }
+            }
+        }
+
         public async Task<IActionResult> DownloadDatasetFile(HttpRequest request)
         {
-            request.Query.TryGetValue("datasetId", out var datasetId);
+            request.Query.TryGetValue("datasetId", out Microsoft.Extensions.Primitives.StringValues datasetId);
 
-            var currentDatasetId = datasetId.FirstOrDefault();
+            string currentDatasetId = datasetId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(currentDatasetId))
             {
@@ -597,7 +700,7 @@ namespace CalculateFunding.Services.Datasets
                     Id = dataset.Content.Id,
                     LastUpdatedDate = dataset.UpdatedAt,
                     Name = dataset.Content.Name,
-                    Status = Enum.GetName(typeof(PublishStatus), dataset.Content.Current.PublishStatus),
+                    Status = Enum.GetName(typeof(Models.Versioning.PublishStatus), dataset.Content.Current.PublishStatus),
                     Description = dataset.Content.Description,
                     Version = dataset.Content.Current.Version,
                     ChangeNote = dataset.Content.Current.Commment,
@@ -624,9 +727,9 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult($"Indexed total of {totalInserts} Datasets");
         }
 
-        public async Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest)
+        public async Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest request)
         {
-            httpRequest.Query.TryGetValue("specificationId", out var specificationIdValues);
+            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specificationIdValues);
 
             string specificationId = specificationIdValues.FirstOrDefault();
 
@@ -645,26 +748,57 @@ namespace CalculateFunding.Services.Datasets
 
             foreach (DefinitionSpecificationRelationship relationship in relationships)
             {
-                Dataset dataset;
-
                 if (relationship == null || relationship.DatasetVersion == null || string.IsNullOrWhiteSpace(relationship.DatasetVersion.Id))
                 {
                     continue;
                 }
 
-                if (!datasets.TryGetValue(relationship.DatasetVersion.Id, out dataset))
+                if (!datasets.TryGetValue(relationship.DatasetVersion.Id, out Dataset dataset))
                 {
                     dataset = (await _datasetRepository.GetDatasetsByQuery(c => c.Id == relationship.DatasetVersion.Id)).FirstOrDefault();
                     datasets.Add(relationship.DatasetVersion.Id, dataset);
                 }
 
-                IDictionary<string, string> properties = httpRequest.BuildMessageProperties();
+                if (_featureToggle.IsJobServiceForMainActionsEnabled())
+                {
+                    Reference user = request.GetUser();
 
-                properties.Add("specification-id", relationship.Specification.Id);
-                properties.Add("relationship-id", relationship.Id);
+                    Trigger trigger = new Trigger
+                    {
+                        EntityId = dataset.Id,
+                        EntityType = nameof(Dataset),
+                        Message = $"Mapping dataset: '{dataset.Id}'"
+                    };
 
-                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ProcessDataset, dataset, properties);
+                    string correlationId = request.GetCorrelationId();
 
+                    JobCreateModel job = new JobCreateModel
+                    {
+                        InvokerUserDisplayName = user.Name,
+                        InvokerUserId = user.Id,
+                        JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
+                        MessageBody = JsonConvert.SerializeObject(dataset),
+                        Properties = new Dictionary<string, string>
+                        {
+                            { "specification-id", relationship.Specification.Id },
+                            { "relationship-id", relationship.Id }
+                        },
+                        SpecificationId = relationship.Specification.Id,
+                        Trigger = trigger,
+                        CorrelationId = correlationId
+                    };
+
+                    await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+                }
+                else
+                {
+                    IDictionary<string, string> properties = request.BuildMessageProperties();
+
+                    properties.Add("specification-id", relationship.Specification.Id);
+                    properties.Add("relationship-id", relationship.Id);
+
+                    await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ProcessDataset, dataset, properties);
+                }
             }
 
             return new OkObjectResult(relationships);
@@ -690,7 +824,7 @@ namespace CalculateFunding.Services.Datasets
             metadataModel.Description = metadata.ContainsKey("description") ? HttpUtility.UrlDecode(metadata["description"]) : string.Empty;
             metadataModel.Comment = metadata.ContainsKey("comment") ? metadata["comment"] : string.Empty;
 
-            var validationResult = await _datasetMetadataModelValidator.ValidateAsync(metadataModel);
+            ValidationResult validationResult = await _datasetMetadataModelValidator.ValidateAsync(metadataModel);
 
             if (!validationResult.IsValid)
             {
@@ -704,7 +838,7 @@ namespace CalculateFunding.Services.Datasets
                 Author = new Reference(metadataModel.AuthorId, metadataModel.AuthorName),
                 Version = 1,
                 Date = DateTimeOffset.Now,
-                PublishStatus = PublishStatus.Draft,
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
                 BlobName = blob.Name,
                 RowCount = rowCount,
                 Commment = metadataModel.Comment
@@ -774,7 +908,7 @@ namespace CalculateFunding.Services.Datasets
                 Author = new Reference(author.Id, author.Name),
                 Version = model.Version,
                 Date = DateTimeOffset.Now,
-                PublishStatus = PublishStatus.Draft,
+                PublishStatus = Models.Versioning.PublishStatus.Draft,
                 BlobName = blob.Name,
                 Commment = model.Comment,
                 RowCount = rowCount,
@@ -883,7 +1017,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IActionResult> GetCurrentDatasetVersionByDatasetId(HttpRequest request)
         {
-            request.Query.TryGetValue("datasetId", out var datasetIdParse);
+            request.Query.TryGetValue("datasetId", out Microsoft.Extensions.Primitives.StringValues datasetIdParse);
 
             string datasetId = datasetIdParse.FirstOrDefault();
 

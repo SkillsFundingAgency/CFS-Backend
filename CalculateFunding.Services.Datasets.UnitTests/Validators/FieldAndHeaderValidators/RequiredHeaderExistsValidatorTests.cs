@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Datasets.Validators.FieldAndHeaderValidators
 			// Assert
 			invalidResults
 				.Count
-				.ShouldBeEquivalentTo(2);
+				.Should().Be(2);
 
 			invalidResults
 				.Should()

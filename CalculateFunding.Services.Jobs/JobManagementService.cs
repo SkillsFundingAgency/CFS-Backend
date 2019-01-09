@@ -563,11 +563,11 @@ namespace CalculateFunding.Services.Jobs
             {
                 if (!string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue))
                 {
-                    await _messengerService.SendToQueue<string>(jobDefinition.MessageBusQueue, data, messageProperties);
+                    await _messengerService.SendToQueueAsJson(jobDefinition.MessageBusQueue, data, messageProperties);
                 }
                 else
                 {
-                    await _messengerService.SendToTopic<string>(jobDefinition.MessageBusTopic, data, messageProperties);
+                    await _messengerService.SendToTopicAsJson(jobDefinition.MessageBusTopic, data, messageProperties);
                 }
             }
             catch (Exception ex)

@@ -48,27 +48,35 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             test
-                .ShouldThrowExactly<ArgumentNullException>();
+                .Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
-        public void ProcessDataset_GivenNullPayload_ThrowsArgumentException()
+        public async Task ProcessDataset_GivenNullPayload_DoesNoProcessing()
         {
             //Arrange
             Message message = new Message(new byte[0]);
 
-            ProcessDatasetService service = CreateProcessDatasetService();
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            ILogger logger = CreateLogger();
+
+            ProcessDatasetService service = CreateProcessDatasetService(datasetRepository: datasetRepository, logger: logger);
 
             // Act
-            Func<Task> test = () => service.ProcessDataset(message);
+            await service.ProcessDataset(message);
 
             // Assert
-            test
-                .ShouldThrowExactly<ArgumentNullException>();
+            await datasetRepository
+                .DidNotReceive()
+                .GetDefinitionSpecificationRelationshipById(Arg.Any<string>());
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("A null dataset was provided to ProcessData"));
         }
 
         [TestMethod]
-        public void ProcessDataset_GivenPayloadButNoSpecificationIdKeyinProperties_ThrowsKeyNotFoundException()
+        public async Task ProcessDataset_GivenPayloadButNoSpecificationIdKeyinProperties_DoesNoProcessing()
         {
             //Arrange
             Dataset dataset = new Dataset();
@@ -77,18 +85,26 @@ namespace CalculateFunding.Services.Datasets.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            ProcessDatasetService service = CreateProcessDatasetService();
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            ILogger logger = CreateLogger();
+
+            ProcessDatasetService service = CreateProcessDatasetService(datasetRepository: datasetRepository, logger: logger);
 
             // Act
-            Func<Task> test = () => service.ProcessDataset(message);
+            await service.ProcessDataset(message);
 
             // Assert
-            test
-                .ShouldThrowExactly<KeyNotFoundException>();
+            await datasetRepository
+                .DidNotReceive()
+                .GetDefinitionSpecificationRelationshipById(Arg.Any<string>());
+
+            logger
+                .Received(1)
+                .Error("Specification Id key is missing in ProcessDataset message properties");
         }
 
         [TestMethod]
-        public void ProcessDataset_GivenPayloadButNoSpecificationIdValueinProperties_ThrowsArgumentException()
+        public async Task ProcessDataset_GivenPayloadButNoSpecificationIdValueinProperties_DoesNoProcessing()
         {
             //Arrange
             Dataset dataset = new Dataset();
@@ -100,18 +116,26 @@ namespace CalculateFunding.Services.Datasets.Services
                 .UserProperties
                 .Add("specification-id", "");
 
-            ProcessDatasetService service = CreateProcessDatasetService();
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            ILogger logger = CreateLogger();
+
+            ProcessDatasetService service = CreateProcessDatasetService(datasetRepository: datasetRepository, logger: logger);
 
             // Act
-            Func<Task> test = () => service.ProcessDataset(message);
+            await service.ProcessDataset(message);
 
             // Assert
-            test
-                .ShouldThrowExactly<ArgumentNullException>();
+            await datasetRepository
+                .DidNotReceive()
+                .GetDefinitionSpecificationRelationshipById(Arg.Any<string>());
+
+            logger
+                .Received(1)
+                .Error("A null or empty specification id was provided to ProcessData");
         }
 
         [TestMethod]
-        public void ProcessDataset_GivenPayloadButDatasetDefinitionCouldNotBeFound_DoesNotProcess()
+        public async Task ProcessDataset_GivenPayloadButDatasetDefinitionCouldNotBeFound_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -165,17 +189,9 @@ namespace CalculateFunding.Services.Datasets.Services
             ProcessDatasetService service = CreateProcessDatasetService(datasetRepository: datasetRepository, logger: logger);
 
             // Act
-            Action action = () =>
-            {
-                service.ProcessDataset(message).Wait();
-            };
+            await service.ProcessDataset(message);
 
             // Assert
-            action
-                .ShouldThrow<AggregateException>()
-                .WithInnerException<Exception>()
-                .WithMessage("One or more errors occurred. (Unable to find a data definition for id: 45d7a71b-f570-4425-801b-250b9129f124, for blob: dataset-id/v1/ds.xlsx)");
-
             logger
                 .Received(1)
                 .Error(Arg.Is($"Unable to find a data definition for id: {DataDefintionId}, for blob: {blobPath}"));
@@ -186,7 +202,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public void ProcessDataset_GivenPayloadButBuildProjectCouldNotBeFound_DoesNotProcess()
+        public async Task ProcessDataset_GivenPayloadButBuildProjectCouldNotBeFound_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -249,17 +265,9 @@ namespace CalculateFunding.Services.Datasets.Services
             ProcessDatasetService service = CreateProcessDatasetService(datasetRepository: datasetRepository, logger: logger, calcsRepository: calcsRepository);
 
             // Act
-            Action action = () =>
-            {
-                service.ProcessDataset(message).Wait();
-            };
+            await service.ProcessDataset(message);
 
             // Assert
-            action
-                .ShouldThrow<AggregateException>()
-                .WithInnerException<Exception>()
-                .WithMessage("One or more errors occurred. (Unable to find a build project for id: d557a71b-f570-4425-801b-250b9129f111)");
-
             logger
                 .Received(1)
                 .Error(Arg.Is($"Unable to find a build project for specification id: {SpecificationId}"));
@@ -270,7 +278,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public void ProcessDataset_GivenPayloadButBlobNotFound_DoesNotProcess()
+        public async Task ProcessDataset_GivenPayloadButBlobNotFound_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -342,17 +350,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository, blobClient: blobClient);
 
             // Act
-            Action action = () =>
-            {
-                service.ProcessDataset(message).Wait();
-            };
+            await service.ProcessDataset(message);
 
             // Assert
-            action
-                .ShouldThrow<AggregateException>()
-                .WithInnerException<Exception>()
-                .WithMessage("One or more errors occurred. (Failed to find blob with path: dataset-id/v1/ds.xlsx)");
-
             logger
                 .Received(1)
                 .Error(Arg.Is($"Failed to find blob with path: {blobPath}"));
@@ -363,7 +363,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public void ProcessDataset_GivenPayloadAndBlobFoundButEmptyFile_DoesNotProcess()
+        public async Task ProcessDataset_GivenPayloadAndBlobFoundButEmptyFile_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -443,16 +443,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(definitionSpecificationRelationship);
 
             // Act
-            Action action = () =>
-            {
-                service.ProcessDataset(message).Wait();
-            };
+            await service.ProcessDataset(message);
 
             // Assert
-            action
-                .ShouldThrow<ArgumentException>()
-                .WithMessage("Invalid blob returned: dataset-id/v1/ds.xlsx");
-
             logger
                 .Received(1)
                 .Error(Arg.Is($"Invalid blob returned: {blobPath}"));
@@ -463,7 +456,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public void ProcessDataset_GivenPayloadAndBlobFoundButNoTableResultsReturned_DoesNotProcess()
+        public async Task ProcessDataset_GivenPayloadAndBlobFoundButNoTableResultsReturned_DoesNotProcess()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -541,17 +534,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
                 .Returns(definitionSpecificationRelationship);
 
-            Action action = () =>
-            {
-                service.ProcessDataset(message).Wait();
-            };
+            await service.ProcessDataset(message);
 
             // Assert
-            action
-                .ShouldThrow<AggregateException>()
-                .WithInnerException<Exception>()
-                .WithMessage("One or more errors occurred. (Failed to load table result)");
-
             logger
                 .Received(1)
                 .Error(Arg.Is($"Failed to load table result"));
@@ -886,16 +871,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerResultsRepository: resultsRepository);
 
             // Act
-            Action action = () =>
-            {
-                service.ProcessDataset(message).Wait();
-            };
-
-            // Assert
-            action
-                .ShouldThrow<AggregateException>()
-                .WithInnerException<Exception>()
-                .WithMessage("One or more errors occurred. (Invalid blob returned: dataset-id/v1/ds.xlsx)");
+            await service.ProcessDataset(message);
 
             // Assert
             await
@@ -1007,18 +983,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerResultsRepository: resultsRepository);
 
             // Act
-            Action action = () =>
-            {
-                service.ProcessDataset(message).Wait();
-            };
+            await service.ProcessDataset(message);
 
             // Assert
-            action
-                .ShouldThrow<AggregateException>()
-                .WithInnerException<Exception>()
-                .WithMessage("One or more errors occurred. (Invalid blob returned: dataset-id/v1/ds.xlsx)");
-
-
             await
                 resultsRepository
                     .DidNotReceive()
@@ -1146,17 +1113,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerResultsRepository: resultsRepository);
 
             // Act
-            Action action = () =>
-            {
-                service.ProcessDataset(message).Wait();
-            };
+            await service.ProcessDataset(message);
 
             // Assert
-            action
-                .ShouldThrow<AggregateException>()
-                .WithInnerException<Exception>()
-                .WithMessage("One or more errors occurred. (Invalid blob returned: dataset-id/v1/ds.xlsx)");
-
             await
                 resultsRepository
                     .DidNotReceive()
@@ -3467,7 +3426,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             test
-                .ShouldThrowExactly<Exception>()
+                .Should().ThrowExactly<Exception>()
                 .Which
                 .Message
                 .Should()
@@ -3492,6 +3451,199 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{SpecificationId}'"));
 
+        }
+
+        [TestMethod]
+        public async Task ProcessDataset_GivenRunningAsAJob_ThenUpdateJobStatus()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
+
+            string dataset_aggregations_cache_key = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult
+                {
+                    Rows = new List<RowLoadResult>
+                    {
+                        new RowLoadResult { Identifier = "123456", IdentifierFieldType = IdentifierFieldType.UPIN, Fields = new Dictionary<string, object>{ { "UPIN", "123456" } } }
+                    }
+                }
+            };
+
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
+            Dataset dataset = new Dataset
+            {
+                Definition = new Reference { Id = DataDefintionId },
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(dataset);
+
+            string relationshipId = "relId";
+            string relationshipName = "Relationship Name";
+            string jobId = "jobId1";
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message
+                .UserProperties
+                .Add("specification-id", SpecificationId);
+
+            message
+               .UserProperties
+               .Add("relationship-id", relationshipId);
+
+            message
+               .UserProperties
+               .Add("user-id", UserId);
+
+            message
+               .UserProperties
+               .Add("user-name", Username);
+
+            message
+                .UserProperties
+                .Add("jobId", jobId);
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                new DatasetDefinition
+                {
+                    Id = DataDefintionId,
+                    TableDefinitions = new List<TableDefinition>
+                    {
+                        new TableDefinition
+                        {
+                            FieldDefinitions = new List<FieldDefinition>
+                            {
+                                new FieldDefinition
+                                {
+                                    IdentifierFieldType = IdentifierFieldType.UPIN,
+                                    Name = "UPIN",
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            ILogger logger = CreateLogger();
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<TableLoadResult[]>(Arg.Is(dataset_cache_key))
+                .Returns(tableLoadResults.ToArraySafe());
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId,
+                DatasetRelationships = new List<DatasetRelationshipSummary>
+                {
+                    new DatasetRelationshipSummary{
+                        DatasetDefinition = new DatasetDefinition { Id = DataDefintionId },
+                        Relationship = new Reference(relationshipId, relationshipName),
+                        DefinesScope = true
+                    }
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            IEnumerable<ProviderSummary> summaries = new[]
+            {
+                new ProviderSummary { Id = "123",  UPIN = "123456" },
+            };
+
+            IProviderRepository resultsRepository = CreateProviderRepository();
+            resultsRepository
+                .GetAllProviderSummaries()
+                .Returns(summaries);
+
+            IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+            featureToggle
+                .IsJobServiceForMainActionsEnabled()
+                .Returns(true);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-2", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
+
+            ProcessDatasetService service = CreateProcessDatasetService(
+                datasetRepository: datasetRepository,
+                logger: logger,
+                calcsRepository: calcsRepository,
+                blobClient: blobClient,
+                cacheProvider: cacheProvider,
+                providerRepository: resultsRepository,
+                providerResultsRepository: providerResultsRepository,
+                excelDatasetReader: excelDatasetReader,
+                jobsApiClient: jobsApiClient,
+                featureToggle: featureToggle);
+
+            // Act
+            await service.ProcessDataset(message);
+
+            // Assert
+            await
+                 jobsApiClient
+                     .Received(1)
+                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == true && l.ItemsProcessed == 100 && l.Outcome == "Processed Dataset"));
         }
     }
 }

@@ -367,6 +367,13 @@
         "description": "Feature toggle to enable the job service"
       }
     },
+    "EnableJobServiceForMainActions": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable the job service"
+      }
+    },
     "AggregateOverCalculationsEnabled": {
       "defaultValue": false,
       "type": "bool",
@@ -1472,6 +1479,10 @@
             {
               "name": "features:jobServiceEnabled",
               "value": "[parameters('EnableJobService')]"
+            },
+            {
+              "name": "features:jobServiceForMainActionsEnabled",
+              "value": "[parameters('EnableJobServiceForMainActions')]"
             }
           ]
         }
@@ -2564,6 +2575,10 @@
             {
               "name": "features:jobServiceEnabled",
               "value": "[parameters('EnableJobService')]"
+            },
+            {
+              "name": "features:jobServiceForMainActionsEnabled",
+              "value": "[parameters('EnableJobServiceForMainActions')]"
             }
           ]
         }

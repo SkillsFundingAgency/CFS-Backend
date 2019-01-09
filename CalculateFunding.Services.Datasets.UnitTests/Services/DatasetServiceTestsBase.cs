@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
@@ -30,7 +32,7 @@ namespace CalculateFunding.Services.Datasets.Services
         protected const string BuildProjectId = "d557a71b-f570-4425-801b-250b9129f111";
         protected const string DatasetId = "e557a71b-f570-4436-801b-250b9129f999";
 
-        protected static DatasetService CreateDatasetService(
+        protected DatasetService CreateDatasetService(
             IBlobClient blobClient = null,
             ILogger logger = null,
             IDatasetRepository datasetRepository = null,
@@ -45,9 +47,10 @@ namespace CalculateFunding.Services.Datasets.Services
             ICalcsRepository calcsRepository = null,
             IProviderRepository providerRepository = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
-            IValidator<DatasetUploadValidationModel> datasetUploadValidator = null)
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
+            IFeatureToggle featureToggle = null,
+            IJobsApiClient jobsApiClient = null)
         {
-
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
                 logger ?? CreateLogger(),
@@ -62,66 +65,69 @@ namespace CalculateFunding.Services.Datasets.Services
                 cacheProvider ?? CreateCacheProvider(),
                 providerRepository ?? CreateProviderRepository(),
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
-                datasetUploadValidator ?? CreateDatasetUploadValidator()
+                datasetUploadValidator ?? CreateDatasetUploadValidator(),
+                DatasetsResilienceTestHelper.GenerateTestPolicies(),
+                featureToggle ?? CreateFeatureToggle(),
+                jobsApiClient ?? CreateJobsApiClient()
                 );
         }
 
-        protected static IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()
+        protected IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()
         {
             return Substitute.For<IVersionRepository<ProviderSourceDatasetVersion>>();
         }
 
-        protected static ICalcsRepository CreateCalcsRepository()
+        protected ICalcsRepository CreateCalcsRepository()
         {
             return Substitute.For<ICalcsRepository>();
         }
 
-        static ITelemetry CreateTelemetry()
+        private ITelemetry CreateTelemetry()
         {
             return Substitute.For<ITelemetry>();
         }
 
-        protected static IProviderRepository CreateProviderRepository()
+        protected IProviderRepository CreateProviderRepository()
         {
             return Substitute.For<IProviderRepository>();
         }
 
-        protected static IProvidersResultsRepository CreateProviderResultsRepository()
+        protected IProvidersResultsRepository CreateProviderResultsRepository()
         {
             return Substitute.For<IProvidersResultsRepository>();
         }
 
-        protected static IExcelDatasetReader CreateExcelDatasetReader()
+        protected IExcelDatasetReader CreateExcelDatasetReader()
         {
             return Substitute.For<IExcelDatasetReader>();
         }
 
-        protected static ISearchRepository<DatasetIndex> CreateSearchRepository()
+        protected ISearchRepository<DatasetIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<DatasetIndex>>();
         }
 
-        protected static ISpecificationsRepository CreateSpecificationsRepository()
+        protected ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
         }
 
-        protected static IMessengerService CreateMessengerService()
+        protected IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
         }
 
-        protected static ServiceBusSettings CreateEventHubSettings()
+        protected ServiceBusSettings CreateEventHubSettings()
         {
             return new ServiceBusSettings();
         }
 
-        protected static ICacheProvider CreateCacheProvider()
+        protected ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
         }
 
-        protected static IValidator<DatasetUploadValidationModel> CreateDatasetUploadValidator(ValidationResult validationResult = null)
+        protected IValidator<DatasetUploadValidationModel> CreateDatasetUploadValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -137,7 +143,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
-        protected static IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
+        protected IValidator<CreateNewDatasetModel> CreateNewDatasetModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -153,7 +159,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
-        protected static IValidator<DatasetVersionUpdateModel> CreateDatasetVersionUpdateModelValidator(ValidationResult validationResult = null)
+        protected IValidator<DatasetVersionUpdateModel> CreateDatasetVersionUpdateModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -169,7 +175,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
-        protected static IValidator<DatasetMetadataModel> CreateDatasetMetadataModelValidator(ValidationResult validationResult = null)
+        protected IValidator<DatasetMetadataModel> CreateDatasetMetadataModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -185,7 +191,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
-        protected static IValidator<GetDatasetBlobModel> CreateGetDatasetBlobModelValidator(ValidationResult validationResult = null)
+        protected IValidator<GetDatasetBlobModel> CreateGetDatasetBlobModelValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -201,7 +207,7 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
-        protected static IValidator<ExcelPackage> CreateDataWorksheetValidator(ValidationResult validationResult = null)
+        protected IValidator<ExcelPackage> CreateDataWorksheetValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -217,22 +223,22 @@ namespace CalculateFunding.Services.Datasets.Services
             return validator;
         }
 
-        protected static IBlobClient CreateBlobClient()
+        protected IBlobClient CreateBlobClient()
         {
             return Substitute.For<IBlobClient>();
         }
 
-        protected static ILogger CreateLogger()
+        protected ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
 
-        protected static IMapper CreateMapper()
+        protected IMapper CreateMapper()
         {
             return Substitute.For<IMapper>();
         }
 
-        protected static IMapper CreateMapperWithDatasetsConfiguration()
+        protected IMapper CreateMapperWithDatasetsConfiguration()
         {
             MapperConfiguration config = new MapperConfiguration(c =>
             {
@@ -242,12 +248,12 @@ namespace CalculateFunding.Services.Datasets.Services
             return new Mapper(config);
         }
 
-        protected static IDatasetRepository CreateDatasetsRepository()
+        protected IDatasetRepository CreateDatasetsRepository()
         {
             return Substitute.For<IDatasetRepository>();
         }
 
-        protected static byte[] CreateTestExcelPackage()
+        protected byte[] CreateTestExcelPackage()
         {
             using (ExcelPackage package = new ExcelPackage())
             {
@@ -259,6 +265,16 @@ namespace CalculateFunding.Services.Datasets.Services
 
                 return package.GetAsByteArray();
             }
+        }
+
+        protected IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
+        }
+
+        protected IJobsApiClient CreateJobsApiClient()
+        {
+            return Substitute.For<IJobsApiClient>();
         }
     }
 }

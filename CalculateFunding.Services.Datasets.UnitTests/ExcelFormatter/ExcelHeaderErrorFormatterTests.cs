@@ -64,8 +64,8 @@ namespace CalculateFunding.Services.Datasets.ExcelFormatter
 				ExcelWorksheet errorsWorkSheet = excelPackage.Workbook.Worksheets["Errors"];
 				errorsWorkSheet.Should().NotBeNull();
 
-				errorsWorkSheet.Cells[10, 1].Value.ShouldBeEquivalentTo(fieldDefinitionParentRid.Name);
-				errorsWorkSheet.Cells[11, 1].Value.ShouldBeEquivalentTo(fieldDefinitionRid.Name);
+				errorsWorkSheet.Cells[10, 1].Value.Should().BeEquivalentTo(fieldDefinitionParentRid.Name);
+				errorsWorkSheet.Cells[11, 1].Value.Should().BeEquivalentTo(fieldDefinitionRid.Name);
 
 				for (int rowIndex = 12; rowIndex < 22; rowIndex++)
 				{

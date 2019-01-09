@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Datasets.Validators.Extensions
 		    string result = providerSummaryUnderTest.GetIdentifierBasedOnIdentifierType(IdentifierFieldType.UKPRN);
 
 		    // Assert
-			result.ShouldBeEquivalentTo(providerSummaryUnderTest.UKPRN);
+			result.Should().BeEquivalentTo(providerSummaryUnderTest.UKPRN);
 	    }
 
 	    [TestMethod]
@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Datasets.Validators.Extensions
 		    string result = providerSummaryUnderTest.GetIdentifierBasedOnIdentifierType(IdentifierFieldType.UPIN);
 
 		    // Assert
-		    result.ShouldBeEquivalentTo(providerSummaryUnderTest.UPIN);
+		    result.Should().BeEquivalentTo(providerSummaryUnderTest.UPIN);
 	    }
 
 	    [TestMethod]
@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Datasets.Validators.Extensions
 		    string result = providerSummaryUnderTest.GetIdentifierBasedOnIdentifierType(IdentifierFieldType.URN);
 
 		    // Assert
-		    result.ShouldBeEquivalentTo(providerSummaryUnderTest.URN);
+		    result.Should().BeEquivalentTo(providerSummaryUnderTest.URN);
 	    }
 
 	    [TestMethod]
@@ -130,7 +130,7 @@ namespace CalculateFunding.Services.Datasets.Validators.Extensions
 		    };
 
 		    // Assert
-		    getIdentifier.ShouldThrow<ArgumentOutOfRangeException>();
+		    getIdentifier.Should().Throw<ArgumentOutOfRangeException>();
 	    }
 
 	    
