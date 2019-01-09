@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
             byte[] bytes = Encoding.UTF8.GetBytes(data);
 
-            Message message = new Message
+            Message message = new Message(bytes)
             {
                 PartitionKey = Guid.NewGuid().ToString()
             };
