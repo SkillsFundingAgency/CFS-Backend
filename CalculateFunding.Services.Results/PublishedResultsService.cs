@@ -7,6 +7,10 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -22,7 +26,6 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
@@ -50,7 +53,7 @@ namespace CalculateFunding.Services.Results
         private readonly ICacheProvider _cacheProvider;
         private readonly ISearchRepository<AllocationNotificationFeedIndex> _allocationNotificationsSearchRepository;
         private readonly Polly.Policy _allocationNotificationsSearchRepositoryPolicy;
-        private readonly IProviderProfilingRepository _providerProfilingRepository;
+        private readonly IProfilingApiClient _providerProfilingRepository;
         private readonly Polly.Policy _providerProfilingRepositoryPolicy;
         private readonly Polly.Policy _publishedProviderCalculationResultsRepositoryPolicy;
         private readonly Polly.Policy _publishedProviderResultsRepositoryPolicy;
@@ -126,7 +129,7 @@ namespace CalculateFunding.Services.Results
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
             ICacheProvider cacheProvider,
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,
-            IProviderProfilingRepository providerProfilingRepository,
+            IProfilingApiClient providerProfilingRepository,
             IMessengerService messengerService,
             IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository,
             IVersionRepository<PublishedProviderCalculationResultVersion> publishedProviderCalcResultsVersionRepository,
@@ -175,7 +178,7 @@ namespace CalculateFunding.Services.Results
         }
 
         public async Task<ServiceHealth> IsHealthOk()
-        {				  
+        {
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
@@ -261,7 +264,7 @@ namespace CalculateFunding.Services.Results
         {
             PublishedAllocationLineResultVersion version = GetPublishedProviderResultVersionById(id);
 
-            if(version == null)
+            if (version == null)
             {
                 return null;
             };
@@ -392,7 +395,7 @@ namespace CalculateFunding.Services.Results
                 publishedProviderResultsToSave.ForEach(m => _publishedAllocationLineLogicalResultVersionService.SetVersion(m.FundingStreamResult.AllocationLineResult.Current));
 
                 publishedProviderResultsToSave.ForEach(SetFeedIndexId);
-                
+
                 try
                 {
                     savePublishedResultsStopwatch.Start();
@@ -986,11 +989,11 @@ namespace CalculateFunding.Services.Results
             {
                 await throttler.WaitAsync();
                 profilingTasks.Add(
-                    Task.Run(() =>
+                    Task.Run(async () =>
                     {
                         try
                         {
-                            (PublishedProviderResult publishedProviderResult, long timeInMs) profilingResult = ProfileResult(profilingItem).Result;
+                            (PublishedProviderResult publishedProviderResult, long timeInMs) profilingResult = await ProfileResult(profilingItem);
 
                             publishedProviderResults.Add(profilingResult.publishedProviderResult);
 
@@ -1282,7 +1285,7 @@ namespace CalculateFunding.Services.Results
         {
             IEnumerable<SpecificationSummary> specificationSummaries = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
 
-            foreach(SpecificationSummary specificationSummary in specificationSummaries)
+            foreach (SpecificationSummary specificationSummary in specificationSummaries)
             {
                 IDictionary<string, string> properties = request.BuildMessageProperties();
                 properties["specification-id"] = specificationSummary.Id;
@@ -1334,7 +1337,7 @@ namespace CalculateFunding.Services.Results
                 FundingStreamPeriod = result.FundingStreamResult.FundingStreamPeriod,
                 AllocationValueByDistributionPeriod = new[]
                 {
-                        new AllocationPeriodValue
+                        new Common.ApiClient.Profiling.Models.AllocationPeriodValue
                         {
                             DistributionPeriod =result.FundingStreamResult.DistributionPeriod,
                             AllocationValue = (decimal)result.FundingStreamResult.AllocationLineResult.Current.Value
@@ -1344,21 +1347,22 @@ namespace CalculateFunding.Services.Results
 
             Stopwatch profilingApiStopWatch = Stopwatch.StartNew();
 
-            ProviderProfilingResponseModel responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(providerProfilingRequestModel));
+            ValidatedApiResponse<ProviderProfilingResponseModel> responseModel = await _providerProfilingRepositoryPolicy.ExecuteAsync(() => _providerProfilingRepository.GetProviderProfilePeriods(providerProfilingRequestModel));
 
             profilingApiStopWatch.Stop();
 
-            if (responseModel != null && !responseModel.DeliveryProfilePeriods.IsNullOrEmpty())
+            if (responseModel != null && responseModel.StatusCode == HttpStatusCode.OK && !responseModel.Content.DeliveryProfilePeriods.IsNullOrEmpty())
             {
-                result.ProfilingPeriods = responseModel.DeliveryProfilePeriods.ToArraySafe();
+                result.ProfilingPeriods = _mapper.Map<Models.Results.ProfilingPeriod[]>(responseModel.Content.DeliveryProfilePeriods);
+                result.FinancialEnvelopes = _mapper.Map<Models.Results.FinancialEnvelope[]>(responseModel.Content.FinancialEnvelopes);
 
                 return (result, profilingApiStopWatch.ElapsedMilliseconds);
             }
             else
             {
-                _logger.Error($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+                _logger.Error($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}. Status Code = '{responseModel?.StatusCode}'");
 
-                throw new Exception($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+                throw new Exception($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}. Status Code = '{responseModel?.StatusCode}'");
             }
         }
 
@@ -1653,9 +1657,9 @@ namespace CalculateFunding.Services.Results
         //temporary until migration work finished
         private void SetFeedIndexId(PublishedProviderResult publishedProviderResult, PublishedAllocationLineResultVersion version)
         {
-             version.FeedIndexId
-                = $"{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}-{publishedProviderResult.FundingPeriod.Id}" +
-                 $"-{version.Provider.UKPRN}-v{version.Major}-{version.Minor}";
+            version.FeedIndexId
+               = $"{publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id}-{publishedProviderResult.FundingPeriod.Id}" +
+                $"-{version.Provider.UKPRN}-v{version.Major}-{version.Minor}";
         }
     }
 }

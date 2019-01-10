@@ -1,9 +1,11 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -38,7 +40,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 AllocationValueByDistributionPeriod = new[]
                  {
-                     new AllocationPeriodValue
+                     new Common.ApiClient.Profiling.Models.AllocationPeriodValue
                      {
                          AllocationValue = 1200,
                          DistributionPeriod = "Period"
@@ -49,11 +51,26 @@ namespace CalculateFunding.Services.Results.Services
 
             MockProviderProfilingRepository repository = new MockProviderProfilingRepository();
 
-            //Act
-            ProviderProfilingResponseModel providerProfilingResponseModel = await repository.GetProviderProfilePeriods(requestModel);
+            // Act
+            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel = await repository.GetProviderProfilePeriods(requestModel);
 
-            //Assert
+            // Assert
             providerProfilingResponseModel
+                .Should()
+                .NotBeNull();
+
+            providerProfilingResponseModel
+               .Content
+               .Should()
+               .NotBeNull();
+
+            providerProfilingResponseModel
+                .StatusCode
+                .Should()
+                .Be(HttpStatusCode.OK);
+
+            providerProfilingResponseModel
+                .Content
                 .DeliveryProfilePeriods
                 .ElementAt(0)
                 .Year
@@ -61,6 +78,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Be(DateTime.Now.Year);
 
             providerProfilingResponseModel
+                .Content
                .DeliveryProfilePeriods
                .ElementAt(1)
                .Year
@@ -76,7 +94,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 AllocationValueByDistributionPeriod = new[]
                 {
-                     new AllocationPeriodValue
+                     new Common.ApiClient.Profiling.Models.AllocationPeriodValue
                      {
                          AllocationValue = 1200,
                          DistributionPeriod = "Period"
@@ -87,11 +105,26 @@ namespace CalculateFunding.Services.Results.Services
 
             MockProviderProfilingRepository repository = new MockProviderProfilingRepository();
 
-            //Act
-            ProviderProfilingResponseModel providerProfilingResponseModel = await repository.GetProviderProfilePeriods(requestModel);
+            // Act
+            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel = await repository.GetProviderProfilePeriods(requestModel);
 
-            //Assert
+            // Assert
             providerProfilingResponseModel
+                .Should()
+                .NotBeNull();
+
+            providerProfilingResponseModel
+               .Content
+               .Should()
+               .NotBeNull();
+
+            providerProfilingResponseModel
+                .StatusCode
+                .Should()
+                .Be(HttpStatusCode.OK);
+
+            providerProfilingResponseModel
+                .Content
                 .DeliveryProfilePeriods
                 .ElementAt(0)
                 .Year
@@ -99,6 +132,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Be(DateTime.Now.Year);
 
             providerProfilingResponseModel
+               .Content
                .DeliveryProfilePeriods
                .ElementAt(1)
                .Year
@@ -114,7 +148,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 AllocationValueByDistributionPeriod = new[]
                  {
-                     new AllocationPeriodValue
+                     new Common.ApiClient.Profiling.Models.AllocationPeriodValue
                      {
                          AllocationValue = 1200,
                          DistributionPeriod = "Period"
@@ -125,25 +159,39 @@ namespace CalculateFunding.Services.Results.Services
 
             MockProviderProfilingRepository repository = new MockProviderProfilingRepository();
 
-            //Act
-            ProviderProfilingResponseModel providerProfilingResponseModel = await repository.GetProviderProfilePeriods(requestModel);
+            // Act
+            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel = await repository.GetProviderProfilePeriods(requestModel);
 
-            //Assert
-            providerProfilingResponseModel.AllocationProfileRequest.Should().BeEquivalentTo(requestModel);
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(0).DistributionPeriod.Should().Be("Period");
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(0).Occurrence.Should().Be(1);
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(0).Period.Should().Be("Oct");
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(0).Type.Should().Be("CalendarMonth");
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(0).Value.Should().Be(700);
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(0).Year.Should().Be(2018);
+            // Assert
+            providerProfilingResponseModel
+                .Should()
+                .NotBeNull();
 
-            providerProfilingResponseModel.AllocationProfileRequest.Should().BeEquivalentTo(requestModel);
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(1).DistributionPeriod.Should().Be("Period");
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(1).Occurrence.Should().Be(1);
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(1).Period.Should().Be("Apr");
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(1).Type.Should().Be("CalendarMonth");
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(1).Value.Should().Be(500);
-            providerProfilingResponseModel.DeliveryProfilePeriods.ElementAt(1).Year.Should().Be(2019);
+            providerProfilingResponseModel
+               .Content
+               .Should()
+               .NotBeNull();
+
+            providerProfilingResponseModel
+                .StatusCode
+                .Should()
+                .Be(HttpStatusCode.OK);
+
+            providerProfilingResponseModel.Content.AllocationProfileRequest.Should().BeEquivalentTo(requestModel);
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(0).DistributionPeriod.Should().Be("Period");
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(0).Occurrence.Should().Be(1);
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(0).Period.Should().Be("Oct");
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(0).Type.Should().Be("CalendarMonth");
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(0).Value.Should().Be(700);
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(0).Year.Should().Be(2018);
+
+            providerProfilingResponseModel.Content.AllocationProfileRequest.Should().BeEquivalentTo(requestModel);
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(1).DistributionPeriod.Should().Be("Period");
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(1).Occurrence.Should().Be(1);
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(1).Period.Should().Be("Apr");
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(1).Type.Should().Be("CalendarMonth");
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(1).Value.Should().Be(500);
+            providerProfilingResponseModel.Content.DeliveryProfilePeriods.ElementAt(1).Year.Should().Be(2019);
         }
     }
 }

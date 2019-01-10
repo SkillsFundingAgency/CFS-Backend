@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;

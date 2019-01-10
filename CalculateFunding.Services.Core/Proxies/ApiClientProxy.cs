@@ -1,19 +1,17 @@
-﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Users;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Core.Options;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using Serilog;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Core.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Serilog;
 
 namespace CalculateFunding.Services.Core.Proxies
 {
@@ -25,7 +23,6 @@ namespace CalculateFunding.Services.Core.Proxies
         private const string SfaUsernameProperty = "sfa-username";
         private const string SfaUserIdProperty = "sfa-userid";
 
-        private readonly IBearerTokenProvider _bearerTokenProvider;
         private readonly HttpClient _httpClient;
         private readonly JsonSerializerSettings _serializerSettings = new JsonSerializerSettings { Formatting = Formatting.Indented, ContractResolver = new CamelCasePropertyNamesContractResolver() };
         private readonly ICorrelationIdProvider _correlationIdProvider;
@@ -62,84 +59,12 @@ namespace CalculateFunding.Services.Core.Proxies
             _logger = logger;
         }
 
-        public ApiClientProxy(ExternalApiOptions options, ILogger logger)
-        {
-            Guard.ArgumentNotNull(options, nameof(options));
-            Guard.IsNullOrWhiteSpace(options.ApiEndpoint, nameof(options.ApiEndpoint));
-            
-            Guard.ArgumentNotNull(logger, nameof(logger));
-
-            _httpClient = new HttpClient(new HttpClientHandler()
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            });
-
-            string baseAddress = options.ApiEndpoint;
-
-            if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
-            {
-                baseAddress = $"{baseAddress}/";
-            }
-
-            _httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
-            _httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-            _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-            _logger = logger;
-        }
-
-        public ApiClientProxy(ExternalApiOptions options, IBearerTokenProvider bearerTokenProvider, ILogger logger)
-        {
-            Guard.ArgumentNotNull(options, nameof(options));
-            Guard.IsNullOrWhiteSpace(options.ApiEndpoint, nameof(options.ApiEndpoint));
-            Guard.ArgumentNotNull(bearerTokenProvider, nameof(bearerTokenProvider));
-            Guard.ArgumentNotNull(logger, nameof(logger));
-
-            _bearerTokenProvider = bearerTokenProvider;
-
-            _httpClient = new HttpClient(new HttpClientHandler()
-            {
-                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate
-            });
-
-            string baseAddress = options.ApiEndpoint;
-
-            if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
-            {
-                baseAddress = $"{baseAddress}/";
-            }
-
-            _httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
-            _httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-            _httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-            
-            _logger = logger;
-        }
-
-        async Task AttachBearerToken()
-        {
-            if (_bearerTokenProvider != null)
-            {
-                string accessToken = await _bearerTokenProvider.GetToken();
-
-                if(accessToken == null)
-                {
-                    throw new Exception("Failed to acquire bearer token");
-                }
-
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            }
-        }
-
         public async Task<T> GetAsync<T>(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
             {
                 throw new ArgumentException(nameof(url));
             }
-
-            await AttachBearerToken();
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
 
@@ -177,8 +102,6 @@ namespace CalculateFunding.Services.Core.Proxies
                 postRequest.Headers.Add(SfaUserIdProperty, userProfile.Id);
             }
 
-            await AttachBearerToken();
-
             HttpResponseMessage response = await _httpClient.SendAsync(postRequest);
 
             if (response == null)
@@ -208,8 +131,6 @@ namespace CalculateFunding.Services.Core.Proxies
                 postRequest.Headers.Add(SfaUsernameProperty, userProfile.Name);
                 postRequest.Headers.Add(SfaUserIdProperty, userProfile.Id);
             }
-
-            await AttachBearerToken();
 
             HttpResponseMessage response = await _httpClient.SendAsync(postRequest);
 
@@ -241,8 +162,6 @@ namespace CalculateFunding.Services.Core.Proxies
                 postRequest.Headers.Add(SfaUsernameProperty, userProfile.Name);
                 postRequest.Headers.Add(SfaUserIdProperty, userProfile.Id);
             }
-
-            await AttachBearerToken();
 
             HttpResponseMessage response = await _httpClient.SendAsync(postRequest);
 

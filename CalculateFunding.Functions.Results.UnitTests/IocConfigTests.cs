@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Functions.Results.UnitTests
 {
@@ -31,6 +31,7 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 scope.ServiceProvider.GetService<IPublishedProviderCalculationResultsRepository>().Should().NotBeNull(nameof(IPublishedProviderCalculationResultsRepository));
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
                 scope.ServiceProvider.GetService<IPublishedProviderResultsAssemblerService>().Should().NotBeNull(nameof(IPublishedProviderResultsAssemblerService));
+                scope.ServiceProvider.GetService<IPublishedResultsService>().Should().NotBeNull(nameof(IPublishedResultsService));
             }
         }
 
@@ -54,7 +55,8 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },
                 { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
-                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"}
+                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
+                { "redisSettings:CacheConnection", "CacheConnection"}
 
             };
 

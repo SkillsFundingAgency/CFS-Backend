@@ -14,7 +14,7 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;

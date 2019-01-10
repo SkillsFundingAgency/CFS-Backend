@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Messages;
 using CalculateFunding.Models.Results.Search;
@@ -164,10 +169,10 @@ namespace CalculateFunding.Services.Results.Services
             publishedProviderResultsRepository
                 .GetPublishedProviderResultForId(Arg.Is(resultId), Arg.Is(result.ProviderId))
                 .Returns(result);
-            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
-                .Returns(Task.FromResult<ProviderProfilingResponseModel>(null));
+                .Returns(Task.FromResult<ValidatedApiResponse<ProviderProfilingResponseModel>>(null));
 
             SpecificationCurrentVersion specification = new SpecificationCurrentVersion
             {
@@ -182,7 +187,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerProfilingRepository: providerProfilingRepository,
+                profilingApiClient: providerProfilingRepository,
                 specificationsRepository: specificationsRepository);
 
             string json = JsonConvert.SerializeObject(requestModel);
@@ -200,7 +205,76 @@ namespace CalculateFunding.Services.Results.Services
                 .Which
                 .Message
                 .Should()
-                .Be($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+                .Be($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}. Status Code = ''");
+        }
+
+        [TestMethod]
+        public void FetchProviderProfile_GivenFetchProviderProfileFailsWithSpecificHttpReturnCode_LogsErrorThrowsException()
+        {
+            // Arrange
+            string resultId = "result1";
+            PublishedProviderResult result = new PublishedProviderResult
+            {
+                ProviderId = "prov1",
+                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp1", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
+                FundingStreamResult = new PublishedFundingStreamResult
+                {
+                    AllocationLineResult = new PublishedAllocationLineResult
+                    {
+                        AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" },
+                        Current = new PublishedAllocationLineResultVersion { Value = 100 }
+                    },
+                    FundingStreamPeriod = "fundingperiod",
+                    DistributionPeriod = "dist1"
+                },
+
+
+                SpecificationId = "spec1"
+            };
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
+
+            ILogger logger = Substitute.For<ILogger>();
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
+            publishedProviderResultsRepository
+                .GetPublishedProviderResultForId(Arg.Is(resultId), Arg.Is(result.ProviderId))
+                .Returns(result);
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
+            providerProfilingRepository
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
+                .Returns(Task.FromResult<ValidatedApiResponse<ProviderProfilingResponseModel>>(new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.InternalServerError, null)));
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            PublishedResultsService service = CreateResultsService(
+                logger: logger,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                profilingApiClient: providerProfilingRepository,
+                specificationsRepository: specificationsRepository);
+
+            string json = JsonConvert.SerializeObject(requestModel);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["specification-id"] = specificationId;
+
+            // Act
+            Func<Task> test = async () => await service.FetchProviderProfile(message);
+
+            // Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}. Status Code = 'InternalServerError'");
         }
 
         [TestMethod]
@@ -229,14 +303,14 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
 
-            ProviderProfilingResponseModel providerProfilingResponseModel = new ProviderProfilingResponseModel();
+            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.InternalServerError);
 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
                 .GetPublishedProviderResultForId(Arg.Is(resultId), Arg.Is(result.ProviderId))
                 .Returns(result);
-            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(providerProfilingResponseModel);
@@ -254,7 +328,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerProfilingRepository: providerProfilingRepository,
+                profilingApiClient: providerProfilingRepository,
                 specificationsRepository: specificationsRepository);
 
             string json = JsonConvert.SerializeObject(requestModel);
@@ -272,7 +346,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Which
                 .Message
                 .Should()
-                .Be($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}");
+                .Be($"Failed to obtain profiling periods for provider: {result.ProviderId} and period: {result.FundingPeriod.Name}. Status Code = 'InternalServerError'");
         }
 
         [TestMethod]
@@ -289,21 +363,21 @@ namespace CalculateFunding.Services.Results.Services
             requestModel.First().ProviderId = result.ProviderId;
             requestModel.First().AllocationLineResultId = result.Id;
 
-            ProviderProfilingResponseModel profileResponse = new ProviderProfilingResponseModel
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel()
             {
-                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
                  {
-                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
                  }
-            };
+            });
 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
                 .GetPublishedProviderResultForId(Arg.Is(result.Id), Arg.Is(result.ProviderId))
                 .Returns(result);
-            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(Task.FromResult(profileResponse));
@@ -326,7 +400,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(true);
 
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, featureToggle: featureToggler);
+                profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, featureToggle: featureToggler);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
@@ -337,7 +411,11 @@ namespace CalculateFunding.Services.Results.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
+            result
+                .ProfilingPeriods
+                .Should()
+                .BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
+
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
             await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 1 && m.First().MajorVersion == 1 && m.First().MinorVersion == 1));
@@ -362,21 +440,21 @@ namespace CalculateFunding.Services.Results.Services
             requestModel.First().ProviderId = result.ProviderId;
             requestModel.First().AllocationLineResultId = result.Id;
 
-            ProviderProfilingResponseModel profileResponse = new ProviderProfilingResponseModel
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
             {
-                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
                  {
-                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "October", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "April", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
                  }
-            };
+            });
 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
                 .GetPublishedProviderResultForId(Arg.Is(result.Id), Arg.Is(result.ProviderId))
                 .Returns(result);
-            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(Task.FromResult(profileResponse));
@@ -401,8 +479,13 @@ namespace CalculateFunding.Services.Results.Services
                 .IsAllAllocationResultsVersionsInFeedIndexEnabled()
                 .Returns(true);
 
-            PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, featureToggle: featureToggler);
+            PublishedResultsService service = CreateResultsService(
+                logger: logger,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                profilingApiClient: providerProfilingRepository,
+                specificationsRepository: specificationsRepository,
+                allocationNotificationFeedSearchRepository: feedsSearchRepository,
+                featureToggle: featureToggler);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
@@ -413,13 +496,13 @@ namespace CalculateFunding.Services.Results.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
+            result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
 
-            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => 
-                m.Count() == 1 && 
-                m.First().MajorVersion == 1 && 
+            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
+                m.Count() == 1 &&
+                m.First().MajorVersion == 1 &&
                 m.First().MinorVersion == 1 &&
                 m.First().Title == "title" &&
                 m.First().Id == "feed-index-id-1"));
@@ -443,21 +526,21 @@ namespace CalculateFunding.Services.Results.Services
             requestModel.First().ProviderId = result.ProviderId;
             requestModel.First().AllocationLineResultId = result.Id;
 
-            ProviderProfilingResponseModel profileResponse = new ProviderProfilingResponseModel
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel()
             {
-                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
                  {
-                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
                  }
-            };
+            });
 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
                 .GetPublishedProviderResultForId(Arg.Is(result.Id), Arg.Is(result.ProviderId))
                 .Returns(result);
-            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(Task.FromResult(profileResponse));
@@ -479,8 +562,14 @@ namespace CalculateFunding.Services.Results.Services
                 .IsAllocationLineMajorMinorVersioningEnabled()
                 .Returns(false);
 
-            PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, featureToggle: featureToggle);
+            PublishedResultsService service = CreateResultsService(
+                logger: logger,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                profilingApiClient: providerProfilingRepository,
+                specificationsRepository: specificationsRepository,
+                allocationNotificationFeedSearchRepository:
+                feedsSearchRepository,
+                featureToggle: featureToggle);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
@@ -491,7 +580,11 @@ namespace CalculateFunding.Services.Results.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
+            result
+                .ProfilingPeriods
+                .Should()
+                .BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
+
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
             await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 1 && m.First().MajorVersion == null && m.First().MinorVersion == null));
@@ -512,32 +605,44 @@ namespace CalculateFunding.Services.Results.Services
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
             }
 
-            ProviderProfilingResponseModel profileResponse1 = new ProviderProfilingResponseModel
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse1 = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
             {
-                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
                  {
-                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                 },
+                FinancialEnvelopes = new List<Common.ApiClient.Profiling.Models.FinancialEnvelope>
+                 {
+                    new Common.ApiClient.Profiling.Models.FinancialEnvelope {  MonthStart = Month.April, YearStart = 2018, MonthEnd = Month.March, YearEnd = 2019, Value = 164380M  },
                  }
-            };
+            });
 
-            ProviderProfilingResponseModel profileResponse2 = new ProviderProfilingResponseModel
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse2 = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
             {
-                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
                  {
-                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" },
-                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" }
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" }
+                 },
+                FinancialEnvelopes = new List<Common.ApiClient.Profiling.Models.FinancialEnvelope>
+                 {
+                    new Common.ApiClient.Profiling.Models.FinancialEnvelope {  MonthStart = Month.April, YearStart = 2018, MonthEnd = Month.March, YearEnd = 2019, Value = 104380M  },
                  }
-            };
+            });
 
-            ProviderProfilingResponseModel profileResponse3 = new ProviderProfilingResponseModel
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse3 = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
             {
-                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
                  {
-                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 32190.0M, DistributionPeriod = "2018-2019" },
-                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 32190.0M, DistributionPeriod = "2018-2019" }
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 32190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 32190.0M, DistributionPeriod = "2018-2019" }
+                 },
+                FinancialEnvelopes = new List<Common.ApiClient.Profiling.Models.FinancialEnvelope>
+                 {
+                    new Common.ApiClient.Profiling.Models.FinancialEnvelope {  MonthStart = Month.April, YearStart = 2018, MonthEnd = Month.March, YearEnd = 2019, Value = 64380M  },
                  }
-            };
+            });
 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
@@ -545,7 +650,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForId(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(results.ElementAt(0), results.ElementAt(1), results.ElementAt(2));
 
-            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(profileResponse1, profileResponse2, profileResponse3);
@@ -569,8 +674,12 @@ namespace CalculateFunding.Services.Results.Services
                 new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
             };
 
-            PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
+            PublishedResultsService service = CreateResultsService(
+                logger: logger,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                profilingApiClient: providerProfilingRepository,
+                specificationsRepository: specificationsRepository,
+                allocationNotificationFeedSearchRepository: feedsSearchRepository);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
@@ -584,6 +693,15 @@ namespace CalculateFunding.Services.Results.Services
             results.ElementAt(0).ProfilingPeriods.Should().NotBeNullOrEmpty();
             results.ElementAt(1).ProfilingPeriods.Should().NotBeNullOrEmpty();
             results.ElementAt(2).ProfilingPeriods.Should().NotBeNullOrEmpty();
+
+            results.ElementAt(0).FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(1).FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(2).FinancialEnvelopes.Should().NotBeNullOrEmpty();
+
+            results.ElementAt(0).FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(1).FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(2).FinancialEnvelopes.Should().HaveCount(1);
+
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { results.ElementAt(0), results.ElementAt(1), results.ElementAt(2) };
 
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(m => m.Count() == 3));
@@ -608,23 +726,23 @@ namespace CalculateFunding.Services.Results.Services
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
             }
 
-            ProviderProfilingResponseModel profileResponse1 = new ProviderProfilingResponseModel
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse1 = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
             {
-                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
                  {
-                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
                  }
-            };
+            });
 
-            ProviderProfilingResponseModel profileResponse2 = new ProviderProfilingResponseModel
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse2 = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
             {
-                DeliveryProfilePeriods = new List<ProfilingPeriod>
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
                  {
-                    new ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" },
-                    new ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" }
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" }
                  }
-            };
+            });
 
             ILogger logger = Substitute.For<ILogger>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
@@ -632,7 +750,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForId(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(results.ElementAt(0), results.ElementAt(1), results.ElementAt(2));
 
-            IProviderProfilingRepository providerProfilingRepository = Substitute.For<IProviderProfilingRepository>();
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(profileResponse1, profileResponse2, null);
@@ -657,7 +775,7 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerProfilingRepository: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
+                profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
@@ -684,9 +802,9 @@ namespace CalculateFunding.Services.Results.Services
         {
             return new ProviderProfilingRequestModel
             {
-                AllocationValueByDistributionPeriod = new List<AllocationPeriodValue>
+                AllocationValueByDistributionPeriod = new List<Common.ApiClient.Profiling.Models.AllocationPeriodValue>
                     {
-                        new AllocationPeriodValue{ DistributionPeriod = "2018", AllocationValue = 23.3M}
+                        new Common.ApiClient.Profiling.Models.AllocationPeriodValue{ DistributionPeriod = "2018", AllocationValue = 23.3M}
                     },
                 FundingStreamPeriod = "2018/2019"
             };

@@ -4,7 +4,7 @@ using AutoMapper;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
@@ -8,7 +10,6 @@ using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
@@ -38,7 +39,7 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
             ICacheProvider cacheProvider = null,
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationFeedSearchRepository = null,
-            IProviderProfilingRepository providerProfilingRepository = null,
+            IProfilingApiClient profilingApiClient = null,
             IMessengerService messengerService = null,
             IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository = null,
             IVersionRepository<PublishedProviderCalculationResultVersion> publishedProviderCalcResultsVersionRepository = null,
@@ -57,7 +58,7 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 allocationNotificationFeedSearchRepository ?? CreateAllocationNotificationFeedSearchRepository(),
-                providerProfilingRepository ?? CreateProfilingRepository(),
+                profilingApiClient ?? CreateProfilingRepository(),
                 messengerService ?? CreateMessengerService(),
                 publishedProviderResultsVersionRepository ?? CreatePublishedProviderResultsVersionRepository(),
                 publishedProviderCalcResultsVersionRepository ?? CreatePublishedProviderCalcResultsVersionRepository(),
@@ -85,9 +86,9 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<IVersionRepository<PublishedAllocationLineResultVersion>>();
         }
 
-        static IProviderProfilingRepository CreateProfilingRepository()
+        static IProfilingApiClient CreateProfilingRepository()
         {
-            return Substitute.For<IProviderProfilingRepository>();
+            return Substitute.For<IProfilingApiClient>();
         }
 
         static ISearchRepository<AllocationNotificationFeedIndex> CreateAllocationNotificationFeedSearchRepository()
@@ -127,7 +128,8 @@ namespace CalculateFunding.Services.Results.Services
 
         static IMapper CreateMapper()
         {
-            return Substitute.For<IMapper>();
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<ResultServiceMappingProfile>());
+            return mapperConfiguration.CreateMapper();
         }
 
         static IMessengerService CreateMessengerService()

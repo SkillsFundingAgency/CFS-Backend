@@ -5,7 +5,7 @@ using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;

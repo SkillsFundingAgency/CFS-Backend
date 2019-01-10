@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -15,18 +16,14 @@ using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Core.Interfaces.Proxies.External;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Proxies;
-using CalculateFunding.Services.Core.Proxies.External;
 using CalculateFunding.Services.Core.ServiceBus;
 using CalculateFunding.Services.Core.Services;
 using Microsoft.ApplicationInsights;
@@ -139,30 +136,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddProviderProfileServiceClient(this IServiceCollection builder, IConfiguration config)
-        {
-            builder
-                 .AddSingleton<IProviderProfilingApiProxy, ProviderProfilingApiProxy>((ctx) =>
-                 {
-                     ExternalApiOptions apiOptions = new ExternalApiOptions();
 
-                     config.Bind("providerProfilingClient", apiOptions);
-
-                     AzureBearerTokenOptions tokenOptions = new AzureBearerTokenOptions();
-
-                     config.Bind("providerProfilingAzureBearerTokenOptions", tokenOptions);
-
-                     ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
-
-                     ILogger logger = ctx.GetService<ILogger>();
-
-                     AzureBearerTokenProvider tokenProvider = new AzureBearerTokenProvider(new AzureBearerTokenProxy(), cacheProvider, tokenOptions);
-
-                     return new ProviderProfilingApiProxy(apiOptions, tokenProvider, logger);
-                 });
-
-            return builder;
-        }
 
         public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
@@ -196,7 +170,7 @@ namespace CalculateFunding.Services.Core.Extensions
                .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
                .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
                .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
-           
+
             builder
                 .AddSingleton<IJobsApiClient, JobsApiClient>();
 
@@ -499,10 +473,10 @@ namespace CalculateFunding.Services.Core.Extensions
 
             IServiceProvider serviceProvider = services.BuildServiceProvider();
 
-            
+
             httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
             httpClient.DefaultRequestHeaders?.Add(ApiClientHeaders.ApiKey, options.ApiKey);
-           
+
             httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
             httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));

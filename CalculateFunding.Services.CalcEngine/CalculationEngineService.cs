@@ -3,17 +3,16 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Calculator.Interfaces;
@@ -22,7 +21,6 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
@@ -30,7 +28,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
 using Polly;
 using Serilog;
 
@@ -284,7 +281,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
 
-                if(jobLogResponse == null || jobLogResponse.Content == null)
+                if (jobLogResponse == null || jobLogResponse.Content == null)
                 {
                     _logger.Error($"Failed to add a job log for job id '{jobId}'");
                 }
@@ -297,7 +294,7 @@ namespace CalculateFunding.Services.Calculator
             }
         }
 
-        private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries, IEnumerable<CalculationSummaryModel> calculations, IEnumerable<CalculationAggregation> aggregations, BuildProject buildProject, 
+        private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries, IEnumerable<CalculationSummaryModel> calculations, IEnumerable<CalculationAggregation> aggregations, BuildProject buildProject,
             GenerateAllocationMessageProperties messageProperties, int providerBatchSize, int index, Stopwatch providerSourceDatasetsStopwatch, Stopwatch calculationStopwatch)
         {
             ConcurrentBag<ProviderResult> providerResults = new ConcurrentBag<ProviderResult>();
@@ -387,13 +384,15 @@ namespace CalculateFunding.Services.Calculator
 
             int batchNumber = 0;
 
-            if (message.UserProperties.ContainsKey("batch-number")){
+            if (message.UserProperties.ContainsKey("batch-number"))
+            {
                 batchNumber = int.Parse(message.UserProperties["batch-number"].ToString());
             }
 
             int batchCount = 0;
 
-            if (message.UserProperties.ContainsKey("batch-count")){
+            if (message.UserProperties.ContainsKey("batch-count"))
+            {
                 batchCount = int.Parse(message.UserProperties["batch-count"].ToString());
             }
 
@@ -604,7 +603,7 @@ namespace CalculateFunding.Services.Calculator
             }
         }
 
-        private async Task ProcessProviderResults(IEnumerable<ProviderResult> providerResults, 
+        private async Task ProcessProviderResults(IEnumerable<ProviderResult> providerResults,
             GenerateAllocationMessageProperties messageProperties, Message message, double? saveCosmosElapsedMs, double saveRedisElapsedMs, double saveQueueElapsedMs)
         {
             if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))

@@ -6,7 +6,7 @@ using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Users.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;

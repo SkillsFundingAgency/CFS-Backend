@@ -4,7 +4,7 @@ using System.Text;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;

@@ -10,7 +10,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Newtonsoft.Json;

@@ -13,7 +13,7 @@ using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Http;

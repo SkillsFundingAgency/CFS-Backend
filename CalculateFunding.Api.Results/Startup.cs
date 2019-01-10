@@ -85,7 +85,11 @@ namespace CalculateFunding.Api.Results
             builder
                .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
 
-            MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<DatasetsMappingProfile>();
+                c.AddProfile<ResultServiceMappingProfile>();
+            });
 
             builder
                 .AddSingleton(resultsConfig.CreateMapper());

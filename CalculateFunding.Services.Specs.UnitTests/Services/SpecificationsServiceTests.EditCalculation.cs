@@ -24,7 +24,7 @@ using System.Security.Claims;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.AspNetCore.Http.Internal;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Caching;
 using System.Linq;
 using CalculateFunding.Repositories.Common.Search;

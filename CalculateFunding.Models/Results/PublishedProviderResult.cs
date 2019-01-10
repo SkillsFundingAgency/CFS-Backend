@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
@@ -48,5 +49,8 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("profilePeriods")]
         public ProfilingPeriod[] ProfilingPeriods { get; set; }
+
+        [JsonProperty("financialEnvelopes")]
+        public IEnumerable<FinancialEnvelope> FinancialEnvelopes { get; set; }
     }
 }

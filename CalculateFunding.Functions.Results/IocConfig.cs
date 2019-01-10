@@ -1,7 +1,14 @@
 ﻿using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.ApiClient.Bearer;
+using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
@@ -9,7 +16,6 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Proxies.External;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -18,13 +24,20 @@ using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
 using Polly.Bulkhead;
+using Serilog;
 
 namespace CalculateFunding.Functions.Results
 {
     static public class IocConfig
     {
         private static IServiceProvider _serviceProvider;
+
+        private static TimeSpan[] retryTimeSpans = new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) };
+        private static int numberOfExceptionsBeforeCircuitBreaker = 100;
+        private static TimeSpan circuitBreakerFailurePeriod = TimeSpan.FromMinutes(1);
+
 
         public static IServiceProvider Build(IConfigurationRoot config)
         {
@@ -83,13 +96,20 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
-            MapperConfiguration resultsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<DatasetsMappingProfile>();
+                c.AddProfile<ResultServiceMappingProfile>();
+            });
+
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
 
             builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddCalcsInterServiceClient(config);
+
+            builder.AddCaching(config);
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
             {
@@ -207,7 +227,23 @@ namespace CalculateFunding.Functions.Results
                 }
             });
 
-            builder.AddSingleton<IProviderProfilingRepository>((ctx) =>
+            builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
+
+            builder.AddSingleton<IAzureBearerTokenProxy, AzureBearerTokenProxy>();
+
+            builder.AddHttpClient(HttpClientKeys.Profiling,
+                c =>
+                {
+                    ApiClientConfigurationOptions opts = new ApiClientConfigurationOptions();
+                    config.Bind("providerProfilingClient", opts);
+
+                    SetDefaultApiClientConfigurationOptions(c, opts, builder);
+                })
+                .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+                .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
+                .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
+
+            builder.AddSingleton<IProfilingApiClient>((ctx) =>
             {
                 IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
 
@@ -219,9 +255,19 @@ namespace CalculateFunding.Functions.Results
                 }
                 else
                 {
-                    IProviderProfilingApiProxy providerProfilingApiProxy = ctx.GetService<IProviderProfilingApiProxy>();
+                    IHttpClientFactory httpClientFactory = ctx.GetService<IHttpClientFactory>();
+                    ILogger logger = ctx.GetService<ILogger>();
+                    ICancellationTokenProvider cancellationTokenProvider = ctx.GetService<ICancellationTokenProvider>();
 
-                    return new ProviderProfilingRepository(providerProfilingApiProxy);
+                    IAzureBearerTokenProxy azureBearerTokenProxy = ctx.GetService<IAzureBearerTokenProxy>();
+                    ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
+                    AzureBearerTokenOptions azureBearerTokenOptions = new AzureBearerTokenOptions();
+                    config.Bind("providerProfilingAzureBearerTokenOptions", azureBearerTokenOptions);
+
+                    AzureBearerTokenProvider bearerTokenProvider = new AzureBearerTokenProvider(azureBearerTokenProxy, cacheProvider, azureBearerTokenOptions);
+
+                    return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
                 }
             });
 
@@ -246,6 +292,33 @@ namespace CalculateFunding.Functions.Results
 
                 return resiliencePolicies;
             });
+        }
+
+        private static void SetDefaultApiClientConfigurationOptions(HttpClient httpClient, ApiClientConfigurationOptions options, IServiceCollection services)
+        {
+            Guard.ArgumentNotNull(httpClient, nameof(httpClient));
+            Guard.ArgumentNotNull(options, nameof(options));
+            Guard.ArgumentNotNull(services, nameof(services));
+
+            if (string.IsNullOrWhiteSpace(options.ApiEndpoint))
+            {
+                throw new InvalidOperationException("options EndPoint is null or empty string");
+            }
+
+            string baseAddress = options.ApiEndpoint;
+            if (!baseAddress.EndsWith("/", StringComparison.CurrentCulture))
+            {
+                baseAddress = $"{baseAddress}/";
+            }
+
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
+            httpClient.DefaultRequestHeaders?.Add(ApiClientHeaders.ApiKey, options.ApiKey);
+
+            httpClient.DefaultRequestHeaders?.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+            httpClient.DefaultRequestHeaders?.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
         }
     }
 }

@@ -1,15 +1,16 @@
-﻿using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Results.Interfaces;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Services.Results
 {
-    public class MockProviderProfilingRepository : IProviderProfilingRepository
+    public class MockProviderProfilingRepository : IProfilingApiClient
     {
-        public Task<ProviderProfilingResponseModel> GetProviderProfilePeriods(ProviderProfilingRequestModel requestModel)
+        public Task<ValidatedApiResponse<ProviderProfilingResponseModel>> GetProviderProfilePeriods(ProviderProfilingRequestModel requestModel)
         {
             Guard.ArgumentNotNull(requestModel, nameof(requestModel));
             Guard.IsNullOrWhiteSpace(requestModel.FundingStreamPeriod, nameof(requestModel.FundingStreamPeriod));
@@ -50,7 +51,7 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-          
+
             AllocationPeriodValue periodValue = requestModel.AllocationValueByDistributionPeriod.First();
 
 
@@ -76,8 +77,9 @@ namespace CalculateFunding.Services.Results
                 }
             };
 
-            return Task.FromResult(providerProfilingResponseModel);
+            return Task.FromResult(new ValidatedApiResponse<ProviderProfilingResponseModel>(System.Net.HttpStatusCode.OK, providerProfilingResponseModel));
         }
+
 
         decimal CalculateValue(decimal allocationValue, int monthlyMultiplier)
         {

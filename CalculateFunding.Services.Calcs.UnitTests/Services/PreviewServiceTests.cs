@@ -21,7 +21,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Common.FeatureToggles;
 using System.Linq;
 using CalculateFunding.Models.Datasets;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Calcs.Services

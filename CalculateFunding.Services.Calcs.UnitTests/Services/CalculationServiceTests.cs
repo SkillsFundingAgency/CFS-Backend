@@ -11,7 +11,7 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using FluentValidation;

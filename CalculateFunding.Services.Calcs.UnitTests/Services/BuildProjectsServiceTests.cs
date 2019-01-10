@@ -19,7 +19,7 @@ using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.Caching;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using FluentAssertions;

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
@@ -21,7 +22,6 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.AspNetCore.Http;
@@ -136,8 +136,8 @@ namespace CalculateFunding.Services.Calcs
                 string jobId = message.UserProperties["jobId"].ToString();
 
                 ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
-                
-                if(response == null || response.Content == null)
+
+                if (response == null || response.Content == null)
                 {
                     _logger.Error($"Could not find the parent job with job id: '{jobId}'");
 
@@ -255,7 +255,7 @@ namespace CalculateFunding.Services.Calcs
                     int newJobsCount = newJobs.Count();
                     int batchCount = allJobProperties.Count();
 
-                    if(newJobsCount != batchCount)
+                    if (newJobsCount != batchCount)
                     {
                         throw new Exception($"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{job.Id}'");
                     }
@@ -264,7 +264,7 @@ namespace CalculateFunding.Services.Calcs
                         _logger.Information($"{newJobsCount} child jobs were created for parent id: '{job.Id}'");
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.Error(ex.Message);
 
@@ -550,7 +550,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
             {
-               
+
                 IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(parentJob.SpecificationId);
 
                 foreach (Models.Calcs.Calculation calculation in calculations)
@@ -612,5 +612,5 @@ namespace CalculateFunding.Services.Calcs
             return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJobs(jobCreateModels));
         }
     }
-    
+
 }
