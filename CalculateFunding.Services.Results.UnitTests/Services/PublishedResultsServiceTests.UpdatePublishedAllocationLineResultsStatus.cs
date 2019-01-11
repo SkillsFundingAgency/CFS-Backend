@@ -717,7 +717,7 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().DatePublished.HasValue == false &&
                         m.First().FundingStreamId == "fs-1" &&
                         m.First().FundingStreamName == "funding stream 1" &&
-                        m.First().FundingPeriodId == "Ay12345" &&
+                        m.First().FundingPeriodId == "1819" &&
                         m.First().ProviderUkPrn == "1111" &&
                         m.First().ProviderUpin == "2222" &&
                         m.First().ProviderOpenDate.HasValue &&
@@ -1103,6 +1103,118 @@ namespace CalculateFunding.Services.Results.Services
                 .BeOfType<OkObjectResult>();
 
             await messengerService.Received(1).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<IEnumerable<FetchProviderProfilingMessageItem>>(), Arg.Any<Dictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenThreeProvidersToPublish_RequestsProviderProfileInformationNotCalled()
+        {
+            //arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-1",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-2",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Published
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Sid, "authorId"),
+                new Claim(ClaimTypes.Name, "authorname")
+            };
+
+            request
+                .HttpContext.User.Claims
+                .Returns(claims.AsEnumerable());
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
+            PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion1.Version = 2;
+            newVersion1.Status = AllocationLineStatus.Approved;
+
+            PublishedAllocationLineResultVersion newVersion2 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion2.Version = 2;
+            newVersion2.Status = AllocationLineStatus.Approved;
+
+            PublishedAllocationLineResultVersion newVersion3 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion3.Version = 2;
+            newVersion3.Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>(), Arg.Is(true))
+                .Returns(newVersion1, newVersion2, newVersion3);
+
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(publishedProviderResults);
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository,
+                specificationsRepository: specificationsRepository,
+                messengerService: messengerService,
+                publishedProviderResultsVersionRepository: versionRepository);
+
+            //Act
+            IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
+
+            //Assertl
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await messengerService.Received(0).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<IEnumerable<FetchProviderProfilingMessageItem>>(), Arg.Any<Dictionary<string, string>>());
         }
     }
 }

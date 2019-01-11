@@ -356,7 +356,7 @@ namespace CalculateFunding.Services.Results
             Stopwatch assemblePublishedProviderResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
             assemblePublishedProviderResultsStopwatch.Stop();
-            UpdateCacheForSegmentDone(specificationId, calculationProgress += 53, CalculationProgressStatus.InProgress);
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 18, CalculationProgressStatus.InProgress);
 
             Stopwatch existingPublishedProviderResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetExistingPublishedProviderResultsForSpecificationId(specificationId));
@@ -389,6 +389,7 @@ namespace CalculateFunding.Services.Results
             Stopwatch savePublishedResultsStopwatch = new Stopwatch();
             Stopwatch savePublishedResultsHistoryStopwatch = new Stopwatch();
             Stopwatch savePublishedResultsSearchStopwatch = new Stopwatch();
+            Stopwatch sendToProfilingStopwatch = new Stopwatch();
 
             if (publishedProviderResultsToSave.Any())
             {
@@ -401,17 +402,20 @@ namespace CalculateFunding.Services.Results
                     savePublishedResultsStopwatch.Start();
                     await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResultsToSave);
                     savePublishedResultsStopwatch.Stop();
-                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 15, CalculationProgressStatus.InProgress);
 
                     savePublishedResultsHistoryStopwatch.Start();
                     await SavePublishedAllocationLineResultVersionHistory(publishedProviderResultsToSave);
                     savePublishedResultsHistoryStopwatch.Stop();
-                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 15, CalculationProgressStatus.InProgress);
 
                     savePublishedResultsSearchStopwatch.Start();
                     await UpdateAllocationNotificationsFeedIndex(publishedProviderResultsToSave, specification);
                     savePublishedResultsSearchStopwatch.Stop();
-                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+                    UpdateCacheForSegmentDone(specificationId, calculationProgress += 15, CalculationProgressStatus.InProgress);
+
+
+
                 }
                 catch (Exception ex)
                 {
@@ -419,6 +423,15 @@ namespace CalculateFunding.Services.Results
                     _logger.Error(ex, $"Failed to create published provider results for specification: {specificationId}");
                     throw new Exception($"Failed to create published provider results for specification: {specificationId}", ex);
                 }
+            }
+
+            if (providerResults.AnyWithNullCheck())
+            {
+                // Queue all published provider results to be profiled
+                sendToProfilingStopwatch.Start();
+                await GenerateProfilingPeriods(message, publishedProviderResults, specification.Id);
+                sendToProfilingStopwatch.Stop();
+                UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
             }
 
             // Update the specification to store when this refresh happened
@@ -455,6 +468,7 @@ namespace CalculateFunding.Services.Results
                 metrics.Add("publishproviderresults-savePublishedResultsMs", savePublishedResultsStopwatch.ElapsedMilliseconds);
                 metrics.Add("publishproviderresults-savePublishedResultsHistoryMs", savePublishedResultsHistoryStopwatch.ElapsedMilliseconds);
                 metrics.Add("publishproviderresults-savePublishedResultsSearchMs", savePublishedResultsSearchStopwatch.ElapsedMilliseconds);
+                metrics.Add("publishproviderresults-sendToProfilingMs", sendToProfilingStopwatch.ElapsedMilliseconds);
             }
 
             if (existingRecordsToZero.AnyWithNullCheck())
@@ -921,12 +935,30 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            await GetProfilingPeriods(request, resultsToProfile, specificationId);
+            await GenerateProfilingPeriods(request, resultsToProfile, specificationId);
 
             return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
         }
 
-        private async Task GetProfilingPeriods(HttpRequest request, IEnumerable<PublishedProviderResult> resultsToProfile, string specificationId)
+        private async Task GenerateProfilingPeriods(HttpRequest request, IEnumerable<PublishedProviderResult> resultsToProfile, string specificationId)
+        {
+            Dictionary<string, string> properties = new Dictionary<string, string>();
+            properties.Add("specification-id", specificationId);
+
+            properties.AddRange(request.BuildMessageProperties());
+            await GenerateProfilingPeriods(resultsToProfile, properties);
+        }
+
+        private async Task GenerateProfilingPeriods(Message message, IEnumerable<PublishedProviderResult> resultsToProfile, string specificationId)
+        {
+            Dictionary<string, string> properties = new Dictionary<string, string>();
+            properties.Add("specification-id", specificationId);
+
+            properties.AddRange(message.BuildMessageProperties());
+            await GenerateProfilingPeriods(resultsToProfile, properties);
+        }
+
+        private async Task GenerateProfilingPeriods(IEnumerable<PublishedProviderResult> resultsToProfile, Dictionary<string, string> properties)
         {
             int batchSize = 100;
             int startPosition = 0;
@@ -935,9 +967,6 @@ namespace CalculateFunding.Services.Results
                 IEnumerable<FetchProviderProfilingMessageItem> batchOfResultsToProfile = resultsToProfile.Skip(startPosition).Take(batchSize).Select(r => new FetchProviderProfilingMessageItem { AllocationLineResultId = r.Id, ProviderId = r.ProviderId });
 
                 _logger.Information($"Sending new provider profiling message for {batchOfResultsToProfile.Count()} results");
-
-                IDictionary<string, string> properties = request.BuildMessageProperties();
-                properties["specification-id"] = specificationId;
 
                 await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, batchOfResultsToProfile, properties);
 
@@ -1330,6 +1359,11 @@ namespace CalculateFunding.Services.Results
             {
                 _logger.Error("Could not find published provider result with id '{id}'", messageItem.AllocationLineResultId);
                 throw new ArgumentException($"Published provider result with id '{messageItem.AllocationLineResultId}' not found");
+            }
+
+            if (result.FundingPeriod.Id.Length != 4)
+            {
+                throw new InvalidOperationException($"FundingPeriod.ID length is not 4 characters, this is unsupported by profiling as it breaks the convention of FundingStreamPeriod. Value is = '{result.FundingPeriod?.Id}'");
             }
 
             ProviderProfilingRequestModel providerProfilingRequestModel = new ProviderProfilingRequestModel

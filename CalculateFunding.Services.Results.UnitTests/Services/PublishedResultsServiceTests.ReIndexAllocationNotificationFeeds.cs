@@ -187,7 +187,7 @@ namespace CalculateFunding.Services.Results.Services
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&
                        m.First().FundingStreamName == "funding stream 1" &&
-                       m.First().FundingPeriodId == "Ay12345" &&
+                       m.First().FundingPeriodId == "1819" &&
                        m.First().ProviderUkPrn == "1111" &&
                        m.First().ProviderUpin == "2222" &&
                        m.First().ProviderOpenDate.HasValue &&
@@ -275,7 +275,7 @@ namespace CalculateFunding.Services.Results.Services
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&
                        m.First().FundingStreamName == "funding stream 1" &&
-                       m.First().FundingPeriodId == "Ay12345" &&
+                       m.First().FundingPeriodId == "1819" &&
                        m.First().ProviderUkPrn == "1111" &&
                        m.First().ProviderUpin == "2222" &&
                        m.First().ProviderOpenDate.HasValue &&
@@ -371,7 +371,7 @@ namespace CalculateFunding.Services.Results.Services
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&
                        m.First().FundingStreamName == "funding stream 1" &&
-                       m.First().FundingPeriodId == "Ay12345" &&
+                       m.First().FundingPeriodId == "1819" &&
                        m.First().ProviderUkPrn == "1111" &&
                        m.First().ProviderUpin == "2222" &&
                        m.First().ProviderOpenDate.HasValue &&
