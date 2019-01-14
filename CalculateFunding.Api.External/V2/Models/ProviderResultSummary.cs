@@ -10,7 +10,7 @@ namespace CalculateFunding.Api.External.V2.Models
             FundingPeriodResults = new ProviderPeriodResultSummary[0];
         }
 
-        public decimal TotalAmount { get; set; }
+        public decimal FundingStreamTotalAmount { get; set; }
 
         public AllocationProviderModel Provider { get; set; }
 

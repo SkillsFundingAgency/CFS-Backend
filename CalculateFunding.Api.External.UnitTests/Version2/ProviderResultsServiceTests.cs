@@ -509,7 +509,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(contentResult.Content);
 
-            providerResultSummary.TotalAmount.Should().Be(130);
+            providerResultSummary.FundingStreamTotalAmount.Should().Be(130);
             providerResultSummary.Provider.UkPrn.Should().Be("1111");
             providerResultSummary.FundingPeriodResults.Count().Should().Be(3);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.Count().Should().Be(1);
@@ -517,49 +517,59 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 1");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().TotalAmount = 10;
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStreamTotalAmount = 10;
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Published");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(10);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().Policy.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().Policy.PolicyName.Should().Be("Ab Test Policy 0908-001");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-2");
+
+	        CalculationResult calculationResult1 = providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().Calculations.First();
+	        calculationResult1.CalculationName.Should().Be("Learner Count");
+	        calculationResult1.CalculationVersionNumber.Should().Be(1);
+	        calculationResult1.CalculationType.Should().Be("Number");
+	        calculationResult1.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+	        calculationResult1.CalculationValue.Should().Be(1003);
+			//todo calculationResult1.CalculationDisplayName.Should().Be("calcdisplayname");
+			//todo calculationResult1.CalculationValue.Should().Be()
+
+			CalculationResult calculationResult2 = providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().Calculations.ElementAt(1);
+	        calculationResult2.CalculationName.Should().Be("AB Test Calc 0908-001");
+	        calculationResult2.CalculationVersionNumber.Should().Be(1);
+	        calculationResult2.CalculationType.Should().Be("Funding");
+	        calculationResult2.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+	        calculationResult2.CalculationValue.Should().Be(300);
+			//todo calculationResult2.CalculationDisplayName.Should().Be("calcdisplayname");
+			//todo calculationResult2.AssociatedWithAllocation.Should().Be()
+
+	        CalculationResult calculationResult3 = providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().Calculations.ElementAt(2);
+	        calculationResult3.CalculationName.Should().Be("AB Test Calc 0908-002");
+	        calculationResult3.CalculationVersionNumber.Should().Be(1);
+	        calculationResult3.CalculationType.Should().Be("Funding");
+	        calculationResult3.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+	        calculationResult3.CalculationValue.Should().Be(0);
+	        //todo calculationResult3.CalculationDisplayName.Should().Be("calcdisplayname");
+	        //todo calculationResult3.CalculationValue.Should().Be()
+
+			providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 2");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().TotalAmount = 100;
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStreamTotalAmount = 100;
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Published");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(100);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().Policy.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().Policy.PolicyName.Should().Be("Ab Test Policy 0908-001");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 3");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().TotalAmount = 20;
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStreamTotalAmount = 20;
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Approved");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(20);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().Policy.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().Policy.PolicyName.Should().Be("Ab Test Policy 0908-001");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
 
             await
                 searchService
@@ -1009,7 +1019,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(contentResult.Content);
 
-            providerResultSummary.TotalAmount.Should().Be(130);
+            providerResultSummary.FundingStreamTotalAmount.Should().Be(130);
             providerResultSummary.Provider.UkPrn.Should().Be("1111");
             providerResultSummary.FundingPeriodResults.Count().Should().Be(3);
             providerResultSummary.Provider.Name.Should().Be("Provider 1");
@@ -1033,20 +1043,40 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 1");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().TotalAmount = 10;
+            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStreamTotalAmount = 10;
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Published");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(10);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().Policy.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().Policy.PolicyName.Should().Be("Ab Test Policy 0908-001");
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
-            providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.ShortName.Should().Be("fs-short-1");
+			CalculationResult calculationResult1 = providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().Calculations.First();
+			calculationResult1.CalculationName.Should().Be("Learner Count");
+			calculationResult1.CalculationVersionNumber.Should().Be(1);
+			calculationResult1.CalculationType.Should().Be("Number");
+			calculationResult1.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+			calculationResult1.CalculationValue.Should().Be(1003);
+			//todo calculationResult1.CalculationDisplayName.Should().Be("calcdisplayname");
+			//todo calculationResult1.CalculationValue.Should().Be()
+
+			CalculationResult calculationResult2 = providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().Calculations.ElementAt(1);
+			calculationResult2.CalculationName.Should().Be("AB Test Calc 0908-001");
+			calculationResult2.CalculationVersionNumber.Should().Be(1);
+			calculationResult2.CalculationType.Should().Be("Funding");
+			calculationResult2.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+			calculationResult2.CalculationValue.Should().Be(300);
+			//todo calculationResult2.CalculationDisplayName.Should().Be("calcdisplayname");
+			//todo calculationResult2.AssociatedWithAllocation.Should().Be()
+
+			CalculationResult calculationResult3 = providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().Calculations.ElementAt(2);
+			calculationResult3.CalculationName.Should().Be("AB Test Calc 0908-002");
+			calculationResult3.CalculationVersionNumber.Should().Be(1);
+			calculationResult3.CalculationType.Should().Be("Funding");
+			calculationResult3.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+			calculationResult3.CalculationValue.Should().Be(0);
+			//todo calculationResult3.CalculationDisplayName.Should().Be("calcdisplayname");
+			//todo calculationResult3.CalculationValue.Should().Be()
+
+			providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.ShortName.Should().Be("fs-short-1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.Id.Should().Be("fspi-1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.Name.Should().Be("fspi1");
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().FundingStream.PeriodType.StartDay.Should().Be(1);
@@ -1060,20 +1090,41 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().AllocationLine.ContractRequired.Should().Be("Y");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 2");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().TotalAmount = 100;
+            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStreamTotalAmount = 100;
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Published");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(100);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().Policy.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().Policy.PolicyName.Should().Be("Ab Test Policy 0908-001");
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
-            providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.ShortName.Should().Be("fs-short-2");
+			CalculationResult calculationResult11 = providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().Calculations.First();
+	        calculationResult11.CalculationName.Should().Be("Learner Count");
+	        calculationResult11.CalculationVersionNumber.Should().Be(1);
+	        calculationResult11.CalculationType.Should().Be("Number");
+	        calculationResult11.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+	        calculationResult11.CalculationValue.Should().Be(1003);
+			//todo calculationResult1.CalculationDisplayName.Should().Be("calcdisplayname");
+			//todo calculationResult1.AssociatedWithAllocation.Should().Be()
+
+			CalculationResult calculationResult12 = providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().Calculations.ElementAt(1);
+	        calculationResult12.CalculationName.Should().Be("AB Test Calc 0908-001");
+	        calculationResult12.CalculationVersionNumber.Should().Be(1);
+	        calculationResult12.CalculationType.Should().Be("Funding");
+	        calculationResult12.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+	        calculationResult12.CalculationValue.Should().Be(300);
+	        //todo calculationResult12.CalculationDisplayName.Should().Be("calcdisplayname");
+	        //todo calculationResult12.AssociatedWithAllocation.Should().Be()
+
+	        CalculationResult calculationResult13 = providerResultSummary.FundingPeriodResults.ElementAt(0).FundingStreamResults.First().Allocations.First().Calculations.ElementAt(2);
+	        calculationResult13.CalculationName.Should().Be("AB Test Calc 0908-002");
+	        calculationResult13.CalculationVersionNumber.Should().Be(1);
+	        calculationResult13.CalculationType.Should().Be("Funding");
+	        calculationResult13.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
+	        calculationResult13.CalculationValue.Should().Be(0);
+			//todo calculationResult13.CalculationDisplayName.Should().Be("calcdisplayname");
+			//todo calculationResult13.AssociatedWithAllocation.Should().Be()
+
+			providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.ShortName.Should().Be("fs-short-2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.Id.Should().Be("fspi-2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.Name.Should().Be("fspi2");
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().FundingStream.PeriodType.StartDay.Should().Be(1);
@@ -1087,19 +1138,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             providerResultSummary.FundingPeriodResults.ElementAt(1).FundingStreamResults.First().Allocations.First().AllocationLine.ContractRequired.Should().Be("Y");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.Id.Should().Be("fs-3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.Name.Should().Be("fs 3");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().TotalAmount = 20;
+            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStreamTotalAmount = 20;
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.Count().Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Id.Should().Be("al-3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationLine.Name.Should().Be("al 3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationVersionNumber.Should().Be(1);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationStatus.Should().Be("Approved");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Allocations.First().AllocationAmount.Should().Be(20);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().Policy.PolicyId.Should().Be("239c8b47-89e6-4906-a3bf-866bd11da2f4");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().Policy.PolicyName.Should().Be("Ab Test Policy 0908-001");
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().TotalAmount.Should().Be(300);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().SubPolicyResults.Count().Should().Be(1);
-            providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().Policies.First().Calculations.Count().Should().Be(3);
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.ShortName.Should().Be("fs-short-3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.PeriodType.Id.Should().Be("fspi-3");
             providerResultSummary.FundingPeriodResults.ElementAt(2).FundingStreamResults.First().FundingStream.PeriodType.Name.Should().Be("fspi3");

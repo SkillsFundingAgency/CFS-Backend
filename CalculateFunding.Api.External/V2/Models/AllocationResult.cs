@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CalculateFunding.Api.External.V2.Models
 {
@@ -8,7 +10,9 @@ namespace CalculateFunding.Api.External.V2.Models
         public AllocationResult()
         {
             ProfilePeriods = new ProfilePeriod[0];
-        }
+	        FinancialEnvelopes = Enumerable.Empty<FinancialEnvelope>();
+			Calculations = Enumerable.Empty<CalculationResult>();
+		}
 
         public AllocationLine AllocationLine { get; set; }
 
@@ -20,8 +24,12 @@ namespace CalculateFunding.Api.External.V2.Models
 
         public ProfilePeriod[] ProfilePeriods { get; set; }
 
+		public IEnumerable<FinancialEnvelope> FinancialEnvelopes { get; set; }
+
         public int AllocationMajorVersion { get; set; }
 
         public int AllocationMinorVersion { get; set; }
+
+	    public IEnumerable<CalculationResult> Calculations { get; set; }
     }
 }

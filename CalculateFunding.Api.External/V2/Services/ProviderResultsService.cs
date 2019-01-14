@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
+using CalculationResult = CalculateFunding.Api.External.V2.Models.CalculationResult;
 
 namespace CalculateFunding.Api.External.V2.Services
 {
@@ -409,13 +410,39 @@ namespace CalculateFunding.Api.External.V2.Services
                                 StartMonth = feedIndex.FundingStreamStartMonth,
                                 EndDay = feedIndex.FundingStreamEndDay,
                                 EndMonth = feedIndex.FundingStreamEndMonth
-                            }
+                            },
+							//todo Version = feedIndex.FundingStreamVersionNumber
+							//todo Version = feedIndex.FundingStreamVersion
                         }
                     };
 
                     foreach (AllocationNotificationFeedIndex allocationFeedIndex in fundingStreamResultSummaryGroup)
                     {
-                        fundingStreamResultSummary.Allocations.Add(new AllocationResult
+						IEnumerable<PublishedProviderResultsPolicySummary> policySummaries = JsonConvert.DeserializeObject<IEnumerable<PublishedProviderResultsPolicySummary>>(feedIndex.PolicySummaries);
+						IList<CalculationResult> calculations = new List<CalculationResult>();
+
+	                    if (!string.IsNullOrWhiteSpace(feedIndex.PolicySummaries))
+	                    {
+		                    foreach (PublishedProviderResultsPolicySummary publishedPolicySummaryResult in policySummaries)
+		                    {
+			                    foreach (PublishedProviderResultsCalculationSummary publishedCalculationSummary in publishedPolicySummaryResult.Calculations)
+			                    {
+				                    calculations.Add(new Models.CalculationResult
+				                    {
+					                    CalculationName = publishedCalculationSummary.Name,
+					                    CalculationVersionNumber = (ushort)publishedCalculationSummary.Version,
+					                    CalculationType = publishedCalculationSummary.CalculationType.ToString(),
+										CalculationValue = publishedCalculationSummary.Amount,
+										PolicyId = publishedPolicySummaryResult.Policy.Id,
+										
+					                    //todo CalculationDisplayName = publishedCalculationSummary.DisplayName,
+					                    //todo AssociatedWithAllocation = publishedCalculationSummary.AssociatedWithAllocation ? true
+									});
+			                    }
+							}
+	                    }
+
+	                    fundingStreamResultSummary.Allocations.Add(new AllocationResult
                         {
                             AllocationLine = new AllocationLine
                             {
@@ -431,81 +458,14 @@ namespace CalculateFunding.Api.External.V2.Services
                             AllocationStatus = allocationFeedIndex.AllocationStatus,
                             AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount),
                             ProfilePeriods = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
-                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()
-                        });
+                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe(),
+							Calculations = calculations
+						});
                     }
 
-                    fundingStreamResultSummary.TotalAmount = fundingStreamResultSummary.Allocations.Sum(m => m.AllocationAmount);
+                    fundingStreamResultSummary.FundingStreamTotalAmount = fundingStreamResultSummary.Allocations.Sum(m => m.AllocationAmount);
 
-                    if (!string.IsNullOrWhiteSpace(feedIndex.PolicySummaries))
-                    {
-                        IEnumerable<PublishedProviderResultsPolicySummary> policySummaries = JsonConvert.DeserializeObject<IEnumerable<PublishedProviderResultsPolicySummary>>(feedIndex.PolicySummaries);
-
-                        foreach (PublishedProviderResultsPolicySummary publishedPolicySummaryResult in policySummaries)
-                        {
-                            PolicyResult policyResult = new PolicyResult
-                            {
-                                Policy = new Policy
-                                {
-                                    PolicyId = publishedPolicySummaryResult.Policy.Id,
-                                    PolicyName = publishedPolicySummaryResult.Policy.Name,
-                                    PolicyDescription = publishedPolicySummaryResult.Policy.Description
-                                }
-                            };
-
-                            foreach (PublishedProviderResultsCalculationSummary publishedCalculationSummary in publishedPolicySummaryResult.Calculations)
-                            {
-                                policyResult.Calculations.Add(new Models.CalculationResult
-                                {
-                                    CalculationName = publishedCalculationSummary.Name,
-                                    CalculationVersionNumber = (ushort)publishedCalculationSummary.Version,
-                                    CalculationType = publishedCalculationSummary.CalculationType.ToString(),
-                                    CalculationAmount = publishedCalculationSummary.Amount
-                                });
-                            }
-
-                            if (!publishedPolicySummaryResult.Policies.IsNullOrEmpty())
-                            {
-                                foreach (PublishedProviderResultsPolicySummary subPolicy in publishedPolicySummaryResult.Policies)
-                                {
-                                    PolicyResult subPolicyResult = new PolicyResult
-                                    {
-                                        Policy = new Policy
-                                        {
-                                            PolicyId = publishedPolicySummaryResult.Policy.Id,
-                                            PolicyName = publishedPolicySummaryResult.Policy.Name,
-                                            PolicyDescription = publishedPolicySummaryResult.Policy.Description
-                                        }
-                                    };
-
-                                    foreach (PublishedProviderResultsCalculationSummary publishedCalculationSummary in subPolicy.Calculations)
-                                    {
-                                        subPolicyResult.Calculations.Add(new Models.CalculationResult
-                                        {
-                                            CalculationName = publishedCalculationSummary.Name,
-                                            CalculationVersionNumber = (ushort)publishedCalculationSummary.Version,
-                                            CalculationType = publishedCalculationSummary.CalculationType.ToString(),
-                                            CalculationAmount = publishedCalculationSummary.Amount
-                                        });
-                                    }
-
-                                    subPolicyResult.TotalAmount = subPolicyResult.Calculations.Where(m => m.CalculationType == "Funding").Sum(m => m.CalculationAmount);
-                                    policyResult.SubPolicyResults.Add(subPolicyResult);
-                                }
-                            }
-
-                            policyResult.TotalAmount = policyResult.Calculations.Where(m => m.CalculationType == "Funding").Sum(m => m.CalculationAmount);
-
-                            foreach (PolicyResult subPolicyResult in policyResult.SubPolicyResults)
-                            {
-                                policyResult.TotalAmount = policyResult.TotalAmount + subPolicyResult.Calculations.Where(m => m.CalculationType == "Funding").Sum(m => m.CalculationAmount);
-                            }
-
-                            fundingStreamResultSummary.Policies.Add(policyResult);
-                        }
-                    }
-
-                    providerResutSummary.TotalAmount += fundingStreamResultSummary.TotalAmount;
+                    providerResutSummary.FundingStreamTotalAmount += fundingStreamResultSummary.FundingStreamTotalAmount;
 
                     providerPeriodResultSummary.FundingStreamResults.Add(fundingStreamResultSummary);
                 }

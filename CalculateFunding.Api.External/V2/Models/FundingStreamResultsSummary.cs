@@ -9,23 +9,21 @@ namespace CalculateFunding.Api.External.V2.Models
         public FundingStreamResultSummary()
         {
             Allocations = new List<AllocationResult>();
-            Policies = new List<PolicyResult>();
         }
 
-        public FundingStreamResultSummary(FundingStream fundingStream, decimal totalAmount,
-            List<AllocationResult> allocations, List<PolicyResult> policies)
+        public FundingStreamResultSummary(FundingStream fundingStream, decimal fundingStreamTotalAmount,
+            List<AllocationResult> allocations)
         {
-            TotalAmount = totalAmount;
+            FundingStreamTotalAmount = fundingStreamTotalAmount;
             Allocations = allocations;
-            Policies = policies;
         }
+
+	    public SpecificationInformationModel Specification { get; set; }
 
         public AllocationFundingStreamModel FundingStream { get; set; }
 
-        public decimal TotalAmount { get; set; }
+        public decimal FundingStreamTotalAmount { get; set; }
 
         public List<AllocationResult> Allocations { get; set; }
-
-        public List<PolicyResult> Policies { get; set; }
     }
 }

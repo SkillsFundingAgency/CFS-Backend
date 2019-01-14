@@ -29,6 +29,16 @@ namespace CalculateFunding.Api.External.V2.Models
         /// </summary>
         public string ShortName { get; set; }
 
+		/// <summary>
+		/// The version of the funding stream
+		/// </summary>
+	    public int Version { get; set; }
+
+		/// <summary>
+		/// The published date of the funding stream
+		/// </summary>
+	    public DateTimeOffset PublishDate { get; set; }
+
         /// <summary>
         /// The type of period assigned
         /// </summary>
