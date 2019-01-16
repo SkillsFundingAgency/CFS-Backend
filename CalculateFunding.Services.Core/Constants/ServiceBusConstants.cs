@@ -37,6 +37,18 @@
             public const string MigrateResultVersions = "migrate-result-versions";
 
             public const string MigrateFeedIndexId = "migrate-feed-index-id";
+
+            public const string AllocationLineResultStatusUpdates = "allocationline-result-status-updates";
+
+            public const string AllocationLineResultStatusUpdatesPoisoned = "allocationline-result-status-updates/$DeadLetterQueue";
+
+            public const string AllocationLineResultStatusUpdatesPoisonedLocal = "allocationline-result-status-updates-poison";
+
+            public const string InstructAllocationLineResultStatusUpdates = "allocationline-instruct-result-status-updates";
+
+            public const string InstructAllocationLineResultStatusUpdatesPoisoned = "allocationline-instruct-result-status-updates/$DeadLetterQueue";
+
+            public const string InstructAllocationLineResultStatusUpdatesPoisonedLocal = "allocationline-instruct-result-status-updates-poison";
         }
 
         public static class TopicNames

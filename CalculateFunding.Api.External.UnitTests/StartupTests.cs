@@ -104,6 +104,8 @@ namespace CalculateFunding.Api.External.UnitTests
                 { "specificationsClient:ApiKey", "Local" },
                 { "resultsClient:ApiEndpoint", "https://localhost:7005/api/" },
                 { "resultsClient:ApiKey", "Local" },
+                { "jobsClient:ApiKey", "Local" },
+                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
                 { "providerProfilingClient:ApiEndpoint", "https://funding-profiling/" },
                 { "providerProfilingAzureBearerTokenOptions:Url", "https://wahetever-token" },
                 { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },

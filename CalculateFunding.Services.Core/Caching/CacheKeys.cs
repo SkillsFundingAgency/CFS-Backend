@@ -40,6 +40,8 @@
 
         public static string DatasetValidationStatus { get; set; } = "ds-validation-status";
 
+        public static string AllocationLineResultStatusUpdates { get; set; } = "allocation-line-status-updates:";
+
         /// <summary>
         /// Effective Permissions - eg effective-permissions:userId
         /// </summary>

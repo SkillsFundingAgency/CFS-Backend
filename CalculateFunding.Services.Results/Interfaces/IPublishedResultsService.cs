@@ -23,5 +23,8 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> MigrateVersionNumbers(HttpRequest request);
         PublishedAllocationLineResultVersion GetPublishedProviderResultVersionById(string id);
         PublishedProviderResult GetPublishedProviderResultByVersionId(string id);
+        Task CreateAllocationLineResultStatusUpdateJobs(Message message);
+        Task UpdateAllocationLineResultStatus(Message message);
+        Task UpdateDeadLetteredJobLog(Message message);
     }
 }

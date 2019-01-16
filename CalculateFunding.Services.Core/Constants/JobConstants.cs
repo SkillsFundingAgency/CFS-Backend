@@ -12,6 +12,10 @@
 
             public const string CreateInstructGenerateAggregationsAllocationJob = "CreateInstructGenerateAggregationsAllocationJob";
 
+            public const string CreateAllocationLineResultStatusUpdateJob = "CreateAllocationLineResultStatusUpdateJob";
+
+            public const string CreateInstructAllocationLineResultStatusUpdateJob = "CreateInstructAllocationLineResultStatusUpdateJob";
+
             public const string ValidateDatasetJob = "ValidateDatasetJob";
 
             public const string MapDatasetJob = "MapDatasetJob";

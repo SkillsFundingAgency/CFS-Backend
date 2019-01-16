@@ -157,6 +157,15 @@ namespace CalculateFunding.Api.Results
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
+            builder.AddSingleton<IPublishedProviderResultsSettings, PublishedProviderResultsSettings>((ctx) =>
+            {
+                PublishedProviderResultsSettings settings = new PublishedProviderResultsSettings();
+
+                Configuration.Bind("PublishedProviderResultsSettings", settings);
+
+                return settings;
+            });
+
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
             {
                 CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
@@ -205,6 +214,8 @@ namespace CalculateFunding.Api.Results
 
             builder.AddFeatureToggling(Configuration);
 
+            builder.AddJobsInterServiceClient(Configuration);
+
             builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
             {
                 IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
@@ -237,7 +248,8 @@ namespace CalculateFunding.Api.Results
                     ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Messages;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
@@ -46,6 +47,46 @@ namespace CalculateFunding.Functions.DebugQueue
             Message message = Helpers.ConvertToMessage<string>(item);
 
             await Functions.Results.ServiceBus.OnMigrateFeedIndexIdEvent.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-allocationline-result-status-updates")]
+        public static async Task RunAllocationLineResultStatusUpdates([QueueTrigger(ServiceBusConstants.QueueNames.AllocationLineResultStatusUpdates, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<UpdatePublishedAllocationLineResultStatusModel>(item);
+
+            await Functions.Results.ServiceBus.OnCreateAllocationLineResultStatusUpdates.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-instruct-allocationline-result-status-updates")]
+        public static async Task RunInstructAllocationLineResultStatusUpdates([QueueTrigger(ServiceBusConstants.QueueNames.InstructAllocationLineResultStatusUpdates, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            await Functions.Results.ServiceBus.OnCreateInstructAllocationLineResultStatusUpdates.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-allocationline-result-status-updates-poisoned")]
+        public static async Task RunAllocationLineResultStatusUpdatesFailure([QueueTrigger(ServiceBusConstants.QueueNames.AllocationLineResultStatusUpdatesPoisonedLocal, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<UpdatePublishedAllocationLineResultStatusModel>(item);
+
+            await Functions.Results.ServiceBus.OnCreateAllocationLineResultStatusUpdatesFailure.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-instruct-allocationline-result-status-updates-poisoned")]
+        public static async Task RunInstructAllocationLineResultStatusUpdatesFailure([QueueTrigger(ServiceBusConstants.QueueNames.InstructAllocationLineResultStatusUpdatesPoisonedLocal, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            await Functions.Results.ServiceBus.OnCreateInstructAllocationLineResultStatusUpdatesFailure.Run(message);
 
             log.Info($"C# Queue trigger function processed: {item}");
         }

@@ -169,6 +169,15 @@ namespace CalculateFunding.Functions.Results
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
 
+            builder.AddSingleton<IPublishedProviderResultsSettings, PublishedProviderResultsSettings>((ctx) =>
+            {
+                PublishedProviderResultsSettings settings = new PublishedProviderResultsSettings();
+
+                config.Bind("PublishedProviderResultsSettings", settings);
+
+                return settings;
+            });
+
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
             {
                 CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
@@ -210,6 +219,8 @@ namespace CalculateFunding.Functions.Results
             builder.AddPolicySettings(config);
 
             builder.AddFeatureToggling(config);
+
+            builder.AddJobsInterServiceClient(config);
 
             builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
             {
@@ -287,7 +298,8 @@ namespace CalculateFunding.Functions.Results
                     ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
 
                 return resiliencePolicies;

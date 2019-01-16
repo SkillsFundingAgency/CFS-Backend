@@ -247,6 +247,15 @@ namespace CalculateFunding.Api.External
                 return new PublishedProviderCalculationResultsRepository(resultsRepostory);
             });
 
+            builder.AddSingleton<IPublishedProviderResultsSettings, PublishedProviderResultsSettings>((ctx) =>
+            {
+                PublishedProviderResultsSettings settings = new PublishedProviderResultsSettings();
+
+                Configuration.Bind("PublishedProviderResultsSettings", settings);
+
+                return settings;
+            });
+
             builder
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
@@ -339,6 +348,8 @@ namespace CalculateFunding.Api.External
 
             builder.AddHttpContextAccessor();
 
+            builder.AddJobsInterServiceClient(Configuration);
+
             builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
@@ -354,7 +365,8 @@ namespace CalculateFunding.Api.External
                     AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                    PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
             builder.AddHealthCheckMiddleware();

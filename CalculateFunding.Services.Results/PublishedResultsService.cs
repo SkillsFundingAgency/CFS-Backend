@@ -11,8 +11,9 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
@@ -35,6 +36,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
+using Reference = CalculateFunding.Common.Models.Reference;
+using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Services.Results
 {
@@ -57,11 +60,14 @@ namespace CalculateFunding.Services.Results
         private readonly Polly.Policy _providerProfilingRepositoryPolicy;
         private readonly Polly.Policy _publishedProviderCalculationResultsRepositoryPolicy;
         private readonly Polly.Policy _publishedProviderResultsRepositoryPolicy;
+        private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IMessengerService _messengerService;
         private readonly IVersionRepository<PublishedAllocationLineResultVersion> _publishedProviderResultsVersionRepository;
         private readonly IVersionRepository<PublishedProviderCalculationResultVersion> _publishedProviderCalcResultsVersionRepository;
         private readonly IPublishedAllocationLineLogicalResultVersionService _publishedAllocationLineLogicalResultVersionService;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IJobsApiClient _jobsApiClient;
+        private readonly IPublishedProviderResultsSettings _publishedProviderResultsSettings;
 
         public PublishedResultsService(ILogger logger,
           IMapper mapper,
@@ -78,7 +84,9 @@ namespace CalculateFunding.Services.Results
           IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository,
           IVersionRepository<PublishedProviderCalculationResultVersion> publishedProviderCalcResultsVersionRepository,
           IPublishedAllocationLineLogicalResultVersionService publishedAllocationLineLogicalResultVersionService,
-          IFeatureToggle featureToggle)
+          IFeatureToggle featureToggle,
+          IJobsApiClient jobsApiClient,
+          IPublishedProviderResultsSettings publishedProviderResultsSettings)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -95,6 +103,8 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(publishedProviderCalcResultsVersionRepository, nameof(publishedProviderCalcResultsVersionRepository));
             Guard.ArgumentNotNull(publishedAllocationLineLogicalResultVersionService, nameof(publishedAllocationLineLogicalResultVersionService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(publishedProviderResultsSettings, nameof(publishedProviderResultsSettings));
 
             _logger = logger;
             _mapper = mapper;
@@ -116,6 +126,9 @@ namespace CalculateFunding.Services.Results
             _publishedProviderCalcResultsVersionRepository = publishedProviderCalcResultsVersionRepository;
             _publishedAllocationLineLogicalResultVersionService = publishedAllocationLineLogicalResultVersionService;
             _featureToggle = featureToggle;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
+            _publishedProviderResultsSettings = publishedProviderResultsSettings;
         }
 
         public PublishedResultsService(ILogger logger,
@@ -134,7 +147,9 @@ namespace CalculateFunding.Services.Results
             IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository,
             IVersionRepository<PublishedProviderCalculationResultVersion> publishedProviderCalcResultsVersionRepository,
             IPublishedAllocationLineLogicalResultVersionService publishedAllocationLineLogicalResultVersionService,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IJobsApiClient jobsApiClient,
+            IPublishedProviderResultsSettings publishedProviderResultsSettings)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -152,6 +167,8 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(publishedProviderCalcResultsVersionRepository, nameof(publishedProviderCalcResultsVersionRepository));
             Guard.ArgumentNotNull(publishedAllocationLineLogicalResultVersionService, nameof(publishedAllocationLineLogicalResultVersionService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(publishedProviderResultsSettings, nameof(publishedProviderResultsSettings));
 
             _logger = logger;
             _mapper = mapper;
@@ -175,6 +192,9 @@ namespace CalculateFunding.Services.Results
             _publishedProviderCalcResultsVersionRepository = publishedProviderCalcResultsVersionRepository;
             _publishedAllocationLineLogicalResultVersionService = publishedAllocationLineLogicalResultVersionService;
             _featureToggle = featureToggle;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
+            _publishedProviderResultsSettings = publishedProviderResultsSettings;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -191,6 +211,46 @@ namespace CalculateFunding.Services.Results
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
 
             return health;
+        }
+
+        public async Task UpdateDeadLetteredJobLog(Message message)
+        {
+            if (!_featureToggle.IsApprovalBatchingServerSideEnabled())
+            {
+                return;
+            }
+
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            if (!message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing job id from dead lettered message");
+                return;
+            }
+
+            string jobId = message.UserProperties["jobId"].ToString();
+
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
+            };
+
+            try
+            {
+                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+
+                if (jobLogResponse == null || jobLogResponse.Content == null)
+                {
+                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
+                }
+
+                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLogResponse.Content.Id}' on job with id '{jobId}' while attempting to generate allocations");
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"Failed to add a job log for job id '{jobId}'");
+            }
         }
 
         public async Task<PublishedProviderResult> GetPublishedProviderResultByAllocationResultId(string allocationResultId, int? version = null)
@@ -688,24 +748,299 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty providers was provided");
             }
 
-            IEnumerable<string> providerIds = updateStatusModel.Providers.Select(p => p.ProviderId).Distinct();
-            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationIdAndProviderId(specificationId, providerIds));
+            if (_featureToggle.IsApprovalBatchingServerSideEnabled())
+            {
+
+                string cacheKey = $"{CacheKeys.AllocationLineResultStatusUpdates}{Guid.NewGuid().ToString()}";
+
+                await _cacheProvider.SetAsync<UpdatePublishedAllocationLineResultStatusModel>(cacheKey, updateStatusModel);
+
+                Reference user = request.GetUserOrDefault();
+
+                JobCreateModel job = new JobCreateModel
+                {
+                    InvokerUserDisplayName = user.Name,
+                    InvokerUserId = user.Id,
+                    JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationLineResultStatusUpdateJob,
+                    SpecificationId = specificationId,
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "specification-id", specificationId },
+                        { "cache-key", cacheKey }
+                    },
+                    Trigger = new Trigger
+                    {
+                        EntityId = specificationId,
+                        EntityType = nameof(Specification),
+                        Message = $"Updating allocation line results status"
+                    },
+                    CorrelationId = request.GetCorrelationId()
+                };
+
+                Job newJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+
+                _logger.Information($"New job: '{JobConstants.DefinitionNames.CreateInstructAllocationLineResultStatusUpdateJob}' created with id: '{newJob.Id}'");
+                
+                return new OkResult();
+            }
+            else
+            {
+
+                IEnumerable<string> providerIds = updateStatusModel.Providers.Select(p => p.ProviderId).Distinct();
+                IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationIdAndProviderId(specificationId, providerIds));
+
+                if (publishedProviderResults.IsNullOrEmpty())
+                {
+                    return new NotFoundObjectResult($"No provider results to update for specification id: {specificationId}");
+                }
+
+                try
+                {
+                    Tuple<int, int> updateCounts = await UpdateAllocationLineResultsStatus(publishedProviderResults.ToList(), updateStatusModel, request, specificationId);
+
+                    return new OkObjectResult(new UpdateAllocationResultsStatusCounts { UpdatedAllocationLines = updateCounts.Item1, UpdatedProviderIds = updateCounts.Item2 });
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Failed to update result status's");
+                    return new InternalServerErrorResult(ex.Message);
+                }
+            }
+        }
+
+        public async Task CreateAllocationLineResultStatusUpdateJobs(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            JobViewModel job = null;
+
+            if (!message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing parent job id to instruct allocation line status updates");
+
+                return;
+            }
+
+            string jobId = message.UserProperties["jobId"].ToString();
+
+            ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
+
+            if (response == null || response.Content == null)
+            {
+                _logger.Error($"Could not find the parent job with job id: '{jobId}'");
+
+                throw new Exception($"Could not find the parent job with job id: '{jobId}'");
+            }
+
+            job = response.Content;
+
+            if (job.CompletionStatus.HasValue)
+            {
+                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+
+                return;
+            }
+
+            string cacheKey = job.Properties["cache-key"];
+
+            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new JobLogUpdateModel()));
+
+            IDictionary<string, string> properties = message.BuildMessageProperties();
+
+            UpdatePublishedAllocationLineResultStatusModel publishedAllocationLineResultStatusUpdateModel = await _cacheProvider.GetAsync<UpdatePublishedAllocationLineResultStatusModel>(cacheKey);
+
+            if(publishedAllocationLineResultStatusUpdateModel == null)
+            {
+                _logger.Error($"Could not find the update model in cache with cache key: '{cacheKey}'");
+
+                throw new Exception($"Could not find the update model in cache with cache key: '{cacheKey}'");
+            }
+
+            int totalCount = publishedAllocationLineResultStatusUpdateModel.Providers.Count();
+
+            IList<JobCreateModel> childJobs = new List<JobCreateModel>();
+
+            int maxPartitionSize = _publishedProviderResultsSettings.UpdateAllocationLineResultStatusBatchCount;
+
+            for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += maxPartitionSize)
+            {
+                UpdatePublishedAllocationLineResultStatusModel partitionedModel = new UpdatePublishedAllocationLineResultStatusModel
+                {
+                    Status = publishedAllocationLineResultStatusUpdateModel.Status,
+                    Providers = publishedAllocationLineResultStatusUpdateModel.Providers.Skip(partitionIndex).Take(maxPartitionSize)
+                };
+
+                IDictionary<string, string> jobProperties = new Dictionary<string, string>();
+
+                foreach (KeyValuePair<string, string> item in properties)
+                {
+                    jobProperties.Add(item.Key, item.Value);
+                }
+
+                jobProperties.Add("specification-id", job.SpecificationId);
+
+                JobCreateModel newJob = CreateGenerateAllocationLineResultStatusUpdateJob(job, jobProperties, partitionedModel);
+
+                childJobs.Add(newJob);
+            }
+
+           
+            IEnumerable<Job> newJobs = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJobs(childJobs));
+
+            int newJobsCount = newJobs.Count();
+            int childJobsCount = childJobs.Count();
+
+            if(newJobsCount < childJobsCount)
+            {
+                _logger.Error($"Only {newJobsCount} jobs were created from {childJobsCount} childJobs for parent job: '{job.Id}'");
+
+                throw new Exception($"Only {newJobsCount} jobs were created from {childJobsCount} childJobs for parent job: '{job.Id}'");
+            }
+
+            await _cacheProvider.RemoveAsync<UpdatePublishedAllocationLineResultStatusModel>(cacheKey);
+        }
+
+        public async Task UpdateAllocationLineResultStatus(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            if (!message.UserProperties.ContainsKey("jobId"))
+            {
+                _logger.Error("Missing parent job id to update allocation line result status");
+
+                throw new Exception("Missing parent job id to update allocation line result status");
+            }
+
+            string jobId = message.UserProperties["jobId"].ToString();
+
+            UpdatePublishedAllocationLineResultStatusModel publishedAllocationLineResultStatusUpdateModel = message.GetPayloadAsInstanceOf<UpdatePublishedAllocationLineResultStatusModel>();
+
+            if (publishedAllocationLineResultStatusUpdateModel == null)
+            {
+                _logger.Error($"A null allocation line result status update model was provided for job id  '{jobId}'");
+
+                await CreateFailedJobStatus(jobId, "Failed to update allocation line result status - null update model provided");
+
+                return;
+            }
+
+            JobViewModel job = await AddStartingProcessJobLog(jobId);
+
+            if (job.CompletionStatus.HasValue)
+            {
+                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+
+                return;
+            }
+
+            IEnumerable<string> providerIds = publishedAllocationLineResultStatusUpdateModel.Providers.Select(p => p.ProviderId);
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationIdAndProviderId(job.SpecificationId, providerIds));
 
             if (publishedProviderResults.IsNullOrEmpty())
             {
-                return new NotFoundObjectResult($"No provider results to update for specification id: {specificationId}");
+                _logger.Error($"No provider results to update for specification id: {job.SpecificationId}");
+
+                await CompleteBatch(job.Id, "No provider results found to update");
+
+                return;
             }
 
             try
             {
-                Tuple<int, int> updateCounts = await UpdateAllocationLineResultsStatus(publishedProviderResults.ToList(), updateStatusModel, request, specificationId);
+                await UpdateAllocationLineResultsStatus(publishedProviderResults.ToList(), publishedAllocationLineResultStatusUpdateModel, job);
 
-                return new OkObjectResult(new UpdateAllocationResultsStatusCounts { UpdatedAllocationLines = updateCounts.Item1, UpdatedProviderIds = updateCounts.Item2 });
+                await CompleteBatch(jobId);
+
+                if (publishedAllocationLineResultStatusUpdateModel.Status == AllocationLineStatus.Approved)
+                {
+                    await GenerateProfilingPeriods(message, publishedProviderResults, job.SpecificationId);
+                }
             }
-            catch (Exception ex)
+            catch (RetriableException ex)
             {
-                _logger.Error(ex, "Failed to update result status's");
-                return new InternalServerErrorResult(ex.Message);
+                _logger.Error(ex, $"Failed to update result status's for specification: '{job.SpecificationId}'");
+
+                throw;
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, $"Failed to update allocation line result status for job id: '{job.Id}'");
+
+                await CreateFailedJobStatus(jobId, "Failed to update allocation line result status - with unknown exception");
+            }
+        }
+
+        private async Task CompleteBatch(string jobId, string outcome = "Allocation line results were successfully updated")
+        {
+            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new JobLogUpdateModel
+            {
+                CompletedSuccessfully = true,
+                Outcome = outcome
+            }));
+        }
+
+        private async Task<JobViewModel> AddStartingProcessJobLog(string jobId)
+        {
+            Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
+
+            ApiResponse<JobViewModel> jobResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
+
+            if (jobResponse == null || jobResponse.Content == null)
+            {
+                _logger.Error($"Could not find the parent job with job id: '{jobId}'");
+
+                throw new Exception($"Could not find the parent job with job id: '{jobId}'");
+            }
+
+            JobViewModel job = jobResponse.Content;
+
+            if (!job.CompletionStatus.HasValue)
+            {
+                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new JobLogUpdateModel()));
+            }
+
+            return job;
+        }
+
+        private JobCreateModel CreateGenerateAllocationLineResultStatusUpdateJob(JobViewModel parentJob, IDictionary<string, string> jobProperties, UpdatePublishedAllocationLineResultStatusModel partitionedModel)
+        {
+            IList<JobCreateModel> jobCreateModels = new List<JobCreateModel>();
+
+            Trigger trigger = new Trigger
+            {
+                EntityId = parentJob.Id,
+                EntityType = nameof(Job),
+                Message = $"Triggered by parent job"
+            };
+
+            return new JobCreateModel
+            {
+                InvokerUserDisplayName = parentJob.InvokerUserDisplayName,
+                InvokerUserId = parentJob.InvokerUserId,
+                JobDefinitionId =  JobConstants.DefinitionNames.CreateAllocationLineResultStatusUpdateJob,
+                SpecificationId = parentJob.SpecificationId,
+                Properties = jobProperties,
+                ParentJobId = parentJob.Id,
+                Trigger = trigger,
+                CorrelationId = parentJob.CorrelationId,
+                MessageBody = JsonConvert.SerializeObject(partitionedModel)
+            };
+        }
+
+        private async Task CreateFailedJobStatus(string jobId, string outcome = null)
+        {
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = outcome
+            };
+
+            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+
+            if (jobLogResponse == null || jobLogResponse.Content == null)
+            {
+                _logger.Error($"Failed to add a job log for job id '{jobId}'");
             }
         }
 
@@ -860,7 +1195,6 @@ namespace CalculateFunding.Services.Results
 
                     foreach (PublishedAllocationLineResult allocationLineResult in allocationLineResults)
                     {
-
                         if (CanUpdateAllocationLineResult(allocationLineResult, updateStatusModel.Status))
                         {
                             PublishedAllocationLineResultVersion newVersion = allocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
@@ -938,6 +1272,122 @@ namespace CalculateFunding.Services.Results
             await GenerateProfilingPeriods(request, resultsToProfile, specificationId);
 
             return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
+        }
+
+        private async Task UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,
+           UpdatePublishedAllocationLineResultStatusModel updateStatusModel, JobViewModel jobViewModel)
+        {
+            IList<string> updatedAllocationLineIds = new List<string>();
+            IList<string> updatedProviderIds = new List<string>();
+            IList<PublishedProviderResult> resultsToProfile = new List<PublishedProviderResult>();
+
+            List<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
+            List<PublishedAllocationLineResultVersion> historyToSave = new List<PublishedAllocationLineResultVersion>();
+
+            Reference author = new Reference(jobViewModel.InvokerUserId, jobViewModel.InvokerUserDisplayName);
+
+            foreach (UpdatePublishedAllocationLineResultStatusProviderModel providerstatusModel in updateStatusModel.Providers)
+            {
+                if (providerstatusModel.AllocationLineIds.IsNullOrEmpty())
+                {
+                    continue;
+                }
+
+                IEnumerable<PublishedProviderResult> results = publishedProviderResults.Where(m => m.ProviderId == providerstatusModel.ProviderId);
+
+                if (results.IsNullOrEmpty())
+                {
+                    continue;
+                }
+
+                IEnumerable<PublishedAllocationLineResult> publishedAllocationLineResults = results.Select(m => m.FundingStreamResult.AllocationLineResult).ToArraySafe();
+
+                if (publishedAllocationLineResults.IsNullOrEmpty())
+                {
+                    continue;
+                }
+
+                bool isUpdated = false;
+
+                foreach (string allocationLineResultId in providerstatusModel.AllocationLineIds)
+                {
+                    IEnumerable<PublishedAllocationLineResult> allocationLineResults = publishedAllocationLineResults.Where(m => m.AllocationLine.Id == allocationLineResultId);
+
+                    foreach (PublishedAllocationLineResult allocationLineResult in allocationLineResults)
+                    {
+
+                        if (CanUpdateAllocationLineResult(allocationLineResult, updateStatusModel.Status))
+                        {
+                            PublishedAllocationLineResultVersion newVersion = allocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+                            newVersion.Author = author;
+                            newVersion.Date = DateTimeOffset.UtcNow;
+                            newVersion.Status = updateStatusModel.Status;
+
+                            newVersion = await _publishedProviderResultsVersionRepository.CreateVersion(newVersion, allocationLineResult.Current, providerstatusModel.ProviderId, true);
+
+                            if (updateStatusModel.Status != AllocationLineStatus.Approved)
+                            {
+                                _publishedAllocationLineLogicalResultVersionService.SetVersion(newVersion);
+                            }
+
+                            allocationLineResult.Current = newVersion;
+
+                            historyToSave.Add(newVersion);
+
+                            if (!updatedAllocationLineIds.Contains(allocationLineResultId))
+                            {
+                                updatedAllocationLineIds.Add(allocationLineResultId);
+                            }
+
+                            if (!updatedProviderIds.Contains(providerstatusModel.ProviderId))
+                            {
+                                updatedProviderIds.Add(providerstatusModel.ProviderId);
+                            }
+
+                            isUpdated = true;
+                        }
+                    }
+                }
+
+                if (isUpdated)
+                {
+                    foreach (PublishedProviderResult result in results)
+                    {
+                        result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
+
+                        if (updateStatusModel.Status == AllocationLineStatus.Approved)
+                        {
+                            resultsToProfile.Add(result);
+                        }
+                    }
+
+                    resultsToUpdate.AddRange(results);
+                }
+            }
+
+            if (resultsToUpdate.Any())
+            {
+                SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(jobViewModel.SpecificationId));
+
+                try
+                {
+                    resultsToUpdate.ForEach(SetFeedIndexId);
+
+                    await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(resultsToUpdate));
+
+                    IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>> history = historyToSave.Select(m => new KeyValuePair<string, PublishedAllocationLineResultVersion>(m.ProviderId, m));
+
+                    await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.SaveVersions(history));
+
+                    await UpdateAllocationNotificationsFeedIndex(resultsToUpdate, specification);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Failed when updating allocation line results");
+
+                    throw new RetriableException("Failed when updating allocation line results", ex);
+                }
+            }
         }
 
         private async Task GenerateProfilingPeriods(HttpRequest request, IEnumerable<PublishedProviderResult> resultsToProfile, string specificationId)

@@ -360,6 +360,13 @@
         "description": "Feature toggle to enable dataset aggregations"
       }
     },
+    "EnableApprovalBatchingServerSide": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable approval server side batching"
+      }
+    },
     "EnableJobService": {
       "defaultValue": false,
       "type": "bool",
@@ -498,6 +505,13 @@
       "metadata": {
         "description": "Number of instances for the SignalR Service"
       }
+    },
+    "UpdateAllocationLineResultStatusBatchCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Batch count for partitioning allocation line status update jobs"
+      },
+      "defaultValue": 500
     }
   },
   "variables": {
@@ -1132,6 +1146,50 @@
           "properties": {
             "lockDuration": "PT5M",
             "maxSizeInMegabytes": 2048,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 10,
+            "enablePartitioning": true,
+            "enableExpress": false
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
+        },
+        {
+          "type": "queues",
+          "name": "allocationline-result-status-updates",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "requiresSession": false,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 10,
+            "enablePartitioning": true,
+            "enableExpress": false
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
+        },
+        {
+          "type": "queues",
+          "name": "allocationline-instruct-result-status-updates",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 1024,
             "requiresDuplicateDetection": false,
             "requiresSession": false,
             "defaultMessageTimeToLive": "P1D",
@@ -1903,6 +1961,10 @@
             {
               "name": "features:allAllocationResultsVersionsInFeedIndexEnabled",
               "value": "[parameters('EnableAllAllocationVersionsInFeedIndex')]"
+            },
+            {
+              "name": "PublishedProviderResultsSettings:UpdateAllocationLineResultStatusBatchCount",
+              "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
             }
           ]
         }
@@ -2862,6 +2924,10 @@
             {
               "name": "features:allocationLineMajorMinorVersioningEnabled",
               "value": "[parameters('EnableMajorMinorVersioning')]"
+            },
+            {
+              "name": "PublishedProviderResultsSettings:UpdateAllocationLineResultStatusBatchCount",
+              "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
             }
           ]
         }
@@ -3107,6 +3173,14 @@
             {
               "name": "features:allAllocationResultsVersionsInFeedIndexEnabled",
               "value": "[parameters('EnableAllAllocationVersionsInFeedIndex')]"
+            },
+            {
+              "name": "features:approvalBatchingServerSideEnabled",
+              "value": "[parameters('EnableApprovalBatchingServerSide')]"
+            },
+            {
+              "name": "PublishedProviderResultsSettings:UpdateAllocationLineResultStatusBatchCount",
+              "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
             }
           ]
         }

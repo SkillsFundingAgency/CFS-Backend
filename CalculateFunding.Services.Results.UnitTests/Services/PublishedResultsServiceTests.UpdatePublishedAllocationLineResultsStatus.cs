@@ -5,6 +5,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Messages;
 using CalculateFunding.Models.Results.Search;
@@ -505,7 +509,14 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
                 .Returns(publishedProviderResults);
 
-            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository);
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
@@ -1106,11 +1117,16 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task UpdatePublishedAllocationLineResultsStatus_GivenThreeProvidersToPublish_RequestsProviderProfileInformationNotCalled()
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenBatchingAndJobServiceEnabledButNoUpdateModel_ReturnsBadRequest()
         {
             //arrange
-            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+           {
                 new UpdatePublishedAllocationLineResultStatusProviderModel
                 {
                     ProviderId = "1111",
@@ -1128,15 +1144,10 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(specificationId) },
-            });
-
             UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
             {
                 Providers = Providers,
-                Status = AllocationLineStatus.Published
+                Status = AllocationLineStatus.Approved
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -1151,70 +1162,100 @@ namespace CalculateFunding.Services.Results.Services
                 .Body
                 .Returns(stream);
 
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, "authorId"),
-                new Claim(ClaimTypes.Name, "authorname")
-            };
+            ILogger logger = CreateLogger();
 
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
+            IFeatureToggle featureToggle = CreateFeatureToggle();
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+            featureToggle
+                .IsApprovalBatchingServerSideEnabled()
+                .Returns(true);
 
-            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
-            {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
-            }
+            Job newJob = new Job { Id = "new-job-id" };
 
-            PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
-            newVersion1.Version = 2;
-            newVersion1.Status = AllocationLineStatus.Approved;
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(newJob);
 
-            PublishedAllocationLineResultVersion newVersion2 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
-            newVersion2.Version = 2;
-            newVersion2.Status = AllocationLineStatus.Approved;
+            ICacheProvider cacheProvider = CreateCacheProvider();
 
-            PublishedAllocationLineResultVersion newVersion3 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
-            newVersion3.Version = 2;
-            newVersion3.Status = AllocationLineStatus.Approved;
-
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>(), Arg.Is(true))
-                .Returns(newVersion1, newVersion2, newVersion3);
-
-
-            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
-            resultsProviderRepository
-                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
-                .Returns(publishedProviderResults);
-
-            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(specification);
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            PublishedResultsService resultsService = CreateResultsService(
-                publishedProviderResultsRepository: resultsProviderRepository,
-                specificationsRepository: specificationsRepository,
-                messengerService: messengerService,
-                publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService resultsService = CreateResultsService(logger, 
+                featureToggle: featureToggle, jobsApiClient: jobsApiClient, cacheProvider: cacheProvider);
 
             //Act
             IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
 
-            //Assertl
+            //Arrange
             actionResult
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeAssignableTo<OkResult>();
 
-            await messengerService.Received(0).SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.FetchProviderProfile), Arg.Any<IEnumerable<FetchProviderProfilingMessageItem>>(), Arg.Any<Dictionary<string, string>>());
+            logger
+                .Received(1)
+                .Information(Arg.Is($"New job: '{JobConstants.DefinitionNames.CreateInstructAllocationLineResultStatusUpdateJob}' created with id: '{newJob.Id}'"));
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .SetAsync<UpdatePublishedAllocationLineResultStatusModel>(Arg.Any<string>(), Arg.Any<UpdatePublishedAllocationLineResultStatusModel>());
+
+            await
+                jobsApiClient
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(m =>
+                        !string.IsNullOrWhiteSpace(m.InvokerUserDisplayName) &&
+                        !string.IsNullOrWhiteSpace(m.InvokerUserId) &&
+                        m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationLineResultStatusUpdateJob &&
+                        m.SpecificationId == specificationId &&
+                        m.Properties["specification-id"] == specificationId &&
+                        !string.IsNullOrWhiteSpace(m.Properties["cache-key"]) &&
+                        m.Trigger.EntityId == specificationId &&
+                        m.Trigger.EntityType == "Specification" &&
+                        m.Trigger.Message == $"Updating allocation line results status"
+                    ));
+        }
+
+        [TestMethod]
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenBatchingAndJobServiceEnabled_CreatesNewJob()
+        {
+            //arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            ILogger logger = CreateLogger();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+            featureToggle
+                .IsApprovalBatchingServerSideEnabled()
+                .Returns(true);
+
+            PublishedResultsService resultsService = CreateResultsService(logger, featureToggle: featureToggle);
+
+            //Act
+            IActionResult actionResult = await resultsService.UpdatePublishedAllocationLineResultsStatus(request);
+
+            //Arrange
+            actionResult
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Null updateStatusModel was provided");
+
+            logger
+                .Received(1)
+                .Error("Null updateStatusModel was provided to UpdateAllocationLineResultStatus");
         }
     }
 }

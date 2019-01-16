@@ -92,6 +92,8 @@ namespace CalculateFunding.Api.Results.UnitTests
                 { "specificationsClient:ApiKey", "Local" },
                 { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
                 { "calcsClient:ApiKey", "Local" },
+                { "jobsClient:ApiKey", "Local" },
+                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
                 { "features:allocationLineMajorMinorVersioningEnabled", enableMajorMinorVersioning.ToString().ToLowerInvariant()}
             };
 

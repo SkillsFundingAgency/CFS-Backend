@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
@@ -27,6 +28,7 @@ namespace CalculateFunding.Services.Results.Services
         const string specificationId = "888999";
         const string fundingStreamId = "fs-1";
         const string fundingPeriodId = "fp-1";
+        const string jobId = "job-id-1";
 
         static PublishedResultsService CreateResultsService(ILogger logger = null,
             IMapper mapper = null,
@@ -44,7 +46,9 @@ namespace CalculateFunding.Services.Results.Services
             IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository = null,
             IVersionRepository<PublishedProviderCalculationResultVersion> publishedProviderCalcResultsVersionRepository = null,
             IPublishedAllocationLineLogicalResultVersionService publishedAllocationLineLogicalResultVersionService = null,
-            IFeatureToggle featureToggle = null)
+            IFeatureToggle featureToggle = null,
+            IJobsApiClient jobsApiClient = null,
+            IPublishedProviderResultsSettings publishedProviderResultsSettings = null)
         {
             return new PublishedResultsService(
                 logger ?? CreateLogger(),
@@ -63,7 +67,29 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResultsVersionRepository ?? CreatePublishedProviderResultsVersionRepository(),
                 publishedProviderCalcResultsVersionRepository ?? CreatePublishedProviderCalcResultsVersionRepository(),
                 publishedAllocationLineLogicalResultVersionService ?? CreatePublishedAllocationLineLogicalResultVersionService(),
-                featureToggle ?? Substitute.For<IFeatureToggle>());
+                featureToggle ?? CreateFeatureToggle(),
+                jobsApiClient ?? CreateJobsApiClient(),
+                publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings());
+        }
+
+        static IPublishedProviderResultsSettings CreatePublishedProviderResultsSettings()
+        {
+            IPublishedProviderResultsSettings publishedProviderResultsSettings = Substitute.For<IPublishedProviderResultsSettings>();
+            publishedProviderResultsSettings
+                .UpdateAllocationLineResultStatusBatchCount
+                .Returns(100);
+
+            return publishedProviderResultsSettings;
+        }
+
+        static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
+        }
+
+        static IJobsApiClient CreateJobsApiClient()
+        {
+            return Substitute.For<IJobsApiClient>();
         }
 
         static IPublishedAllocationLineLogicalResultVersionService CreatePublishedAllocationLineLogicalResultVersionService()
