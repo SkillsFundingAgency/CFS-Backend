@@ -25,9 +25,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             className = className.Replace("£", "Pound");
             className = className.Replace("=", "Equals");
             className = className.Replace("+", "Plus");
-            className = className.Replace("*", "Multiply");
-            className = className.Replace("/", "Divide");
-            className = className.Replace("-", "Subtract");
 
             bool isValid = SyntaxFacts.IsValidIdentifier(className);
 
