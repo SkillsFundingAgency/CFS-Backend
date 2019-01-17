@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace CalculateFunding.Api.External.V2.Models
 {
@@ -32,7 +32,7 @@ namespace CalculateFunding.Api.External.V2.Models
         /// <summary>
         /// The list of associated allocation lines for the funding stream
         /// </summary>
-        public List<AllocationLine> AllocationLines { get; set; }
+        public Collection<AllocationLine> AllocationLines { get; set; }
 
         /// <summary>
         /// A flag to indicate whether financial envelopes are required

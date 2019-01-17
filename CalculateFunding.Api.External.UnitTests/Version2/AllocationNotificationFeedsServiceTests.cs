@@ -224,7 +224,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationVersionNumber.Should().Be(1);
 			atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationStatus.Should().Be("Published");
 			atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationAmount.Should().Be(10);
-			atomFeed.AtomEntry.ElementAt(0).Content.Allocation.ProfilePeriods.Length.Should().Be(0);
+			atomFeed.AtomEntry.ElementAt(0).Content.Allocation.ProfilePeriods.Count.Should().Be(0);
 			atomFeed.AtomEntry.ElementAt(0).Content.Allocation.FundingStream.ShortName.Should().Be("fs-short-1");
 			atomFeed.AtomEntry.ElementAt(0).Content.Allocation.FundingStream.PeriodType.Id.Should().Be("fspi-1");
 			atomFeed.AtomEntry.ElementAt(0).Content.Allocation.FundingStream.PeriodType.Name.Should().Be("fspi1");
@@ -266,7 +266,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationVersionNumber.Should().Be(1);
 			atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationStatus.Should().Be("Published");
 			atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationAmount.Should().Be(100);
-			atomFeed.AtomEntry.ElementAt(1).Content.Allocation.ProfilePeriods.Length.Should().Be(2);
+			atomFeed.AtomEntry.ElementAt(1).Content.Allocation.ProfilePeriods.Count.Should().Be(2);
 			atomFeed.AtomEntry.ElementAt(1).Content.Allocation.FundingStream.ShortName.Should().Be("fs-short-2");
 			atomFeed.AtomEntry.ElementAt(1).Content.Allocation.FundingStream.PeriodType.Id.Should().Be("fspi-2");
 			atomFeed.AtomEntry.ElementAt(1).Content.Allocation.FundingStream.PeriodType.Name.Should().Be("fspi2");
@@ -308,7 +308,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationVersionNumber.Should().Be(1);
 			atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationStatus.Should().Be("Approved");
 			atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationAmount.Should().Be(20);
-			atomFeed.AtomEntry.ElementAt(2).Content.Allocation.ProfilePeriods.Length.Should().Be(0);
+			atomFeed.AtomEntry.ElementAt(2).Content.Allocation.ProfilePeriods.Count.Should().Be(0);
 			atomFeed.AtomEntry.ElementAt(2).Content.Allocation.FundingStream.ShortName.Should().Be("fs-short-3");
 			atomFeed.AtomEntry.ElementAt(2).Content.Allocation.FundingStream.PeriodType.Id.Should().Be("fspi-3");
 			atomFeed.AtomEntry.ElementAt(2).Content.Allocation.FundingStream.PeriodType.StartDay.Should().Be(1);

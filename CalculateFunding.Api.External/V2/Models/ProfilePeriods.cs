@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
 
 namespace CalculateFunding.Api.External.V2.Models
 {
     public class ProfilePeriods
     {
-        public List<ProfilePeriod> Periods { get; set; }
+        public Collection<ProfilePeriod> Periods { get; set; }
     }
 }

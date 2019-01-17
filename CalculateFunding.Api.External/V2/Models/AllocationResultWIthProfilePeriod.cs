@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 
 namespace CalculateFunding.Api.External.V2.Models
 {
@@ -7,9 +8,9 @@ namespace CalculateFunding.Api.External.V2.Models
     {
         public AllocationResultWIthProfilePeriod()
         {
-            ProfilePeriods = new ProfilePeriod[0];
+            ProfilePeriods = new Collection<ProfilePeriod>();
         }
 
-        public ProfilePeriod[] ProfilePeriods { get; set; }
+        public Collection<ProfilePeriod> ProfilePeriods { get; set; }
     }
 }

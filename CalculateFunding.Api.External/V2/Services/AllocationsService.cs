@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V2.Interfaces;
@@ -45,7 +46,7 @@ namespace CalculateFunding.Api.External.V2.Services
 
         AllocationModel CreateAllocation(PublishedProviderResult publishedProviderResult)
         {
-            return new AllocationModel
+	        return new AllocationModel
             {
                 AllocationResultTitle = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Title,
                 AllocationResultId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId,
@@ -104,17 +105,17 @@ namespace CalculateFunding.Api.External.V2.Services
                     Status = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status
 
                 },
-                ProfilePeriods = publishedProviderResult.ProfilingPeriods?.Select(m =>
-                            new ProfilePeriod
-                            {
-                                DistributionPeriod = m.DistributionPeriod,
-                                Occurrence = m.Occurrence,
-                                Period = m.Period,
-                                PeriodType = m.Type,
-                                PeriodYear = m.Year.ToString(),
-                                ProfileValue = (decimal)m.Value
-                            }
-                    ).ToArraySafe()
+                ProfilePeriods = new Collection<ProfilePeriod>(publishedProviderResult.ProfilingPeriods?.Select(m =>
+		            new ProfilePeriod
+		            {
+			            DistributionPeriod = m.DistributionPeriod,
+			            Occurrence = m.Occurrence,
+			            Period = m.Period,
+			            PeriodType = m.Type,
+			            PeriodYear = m.Year.ToString(),
+			            ProfileValue = (decimal)m.Value
+		            }
+	            ).ToArraySafe())
             };
         }
 
@@ -122,7 +123,7 @@ namespace CalculateFunding.Api.External.V2.Services
         {
             AllocationWithHistoryModel allocationModel = new AllocationWithHistoryModel(CreateAllocation(publishedProviderResultWithHistory.PublishedProviderResult));
 
-            allocationModel.History = publishedProviderResultWithHistory.History?.Select(m =>
+            allocationModel.History = new Collection<AllocationHistoryModel>(publishedProviderResultWithHistory.History?.Select(m =>
                    new AllocationHistoryModel
                    {
                        AllocationAmount = m.Value,
@@ -134,7 +135,7 @@ namespace CalculateFunding.Api.External.V2.Services
                        AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Major : 0,
                        AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Minor : 0,
                    }
-                ).OrderByDescending(m => m.Date).ToArraySafe();
+                ).OrderByDescending(m => m.Date).ToArraySafe());
 
             return allocationModel;
         }

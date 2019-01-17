@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace CalculateFunding.Api.External.V2.Models
 {
@@ -8,11 +8,11 @@ namespace CalculateFunding.Api.External.V2.Models
     {
         public ProviderPeriodResultSummary()
         {
-            FundingStreamResults = new List<FundingStreamResultSummary>();
+            FundingStreamResults = new Collection<FundingStreamResultSummary>();
         }
 
         public Period Period { get; set; }
 
-        public List<FundingStreamResultSummary> FundingStreamResults { get; set; }
+        public Collection<FundingStreamResultSummary> FundingStreamResults { get; set; }
     }
 }

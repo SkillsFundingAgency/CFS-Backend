@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Xml.Serialization;
 
 namespace CalculateFunding.Api.External.V2.Models
@@ -21,12 +22,12 @@ namespace CalculateFunding.Api.External.V2.Models
         }
 
         public AllocationWithHistoryModel(AllocationFundingStreamModel fundingStream, Period period, AllocationProviderModel provider, AllocationLine allocationLine,
-           int allocationVersionNumber, string status, decimal allocationAmount, int? allocationLearnerCount, string allocationResultId, ProfilePeriod[] profilePeriods)
+           int allocationVersionNumber, string status, decimal allocationAmount, int? allocationLearnerCount, string allocationResultId, Collection<ProfilePeriod> profilePeriods)
             : base(fundingStream, period, provider, allocationLine, allocationVersionNumber, status, allocationAmount, allocationResultId)
         {
             ProfilePeriods = profilePeriods;
         }
 
-        public AllocationHistoryModel[] History { get; set; }
+        public Collection<AllocationHistoryModel> History { get; set; }
     }
 }

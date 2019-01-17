@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 
 namespace CalculateFunding.Api.External.V2.Models
 {
@@ -7,14 +8,14 @@ namespace CalculateFunding.Api.External.V2.Models
     {
         public LocalAuthorityResultSummary()
         {
-            Providers = new LocalAuthorityProviderResultSummary[0];
+            Providers = new Collection<LocalAuthorityProviderResultSummary>();
         }
 
         public string LANo { get; set; }
 
         public string LAName { get; set; }
 
-        public LocalAuthorityProviderResultSummary[] Providers { get; set; }
+        public Collection<LocalAuthorityProviderResultSummary> Providers { get; set; }
 
         public decimal TotalAllocation { get; set; }
     }

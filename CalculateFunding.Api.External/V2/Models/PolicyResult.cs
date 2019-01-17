@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace CalculateFunding.Api.External.V2.Models
 {
@@ -8,11 +8,11 @@ namespace CalculateFunding.Api.External.V2.Models
     {
         public PolicyResult()
         {
-            Calculations = new List<CalculationResult>();
-            SubPolicyResults = new List<PolicyResult>();
+            Calculations = new Collection<CalculationResult>();
+            SubPolicyResults = new Collection<PolicyResult>();
         }
 
-        public PolicyResult(Policy policy, decimal totalAmount, List<CalculationResult> calculationResults)
+        public PolicyResult(Policy policy, decimal totalAmount, Collection<CalculationResult> calculationResults)
         {
             Policy = policy;
             TotalAmount = totalAmount;
@@ -23,8 +23,8 @@ namespace CalculateFunding.Api.External.V2.Models
 
         public decimal TotalAmount { get; set; }
 
-        public List<CalculationResult> Calculations { get; set; }
+        public Collection<CalculationResult> Calculations { get; set; }
 
-        public List<PolicyResult> SubPolicyResults { get; set; }
+        public Collection<PolicyResult> SubPolicyResults { get; set; }
     }
 }

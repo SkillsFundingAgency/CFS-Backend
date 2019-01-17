@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace CalculateFunding.Api.External.V2.Models
 {
@@ -8,11 +8,11 @@ namespace CalculateFunding.Api.External.V2.Models
     {
         public FundingStreamResultSummary()
         {
-            Allocations = new List<AllocationResult>();
+            Allocations = new Collection<AllocationResult>();
         }
 
         public FundingStreamResultSummary(FundingStream fundingStream, decimal fundingStreamTotalAmount,
-            List<AllocationResult> allocations)
+            Collection<AllocationResult> allocations)
         {
             FundingStreamTotalAmount = fundingStreamTotalAmount;
             Allocations = allocations;
@@ -24,6 +24,6 @@ namespace CalculateFunding.Api.External.V2.Models
 
         public decimal FundingStreamTotalAmount { get; set; }
 
-        public List<AllocationResult> Allocations { get; set; }
+        public Collection<AllocationResult> Allocations { get; set; }
     }
 }

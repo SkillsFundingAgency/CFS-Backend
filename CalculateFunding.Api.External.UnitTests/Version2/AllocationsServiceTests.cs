@@ -127,7 +127,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             allocationModel.Provider.OpenDate.Should().NotBeNull();
             allocationModel.AllocationLine.Id.Should().Be("AAAAA");
             allocationModel.AllocationLine.Name.Should().Be("test allocation line 1");
-            allocationModel.ProfilePeriods.Length.Should().Be(1);
+            allocationModel.ProfilePeriods.Count.Should().Be(1);
         }
 
         [TestMethod]

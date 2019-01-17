@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.Helpers;
@@ -305,7 +306,7 @@ namespace CalculateFunding.Api.External.V2.Services
 
                             foreach (ProfilingPeriod profilingPeriod in profilingPeriods)
                             {
-                                allocationResultWIthProfilePeriod.ProfilePeriods = allocationResultWIthProfilePeriod.ProfilePeriods.Concat(new[]
+                                allocationResultWIthProfilePeriod.ProfilePeriods = new Collection<ProfilePeriod>(allocationResultWIthProfilePeriod.ProfilePeriods.Concat(new[]
                                 {
                                     new ProfilePeriod
                                     {
@@ -316,28 +317,28 @@ namespace CalculateFunding.Api.External.V2.Services
                                         ProfileValue = profilingPeriod.Value,
                                         DistributionPeriod = profilingPeriod.DistributionPeriod
                                     }
-                                }).ToArraySafe();
+                                }).ToArraySafe());
                             }
 
-                            fundingPeriodResultSummary.Allocations = fundingPeriodResultSummary.Allocations.Concat(new[]
+                            fundingPeriodResultSummary.Allocations = new Collection<AllocationResultWIthProfilePeriod>(fundingPeriodResultSummary.Allocations.Concat(new[]
                             {
                                allocationResultWIthProfilePeriod
 
-                            }).ToArraySafe();
+                            }).ToArraySafe());
                         }
 
-                        resultSummary.FundingPeriods = resultSummary.FundingPeriods.Concat(new[]
+                        resultSummary.FundingPeriods = new Collection<FundingPeriodResultSummary>(resultSummary.FundingPeriods.Concat(new[]
                         {
                             fundingPeriodResultSummary
-                        }).ToArraySafe();
+                        }).ToArraySafe());
                     }
 
-                    localAuthorityResultSummary.Providers = localAuthorityResultSummary.Providers.Concat(new[] { resultSummary }).ToArraySafe();
+                    localAuthorityResultSummary.Providers = new Collection<LocalAuthorityProviderResultSummary>(localAuthorityResultSummary.Providers.Concat(new[] { resultSummary }).ToArraySafe());
                 }
 
                 localAuthorityResultSummary.TotalAllocation = localAuthorityResultSummary.Providers.Sum(m => m.AllocationValue);
 
-                localAuthorityResultsSummary.LocalAuthorities = localAuthorityResultsSummary.LocalAuthorities.Concat(new[] { localAuthorityResultSummary }).ToArraySafe();
+                localAuthorityResultsSummary.LocalAuthorities = new Collection<LocalAuthorityResultSummary>(localAuthorityResultsSummary.LocalAuthorities.Concat(new[] { localAuthorityResultSummary }).ToArraySafe());
             }
 
             localAuthorityResultsSummary.TotalAllocation = localAuthorityResultsSummary.LocalAuthorities.Sum(m => m.TotalAllocation);
@@ -419,7 +420,7 @@ namespace CalculateFunding.Api.External.V2.Services
                     foreach (AllocationNotificationFeedIndex allocationFeedIndex in fundingStreamResultSummaryGroup)
                     {
 						IEnumerable<PublishedProviderResultsPolicySummary> policySummaries = JsonConvert.DeserializeObject<IEnumerable<PublishedProviderResultsPolicySummary>>(feedIndex.PolicySummaries);
-						IList<CalculationResult> calculations = new List<CalculationResult>();
+	                    IList<CalculationResult> calculations = new List<CalculationResult>();
 
 	                    if (!string.IsNullOrWhiteSpace(feedIndex.PolicySummaries))
 	                    {
@@ -457,9 +458,9 @@ namespace CalculateFunding.Api.External.V2.Services
                             AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                             AllocationStatus = allocationFeedIndex.AllocationStatus,
                             AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount),
-                            ProfilePeriods = JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
-                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe(),
-							Calculations = calculations
+                            ProfilePeriods = new Collection<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
+                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()),
+							Calculations = new Collection<CalculationResult>(calculations)
 						});
                     }
 
@@ -470,7 +471,9 @@ namespace CalculateFunding.Api.External.V2.Services
                     providerPeriodResultSummary.FundingStreamResults.Add(fundingStreamResultSummary);
                 }
 
-                providerResutSummary.FundingPeriodResults = providerResutSummary.FundingPeriodResults.Concat(new[] { providerPeriodResultSummary }).ToArraySafe();
+	            providerResutSummary.FundingPeriodResults = new Collection<ProviderPeriodResultSummary>(
+		            providerResutSummary.FundingPeriodResults.Concat(new[] {providerPeriodResultSummary}).ToArraySafe());
+
             }
 
             return providerResutSummary;
