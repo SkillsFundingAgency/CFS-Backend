@@ -6,6 +6,6 @@ namespace CalculateFunding.Api.External.V2.Interfaces
 {
     public interface IAllocationNotificationFeedsService
     {
-        Task<IActionResult> GetNotifications(int? pageRef, string allocationStatuses, int? pageSize, HttpRequest request);
+        Task<IActionResult> GetNotifications(HttpRequest request, int? startYear, int? endYear, string[] fundingStreamIds, string[] allocationLineIds, string[] allocationStatuses, string ukprn, string laCode, bool? isAllocationLineContractRequired, int? pageRef, int? pageSize);
     }
 }

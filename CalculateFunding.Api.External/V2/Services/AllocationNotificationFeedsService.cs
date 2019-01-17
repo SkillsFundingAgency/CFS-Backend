@@ -30,36 +30,23 @@ namespace CalculateFunding.Api.External.V2.Services
             _featureToggle = featureToggle;
         }
 
-        public async Task<IActionResult> GetNotifications(int? pageRef, string allocationStatuses, int? pageSize, HttpRequest request)
+        public async Task<IActionResult> GetNotifications(HttpRequest request, int? startYear = null, int? endYear= null, string[] fundingStreamIds = null, string[] allocationLineIds= null, string[] allocationStatuses = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, int? pageRef = 1, int? pageSize = MaxRecords)
         {
-            if (!pageRef.HasValue)
-            {
-                pageRef = 1;
-            }
+	        pageRef = pageRef ?? 1;
+			pageSize = pageSize ?? MaxRecords;
+	        string[] statusesArray = allocationStatuses ?? new[] { "Published" };
 
-            if (pageRef < 1)
+			if (pageRef < 1)
             {
                 return new BadRequestObjectResult("Page ref should be at least 1");
-            }
-
-            if (!pageSize.HasValue)
-            {
-                pageSize = MaxRecords;
             }
 
             if (pageSize < 1 || pageSize > 500)
             {
                 return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
             }
-
-            string[] statusesArray = statusesArray = new[] { "Published" };
-
-            if (!string.IsNullOrWhiteSpace(allocationStatuses))
-            {
-                statusesArray = allocationStatuses.Split(",");
-            }
-
-            SearchFeed<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeeds(pageRef.Value, pageSize.Value, statusesArray);
+			
+            SearchFeed<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeedsV2(pageRef.Value, pageSize.Value, startYear, endYear, ukprn, laCode, isAllocationLineContractRequired, statusesArray, fundingStreamIds, allocationLineIds);
 
             if (searchFeed == null || searchFeed.TotalCount == 0)
             {
