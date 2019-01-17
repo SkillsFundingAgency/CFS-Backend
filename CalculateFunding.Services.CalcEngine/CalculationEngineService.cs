@@ -208,7 +208,10 @@ namespace CalculateFunding.Services.Calculator
                     }
                     else
                     {
-                        await ProcessProviderResults(calculationResults.ProviderResults, messageProperties, message, saveCosmosElapsedMs, saveRedisElapsedMs, saveQueueElapsedMs);
+                        (double? saveCosmosElapsedMs, double saveRedisElapsedMs, double saveQueueElapsedMs) timingMetrics = await ProcessProviderResults(calculationResults.ProviderResults, messageProperties, message);
+                        saveCosmosElapsedMs = timingMetrics.saveCosmosElapsedMs;
+                        saveRedisElapsedMs = timingMetrics.saveRedisElapsedMs;
+                        saveQueueElapsedMs = timingMetrics.saveQueueElapsedMs;
                     }
 
                     totalProviderResults += calculationResults.ProviderResults.Count();
@@ -603,9 +606,11 @@ namespace CalculateFunding.Services.Calculator
             }
         }
 
-        private async Task ProcessProviderResults(IEnumerable<ProviderResult> providerResults,
-            GenerateAllocationMessageProperties messageProperties, Message message, double? saveCosmosElapsedMs, double saveRedisElapsedMs, double saveQueueElapsedMs)
+        private async Task<(double? saveCosmosElapsedMs, double saveRedisElapsedMs, double saveQueueElapsedMs)> ProcessProviderResults(IEnumerable<ProviderResult> providerResults,
+            GenerateAllocationMessageProperties messageProperties, Message message)
         {
+            double? saveComsosDuration = null;
+
             if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))
             {
                 _logger.Information($"Saving results for specification id {messageProperties.SpecificationId}");
@@ -613,7 +618,7 @@ namespace CalculateFunding.Services.Calculator
                 Stopwatch saveCosmosStopwatch = Stopwatch.StartNew();
                 await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism));
                 saveCosmosStopwatch.Stop();
-                saveCosmosElapsedMs = saveCosmosStopwatch.ElapsedMilliseconds;
+                saveComsosDuration = saveCosmosStopwatch.ElapsedMilliseconds;
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");
             }
@@ -629,8 +634,6 @@ namespace CalculateFunding.Services.Calculator
 
             _logger.Information($"Saved results to cache for specification id {messageProperties.SpecificationId} with key {providerResultsCacheKey}");
 
-            saveRedisElapsedMs = saveRedisStopwatch.ElapsedMilliseconds;
-
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
             properties.Add("specificationId", messageProperties.SpecificationId);
@@ -643,9 +646,9 @@ namespace CalculateFunding.Services.Calculator
             await _messengerServicePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.TestEngineExecuteTests, null, properties));
             saveQueueStopwatch.Stop();
 
-            saveQueueElapsedMs = saveQueueStopwatch.ElapsedMilliseconds;
-
             _logger.Information($"Message sent for test exceution for specification id {messageProperties.SpecificationId}");
+
+            return (saveComsosDuration, saveRedisStopwatch.ElapsedMilliseconds, saveQueueStopwatch.ElapsedMilliseconds);
         }
     }
 }
