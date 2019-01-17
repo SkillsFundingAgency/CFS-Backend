@@ -270,22 +270,25 @@ namespace CalculateFunding.Services.Jobs
 
         public async Task SupersedeJob(Job runningJob, string replacementJobId)
         {
-            runningJob.Completed = DateTimeOffset.UtcNow;
-            runningJob.CompletionStatus = CompletionStatus.Superseded;
-            runningJob.SupersededByJobId = replacementJobId;
-            runningJob.RunningStatus = RunningStatus.Completed;
-
-            HttpStatusCode statusCode = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(runningJob));
-
-            if (statusCode.IsSuccess())
+            if (string.CompareOrdinal(runningJob.Id, replacementJobId) != 0)
             {
-                JobNotification jobNotification = CreateJobNotificationFromJob(runningJob);
+                runningJob.Completed = DateTimeOffset.UtcNow;
+                runningJob.CompletionStatus = CompletionStatus.Superseded;
+                runningJob.SupersededByJobId = replacementJobId;
+                runningJob.RunningStatus = RunningStatus.Completed;
 
-                await _notificationService.SendNotification(jobNotification);
-            }
-            else
-            {
-                _logger.Error($"Failed to update superseded job, Id: {runningJob.Id}");
+                HttpStatusCode statusCode = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(runningJob));
+
+                if (statusCode.IsSuccess())
+                {
+                    JobNotification jobNotification = CreateJobNotificationFromJob(runningJob);
+
+                    await _notificationService.SendNotification(jobNotification);
+                }
+                else
+                {
+                    _logger.Error($"Failed to update superseded job, Id: {runningJob.Id}");
+                }
             }
         }
 
