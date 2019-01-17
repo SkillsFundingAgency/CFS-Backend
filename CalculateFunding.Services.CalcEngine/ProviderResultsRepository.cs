@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
@@ -37,12 +38,11 @@ namespace CalculateFunding.Services.Calculator
             _logger = logger;
         }
 
-
-        public async Task SaveProviderResults(IEnumerable<ProviderResult> providerResults, int degreeOfParallelism = 5)
+        public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs)> SaveProviderResults(IEnumerable<ProviderResult> providerResults, int degreeOfParallelism = 5)
         {
             if (providerResults == null || providerResults.Count() == 0)
             {
-                return;
+                return (0, 0);
             }
 
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
@@ -62,11 +62,26 @@ namespace CalculateFunding.Services.Calculator
                 specifications.Add(specificationId, specification);
             }
 
-            await TaskHelper.WhenAllAndThrow(
-                _cosmosRepository.BulkCreateAsync(results, degreeOfParallelism), UpdateSearch(providerResults, specifications));
+            Task<long> cosmosSaveTask = BulkSaveProviderResults(results, degreeOfParallelism);
+            Task<long> searchSaveTask = UpdateSearch(providerResults, specifications);
+
+            await TaskHelper.WhenAllAndThrow(cosmosSaveTask, searchSaveTask);
+
+            return (cosmosSaveTask.Result, searchSaveTask.Result);
         }
 
-        private async Task UpdateSearch(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecificationSummary> specifications)
+        private async Task<long> BulkSaveProviderResults(IEnumerable<KeyValuePair<string, ProviderResult>> providerResults, int degreeOfParallelism = 5)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            await _cosmosRepository.BulkCreateAsync(providerResults, degreeOfParallelism);
+
+            stopwatch.Stop();
+
+            return stopwatch.ElapsedMilliseconds;
+        }
+
+        private async Task<long> UpdateSearch(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecificationSummary> specifications)
         {
             IList<CalculationProviderResultsIndex> results = new List<CalculationProviderResultsIndex>();
 
@@ -105,7 +120,11 @@ namespace CalculateFunding.Services.Calculator
                 }
             }
 
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             IEnumerable<IndexError> indexErrors = await _searchRepository.Index(results);
+
+            stopwatch.Stop();
 
             if (!indexErrors.IsNullOrEmpty())
             {
@@ -114,6 +133,8 @@ namespace CalculateFunding.Services.Calculator
                 // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
                 throw new FailedToIndexSearchException(indexErrors);
             }
+
+            return stopwatch.ElapsedMilliseconds;
         }
     }
 }

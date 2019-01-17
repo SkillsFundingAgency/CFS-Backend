@@ -195,10 +195,10 @@ namespace CalculateFunding.Services.Calculator
 
                 _logger.Information($"calculating results complete for specification id {messageProperties.SpecificationId}");
 
-                double? saveCosmosElapsedMs = null;
-                double saveRedisElapsedMs = 0;
-                double saveQueueElapsedMs = 0;
-
+                long saveCosmosElapsedMs = -1;
+                long saveSearchElapsedMs = -1;
+                long saveRedisElapsedMs = 0;
+                long saveQueueElapsedMs = 0;
 
                 if (calculationResults.ProviderResults.Any())
                 {
@@ -208,8 +208,9 @@ namespace CalculateFunding.Services.Calculator
                     }
                     else
                     {
-                        (double? saveCosmosElapsedMs, double saveRedisElapsedMs, double saveQueueElapsedMs) timingMetrics = await ProcessProviderResults(calculationResults.ProviderResults, messageProperties, message);
+                        (long saveCosmosElapsedMs, long saveSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs) timingMetrics = await ProcessProviderResults(calculationResults.ProviderResults, messageProperties, message);
                         saveCosmosElapsedMs = timingMetrics.saveCosmosElapsedMs;
+                        saveSearchElapsedMs = timingMetrics.saveSearchElapsedMs;
                         saveRedisElapsedMs = timingMetrics.saveRedisElapsedMs;
                         saveQueueElapsedMs = timingMetrics.saveQueueElapsedMs;
                     }
@@ -231,10 +232,11 @@ namespace CalculateFunding.Services.Calculator
                     { "calculation-run-runningCalculationMs",  calculationStopwatch.ElapsedMilliseconds },
                 };
 
-                if (saveCosmosElapsedMs.HasValue)
+                if (saveCosmosElapsedMs > -1)
                 {
                     metrics.Add("calculation-run-elapsedMilliseconds", calcTiming.ElapsedMilliseconds);
-                    metrics.Add("calculation-run-saveProviderResultsCosmosMs", saveCosmosElapsedMs.Value);
+                    metrics.Add("calculation-run-saveProviderResultsCosmosMs", saveCosmosElapsedMs);
+                    metrics.Add("calculation-run-saveProviderResultsSearchMs", saveSearchElapsedMs);
                 }
                 else
                 {
@@ -606,19 +608,16 @@ namespace CalculateFunding.Services.Calculator
             }
         }
 
-        private async Task<(double? saveCosmosElapsedMs, double saveRedisElapsedMs, double saveQueueElapsedMs)> ProcessProviderResults(IEnumerable<ProviderResult> providerResults,
+        private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs,  long saveRedisElapsedMs, long saveQueueElapsedMs)> ProcessProviderResults(IEnumerable<ProviderResult> providerResults,
             GenerateAllocationMessageProperties messageProperties, Message message)
         {
-            double? saveComsosDuration = null;
+            (long saveToCosmosElapsedMs, long saveToSearchElapsedMs) saveProviderResultsTimings = (-1,-1);
 
             if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))
             {
                 _logger.Information($"Saving results for specification id {messageProperties.SpecificationId}");
 
-                Stopwatch saveCosmosStopwatch = Stopwatch.StartNew();
-                await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism));
-                saveCosmosStopwatch.Stop();
-                saveComsosDuration = saveCosmosStopwatch.ElapsedMilliseconds;
+                saveProviderResultsTimings  = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism));
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");
             }
@@ -648,7 +647,7 @@ namespace CalculateFunding.Services.Calculator
 
             _logger.Information($"Message sent for test exceution for specification id {messageProperties.SpecificationId}");
 
-            return (saveComsosDuration, saveRedisStopwatch.ElapsedMilliseconds, saveQueueStopwatch.ElapsedMilliseconds);
+            return (saveProviderResultsTimings.saveToCosmosElapsedMs, saveProviderResultsTimings.saveToSearchElapsedMs, saveRedisStopwatch.ElapsedMilliseconds, saveQueueStopwatch.ElapsedMilliseconds);
         }
     }
 }
