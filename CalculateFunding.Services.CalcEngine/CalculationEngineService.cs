@@ -306,7 +306,7 @@ namespace CalculateFunding.Services.Calculator
 
             IList<string> providerIdList = partitionedSummaries.Select(m => m.Id).ToList();
 
-            providerSourceDatasetsStopwatch = Stopwatch.StartNew();
+            providerSourceDatasetsStopwatch.Start();
 
             _logger.Information($"Fetching provider sources for specification id {messageProperties.SpecificationId}");
 
@@ -323,7 +323,7 @@ namespace CalculateFunding.Services.Calculator
 
             _logger.Information($"fetched provider sources found for specification id {messageProperties.SpecificationId}");
 
-            calculationStopwatch = Stopwatch.StartNew();
+            calculationStopwatch.Start();
 
             _logger.Information($"calculating results for specification id {messageProperties.SpecificationId}");
 
