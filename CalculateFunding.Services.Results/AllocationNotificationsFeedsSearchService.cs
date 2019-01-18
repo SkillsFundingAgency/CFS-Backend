@@ -140,6 +140,7 @@ namespace CalculateFunding.Services.Results
             filters.Add($"fundingPeriodStartYear eq {startYear}");
             filters.Add($"fundingPeriodEndYear eq {endYear}");
             filters.Add($"providerId eq '{providerId}'");
+			filters.Add($"allocationStatus eq 'Published'");
 
             return await SearchFeeds(startYear, endYear, filters, customFilters);
         }
@@ -151,8 +152,9 @@ namespace CalculateFunding.Services.Results
             filters.Add($"fundingPeriodStartYear eq {startYear}");
             filters.Add($"fundingPeriodEndYear eq {endYear}");
             filters.Add($"laCode eq '{laCode}'");
+	        filters.Add("allocationStatus eq 'Published'");
 
-            return await SearchFeeds(startYear, endYear, filters, customFilters);
+			return await SearchFeeds(startYear, endYear, filters, customFilters);
         }
 
         private async Task<SearchFeed<AllocationNotificationFeedIndex>> SearchFeeds(int startYear, int endYear, IEnumerable<string> filters, IEnumerable<string> customFilters, int top = 500)
