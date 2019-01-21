@@ -94,8 +94,6 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
 
-            builder.AddSpecificationsInterServiceClient(Configuration);
-
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
             {
                 CosmosDbSettings calssDbSettings = new CosmosDbSettings();
@@ -205,8 +203,8 @@ namespace CalculateFunding.Api.Results
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(Configuration);
-
             builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 

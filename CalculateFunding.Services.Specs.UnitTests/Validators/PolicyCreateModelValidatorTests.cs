@@ -1,12 +1,13 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using System;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.Validators;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
 
-namespace CalculateFunding.Services.Specs.Validators
+namespace CalculateFunding.Services.Specs.UnitTests.Validators
 {
     [TestClass]
     public class PolicyCreateModelValidatorTests

@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void CreateAllocationLineResultStatusUpdateJobs_GivenJobIdButJobResponseIsNull_LogsAndThrowsException()
+        public async Task CreateAllocationLineResultStatusUpdateJobs_GivenJobIdButJobResponseIsNull_LogsAndDoesNotProcess()
         {
             //Arrange
             Message message = new Message();
@@ -64,24 +64,20 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
             //Act
-            Func<Task> test = async () => await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
+            await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
 
             //Assert
-            test
-                .Should()
-                .ThrowExactly<Exception>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Could not find the parent job with job id: '{jobId}'");
-
             logger
                 .Received(1)
-                .Error(Arg.Is($"Could not find the parent job with job id: '{jobId}'"));
+                .Error(Arg.Is($"Could not find the job with id: '{jobId}'"));
+
+            await jobsApiClient
+                .DidNotReceive()
+                .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
         }
 
         [TestMethod]
-        public void CreateAllocationLineResultStatusUpdateJobs_GivenJobIdButJobResponseIsNotFound_LogsAndThrowsException()
+        public async Task CreateAllocationLineResultStatusUpdateJobs_GivenJobIdButJobResponseIsNotFound_LogsAndDoesNotProcess()
         {
             //Arrange
             Message message = new Message();
@@ -99,20 +95,16 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
             //Act
-            Func<Task> test = async () => await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
+            await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
 
             //Assert
-            test
-                .Should()
-                .ThrowExactly<Exception>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Could not find the parent job with job id: '{jobId}'");
-
             logger
                 .Received(1)
-                .Error(Arg.Is($"Could not find the parent job with job id: '{jobId}'"));
+                .Error(Arg.Is($"Could not find the job with id: '{jobId}'"));
+
+            await jobsApiClient
+                .DidNotReceive()
+                .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
         }
 
         [TestMethod]

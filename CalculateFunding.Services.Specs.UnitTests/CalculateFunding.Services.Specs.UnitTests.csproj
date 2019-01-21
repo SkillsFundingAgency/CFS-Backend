@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RootNamespace>CalculateFunding.Services.Specs</RootNamespace>
+    <RootNamespace>CalculateFunding.Services.Specs.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

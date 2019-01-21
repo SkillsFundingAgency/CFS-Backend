@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {

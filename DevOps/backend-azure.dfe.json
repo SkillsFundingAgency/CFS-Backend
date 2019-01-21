@@ -381,6 +381,13 @@
         "description": "Feature toggle to enable the job service"
       }
     },
+    "EnableJobServiceForPublishProviderResults": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable the job service for publishing provider results"
+      }
+    },
     "AggregateOverCalculationsEnabled": {
       "defaultValue": false,
       "type": "bool",
@@ -1965,6 +1972,18 @@
             {
               "name": "PublishedProviderResultsSettings:UpdateAllocationLineResultStatusBatchCount",
               "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
+            },
+            {
+              "name": "features:jobServiceForPublishProviderResultsEnabled",
+              "value": "[parameters('EnableJobServiceForPublishProviderResults')]"
+            },
+            {
+              "name": "jobsClient:ApiKey",
+              "value": "[parameters('ApiKeyJobs')]"
+            },
+            {
+              "name": "jobsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
             }
           ]
         }
@@ -3291,6 +3310,18 @@
             {
               "name": "features:allocationLineMajorMinorVersioningEnabled",
               "value": "[parameters('EnableMajorMinorVersioning')]"
+            },
+            {
+              "name": "features:jobServiceForPublishProviderResultsEnabled",
+              "value": "[parameters('EnableJobServiceForPublishProviderResults')]"
+            },
+            {
+              "name": "jobsClient:ApiKey",
+              "value": "[parameters('ApiKeyJobs')]"
+            },
+            {
+              "name": "jobsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
             }
           ]
         }

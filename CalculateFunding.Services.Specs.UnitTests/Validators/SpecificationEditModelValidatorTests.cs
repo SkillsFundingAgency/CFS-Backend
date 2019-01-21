@@ -1,15 +1,16 @@
-﻿using CalculateFunding.Models.Specs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.Validators;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 
-namespace CalculateFunding.Services.Specs.Validators
+namespace CalculateFunding.Services.Specs.UnitTests.Validators
 {
     [TestClass]
     public class SpecificationEditModelValidatorTests

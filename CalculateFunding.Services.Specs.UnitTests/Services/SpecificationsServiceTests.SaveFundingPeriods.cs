@@ -1,6 +1,10 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Caching;
+﻿using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -9,13 +13,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {

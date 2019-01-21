@@ -5,7 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -20,7 +22,6 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
@@ -53,6 +54,8 @@ namespace CalculateFunding.Services.Specs
         private readonly IResultsRepository _resultsRepository;
         private readonly IVersionRepository<SpecificationVersion> _specificationVersionRepository;
         private readonly IFeatureToggle _featureToggle;
+        private readonly Polly.Policy _jobsApiClientPolicy;
+        private readonly IJobsApiClient _jobsApiClient;
 
         public SpecificationsService(
             IMapper mapper,
@@ -104,6 +107,64 @@ namespace CalculateFunding.Services.Specs
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
             _featureToggle = featureToggle;
+        }
+
+        public SpecificationsService(
+            IMapper mapper,
+            ISpecificationsRepository specificationsRepository,
+            ILogger logger,
+            IValidator<PolicyCreateModel> policyCreateModelValidator,
+            IValidator<SpecificationCreateModel> specificationCreateModelValidator,
+            IValidator<CalculationCreateModel> calculationCreateModelValidator,
+            IMessengerService messengerService,
+            ISearchRepository<SpecificationIndex> searchRepository,
+            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
+            ICacheProvider cacheProvider,
+            IValidator<SpecificationEditModel> specificationEditModelValidator,
+            IValidator<PolicyEditModel> policyEditModelValidator,
+            IValidator<CalculationEditModel> calculationEditModelValidator,
+            IResultsRepository resultsRepository,
+            IVersionRepository<SpecificationVersion> specificationVersionRepository,
+            IFeatureToggle featureToggle,
+            IJobsApiClient jobsApiClient,
+            ISpecificationsResiliencePolicies resiliencePolicies)
+        {
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(policyCreateModelValidator, nameof(policyCreateModelValidator));
+            Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
+            Guard.ArgumentNotNull(calculationCreateModelValidator, nameof(calculationCreateModelValidator));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(assignDefinitionRelationshipMessageValidator, nameof(assignDefinitionRelationshipMessageValidator));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
+            Guard.ArgumentNotNull(policyEditModelValidator, nameof(policyEditModelValidator));
+            Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
+            Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+
+            _mapper = mapper;
+            _specificationsRepository = specificationsRepository;
+            _logger = logger;
+            _policyCreateModelValidator = policyCreateModelValidator;
+            _specificationCreateModelvalidator = specificationCreateModelValidator;
+            _calculationCreateModelValidator = calculationCreateModelValidator;
+            _messengerService = messengerService;
+            _searchRepository = searchRepository;
+            _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
+            _cacheProvider = cacheProvider;
+            _specificationEditModelValidator = specificationEditModelValidator;
+            _policyEditModelValidator = policyEditModelValidator;
+            _calculationEditModelValidator = calculationEditModelValidator;
+            _resultsRepository = resultsRepository;
+            _specificationVersionRepository = specificationVersionRepository;
+            _featureToggle = featureToggle;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -1998,7 +2059,7 @@ namespace CalculateFunding.Services.Specs
                 {
                     try
                     {
-                        await CalculateSpecification(request, specificationId);
+                        await PublishProviderResults(request, specificationId, "Refreshing published provider results for specification");
                     }
                     catch (Exception e)
                     {
@@ -2024,7 +2085,7 @@ namespace CalculateFunding.Services.Specs
                         return new BadRequestObjectResult($"Specification {specificationId} - was not found");
                     }
                 }
-                IEnumerable<Task> calculationTasks = specificationIdsAsArray.Select(specificationId => CalculateSpecification(request, specificationId));
+                IEnumerable<Task> calculationTasks = specificationIdsAsArray.Select(specificationId => PublishProviderResults(request, specificationId, "Refreshing published provider results for specification"));
                 try
                 {
                     await Task.WhenAll(calculationTasks.ToArray());
@@ -2092,7 +2153,7 @@ namespace CalculateFunding.Services.Specs
                     throw new Exception(error);
                 }
 
-                await CalculateSpecification(request, specificationId);
+                await PublishProviderResults(request, specificationId, "Selecting specification for funding");
             }
             catch (Exception ex)
             {
@@ -2113,16 +2174,49 @@ namespace CalculateFunding.Services.Specs
             return new NoContentResult();
         }
 
-        private async Task CalculateSpecification(HttpRequest request, string specificationId)
+        private async Task PublishProviderResults(HttpRequest request, string specificationId, string triggerMessage)
         {
             try
             {
-                IDictionary<string, string> properties = request.BuildMessageProperties();
-                properties.Add("specification-id", specificationId);
-                UpdateCacheWithCalculationStarted(specificationId);
-                await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.PublishProviderResults,
-                    null,
-                    properties);
+                if (_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
+                {
+                    Reference user = request.GetUser();
+
+                    Trigger trigger = new Trigger
+                    {
+                        EntityId = specificationId,
+                        EntityType = nameof(Specification),
+                        Message = triggerMessage
+                    };
+
+                    string correlationId = request.GetCorrelationId();
+
+                    JobCreateModel job = new JobCreateModel
+                    {
+                        InvokerUserDisplayName = user.Name,
+                        InvokerUserId = user.Id,
+                        JobDefinitionId = JobConstants.DefinitionNames.PublishProviderResultsJob,
+                        Properties = new Dictionary<string, string>
+                        {
+                            { "specification-id", specificationId }
+                        },
+                        SpecificationId = specificationId,
+                        Trigger = trigger,
+                        CorrelationId = correlationId
+                    };
+
+                    UpdateCacheWithCalculationStarted(specificationId);
+                    await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
+                }
+                else
+                {
+                    IDictionary<string, string> properties = request.BuildMessageProperties();
+                    properties.Add("specification-id", specificationId);
+                    UpdateCacheWithCalculationStarted(specificationId);
+                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.PublishProviderResults,
+                        null,
+                        properties);
+                }
             }
             catch (Exception)
             {

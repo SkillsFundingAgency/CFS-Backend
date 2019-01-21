@@ -24,6 +24,7 @@ using CalculateFunding.Common.Caching;
 using Newtonsoft.Json;
 using System.Text;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Common.FeatureToggles;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -68,6 +69,9 @@ namespace CalculateFunding.Services.Results.Services
             ILogger logger = CreateLogger();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
 
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
@@ -89,7 +93,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void UpdateAllocationLineResultStatus_GivenParentJobResponseNotFound_LogsErrorAndThrowsException()
+        public async Task UpdateAllocationLineResultStatus_GivenParentJobResponseNotFound_LogsErrorAndStopsProcessing()
         {
             //Arrange
             UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel();
@@ -110,24 +114,16 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
             //Act
-            Func<Task> test = async () =>await publishedResultsService.UpdateAllocationLineResultStatus(message);
+            await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
             //Assert
-            test
-                .Should()
-                .ThrowExactly<Exception>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Could not find the parent job with job id: '{jobId}'");
-
             logger
                 .Received(1)
-                .Error(Arg.Is($"Could not find the parent job with job id: '{jobId}'"));
+                .Error(Arg.Is($"Could not find the job with id: '{jobId}'"));
         }
 
         [TestMethod]
-        public void UpdateAllocationLineResultStatus_GivenParentJobResponseIsNull_LogsErrorAndThrowsException()
+        public async Task UpdateAllocationLineResultStatus_GivenParentJobResponseIsNull_LogsErrorAndStopsProcessing()
         {
             //Arrange
             UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel();
@@ -146,20 +142,12 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
             //Act
-            Func<Task> test = async () => await publishedResultsService.UpdateAllocationLineResultStatus(message);
+            await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
             //Assert
-            test
-                .Should()
-                .ThrowExactly<Exception>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Could not find the parent job with job id: '{jobId}'");
-
             logger
                 .Received(1)
-                .Error(Arg.Is($"Could not find the parent job with job id: '{jobId}'"));
+                .Error(Arg.Is($"Could not find the job with id: '{jobId}'"));
         }
 
         [TestMethod]
@@ -600,11 +588,13 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
+            string parentJobId = "parent-job-id-1";
             JobViewModel jobViewModel = new JobViewModel
             {
                 Id = jobId,
                 SpecificationId = specificationId,
-                Properties = new Dictionary<string, string>()
+                Properties = new Dictionary<string, string>(),
+                ParentJobId = parentJobId
             };
 
             ApiResponse<JobViewModel> jobResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel);
@@ -613,6 +603,9 @@ namespace CalculateFunding.Services.Results.Services
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobResponse);
+            jobsApiClient
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob))
+                .Returns(new Job { Id = "fpp-job" });
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
             publishedProviderResults
@@ -649,13 +642,19 @@ namespace CalculateFunding.Services.Results.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForPublishProviderResultsEnabled()
+                .Returns(true);
+
             PublishedResultsService publishedResultsService = CreateResultsService(
                 logger,
                 jobsApiClient: jobsApiClient,
                 publishedProviderResultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository,
-                messengerService: messengerService);
+                messengerService: messengerService,
+                featureToggle: featureToggle);
 
             //Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
@@ -663,16 +662,12 @@ namespace CalculateFunding.Services.Results.Services
             //Assert
             logger
                 .Received(1)
-                .Information(Arg.Is($"Sending new provider profiling message for 3 results"));
-
-            logger
-               .Received(1)
-               .Information(Arg.Is($"Sent new provider profiling message for 3 results"));
+                .Information(Arg.Is($"New job: '{JobConstants.DefinitionNames.FetchProviderProfileJob}' created with id: 'fpp-job'"));
 
             await
-                messengerService
+                jobsApiClient
                     .Received(1)
-                    .SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, Arg.Any<IEnumerable<FetchProviderProfilingMessageItem>>(), Arg.Any<IDictionary<string, string>>());
+                    .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob && j.SpecificationId == specificationId && j.ParentJobId == parentJobId));
         }
 
         [TestMethod]

@@ -19,6 +19,10 @@
             public const string ValidateDatasetJob = "ValidateDatasetJob";
 
             public const string MapDatasetJob = "MapDatasetJob";
+
+            public const string PublishProviderResultsJob = "PublishProviderResultsJob";
+
+            public const string FetchProviderProfileJob = "FetchProviderProfileJob";
         }
 
         public static class NotificationChannels

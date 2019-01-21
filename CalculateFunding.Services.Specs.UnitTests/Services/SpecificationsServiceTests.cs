@@ -17,8 +17,9 @@ using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using CalculateFunding.Common.ApiClient.Jobs;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     [TestClass]
     public partial class SpecificationsServiceTests
@@ -38,7 +39,7 @@ namespace CalculateFunding.Services.Specs.Services
         const string RelationshipId = "cca8ccb3-eb8e-4658-8b3f-f1e4c3a8f419";
         const string yamlFile = "12345.yaml";
 
-        static SpecificationsService CreateService(
+        private SpecificationsService CreateService(
             IMapper mapper = null,
             ISpecificationsRepository specificationsRepository = null,
             ILogger logs = null,
@@ -54,7 +55,8 @@ namespace CalculateFunding.Services.Specs.Services
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             IResultsRepository resultsRepository = null,
             IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
-            IFeatureToggle featureToggle = null)
+            IFeatureToggle featureToggle = null,
+            IJobsApiClient jobsApiClient = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -71,10 +73,17 @@ namespace CalculateFunding.Services.Specs.Services
                 calculationEditModelValidator ?? CreateEditCalculationValidator(),
                 resultsRepository ?? CreateResultsRepository(),
                 specificationVersionRepository ?? CreateVersionRepository(),
-                featureToggle ?? CreateFeatureToggle());
+                featureToggle ?? CreateFeatureToggle(),
+                jobsApiClient ?? CreateJobsApiClient(),
+                SpecificationsResilienceTestHelper.GenerateTestPolicies());
         }
 
-        static IFeatureToggle CreateFeatureToggle()
+        protected IJobsApiClient CreateJobsApiClient()
+        {
+            return Substitute.For<IJobsApiClient>();
+        }
+
+        protected IFeatureToggle CreateFeatureToggle()
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
             featureToggle
@@ -84,54 +93,54 @@ namespace CalculateFunding.Services.Specs.Services
             return featureToggle;
         }
 
-        static IVersionRepository<SpecificationVersion> CreateVersionRepository()
+        protected IVersionRepository<SpecificationVersion> CreateVersionRepository()
         {
             return Substitute.For<IVersionRepository<SpecificationVersion>>();
         }
 
-        static IResultsRepository CreateResultsRepository()
+        protected IResultsRepository CreateResultsRepository()
         {
             return Substitute.For<IResultsRepository>();
         }
 
-        static IMapper CreateMapper()
+        protected IMapper CreateMapper()
         {
             return Substitute.For<IMapper>();
         }
 
-        private static IMapper CreateImplementedMapper()
+        protected IMapper CreateImplementedMapper()
         {
             MapperConfiguration mappingConfiguration = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
             IMapper mapper = mappingConfiguration.CreateMapper();
             return mapper;
         }
 
-        static IMessengerService CreateMessengerService()
+        protected IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
         }
 
-        static ICacheProvider CreateCacheProvider()
+        protected ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
         }
 
-        static ISpecificationsRepository CreateSpecificationsRepository()
+        protected ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
         }
 
-        static ILogger CreateLogger()
+        protected ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
 
-        static ISearchRepository<SpecificationIndex> CreateSearchRepository()
+        protected ISearchRepository<SpecificationIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<SpecificationIndex>>();
         }
 
-        static IValidator<PolicyCreateModel> CreatePolicyValidator(ValidationResult validationResult = null)
+        protected IValidator<PolicyCreateModel> CreatePolicyValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -147,7 +156,7 @@ namespace CalculateFunding.Services.Specs.Services
             return validator;
         }
 
-        static IValidator<PolicyEditModel> CreateEditPolicyValidator(ValidationResult validationResult = null)
+        protected IValidator<PolicyEditModel> CreateEditPolicyValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -163,7 +172,7 @@ namespace CalculateFunding.Services.Specs.Services
             return validator;
         }
 
-        static IValidator<SpecificationCreateModel> CreateSpecificationValidator(ValidationResult validationResult = null)
+        protected IValidator<SpecificationCreateModel> CreateSpecificationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -179,7 +188,7 @@ namespace CalculateFunding.Services.Specs.Services
             return validator;
         }
 
-        static IValidator<SpecificationEditModel> CreateEditSpecificationValidator(ValidationResult validationResult = null)
+        protected IValidator<SpecificationEditModel> CreateEditSpecificationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -195,7 +204,7 @@ namespace CalculateFunding.Services.Specs.Services
             return validator;
         }
 
-        static IValidator<CalculationCreateModel> CreateCalculationValidator(ValidationResult validationResult = null)
+        protected IValidator<CalculationCreateModel> CreateCalculationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -211,7 +220,7 @@ namespace CalculateFunding.Services.Specs.Services
             return validator;
         }
 
-        static IValidator<CalculationEditModel> CreateEditCalculationValidator(ValidationResult validationResult = null)
+        protected IValidator<CalculationEditModel> CreateEditCalculationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -227,7 +236,7 @@ namespace CalculateFunding.Services.Specs.Services
             return validator;
         }
 
-        static IValidator<AssignDefinitionRelationshipMessage> CreateAssignDefinitionRelationshipMessageValidator(ValidationResult validationResult = null)
+        protected IValidator<AssignDefinitionRelationshipMessage> CreateAssignDefinitionRelationshipMessageValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -243,7 +252,7 @@ namespace CalculateFunding.Services.Specs.Services
             return validator;
         }
 
-        static string CreateRawFundingStream()
+        protected string CreateRawFundingStream()
         {
             var yaml = new StringBuilder();
 
@@ -269,7 +278,7 @@ namespace CalculateFunding.Services.Specs.Services
             return yaml.ToString();
         }
 
-        static string CreateRawFundingPeriods()
+        protected string CreateRawFundingPeriods()
         {
             var yaml = new StringBuilder();
 
@@ -294,7 +303,7 @@ namespace CalculateFunding.Services.Specs.Services
             return yaml.ToString();
         }
 
-        static Specification CreateSpecification()
+        protected Specification CreateSpecification()
         {
             return new Specification()
             {
@@ -322,7 +331,7 @@ namespace CalculateFunding.Services.Specs.Services
             };
         }
 
-        static IEnumerable<FundingStream> CreateFundingStreams()
+        protected IEnumerable<FundingStream> CreateFundingStreams()
         {
             return new[]
             {

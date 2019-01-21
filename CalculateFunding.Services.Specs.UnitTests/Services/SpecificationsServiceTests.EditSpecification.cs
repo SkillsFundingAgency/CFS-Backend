@@ -1,34 +1,33 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Specs.Interfaces;
-using FluentValidation;
-using FluentValidation.Results;
-using Serilog;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using Microsoft.AspNetCore.Http.Internal;
-using Microsoft.Extensions.Primitives;
-using System.Linq.Expressions;
-using System.Linq;
-using Newtonsoft.Json;
-using System.IO;
-using System.Net;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Specs.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NSubstitute;
+using Serilog;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
@@ -496,7 +495,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(newSpecVersion);
 
             SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, 
+                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository,
                 cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             //Act
@@ -764,7 +763,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .Returns(newSpecVersion);
 
             SpecificationsService service = CreateService(
-                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository, 
+                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository,
                 cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             //Act
@@ -973,7 +972,7 @@ namespace CalculateFunding.Services.Specs.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            
+
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
@@ -1002,115 +1001,115 @@ namespace CalculateFunding.Services.Specs.Services
                  .SaveVersion(Arg.Is(newSpecVersion));
         }
 
-		[TestMethod]
-		public async Task EditSpecification_WhenIndexingReturnsErrors_ShouldThrowException()
-		{
-			//Arrange
-			const string errorMessage = "Encountered error 802 code";
+        [TestMethod]
+        public async Task EditSpecification_WhenIndexingReturnsErrors_ShouldThrowException()
+        {
+            //Arrange
+            const string errorMessage = "Encountered error 802 code";
 
-			SpecificationEditModel specificationEditModel = new SpecificationEditModel
-			{
-				FundingPeriodId = "fp10",
-				Name = "new spec name",
-				FundingStreamIds = new[] { "fs11" }
-			};
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel
+            {
+                FundingPeriodId = "fp10",
+                Name = "new spec name",
+                FundingStreamIds = new[] { "fs11" }
+            };
 
-			Period fundingPeriod = new Period
-			{
-				Id = "fp10",
-				Name = "fp 10"
-			};
+            Period fundingPeriod = new Period
+            {
+                Id = "fp10",
+                Name = "fp 10"
+            };
 
-			IEnumerable<FundingStream> fundingStreams = new[]
-			{
-				new FundingStream{
-					AllocationLines = new List<AllocationLine>
-					{
-						new AllocationLine { Id = "al1", Name = "al2"}
-					}
-				}
-			};
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream{
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine { Id = "al1", Name = "al2"}
+                    }
+                }
+            };
 
-			string json = JsonConvert.SerializeObject(specificationEditModel);
-			byte[] byteArray = Encoding.UTF8.GetBytes(json);
-			MemoryStream stream = new MemoryStream(byteArray);
+            string json = JsonConvert.SerializeObject(specificationEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
 
-			HttpContext context = Substitute.For<HttpContext>();
+            HttpContext context = Substitute.For<HttpContext>();
 
-			HttpRequest request = Substitute.For<HttpRequest>();
+            HttpRequest request = Substitute.For<HttpRequest>();
 
-			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-			{
-				{ "specificationId", new StringValues(SpecificationId) },
-			});
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+            });
 
-			request
-				.Query
-				.Returns(queryStringValues);
-			request
-				.Body
-				.Returns(stream);
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
 
-			request
-				.HttpContext
-				.Returns(context);
+            request
+                .HttpContext
+                .Returns(context);
 
-			ILogger logger = CreateLogger();
+            ILogger logger = CreateLogger();
 
-			Specification specification = CreateSpecification();
+            Specification specification = CreateSpecification();
 
-			ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-			specificationsRepository
-				.GetSpecificationById(Arg.Is(SpecificationId))
-				.Returns(specification);
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
 
-			specificationsRepository
-				.GetPeriodById(Arg.Is(fundingPeriod.Id))
-				.Returns(fundingPeriod);
+            specificationsRepository
+                .GetPeriodById(Arg.Is(fundingPeriod.Id))
+                .Returns(fundingPeriod);
 
-			specificationsRepository
-				.GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-				.Returns(fundingStreams);
+            specificationsRepository
+                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
+                .Returns(fundingStreams);
 
-			specificationsRepository
-				.UpdateSpecification(Arg.Any<Specification>())
-				.Returns(HttpStatusCode.OK);
+            specificationsRepository
+                .UpdateSpecification(Arg.Any<Specification>())
+                .Returns(HttpStatusCode.OK);
 
-			ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-			searchRepository
-				.Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-				.Returns(new []{new IndexError(){ErrorMessage = errorMessage } });
+            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+                .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
 
-			ICacheProvider cacheProvider = CreateCacheProvider();
+            ICacheProvider cacheProvider = CreateCacheProvider();
 
-			IMessengerService messengerService = CreateMessengerService();
+            IMessengerService messengerService = CreateMessengerService();
 
-			SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-			newSpecVersion.Name = specificationEditModel.Name;
-			newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-			newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Name = specificationEditModel.Name;
+            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
+            newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
 
-			IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-			versionRepository
-				.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-				.Returns(newSpecVersion);
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
 
-			SpecificationsService service = CreateService(
-				logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository,
-				cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
+            SpecificationsService service = CreateService(
+                logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository,
+                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
 
-			//Act
-			Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(request);
+            //Act
+            Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(request);
 
-			//Assert
-			editSpecification
-				.Should()
-				.Throw<ApplicationException>()
-				.Which
-				.Message
-				.Should()
-				.Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
-		}
-	}
+            //Assert
+            editSpecification
+                .Should()
+                .Throw<ApplicationException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
+        }
+    }
 }

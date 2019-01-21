@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
@@ -9,13 +11,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
@@ -86,7 +83,7 @@ namespace CalculateFunding.Services.Specs.Services
         public async Task GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId_GivenResultsReturned_ReturnsOKObject()
         {
             //Arrange
-            Specification spec1 = new Specification { Id = "spec1" } ;
+            Specification spec1 = new Specification { Id = "spec1" };
             Specification spec2 = new Specification { Id = "spec2" };
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>

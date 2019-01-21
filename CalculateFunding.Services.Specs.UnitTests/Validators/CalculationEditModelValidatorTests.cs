@@ -3,12 +3,13 @@ using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.Validators;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
-namespace CalculateFunding.Services.Specs.Validators
+namespace CalculateFunding.Services.Specs.UnitTests.Validators
 {
     [TestClass]
     public class CalculationEditModelValidatorTests

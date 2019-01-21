@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.16.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.17.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient" Version="1.0.9" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="1.0.5" />
     <PackageReference Include="CalculateFunding.Common.Caching" Version="1.0.1" />

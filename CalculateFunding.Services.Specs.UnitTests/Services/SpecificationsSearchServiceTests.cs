@@ -1,12 +1,12 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System.Collections.Generic;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     [TestClass]
     public partial class SpecificationsSearchServiceTests

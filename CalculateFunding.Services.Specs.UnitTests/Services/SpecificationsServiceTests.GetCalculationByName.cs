@@ -1,17 +1,17 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Specs.Interfaces;
-using Serilog;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
+﻿using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Specs.Interfaces;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using System.IO;
+using NSubstitute;
+using Serilog;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {

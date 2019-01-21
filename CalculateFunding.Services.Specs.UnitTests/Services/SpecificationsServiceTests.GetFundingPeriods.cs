@@ -1,17 +1,17 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Specs.Interfaces;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Specs.Interfaces;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Caching;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {

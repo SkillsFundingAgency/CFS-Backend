@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
@@ -14,6 +16,7 @@ using CalculateFunding.Models.Results.Messages;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -40,7 +43,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void FetchProviderProfile_GivenNoSpecificationId_ThrowsArgumentException()
+        public async Task FetchProviderProfile_GivenNoSpecificationId_LogsAndStopsProcessing()
         {
             // Arrange
             ILogger logger = Substitute.For<ILogger>();
@@ -52,15 +55,14 @@ namespace CalculateFunding.Services.Results.Services
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
             // Act
-            Func<Task> action = () => service.FetchProviderProfile(message);
+            await service.FetchProviderProfile(message);
 
             // Assert
-            action.Should().Throw<ArgumentException>().And.Message.Should().Be("Message must contain a specification id in user properties");
             logger.Received(1).Error("No specification id was present on the message");
         }
 
         [TestMethod]
-        public void FetchProviderProfile_GivenMessageHasNoContent_ThrowsArgumentException()
+        public async Task FetchProviderProfile_GivenMessageHasNoContent_LogsAndStopsProcessing()
         {
             // Arrange
             ILogger logger = Substitute.For<ILogger>();
@@ -69,15 +71,14 @@ namespace CalculateFunding.Services.Results.Services
             message.UserProperties["specification-id"] = "test";
 
             // Act
-            Func<Task> action = () => service.FetchProviderProfile(message);
+            await service.FetchProviderProfile(message);
 
             // Assert
-            action.Should().Throw<ArgumentException>().And.Message.Should().Be("Message must contain a collection of allocation results profiling items");
             logger.Received(1).Error("No allocation result profiling items were present in the message");
         }
 
         [TestMethod]
-        public void FetchProviderProfile_GivenSpecificationIdButSpecificationNotFound_ThrowsArgumentException()
+        public async Task FetchProviderProfile_GivenSpecificationIdButSpecificationNotFound_LogsAndStopsProcessing()
         {
             // Arrange
             ILogger logger = Substitute.For<ILogger>();
@@ -92,15 +93,14 @@ namespace CalculateFunding.Services.Results.Services
             message.UserProperties["specification-id"] = "spec1";
 
             // Act
-            Func<Task> action = () => service.FetchProviderProfile(message);
+            await service.FetchProviderProfile(message);
 
             // Assert
-            action.Should().Throw<ArgumentException>().And.Message.Should().Be("Could not find a specification with id spec1");
             logger.Received(1).Error("A specification could not be found with id spec1");
         }
 
         [TestMethod]
-        public void FetchProviderProfile_GivenInvalidPublishedProviderResultId_ThrowsArgumentException()
+        public async Task FetchProviderProfile_GivenInvalidPublishedProviderResultId_LogsAndStopsProcessing()
         {
             // Arrange
             string resultId = "result1";
@@ -133,14 +133,16 @@ namespace CalculateFunding.Services.Results.Services
             message.UserProperties["specification-id"] = specificationId;
 
             // Act
-            Func<Task> action = () => service.FetchProviderProfile(message);
+            await service.FetchProviderProfile(message);
 
             // Assert
-            action.Should().Throw<ArgumentException>().And.Message.Should().Be($"Published provider result with id '{resultId}' not found");
+            logger
+                .Received(1)
+                .Error(Arg.Is("Could not find published provider result with id '{id}'"), Arg.Any<string>());
         }
 
         [TestMethod]
-        public void FetchProviderProfile_GivenFetchProviderProfileFails_LogsErrorThrowsException()
+        public void FetchProviderProfile_GivenFetchProviderProfileFails_LogsErrorThrowsRetriableException()
         {
             // Arrange
             string resultId = "result1";
@@ -201,7 +203,7 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             test
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactly<RetriableException>()
                 .Which
                 .Message
                 .Should()
@@ -209,7 +211,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void FetchProviderProfile_GivenFetchProviderProfileFailsWithSpecificHttpReturnCode_LogsErrorThrowsException()
+        public void FetchProviderProfile_GivenFetchProviderProfileFailsWithSpecificHttpReturnCode_LogsErrorThrowsRetriableException()
         {
             // Arrange
             string resultId = "result1";
@@ -270,7 +272,7 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             test
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactly<RetriableException>()
                 .Which
                 .Message
                 .Should()
@@ -278,7 +280,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void FetchProviderProfile_GivenFetchProviderProfileReturnsButWithEmptyDeliveryPeriods_LogsErrorThrowsException()
+        public void FetchProviderProfile_GivenFetchProviderProfileReturnsButWithEmptyDeliveryPeriods_LogsErrorThrowsRetriableException()
         {
             // Arrange
             string resultId = "result1";
@@ -342,7 +344,7 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             test
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactly<RetriableException>()
                 .Which
                 .Message
                 .Should()
@@ -715,7 +717,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task FetchProviderProfile_GivenFetchProviderWithBatchOf3ButOneFailsToProfile_DoesnotUpdateResults()
+        public async Task FetchProviderProfile_GivenFetchProviderWithBatchOf3ButOneFailsToProfile_DoesNotUpdateResults()
         {
             // Arrange
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
@@ -788,7 +790,7 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             test
                .Should()
-               .ThrowExactly<Exception>()
+               .ThrowExactly<RetriableException>()
                .Which
                .Message
                .Should()
@@ -796,6 +798,147 @@ namespace CalculateFunding.Services.Results.Services
 
             await publishedProviderResultsRepository.DidNotReceive().SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
             await feedsSearchRepository.DidNotReceive().Index(Arg.Any<IEnumerable<AllocationNotificationFeedIndex>>());
+        }
+
+        [TestMethod]
+        public async Task FetchProviderProfile_GivenUseJobServiceToggleSet_CallsJobService()
+        {
+            // Arrange
+            IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach (PublishedProviderResult result in results)
+            {
+                result.SpecificationId = specificationId;
+                result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+            }
+
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse1 = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
+                 {
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
+                 },
+                FinancialEnvelopes = new List<Common.ApiClient.Profiling.Models.FinancialEnvelope>
+                 {
+                    new Common.ApiClient.Profiling.Models.FinancialEnvelope {  MonthStart = Month.April, YearStart = 2018, MonthEnd = Month.March, YearEnd = 2019, Value = 164380M  },
+                 }
+            });
+
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse2 = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
+                 {
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 52190.0M, DistributionPeriod = "2018-2019" }
+                 },
+                FinancialEnvelopes = new List<Common.ApiClient.Profiling.Models.FinancialEnvelope>
+                 {
+                    new Common.ApiClient.Profiling.Models.FinancialEnvelope {  MonthStart = Month.April, YearStart = 2018, MonthEnd = Month.March, YearEnd = 2019, Value = 104380M  },
+                 }
+            });
+
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse3 = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
+            {
+                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
+                 {
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 32190.0M, DistributionPeriod = "2018-2019" },
+                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 32190.0M, DistributionPeriod = "2018-2019" }
+                 },
+                FinancialEnvelopes = new List<Common.ApiClient.Profiling.Models.FinancialEnvelope>
+                 {
+                    new Common.ApiClient.Profiling.Models.FinancialEnvelope {  MonthStart = Month.April, YearStart = 2018, MonthEnd = Month.March, YearEnd = 2019, Value = 64380M  },
+                 }
+            });
+
+            ILogger logger = Substitute.For<ILogger>();
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
+            publishedProviderResultsRepository
+                .GetPublishedProviderResultForId(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(results.ElementAt(0), results.ElementAt(1), results.ElementAt(2));
+
+            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
+            providerProfilingRepository
+                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
+                .Returns(profileResponse1, profileResponse2, profileResponse3);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(CreateSpecification(specificationId));
+
+            ISearchRepository<AllocationNotificationFeedIndex> feedsSearchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            IEnumerable<FetchProviderProfilingMessageItem> requestModel = new[]
+            {
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(0).ProviderId, AllocationLineResultId = results.ElementAt(0).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(1).ProviderId, AllocationLineResultId = results.ElementAt(1).Id },
+                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
+            };
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForPublishProviderResultsEnabled()
+                .Returns(true);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
+            PublishedResultsService service = CreateResultsService(
+                logger: logger,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                profilingApiClient: providerProfilingRepository,
+                specificationsRepository: specificationsRepository,
+                allocationNotificationFeedSearchRepository: feedsSearchRepository,
+                featureToggle: featureToggle,
+                jobsApiClient: jobsApiClient);
+
+            string json = JsonConvert.SerializeObject(requestModel);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await service.FetchProviderProfile(message);
+
+            // Assert
+            results.ElementAt(0).ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(1).ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(2).ProfilingPeriods.Should().NotBeNullOrEmpty();
+
+            results.ElementAt(0).FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(1).FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(2).FinancialEnvelopes.Should().NotBeNullOrEmpty();
+
+            results.ElementAt(0).FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(1).FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(2).FinancialEnvelopes.Should().HaveCount(1);
+
+            IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { results.ElementAt(0), results.ElementAt(1), results.ElementAt(2) };
+
+            await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(m => m.Count() == 3));
+            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+            await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50
+            ));
+            await providerProfilingRepository.Received(2).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                m.AllocationValueByDistributionPeriod.First().AllocationValue == 100
+            ));
+
+            await jobsApiClient
+                .Received(1)
+                .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == null && l.ItemsProcessed == 0));
+            await jobsApiClient
+                .Received(1)
+                .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == true && l.ItemsProcessed == 3 && l.ItemsFailed == 0 && l.ItemsSucceeded == 3));
         }
 
         private static ProviderProfilingRequestModel CreateProviderProfilingRequestModel()

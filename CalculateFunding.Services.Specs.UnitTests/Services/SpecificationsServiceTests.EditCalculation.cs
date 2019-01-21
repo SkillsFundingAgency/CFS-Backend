@@ -1,37 +1,31 @@
 ﻿using System;
-using AutoMapper;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Specs.Interfaces;
-using FluentValidation;
-using FluentValidation.Results;
-using Serilog;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
-using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
-using Microsoft.Extensions.Primitives;
-using System.Linq.Expressions;
-using Newtonsoft.Json;
-using System.IO;
-using CalculateFunding.Models;
-using System.Net;
-using System.Security.Claims;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Extensions;
-using Microsoft.AspNetCore.Http.Internal;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Caching;
-using System.Linq;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Specs.Interfaces;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Internal;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using NSubstitute;
+using Serilog;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
@@ -426,12 +420,12 @@ namespace CalculateFunding.Services.Specs.Services
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
                 .Returns(newSpecVersion);
 
-	        ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
-	        mockSearchRepository
-		        .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-		        .Returns(new List<IndexError>());
+            ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
+            mockSearchRepository
+                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+                .Returns(new List<IndexError>());
 
-			SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, 
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
                 cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository, searchRepository: mockSearchRepository);
 
             // Act
@@ -461,14 +455,14 @@ namespace CalculateFunding.Services.Specs.Services
                                         m.SpecificationId == SpecificationId
                                    ), Arg.Any<IDictionary<string, string>>());
 
-	        await
-		        mockSearchRepository
-			        .Received(1)
-			        .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-				        m => m.First().Id == SpecificationId &&
-				             m.First().Status == newSpecVersion.PublishStatus.ToString()
-			        ));
-		}
+            await
+                mockSearchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
+                        m => m.First().Id == SpecificationId &&
+                             m.First().Status == newSpecVersion.PublishStatus.ToString()
+                    ));
+        }
 
         [TestMethod]
         public async Task EditCalculation_WhenCalcInSubPolicyButNotTopLevelPolicyUpdatesCosmos_SendsMessageReturnsOk()
@@ -535,7 +529,7 @@ namespace CalculateFunding.Services.Specs.Services
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
                 .Returns(newSpecVersion);
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, 
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
                 cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
 
             // Act
@@ -573,94 +567,94 @@ namespace CalculateFunding.Services.Specs.Services
                .SaveVersion(Arg.Is(newSpecVersion));
         }
 
-		[TestMethod]
-		public void EditCalculation_WhenSomethingGoesWrongDuringIndexing_ShouldThrowException()
-		{
-			// Arrange
-			const string errorMessage = "Encountered error 802";
+        [TestMethod]
+        public void EditCalculation_WhenSomethingGoesWrongDuringIndexing_ShouldThrowException()
+        {
+            // Arrange
+            const string errorMessage = "Encountered error 802";
 
-			CalculationEditModel policyEditModel = new CalculationEditModel
-			{
-				Name = "new calc name",
-				CalculationType = CalculationType.Funding,
-				Description = "test description",
-				PolicyId = "policy-id-2"
-			};
+            CalculationEditModel policyEditModel = new CalculationEditModel
+            {
+                Name = "new calc name",
+                CalculationType = CalculationType.Funding,
+                Description = "test description",
+                PolicyId = "policy-id-2"
+            };
 
-			string json = JsonConvert.SerializeObject(policyEditModel);
-			byte[] byteArray = Encoding.UTF8.GetBytes(json);
-			MemoryStream stream = new MemoryStream(byteArray);
+            string json = JsonConvert.SerializeObject(policyEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
 
-			HttpContext context = Substitute.For<HttpContext>();
+            HttpContext context = Substitute.For<HttpContext>();
 
-			HttpRequest request = Substitute.For<HttpRequest>();
+            HttpRequest request = Substitute.For<HttpRequest>();
 
-			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-			{
-				{ "specificationId", new StringValues(SpecificationId) },
-				{ "calculationId", new StringValues(CalculationId) },
-			});
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+                { "calculationId", new StringValues(CalculationId) },
+            });
 
-			request
-				.Query
-				.Returns(queryStringValues);
-			request
-				.Body
-				.Returns(stream);
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
 
-			request
-				.HttpContext
-				.Returns(context);
+            request
+                .HttpContext
+                .Returns(context);
 
-			Specification specification = CreateSpecification();
-			specification
-				.Current
-				.Policies = new[] {
-					new Policy { Id = PolicyId, Name = PolicyName, Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } },
-					new Policy { Id = "policy-id-2", Name = PolicyName }
-				};
+            Specification specification = CreateSpecification();
+            specification
+                .Current
+                .Policies = new[] {
+                    new Policy { Id = PolicyId, Name = PolicyName, Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } },
+                    new Policy { Id = "policy-id-2", Name = PolicyName }
+                };
 
-			ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-			specificationsRepository
-				.GetSpecificationById(Arg.Is(SpecificationId))
-				.Returns(specification);
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
 
-			specificationsRepository
-				.UpdateSpecification(Arg.Is(specification))
-				.Returns(HttpStatusCode.OK);
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
 
-			ICacheProvider cacheProvider = CreateCacheProvider();
+            ICacheProvider cacheProvider = CreateCacheProvider();
 
-			IMessengerService messengerService = CreateMessengerService();
+            IMessengerService messengerService = CreateMessengerService();
 
-			SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-			newSpecVersion.Policies.ElementAt(1).Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Policies.ElementAt(1).Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
 
-			IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-			versionRepository
-				.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-				.Returns(newSpecVersion);
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
 
-			ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
-			mockSearchRepository
-				.Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-				.Returns(new List<IndexError>(){new IndexError(){ErrorMessage = errorMessage}});
+            ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
+            mockSearchRepository
+                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+                .Returns(new List<IndexError>() { new IndexError() { ErrorMessage = errorMessage } });
 
-			SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
-				cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository, searchRepository: mockSearchRepository);
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
+                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository, searchRepository: mockSearchRepository);
 
-			// Act
-			//Act
-			Func<Task<IActionResult>> editSpecification = async () => await specificationsService.EditCalculation(request);
+            // Act
+            //Act
+            Func<Task<IActionResult>> editSpecification = async () => await specificationsService.EditCalculation(request);
 
-			//Assert
-			editSpecification
-				.Should()
-				.Throw<ApplicationException>()
-				.Which
-				.Message
-				.Should()
-				.Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
-		}
-	}
+            //Assert
+            editSpecification
+                .Should()
+                .Throw<ApplicationException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
+        }
+    }
 }

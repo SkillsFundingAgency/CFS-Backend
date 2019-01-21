@@ -1,8 +1,11 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Repositories.Common.Search.Results;
-using CalculateFunding.Services.Core.Extensions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,14 +14,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsSearchServiceTests
     {

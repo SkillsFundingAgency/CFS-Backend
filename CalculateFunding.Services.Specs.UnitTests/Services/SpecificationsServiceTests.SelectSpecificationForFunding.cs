@@ -1,5 +1,13 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Users;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -13,15 +21,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
@@ -290,10 +291,10 @@ namespace CalculateFunding.Services.Specs.Services
 
             IMessengerService messengerService = CreateMessengerService();
             messengerService
-                .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.PublishProviderResults), Arg.Is((string)null), Arg.Any<IDictionary<string,string>>())
+                .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.PublishProviderResults), Arg.Is((string)null), Arg.Any<IDictionary<string, string>>())
                 .Returns(ex => { throw new Exception(); });
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, 
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
                 searchRepository: searchRepository, messengerService: messengerService);
 
             //Act
@@ -316,6 +317,54 @@ namespace CalculateFunding.Services.Specs.Services
             logger
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Failed to queue publishing of provider results for specification id: {SpecificationId}"));
+        }
+
+        [TestMethod]
+        public async Task SelectSpecificationForFunding_GivenValidSpecificationAndUseJobServiceToggleIsTrue_ReturnsNoContentResult()
+        {
+            //Arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+
+            Specification specification = CreateSpecification();
+            
+            ILogger logger = CreateLogger();
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForPublishProviderResultsEnabled()
+                .Returns(true);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+
+            //Act
+            IActionResult result = await service.SelectSpecificationForFunding(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await jobsApiClient.Received(1).CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.PublishProviderResultsJob && j.SpecificationId == SpecificationId && j.Trigger.Message == $"Selecting specification for funding"));
         }
     }
 }

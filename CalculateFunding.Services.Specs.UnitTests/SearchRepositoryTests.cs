@@ -3,7 +3,7 @@ using CalculateFunding.Repositories.Common.Search;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Specs
+namespace CalculateFunding.Services.Specs.UnitTests
 {
     [TestClass]
     public class SearchRepositoryTests

@@ -1,7 +1,10 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Models;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -10,11 +13,8 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Specs.Services
+namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Specs.Services
 
             ICacheProvider cacheProvider = Substitute.For<ICacheProvider>();
 
-            cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"{CacheKeys.CalculationProgress}{SpecificationId}").Returns(new SpecificationCalculationExecutionStatus(SpecificationId,5,CalculationProgressStatus.InProgress));
+            cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"{CacheKeys.CalculationProgress}{SpecificationId}").Returns(new SpecificationCalculationExecutionStatus(SpecificationId, 5, CalculationProgressStatus.InProgress));
 
             ILogger logger = CreateLogger();
 
@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Specs.Services
             SpecificationsService service = CreateService(logs: logger, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result =  await service.CheckPublishResultStatus(request);
+            IActionResult result = await service.CheckPublishResultStatus(request);
             //Assert
             result
                 .Should()

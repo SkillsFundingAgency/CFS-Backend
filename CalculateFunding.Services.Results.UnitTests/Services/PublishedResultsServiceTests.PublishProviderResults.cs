@@ -4,7 +4,11 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
@@ -47,63 +51,90 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void PublishProviderResults_WhenMessageDoesNotHaveSpecificationId_ThenArgumentExceptionThrown()
+        public async Task PublishProviderResults_WhenMessageDoesNotHaveSpecificationId_ThenDoesNotProcess()
         {
             // Arrange
-            PublishedResultsService resultsService = CreateResultsService();
+            ILogger logger = CreateLogger();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            PublishedResultsService resultsService = CreateResultsService(specificationsRepository: specificationsRepository, logger: logger);
             Message message = new Message();
 
             // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
+            await resultsService.PublishProviderResults(message);
 
             //Assert
-            test
-                .Should()
-                .ThrowExactly<ArgumentException>()
-                .And
-                .Message
-                .Should()
-                .Be("Message must contain a specification id");
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specification Id was provided to PublishProviderResults"));
+
+            await specificationsRepository
+                .DidNotReceive()
+                .GetCurrentSpecificationById(Arg.Any<string>());
         }
 
         [TestMethod]
-        public void PublishProviderResults_WhenNoProviderResultsForSpecification_ThenArgumnetExceptionThrown()
+        public async Task PublishProviderResults_WhenSpecificationNotFound_ThenDoesNotProcess()
         {
             // Arrange
-            PublishedResultsService resultsService = CreateResultsService();
+            ILogger logger = CreateLogger();
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+
+            PublishedResultsService resultsService = CreateResultsService(logger: logger, resultsRepository: calculationResultsRepository);
             Message message = new Message();
             message.UserProperties["specification-id"] = "-1";
 
             // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
+            await resultsService.PublishProviderResults(message);
 
-            //Assert
-            test.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be("Specification not found for specification id -1");
+            // Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Specification not found for specification id -1"));
+
+            await calculationResultsRepository
+                .DidNotReceive()
+                .GetProviderResultsBySpecificationId(Arg.Is("-1"), Arg.Any<int>());
         }
 
         [TestMethod]
-        public void PublishProviderResults_WhenSpecificationNotFound_ThenArgumentExceptionThrown()
+        public async Task PublishProviderResults_WhenNoProviderResultsForSpecification_ThenDoesNotContinue()
         {
             // Arrange
             string specificationId = "1";
-            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
-            {
-                new ProviderResult()
-            };
+            IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
+
+            ILogger logger = CreateLogger();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(new SpecificationCurrentVersion { Id = specificationId });
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+            resultsRepository
+                .GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
-            PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository);
+            IPublishedProviderResultsAssemblerService resultsAssembler = CreateResultsAssembler();
+
+            PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                logger: logger,
+                publishedProviderResultsAssemblerService: resultsAssembler,
+                specificationsRepository: specificationsRepository);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
 
             // Act
-            Func<Task> test = () => resultsService.PublishProviderResults(message);
+            await resultsService.PublishProviderResults(message);
 
-            //Assert
-            test.Should().ThrowExactly<ArgumentException>().And.Message.Should().Be($"Specification not found for specification id {specificationId}");
+            // Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Provider results not found for specification id {specificationId}"));
+
+            resultsAssembler
+                .DidNotReceive()
+                .AssemblePublishedCalculationResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Reference>(), Arg.Any<SpecificationCurrentVersion>());
         }
 
         [TestMethod]
@@ -201,7 +232,7 @@ namespace CalculateFunding.Services.Results.Services
             Func<Task> test = () => resultsService.PublishProviderResults(message);
 
             //Assert
-            var thrownException = test.Should().ThrowExactly<Exception>().Subject.First();
+            Exception thrownException = test.Should().ThrowExactly<Exception>().Subject.First();
             thrownException.Message.Should().Be($"Failed to create published provider results for specification: {specificationId}");
             thrownException.InnerException.Should().NotBeNull();
             thrownException.InnerException.Message.Should().Be("Error saving published results");
@@ -311,7 +342,7 @@ namespace CalculateFunding.Services.Results.Services
             Func<Task> test = () => resultsService.PublishProviderResults(message);
 
             //Assert
-            var thrownException = test.Should().ThrowExactly<Exception>().Subject.First();
+            Exception thrownException = test.Should().ThrowExactly<Exception>().Subject.First();
             thrownException.Message.Should().Be($"Failed to create published provider results for specification: {specificationId}");
             thrownException.InnerException.Should().NotBeNull();
             thrownException.InnerException.Message.Should().Be("Error saving published results version history");
@@ -359,7 +390,7 @@ namespace CalculateFunding.Services.Results.Services
             Func<Task> test = () => resultsService.PublishProviderResults(message);
 
             //Assert
-            var thrownException = test.Should().ThrowExactly<Exception>().Subject.First();
+            Exception thrownException = test.Should().ThrowExactly<Exception>().Subject.First();
             thrownException.Message.Should().Be($"Failed to create published provider calculation results for specification: {specificationId}");
             thrownException.InnerException.Should().NotBeNull();
             thrownException.InnerException.Message.Should().Be("Error saving published calculation results");
@@ -419,8 +450,6 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
             publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
                 .Returns(Task.CompletedTask);
-
-            bool hasCalcsChanged = true;
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
@@ -1724,6 +1753,241 @@ namespace CalculateFunding.Services.Results.Services
             test.Should().NotThrow();
             logger.Received(1).Error(Arg.Is($"Failed to update the published refresh date on the specification with id: {specificationId}. Failed with code: InternalServerError"));
             logger.DidNotReceive().Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
+        }
+
+        [TestMethod]
+        public async Task PublishProviderResults_WhenUseJobServiceToggleSet_ThenJobServiceCalled()
+        {
+            // Arrange
+            string specificationId = "1";
+
+            SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new[]
+            {
+                new PublishedProviderCalculationResult
+                {
+                    Current = new PublishedProviderCalculationResultVersion
+                    {
+                        Provider = new ProviderSummary
+                        {
+                            Id = "prov-1"
+                        }
+                    },
+                    Specification = new Reference{ Id = "spec-1", Name ="spec1" },
+                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
+                }
+            };
+
+            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult()
+            };
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+                .Returns(Task.FromResult(providerResults));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specificationCurrentVersion);
+
+            specificationsRepository.UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
+                .Returns(Task.FromResult(HttpStatusCode.OK));
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+            publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+            assembler
+               .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+               .Returns(publishedProviderCalculationResults);
+
+            ILogger logger = CreateLogger();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForPublishProviderResultsEnabled()
+                .Returns(true);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            jobsApiClient
+                .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
+                .Returns(new ApiResponse<JobLog>(HttpStatusCode.OK, new JobLog()));
+
+            PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                publishedProviderResultsAssemblerService: assembler,
+                logger: logger,
+                featureToggle: featureToggle,
+                jobsApiClient: jobsApiClient);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await resultsService.PublishProviderResults(message);
+
+            //Assert
+            logger.DidNotReceive().Error(Arg.Any<string>());
+            logger.Received(1).Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
+
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 0));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 5));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 10));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 15));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 32));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 50));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 55));
+        }
+
+        [TestMethod]
+        public async Task PublishProviderResults_WhenUseJobServiceToggleSet_ThenFetchProfilePeriodIsUsingJobService()
+        {
+            // Arrange
+            string specificationId = "1";
+
+            SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new[]
+            {
+                new PublishedProviderCalculationResult
+                {
+                    Current = new PublishedProviderCalculationResultVersion
+                    {
+                        Provider = new ProviderSummary
+                        {
+                            Id = "prov-1"
+                        }
+                    },
+                    Specification = new Reference{ Id = "spec-1", Name ="spec1" },
+                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
+                }
+            };
+
+            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult()
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+
+            for (int i = 0; i < 560; i++)
+            {
+                publishedProviderResults
+                    .Add(new PublishedProviderResult()
+                    {
+                        FundingStreamResult = new PublishedFundingStreamResult()
+                        {
+                            AllocationLineResult = new PublishedAllocationLineResult()
+                            {
+                                Current = new PublishedAllocationLineResultVersion()
+                                {
+                                    Status = AllocationLineStatus.Updated
+                                },
+                                AllocationLine = new AllocationLine()
+                                {
+                                    Id = "alId",
+                                    Name = "Allocation Line",
+                                },
+                            }
+                        }
+                    });
+            }
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+                .Returns(Task.FromResult(providerResults));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specificationCurrentVersion);
+
+            specificationsRepository.UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
+                .Returns(Task.FromResult(HttpStatusCode.OK));
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+            publishedProviderCalculationResultsRepository.CreatePublishedCalculationResults(Arg.Any<IEnumerable<PublishedProviderCalculationResult>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+            assembler
+               .AssemblePublishedCalculationResults(Arg.Is(providerResults), Arg.Any<Reference>(), specificationCurrentVersion)
+               .Returns(publishedProviderCalculationResults);
+            assembler
+                .AssemblePublishedProviderResults(Arg.Is(providerResults), Arg.Any<Reference>(), Arg.Is(specificationCurrentVersion))
+                .Returns(publishedProviderResults);
+
+            ILogger logger = CreateLogger();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForPublishProviderResultsEnabled()
+                .Returns(true);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            jobsApiClient
+                .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
+                .Returns(new ApiResponse<JobLog>(HttpStatusCode.OK, new JobLog()));
+            jobsApiClient
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob))
+                .Returns(new Job { Id = "fpp-job" });
+
+            PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                publishedProviderResultsAssemblerService: assembler,
+                logger: logger,
+                featureToggle: featureToggle,
+                jobsApiClient: jobsApiClient);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await resultsService.PublishProviderResults(message);
+
+            //Assert
+            logger.DidNotReceive().Error(Arg.Any<string>());
+            logger.Received(1).Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
+
+            await jobsApiClient.Received(6).CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob && j.SpecificationId == specificationId && j.ParentJobId == jobId));
         }
 
         private static SpecificationCalculationExecutionStatus CreateSpecificationCalculationProgress(Action<SpecificationCalculationExecutionStatus> defaultModelAction)

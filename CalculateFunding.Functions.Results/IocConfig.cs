@@ -49,7 +49,7 @@ namespace CalculateFunding.Functions.Results
             return _serviceProvider;
         }
 
-        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider BuildServiceProvider(IConfigurationRoot config)
         {
             ServiceCollection serviceProvider = new ServiceCollection();
 
@@ -74,7 +74,7 @@ namespace CalculateFunding.Functions.Results
             return _serviceProvider;
         }
 
-        static public IServiceProvider BuildServiceProvider(Message message, IConfigurationRoot config)
+        public static IServiceProvider BuildServiceProvider(Message message, IConfigurationRoot config)
         {
             ServiceCollection serviceProvider = new ServiceCollection();
 
@@ -85,7 +85,7 @@ namespace CalculateFunding.Functions.Results
             return serviceProvider.BuildServiceProvider();
         }
 
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        public static void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
@@ -104,10 +104,6 @@ namespace CalculateFunding.Functions.Results
 
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
-
-            builder.AddSpecificationsInterServiceClient(config);
-
-            builder.AddCalcsInterServiceClient(config);
 
             builder.AddCaching(config);
 
@@ -214,13 +210,13 @@ namespace CalculateFunding.Functions.Results
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
 
+            builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 
             builder.AddFeatureToggling(config);
-
-            builder.AddJobsInterServiceClient(config);
 
             builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
             {
