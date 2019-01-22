@@ -89,7 +89,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 if (!providerResult.CalculationResults.IsNullOrEmpty())
                 {
-                    foreach (CalculationResult calculationResult in providerResult.CalculationResults)
+                    foreach (CalculationResult calculationResult in providerResult.CalculationResults.Where(m => m.CalculationSpecification != null))
                     {
                         SpecificationSummary specification = specifications[providerResult.SpecificationId];
 

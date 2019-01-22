@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 
@@ -24,9 +26,9 @@ namespace CalculateFunding.Services.Calculator
             DatasetTypes = datasetTypes;
             PropertyInfo datasetsSetter = allocationType.GetProperty("Datasets");
             Type datasetType = datasetsSetter.PropertyType;
-            foreach (var relationshipProperty in datasetType.GetProperties().Where(x => x.CanWrite).ToArray())
+            foreach (PropertyInfo relationshipProperty in datasetType.GetProperties().Where(x => x.CanWrite).ToArray())
             {
-                var relationshipAttribute = relationshipProperty.GetCustomAttributesData()
+                CustomAttributeData relationshipAttribute = relationshipProperty.GetCustomAttributesData()
                     .FirstOrDefault(x => x.AttributeType.Name == "DatasetRelationshipAttribute");
                 if (relationshipAttribute != null)
                 {
@@ -37,17 +39,17 @@ namespace CalculateFunding.Services.Calculator
             PropertyInfo providerSetter = allocationType.GetProperty("Provider");
             Type providerType = providerSetter.PropertyType;
 
-            var executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(Nullable<decimal>));
+            IEnumerable<MethodInfo> executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(Nullable<decimal>));
 
-            foreach (var executeMethod in executeMethods)
+            foreach (MethodInfo executeMethod in executeMethods)
             {
-                var parameters = executeMethod.GetParameters();
+                ParameterInfo[] parameters = executeMethod.GetParameters();
 
-                var attributes = executeMethod.GetCustomAttributesData();
-                var calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
+                IList<CustomAttributeData> attributes = executeMethod.GetCustomAttributesData();
+                CustomAttributeData calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
                 if (calcAttribute != null)
                 {
-                    var result = new CalculationResult
+                    CalculationResult result = new CalculationResult
                     {
                         Calculation = GetReference(attributes, "Calculation"),
                         CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
@@ -91,7 +93,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 try
                 {
-                    var type = DatasetTypes[datasetName];
+                    Type type = DatasetTypes[datasetName];
                     return Activator.CreateInstance(type);
                 }
                 catch (ReflectionTypeLoadException e)
@@ -106,27 +108,27 @@ namespace CalculateFunding.Services.Calculator
 
         public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null, IEnumerable<string> calcsToProcess = null)
         {
-            var datasetNamesUsed = new HashSet<string>();
-            foreach (var dataset in datasets)
+            HashSet<string> datasetNamesUsed = new HashSet<string>();
+            foreach (ProviderSourceDataset dataset in datasets)
             {
-                var type = GetDatasetType(dataset.DataDefinition.Name);
+                Type type = GetDatasetType(dataset.DataDefinition.Name);
 
-                if (_datasetSetters.TryGetValue(dataset.DataRelationship.Name, out var setter))
+                if (_datasetSetters.TryGetValue(dataset.DataRelationship.Name, out PropertyInfo setter))
                 {
                     datasetNamesUsed.Add(dataset.DataRelationship.Name);
                     if (dataset.DataGranularity == DataGranularity.SingleRowPerProvider)
                     {
-                        var row = PopulateRow(type, dataset.Current.Rows.First());
+                        object row = PopulateRow(type, dataset.Current.Rows.First());
                         setter.SetValue(_datasetsInstance, row);
                     }
                     else
                     {
                         Type constructGeneric = typeof(List<>).MakeGenericType(type);
-                        var list = Activator.CreateInstance(constructGeneric);
-                        var addMethod = list.GetType().GetMethod("Add");
-                        var itemType = list.GetType().GenericTypeArguments.First();
-                        var rows = dataset.Current.Rows.Select(x => PopulateRow(itemType, x)).ToArray();
-                        foreach (var row in rows)
+                        object list = Activator.CreateInstance(constructGeneric);
+                        MethodInfo addMethod = list.GetType().GetMethod("Add");
+                        Type itemType = list.GetType().GenericTypeArguments.First();
+                        object[] rows = dataset.Current.Rows.Select(x => PopulateRow(itemType, x)).ToArray();
+                        foreach (object row in rows)
                         {
                             addMethod.Invoke(list, new[] { row });
                         }
@@ -167,15 +169,15 @@ namespace CalculateFunding.Services.Calculator
             }
 
             // Add default object for any missing datasets to help reduce null exceptions
-            foreach (var key in _datasetSetters.Keys.Where(x => !datasetNamesUsed.Contains(x)))
+            foreach (string key in _datasetSetters.Keys.Where(x => !datasetNamesUsed.Contains(x)))
             {
-                if (_datasetSetters.TryGetValue(key, out var setter))
+                if (_datasetSetters.TryGetValue(key, out PropertyInfo setter))
                 {
                     setter.SetValue(_datasetsInstance, Activator.CreateInstance(setter.PropertyType));
                 }
             }
 
-            foreach (var executeMethod in _methods)
+            foreach (Tuple<MethodInfo, CalculationResult> executeMethod in _methods)
             {
                 if (!calcsToProcess.IsNullOrEmpty())
                 {
@@ -184,15 +186,19 @@ namespace CalculateFunding.Services.Calculator
                         continue;
                     }
                 }
-                var result = executeMethod.Item2;
+
+                CalculationResult result = executeMethod.Item2;
+
                 try
                 {
-                    result.Value = (decimal?)executeMethod.Item1.Invoke(_instance, null);
+                    CompiledMethodInfo compiledMethod = CreateDelegate(executeMethod.Item1, executeMethod.Item2.Calculation.Id);
+                    result.Value = compiledMethod.Execute(_instance);
                 }
                 catch (Exception e)
                 {
                     result.Exception = e;
                 }
+
                 yield return result;
             }
         }
@@ -203,7 +209,7 @@ namespace CalculateFunding.Services.Calculator
 
             object data = Activator.CreateInstance(type);
 
-            foreach (var property in type.GetProperties().Where(x => x.CanWrite).ToArray())
+            foreach (PropertyInfo property in type.GetProperties().Where(x => x.CanWrite).ToArray())
             {
 
                 switch (property.Name)
@@ -269,18 +275,18 @@ namespace CalculateFunding.Services.Calculator
 
         private object PopulateRow(Type type, Dictionary<string, object> row)
         {
-            var data = Activator.CreateInstance(type);
-            foreach (var property in type.GetProperties().Where(x => x.CanWrite).ToArray())
+            object data = Activator.CreateInstance(type);
+            foreach (PropertyInfo property in type.GetProperties().Where(x => x.CanWrite).ToArray())
             {
-                var fieldAttribute = property.GetCustomAttributesData()
+                CustomAttributeData fieldAttribute = property.GetCustomAttributesData()
                     .FirstOrDefault(x => x.AttributeType.Name == "FieldAttribute");
                 if (fieldAttribute != null)
                 {
                     string propertyName = GetProperty(fieldAttribute, "Name");
 
-                    if (row.TryGetValue(propertyName, out var value))
+                    if (row.TryGetValue(propertyName, out object value))
                     {
-                        var propType = property.PropertyType.ToString();
+                        string propType = property.PropertyType.ToString();
 
                         if (propType == "System.Decimal")
                         {
@@ -306,7 +312,7 @@ namespace CalculateFunding.Services.Calculator
 
         private static IEnumerable<Reference> GetReferences(IList<CustomAttributeData> attributes, string attributeName)
         {
-            foreach (var attribute in attributes.Where(x => x.AttributeType.Name.StartsWith(attributeName)))
+            foreach (CustomAttributeData attribute in attributes.Where(x => x.AttributeType.Name.StartsWith(attributeName)))
             {
                 yield return new Reference(GetProperty(attribute, "Id"), GetProperty(attribute, "Name"));
             }
@@ -314,7 +320,7 @@ namespace CalculateFunding.Services.Calculator
 
         private static Reference GetReference(IList<CustomAttributeData> attributes, string attributeName)
         {
-            var attribute = attributes.FirstOrDefault(x => x.AttributeType.Name.StartsWith(attributeName));
+            CustomAttributeData attribute = attributes.FirstOrDefault(x => x.AttributeType.Name.StartsWith(attributeName));
             if (attribute != null)
             {
                 return new Reference(GetProperty(attribute, "Id"), GetProperty(attribute, "Name"));
@@ -324,12 +330,29 @@ namespace CalculateFunding.Services.Calculator
 
         private static string GetProperty(CustomAttributeData attribute, string propertyName)
         {
-            var argument = attribute.NamedArguments.FirstOrDefault(x => x.MemberName == propertyName);
+            CustomAttributeNamedArgument argument = attribute.NamedArguments.FirstOrDefault(x => x.MemberName == propertyName);
             if (argument != null)
             {
                 return argument.TypedValue.Value?.ToString();
             }
             return null;
         }
+
+        private CompiledMethodInfo CreateDelegate(MethodInfo methodInfo, string calculationId)
+        {
+            ParameterExpression instanceParameterExpression = Expression.Parameter(typeof(object), "instance");
+
+            MethodCallExpression callExpression = Expression.Call(
+                  Expression.Convert(
+                     instanceParameterExpression,
+                     methodInfo.DeclaringType
+                  ),
+                  methodInfo
+               );
+
+            return new CompiledMethodInfo(methodInfo);
+        }
     }
+
 }
+
