@@ -564,7 +564,114 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocationLineResultStatus_GivenUpdateModelAndCompletesSuccessfully_EnsuresProfilingMessageCreated()
+        public async Task UpdateAllocationLineResultStatus_GivenUpdateModelAndFeatureToggleNoSet_ThenProfilingMessageSent()
+        {
+            //Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties.Add("jobId", jobId);
+
+            ILogger logger = CreateLogger();
+
+            string parentJobId = "parent-job-id-1";
+            JobViewModel jobViewModel = new JobViewModel
+            {
+                Id = jobId,
+                SpecificationId = specificationId,
+                Properties = new Dictionary<string, string>(),
+                ParentJobId = parentJobId
+            };
+
+            ApiResponse<JobViewModel> jobResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobResponse);
+            jobsApiClient
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob))
+                .Returns(new Job { Id = "fpp-job" });
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
+            publishedProviderResults
+                .First()
+                .FundingStreamResult
+                .AllocationLineResult
+                .Current
+                .Status = AllocationLineStatus.Approved;
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
+            PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
+            newVersion.Version = 2;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Is("1111"), Arg.Is(true))
+                .Returns(newVersion);
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IPublishedProviderResultsRepository resultsRepository = CreatePublishedProviderResultsRepository();
+            resultsRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(publishedProviderResults);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForPublishProviderResultsEnabled()
+                .Returns(false);
+
+            PublishedResultsService publishedResultsService = CreateResultsService(
+                logger,
+                jobsApiClient: jobsApiClient,
+                publishedProviderResultsRepository: resultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                messengerService: messengerService,
+                featureToggle: featureToggle);
+
+            //Act
+            await publishedResultsService.UpdateAllocationLineResultStatus(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"New job: '{JobConstants.DefinitionNames.FetchProviderProfileJob}' created with id: 'fpp-job'"));
+
+            await
+                jobsApiClient
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob && j.SpecificationId == specificationId && j.ParentJobId == parentJobId));
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocationLineResultStatus_GivenUpdateModelAndFeatureToggleSet_ThenNoProfilingMessageSent()
         {
             //Arrange
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
@@ -660,13 +767,9 @@ namespace CalculateFunding.Services.Results.Services
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
             //Assert
-            logger
-                .Received(1)
-                .Information(Arg.Is($"New job: '{JobConstants.DefinitionNames.FetchProviderProfileJob}' created with id: 'fpp-job'"));
-
             await
                 jobsApiClient
-                    .Received(1)
+                    .DidNotReceive()
                     .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob && j.SpecificationId == specificationId && j.ParentJobId == parentJobId));
         }
 

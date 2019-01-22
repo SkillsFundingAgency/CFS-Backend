@@ -967,7 +967,7 @@ namespace CalculateFunding.Services.Results
 
                 await CompleteBatch(jobId);
 
-                if (publishedAllocationLineResultStatusUpdateModel.Status == AllocationLineStatus.Approved)
+                if (publishedAllocationLineResultStatusUpdateModel.Status == AllocationLineStatus.Approved && !_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
                 {
                     await GenerateProfilingPeriods(message, publishedProviderResults, job.SpecificationId, job.ParentJobId);
                 }
@@ -1261,7 +1261,10 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            await GenerateProfilingPeriods(request, resultsToProfile, specificationId);
+            if (!_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
+            {
+                await GenerateProfilingPeriods(request, resultsToProfile, specificationId);
+            }
 
             return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
         }
