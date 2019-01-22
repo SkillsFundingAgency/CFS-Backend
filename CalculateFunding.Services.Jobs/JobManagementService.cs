@@ -268,13 +268,13 @@ namespace CalculateFunding.Services.Jobs
             throw new System.NotImplementedException();
         }
 
-        public async Task SupersedeJob(Job runningJob, string replacementJobId)
+        public async Task SupersedeJob(Job runningJob, Job replacementJob)
         {
-            if (string.CompareOrdinal(runningJob.Id, replacementJobId) != 0)
+            if (CanSupersede(runningJob, replacementJob))
             {
                 runningJob.Completed = DateTimeOffset.UtcNow;
                 runningJob.CompletionStatus = CompletionStatus.Superseded;
-                runningJob.SupersededByJobId = replacementJobId;
+                runningJob.SupersededByJobId = replacementJob.Id;
                 runningJob.RunningStatus = RunningStatus.Completed;
 
                 HttpStatusCode statusCode = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(runningJob));
@@ -483,7 +483,7 @@ namespace CalculateFunding.Services.Jobs
                 {
                     foreach (Job runningJob in runningJobs)
                     {
-                        await SupersedeJob(runningJob, currentJob.Id);
+                        await SupersedeJob(runningJob, currentJob);
                     }
                 }
             }
@@ -577,6 +577,12 @@ namespace CalculateFunding.Services.Jobs
             {
                 _logger.Error(ex, $"Failed to queue job with id: {job.Id} on Queue/topic {queueOrTopic}");
             }
+        }
+
+        private bool CanSupersede(Job runningJob, Job replacementJob)
+        {
+            return string.CompareOrdinal(runningJob.Id, replacementJob.Id) != 0 && (string.IsNullOrWhiteSpace(runningJob.ParentJobId) ||
+                   string.CompareOrdinal(runningJob.ParentJobId, replacementJob.ParentJobId) != 0);
         }
     }
 }

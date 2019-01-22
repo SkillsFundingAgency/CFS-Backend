@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task CancelJob(string jobId);
 
-        Task SupersedeJob(Job runningJob, string replacementJobId);
+        Task SupersedeJob(Job runningJob, Job replacementJob);
         
         Task ProcessJobCompletion(Message message);
 

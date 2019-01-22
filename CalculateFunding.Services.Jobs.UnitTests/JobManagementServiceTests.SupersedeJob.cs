@@ -19,17 +19,86 @@ namespace CalculateFunding.Services.Jobs.Services
                 Id = jobId
             };
 
+            Job replacementJob = new Job
+            {
+                Id = jobId
+            };
+
             IJobRepository jobRepository = CreateJobRepository();
 
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository);
 
             // Act
-            await jobManagementService.SupersedeJob(runningJob, jobId);
+            await jobManagementService.SupersedeJob(runningJob, replacementJob);
 
             // Assert
             await jobRepository
                 .DidNotReceive()
                 .UpdateJob(Arg.Any<Job>());
+        }
+
+        [TestMethod]
+        public async Task SupersedeJob_WhenNotSameJobIdButSameParentJobId_ThenJobNotSuperseded()
+        {
+            // Arrange
+            string jobId = "job-id-1";
+            string supersedeJobId = "job-id-2";
+
+            Job runningJob = new Job
+            {
+                Id = jobId,
+                ParentJobId = "parent-1",
+            };
+
+            Job replacementJob = new Job
+            {
+                Id = supersedeJobId,
+                ParentJobId = "parent-1",
+            };
+
+            IJobRepository jobRepository = CreateJobRepository();
+
+            JobManagementService jobManagementService = CreateJobManagementService(jobRepository);
+
+            // Act
+            await jobManagementService.SupersedeJob(runningJob, replacementJob);
+
+            // Assert
+            await jobRepository
+                .DidNotReceive()
+                .UpdateJob(Arg.Any<Job>());
+        }
+
+        [TestMethod]
+        public async Task SupersedeJob_WhenNotSameJobIdAndNotSameParentJobId_ThenJobSuperseded()
+        {
+            // Arrange
+            string jobId = "job-id-1";
+            string supersedeJobId = "job-id-2";
+
+            Job runningJob = new Job
+            {
+                Id = jobId,
+                ParentJobId = "parent-1",
+            };
+
+            Job replacementJob = new Job
+            {
+                Id = supersedeJobId,
+                ParentJobId = "parent-2",
+            };
+
+            IJobRepository jobRepository = CreateJobRepository();
+
+            JobManagementService jobManagementService = CreateJobManagementService(jobRepository);
+
+            // Act
+            await jobManagementService.SupersedeJob(runningJob, replacementJob);
+
+            // Assert
+            await jobRepository
+                 .Received(1)
+                 .UpdateJob(Arg.Is<Job>(j => j.CompletionStatus == CompletionStatus.Superseded && j.Completed.HasValue && j.RunningStatus == RunningStatus.Completed && j.SupersededByJobId == supersedeJobId));
         }
 
         [TestMethod]
@@ -40,7 +109,12 @@ namespace CalculateFunding.Services.Jobs.Services
             string supersedeJobId = "job-id-2";
             Job runningJob = new Job
             {
-                Id = jobId
+                Id = jobId,
+            };
+
+            Job replacementJob = new Job
+            {
+                Id = supersedeJobId
             };
 
             IJobRepository jobRepository = CreateJobRepository();
@@ -51,7 +125,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository);
 
             // Act
-            await jobManagementService.SupersedeJob(runningJob, supersedeJobId);
+            await jobManagementService.SupersedeJob(runningJob, replacementJob);
 
             // Assert
             await jobRepository
@@ -70,6 +144,11 @@ namespace CalculateFunding.Services.Jobs.Services
                 Id = jobId
             };
 
+            Job replacementJob = new Job
+            {
+                Id = supersedeJobId
+            };
+
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
                 .UpdateJob(Arg.Any<Job>())
@@ -80,7 +159,7 @@ namespace CalculateFunding.Services.Jobs.Services
             JobManagementService jobManagementService = CreateJobManagementService(jobRepository, notificationService);
 
             // Act
-            await jobManagementService.SupersedeJob(runningJob, supersedeJobId);
+            await jobManagementService.SupersedeJob(runningJob, replacementJob);
 
             // Assert
             await notificationService
