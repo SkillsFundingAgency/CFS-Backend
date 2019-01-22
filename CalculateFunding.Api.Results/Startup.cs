@@ -212,8 +212,6 @@ namespace CalculateFunding.Api.Results
 
             builder.AddFeatureToggling(Configuration);
 
-            builder.AddJobsInterServiceClient(Configuration);
-
             builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
             {
                 IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();

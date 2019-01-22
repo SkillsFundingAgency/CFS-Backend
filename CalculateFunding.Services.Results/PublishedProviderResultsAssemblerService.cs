@@ -207,6 +207,13 @@ namespace CalculateFunding.Services.Results
                                         existingProviderResults.TryRemove(providerResult.ProviderId, out var removedProviderResult);
                                     }
 
+                                    if (providerResult.FundingStreamResult.AllocationLineResult.Current.Value == existingResult.Value)
+                                    {
+                                        existingProviderResults.TryRemove(providerResult.ProviderId, out var removedProviderResult);
+
+                                        return;
+                                    }
+
                                     providerResult.FundingStreamResult.AllocationLineResult.Current.Version =
                                         await _allocationResultsVersionRepository.GetNextVersionNumber(providerResult.FundingStreamResult.AllocationLineResult.Current, existingResult.Version, incrementFromCurrentVersion: true);
 

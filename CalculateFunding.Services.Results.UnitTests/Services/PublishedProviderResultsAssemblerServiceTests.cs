@@ -1747,20 +1747,20 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             resultsToSave
                 .Should()
-                .HaveCount(2);
+                .HaveCount(1);
 
             resultsToSave
                 .Should()
-                .BeEquivalentTo(new List<PublishedProviderResult>() { publishedProviderResults[0], publishedProviderResults[1] });
+                .BeEquivalentTo(new List<PublishedProviderResult>() { publishedProviderResults[1] });
 
             resultsToExclude
                 .Should()
                 .BeEmpty();
 
-            publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
+            publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current
                 .Version
                 .Should()
-                .Be(2);
+                .Be(0);
         }
 
         [TestMethod]
@@ -1865,18 +1865,27 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             resultsToSave
                 .Should()
-                .HaveCount(2);
+                .HaveCount(1);
 
             resultsToSave
                 .Should()
-                .BeEquivalentTo(new List<PublishedProviderResult>() { publishedProviderResults[0], publishedProviderResults[1] });
+                .BeEquivalentTo(new List<PublishedProviderResult>() { publishedProviderResults[1] });
 
-            resultsToSave.FirstOrDefault(m => m.Summary == "UKPRN: 1, version 0.1").Should().NotBeNull();
             resultsToSave.FirstOrDefault(m => m.Summary == "UKPRN: 2, version 0.1").Should().NotBeNull();
 
             resultsToExclude
                 .Should()
                 .BeEmpty();
+
+            publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current
+                .Version
+                .Should()
+                .Be(0);
+
+            publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current
+                .Status
+                .Should()
+                .Be(AllocationLineStatus.Held);
 
             publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
                 .Version
@@ -2041,7 +2050,7 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             resultsToSave
                 .Should()
-                .HaveCount(4);
+                .HaveCount(3);
 
             resultsToExclude
                 .Should()
@@ -2051,7 +2060,6 @@ namespace CalculateFunding.Services.Results.Services
                 .Should()
                 .BeEquivalentTo(new List<PublishedProviderResult>()
                 {
-                    publishedProviderResults[0],
                     publishedProviderResults[1],
                     publishedProviderResults[2],
                     publishedProviderResults[3]
@@ -2059,8 +2067,135 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 allocationResultsVersionRepository
-                    .Received(2)
+                    .Received(1)
                     .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<int>(), null, Arg.Any<bool>());
+        }
+
+        [TestMethod]
+        public async Task GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndNoResultsShouldBeUpdatedButCalcsUpdatedAndIsCurrenntlyApproved_ThenNoResultsReturnedToSaveAndNoneExcludedAndStatusIsApproved()
+        {
+            // Arrange
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
+
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 123,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    Id = "1",
+                                    UKPRN = "1",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+               .Add(new PublishedProviderResult()
+               {
+                   ProviderId = "2",
+                   FundingStreamResult = new PublishedFundingStreamResult()
+                   {
+                       AllocationLineResult = new PublishedAllocationLineResult()
+                       {
+                           AllocationLine = allocationLine1,
+                           Current = new PublishedAllocationLineResultVersion()
+                           {
+                               Status = AllocationLineStatus.Approved,
+                               Value = 456,
+                               Major = 0,
+                               Minor = 1,
+                               Provider = new ProviderSummary
+                               {
+                                   Id = "2",
+                                   UKPRN = "2",
+                                   ProviderProfileIdType = "UKPRN"
+                               }
+                           }
+                       }
+                   }
+               });
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "1",
+                Status = AllocationLineStatus.Held,
+                Value = 123,
+                Version = 1,
+                Major = 0,
+                Minor = 1
+            });
+
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "2",
+                Status = AllocationLineStatus.Approved,
+                Value = 456,
+                Version = 1,
+                Major = 0,
+                Minor = 1
+            });
+
+            allocationResultsVersionRepository
+                .GetNextVersionNumber(Arg.Is(publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current), Arg.Is(1), incrementFromCurrentVersion: Arg.Is(true))
+                .Returns(2);
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .BeEmpty();
+
+            resultsToExclude
+                .Should()
+                .BeEmpty();
+
+            publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
+                .Version
+                .Should()
+                .Be(0);
+
+            publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
+                .Status
+                .Should()
+                .Be(AllocationLineStatus.Approved);
+
+            publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
+                .Major
+                .Should()
+                .Be(0);
+
+            publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current
+                .Minor
+                .Should()
+                .Be(1);
         }
 
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
