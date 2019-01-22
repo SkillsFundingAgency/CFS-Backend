@@ -1,5 +1,5 @@
 ﻿{
-  "version" :  "2.0",
+  "version": "2.0",
   "extensions": {
     "serviceBus": {
       "messageHandlerOptions": {
@@ -7,5 +7,6 @@
       },
       "prefetchCount": 0
     }
-  }
+  },
+  "functionTimeout": "01:00:00"
 }
