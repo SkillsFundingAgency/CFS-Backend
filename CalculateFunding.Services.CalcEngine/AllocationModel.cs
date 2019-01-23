@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 
@@ -177,6 +176,8 @@ namespace CalculateFunding.Services.Calculator
                 }
             }
 
+            IList<CalculationResult> calculationResults = new List<CalculationResult>();
+
             foreach (Tuple<MethodInfo, CalculationResult> executeMethod in _methods)
             {
                 if (!calcsToProcess.IsNullOrEmpty())
@@ -191,16 +192,17 @@ namespace CalculateFunding.Services.Calculator
 
                 try
                 {
-                    CompiledMethodInfo compiledMethod = CreateDelegate(executeMethod.Item1, executeMethod.Item2.Calculation.Id);
-                    result.Value = compiledMethod.Execute(_instance);
+                    result.Value = CreateDynamicMethod(executeMethod.Item1, _instance)();
                 }
                 catch (Exception e)
                 {
                     result.Exception = e;
                 }
 
-                yield return result;
+                calculationResults.Add(result);
             }
+
+            return calculationResults;
         }
 
         private object PopulateProvider(ProviderSummary providerSummary, PropertyInfo providerSetter)
@@ -338,21 +340,15 @@ namespace CalculateFunding.Services.Calculator
             return null;
         }
 
-        private CompiledMethodInfo CreateDelegate(MethodInfo methodInfo, string calculationId)
+        private static Func<decimal?> CreateDynamicMethod(MethodInfo methodInfo, object instance)
         {
-            ParameterExpression instanceParameterExpression = Expression.Parameter(typeof(object), "instance");
-
-            MethodCallExpression callExpression = Expression.Call(
-                  Expression.Convert(
-                     instanceParameterExpression,
-                     methodInfo.DeclaringType
-                  ),
-                  methodInfo
-               );
-
-            return new CompiledMethodInfo(methodInfo);
+            DynamicMethod dynamicMethod = new DynamicMethod("", typeof(decimal?), new Type[] { typeof(object) }, instance.GetType().Module, true);
+            ILGenerator il = dynamicMethod.GetILGenerator();
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Call, methodInfo);
+            il.Emit(OpCodes.Ret);
+            return (Func<decimal?>)dynamicMethod.CreateDelegate(typeof(Func<decimal?>), instance);
         }
     }
-
 }
 
