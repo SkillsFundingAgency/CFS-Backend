@@ -17,6 +17,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
+using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -89,6 +90,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculation
             };
 
+            IEnumerable<Models.Specs.Calculation> calculationSpecifications = new[]
+            {
+                new Models.Specs.Calculation
+                {
+                    Id = calculation.CalculationSpecification.Id
+                }
+            };
+
             string json = JsonConvert.SerializeObject(calculation);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
@@ -120,6 +129,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            specificationRepository
+                .GetCalculationSpecificationsForSpecification(Arg.Is(calculation.SpecificationId))
+                .Returns(calculationSpecifications);
+
             CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
 
             //Act
@@ -150,10 +163,9 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_CreatingCalculationWithTheExistingSpecificationId_ThrowsException()
+        public void CreateCalculation_CreatingCalculationWithTheExistingSpecificationId_ThrowsException()
         {
             //Arrange
-
             Calculation calculation = CreateCalculation();
             
             IEnumerable<Calculation> calculations = new[]
@@ -162,6 +174,13 @@ namespace CalculateFunding.Services.Calcs.Services
             };
             string json = JsonConvert.SerializeObject(calculation);
 
+            IEnumerable<Models.Specs.Calculation> calculationSpecifications = new[]
+            {
+                new Models.Specs.Calculation
+                {
+                    Id = calculation.CalculationSpecification.Id
+                }
+            };
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
@@ -196,6 +215,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
 
+            specificationRepository
+               .GetCalculationSpecificationsForSpecification(Arg.Is(calculation.SpecificationId))
+               .Returns(calculationSpecifications);
+
             CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
 
             //Act
@@ -208,15 +231,77 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidCalculation_AndSavesLogs()
+        public void CreateCalculation_CreatingCalculationButAssociatedCalculationSpecificationNotFound_ThrowsException()
         {
             //Arrange
-
             Calculation calculation = CreateCalculation();
 
             IEnumerable<Calculation> calculations = new[]
             {
                 calculation
+            };
+            string json = JsonConvert.SerializeObject(calculation);
+
+            IEnumerable<Models.Specs.Calculation> calculationSpecifications = new[]
+            {
+                new Models.Specs.Calculation
+                {
+                    Id = "any-id"
+                }
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
+
+            ILogger logger = CreateLogger();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = calculation.SpecificationId,
+                Name = "Test Spec Name",
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
+                .Returns(specificationSummary);
+
+            specificationRepository
+               .GetCalculationSpecificationsForSpecification(Arg.Is(calculation.SpecificationId))
+               .Returns(calculationSpecifications);
+
+            CalculationService service = CreateCalculationService(logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
+
+            //Act
+            Func<Task> test = async () => await service.CreateCalculation(message);
+
+            //Assert
+            test
+              .Should().ThrowExactly<RetriableException>()
+              .WithMessage($"A calculation specification was not found for calculation specification id '{calculation.CalculationSpecification.Id}'");
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenValidCalculation_AndSavesLogs()
+        {
+            //Arrange
+            Calculation calculation = CreateCalculation();
+
+            IEnumerable<Calculation> calculations = new[]
+            {
+                calculation
+            };
+
+            IEnumerable<Models.Specs.Calculation> calculationSpecifications = new[]
+            {
+                new Models.Specs.Calculation
+                {
+                    Id = calculation.CalculationSpecification.Id
+                }
             };
 
             string json = JsonConvert.SerializeObject(calculation);
@@ -245,6 +330,10 @@ namespace CalculateFunding.Services.Calcs.Services
             specificationRepository
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
+
+            specificationRepository
+              .GetCalculationSpecificationsForSpecification(Arg.Is(calculation.SpecificationId))
+              .Returns(calculationSpecifications);
 
             ILogger logger = CreateLogger();
 
@@ -306,6 +395,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculation
             };
 
+            IEnumerable<Models.Specs.Calculation> calculationSpecifications = new[]
+            {
+                new Models.Specs.Calculation
+                {
+                    Id = calculation.CalculationSpecification.Id
+                }
+            };
+
             string json = JsonConvert.SerializeObject(calculation);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
@@ -332,6 +429,10 @@ namespace CalculateFunding.Services.Calcs.Services
             specificationRepository
                 .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
                 .Returns(specificationSummary);
+
+            specificationRepository
+                 .GetCalculationSpecificationsForSpecification(Arg.Is(calculation.SpecificationId))
+                 .Returns(calculationSpecifications);
 
             ILogger logger = CreateLogger();
 

@@ -42,6 +42,7 @@ using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationCurrentVersion = CalculateFunding.Models.Calcs.CalculationCurrentVersion;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
+using CalculateFunding.Services.Core;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -401,6 +402,15 @@ namespace CalculateFunding.Services.Calcs
                 if (specificationSummary == null)
                 {
                     throw new InvalidModelException(typeof(CalculationService).ToString(), new[] { $"Specification with ID '{calculation.SpecificationId}' not found" });
+                }
+
+                IEnumerable<Models.Specs.Calculation> calculationSpecifications = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetCalculationSpecificationsForSpecification(calculation.SpecificationId));
+
+                if(calculationSpecifications?.FirstOrDefault(m => m.Id == calculation.CalculationSpecification.Id) == null)
+                {
+                    _logger.Error($"A calculation specification was not found for calculation specification id '{calculation.CalculationSpecification.Id}'");
+
+                    throw new RetriableException($"A calculation specification was not found for calculation specification id '{calculation.CalculationSpecification.Id}'");
                 }
 
                 CalculationVersion calculationVersion = new CalculationVersion
