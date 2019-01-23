@@ -31,9 +31,8 @@ namespace CalculateFunding.Api.External.V2.Services
             _featureToggle = featureToggle;
         }
 
-        public async Task<IActionResult> GetNotifications(HttpRequest request, int? startYear = null, int? endYear= null, string[] fundingStreamIds = null, string[] allocationLineIds= null, string[] allocationStatuses = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, int? pageRef = 1, int? pageSize = MaxRecords)
+        public async Task<IActionResult> GetNotifications(HttpRequest request, int? pageRef, int? startYear = null, int? endYear= null, string[] fundingStreamIds = null, string[] allocationLineIds= null, string[] allocationStatuses = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, int? pageSize = MaxRecords)
         {
-	        pageRef = pageRef ?? 1;
 			pageSize = pageSize ?? MaxRecords;
 	        string[] statusesArray = allocationStatuses ?? new[] { "Published" };
 
@@ -47,9 +46,9 @@ namespace CalculateFunding.Api.External.V2.Services
                 return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
             }
 			
-            SearchFeed<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeedsV2(pageRef.Value, pageSize.Value, startYear, endYear, ukprn, laCode, isAllocationLineContractRequired, statusesArray, fundingStreamIds, allocationLineIds);
+            SearchFeedV2<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeedsV2(pageRef, pageSize.Value, startYear, endYear, ukprn, laCode, isAllocationLineContractRequired, statusesArray, fundingStreamIds, allocationLineIds);
 
-            if (searchFeed == null || searchFeed.TotalCount == 0)
+            if (searchFeed == null || searchFeed.TotalCount == 0 || searchFeed.Entries.IsNullOrEmpty())
             {
                 return new NotFoundResult();
             }
@@ -59,17 +58,17 @@ namespace CalculateFunding.Api.External.V2.Services
             return Formatter.ActionResult<AtomFeed<AllocationModel>>(request, atomFeed);
         }
 
-        AtomFeed<AllocationModel> CreateAtomFeed(SearchFeed<AllocationNotificationFeedIndex> searchFeed, HttpRequest request)
+        AtomFeed<AllocationModel> CreateAtomFeed(SearchFeedV2<AllocationNotificationFeedIndex> searchFeed, HttpRequest request)
         {
-            string trimmedRequestPath = request.Path.Value.Substring(0, request.Path.Value.LastIndexOf("/", StringComparison.Ordinal));
+			const string notificationsEndpointName = "notifications";
+			string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(notificationsEndpointName, StringComparison.Ordinal) + notificationsEndpointName.Length);
+	        string allocationTrimmedRequestPath = baseRequestPath.Replace(notificationsEndpointName, string.Empty).TrimEnd('/');
 
-            string allocationTrimmedRequestPath = trimmedRequestPath.Replace("notifications", "");
+			string queryString = request.QueryString.Value;
 
-            string queryString = BuildQueryStringForformatting(request);
+	        string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{baseRequestPath}{{0}}{(!string.IsNullOrWhiteSpace(queryString) ? queryString : "")}";
 
-            string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{trimmedRequestPath}/notifications{(!string.IsNullOrWhiteSpace(queryString) ? "?" + queryString : "")}";
-
-            AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
+			AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
             {
                 Id = Guid.NewGuid().ToString("N"),
                 Title = "Calculate Funding Service Allocation Feed",
@@ -80,15 +79,10 @@ namespace CalculateFunding.Api.External.V2.Services
                 },
                 Updated = DateTimeOffset.Now,
                 Rights = "Copyright (C) 2018 Department for Education",
-                Link = new List<AtomLink>
-                {
-                    new AtomLink(string.Format(notificationsUrl, searchFeed.Self), "self"),
-                    new AtomLink(string.Format(notificationsUrl, 1), "first"),
-                    new AtomLink(string.Format(notificationsUrl, searchFeed.Last), "last"),
-                    new AtomLink(string.Format(notificationsUrl, searchFeed.Previous), "previous"),
-                    new AtomLink(string.Format(notificationsUrl, searchFeed.Next), "next"),
-                },
-                AtomEntry = new List<AtomEntry<AllocationModel>>()
+                Link = searchFeed.GenerateAtomLinksForResultGivenBaseUrl(notificationsUrl).ToList(),
+                AtomEntry = new List<AtomEntry<AllocationModel>>(),
+				IsArchived = searchFeed.IsArchivePage
+				
             };
 
             foreach (AllocationNotificationFeedIndex feedIndex in searchFeed.Entries)
@@ -172,42 +166,5 @@ namespace CalculateFunding.Api.External.V2.Services
             return atomFeed;
         }
 
-        private string BuildQueryStringForformatting(HttpRequest request)
-        {
-            string queryString = "";
-
-            IQueryCollection requestQuery = request.Query;
-
-            foreach (KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues> item in requestQuery)
-            {
-                if (item.Key == "pageRef")
-                {
-                    queryString += "pageRef={0}&";
-                }
-                else
-                {
-                    queryString += $"{item.Key}={item.Value}&";
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(queryString))
-            {
-                queryString = queryString.Remove(queryString.Length - 1);
-            }
-
-            if (!queryString.Contains("pageRef"))
-            {
-                if (requestQuery.AnyWithNullCheck())
-                {
-                    queryString += "&pageRef={0}";
-                }
-                else
-                {
-                    queryString += "pageRef={0}";
-                }
-            }
-
-            return queryString;
-        }
-    }
+	}
 }

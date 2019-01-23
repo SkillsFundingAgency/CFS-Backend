@@ -20,30 +20,9 @@ using NSubstitute;
 
 namespace CalculateFunding.Api.External.UnitTests.Version2
 {
-    [TestClass]
-    public class AllocationNotificationFeedsServiceTests
-    {
-        [TestMethod]
-        public async Task GetNotifications_GivenNoPageRefSupplied_DefaultsToPageOne()
-        {
-            //Arrange
-            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
-
-            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            //Act
-            IActionResult result = await service.GetNotifications(request);
-
-            //Assert
-            await
-            feedsSearchService
-                .Received(1)
-                .GetFeedsV2(Arg.Is(1), Arg.Is(500), statuses: Arg.Is<string[]>(m => m.First() == "Published"));
-        }
-
-		[TestMethod]
+	[TestClass]
+	public class AllocationNotificationFeedsServiceTests
+	{
 		public async Task GetNotifications_GivenPageRefOfThreeSupplied_RequestsPageThree()
 		{
 			//Arrange
@@ -54,7 +33,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			HttpRequest request = Substitute.For<HttpRequest>();
 
 			//Act
-			IActionResult result = await service.GetNotifications(request, pageRef:3);
+			IActionResult result = await service.GetNotifications(request, pageRef: 3);
 
 			//Assert
 			await
@@ -72,7 +51,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			HttpRequest request = Substitute.For<HttpRequest>();
 
 			//Act
-			IActionResult result = await service.GetNotifications(request, pageRef:-1);
+			IActionResult result = await service.GetNotifications(request, pageRef: -1);
 
 			//Assert
 			result
@@ -93,7 +72,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			HttpRequest request = Substitute.For<HttpRequest>();
 
 			//Act
-			IActionResult result = await service.GetNotifications(request, pageSize:0);
+			IActionResult result = await service.GetNotifications(request, 1, pageSize: 0);
 
 			//Assert
 			result
@@ -114,7 +93,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			HttpRequest request = Substitute.For<HttpRequest>();
 
 			//Act
-			IActionResult result = await service.GetNotifications(request, pageSize: 1000);
+			IActionResult result = await service.GetNotifications(request, 1, pageSize: 1000);
 
 			//Assert
 			result
@@ -127,10 +106,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 		}
 
 		[TestMethod]
-		public async Task GetNotifications_GivenSearchFeedReturnsNoResults_ReturnsNotFoundResult()
+		public async Task GetNotifications_GivenSearchFeedReturnsZeroTotalCountResult_ReturnsNotFoundResult()
 		{
 			//Arrange
-			SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>();
+			SearchFeedV2<AllocationNotificationFeedIndex> feeds = new SearchFeedV2<AllocationNotificationFeedIndex>();
 
 			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 			feedsSearchService
@@ -151,20 +130,48 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 		}
 
 		[TestMethod]
-		public async Task GetNotifications_GivenSearchFeedRetunsNoResults_ReturnsAtomFeed()
+		public async Task GetNotifications_GivenSearchFeedReturnsNoResultsForTheGivenPage_ReturnsNotFoundResult()
 		{
 			//Arrange
-			SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+			SearchFeedV2<AllocationNotificationFeedIndex> feeds = new SearchFeedV2<AllocationNotificationFeedIndex>()
 			{
-				PageRef = 3,
-				Top = 500,
-				TotalCount = 3,
+				TotalCount = 1000,
+				Entries = Enumerable.Empty<AllocationNotificationFeedIndex>()
+			};
+			
+			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+			feedsSearchService
+				.GetFeedsV2(Arg.Is(3), Arg.Is(500), statuses: Arg.Any<IEnumerable<string>>())
+				.Returns(feeds);
+
+			AllocationNotificationFeedsService service = CreateService(feedsSearchService);
+
+			HttpRequest request = Substitute.For<HttpRequest>();
+
+			//Act
+			IActionResult result = await service.GetNotifications(request, pageRef: 3, allocationStatuses: new[] { "Published", "Approved" });
+
+			//Assert
+			result
+				.Should()
+				.BeOfType<NotFoundResult>();
+		}
+
+		[TestMethod]
+		public async Task GetNotifications_GivenAQueryStringForWhichThereAreResults_ReturnsAtomFeedWithCorrectLinks()
+		{
+			//Arrange
+			SearchFeedV2<AllocationNotificationFeedIndex> feeds = new SearchFeedV2<AllocationNotificationFeedIndex>
+			{
+				PageRef = 2,
+				Top = 2,
+				TotalCount = 8,
 				Entries = CreateFeedIndexes()
 			};
 
 			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 			feedsSearchService
-				.GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
+				.GetFeedsV2(Arg.Is(2), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
 				.Returns(feeds);
 
 			AllocationNotificationFeedsService service = CreateService(feedsSearchService);
@@ -174,21 +181,21 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
 			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
 			{
-				{ "pageRef", new StringValues("3") },
+				{ "pageRef", new StringValues("2") },
 				{ "allocationStatuses", new StringValues("Published,Approved") },
 				{ "pageSize", new StringValues("2") }
 			});
 
 			HttpRequest request = Substitute.For<HttpRequest>();
 			request.Scheme.Returns("https");
-			request.Path.Returns(new PathString("/api/v1/test"));
+			request.Path.Returns(new PathString("/api/v2/allocations/notifications"));
 			request.Host.Returns(new HostString("wherever.naf:12345"));
-			request.QueryString.Returns(new QueryString("?pageRef=3&pageSize=2&allocationStatuses=Published,Approved"));
+			request.QueryString.Returns(new QueryString("?pageSize=2&allocationStatuses=Published&allocationStatuses=Approved"));
 			request.Headers.Returns(headerDictionary);
 			request.Query.Returns(queryStringValues);
 
 			//Act
-			IActionResult result = await service.GetNotifications(request, pageRef:3, pageSize:2, allocationStatuses: new []{"Published", "Approved"});
+			IActionResult result = await service.GetNotifications(request, pageRef: 2, pageSize: 2, allocationStatuses: new[] { "Published", "Approved" });
 
 			//Assert
 			result
@@ -205,11 +212,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			atomFeed.Id.Should().NotBeEmpty();
 			atomFeed.Title.Should().Be("Calculate Funding Service Allocation Feed");
 			atomFeed.Author.Name.Should().Be("Calculate Funding Service");
-			atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=3&allocationStatuses=Published,Approved&pageSize=2");
-			atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1&allocationStatuses=Published,Approved&pageSize=2");
-			atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1&allocationStatuses=Published,Approved&pageSize=2");
-			atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=2&allocationStatuses=Published,Approved&pageSize=2");
-			atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=3&allocationStatuses=Published,Approved&pageSize=2");
+			atomFeed.Link.First(m => m.Rel == "next-archive").Href.Should().Be("https://wherever.naf:12345/api/v2/allocations/notifications/3?pageSize=2&allocationStatuses=Published&allocationStatuses=Approved");
+			atomFeed.Link.First(m => m.Rel == "prev-archive").Href.Should().Be("https://wherever.naf:12345/api/v2/allocations/notifications/1?pageSize=2&allocationStatuses=Published&allocationStatuses=Approved");
+			atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v2/allocations/notifications?pageSize=2&allocationStatuses=Published&allocationStatuses=Approved");
+			atomFeed.Link.First(m => m.Rel == "current").Href.Should().Be("https://wherever.naf:12345/api/v2/allocations/notifications/2?pageSize=2&allocationStatuses=Published&allocationStatuses=Approved");
 			atomFeed.AtomEntry.Count.Should().Be(3);
 			atomFeed.AtomEntry.ElementAt(0).Id.Should().Be("id-1");
 			atomFeed.AtomEntry.ElementAt(0).Title.Should().Be("test title 1");
@@ -339,20 +345,20 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 		}
 
 		[TestMethod]
-		public async Task GetNotifications_GivenSearchFeedRetunsNoResultsWhenNoPageRefIsSpecified_EnsuresAtomLinksCorrect()
+		public async Task GetNotifications_GivenSearchFeedReturnsResultsWhenNoQueryParameters_EnsuresAtomLinksCorrect()
 		{
 			//Arrange
-			SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+			SearchFeedV2<AllocationNotificationFeedIndex> feeds = new SearchFeedV2<AllocationNotificationFeedIndex>
 			{
-				PageRef = 3,
-				Top = 500,
-				TotalCount = 3,
+				PageRef = 2,
+				Top = 2,
+				TotalCount = 8,
 				Entries = CreateFeedIndexes()
 			};
 
 			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 			feedsSearchService
-				.GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses:Arg.Any<IEnumerable<string>>())
+				.GetFeedsV2(Arg.Is(2), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
 				.Returns(feeds);
 
 			AllocationNotificationFeedsService service = CreateService(feedsSearchService);
@@ -360,23 +366,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			IHeaderDictionary headerDictionary = new HeaderDictionary();
 			headerDictionary.Add("Accept", new StringValues("application/json"));
 
-			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-			{
-				{ "allocationStatuses", new StringValues("Published,Approved") },
-				{ "pageSize", new StringValues("2") }
-			});
-
 			HttpRequest request = Substitute.For<HttpRequest>();
 			request.Scheme.Returns("https");
-			request.Path.Returns(new PathString("/api/v1/test"));
+			request.Path.Returns(new PathString("/api/v2/allocations/notifications/2"));
 			request.Host.Returns(new HostString("wherever.naf:12345"));
-			request.QueryString.Returns(new QueryString("?pageSize=2&allocationStatuses=Published,Approved"));
 			request.Headers.Returns(headerDictionary);
-			request.Query.Returns(queryStringValues);
 
 			//Act
-			//IActionResult result = await service.GetNotifications(3, "Published,Approved", 2, request);
-			IActionResult result = await service.GetNotifications(request, pageRef:3, pageSize:2, allocationStatuses: new []{"Published,Approved"});
+			IActionResult result = await service.GetNotifications(request, pageSize: 2, pageRef: 2);
 
 			//Assert
 			result
@@ -393,124 +390,17 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			atomFeed.Id.Should().NotBeEmpty();
 			atomFeed.Title.Should().Be("Calculate Funding Service Allocation Feed");
 			atomFeed.Author.Name.Should().Be("Calculate Funding Service");
-			atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=3");
-			atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=1");
-			atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=1");
-			atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=2");
-			atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?allocationStatuses=Published,Approved&pageSize=2&pageRef=3");
-		}
-
-		[TestMethod]
-		public async Task GetNotifications_GivenSearchFeedRetunsNoResultsWhenNoQueryParameters_EnsuresAtomLinksCorrect()
-		{
-			//Arrange
-			SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
-			{
-				PageRef = 3,
-				Top = 500,
-				TotalCount = 3,
-				Entries = CreateFeedIndexes()
-			};
-
-			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
-			feedsSearchService
-				.GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses:Arg.Any<IEnumerable<string>>())
-				.Returns(feeds);
-
-			AllocationNotificationFeedsService service = CreateService(feedsSearchService);
-
-			IHeaderDictionary headerDictionary = new HeaderDictionary();
-			headerDictionary.Add("Accept", new StringValues("application/json"));
-
-			HttpRequest request = Substitute.For<HttpRequest>();
-			request.Scheme.Returns("https");
-			request.Path.Returns(new PathString("/api/v1/test"));
-			request.Host.Returns(new HostString("wherever.naf:12345"));
-			request.Headers.Returns(headerDictionary);
-
-			//Act
-			IActionResult result = await service.GetNotifications(request, pageSize:2, pageRef:3, allocationStatuses:new []{"Published", "Approved"});
-
-			//Assert
-			result
-				.Should()
-				.BeOfType<ContentResult>();
-
-			ContentResult contentResult = result as ContentResult;
-			AtomFeed<AllocationModel> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AllocationModel>>(contentResult.Content);
-
-			atomFeed
-				.Should()
-				.NotBeNull();
-
-			atomFeed.Id.Should().NotBeEmpty();
-			atomFeed.Title.Should().Be("Calculate Funding Service Allocation Feed");
-			atomFeed.Author.Name.Should().Be("Calculate Funding Service");
-			atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=3");
-			atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
-			atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
-			atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=2");
-			atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=3");
-		}
-
-		[TestMethod]
-		public async Task GetNotifications_GivenSearchFeedRetunsNoResultsWhenNoQueryParametersAndWithToTotalCountOf17848_EnsuresAtomLinksCorrectAndLastIs36()
-		{
-			//Arrange
-			SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
-			{
-				PageRef = 1,
-				Top = 500,
-				TotalCount = 17848,
-				Entries = CreateFeedIndexes()
-			};
-
-			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
-			feedsSearchService
-				.GetFeedsV2(Arg.Is(1), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
-				.Returns(feeds);
-
-			AllocationNotificationFeedsService service = CreateService(feedsSearchService);
-
-			IHeaderDictionary headerDictionary = new HeaderDictionary();
-			headerDictionary.Add("Accept", new StringValues("application/json"));
-
-			HttpRequest request = Substitute.For<HttpRequest>();
-			request.Scheme.Returns("https");
-			request.Path.Returns(new PathString("/api/v1/test"));
-			request.Host.Returns(new HostString("wherever.naf:12345"));
-			request.Headers.Returns(headerDictionary);
-
-			//Act
-			IActionResult result = await service.GetNotifications(request, pageRef:1, pageSize:2, allocationStatuses:new [] {"Published","Approved"});
-
-			//Assert
-			result
-				.Should()
-				.BeOfType<ContentResult>();
-
-			ContentResult contentResult = result as ContentResult;
-			AtomFeed<AllocationModel> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AllocationModel>>(contentResult.Content);
-
-			atomFeed
-				.Should()
-				.NotBeNull();
-
-			atomFeed.Id.Should().NotBeEmpty();
-			atomFeed.Title.Should().Be("Calculate Funding Service Allocation Feed");
-			atomFeed.Author.Name.Should().Be("Calculate Funding Service");
-			atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
-			atomFeed.Link.First(m => m.Rel == "first").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
-			atomFeed.Link.First(m => m.Rel == "last").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=36");
-			atomFeed.Link.First(m => m.Rel == "previous").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=1");
-			atomFeed.Link.First(m => m.Rel == "next").Href.Should().Be("https://wherever.naf:12345/api/v1/notifications?pageRef=2");
+			atomFeed.Link.First(m => m.Rel == "prev-archive").Href.Should().Be("https://wherever.naf:12345/api/v2/allocations/notifications/1");
+			atomFeed.Link.First(m => m.Rel == "next-archive").Href.Should().Be("https://wherever.naf:12345/api/v2/allocations/notifications/3");
+			atomFeed.Link.First(m => m.Rel == "current").Href.Should().Be("https://wherever.naf:12345/api/v2/allocations/notifications/2");
+			atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v2/allocations/notifications");
 		}
 
 		[TestMethod]
 		public async Task GetNotifications_GivenAcceptHeaderNotSupplied_ReturnsBadRequest()
 		{
 			//Arrange
-			SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+			SearchFeedV2<AllocationNotificationFeedIndex> feeds = new SearchFeedV2<AllocationNotificationFeedIndex>
 			{
 				PageRef = 3,
 				Top = 500,
@@ -532,7 +422,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			request.QueryString.Returns(new QueryString("?allocationStatuses=Published,Approved"));
 
 			//Act
-			IActionResult result = await service.GetNotifications(request, pageRef: 3, allocationStatuses:new [] {"Published", "Approved"});
+			IActionResult result = await service.GetNotifications(request, pageRef: 3, allocationStatuses: new[] { "Published", "Approved" });
 
 			//Assert
 			result
@@ -544,7 +434,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 		public async Task GetNotifications_GivenMajorMinorFeatureToggleOn_ReturnsMajorMinorVersionNumbers()
 		{
 			//Arrange
-			SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+			SearchFeedV2<AllocationNotificationFeedIndex> feeds = new SearchFeedV2<AllocationNotificationFeedIndex>
 			{
 				PageRef = 3,
 				Top = 500,
@@ -554,7 +444,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
 			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 			feedsSearchService
-				.GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses:Arg.Any<IEnumerable<string>>())
+				.GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
 				.Returns(feeds);
 
 			IFeatureToggle features = CreateFeatureToggle();
@@ -585,7 +475,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			request.Query.Returns(queryStringValues);
 
 			//Act
-			IActionResult result = await service.GetNotifications(request, pageRef:3, pageSize:2, allocationStatuses: new []{"Published", "Approved"});
+			IActionResult result = await service.GetNotifications(request, pageRef: 3, pageSize: 2, allocationStatuses: new[] { "Published", "Approved" });
 
 			//Assert
 			result
@@ -613,7 +503,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 		public async Task GetNotifications_GivenMajorMinorFeatureToggleOff_ReturnsMajorMinorVersionNumbersAsZero()
 		{
 			//Arrange
-			SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+			SearchFeedV2<AllocationNotificationFeedIndex> feeds = new SearchFeedV2<AllocationNotificationFeedIndex>
 			{
 				PageRef = 3,
 				Top = 500,
@@ -623,7 +513,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
 			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 			feedsSearchService
-				.GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses:Arg.Any<IEnumerable<string>>())
+				.GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
 				.Returns(feeds);
 
 			IFeatureToggle features = CreateFeatureToggle();
@@ -654,7 +544,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			request.Query.Returns(queryStringValues);
 
 			//Act
-			IActionResult result = await service.GetNotifications(request, pageRef:3, pageSize:2, allocationStatuses:new [] {"Published", "Approved"});
+			IActionResult result = await service.GetNotifications(request, pageRef: 3, pageSize: 2, allocationStatuses: new[] { "Published", "Approved" });
 
 			//Assert
 			result
@@ -679,169 +569,169 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 		}
 
 		private static AllocationNotificationFeedsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, IFeatureToggle featureToggle = null)
-        {
-            return new AllocationNotificationFeedsService(searchService ?? CreateSearchService(), featureToggle ?? CreateFeatureToggle());
-        }
+		{
+			return new AllocationNotificationFeedsService(searchService ?? CreateSearchService(), featureToggle ?? CreateFeatureToggle());
+		}
 
-        private static IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
-        }
+		private static IFeatureToggle CreateFeatureToggle()
+		{
+			return Substitute.For<IFeatureToggle>();
+		}
 
-        private static IAllocationNotificationsFeedsSearchService CreateSearchService()
-        {
-            return Substitute.For<IAllocationNotificationsFeedsSearchService>();
-        }
+		private static IAllocationNotificationsFeedsSearchService CreateSearchService()
+		{
+			return Substitute.For<IAllocationNotificationsFeedsSearchService>();
+		}
 
-        private static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexes()
-        {
-            return new[]
-                {
-                    new AllocationNotificationFeedIndex
-                    {
-                         AllocationAmount = 10,
-                         AllocationLearnerCount = 0,
-                         AllocationLineId = "al-1",
-                         AllocationLineName = "al 1",
-                         AllocationStatus = "Published",
-                         AllocationVersionNumber = 1,
-                         DateUpdated = DateTimeOffset.Now,
-                         FundingPeriodEndYear = 2019,
-                         FundingPeriodId = "fp-1",
-                         FundingPeriodStartYear = 2018,
-                         FundingStreamId = "fs-1",
-                         FundingStreamName = "fs 1",
-                         Id = "id-1",
-                         ProviderId = "1111",
-                         ProviderUkPrn = "1111",
-                         ProviderUpin = "0001",
-                         Summary = "test summary 1",
-                         Title = "test title 1",
-                         ProviderProfiling = "[]",
-                         AllocationLineContractRequired = true,
-                         AllocationLineFundingRoute = "LA",
-                         AllocationLineShortName = "short-al1",
-                         Authority = "authority",
-                         CrmAccountId = "crm-1",
-                         DfeEstablishmentNumber = "dfe-1",
-                         EstablishmentNumber = "e-1",
-                         FundingStreamEndDay = 31,
-                         FundingStreamEndMonth = 7,
-                         FundingStreamPeriodId = "fspi-1",
-                         FundingStreamPeriodName = "fspi1",
-                         FundingStreamShortName = "fs-short-1",
-                         FundingStreamStartDay = 1,
-                         FundingStreamStartMonth = 8,
-                         LaCode = "la-1",
-                         NavVendorNo = "nv-1",
-                         ProviderClosedDate = DateTimeOffset.Now,
-                         ProviderLegalName = "legal 1",
-                         ProviderName = "provider 1",
-                         ProviderOpenDate = DateTimeOffset.Now,
-                         ProviderStatus = "Active",
-                         ProviderType = "type 1",
-                         SubProviderType = "sub type 1",
-                         ProviderUrn = "01",
-                         MajorVersion = 1,
-                         MinorVersion = 0
-                    },
-                    new AllocationNotificationFeedIndex
-                    {
-                         AllocationAmount = 100,
-                         AllocationLearnerCount = 0,
-                         AllocationLineId = "al-2",
-                         AllocationLineName = "al 2",
-                         AllocationStatus = "Published",
-                         AllocationVersionNumber = 1,
-                         DateUpdated = DateTimeOffset.Now,
-                         FundingPeriodEndYear = 2019,
-                         FundingPeriodId = "fp-2",
-                         FundingPeriodStartYear = 2018,
-                         FundingStreamId = "fs-2",
-                         FundingStreamName = "fs 2",
-                         Id = "id-2",
-                         ProviderId = "2222",
-                         ProviderUkPrn = "2222",
-                         ProviderUpin = "0002",
-                         Summary = "test summary 2",
-                         Title = "test title 2",
-                         ProviderProfiling = "[{\"period\":\"Oct\",\"occurrence\":1,\"periodYear\":2017,\"periodType\":\"CalendarMonth\",\"periodValue\":5.5,\"distributionPeriod\":\"2017-2018\"},{\"period\":\"Apr\",\"occurrence\":1,\"periodYear\":2018,\"periodType\":\"CalendarMonth\",\"periodValue\":5.5,\"distributionPeriod\":\"2017-2018\"}]",
-                         AllocationLineContractRequired = true,
-                         AllocationLineFundingRoute = "LA",
-                         AllocationLineShortName = "short-al2",
-                         Authority = "authority",
-                         CrmAccountId = "crm-2",
-                         DfeEstablishmentNumber = "dfe-2",
-                         EstablishmentNumber = "e-2",
-                         FundingStreamEndDay = 31,
-                         FundingStreamEndMonth = 7,
-                         FundingStreamPeriodId = "fspi-2",
-                         FundingStreamPeriodName = "fspi2",
-                         FundingStreamShortName = "fs-short-2",
-                         FundingStreamStartDay = 1,
-                         FundingStreamStartMonth = 8,
-                         LaCode = "la-2",
-                         NavVendorNo = "nv-2",
-                         ProviderClosedDate = DateTimeOffset.Now,
-                         ProviderLegalName = "legal 2",
-                         ProviderName = "provider 2",
-                         ProviderOpenDate = DateTimeOffset.Now,
-                         ProviderStatus = "Active",
-                         ProviderType = "type 2",
-                         SubProviderType = "sub type 2",
-                         ProviderUrn = "02",
-                         MajorVersion = 2,
-                         MinorVersion = 0
-                    },
-                    new AllocationNotificationFeedIndex
-                    {
-                         AllocationAmount = 20,
-                         AllocationLearnerCount = 0,
-                         AllocationLineId = "al-3",
-                         AllocationLineName = "al 3",
-                         AllocationStatus = "Approved",
-                         AllocationVersionNumber = 1,
-                         DateUpdated = DateTimeOffset.Now,
-                         FundingPeriodEndYear = 2019,
-                         FundingPeriodId = "fp-3",
-                         FundingPeriodStartYear = 2018,
-                         FundingStreamId = "fs-3",
-                         FundingStreamName = "fs 3",
-                         Id = "id-3",
-                         ProviderId = "3333",
-                         ProviderUkPrn = "3333",
-                         ProviderUpin = "0003",
-                         Summary = "test summary 3",
-                         Title = "test title 3",
-                         ProviderProfiling = "[]",
-                         AllocationLineContractRequired = true,
-                         AllocationLineFundingRoute = "LA",
-                         AllocationLineShortName = "short-al3",
-                         Authority = "authority",
-                         CrmAccountId = "crm-3",
-                         DfeEstablishmentNumber = "dfe-3",
-                         EstablishmentNumber = "e-3",
-                         FundingStreamEndDay = 31,
-                         FundingStreamEndMonth = 7,
-                         FundingStreamPeriodId = "fspi-3",
-                         FundingStreamPeriodName = "fspi3",
-                         FundingStreamShortName = "fs-short-3",
-                         FundingStreamStartDay = 1,
-                         FundingStreamStartMonth = 8,
-                         LaCode = "la-3",
-                         NavVendorNo = "nv-3",
-                         ProviderClosedDate = DateTimeOffset.Now,
-                         ProviderLegalName = "legal 3",
-                         ProviderName = "provider 3",
-                         ProviderOpenDate = DateTimeOffset.Now,
-                         ProviderStatus = "Active",
-                         ProviderType = "type 3",
-                         SubProviderType = "sub type 3",
-                         ProviderUrn = "03",
-                         MajorVersion = 0,
-                         MinorVersion = 3
-                    }
-                };
-        }
-    }
+		private static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexes()
+		{
+			return new[]
+				{
+					new AllocationNotificationFeedIndex
+					{
+						 AllocationAmount = 10,
+						 AllocationLearnerCount = 0,
+						 AllocationLineId = "al-1",
+						 AllocationLineName = "al 1",
+						 AllocationStatus = "Published",
+						 AllocationVersionNumber = 1,
+						 DateUpdated = DateTimeOffset.Now,
+						 FundingPeriodEndYear = 2019,
+						 FundingPeriodId = "fp-1",
+						 FundingPeriodStartYear = 2018,
+						 FundingStreamId = "fs-1",
+						 FundingStreamName = "fs 1",
+						 Id = "id-1",
+						 ProviderId = "1111",
+						 ProviderUkPrn = "1111",
+						 ProviderUpin = "0001",
+						 Summary = "test summary 1",
+						 Title = "test title 1",
+						 ProviderProfiling = "[]",
+						 AllocationLineContractRequired = true,
+						 AllocationLineFundingRoute = "LA",
+						 AllocationLineShortName = "short-al1",
+						 Authority = "authority",
+						 CrmAccountId = "crm-1",
+						 DfeEstablishmentNumber = "dfe-1",
+						 EstablishmentNumber = "e-1",
+						 FundingStreamEndDay = 31,
+						 FundingStreamEndMonth = 7,
+						 FundingStreamPeriodId = "fspi-1",
+						 FundingStreamPeriodName = "fspi1",
+						 FundingStreamShortName = "fs-short-1",
+						 FundingStreamStartDay = 1,
+						 FundingStreamStartMonth = 8,
+						 LaCode = "la-1",
+						 NavVendorNo = "nv-1",
+						 ProviderClosedDate = DateTimeOffset.Now,
+						 ProviderLegalName = "legal 1",
+						 ProviderName = "provider 1",
+						 ProviderOpenDate = DateTimeOffset.Now,
+						 ProviderStatus = "Active",
+						 ProviderType = "type 1",
+						 SubProviderType = "sub type 1",
+						 ProviderUrn = "01",
+						 MajorVersion = 1,
+						 MinorVersion = 0
+					},
+					new AllocationNotificationFeedIndex
+					{
+						 AllocationAmount = 100,
+						 AllocationLearnerCount = 0,
+						 AllocationLineId = "al-2",
+						 AllocationLineName = "al 2",
+						 AllocationStatus = "Published",
+						 AllocationVersionNumber = 1,
+						 DateUpdated = DateTimeOffset.Now,
+						 FundingPeriodEndYear = 2019,
+						 FundingPeriodId = "fp-2",
+						 FundingPeriodStartYear = 2018,
+						 FundingStreamId = "fs-2",
+						 FundingStreamName = "fs 2",
+						 Id = "id-2",
+						 ProviderId = "2222",
+						 ProviderUkPrn = "2222",
+						 ProviderUpin = "0002",
+						 Summary = "test summary 2",
+						 Title = "test title 2",
+						 ProviderProfiling = "[{\"period\":\"Oct\",\"occurrence\":1,\"periodYear\":2017,\"periodType\":\"CalendarMonth\",\"periodValue\":5.5,\"distributionPeriod\":\"2017-2018\"},{\"period\":\"Apr\",\"occurrence\":1,\"periodYear\":2018,\"periodType\":\"CalendarMonth\",\"periodValue\":5.5,\"distributionPeriod\":\"2017-2018\"}]",
+						 AllocationLineContractRequired = true,
+						 AllocationLineFundingRoute = "LA",
+						 AllocationLineShortName = "short-al2",
+						 Authority = "authority",
+						 CrmAccountId = "crm-2",
+						 DfeEstablishmentNumber = "dfe-2",
+						 EstablishmentNumber = "e-2",
+						 FundingStreamEndDay = 31,
+						 FundingStreamEndMonth = 7,
+						 FundingStreamPeriodId = "fspi-2",
+						 FundingStreamPeriodName = "fspi2",
+						 FundingStreamShortName = "fs-short-2",
+						 FundingStreamStartDay = 1,
+						 FundingStreamStartMonth = 8,
+						 LaCode = "la-2",
+						 NavVendorNo = "nv-2",
+						 ProviderClosedDate = DateTimeOffset.Now,
+						 ProviderLegalName = "legal 2",
+						 ProviderName = "provider 2",
+						 ProviderOpenDate = DateTimeOffset.Now,
+						 ProviderStatus = "Active",
+						 ProviderType = "type 2",
+						 SubProviderType = "sub type 2",
+						 ProviderUrn = "02",
+						 MajorVersion = 2,
+						 MinorVersion = 0
+					},
+					new AllocationNotificationFeedIndex
+					{
+						 AllocationAmount = 20,
+						 AllocationLearnerCount = 0,
+						 AllocationLineId = "al-3",
+						 AllocationLineName = "al 3",
+						 AllocationStatus = "Approved",
+						 AllocationVersionNumber = 1,
+						 DateUpdated = DateTimeOffset.Now,
+						 FundingPeriodEndYear = 2019,
+						 FundingPeriodId = "fp-3",
+						 FundingPeriodStartYear = 2018,
+						 FundingStreamId = "fs-3",
+						 FundingStreamName = "fs 3",
+						 Id = "id-3",
+						 ProviderId = "3333",
+						 ProviderUkPrn = "3333",
+						 ProviderUpin = "0003",
+						 Summary = "test summary 3",
+						 Title = "test title 3",
+						 ProviderProfiling = "[]",
+						 AllocationLineContractRequired = true,
+						 AllocationLineFundingRoute = "LA",
+						 AllocationLineShortName = "short-al3",
+						 Authority = "authority",
+						 CrmAccountId = "crm-3",
+						 DfeEstablishmentNumber = "dfe-3",
+						 EstablishmentNumber = "e-3",
+						 FundingStreamEndDay = 31,
+						 FundingStreamEndMonth = 7,
+						 FundingStreamPeriodId = "fspi-3",
+						 FundingStreamPeriodName = "fspi3",
+						 FundingStreamShortName = "fs-short-3",
+						 FundingStreamStartDay = 1,
+						 FundingStreamStartMonth = 8,
+						 LaCode = "la-3",
+						 NavVendorNo = "nv-3",
+						 ProviderClosedDate = DateTimeOffset.Now,
+						 ProviderLegalName = "legal 3",
+						 ProviderName = "provider 3",
+						 ProviderOpenDate = DateTimeOffset.Now,
+						 ProviderStatus = "Active",
+						 ProviderType = "type 3",
+						 SubProviderType = "sub type 3",
+						 ProviderUrn = "03",
+						 MajorVersion = 0,
+						 MinorVersion = 3
+					}
+				};
+		}
+	}
 }

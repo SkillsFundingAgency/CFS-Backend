@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Results
 			};
 		}
 
-	    public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeedsV2(int pageRef, int top, int? startYear = null, int? endYear = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, IEnumerable<string> statuses = null, IEnumerable<string> fundingStreamIds = null, IEnumerable<string> allocationLineIds = null)
+	    public async Task<SearchFeedV2<AllocationNotificationFeedIndex>> GetFeedsV2(int? pageRef, int top, int? startYear = null, int? endYear = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, IEnumerable<string> statuses = null, IEnumerable<string> fundingStreamIds = null, IEnumerable<string> allocationLineIds = null)
 	    {
 		    if (pageRef < 1)
 		    {
@@ -105,35 +105,43 @@ namespace CalculateFunding.Services.Results
 			    top = 500;
 		    }
 
-		    int skip = (pageRef - 1) * top;
-
 		    FilterHelper filterHelper = new FilterHelper();
+			AddFiltersForNotification(startYear, endYear, ukprn, laCode, isAllocationLineContractRequired, statuses, fundingStreamIds, allocationLineIds, filterHelper);
 
-		    AddFiltersForNotification(startYear, endYear, ukprn, laCode, isAllocationLineContractRequired, statuses, fundingStreamIds, allocationLineIds, filterHelper);
+			if (pageRef == null)
+			{
+				SearchResults<AllocationNotificationFeedIndex> countSearchResults = await SearchResults(0, null, filterHelper.BuildAndFilterQuery());
+				SearchFeedV2<AllocationNotificationFeedIndex> searchFeedCountResult = CreateSearchFeedResult(null, top, countSearchResults);
+				pageRef = searchFeedCountResult.Last;
+			}
 
-		    string filters = filterHelper.BuildAndFilterQuery();
-		    SearchResults<AllocationNotificationFeedIndex> searchResults = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
-			    () => _allocationNotificationsSearchRepository.Search("", new SearchParameters
-			    {
-				    Skip = skip,
-				    Top = top,
-				    SearchMode = SearchMode.Any,
-				    IncludeTotalResultCount = true,
-				    Filter = filterHelper.Filters.IsNullOrEmpty() ? "" : filters,
-				    OrderBy = DefaultOrderBy.ToList(),
-				    QueryType = QueryType.Full
-			    }));
 
-		    return new SearchFeed<AllocationNotificationFeedIndex>
+			int skip = (pageRef.Value - 1) * top;
+
+		    string filters = filterHelper.Filters.IsNullOrEmpty() ? "" : filterHelper.BuildAndFilterQuery();
+
+			SearchResults<AllocationNotificationFeedIndex> searchResults = await SearchResults(top, skip, filters);
+
+		    return CreateSearchFeedResult(pageRef, top, searchResults);
+	    }
+
+	    private static SearchFeedV2<AllocationNotificationFeedIndex> CreateSearchFeedResult(int? pageRef, int top, SearchResults<AllocationNotificationFeedIndex> searchResults)
+	    {
+		    SearchFeedV2<AllocationNotificationFeedIndex> searchFeedResult = new SearchFeedV2<AllocationNotificationFeedIndex>
 		    {
-			    PageRef = pageRef,
 			    Top = top,
 			    TotalCount = searchResults != null && searchResults.TotalCount.HasValue ? (int)searchResults?.TotalCount : 0,
 			    Entries = searchResults?.Results.Select(m => m.Result)
 		    };
+		    if (pageRef.HasValue)
+		    {
+			    searchFeedResult.PageRef = pageRef.Value;
+		    }
+		    return searchFeedResult;
 	    }
 
-		public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(string providerId, int startYear, int endYear, IEnumerable<string> customFilters)
+
+	    public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(string providerId, int startYear, int endYear, IEnumerable<string> customFilters)
         {
             IList<string> filters = new List<string>();
 
@@ -235,6 +243,26 @@ namespace CalculateFunding.Services.Results
 		    {
 				filterHelper.Filters.Add(new Filter("allocationLineContractRequired", new List<string>(){ isAllocationLineContractRequired.ToString().ToLowerInvariant()}, true, "eq" ));
 		    }
+	    }
+
+	    private async Task<SearchResults<AllocationNotificationFeedIndex>> SearchResults(int top, int? skip, string filters)
+	    {
+		    SearchResults<AllocationNotificationFeedIndex> searchResults =
+			    await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
+				    () =>
+				    {
+					    return _allocationNotificationsSearchRepository.Search("", new SearchParameters
+					    {
+						    Skip = skip,
+						    Top = top,
+						    SearchMode = SearchMode.Any,
+						    IncludeTotalResultCount = true,
+						    Filter = filters,
+						    OrderBy = new[] { "dateUpdated asc" },
+						    QueryType = QueryType.Full
+					    });
+				    });
+		    return searchResults;
 	    }
 	}
 }

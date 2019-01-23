@@ -47,21 +47,32 @@ namespace CalculateFunding.Api.External.V2.Controllers
 	    ///   | Published | Yes                 | Yes                       | This status indicates ESFA are happy for the funding (both money and information about that funding) are good to be made external to the provider.|
 	    ///    </param>
 	    ///  <returns></returns>
-	    [HttpGet]
-        [Produces(typeof(AtomFeed<AllocationModel>))]
-        [SwaggerResponseExample(200, typeof(AllocationNotificationExamples))]
-        [SwaggerOperation("getAllocationNotifications")]
-        [SwaggerOperationFilter(typeof(OperationFilter<AtomFeed<AllocationModel>>))]
-        [ProducesResponseType(typeof(AtomFeed<AllocationModel>), 200)]
-        [ProducesResponseType(401)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(415)]
-        [ProducesResponseType(500)]
-        [ProducesResponseType(503)]
-        public async Task<IActionResult> GetNotifications(int? startYear, int? endYear, string[] allocationStatuses, string[] fundingStreamIds, string[] allocationLineIds, string ukprn, string laCode, bool? isAllocationLineContractRequired, int? pageRef, int? pageSize)
-        {
-			return await _allocationFeedsService.GetNotifications(Request, startYear, endYear, fundingStreamIds, allocationLineIds, allocationStatuses, ukprn, laCode, isAllocationLineContractRequired, pageRef, pageSize);
-        }
+	    [HttpGet("{pageRef?}")]
+	    [Produces(typeof(AtomFeed<AllocationModel>))]
+	    [SwaggerResponseExample(200, typeof(AllocationNotificationExamples))]
+	    [SwaggerOperation("getAllocationNotifications")]
+	    [SwaggerOperationFilter(typeof(OperationFilter<AtomFeed<AllocationModel>>))]
+	    [ProducesResponseType(typeof(AtomFeed<AllocationModel>), 200)]
+	    [ProducesResponseType(401)]
+	    [ProducesResponseType(400)]
+	    [ProducesResponseType(404)]
+	    [ProducesResponseType(415)]
+	    [ProducesResponseType(500)]
+	    [ProducesResponseType(503)]
+	    public async Task<IActionResult> GetNotifications(
+		    [FromQuery] int? startYear,
+		    [FromQuery] int? endYear,
+		    [FromQuery] string[] allocationStatuses,
+		    [FromQuery] string[] fundingStreamIds,
+		    [FromQuery] string[] allocationLineIds,
+		    [FromQuery] string ukprn,
+		    [FromQuery] string laCode,
+		    [FromQuery] bool? isAllocationLineContractRequired,
+		    [FromRoute] int? pageRef,
+		    [FromQuery] int? pageSize)
+	    {
+		    return await _allocationFeedsService.GetNotifications(Request, pageRef, startYear, endYear, fundingStreamIds,
+			    allocationLineIds, allocationStatuses, ukprn, laCode, isAllocationLineContractRequired, pageSize);
+	    }
     }
 }

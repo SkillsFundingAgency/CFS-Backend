@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
+using System.Xml.Serialization;
 
 namespace CalculateFunding.Models.External.AtomItems
 {
@@ -33,6 +35,16 @@ namespace CalculateFunding.Models.External.AtomItems
 
         public List<AtomLink> Link { get; set; }
 
+	    public string Archive { get; set; } = string.Empty;
+
         public List<AtomEntry<T>> AtomEntry { get; set; }
+
+		[IgnoreDataMember, XmlIgnore]
+	    public bool IsArchived { get; set; }
+
+	    public bool ShouldSerializeArchive()
+	    {
+		    return IsArchived;
+	    }
     }
 }
