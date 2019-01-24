@@ -35,5 +35,8 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("publishedResultsRefreshedAt")]
         public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
-    }
+
+		[JsonProperty("variationDate")]
+		public DateTimeOffset? VariationDate { get; set; }
+	}
 }

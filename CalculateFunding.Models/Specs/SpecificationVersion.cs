@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
@@ -40,6 +41,9 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
+
+		[JsonProperty("variationDate")]
+		public DateTimeOffset? VariationDate { get; set; }
 
         /// <summary>
         /// Gets all calculations - from top level policies and subpolicies in a flat list
