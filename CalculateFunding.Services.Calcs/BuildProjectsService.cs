@@ -247,6 +247,14 @@ namespace CalculateFunding.Services.Calcs
                     if (!allJobProperties.Any())
                     {
                         _logger.Information($"No scoped providers set for specification '{specificationId}'");
+
+                        JobLogUpdateModel jobCompletedLog = new JobLogUpdateModel
+                        {
+                            CompletedSuccessfully = true,
+                            Outcome = "Calculations not run as no scoped providers set for specification"
+                        };
+                        await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(job.Id, jobCompletedLog));
+
                         return;
                     }
 

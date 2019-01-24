@@ -2469,6 +2469,11 @@ namespace CalculateFunding.Services.Calcs.Services
                     .DidNotReceive()
                     .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>());
 
+            await
+                jobsApiClient
+                .Received(1)
+                .AddJobLog(Arg.Is(parentJobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == true && l.Outcome == "Calculations not run as no scoped providers set for specification"));
+
             logger
                 .Received(1)
                 .Information(Arg.Is($"No scoped providers set for specification '{specificationId}'"));

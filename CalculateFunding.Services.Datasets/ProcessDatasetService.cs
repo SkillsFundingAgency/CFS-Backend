@@ -144,6 +144,8 @@ namespace CalculateFunding.Services.Datasets
             if (_featureToggle.IsJobServiceForMainActionsEnabled())
             {
                 jobId = message.UserProperties["jobId"].ToString();
+
+                await UpdateJobStatus(jobId, null, 0);
             }
 
             if (dataset == null)

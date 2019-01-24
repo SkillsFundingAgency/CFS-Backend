@@ -3641,6 +3641,11 @@ namespace CalculateFunding.Services.Datasets.Services
 
             // Assert
             await
+                jobsApiClient
+                    .Received(1)
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == null && l.ItemsProcessed == 0 && string.IsNullOrEmpty(l.Outcome)));
+
+            await
                  jobsApiClient
                      .Received(1)
                      .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == true && l.ItemsProcessed == 100 && l.Outcome == "Processed Dataset"));
