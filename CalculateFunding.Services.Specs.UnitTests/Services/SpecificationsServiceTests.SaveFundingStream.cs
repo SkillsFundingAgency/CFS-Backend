@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using FluentValidation;
@@ -45,9 +48,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         async public Task SaveFundingStream_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "yaml-file", new StringValues(yamlFile) }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -79,9 +83,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "yaml-file", new StringValues(yamlFile) }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -117,9 +122,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "yaml-file", new StringValues(yamlFile) }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -168,9 +174,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "yaml-file", new StringValues(yamlFile) }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -217,9 +224,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("yaml-file", new StringValues(yamlFile));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "yaml-file", new StringValues(yamlFile) }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -252,6 +260,90 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+        }
+
+        [TestMethod]
+        public async Task SaveFundingStream_GivenAllocationLinesWithProviderLookups_ReturnsOK()
+        {
+            //Arrange
+            StringBuilder yaml = new StringBuilder();
+            yaml.AppendLine("shortName: GIAS Test");
+            yaml.AppendLine("allocationLines:");
+            yaml.AppendLine("- fundingRoute: Provider");
+            yaml.AppendLine("  isContractRequired: true");
+            yaml.AppendLine("  shortName: 16 - 18 Tships Burs Fund");
+            yaml.AppendLine("  id: 1618T - 001");
+            yaml.AppendLine("  name: 16 - 18 Traineeships Bursary Funding");
+            yaml.AppendLine("  providerLookups:");
+            yaml.AppendLine("  - providerType: test1");
+            yaml.AppendLine("    providerSubType: test2");
+            yaml.AppendLine("- fundingRoute: Provider");
+            yaml.AppendLine("  isContractRequired: true");
+            yaml.AppendLine("  shortName: 16 - 18 Tships Prog Fund");
+            yaml.AppendLine("  id: 1618T - 002");
+            yaml.AppendLine("  name: 16 - 18 Traineeships Programme Funding");
+            yaml.AppendLine("periodType:");
+            yaml.AppendLine("  startDay: 1");
+            yaml.AppendLine("  startMonth: 8");
+            yaml.AppendLine("  endDay: 31");
+            yaml.AppendLine("  endMonth: 7");
+            yaml.AppendLine("  id: AY");
+            yaml.AppendLine("  name: Schools Academic Year");
+            yaml.AppendLine("id: GIASTEST");
+            yaml.AppendLine("name: GIAS Test");
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml.ToString());
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "yaml-file", new StringValues(yamlFile) }
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .SaveFundingStream(Arg.Any<FundingStream>())
+                .Returns(statusCode);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
+                .Returns(true);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+
+            //Act
+            IActionResult result = await service.SaveFundingStream(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+
+            await specificationsRepository
+                .Received(1)
+                .SaveFundingStream(Arg.Is<FundingStream>(f => f.AllocationLines.First().ProviderLookups.Count() == 1 && f.AllocationLines.First().ProviderLookups.First().ProviderType == "test1" && f.AllocationLines.First().ProviderLookups.First().ProviderSubType == "test2"));
+
+            await cacheProvider
+                .Received(1)
+                .KeyDeleteAsync<FundingStream[]>(CacheKeys.AllFundingStreams);
         }
     }
 }
