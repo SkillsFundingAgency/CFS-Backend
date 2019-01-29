@@ -170,5 +170,11 @@ namespace CalculateFunding.Models.Results.Search
         [IsFilterable]
         [JsonProperty("isDeleted")]
         public bool IsDeleted { get; set; }
+
+        [JsonProperty("financialEnvelopes")]
+        public string FinancialEnvelopes { get; set; }
+
+        [JsonProperty("calculations")]
+        public string Calculations { get; set; }
     }
 }

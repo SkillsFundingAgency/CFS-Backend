@@ -548,6 +548,32 @@
       "indexAnalyzer": null
     },
     {
+      "name": "calculations",
+      "type": "Edm.String",
+      "key": false,
+      "facetable": false,
+      "filterable": false,
+      "retrievable": true,
+      "searchable": false,
+      "sortable": false,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
+    },
+    {
+      "name": "financialEnvelopes",
+      "type": "Edm.String",
+      "key": false,
+      "facetable": false,
+      "filterable": false,
+      "retrievable": true,
+      "searchable": false,
+      "sortable": false,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
+    },
+    {
       "name": "crmAccountId",
       "type": "Edm.String",
       "key": false,
