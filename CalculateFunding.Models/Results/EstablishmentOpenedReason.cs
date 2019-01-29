@@ -34,7 +34,7 @@ namespace CalculateFunding.Models.Results
 		[EnumMember(Value = "Former Independent")]
 		FormerIndependent,
 
-		[EnumMember(Value = "Academy Free Schools")]
+		[EnumMember(Value = "Academy Free School")]
 		AcademyFreeSchool,
 
 		[EnumMember(Value = "Academy Converter")]
