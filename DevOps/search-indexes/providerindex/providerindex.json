@@ -260,6 +260,45 @@
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null
+		},
+		{
+			"name": "reasonEstablishmentOpened",
+			"type": "Edm.String",
+			"key": false,
+			"facetable": false,
+			"filterable": false,
+			"retrievable": true,
+			"searchable": false,
+			"sortable": false,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
+		},
+		{
+			"name": "reasonEstablishmentClosed",
+			"type": "Edm.String",
+			"key": false,
+			"facetable": false,
+			"filterable": false,
+			"retrievable": true,
+			"searchable": false,
+			"sortable": false,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
+		},
+		{
+			"name": "successor",
+			"type": "Edm.String",
+			"key": false,
+			"facetable": false,
+			"filterable": false,
+			"retrievable": true,
+			"searchable": false,
+			"sortable": false,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
 		}
 	],
 	"scoringProfiles": [],

@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Models.Datasets.Schema;
+﻿using System.Runtime.Serialization;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Services.Results.Interfaces;
@@ -45,6 +47,9 @@ namespace CalculateFunding.Services.Results
                 providerIndex.Status = masterProviderModel.MasterProviderStatusName;
                 providerIndex.NavVendorNo = masterProviderModel.MasterNavendorNo;
                 providerIndex.PhaseOfEducation = masterProviderModel.MasterPhaseOfEducation;
+	            providerIndex.ReasonEstablishmentOpened = masterProviderModel.MasterReasonEstablishmentOpened?.GetAttributeOfType<EnumMemberAttribute>().Value;
+	            providerIndex.ReasonEstablishmentClosed = masterProviderModel.MasterReasonEstablishmentClosed?.GetAttributeOfType<EnumMemberAttribute>().Value;
+	            providerIndex.Successor = masterProviderModel.MasterSuccessor;
 
                 return providerIndex;
             }

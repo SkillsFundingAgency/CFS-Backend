@@ -82,7 +82,11 @@ namespace CalculateFunding.Services.Results.Services
         public void Map_GivenMasterProviderModel_MapsAllProperties()
         {
             //Arrange
-            MasterProviderModel model = new MasterProviderModel
+	        const EstablishmentClosedReason masterReasonEstablishmentClosed = EstablishmentClosedReason.ResultOfAmalgamation;
+	        const EstablishmentOpenedReason masterReasonEstablishmentOpened = EstablishmentOpenedReason.ResultOfClosure;
+			const string masterSuccessor = "12345678";
+
+	        MasterProviderModel model = new MasterProviderModel
             {
                 MasterCRMAccountId = "1",
                 MasterDateClosed = DateTimeOffset.Now,
@@ -100,8 +104,11 @@ namespace CalculateFunding.Services.Results.Services
                 MasterUPIN = "4321",
                 MasterURN = "2413",
                 MasterNavendorNo = "12345",
-                MasterPhaseOfEducation = "0"
-            };
+                MasterPhaseOfEducation = "0",
+				MasterSuccessor = masterSuccessor,
+				MasterReasonEstablishmentClosed = masterReasonEstablishmentClosed,
+				MasterReasonEstablishmentOpened = masterReasonEstablishmentOpened
+			};
 
             ProviderImportMappingService mappingService = new ProviderImportMappingService();
 
@@ -121,11 +128,14 @@ namespace CalculateFunding.Services.Results.Services
             providerIndex.Status.Should().Be("Active");
             providerIndex.ProviderType.Should().Be("type");
             providerIndex.ProviderSubType.Should().Be("sub type");
-            providerIndex.UKPRN = "1234";
-            providerIndex.UPIN = "4321";
-            providerIndex.URN = "2413";
-            providerIndex.NavVendorNo = "12345";
-            providerIndex.PhaseOfEducation = "0";
+            providerIndex.UKPRN.Should().Be("1234");
+            providerIndex.UPIN.Should().Be("4321");
+            providerIndex.URN.Should().Be("2413");
+            providerIndex.NavVendorNo.Should().Be("12345");
+            providerIndex.PhaseOfEducation.Should().Be("0");
+            providerIndex.ReasonEstablishmentClosed.Should().Be("Result of Amalgamation/Merger");
+            providerIndex.ReasonEstablishmentOpened.Should().Be("Result of Closure");
+            providerIndex.Successor.Should().Be(masterSuccessor);
         }
     }
 }

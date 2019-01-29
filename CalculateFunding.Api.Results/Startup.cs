@@ -15,6 +15,8 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -38,9 +40,9 @@ namespace CalculateFunding.Api.Results
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+			services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            RegisterComponents(services);
+			RegisterComponents(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -145,6 +147,8 @@ namespace CalculateFunding.Api.Results
 
                 return new PublishedProviderCalculationResultsRepository(resultsRepostory);
             });
+
+	        builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
 
             builder
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();

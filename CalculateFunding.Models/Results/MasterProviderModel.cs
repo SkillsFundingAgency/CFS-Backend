@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Models.Converters;
 using Newtonsoft.Json;
 using System;
+using Newtonsoft.Json.Converters;
 
 
 namespace CalculateFunding.Models.Results
@@ -42,5 +43,13 @@ namespace CalculateFunding.Models.Results
         public string MasterPhaseOfEducation { get; set; }
 
         public string MasterNavendorNo { get; set; }
+
+	    [JsonConverter(typeof(StringEnumConverter))]
+		public EstablishmentOpenedReason? MasterReasonEstablishmentOpened { get; set; }
+
+	    [JsonConverter(typeof(StringEnumConverter))]
+		public EstablishmentClosedReason? MasterReasonEstablishmentClosed { get; set; }
+
+	    public string MasterSuccessor { get; set; }
     }
 }

@@ -196,8 +196,11 @@ namespace CalculateFunding.Services.Calcs
                 NavVendorNo = x.NavVendorNo,
                 DfeEstablishmentNumber = x.DfeEstablishmentNumber,
                 Status = x.Status,
-                PhaseOfEducation = x.PhaseOfEducation
-            });
+                PhaseOfEducation = x.PhaseOfEducation,
+				ReasonEstablishmentClosed = x.ReasonEstablishmentClosed,
+				ReasonEstablishmentOpened = x.ReasonEstablishmentOpened,
+				Successor = x.Successor
+			});
         }
 
         public async Task<IEnumerable<ProviderSummary>> LoadAllProvidersFromSearch()

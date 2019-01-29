@@ -20,6 +20,8 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -46,6 +48,7 @@ namespace CalculateFunding.Services.Results
         private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
         private readonly Polly.Policy _calculationsRepositoryPolicy;
+	    private readonly IValidator<MasterProviderModel> _masterProviderModelValidator;
 
         public ResultsService(ILogger logger,
             ICalculationResultsRepository resultsRepository,
@@ -59,7 +62,8 @@ namespace CalculateFunding.Services.Results
             IProviderImportMappingService providerImportMappingService,
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
-            ICalculationsRepository calculationRepository)
+            ICalculationsRepository calculationRepository, 
+	        IValidator<MasterProviderModel> masterProviderModelValidator)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -73,6 +77,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
+            Guard.ArgumentNotNull(masterProviderModelValidator, nameof(masterProviderModelValidator));
 
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -89,7 +94,8 @@ namespace CalculateFunding.Services.Results
             _cacheProvider = cacheProvider;
             _messengerService = messengerService;
             _calculationRepository = calculationRepository;
-            _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
+	        _masterProviderModelValidator = masterProviderModelValidator;
+	        _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -464,7 +470,7 @@ namespace CalculateFunding.Services.Results
             string json = await request.GetRawBodyStringAsync();
 
             MasterProviderModel[] providers = new MasterProviderModel[0];
-
+			
             try
             {
                 providers = JsonConvert.DeserializeObject<MasterProviderModel[]>(json);
@@ -473,7 +479,7 @@ namespace CalculateFunding.Services.Results
             {
                 _logger.Error(ex, "Invalid providers were provided");
 
-                return new BadRequestObjectResult("Invalid providers were provided");
+                return new BadRequestObjectResult($"Invalid providers were provided: {ex.Message}");
             }
 
             if (providers.IsNullOrEmpty())
@@ -483,7 +489,14 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("No providers were provided");
             }
 
-            IList<ProviderIndex> providersToIndex = new List<ProviderIndex>();
+	        IEnumerable<ValidationFailure> validationFailures = providers.SelectMany(p => _masterProviderModelValidator.Validate(p).Errors);
+
+	        if (validationFailures.Any())
+	        {
+				return new BadRequestObjectResult(string.Join(",", validationFailures.Select(vf => vf.ErrorMessage)));
+	        }
+
+			IList<ProviderIndex> providersToIndex = new List<ProviderIndex>();
 
             foreach (MasterProviderModel provider in providers)
             {
@@ -495,18 +508,18 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(providersToIndex));
+			IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(providersToIndex));
 
-            if (errors.Any())
-            {
-                string errorMessage = $"Failed to index providers result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
-                _logger.Error(errorMessage);
+			if (errors.Any())
+			{
+				string errorMessage = $"Failed to index providers result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
+				_logger.Error(errorMessage);
 
-                return new InternalServerErrorResult(errorMessage);
-            }
+				return new InternalServerErrorResult(errorMessage);
+			}
 
 
-            return new NoContentResult();
+			return new NoContentResult();
         }
 
         public async Task<IActionResult> HasCalculationResults(string calculationId)

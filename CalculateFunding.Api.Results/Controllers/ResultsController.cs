@@ -131,7 +131,7 @@ namespace CalculateFunding.Api.Results.Controllers
         [HttpPost]
         public async Task<IActionResult> RunImportProviders()
         {
-            return await _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
+			return await _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/remove-current-providers")]

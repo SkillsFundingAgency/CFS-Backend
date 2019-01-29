@@ -56,5 +56,14 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("phaseOfEducation")]
         public string PhaseOfEducation { get; set; }
+
+		[JsonProperty("reasonEstablishmentOpened")]
+		public string ReasonEstablishmentOpened { get; set; }
+
+		[JsonProperty("reasonEstablishmentClosed")]
+	    public string ReasonEstablishmentClosed { get; set; }
+
+		[JsonProperty("successor")]
+	    public string Successor { get; set; }
     }
 }

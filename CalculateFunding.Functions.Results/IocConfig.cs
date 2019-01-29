@@ -21,6 +21,8 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Validators;
+using FluentValidation;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -95,6 +97,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
             builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
+	        builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {

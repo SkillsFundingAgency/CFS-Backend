@@ -25,5 +25,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string Status { get; set; }
         public string DfeEstablishmentNumber { get; set; }
         public string PhaseOfEducation { get; set; }
+		public string ReasonEstablishmentOpened { get; set; }
+		public string ReasonEstablishmentClosed { get; set; }
+		public string Successor { get; set; }
     }
 }
