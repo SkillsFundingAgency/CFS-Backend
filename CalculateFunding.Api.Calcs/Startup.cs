@@ -163,6 +163,8 @@ namespace CalculateFunding.Api.Calcs
             builder.AddLogging("CalculateFunding.Api.Calcs");
             builder.AddTelemetry();
 
+            builder.AddEngineSettings(Configuration);
+
             builder.AddFeatureToggling(Configuration);
 
             builder.AddPolicySettings(Configuration);

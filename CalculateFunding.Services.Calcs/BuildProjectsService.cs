@@ -24,6 +24,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Core.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -34,8 +35,6 @@ namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsService : IBuildProjectsService, IHealthChecker
     {
-        const int MaxPartitionSize = 1000;
-
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly IMessengerService _messengerService;
         private readonly ILogger _logger;
@@ -51,6 +50,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IFeatureToggle _featureToggle;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly Polly.Policy _jobsApiClientPolicy;
+        private readonly EngineSettings _engineSettings;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -66,7 +66,8 @@ namespace CalculateFunding.Services.Calcs
             ICalculationsRepository calculationsRepository,
             IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
-            ICalcsResilliencePolicies resilliencePolicies)
+            ICalcsResilliencePolicies resilliencePolicies,
+            EngineSettings engineSettings)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -82,6 +83,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -98,6 +100,7 @@ namespace CalculateFunding.Services.Calcs
             _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
+            _engineSettings = engineSettings;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -198,7 +201,7 @@ namespace CalculateFunding.Services.Calcs
 
             const string providerSummariesPartitionSize = "provider-summaries-partition-size";
 
-            properties.Add(providerSummariesPartitionSize, MaxPartitionSize.ToString());
+            properties.Add(providerSummariesPartitionSize, _engineSettings.MaxPartitionSize.ToString());
 
             properties.Add("provider-cache-key", cacheKey);
 
@@ -206,7 +209,7 @@ namespace CalculateFunding.Services.Calcs
 
             IList<IDictionary<string, string>> allJobProperties = new List<IDictionary<string, string>>();
 
-            for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += MaxPartitionSize)
+            for (int partitionIndex = 0; partitionIndex < totalCount; partitionIndex += _engineSettings.MaxPartitionSize)
             {
                 if (properties.ContainsKey(providerSummariesPartitionIndex))
                 {

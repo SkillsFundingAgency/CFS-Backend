@@ -519,6 +519,13 @@
         "description": "Batch count for partitioning allocation line status update jobs"
       },
       "defaultValue": 500
+    },
+    "CalcEngineMaxPartitionSize": {
+      "type": "int",
+      "metadata": {
+        "description": "Batch count for partitioning allocation line status update jobs"
+      },
+      "defaultValue": 100
     }
   },
   "variables": {
@@ -1548,6 +1555,10 @@
             {
               "name": "features:jobServiceForMainActionsEnabled",
               "value": "[parameters('EnableJobServiceForMainActions')]"
+            },
+            {
+              "name": "engineSettings:MaxPartitionSize",
+              "value": "[parameters('CalcEngineMaxPartitionSize')]"
             }
           ]
         }
@@ -2807,6 +2818,10 @@
             {
               "name": "features:aggregateOverCalculationsEnabled",
               "value": "[parameters('AggregateOverCalculationsEnabled')]"
+            },
+            {
+              "name": "engineSettings:MaxPartitionSize",
+              "value": "[parameters('CalcEngineMaxPartitionSize')]"
             }
           ]
         }

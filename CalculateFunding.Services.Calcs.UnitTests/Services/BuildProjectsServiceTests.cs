@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using CalculateFunding.Services.Core.Options;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1775,6 +1776,102 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public async Task UpdateAllocations_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSizeAndIsJobServiceIsEnabledAndMaxPartitionSizeIs10_CreatesJobsWithCorrectBatches()
+        {
+            //Arrange
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1"
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            buildProjectsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(999);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(jobViewModelResponse);
+
+            jobsApiClient
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(CreateJobs());
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ILogger logger = CreateLogger();
+
+            EngineSettings engineSettings = CreateEngineSettings(100);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+
+            IEnumerable<JobCreateModel> jobModelsToTest = null;
+
+            jobsApiClient
+                .When(x => x.CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>()))
+                .Do(y => jobModelsToTest = y.Arg<IEnumerable<JobCreateModel>>());
+
+            //Act
+            await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+            jobModelsToTest.Should().HaveCount(10);
+            jobModelsToTest.ElementAt(0).Properties["provider-summaries-partition-index"].Should().Be("0");
+            jobModelsToTest.ElementAt(1).Properties["provider-summaries-partition-index"].Should().Be("100");
+            jobModelsToTest.ElementAt(2).Properties["provider-summaries-partition-index"].Should().Be("200");
+            jobModelsToTest.ElementAt(3).Properties["provider-summaries-partition-index"].Should().Be("300");
+            jobModelsToTest.ElementAt(4).Properties["provider-summaries-partition-index"].Should().Be("400");
+            jobModelsToTest.ElementAt(5).Properties["provider-summaries-partition-index"].Should().Be("500");
+            jobModelsToTest.ElementAt(6).Properties["provider-summaries-partition-index"].Should().Be("600");
+            jobModelsToTest.ElementAt(7).Properties["provider-summaries-partition-index"].Should().Be("700");
+            jobModelsToTest.ElementAt(8).Properties["provider-summaries-partition-index"].Should().Be("800");
+            jobModelsToTest.ElementAt(9).Properties["provider-summaries-partition-index"].Should().Be("900");
+        }
+
+        [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersAndIsJobServiceEnabledOnButOnlyCreatedFiveJobs_ThrowsExceptionLogsAnError()
         {
             //Arrange
@@ -2519,7 +2616,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationService calculationService = null,
             ICalculationsRepository calculationsRepository = null,
             IFeatureToggle featureToggle = null,
-            IJobsApiClient jobsApiClient = null)
+            IJobsApiClient jobsApiClient = null,
+            EngineSettings engineSettings = null)
         {
             return new BuildProjectsService(
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
@@ -2535,10 +2633,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository ?? CreateCalculationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                CalcsResilienceTestHelper.GenerateTestPolicies());
+                CalcsResilienceTestHelper.GenerateTestPolicies(),
+                engineSettings ?? CreateEngineSettings());
         }
 
-        static IFeatureToggle CreateFeatureToggle()
+        private static EngineSettings CreateEngineSettings(int maxPartitionSize = 1000)
+        {
+            return new EngineSettings
+            {
+                MaxPartitionSize = maxPartitionSize
+            };
+        }
+
+        private static IFeatureToggle CreateFeatureToggle()
         {
             return Substitute.For<IFeatureToggle>();
         }

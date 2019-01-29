@@ -8,6 +8,11 @@
         public int ProviderBatchSize { get; set; } = 100;
 
         /// <summary>
+        /// Number of providers to process at once (calculate, save, send test messages) in the Calculation Engine
+        /// </summary>
+        public int MaxPartitionSize { get; set; } = 100;
+
+        /// <summary>
         /// Number of parallel saves for Calculation results per provider
         /// </summary>
         public int SaveProviderDegreeOfParallelism { get; set; } = 5;
