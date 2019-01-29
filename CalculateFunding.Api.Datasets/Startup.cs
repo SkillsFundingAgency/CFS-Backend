@@ -1,5 +1,10 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Common.WebApi.Http;
+using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.MappingProfiles;
@@ -27,11 +32,6 @@ using Microsoft.Extensions.DependencyInjection;
 using OfficeOpenXml;
 using Polly;
 using Polly.Bulkhead;
-using CalculateFunding.Common.Interfaces;
-using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Common.WebApi.Extensions;
-using CalculateFunding.Common.WebApi.Http;
-using CalculateFunding.Common.WebApi.Middleware;
 
 namespace CalculateFunding.Api.Datasets
 {
@@ -183,6 +183,9 @@ namespace CalculateFunding.Api.Datasets
 
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
+
+            builder
+                .AddSingleton<IResultsRepository, ResultsRepository>();
 
             builder
                 .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();

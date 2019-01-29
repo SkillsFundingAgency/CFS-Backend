@@ -37,3 +37,5 @@ Move allversionable history to own entities
 CalculateFunding.Services.Calculator.AllocationModelTests.Execute_GivenAssembly_Executes fails because of a missing reference to Microsoft.VisualBasic.dll v10.0.4.0. Either
 	- Maybe find out why compiled calculation code was against v10.0.4.0 rather than latest version used elsewhere (preferred)
 	- Find a way to reference locally - how to install v10.0.4.0 or do a binding redirect (old .Net way won't work)
+
+Setting scoped providers should be done in Datasets and then called from Calcs / ProcessDataset over HTTP as an API

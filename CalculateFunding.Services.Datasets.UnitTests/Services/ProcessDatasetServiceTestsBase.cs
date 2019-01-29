@@ -1,9 +1,9 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
@@ -32,6 +32,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
             IProviderRepository providerRepository = null,
+            IResultsRepository resultsRepository = null,
             IProvidersResultsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
@@ -49,6 +50,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository ?? CreateCalcsRepository(),
                 blobClient ?? CreateBlobClient(),
                 providerResultsRepository ?? CreateProviderResultsRepository(),
+                resultsRepository ?? CreateResultsRepository(),
                 providerRepository ?? CreateProviderRepository(),
                 versionRepository ?? CreateVersionRepository(),
                 logger ?? CreateLogger(),
@@ -106,6 +108,11 @@ namespace CalculateFunding.Services.Datasets.Services
         protected static IProvidersResultsRepository CreateProviderResultsRepository()
         {
             return Substitute.For<IProvidersResultsRepository>();
+        }
+
+        protected static IResultsRepository CreateResultsRepository()
+        {
+            return Substitute.For<IResultsRepository>();
         }
 
         protected static IExcelDatasetReader CreateExcelDatasetReader()

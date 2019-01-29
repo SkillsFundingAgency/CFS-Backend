@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
@@ -19,7 +20,6 @@ using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using FluentAssertions;
@@ -1253,6 +1253,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
 
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(cacheKey)
+                .Returns(10);
+
             IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
             ILogger logger = CreateLogger();
@@ -2443,7 +2447,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectButNoScopedProviderssAndIsJobServiceEnabledOn_DoesNotCreateChildJobs()
+        public async Task UpdateAllocations_GivenBuildProjectButNoScopedProvidersAndIsJobServiceEnabledOn_DoesNotCreateChildJobs()
         {
             //Arrange
             string parentJobId = "job-id-1";
@@ -2556,11 +2560,6 @@ namespace CalculateFunding.Services.Calcs.Services
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
-            await
-                providerResultsRepository
-                    .DidNotReceive()
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
-
             await
                 jobsApiClient
                     .DidNotReceive()

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -26,7 +27,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
@@ -49,6 +49,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IBlobClient _blobClient;
         private readonly IProvidersResultsRepository _providersResultsRepository;
+        private readonly IResultsRepository _resultsRepository;
         private readonly IProviderRepository _providerRepository;
         private readonly IVersionRepository<ProviderSourceDatasetVersion> _sourceDatasetsVersionRepository;
         private readonly ILogger _logger;
@@ -67,6 +68,7 @@ namespace CalculateFunding.Services.Datasets
             ICalcsRepository calcsRepository,
             IBlobClient blobClient,
             IProvidersResultsRepository providersResultsRepository,
+            IResultsRepository resultsRepository,
             IProviderRepository providerRepository,
             IVersionRepository<ProviderSourceDatasetVersion> sourceDatasetsVersionRepository,
             ILogger logger,
@@ -82,6 +84,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(providersResultsRepository, nameof(providersResultsRepository));
+            Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(providerRepository, nameof(providerRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -96,6 +99,7 @@ namespace CalculateFunding.Services.Datasets
             _calcsRepository = calcsRepository;
             _blobClient = blobClient;
             _providersResultsRepository = providersResultsRepository;
+            _resultsRepository = resultsRepository;
             _providerRepository = providerRepository;
             _sourceDatasetsVersionRepository = sourceDatasetsVersionRepository;
             _logger = logger;
@@ -642,7 +646,7 @@ namespace CalculateFunding.Services.Datasets
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
             IEnumerable<string> providerIdsAll = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _providersResultsRepository.GetAllProviderIdsForSpecificationid(specificationId));
+                _resultsRepository.GetAllProviderIdsForSpecificationId(specificationId));
 
             IList<ProviderSummary> providerSummaries = new List<ProviderSummary>();
 

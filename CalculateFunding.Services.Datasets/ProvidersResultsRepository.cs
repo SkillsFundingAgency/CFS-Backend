@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
@@ -31,13 +30,6 @@ namespace CalculateFunding.Services.Datasets
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
 
             return health;
-        }
-
-        public async Task<IEnumerable<string>> GetAllProviderIdsForSpecificationid(string specificationId)
-        {
-            IEnumerable<ProviderSourceDataset> providerSourceDatasets = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDataset)}'", -1, specificationId);
-
-            return providerSourceDatasets.Select(m => m.ProviderId).Distinct();
         }
 
         public Task<IEnumerable<ProviderSourceDatasetHistory>> GetProviderSourceDatasetHistories(string specificationId, string relationshipId)

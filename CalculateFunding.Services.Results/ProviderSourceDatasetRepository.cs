@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IEnumerable<string>> GetAllScopedProviderIdsForSpecificationId(string specificationId)
         {
-            IEnumerable<dynamic> providerSourceDatasets = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.content.providerId FROM Root r WHERE r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDataset)}' AND r.deleted = false", true);
+            IEnumerable<dynamic> providerSourceDatasets = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.content.providerId FROM Root r WHERE r.content.specificationId = '{specificationId}' AND r.documentType = '{nameof(ProviderSourceDataset)}' AND r.deleted = false AND r.content.definesScope = true", true);
 
             IEnumerable<string> providerIds = providerSourceDatasets.Select(m => new string(m.providerId)).Distinct();
 

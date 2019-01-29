@@ -1,4 +1,11 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Repositories.Common.Search.Results;
@@ -6,14 +13,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -60,7 +60,9 @@ namespace CalculateFunding.Services.Calcs
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
+            {
                 throw new ArgumentNullException(nameof(specificationId));
+            }
 
             string url = $"{getProviderResultsUrl}{specificationId}";
 
@@ -87,10 +89,14 @@ namespace CalculateFunding.Services.Calcs
         public Task<IEnumerable<ProviderSourceDataset>> GetProviderSourceDatasetsByProviderIdAndSpecificationId(string providerId, string specificationId)
         {
             if (string.IsNullOrWhiteSpace(providerId))
+            {
                 throw new ArgumentNullException(nameof(providerId));
+            }
 
             if (string.IsNullOrWhiteSpace(specificationId))
+            {
                 throw new ArgumentNullException(nameof(specificationId));
+            }
 
             string url = string.Format(getProviderSourceDatasets, providerId, specificationId);
 
@@ -111,7 +117,7 @@ namespace CalculateFunding.Services.Calcs
                 throw new Exception("Invalid provider count in cache");
             }
 
-            if(allSummariesCount > 0)
+            if (allSummariesCount > 0)
             {
                 allCachedProviders = await _cacheProvider.ListRangeAsync<ProviderSummary>(CacheKeys.AllProviderSummaries, 0, allSummariesCount);
             }
@@ -150,7 +156,9 @@ namespace CalculateFunding.Services.Calcs
         public Task<IEnumerable<string>> GetScopedProviderIds(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
+            {
                 throw new ArgumentNullException(nameof(specificationId));
+            }
 
             string url = $"{getScopedProviderIdsUrl}{specificationId}";
 
@@ -237,12 +245,16 @@ namespace CalculateFunding.Services.Calcs
         int GetPageCount(int totalCount, int maxResultsCount = MaxResultsCount)
         {
             if ((totalCount > 0) && (totalCount < MaxResultsCount))
+            {
                 return 1;
+            }
 
             int pageCount = totalCount / maxResultsCount;
 
             if (pageCount % MaxResultsCount != 0)
+            {
                 pageCount += 1;
+            }
 
             return pageCount;
         }
