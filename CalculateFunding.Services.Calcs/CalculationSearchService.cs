@@ -34,8 +34,6 @@ namespace CalculateFunding.Services.Calcs
 
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
-        private CalculationSearchResults results = new CalculationSearchResults();
-
         public CalculationSearchService(ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository)
         {
@@ -73,17 +71,20 @@ namespace CalculateFunding.Services.Calcs
             {
                 return new BadRequestObjectResult("An invalid facet count was specified");
             }
-
+			
             IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = BuildSearchTasks(searchModel);
 
             try
             {
-                await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
+				await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
+	            CalculationSearchResults results = new CalculationSearchResults();
 
-                foreach(var searchTask in searchTasks)
-                    ProcessSearchResults(searchTask.Result);
+	            foreach (var searchTask in searchTasks)
+	            {
+		            ProcessSearchResults(searchTask.Result, results);
+	            }
 
-                return new OkObjectResult(results);
+	            return new OkObjectResult(results);
             }
             catch (FailedToQuerySearchException exception)
             {
@@ -160,23 +161,23 @@ namespace CalculateFunding.Services.Calcs
         Task<SearchResults<CalculationIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
-            return Task.Run(() =>
-            {
-                return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
-                {
-                    Skip = skip,
-                    Top = searchModel.Top,
-                    SearchMode = SearchMode.Any,
-                    SearchFields = new List<string> { "name" },
-                    IncludeTotalResultCount = true,
-                    Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
-                    OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
-                    QueryType = QueryType.Full
-                });
-            });
-        }
+			return Task.Run(() =>
+			{
+				return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+				{
+					Skip = skip,
+					Top = searchModel.Top,
+					SearchMode = SearchMode.Any,
+					SearchFields = new List<string> { "name" },
+					IncludeTotalResultCount = true,
+					Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
+					OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
+					QueryType = QueryType.Full
+				});
+			});
+		}
 
-        void ProcessSearchResults(SearchResults<CalculationIndex> searchResult)
+        void ProcessSearchResults(SearchResults<CalculationIndex> searchResult, CalculationSearchResults results)
         {
             if (!searchResult.Facets.IsNullOrEmpty())
             {

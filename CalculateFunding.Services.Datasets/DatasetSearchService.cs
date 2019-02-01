@@ -32,8 +32,6 @@ namespace CalculateFunding.Services.Datasets
 
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
-        private DatasetSearchResults results = new DatasetSearchResults();
-
         public DatasetSearchService(ILogger logger,
             ISearchRepository<DatasetIndex> searchRepository)
         {
@@ -59,7 +57,7 @@ namespace CalculateFunding.Services.Datasets
 
         async public Task<IActionResult> SearchDatasets(HttpRequest request)
         {
-            string json = await request.GetRawBodyStringAsync();
+			string json = await request.GetRawBodyStringAsync();
 
             SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
 
@@ -76,10 +74,13 @@ namespace CalculateFunding.Services.Datasets
             {
                 await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
-                foreach (var searchTask in searchTasks)
-                    ProcessSearchResults(searchTask.Result, searchModel);
+	            DatasetSearchResults results = new DatasetSearchResults();
+	            foreach (var searchTask in searchTasks)
+	            {
+		            ProcessSearchResults(searchTask.Result, results);
+	            }
 
-                return new OkObjectResult(results);
+	            return new OkObjectResult(results);
             }
             catch (FailedToQuerySearchException exception)
             {
@@ -170,7 +171,7 @@ namespace CalculateFunding.Services.Datasets
             });
         }
 
-        void ProcessSearchResults(SearchResults<DatasetIndex> searchResult, SearchModel searchModel)
+        void ProcessSearchResults(SearchResults<DatasetIndex> searchResult, DatasetSearchResults results)
         {
             if (!searchResult.Facets.IsNullOrEmpty())
             {
