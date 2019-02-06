@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using System.Xml.Serialization;
-using CalculateFunding.Models.External.AtomItems;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;

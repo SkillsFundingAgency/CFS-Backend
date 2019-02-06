@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Api.External.V2.Models;
@@ -46,12 +45,11 @@ namespace CalculateFunding.Api.External.V2.Services
 
         AllocationModel CreateAllocation(PublishedProviderResult publishedProviderResult)
         {
-	        return new AllocationModel
+            return new AllocationModel
             {
                 AllocationResultTitle = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Title,
                 AllocationResultId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId,
                 AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
-                AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
                 AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major : 0,
                 AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor : 0,
                 AllocationLine = new Models.AllocationLine
@@ -102,20 +100,21 @@ namespace CalculateFunding.Api.External.V2.Services
                     CloseDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateClosed,
                     CrmAccountId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.CrmAccountId,
                     NavVendorNo = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.NavVendorNo,
-                    Status = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status
+                    Status = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
+                    ProviderId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Id,
 
                 },
                 ProfilePeriods = new Collection<ProfilePeriod>(publishedProviderResult.ProfilingPeriods?.Select(m =>
-		            new ProfilePeriod
-		            {
-			            DistributionPeriod = m.DistributionPeriod,
-			            Occurrence = m.Occurrence,
-			            Period = m.Period,
-			            PeriodType = m.Type,
-			            PeriodYear = m.Year.ToString(),
-			            ProfileValue = (decimal)m.Value
-		            }
-	            ).ToArraySafe())
+                    new ProfilePeriod
+                    {
+                        DistributionPeriod = m.DistributionPeriod,
+                        Occurrence = m.Occurrence,
+                        Period = m.Period,
+                        PeriodType = m.Type,
+                        PeriodYear = m.Year.ToString(),
+                        ProfileValue = (decimal)m.Value
+                    }
+                ).ToArraySafe())
             };
         }
 

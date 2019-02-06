@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Newtonsoft.Json;
@@ -33,7 +32,7 @@ namespace CalculateFunding.Api.External.Swagger.OperationFilters
                 {
                     if (response.Value != null)
                     {
-                        var provider = (IExamplesProvider)Activator.CreateInstance(attr.ExamplesProviderType);
+                        IExamplesProvider provider = (IExamplesProvider)Activator.CreateInstance(attr.ExamplesProviderType);
 
                         var serializerSettings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver(), Formatting = Formatting.Indented, NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore };
                         response.Value.Examples = FormatJson(provider, serializerSettings, true);
@@ -56,10 +55,10 @@ namespace CalculateFunding.Api.External.Swagger.OperationFilters
                     examples = new Dictionary<string, object>
                     {
                         {
-                            "application/vnd.sfa.allocation.1+atom+json", provider.GetExamples()
+                            "application/atom+json", provider.GetExamples()
                         },
                         {
-                            "application/vnd.sfa.allocation.1+atom+xml", stringwriter.ToString()
+                            "application/atom+xml", stringwriter.ToString()
                         }
                     };
                 }
@@ -68,10 +67,10 @@ namespace CalculateFunding.Api.External.Swagger.OperationFilters
                     examples = new Dictionary<string, object>
                     {
                         {
-                            "application/vnd.sfa.allocation.1+json", provider.GetExamples()
+                            "application/json", provider.GetExamples()
                         },
                         {
-                            "application/vnd.sfa.allocation.1+xml", stringwriter.ToString()
+                            "application/xml", stringwriter.ToString()
                         }
                     };
                 }

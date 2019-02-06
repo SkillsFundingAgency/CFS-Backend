@@ -392,7 +392,7 @@
 	],
 	"TotalAllocation": 10000.0
 }</value>
-    <comment>sample local authority reaults data</comment>
+    <comment>sample local authority results data</comment>
   </data>
   <data name="V1_Sample_Allocation_Feeds" xml:space="preserve">
     <value>{
@@ -880,6 +880,7 @@
     "Name": "Primrose Hill School",
     "LegalName": "",
     "UkPrn": "10073851",
+    "ProviderId": "10073851",
     "Upin": "",
     "Urn": "100020",
     "DfeEstablishmentNumber": "2475",
@@ -996,6 +997,7 @@
           "Provider": {
             "Name": "Brookfield Primary School",
             "LegalName": null,
+"ProviderId": "10078064",
             "UkPrn": "10078064",
             "Upin": "",
             "Urn": "100011",
@@ -1081,6 +1083,7 @@
             "Name": "Alderwood Primary School",
             "LegalName": null,
             "UkPrn": "10063107",
+		"ProviderId": "10063107",
             "Upin": "",
             "Urn": "143601",
             "DfeEstablishmentNumber": "2024",
@@ -1165,6 +1168,7 @@
             "Name": "Acland Burghley School",
             "LegalName": null,
             "UkPrn": "10000101",
+	"ProviderId": "10000101",
             "Upin": "",
             "Urn": "100053",
             "DfeEstablishmentNumber": "4285",

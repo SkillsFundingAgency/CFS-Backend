@@ -31,12 +31,12 @@ namespace CalculateFunding.Api.External.V2.Services
             _featureToggle = featureToggle;
         }
 
-        public async Task<IActionResult> GetNotifications(HttpRequest request, int? pageRef, int? startYear = null, int? endYear= null, string[] fundingStreamIds = null, string[] allocationLineIds= null, string[] allocationStatuses = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, int? pageSize = MaxRecords)
+        public async Task<IActionResult> GetNotifications(HttpRequest request, int? pageRef, int? startYear = null, int? endYear = null, string[] fundingStreamIds = null, string[] allocationLineIds = null, string[] allocationStatuses = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, int? pageSize = MaxRecords)
         {
-			pageSize = pageSize ?? MaxRecords;
-	        string[] statusesArray = allocationStatuses ?? new[] { "Published" };
+            pageSize = pageSize ?? MaxRecords;
+            string[] statusesArray = allocationStatuses ?? new[] { "Published" };
 
-			if (pageRef < 1)
+            if (pageRef < 1)
             {
                 return new BadRequestObjectResult("Page ref should be at least 1");
             }
@@ -45,7 +45,7 @@ namespace CalculateFunding.Api.External.V2.Services
             {
                 return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
             }
-			
+
             SearchFeedV2<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeedsV2(pageRef, pageSize.Value, startYear, endYear, ukprn, laCode, isAllocationLineContractRequired, statusesArray, fundingStreamIds, allocationLineIds);
 
             if (searchFeed == null || searchFeed.TotalCount == 0 || searchFeed.Entries.IsNullOrEmpty())
@@ -60,15 +60,15 @@ namespace CalculateFunding.Api.External.V2.Services
 
         AtomFeed<AllocationModel> CreateAtomFeed(SearchFeedV2<AllocationNotificationFeedIndex> searchFeed, HttpRequest request)
         {
-			const string notificationsEndpointName = "notifications";
-			string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(notificationsEndpointName, StringComparison.Ordinal) + notificationsEndpointName.Length);
-	        string allocationTrimmedRequestPath = baseRequestPath.Replace(notificationsEndpointName, string.Empty).TrimEnd('/');
+            const string notificationsEndpointName = "notifications";
+            string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(notificationsEndpointName, StringComparison.Ordinal) + notificationsEndpointName.Length);
+            string allocationTrimmedRequestPath = baseRequestPath.Replace(notificationsEndpointName, string.Empty).TrimEnd('/');
 
-			string queryString = request.QueryString.Value;
+            string queryString = request.QueryString.Value;
 
-	        string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{baseRequestPath}{{0}}{(!string.IsNullOrWhiteSpace(queryString) ? queryString : "")}";
+            string notificationsUrl = $"{request.Scheme}://{request.Host.Value}{baseRequestPath}{{0}}{(!string.IsNullOrWhiteSpace(queryString) ? queryString : "")}";
 
-			AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
+            AtomFeed<AllocationModel> atomFeed = new AtomFeed<AllocationModel>
             {
                 Id = Guid.NewGuid().ToString("N"),
                 Title = "Calculate Funding Service Allocation Feed",
@@ -81,21 +81,21 @@ namespace CalculateFunding.Api.External.V2.Services
                 Rights = "Copyright (C) 2018 Department for Education",
                 Link = searchFeed.GenerateAtomLinksForResultGivenBaseUrl(notificationsUrl).ToList(),
                 AtomEntry = new List<AtomEntry<AllocationModel>>(),
-				IsArchived = searchFeed.IsArchivePage
-				
+                IsArchived = searchFeed.IsArchivePage
+
             };
 
             foreach (AllocationNotificationFeedIndex feedIndex in searchFeed.Entries)
             {
                 atomFeed.AtomEntry.Add(new AtomEntry<AllocationModel>
                 {
-                    Id = feedIndex.Id,
+                    Id = $"{request.Scheme}://{request.Host.Value}{allocationTrimmedRequestPath}/{feedIndex.Id}",
                     Title = feedIndex.Title,
                     Summary = feedIndex.Summary,
                     Published = feedIndex.DatePublished,
                     Updated = feedIndex.DateUpdated.Value,
-                    Version = feedIndex.AllocationVersionNumber.ToString(),
-                    Link = feedIndex.AllocationStatus == "Published" ? new AtomLink("Allocation", $"{ request.Scheme }://{request.Host.Value}{allocationTrimmedRequestPath}/{feedIndex.Id}") : null,
+                    Version = $"{feedIndex.MajorVersion}.{feedIndex.MinorVersion}",
+                    Link = new AtomLink("Allocation", $"{ request.Scheme }://{request.Host.Value}{allocationTrimmedRequestPath}/{feedIndex.Id}"),
                     Content = new AtomContent<AllocationModel>
                     {
                         Allocation = new AllocationModel
@@ -139,7 +139,8 @@ namespace CalculateFunding.Api.External.V2.Services
                                 CloseDate = feedIndex.ProviderClosedDate,
                                 CrmAccountId = feedIndex.CrmAccountId,
                                 NavVendorNo = feedIndex.NavVendorNo,
-                                Status = feedIndex.ProviderStatus
+                                Status = feedIndex.ProviderStatus,
+                                ProviderId = feedIndex.ProviderId,
                             },
                             AllocationLine = new AllocationLine
                             {
@@ -149,7 +150,6 @@ namespace CalculateFunding.Api.External.V2.Services
                                 FundingRoute = feedIndex.AllocationLineFundingRoute,
                                 ContractRequired = feedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
-                            AllocationVersionNumber = feedIndex.AllocationVersionNumber,
                             AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
                             AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                             AllocationStatus = feedIndex.AllocationStatus,
@@ -166,5 +166,5 @@ namespace CalculateFunding.Api.External.V2.Services
             return atomFeed;
         }
 
-	}
+    }
 }

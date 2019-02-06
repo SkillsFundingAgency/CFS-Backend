@@ -2,14 +2,12 @@
 using System.IO;
 using System.Reflection;
 using CalculateFunding.Api.External.Swagger.Helpers.Readers;
-using CalculateFunding.Api.External.Swagger.OperationFilters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.PlatformAbstractions;
 using Swashbuckle.AspNetCore.Examples;
 using Swashbuckle.AspNetCore.Swagger;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.Swagger
 {
@@ -17,7 +15,7 @@ namespace CalculateFunding.Api.External.Swagger
     {
         static Info CreateInfoForApiVersion(ApiVersionDescription description)
         {
-            string swaggerDocsTopContents = SwaggerTopContentReader.ReadContents();
+            string swaggerDocsTopContents = SwaggerTopContentReader.ReadContents(description.ApiVersion.MajorVersion.Value);
 
             Info info = new Info()
             {
@@ -28,7 +26,7 @@ namespace CalculateFunding.Api.External.Swagger
                 {
                     Name = "Calculate Funding Team",
                     Email = "calculate-funding@education.gov.uk"
-				},
+                },
                 License = new License
                 {
                     Name = "MIT License",
@@ -82,7 +80,7 @@ namespace CalculateFunding.Api.External.Swagger
                 foreach (var description in provider.ApiVersionDescriptions)
                 {
                     options.DocExpansion(DocExpansion.List);
-                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json","Calculation Funding " + description.GroupName.ToUpperInvariant());
+                    options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", "Calculation Funding " + description.GroupName.ToUpperInvariant());
                     options.RoutePrefix = "docs";
                 }
             });

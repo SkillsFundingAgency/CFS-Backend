@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Xml.Serialization;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Api.External.V2.Models
@@ -10,6 +11,7 @@ namespace CalculateFunding.Api.External.V2.Models
     public class AllocationProviderModel
     {
         [JsonIgnore]
+        [XmlIgnore]
         public string ProviderId { get; set; }
 
         /// <summary>

@@ -15,7 +15,7 @@ namespace CalculateFunding.Api.External.V2.Models
         }
 
         public AllocationWithHistoryModel(AllocationModel allocationModel) :
-            base(allocationModel.FundingStream, allocationModel.Period, allocationModel.Provider, allocationModel.AllocationLine, allocationModel.AllocationVersionNumber,
+            base(allocationModel.FundingStream, allocationModel.Period, allocationModel.Provider, allocationModel.AllocationLine,
                 allocationModel.AllocationStatus, allocationModel.AllocationAmount, allocationModel.AllocationResultId)
         {
             ProfilePeriods = allocationModel.ProfilePeriods;
@@ -23,7 +23,7 @@ namespace CalculateFunding.Api.External.V2.Models
 
         public AllocationWithHistoryModel(AllocationFundingStreamModel fundingStream, Period period, AllocationProviderModel provider, AllocationLine allocationLine,
            int allocationVersionNumber, string status, decimal allocationAmount, int? allocationLearnerCount, string allocationResultId, Collection<ProfilePeriod> profilePeriods)
-            : base(fundingStream, period, provider, allocationLine, allocationVersionNumber, status, allocationAmount, allocationResultId)
+            : base(fundingStream, period, provider, allocationLine, status, allocationAmount, allocationResultId)
         {
             ProfilePeriods = profilePeriods;
         }

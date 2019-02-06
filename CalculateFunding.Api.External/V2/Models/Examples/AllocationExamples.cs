@@ -9,6 +9,9 @@ namespace CalculateFunding.Api.External.V2.Models.Examples
         {
             AllocationModel allocation = JsonConvert.DeserializeObject<AllocationModel>(Properties.Resources.V2_Sample_Allocation);
 
+            // Provider ID is XML ignored and json ignored, so provider ID does not get set from the value in the resources sample json
+            allocation.Provider.ProviderId = allocation.Provider.UkPrn;
+
             return allocation;
         }
     }

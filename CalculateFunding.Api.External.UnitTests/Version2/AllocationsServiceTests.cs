@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using System.Threading.Tasks;
 using CalculateFunding.Api.External.V2.Models;
 using CalculateFunding.Api.External.V2.Services;
 using CalculateFunding.Common.FeatureToggles;
@@ -116,7 +115,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 .NotBeNull();
 
             allocationModel.AllocationResultId.Should().Be(allocationResultId);
-            allocationModel.AllocationVersionNumber.Should().Be(1);
             allocationModel.AllocationStatus.Should().Be("Published");
             allocationModel.AllocationAmount.Should().Be(50);
             allocationModel.FundingStream.Id.Should().Be("fs-1");

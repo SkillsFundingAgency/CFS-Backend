@@ -15,16 +15,56 @@ namespace CalculateFunding.Api.External.V2.Models
         public AllocationModel() { }
 
         public AllocationModel(AllocationFundingStreamModel fundingStream, Period period, AllocationProviderModel provider, AllocationLine allocationLine,
-           int allocationVersionNumber, string status, decimal allocationAmount, string allocationResultId)
+            string status, decimal allocationAmount, string allocationResultId)
         {
             FundingStream = fundingStream;
             Period = period;
             Provider = provider;
             AllocationLine = allocationLine;
-            AllocationVersionNumber = allocationVersionNumber;
             AllocationStatus = status;
             AllocationAmount = allocationAmount;
             AllocationResultId = allocationResultId;
+        }
+
+        /// <summary>
+        /// The allocation id of allocation model
+        /// </summary>
+        public string AllocationId
+        {
+            get
+            {
+                if (AllocationLine == null)
+                {
+                    throw new InvalidOperationException($"{nameof(AllocationLine)} is null");
+                }
+
+                if (string.IsNullOrWhiteSpace(AllocationLine.Id))
+                {
+                    throw new InvalidOperationException($"{nameof(AllocationLine)}.{nameof(AllocationLine.Id)} is null or empty");
+                }
+
+                if (Period == null)
+                {
+                    throw new InvalidOperationException($"{nameof(Period)} is null");
+                }
+
+                if (string.IsNullOrWhiteSpace(Period.Id))
+                {
+                    throw new InvalidOperationException($"{nameof(Period)}.{nameof(Period.Id)} is null or empty");
+                }
+
+                if (Provider == null)
+                {
+                    throw new InvalidOperationException($"{nameof(Provider)} is null");
+                }
+
+                if (string.IsNullOrWhiteSpace(Provider.ProviderId))
+                {
+                    throw new InvalidOperationException($"{nameof(Provider)}.{nameof(Provider.ProviderId)} is null or empty");
+                }
+
+                return $"{AllocationLine.Id}-{Period.Id}-{Provider.ProviderId}";
+            }
         }
 
         /// <summary>
@@ -35,7 +75,7 @@ namespace CalculateFunding.Api.External.V2.Models
         /// <summary>
         /// The current allocation result title
         /// </summary>
-        public string AllocationResultTitle{ get; set; }
+        public string AllocationResultTitle { get; set; }
 
         /// <summary>
         /// The funding stream associated with the allocation model
@@ -56,11 +96,6 @@ namespace CalculateFunding.Api.External.V2.Models
         /// The allocation line associated with the allocation model
         /// </summary>
         public AllocationLine AllocationLine { get; set; }
-
-        /// <summary>
-        /// The current allocation version number
-        /// </summary>
-        public int AllocationVersionNumber { get; set; }
 
         /// <summary>
         /// The current allocation major version
