@@ -4,6 +4,8 @@ Public Class BaseCalculation
 
     Public Property Aggregations As Dictionary(Of String, Decimal)
 
+    Public Property CalcResultsCache As Dictionary(Of String, System.Nullable(Of Decimal))
+
 #Region "Legacy Store Support"
 
     Public Property rid As String

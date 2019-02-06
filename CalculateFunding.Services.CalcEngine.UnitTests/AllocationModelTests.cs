@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Calculator
             calcResults.Count().Should().Be(3);
             calcResults.ElementAt(0).Value.Should().NotBeNull();
             calcResults.ElementAt(1).Value.Should().BeNull();
-            calcResults.ElementAt(1).Exception.Message.Should().Be("The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop");
+            calcResults.ElementAt(1).Exception.InnerException.Message.Should().Be("The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop");
             calcResults.ElementAt(2).Value.Should().NotBeNull();
         }
 
@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Calculator
             calcResults.Count().Should().Be(1);
             calcResults.ElementAt(0).Value.Should().BeNull();
             calcResults.ElementAt(0).Exception.Should().NotBeNull();
-            calcResults.ElementAt(0).Exception.Message.Should().Be("Datasets.ABPESportsAggregated2910003.FullTimeNumberOfPupilsInYearGroup1SoleRegistrations does not have an aggregated value");
+            calcResults.ElementAt(0).Exception.InnerException.Message.Should().Be("Datasets.ABPESportsAggregated2910003.FullTimeNumberOfPupilsInYearGroup1SoleRegistrations does not have an aggregated value");
         }
 
         [TestMethod]

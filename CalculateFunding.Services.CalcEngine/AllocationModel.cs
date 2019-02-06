@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Datasets.Schema;
@@ -14,6 +13,7 @@ namespace CalculateFunding.Services.Calculator
 {
     public class AllocationModel : IAllocationModel
     {
+        
         private readonly List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
         private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();
         private readonly object _instance;
@@ -107,6 +107,7 @@ namespace CalculateFunding.Services.Calculator
 
         public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null, IEnumerable<string> calcsToProcess = null)
         {
+         
             HashSet<string> datasetNamesUsed = new HashSet<string>();
             foreach (ProviderSourceDataset dataset in datasets)
             {
@@ -176,6 +177,17 @@ namespace CalculateFunding.Services.Calculator
                 }
             }
 
+            PropertyInfo calcResultsSetter = _instance.GetType().GetProperty("CalcResultsCache");
+
+            if (calcResultsSetter != null)
+            {
+                Type propType = calcResultsSetter.PropertyType;
+
+                object data = Activator.CreateInstance(propType);
+
+                calcResultsSetter.SetValue(_instance, data);
+            }
+
             IList<CalculationResult> calculationResults = new List<CalculationResult>();
 
             foreach (Tuple<MethodInfo, CalculationResult> executeMethod in _methods)
@@ -189,16 +201,15 @@ namespace CalculateFunding.Services.Calculator
                 }
 
                 CalculationResult result = executeMethod.Item2;
-
                 try
                 {
-                    result.Value = CreateDynamicMethod(executeMethod.Item1, _instance)();
+                    result.Value = (decimal?)executeMethod.Item1.Invoke(_instance, null);
                 }
                 catch (Exception e)
                 {
                     result.Exception = e;
                 }
-
+             
                 calculationResults.Add(result);
             }
 
@@ -338,16 +349,6 @@ namespace CalculateFunding.Services.Calculator
                 return argument.TypedValue.Value?.ToString();
             }
             return null;
-        }
-
-        private static Func<decimal?> CreateDynamicMethod(MethodInfo methodInfo, object instance)
-        {
-            DynamicMethod dynamicMethod = new DynamicMethod("", typeof(decimal?), new Type[] { typeof(object) }, instance.GetType().Module, true);
-            ILGenerator il = dynamicMethod.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, methodInfo);
-            il.Emit(OpCodes.Ret);
-            return (Func<decimal?>)dynamicMethod.CreateDelegate(typeof(Func<decimal?>), instance);
         }
     }
 }
