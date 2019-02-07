@@ -8,19 +8,20 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using Serilog;
 
 namespace CalculateFunding.Services.Calculator
 {
     public class AllocationModel : IAllocationModel
     {
-        
         private readonly List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
         private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();
         private readonly object _instance;
         private readonly object _datasetsInstance;
         private readonly object _providerInstance;
+        private readonly ILogger _logger;
 
-        public AllocationModel(Type allocationType, Dictionary<string, Type> datasetTypes)
+        public AllocationModel(Type allocationType, Dictionary<string, Type> datasetTypes, ILogger logger)
         {
             DatasetTypes = datasetTypes;
             PropertyInfo datasetsSetter = allocationType.GetProperty("Datasets");
@@ -67,6 +68,7 @@ namespace CalculateFunding.Services.Calculator
             _datasetsInstance = Activator.CreateInstance(datasetType);
             datasetsSetter.SetValue(_instance, _datasetsInstance);
             _providerInstance = Activator.CreateInstance(providerType);
+            _logger = logger;
         }
 
         public object Instance
@@ -205,9 +207,20 @@ namespace CalculateFunding.Services.Calculator
                 {
                     result.Value = (decimal?)executeMethod.Item1.Invoke(_instance, null);
                 }
-                catch (Exception e)
+                catch (Exception exception)
                 {
-                    result.Exception = e;
+                    result.Exception = new CaclulationResultException
+                    {
+                        ExceptionType = exception.GetType().Name,
+                        Message = exception.Message,
+                        InnerException = exception.InnerException != null ? new CaclulationResultException
+                        {
+                            ExceptionType = exception.InnerException.GetType().Name,
+                            Message = exception.InnerException.Message
+                        } : null
+                    };
+
+                    _logger.Error(exception, $"Failed to create result for calculation id '{result.Calculation.Id}'");
                 }
              
                 calculationResults.Add(result);

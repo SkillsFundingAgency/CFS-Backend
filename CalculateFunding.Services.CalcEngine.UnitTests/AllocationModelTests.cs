@@ -9,6 +9,8 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -19,9 +21,11 @@ namespace CalculateFunding.Services.Calculator
         public void Execute_GivenAssembly_Executes()
         {
             //Arrange
+            ILogger logger = CreateLogger();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
 
@@ -46,9 +50,11 @@ namespace CalculateFunding.Services.Calculator
         public void Execute_GivenAssemblyThatCausesStackOverflow_ExecutesRecordsException()
         {
             //Arrange
+            ILogger logger = CreateLogger();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-stackoverflow.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
 
@@ -62,17 +68,21 @@ namespace CalculateFunding.Services.Calculator
             calcResults.Count().Should().Be(3);
             calcResults.ElementAt(0).Value.Should().NotBeNull();
             calcResults.ElementAt(1).Value.Should().BeNull();
+            calcResults.ElementAt(1).Exception.InnerException.ExceptionType.Should().Be("Exception");
             calcResults.ElementAt(1).Exception.InnerException.Message.Should().Be("The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop");
             calcResults.ElementAt(2).Value.Should().NotBeNull();
+
+            logger.Received(1).Error(Arg.Any<Exception>(), Arg.Is($"Failed to create result for calculation id '{calcResults.ElementAt(1).Calculation.Id}'"));
         }
 
         [TestMethod]
         public void Execute_GivenAssemblyWithAggregation_ExecutesEnsuresResult()
         {
             //Arrange
+            ILogger logger = CreateLogger();
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-aggregation.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium AB Test";
@@ -110,9 +120,11 @@ namespace CalculateFunding.Services.Calculator
         public void Execute_GivenAssemblyWithAggregationButFieldNotInAggregations_ReturnsNullValueRecordsException()
         {
             //Arrange
+            ILogger logger = CreateLogger();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-aggregation.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium AB Test";
@@ -144,16 +156,21 @@ namespace CalculateFunding.Services.Calculator
             calcResults.Count().Should().Be(1);
             calcResults.ElementAt(0).Value.Should().BeNull();
             calcResults.ElementAt(0).Exception.Should().NotBeNull();
+            calcResults.ElementAt(0).Exception.InnerException.ExceptionType.Should().Be("ArgumentException");
             calcResults.ElementAt(0).Exception.InnerException.Message.Should().Be("Datasets.ABPESportsAggregated2910003.FullTimeNumberOfPupilsInYearGroup1SoleRegistrations does not have an aggregated value");
+
+            logger.Received(1).Error(Arg.Any<Exception>(), Arg.Is($"Failed to create result for calculation id '{calcResults.ElementAt(0).Calculation.Id}'"));
         }
 
         [TestMethod]
         public void Execute_GivenAssemblyWithCalcAggregation_ExecutesEnsuresResult()
         {
             //Arrange
+            ILogger logger = CreateLogger();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-calc-aggregation.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
@@ -191,9 +208,11 @@ namespace CalculateFunding.Services.Calculator
         public void Execute_GivenAssemblyWithCalcAggregationAndListOfOneCalcToProcess_ExecutesEnsuresOnlyOneResultResult()
         {
             //Arrange
+            ILogger logger = CreateLogger();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-calc-aggregation.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
@@ -229,9 +248,11 @@ namespace CalculateFunding.Services.Calculator
         public void Execute_GivenAssemblyWithCalcAggregationAndListOfOneCalcToProcess_ExecutesAndEnsuresCalcNamesWithSpaceIsNotIgnored()
         {
             //Arrange
+            ILogger logger = CreateLogger();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly-with-calc-aggregation.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
@@ -282,9 +303,11 @@ namespace CalculateFunding.Services.Calculator
         public void Execute_GivenAssembly_EnsuresBindingOfDataset()
         {
             //Arrange
+            ILogger logger = CreateLogger();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
 
@@ -365,9 +388,11 @@ namespace CalculateFunding.Services.Calculator
         public void Execute_GivenAssembly_EnsuresBindingOfProvider()
         {
             //Arrange
+            ILogger logger = CreateLogger();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.test-assembly.txt");
 
-            AllocationModel allocationModel = new AllocationFactory().CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
 
@@ -551,6 +576,11 @@ namespace CalculateFunding.Services.Calculator
             {
                 data
             };
+        }
+
+        private static ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
         }
     }
 }

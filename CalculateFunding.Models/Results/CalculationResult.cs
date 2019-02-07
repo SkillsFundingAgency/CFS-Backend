@@ -25,13 +25,12 @@ namespace CalculateFunding.Models.Results
         public decimal? Value { get; set; }
 
         [JsonProperty("exception")]
-        public Exception Exception { get; set; }
+        public CaclulationResultException Exception { get; set; }
 
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
 
         [JsonProperty("version")]
         public int Version { get; set; }
-
     }
 }
