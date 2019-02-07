@@ -12,7 +12,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class CalculationTypeGenerator : VisualBasicTypeGenerator
     {
-
         public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
             var syntaxTree = SyntaxFactory.CompilationUnit()

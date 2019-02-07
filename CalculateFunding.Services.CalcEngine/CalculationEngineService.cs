@@ -338,23 +338,46 @@ namespace CalculateFunding.Services.Calculator
                 calcsToProcess = messageProperties.CalculationsToAggregate;
             }
 
-            Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
+            if (_engineSettings.CalculateProviderResultsDegreeOfParallelism > 1)
             {
-                IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
-
-                IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
-
-                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations, calcsToProcess);
-
-                if (result != null)
+                Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
                 {
-                    providerResults.Add(result);
-                }
-                else
+                    IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
+
+                    IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
+
+                    ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations, calcsToProcess);
+
+                    if (result != null)
+                    {
+                        providerResults.Add(result);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
+                    }
+                });
+            }
+            else
+            {
+                foreach (ProviderSummary provider in partitionedSummaries)
                 {
-                    throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
+                    IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
+
+                    IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
+
+                    ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations, calcsToProcess);
+
+                    if (result != null)
+                    {
+                        providerResults.Add(result);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
+                    }
                 }
-            });
+            }
 
             _logger.Information($"calculating results complete for specification id {messageProperties.SpecificationId}");
 
