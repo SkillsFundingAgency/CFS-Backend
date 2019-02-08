@@ -28,7 +28,5 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string LastUpdatedByName { get; set; }
 
         public string LastUpdatedById { get; set; }
-
-		public string BlobName { get; set; }
     }
 }

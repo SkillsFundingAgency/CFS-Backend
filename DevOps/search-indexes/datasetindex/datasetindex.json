@@ -6,7 +6,7 @@
       "type": "Edm.String",
       "key": true,
       "facetable": false,
-      "filterable": true,
+      "filterable": false,
       "retrievable": true,
       "searchable": true,
       "sortable": false,
@@ -61,7 +61,7 @@
       "filterable": true,
       "retrievable": true,
       "searchable": false,
-      "sortable": true,
+      "sortable": false,
       "analyzer": null,
       "searchAnalyzer": null,
       "indexAnalyzer": null
@@ -195,20 +195,7 @@
       "analyzer": null,
       "searchAnalyzer": null,
       "indexAnalyzer": null
-    },
-	  {
-        "name": "blobName",
-        "type": "Edm.String",
-        "key": false,
-        "facetable": false,
-        "filterable": false,
-        "retrievable": true,
-        "searchable": false,
-        "sortable": false,
-        "analyzer": null,
-        "searchAnalyzer": null,
-        "indexAnalyzer": null
-      }
+    }
   ],
 	"scoringProfiles": [],
 	"suggesters": [],

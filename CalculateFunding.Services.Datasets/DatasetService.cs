@@ -705,8 +705,7 @@ namespace CalculateFunding.Services.Datasets
                     Version = dataset.Content.Current.Version,
                     ChangeNote = dataset.Content.Current.Commment,
                     LastUpdatedByName = dataset.Content.Current.Author?.Name,
-                    LastUpdatedById = dataset.Content.Current.Author?.Id,
-					BlobName = dataset.Content.Current.BlobName
+                    LastUpdatedById = dataset.Content.Current.Author?.Id
                 };
 
                 searchEntries.Add(datasetIndex);
@@ -960,8 +959,7 @@ namespace CalculateFunding.Services.Datasets
                     Version = dataset.Current.Version,
                     ChangeNote = dataset.Current.Commment,
                     LastUpdatedById = dataset.Current.Author?.Id,
-                    LastUpdatedByName = dataset.Current.Author?.Name,
-					BlobName = dataset.Current.BlobName
+                    LastUpdatedByName = dataset.Current.Author?.Name
                 }
             });
         }

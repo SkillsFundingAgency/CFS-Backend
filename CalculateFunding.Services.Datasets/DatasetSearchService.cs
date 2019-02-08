@@ -193,8 +193,7 @@ namespace CalculateFunding.Services.Datasets
                     Version = m.Result.Version,
                     ChangeNote = m.Result.ChangeNote,
                     LastUpdatedByName = m.Result.LastUpdatedByName,
-                    LastUpdatedById = m.Result.LastUpdatedById,
-					BlobName = m.Result.BlobName
+                    LastUpdatedById = m.Result.LastUpdatedById
                 });
             }
         }
