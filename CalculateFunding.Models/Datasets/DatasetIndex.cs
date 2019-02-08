@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.Datasets
     public class DatasetIndex
     {
         [Key]
-        [IsSearchable]
+        [IsSearchable, IsFilterable]
         [JsonProperty("id")]
         public string Id { get; set; }
 
@@ -64,5 +64,8 @@ namespace CalculateFunding.Models.Datasets
         [IsFilterable, IsFacetable, IsSearchable]
         [JsonProperty("specificationNames")]
         public string[] SpecificationNames { get; set; }
+
+		[JsonProperty("blobName")]
+		public string BlobName { get; set; }
     }
 }
