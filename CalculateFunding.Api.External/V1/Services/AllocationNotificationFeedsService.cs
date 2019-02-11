@@ -108,7 +108,7 @@ namespace CalculateFunding.Api.External.V1.Services
                 atomFeed.AtomEntry.Add(new AtomEntry<AllocationModel>
                 {
                     Id = feedIndex.Id,
-                    Title = feedIndex.Title,
+                    Title = !string.IsNullOrEmpty(feedIndex.Title) ? feedIndex.Title : $"Allocation {feedIndex.AllocationLineName} was {feedIndex.AllocationStatus}",
                     Summary = feedIndex.Summary,
                     Published = feedIndex.DatePublished,
                     Updated = feedIndex.DateUpdated.Value,

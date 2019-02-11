@@ -355,6 +355,65 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
+        public async Task GetNotifications_GivenSearchFeedRetunsResultsButTitleIsBlank_EnsuresTitleGenerated()
+        {
+            //Arrange
+
+            IEnumerable<AllocationNotificationFeedIndex> allocationNotificationFeeds = CreateFeedIndexes();
+            allocationNotificationFeeds.First().Title = null;
+
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                PageRef = 3,
+                Top = 500,
+                TotalCount = 3,
+                Entries = allocationNotificationFeeds
+            };
+
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+            feedsSearchService
+                .GetFeeds(Arg.Is(3), Arg.Is(2), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("3") },
+                { "allocationStatuses", new StringValues("Published,Approved") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v1/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.QueryString.Returns(new QueryString("?pageRef=3&pageSize=2&allocationStatuses=Published,Approved"));
+            request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
+
+            //Act
+            IActionResult result = await service.GetNotifications(3, "Published,Approved", 2, request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+            AtomFeed<AllocationModel> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AllocationModel>>(contentResult.Content);
+
+            atomFeed
+                .Should()
+                .NotBeNull();
+
+            atomFeed.AtomEntry.ElementAt(0).Title.Should().Be("Allocation al 1 was Published");
+        }
+
+        [TestMethod]
         public async Task GetNotifications_GivenSearchFeedRetunsNoResultsWhenNoPageRefIsSpecified_EnsuresAtomLinksCorrect()
         {
             //Arrange
