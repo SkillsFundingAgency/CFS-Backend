@@ -20,32 +20,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
     public class AllocationsServiceTests
     {
         [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenInvalidVersion_ReturnsBadRequest()
-        {
-            //Arrange
-            int version = 0;
-
-            string allocationResultId = "12345";
-
-            AllocationsService service = CreateService();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, version, request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Invalid version supplied");
-        }
-
-        [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenNullResultFound_ReturnsNotFound()
+        public void GetAllocationByAllocationResultId_GivenNullResultFound_ReturnsNotFound()
         {
             //Arrange
             string allocationResultId = "12345";
@@ -60,7 +35,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             AllocationsService service = CreateService(resultsService);
 
             //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+            IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
 
             //Assert
             result
@@ -69,7 +44,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenResultFoundButNoHeaders_ReturnsBadRequest()
+        public void GetAllocationByAllocationResultId_GivenResultFoundButNoHeaders_ReturnsBadRequest()
         {
             //Arrange
             string allocationResultId = "12345";
@@ -85,13 +60,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
 
             IPublishedResultsService resultsService = CreateResultsService();
             resultsService
-                .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultByVersionId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             AllocationsService service = CreateService(resultsService);
 
             //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+            IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
 
             //Assert
             result
@@ -100,7 +75,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
-        public async Task GetAllocationByAllocationResultId_GivenResultFound_ReturnsContentResult()
+        public void GetAllocationByAllocationResultId_GivenResultFound_ReturnsContentResult()
         {
             //Arrange
             string allocationResultId = "12345";
@@ -117,13 +92,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
 
             IPublishedResultsService resultsService = CreateResultsService();
             resultsService
-                .GetPublishedProviderResultByAllocationResultId(Arg.Is(allocationResultId))
+                .GetPublishedProviderResultByVersionId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
             AllocationsService service = CreateService(resultsService);
 
             //Act
-            IActionResult result = await service.GetAllocationByAllocationResultId(allocationResultId, null, request);
+            IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
 
             //Assert
             result
@@ -225,7 +200,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 .Returns(headerDictionary);
 
             PublishedProviderResultWithHistory publishedProviderResult = CreatePublishedProviderResultWithHistory();
-
+            foreach(PublishedAllocationLineResultVersion historyItem in publishedProviderResult.History)
+            {
+                historyItem.Major = 1;
+                historyItem.Minor = 0;
+            }
 
             IPublishedResultsService resultsService = CreateResultsService();
             resultsService
@@ -269,9 +248,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             allocationModel.History[0].AllocationVersionNumber.Should().Be(2);
             allocationModel.History[0].AllocationAmount.Should().Be(40);
             allocationModel.History[0].Status.Should().Be("Approved");
+            allocationModel.History[0].AllocationVersion.Should().Be(1.0M);
             allocationModel.History[1].AllocationVersionNumber.Should().Be(1);
             allocationModel.History[1].AllocationAmount.Should().Be(50);
             allocationModel.History[1].Status.Should().Be("Held");
+            allocationModel.History[1].AllocationVersion.Should().Be(1.0M);
         }
 
         private static AllocationsService CreateService(IPublishedResultsService resultsService = null)
@@ -328,6 +309,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                                 Id = "1111",
                                 Name = "test provider name 1"
                             },
+                            ProfilingPeriods = new[]
+                            {
+                                new ProfilingPeriod()
+                            },
                         }
                     }
                 },
@@ -336,10 +321,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                     Id = "Ay12345",
                     Name = "fp-1"
                 },
-                ProfilingPeriods = new[]
-                {
-                    new ProfilingPeriod()
-                }
+
             };
         }
 

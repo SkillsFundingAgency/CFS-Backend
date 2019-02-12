@@ -38,17 +38,16 @@ namespace CalculateFunding.Services.Results.Services
             IResultsResilliencePolicies resiliencePolicies = null,
             IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService = null,
             IPublishedProviderResultsRepository publishedProviderResultsRepository = null,
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
             ICacheProvider cacheProvider = null,
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationFeedSearchRepository = null,
             IProfilingApiClient profilingApiClient = null,
             IMessengerService messengerService = null,
             IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository = null,
-            IVersionRepository<PublishedProviderCalculationResultVersion> publishedProviderCalcResultsVersionRepository = null,
             IPublishedAllocationLineLogicalResultVersionService publishedAllocationLineLogicalResultVersionService = null,
             IFeatureToggle featureToggle = null,
             IJobsApiClient jobsApiClient = null,
-            IPublishedProviderResultsSettings publishedProviderResultsSettings = null)
+            IPublishedProviderResultsSettings publishedProviderResultsSettings = null,
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null)
         {
             return new PublishedResultsService(
                 logger ?? CreateLogger(),
@@ -59,17 +58,16 @@ namespace CalculateFunding.Services.Results.Services
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
                 publishedProviderResultsAssemblerService ?? CreateResultsAssembler(),
                 publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository(),
-                publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 allocationNotificationFeedSearchRepository ?? CreateAllocationNotificationFeedSearchRepository(),
                 profilingApiClient ?? CreateProfilingRepository(),
                 messengerService ?? CreateMessengerService(),
                 publishedProviderResultsVersionRepository ?? CreatePublishedProviderResultsVersionRepository(),
-                publishedProviderCalcResultsVersionRepository ?? CreatePublishedProviderCalcResultsVersionRepository(),
                 publishedAllocationLineLogicalResultVersionService ?? CreatePublishedAllocationLineLogicalResultVersionService(),
                 featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings());
+                publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings(),
+                publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository());
         }
 
         static IPublishedProviderResultsSettings CreatePublishedProviderResultsSettings()
@@ -102,11 +100,6 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ICalculationResultsRepository>();
         }
 
-        static IVersionRepository<PublishedProviderCalculationResultVersion> CreatePublishedProviderCalcResultsVersionRepository()
-        {
-            return Substitute.For<IVersionRepository<PublishedProviderCalculationResultVersion>>();
-        }
-
         static IVersionRepository<PublishedAllocationLineResultVersion> CreatePublishedProviderResultsVersionRepository()
         {
             return Substitute.For<IVersionRepository<PublishedAllocationLineResultVersion>>();
@@ -127,11 +120,6 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ICacheProvider>();
         }
 
-        static IPublishedProviderCalculationResultsRepository CreatePublishedProviderCalculationResultsRepository()
-        {
-            return Substitute.For<IPublishedProviderCalculationResultsRepository>();
-        }
-
         static IPublishedProviderResultsAssemblerService CreateResultsAssembler()
         {
             return Substitute.For<IPublishedProviderResultsAssemblerService>();
@@ -140,6 +128,11 @@ namespace CalculateFunding.Services.Results.Services
         static IPublishedProviderResultsRepository CreatePublishedProviderResultsRepository()
         {
             return Substitute.For<IPublishedProviderResultsRepository>();
+        }
+
+        static IPublishedProviderCalculationResultsRepository CreatePublishedProviderCalculationResultsRepository()
+        {
+            return Substitute.For<IPublishedProviderCalculationResultsRepository>();
         }
 
         static ILogger CreateLogger()

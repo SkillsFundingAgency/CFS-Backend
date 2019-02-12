@@ -16,7 +16,6 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
@@ -247,15 +246,6 @@ namespace CalculateFunding.Api.External
                 return new PublishedProviderCalculationResultsRepository(resultsRepostory);
             });
 
-            builder.AddSingleton<IPublishedProviderResultsSettings, PublishedProviderResultsSettings>((ctx) =>
-            {
-                PublishedProviderResultsSettings settings = new PublishedProviderResultsSettings();
-
-                Configuration.Bind("PublishedProviderResultsSettings", settings);
-
-                return settings;
-            });
-
             builder
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
@@ -289,19 +279,6 @@ namespace CalculateFunding.Api.External
                 return new VersionRepository<PublishedAllocationLineResultVersion>(resultsRepostory);
             });
 
-            builder.AddSingleton<IVersionRepository<PublishedProviderCalculationResultVersion>, VersionRepository<PublishedProviderCalculationResultVersion>>((ctx) =>
-            {
-                CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
-
-                Configuration.Bind("CosmosDbSettings", versioningDbSettings);
-
-                versioningDbSettings.CollectionName = "publishedprovidercalcresults";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(versioningDbSettings);
-
-                return new VersionRepository<PublishedProviderCalculationResultVersion>(resultsRepostory);
-            });
-
             builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
             {
                 IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
@@ -316,6 +293,15 @@ namespace CalculateFunding.Api.External
                 {
                     return new RedundantPublishedAllocationLineLogicalResultVersionService();
                 }
+            });
+
+            builder.AddSingleton<IPublishedProviderResultsSettings, PublishedProviderResultsSettings>((ctx) =>
+            {
+                PublishedProviderResultsSettings settings = new PublishedProviderResultsSettings();
+
+                Configuration.Bind("PublishedProviderResultsSettings", settings);
+
+                return settings;
             });
 
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();

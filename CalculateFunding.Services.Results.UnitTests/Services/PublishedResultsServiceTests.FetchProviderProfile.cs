@@ -414,7 +414,7 @@ namespace CalculateFunding.Services.Results.Services
 
             // Assert
             result
-                .ProfilingPeriods
+                .FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods
                 .Should()
                 .BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
 
@@ -498,7 +498,7 @@ namespace CalculateFunding.Services.Results.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            result.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
+            result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
 
@@ -583,7 +583,7 @@ namespace CalculateFunding.Services.Results.Services
 
             // Assert
             result
-                .ProfilingPeriods
+                .FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods
                 .Should()
                 .BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
 
@@ -692,17 +692,17 @@ namespace CalculateFunding.Services.Results.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            results.ElementAt(0).ProfilingPeriods.Should().NotBeNullOrEmpty();
-            results.ElementAt(1).ProfilingPeriods.Should().NotBeNullOrEmpty();
-            results.ElementAt(2).ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
 
-            results.ElementAt(0).FinancialEnvelopes.Should().NotBeNullOrEmpty();
-            results.ElementAt(1).FinancialEnvelopes.Should().NotBeNullOrEmpty();
-            results.ElementAt(2).FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
 
-            results.ElementAt(0).FinancialEnvelopes.Should().HaveCount(1);
-            results.ElementAt(1).FinancialEnvelopes.Should().HaveCount(1);
-            results.ElementAt(2).FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
 
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { results.ElementAt(0), results.ElementAt(1), results.ElementAt(2) };
 
@@ -910,17 +910,17 @@ namespace CalculateFunding.Services.Results.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            results.ElementAt(0).ProfilingPeriods.Should().NotBeNullOrEmpty();
-            results.ElementAt(1).ProfilingPeriods.Should().NotBeNullOrEmpty();
-            results.ElementAt(2).ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
+            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
 
-            results.ElementAt(0).FinancialEnvelopes.Should().NotBeNullOrEmpty();
-            results.ElementAt(1).FinancialEnvelopes.Should().NotBeNullOrEmpty();
-            results.ElementAt(2).FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
+            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
 
-            results.ElementAt(0).FinancialEnvelopes.Should().HaveCount(1);
-            results.ElementAt(1).FinancialEnvelopes.Should().HaveCount(1);
-            results.ElementAt(2).FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
+            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
 
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { results.ElementAt(0), results.ElementAt(1), results.ElementAt(2) };
 

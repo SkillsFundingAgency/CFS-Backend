@@ -190,19 +190,6 @@ namespace CalculateFunding.Functions.Results
                 return new VersionRepository<PublishedAllocationLineResultVersion>(resultsRepostory);
             });
 
-            builder.AddSingleton<IVersionRepository<PublishedProviderCalculationResultVersion>, VersionRepository<PublishedProviderCalculationResultVersion>>((ctx) =>
-            {
-                CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", versioningDbSettings);
-
-                versioningDbSettings.CollectionName = "publishedprovidercalcresults";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(versioningDbSettings);
-
-                return new VersionRepository<PublishedProviderCalculationResultVersion>(resultsRepostory);
-            });
-
             builder.AddSearch(config);
 
             builder.AddServiceBus(config);

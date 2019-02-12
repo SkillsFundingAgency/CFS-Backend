@@ -26,5 +26,8 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task CreateAllocationLineResultStatusUpdateJobs(Message message);
         Task UpdateAllocationLineResultStatus(Message message);
         Task UpdateDeadLetteredJobLog(Message message);
+        Task<IActionResult> MigratePublishedCalculationResults(HttpRequest request);
+        Task MigratePublishedCalculationResults(Message message);
+        Task MigrateInstructPublishedCalculationResults(Message message);
     }
 }

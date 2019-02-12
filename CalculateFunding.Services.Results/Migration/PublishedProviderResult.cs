@@ -1,15 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Results
+namespace CalculateFunding.Services.Results.Migration
 {
     public class PublishedProviderResult : IIdentifiable
     {
         public PublishedProviderResult()
         {
+            ProfilingPeriods = Enumerable.Empty<ProfilingPeriod>();
+            FinancialEnvelopes = Enumerable.Empty<FinancialEnvelope>();
         }
 
         [JsonProperty("providerId")]
@@ -44,5 +49,13 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("fundingPeriod")]
         public Period FundingPeriod { get; set; }
+
+        //The below are for migration purposes only
+
+        [JsonProperty("profilePeriods")]
+        public IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; }
+
+        [JsonProperty("financialEnvelopes")]
+        public IEnumerable<FinancialEnvelope> FinancialEnvelopes { get; set; }
     }
 }

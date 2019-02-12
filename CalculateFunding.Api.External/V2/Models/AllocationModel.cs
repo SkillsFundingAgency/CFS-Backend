@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Xml.Serialization;
 
@@ -120,6 +121,6 @@ namespace CalculateFunding.Api.External.V2.Models
         /// <summary>
         /// The profiling periods associated allocation model
         /// </summary>
-        public Collection<ProfilePeriod> ProfilePeriods { get; set; }
+        public IEnumerable<ProfilePeriod> ProfilePeriods { get; set; }
     }
 }

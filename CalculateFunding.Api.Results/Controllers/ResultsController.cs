@@ -168,5 +168,12 @@ namespace CalculateFunding.Api.Results.Controllers
         {
             return await _publishedResultsService.MigrateVersionNumbers(ControllerContext.HttpContext.Request);
         }
+
+        [Route("api/results/migrate-calculation-results")]
+        [HttpPost]
+        public async Task<IActionResult> MigratePublishedCalculationResults()
+        {
+            return await _publishedResultsService.MigratePublishedCalculationResults(ControllerContext.HttpContext.Request);
+        }
     }
 }

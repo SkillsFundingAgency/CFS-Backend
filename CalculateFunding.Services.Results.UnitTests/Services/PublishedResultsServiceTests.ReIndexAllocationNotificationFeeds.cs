@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Results.Services
             foreach (PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
-                result.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
@@ -143,7 +143,14 @@ namespace CalculateFunding.Services.Results.Services
             foreach (PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
-                result.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = new[] { new FinancialEnvelope() };
+                result.FundingStreamResult.AllocationLineResult.Current.Calculations = new[]
+                {
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1"), Policy = new PolicySummary("policy-id-1", "policy1", "desc")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2"), Policy = new PolicySummary("policy-id-1", "policy1", "desc")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3"), Policy = new PolicySummary("policy-id-2", "policy2", "desc")},
+                };
             }
 
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
@@ -212,7 +219,9 @@ namespace CalculateFunding.Services.Results.Services
                        m.First().FundingStreamPeriodId == "pt1" &&
                        m.First().AllocationLineContractRequired == true &&
                        m.First().AllocationLineFundingRoute == "LA" &&
-                       m.First().AllocationLineShortName == "tal1"
+                       m.First().AllocationLineShortName == "tal1" &&
+                       m.First().PolicySummaries == "[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]" &&
+                       m.First().Calculations == "[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]"
            ));
         }
 
@@ -224,7 +233,7 @@ namespace CalculateFunding.Services.Results.Services
             foreach (PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
-                result.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
                 result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
                 result.FundingStreamResult.AllocationLineResult.Current.Minor = 5;
             }
@@ -314,7 +323,7 @@ namespace CalculateFunding.Services.Results.Services
             foreach (PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
-                result.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
                 result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
                 result.FundingStreamResult.AllocationLineResult.Current.Minor = 5;
                 result.FundingStreamResult.AllocationLineResult.Current.Title = "title";

@@ -9,6 +9,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Migration;
 
 namespace CalculateFunding.Services.Results
 {
@@ -23,7 +24,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok,string Message) cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -34,48 +35,20 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-        public Task CreatePublishedCalculationResults(IEnumerable<PublishedProviderCalculationResult> publishedCalculationResults)
-        {
-            Guard.ArgumentNotNull(publishedCalculationResults, nameof(publishedCalculationResults));
-
-            return _cosmosRepository.BulkCreateAsync(publishedCalculationResults.Select(m => new KeyValuePair<string, PublishedProviderCalculationResult>(m.ProviderId, m)), 100);
-        }
-
-        public Task<IEnumerable<PublishedProviderCalculationResult>> GetPublishedProviderCalculationResultsBySpecificationId(string specificationId)
+        public Task<IEnumerable<Migration.PublishedProviderCalculationResult>> GetPublishedProviderCalculationResultsBySpecificationId(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            var results = _cosmosRepository.Query<PublishedProviderCalculationResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId);
+            IQueryable<Migration.PublishedProviderCalculationResult> results = _cosmosRepository.Query<Migration.PublishedProviderCalculationResult>(enableCrossPartitionQuery: true).Where(c => c.Specification.Id == specificationId);
 
             return Task.FromResult(results.AsEnumerable());
         }
 
-        public async Task<IEnumerable<PublishedProviderCalculationResultExisting>> GetExistingPublishedProviderCalculationResultsForSpecificationId(string specificationId)
-        {
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.id, r.content.providerId, r.content.current[\"value\"], r.content.calculationSpecification.id as calculationSpecificationId, r.content.current.version as calculationVersion FROM Root r where r.documentType = 'PublishedProviderCalculationResult' and r.deleted = false and r.content.specification.id = '{specificationId}'", true, 1000);
-
-            List<PublishedProviderCalculationResultExisting> results = new List<PublishedProviderCalculationResultExisting>();
-            foreach (dynamic existingResult in existingResults)
-            {
-                PublishedProviderCalculationResultExisting result = new PublishedProviderCalculationResultExisting()
-                {
-                    Id = existingResult.id,
-                    ProviderId = existingResult.providerId,
-                    Value = existingResult.value,
-                    CalculationSpecificationId = existingResult.calculationSpecificationId,
-                    CalculationVersion = (int)existingResult.calculationVersion
-                };
-
-                results.Add(result);
-            }
-            return results;
-        }
-
-        public async Task<IEnumerable<PublishedProviderCalculationResult>> GetFundingOrPublicPublishedProviderCalculationResultsBySpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds)
+        public async Task<IEnumerable<Migration.PublishedProviderCalculationResult>> GetFundingOrPublicPublishedProviderCalculationResultsBySpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            ConcurrentBag<PublishedProviderCalculationResult> results = new ConcurrentBag<PublishedProviderCalculationResult>();
+            ConcurrentBag<Migration.PublishedProviderCalculationResult> results = new ConcurrentBag<Migration.PublishedProviderCalculationResult>();
 
             List<Task> allTasks = new List<Task>();
             SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
@@ -87,10 +60,10 @@ namespace CalculateFunding.Services.Results
                     {
                         try
                         {
-                            string sql = $"select * from root c where c.content.specification.id = \"{specificationId}\" and c.documentType = \"PublishedProviderCalculationResult\" and (c.content.current.calculationType = 'Funding' or c.content.isPublic = true) and c.content.providerId = \"{providerId}\" and c.deleted = false";
+                            string sql = $"select * from root c where c.content.specification.id = \"{specificationId}\" and c.documentType = \"PublishedProviderCalculationResult\" and (c.content.current.calculationType = 'Funding' or c.content.isPublic = true or c.content.current.calculationType = 'Baseline') and c.content.providerId = \"{providerId}\" and c.deleted = false";
 
-                            IEnumerable<PublishedProviderCalculationResult> publishedCalcResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderCalculationResult>(sql, partitionEntityId: providerId);
-                            foreach (PublishedProviderCalculationResult result in publishedCalcResults)
+                            IEnumerable<Migration.PublishedProviderCalculationResult> publishedCalcResults = await _cosmosRepository.QueryPartitionedEntity<Migration.PublishedProviderCalculationResult>(sql, partitionEntityId: providerId);
+                            foreach (Migration.PublishedProviderCalculationResult result in publishedCalcResults)
                             {
                                 results.Add(result);
                             }
@@ -106,15 +79,33 @@ namespace CalculateFunding.Services.Results
             return results;
         }
 
-        public async Task<PublishedProviderCalculationResult> GetPublishedProviderCalculationResultForId(string publishedProviderCalculationResultId, string providerId)
+        public async Task<Migration.PublishedProviderCalculationResult> GetPublishedProviderCalculationResultForId(string publishedProviderCalculationResultId, string providerId)
         {
             Guard.IsNullOrWhiteSpace(publishedProviderCalculationResultId, nameof(publishedProviderCalculationResultId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            IEnumerable<PublishedProviderCalculationResult> results = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderCalculationResult>($"SELECT * FROM Root r WHERE r.id ='{publishedProviderCalculationResultId}'", 1, providerId);
+            IEnumerable<Migration.PublishedProviderCalculationResult> results = await _cosmosRepository.QueryPartitionedEntity<Migration.PublishedProviderCalculationResult>($"SELECT * FROM Root r WHERE r.id ='{publishedProviderCalculationResultId}'", 1, providerId);
 
             return results.FirstOrDefault();
         }
 
+        public async Task<IEnumerable<PublishedProviderCalculationResultVersion>> GetPublishedCalculationVersions(string specificationId, string providerId)
+        {
+            string sql = $"select * from root c where c.content.specification.id = \"{specificationId}\" and c.documentType = \"PublishedProviderCalculationResultVersion\" c.content.providerId = \"{providerId}\" and c.deleted = false";
+
+            IEnumerable<PublishedProviderCalculationResultVersion> publishedCalcResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderCalculationResultVersion>(sql, partitionEntityId: providerId);
+
+            return publishedCalcResults;
+        }
+
+        public Task CreatePublishedCalculationResults(IEnumerable<Migration.PublishedProviderCalculationResult> publishedCalculationResults)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<IEnumerable<PublishedProviderCalculationResultExisting>> GetExistingPublishedProviderCalculationResultsForSpecificationId(string specificationId)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

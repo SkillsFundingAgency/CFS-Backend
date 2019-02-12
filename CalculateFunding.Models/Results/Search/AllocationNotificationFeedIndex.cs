@@ -150,6 +150,12 @@ namespace CalculateFunding.Models.Results.Search
         [JsonProperty("policySummaries")]
         public string PolicySummaries { get; set; }
 
+        [JsonProperty("financialEnvelopes")]
+        public string FinancialEnvelopes { get; set; }
+
+        [JsonProperty("calculations")]
+        public string Calculations { get; set; }
+
         [JsonProperty("crmAccountId")]
         public string CrmAccountId { get; set; }
 
@@ -170,11 +176,5 @@ namespace CalculateFunding.Models.Results.Search
         [IsFilterable]
         [JsonProperty("isDeleted")]
         public bool IsDeleted { get; set; }
-
-        [JsonProperty("financialEnvelopes")]
-        public string FinancialEnvelopes { get; set; }
-
-        [JsonProperty("calculations")]
-        public string Calculations { get; set; }
     }
 }

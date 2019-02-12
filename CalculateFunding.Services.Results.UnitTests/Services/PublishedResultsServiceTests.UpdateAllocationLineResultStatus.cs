@@ -311,7 +311,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
@@ -408,7 +408,7 @@ namespace CalculateFunding.Services.Results.Services
           
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
@@ -512,7 +512,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
@@ -617,7 +617,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
@@ -724,7 +724,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
@@ -774,7 +774,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task UpdatePublishedAllocationLineResultsStatus_GivenAllResultsAreHeldAndAttemptToApproved_UpdatesSearch()
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenAllResultsAreHeldAndAttemptToApproved_UpdatesSearchDoesNotUpdatePublishedField()
         {
             //arrange
             string specificationId = "spec-1";
@@ -810,7 +810,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
@@ -886,6 +886,115 @@ namespace CalculateFunding.Services.Results.Services
                 versionRepository
                     .Received(1)
                     .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.Count() == 1 && m.First().Key == newVersion.ProviderId && m.First().Value == newVersion));
+
+            publishedProviderResults
+                .First()
+                .FundingStreamResult.AllocationLineResult.Published
+                .Should()
+                .BeNull();
+        }
+
+
+        [TestMethod]
+        public async Task UpdatePublishedAllocationLineResultsStatus_GivenAllResultsAreAprrovedAndAttemptToPublish_SetsPublishedField()
+        {
+            //arrange
+            string specificationId = "spec-1";
+            string providerId = "1111";
+
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = providerId,
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            JobViewModel jobViewModel = new JobViewModel
+            {
+                Id = jobId,
+                SpecificationId = specificationId,
+                Properties = new Dictionary<string, string>()
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Published
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties.Add("jobId", jobId);
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+           
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
+
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
+            }
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(publishedProviderResults);
+
+            PublishedAllocationLineResultVersion newVersion = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion.Version = 3;
+            newVersion.Status = AllocationLineStatus.Published;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Is(providerId), Arg.Is(true))
+                .Returns(newVersion);
+
+            ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ApiResponse<JobViewModel> jobResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobResponse);
+
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository,
+                allocationNotificationFeedSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
+
+            //Act
+            await resultsService.UpdateAllocationLineResultStatus(message);
+
+            //Assert
+            await
+                versionRepository
+                    .Received(1)
+                    .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.Count() == 1 && m.First().Key == newVersion.ProviderId && m.First().Value == newVersion));
+
+            publishedProviderResults
+                .First()
+                .FundingStreamResult.AllocationLineResult.Published
+                .Should()
+                .NotBeNull();
+
+            publishedProviderResults
+                .First()
+                .FundingStreamResult.AllocationLineResult.Published
+                .Should()
+                .BeEquivalentTo(publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current);
         }
 
         [TestMethod]

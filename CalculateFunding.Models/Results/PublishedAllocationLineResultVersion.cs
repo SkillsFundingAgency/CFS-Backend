@@ -1,7 +1,6 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using System.Collections.Generic;
+using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
-using System;
-using System.Linq;
 
 namespace CalculateFunding.Models.Results
 {
@@ -15,7 +14,7 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("feedIndexId")]
         public string FeedIndexId { get; set; }
-       
+
         [JsonProperty("entityId")]
         public override string EntityId
         {
@@ -57,8 +56,17 @@ namespace CalculateFunding.Models.Results
             }
         }
 
+        [JsonProperty("profilePeriods")]
+        public IEnumerable<ProfilingPeriod> ProfilingPeriods { get; set; }
+
+        [JsonProperty("financialEnvelopes")]
+        public IEnumerable<FinancialEnvelope> FinancialEnvelopes { get; set; }
+
         [JsonProperty("title")]
         public string Title { get; set; }
+
+        [JsonProperty("calculations")]
+        public IEnumerable<PublishedProviderCalculationResult> Calculations { get; set; }
 
         public override VersionedItem Clone()
         {

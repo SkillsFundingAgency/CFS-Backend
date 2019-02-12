@@ -19,13 +19,11 @@ namespace CalculateFunding.Services.Results
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ILogger _logger;
         private readonly IVersionRepository<PublishedAllocationLineResultVersion> _allocationResultsVersionRepository;
-        private readonly IVersionRepository<PublishedProviderCalculationResultVersion> _calculationResultsVersionRepository;
 
         public PublishedProviderResultsAssemblerService(
             ISpecificationsRepository specificationsRepository,
             ILogger logger,
-            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository,
-            IVersionRepository<PublishedProviderCalculationResultVersion> calculationResultsVersionRepository)
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository)
         {
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -34,7 +32,6 @@ namespace CalculateFunding.Services.Results
             _specificationsRepository = specificationsRepository;
             _logger = logger;
             _allocationResultsVersionRepository = allocationResultsVersionRepository;
-            _calculationResultsVersionRepository = calculationResultsVersionRepository;
         }
 
         public async Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
@@ -77,90 +74,12 @@ namespace CalculateFunding.Services.Results
 
                     publishedProviderResults.Add(publishedProviderResult);
                 }
+
             });
 
             return publishedProviderResults;
         }
 
-        /// <summary>
-        /// AssemblePublishedCalculationResults - currently only handles initial create, not updating values through approvals etc
-        /// </summary>
-        /// <param name="providerResults">Provider Results from Calculation Engine</param>
-        /// <param name="author">Author - user who performed this action</param>
-        /// <param name="specificationCurrentVersion">Specification</param>
-        /// <returns></returns>
-        public IEnumerable<PublishedProviderCalculationResult> AssemblePublishedCalculationResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
-        {
-            Guard.ArgumentNotNull(providerResults, nameof(providerResults));
-            Guard.ArgumentNotNull(author, nameof(author));
-            Guard.ArgumentNotNull(specificationCurrentVersion, nameof(specificationCurrentVersion));
-
-            string specificationId = specificationCurrentVersion.Id;
-
-            IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
-
-            List<PublishedProviderCalculationResult> publishedProviderCalculationResults = new List<PublishedProviderCalculationResult>();
-
-            Reference specification = new Reference(specificationCurrentVersion.Id, specificationCurrentVersion.Name);
-
-            foreach (ProviderResult providerResult in providerResults)
-            {
-                if (providerResult.CalculationResults.IsNullOrEmpty())
-                {
-                    continue;
-                }
-
-                foreach (CalculationResult calculationResult in providerResult.CalculationResults)
-                {
-                    (Policy policy, Policy parentPolicy, Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification?.Id, specificationCurrentVersion.Policies);
-
-                    if (calculation.CalculationType == CalculationType.Number && !calculation.IsPublic)
-                    {
-                        continue;
-                    }
-
-                    PublishedProviderCalculationResult publishedProviderCalculationResult = new PublishedProviderCalculationResult()
-                    {
-                        ProviderId = providerResult.Provider.Id,
-                        CalculationSpecification = calculationResult.CalculationSpecification,
-                        FundingPeriod = specificationCurrentVersion.FundingPeriod,
-                        AllocationLine = calculationResult.AllocationLine,
-                        IsPublic = calculation.IsPublic,
-                        Current = new PublishedProviderCalculationResultVersion()
-                        {
-                            Author = author,
-                            CalculationType = ConvertCalculationType(calculationResult.CalculationType),
-                            Commment = null,
-                            Date = DateTimeOffset.Now,
-                            Provider = providerResult.Provider,
-                            Value = calculationResult.Value,
-                            SpecificationId = specificationId,
-                            ProviderId = providerResult.Provider.Id,
-                            CalculationVersion = calculationResult.Version
-                        },
-
-                        Specification = new Reference(specification.Id, specification.Name)
-                    };
-
-                    if (policy != null)
-                    {
-                        publishedProviderCalculationResult.Policy = new PolicySummary(policy.Id, policy.Name, policy.Description);
-                    }
-
-                    if (parentPolicy != null)
-                    {
-                        publishedProviderCalculationResult.ParentPolicy = new PolicySummary(parentPolicy.Id, parentPolicy.Name, parentPolicy.Description);
-                    }
-
-                    publishedProviderCalculationResult.Current.CalculationResultId = publishedProviderCalculationResult.Id;
-
-                    publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
-                }
-
-            }
-
-            return publishedProviderCalculationResults;
-        }
 
         public async Task<(IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>)> GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults)
         {
@@ -196,7 +115,6 @@ namespace CalculateFunding.Services.Results
                             if (existingProviderResults.ContainsKey(providerResult.ProviderId))
                             {
                                 ConcurrentDictionary<string, PublishedProviderResultExisting> existingResultsForProvider = existingProviderResults[providerResult.ProviderId];
-
 
                                 if (existingResultsForProvider.TryGetValue(providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id, out PublishedProviderResultExisting existingResult))
                                 {
@@ -257,7 +175,7 @@ namespace CalculateFunding.Services.Results
             return (publishedProviderResultsToSave, existingRecordsExclude);
         }
 
-        private (Policy policy, Policy parentPolicy, Models.Specs.Calculation calculation) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)
+        private (Policy policy, Policy parentPolicy, Calculation calculation) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)
         {
             foreach (Policy policy in policies)
             {
@@ -265,7 +183,7 @@ namespace CalculateFunding.Services.Results
                 {
                     if (policy.Calculations != null)
                     {
-                        Models.Specs.Calculation calc = policy.Calculations.FirstOrDefault(c => c.Id == calculationSpecificationId);
+                        Calculation calc = policy.Calculations.FirstOrDefault(c => c.Id == calculationSpecificationId);
                         if (calc != null)
                         {
                             return (policy, null, calc);
@@ -276,7 +194,7 @@ namespace CalculateFunding.Services.Results
                     {
                         foreach (Policy subpolicy in policy.SubPolicies)
                         {
-                            Models.Specs.Calculation calc = subpolicy.Calculations.FirstOrDefault(c => c.Id == calculationSpecificationId);
+                            Calculation calc = subpolicy.Calculations.FirstOrDefault(c => c.Id == calculationSpecificationId);
 
                             if (subpolicy.Calculations.Any(c => c.Id == calculationSpecificationId))
                             {
@@ -318,6 +236,45 @@ namespace CalculateFunding.Services.Results
                     throw new Exception($"Failed to find a funding stream for id: {fundingStreamReference.Id}");
                 }
 
+                List<PublishedProviderCalculationResult> publishedProviderCalculationResults = new List<PublishedProviderCalculationResult>(providerResult.CalculationResults.Count());
+
+                foreach (CalculationResult calculationResult in providerResult.CalculationResults)
+                {
+                    (Policy policy, Policy parentPolicy, Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification?.Id, specificationCurrentVersion.Policies);
+
+                    if (calculation == null)
+                    {
+                        throw new InvalidOperationException($"Calculation specification not found in specification. Calculation Spec Id ='{calculationResult?.CalculationSpecification?.Id}'");
+                    }
+
+                    if (calculation.CalculationType == CalculationType.Number && !calculation.IsPublic)
+                    {
+                        continue;
+                    }
+
+                    PublishedProviderCalculationResult publishedProviderCalculationResult = new PublishedProviderCalculationResult()
+                    {
+                        CalculationSpecification = calculationResult.CalculationSpecification,
+                        AllocationLine = calculationResult.AllocationLine,
+                        IsPublic = calculation.IsPublic,
+                        CalculationType = ConvertCalculationType(calculationResult.CalculationType),
+                        Value = calculationResult.Value,
+                        CalculationVersion = calculationResult.Version
+                    };
+
+                    if (policy != null)
+                    {
+                        publishedProviderCalculationResult.Policy = new PolicySummary(policy.Id, policy.Name, policy.Description);
+                    }
+
+                    if (parentPolicy != null)
+                    {
+                        publishedProviderCalculationResult.ParentPolicy = new PolicySummary(parentPolicy.Id, parentPolicy.Name, parentPolicy.Description);
+                    }
+
+                    publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
+                }
+
                 IEnumerable<IGrouping<string, CalculationResult>> allocationLineGroups = providerResult
                     .CalculationResults
                     .Where(c => c.CalculationType == Models.Calcs.CalculationType.Funding && c.Value.HasValue && c.AllocationLine != null && !string.IsNullOrWhiteSpace(c.AllocationLine.Id))
@@ -329,6 +286,8 @@ namespace CalculateFunding.Services.Results
 
                     if (allocationLine != null)
                     {
+                        allocationLine.ProviderLookups = Enumerable.Empty<ProviderLookup>();
+
                         PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult
                         {
                             FundingStream = fundingStream,
@@ -346,7 +305,8 @@ namespace CalculateFunding.Services.Results
                             Value = allocationLineResultGroup.Sum(m => m.Value),
                             Provider = providerResult.Provider,
                             SpecificationId = specificationCurrentVersion.Id,
-                            ProviderId = providerResult.Provider.Id
+                            ProviderId = providerResult.Provider.Id,
+                            Calculations = publishedProviderCalculationResults.Where(c => c.AllocationLine == null || string.Equals(c.AllocationLine.Id, allocationLine.Id, StringComparison.InvariantCultureIgnoreCase)),
                         };
 
                         publishedFundingStreamResult.AllocationLineResult = new PublishedAllocationLineResult

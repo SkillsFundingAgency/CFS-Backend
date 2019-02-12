@@ -22,17 +22,12 @@ namespace CalculateFunding.Api.External.V1.Services
             _publishedResultsService = publishedResultsService;
         }
 
-        public async Task<IActionResult> GetAllocationByAllocationResultId(string allocationResultId, int? version, HttpRequest httpRequest)
+        public IActionResult GetAllocationByAllocationResultId(string allocationResultId, HttpRequest httpRequest)
         {
             Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
             Guard.ArgumentNotNull(httpRequest, nameof(httpRequest));
 
-            if (version.HasValue && version < 1)
-            {
-                return new BadRequestObjectResult("Invalid version supplied");
-            }
-
-            PublishedProviderResult publishedProviderResult = await _publishedResultsService.GetPublishedProviderResultByAllocationResultId(allocationResultId, version);
+            PublishedProviderResult publishedProviderResult = _publishedResultsService.GetPublishedProviderResultByVersionId(allocationResultId);
 
             if (publishedProviderResult == null)
             {
@@ -119,7 +114,7 @@ namespace CalculateFunding.Api.External.V1.Services
                     Status = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status
 
                 },
-                ProfilePeriods = publishedProviderResult.ProfilingPeriods?.Select(m =>
+                ProfilePeriods = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods?.Select(m =>
                             new ProfilePeriod
                             {
                                 DistributionPeriod = m.DistributionPeriod,
@@ -142,6 +137,7 @@ namespace CalculateFunding.Api.External.V1.Services
                    {
                        AllocationAmount = m.Value,
                        AllocationVersionNumber = m.Version,
+                       AllocationVersion = decimal.Parse(m.VersionNumber),
                        Status = m.Status.ToString(),
                        Date = m.Date,
                        Author = m.Author.Name,

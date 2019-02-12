@@ -84,6 +84,39 @@ namespace CalculateFunding.Services.Results
             return results;
         }
 
+        public async Task<IEnumerable<Migration.PublishedProviderResult>> GetPublishedProviderResultsForSpecificationIdAndProviderIdMigrationOnly(string specificationId, IEnumerable<string> providerIds)
+        {
+            ConcurrentBag<Migration.PublishedProviderResult> results = new ConcurrentBag<Migration.PublishedProviderResult>();
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            foreach (string providerId in providerIds)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            string sql = $"select * from root c where c.content.specificationId = \"{specificationId}\" and c.documentType = \"PublishedProviderResult\" and c.content.providerId = \"{providerId}\" and c.deleted = false";
+
+                            IEnumerable<Migration.PublishedProviderResult> publishedProviderResults = await _cosmosRepository.QueryPartitionedEntity<Migration.PublishedProviderResult>(sql, partitionEntityId: providerId);
+                            foreach (Migration.PublishedProviderResult result in publishedProviderResults)
+                            {
+                                results.Add(result);
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+            return results;
+        }
+
         public async Task<IEnumerable<PublishedProviderResultExisting>> GetExistingPublishedProviderResultsForSpecificationId(string specificationId)
         {
             IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.id, r.updatedAt, r.content.providerId,r.content.fundingStreamResult.allocationLineResult.current[\"value\"], r.content.fundingStreamResult.allocationLineResult.allocationLine.id as allocationLineId, r.content.fundingStreamResult.allocationLineResult.current.major as major, r.content.fundingStreamResult.allocationLineResult.current.minor as minor, r.content.fundingStreamResult.allocationLineResult.current.version as version, r.content.fundingStreamResult.allocationLineResult.current.status as status FROM Root r where r.documentType = 'PublishedProviderResult' and r.deleted = false and r.content.specificationId = '{specificationId}'", true, 1000);

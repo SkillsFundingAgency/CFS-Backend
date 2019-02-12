@@ -143,10 +143,10 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task AssemblePublishedProviderResults_ButNollocationLineResultsFound_ReturnsEmptyProviderResults()
+        public async Task AssemblePublishedProviderResults_ButNoAllocationLineResultsFound_ReturnsEmptyProviderResults()
         {
             //Arrange
-            IEnumerable<ProviderResult> providerResults = CreateProviderResults();
+            IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
 
             IEnumerable<FundingStream> fundingStreams = new[]
             {
@@ -192,7 +192,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task AssemblePublishedProviderResults_AndOneAllocationLineFoundForFundingStream__ReturnsOneProviderResult()
+        public async Task AssemblePublishedProviderResults_AndOneAllocationLineFoundForFundingStream_ReturnsOneProviderResult()
         {
             //Arrange
             IEnumerable<ProviderResult> providerResults = CreateProviderResults();
@@ -235,8 +235,42 @@ namespace CalculateFunding.Services.Results.Services
                         {
                             Id = "AY"
                         }
-                    }
-                }
+                    },
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-4",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-5",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-6",
+                           },
+                       },
+                   },
+                },
             };
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -400,6 +434,40 @@ namespace CalculateFunding.Services.Results.Services
                             Id = "AY"
                         }
                     }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-4",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-5",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-6",
+                           },
+                       }
+                   },
                 }
             };
 
@@ -549,7 +617,41 @@ namespace CalculateFunding.Services.Results.Services
                             Id = "AY"
                         }
                     }
-                }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-4",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-5",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-6",
+                           },
+                       },
+                   },
+                },
             };
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -698,7 +800,41 @@ namespace CalculateFunding.Services.Results.Services
                             Id = "AY"
                         }
                     }
-                }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-4",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-5",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-6",
+                           },
+                       },
+                   },
+                },
             };
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -891,6 +1027,40 @@ namespace CalculateFunding.Services.Results.Services
                             Id = "AY"
                         }
                     }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-4",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-5",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-6",
+                           },
+                       }
+                   }
                 }
             };
 
@@ -954,7 +1124,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task AssemblePublishedProviderResults_AndTwoAllocationLineFoundForFundingStream__EnsuresTwoResultsAssembled()
+        public async Task AssemblePublishedProviderResults_AndTwoAllocationLineFoundForFundingStreamWithThreeCalcsButOneNotPublic_EnsuresTwoResultsAssembledWithOneCalcPerAllocation()
         {
             IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines();
 
@@ -993,7 +1163,32 @@ namespace CalculateFunding.Services.Results.Services
                         Id = "fs-001",
                         Name = "fs one"
                     }
-                }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                               CalculationType = CalculationType.Funding
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                               CalculationType = CalculationType.Number
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                               CalculationType = CalculationType.Funding
+                           }
+                       },
+                   },
+                },
             };
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -1031,6 +1226,11 @@ namespace CalculateFunding.Services.Results.Services
                 .Should()
                 .Be(123);
 
+            allocationLine1
+                .Calculations
+                .Should()
+                .HaveCount(1);
+
             PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
 
             allocationLine2
@@ -1042,6 +1242,527 @@ namespace CalculateFunding.Services.Results.Services
                 .Should()
                 .Be(10);
 
+            allocationLine2
+                .Calculations
+                .Should()
+                .HaveCount(1);
+        }
+
+        [TestMethod]
+        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithThreeCalcsAndNumberIsPublic_EnsuresTwoResultsAssembledWithOneFundingCalcAndOneNumberCalcPerAllocation()
+        {
+            IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines();
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream
+                {
+                    Id = "fs-001",
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1"
+                        },
+                        new AllocationLine
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2"
+                        }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY" }
+                }
+            };
+
+            Reference author = CreateAuthor();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = "spec-id-1",
+                FundingPeriod = new Reference("fp1", "funding period 1"),
+                FundingStreams = new[]
+                {
+                    new FundingStream
+                    {
+                        Id = "fs-001",
+                        Name = "fs one"
+                    }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                               CalculationType = CalculationType.Funding
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                               CalculationType = CalculationType.Number,
+                               IsPublic = true
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                               CalculationType = CalculationType.Funding
+                           }
+                       },
+                   },
+                },
+            };
+
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is("fp1"))
+                .Returns(fundingPeriod);
+
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+
+            //Act
+            IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(2);
+
+            List<PublishedProviderResult> publishedProviderResults = results.ToList();
+
+            PublishedAllocationLineResultVersion allocationLine1 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "AAAAA").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+
+            allocationLine1
+            .Should()
+            .NotBeNull();
+
+            allocationLine1
+                .Value
+                .Should()
+                .Be(123);
+
+            allocationLine1
+                .Calculations
+                .Where(m => m.CalculationType == PublishedCalculationType.Funding)
+                .Should()
+                .HaveCount(1);
+
+            allocationLine1
+               .Calculations
+               .Where(m => m.CalculationType == PublishedCalculationType.Number)
+               .Should()
+               .HaveCount(1);
+
+            PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+
+            allocationLine2
+            .Should()
+            .NotBeNull();
+
+            allocationLine2
+                .Value
+                .Should()
+                .Be(10);
+
+            allocationLine2
+                .Calculations
+                .Should()
+                .HaveCount(2);
+
+            allocationLine2
+                .Calculations
+                .Where(m => m.CalculationType == PublishedCalculationType.Funding)
+                .Should()
+                .HaveCount(1);
+
+            allocationLine2
+               .Calculations
+               .Where(m => m.CalculationType == PublishedCalculationType.Number)
+               .Should()
+               .HaveCount(1);
+        }
+
+        [TestMethod]
+        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithThreeCalcsAndNumberIsPublicAndAssociatedToAllocationLine_EnsuresTwoResultsAssembledWithOneFundingEachAndOneNumberForOneAllocation()
+        {
+            List<CalculationResult> calculationresults = new List<CalculationResult>
+            {
+                new CalculationResult
+                {
+                    CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                    Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                    Value = 123,
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    AllocationLine = new Reference("AAAAA","test allocation line 1"),
+                },
+                new CalculationResult
+                {
+                    CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                    Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                    Value = 10,
+                    CalculationType = Models.Calcs.CalculationType.Number,
+                    AllocationLine = new Reference("AAAAA","test allocation line 1")
+                },
+                new CalculationResult
+                {
+                    CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
+                    Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                    Value = 10,
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    AllocationLine = new Reference("BBBBB","test allocation line 2"),
+                }
+            };
+
+            IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines(calculationresults);
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream
+                {
+                    Id = "fs-001",
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1"
+                        },
+                        new AllocationLine
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2"
+                        }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY" }
+                }
+            };
+
+            Reference author = CreateAuthor();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = "spec-id-1",
+                FundingPeriod = new Reference("fp1", "funding period 1"),
+                FundingStreams = new[]
+                {
+                    new FundingStream
+                    {
+                        Id = "fs-001",
+                        Name = "fs one"
+                    }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                               CalculationType = CalculationType.Funding
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                               CalculationType = CalculationType.Number,
+                               AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+                               IsPublic = true
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                               CalculationType = CalculationType.Funding
+                           }
+                       },
+                   },
+                },
+            };
+
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is("fp1"))
+                .Returns(fundingPeriod);
+
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+
+            //Act
+            IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(2);
+
+            List<PublishedProviderResult> publishedProviderResults = results.ToList();
+
+            PublishedAllocationLineResultVersion allocationLine1 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "AAAAA").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+
+            allocationLine1
+            .Should()
+            .NotBeNull();
+
+            allocationLine1
+                .Value
+                .Should()
+                .Be(123);
+
+            allocationLine1
+                .Calculations
+                .Where(m => m.CalculationType == PublishedCalculationType.Funding)
+                .Should()
+                .HaveCount(1);
+
+            allocationLine1
+               .Calculations
+               .Where(m => m.CalculationType == PublishedCalculationType.Number)
+               .Should()
+               .HaveCount(1);
+
+            PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+
+            allocationLine2
+            .Should()
+            .NotBeNull();
+
+            allocationLine2
+                .Value
+                .Should()
+                .Be(10);
+
+            allocationLine2
+                .Calculations
+                .Should()
+                .HaveCount(1);
+
+            allocationLine2
+                .Calculations
+                .Where(m => m.CalculationType == PublishedCalculationType.Funding)
+                .Should()
+                .HaveCount(1);
+
+            allocationLine2
+               .Calculations
+               .Where(m => m.CalculationType == PublishedCalculationType.Number)
+               .Should()
+               .HaveCount(0);
+        }
+
+        [TestMethod]
+        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithFourCalcsAndNumberIsPublicAndAssociatedToAllocationLineAndOneIsBaseline_EnsuresTwoResultsAssembledWithOneFundingEachAndOneBaselineForEachAndOneNumberForOneAllocation()
+        {
+            List<CalculationResult> calculationresults = new List<CalculationResult>
+            {
+                new CalculationResult
+                {
+                    CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                    Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                    Value = 123,
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    AllocationLine = new Reference("AAAAA","test allocation line 1"),
+                },
+                new CalculationResult
+                {
+                    CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                    Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                    Value = 10,
+                    CalculationType = Models.Calcs.CalculationType.Number,
+                    AllocationLine = new Reference("AAAAA","test allocation line 1")
+                },
+                new CalculationResult
+                {
+                    CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
+                    Calculation = new Reference { Id = "calc-id-3", Name = "calc name 3" },
+                    Value = 10,
+                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    AllocationLine = new Reference("BBBBB","test allocation line 2"),
+                },
+                new CalculationResult
+                {
+                    CalculationSpecification = new Reference { Id = "calc-spec-id-4", Name = "calc spec name 4"},
+                    Calculation = new Reference { Id = "calc-id-4", Name = "calc name 4" },
+                    Value = 90,
+                    CalculationType = Models.Calcs.CalculationType.Baseline,
+                }
+            };
+
+            IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines(calculationresults);
+
+            IEnumerable<FundingStream> fundingStreams = new[]
+            {
+                new FundingStream
+                {
+                    Id = "fs-001",
+                    AllocationLines = new List<AllocationLine>
+                    {
+                        new AllocationLine
+                        {
+                            Id = "AAAAA",
+                            Name = "test allocation line 1"
+                        },
+                        new AllocationLine
+                        {
+                            Id = "BBBBB",
+                            Name = "test allocation line 2"
+                        }
+                    },
+                    PeriodType = new PeriodType{ Id = "AY" }
+                }
+            };
+
+            Reference author = CreateAuthor();
+
+            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
+            {
+                Id = "spec-id-1",
+                FundingPeriod = new Reference("fp1", "funding period 1"),
+                FundingStreams = new[]
+                {
+                    new FundingStream
+                    {
+                        Id = "fs-001",
+                        Name = "fs one"
+                    }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                               CalculationType = CalculationType.Funding
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                               CalculationType = CalculationType.Number,
+                               AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+                               IsPublic = true
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                               CalculationType = CalculationType.Funding
+                           },
+                            new Calculation()
+                           {
+                               Id = "calc-spec-id-4",
+                               CalculationType = CalculationType.Baseline
+                           }
+                       },
+                   },
+                },
+            };
+
+            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetFundingPeriodById(Arg.Is("fp1"))
+                .Returns(fundingPeriod);
+
+            specificationsRepository
+                .GetFundingStreams()
+                .Returns(fundingStreams);
+
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+
+            //Act
+            IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+
+            //Assert
+            results
+                .Count()
+                .Should()
+                .Be(2);
+
+            List<PublishedProviderResult> publishedProviderResults = results.ToList();
+
+            PublishedAllocationLineResultVersion allocationLine1 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "AAAAA").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+
+            allocationLine1
+            .Should()
+            .NotBeNull();
+
+            allocationLine1
+                .Value
+                .Should()
+                .Be(123);
+
+            allocationLine1
+                .Calculations
+                .Where(m => m.CalculationType == PublishedCalculationType.Funding)
+                .Should()
+                .HaveCount(1);
+
+            allocationLine1
+               .Calculations
+               .Where(m => m.CalculationType == PublishedCalculationType.Number)
+               .Should()
+               .HaveCount(1);
+
+            allocationLine1
+              .Calculations
+              .Where(m => m.CalculationType == PublishedCalculationType.Baseline)
+              .Should()
+              .HaveCount(1);
+
+        PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+
+            allocationLine2
+            .Should()
+            .NotBeNull();
+
+            allocationLine2
+                .Value
+                .Should()
+                .Be(10);
+
+            allocationLine2
+                .Calculations
+                .Should()
+                .HaveCount(2);
+
+            allocationLine2
+                .Calculations
+                .Where(m => m.CalculationType == PublishedCalculationType.Funding)
+                .Should()
+                .HaveCount(1);
+
+            allocationLine2
+               .Calculations
+               .Where(m => m.CalculationType == PublishedCalculationType.Number)
+               .Should()
+               .HaveCount(0);
+
+            allocationLine2
+               .Calculations
+               .Where(m => m.CalculationType == PublishedCalculationType.Baseline)
+               .Should()
+               .HaveCount(1);
         }
 
         [TestMethod]
@@ -1090,7 +1811,41 @@ namespace CalculateFunding.Services.Results.Services
                         Id = "fs-001",
                         Name = "fs one"
                     }
-                }
+                },
+                Policies = new List<Policy>()
+                {
+                   new Policy()
+                   {
+                       Id = "policy1",
+                       Calculations = new List<Calculation>()
+                       {
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-1",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-2",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-3",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-4",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-5",
+                           },
+                           new Calculation()
+                           {
+                               Id = "calc-spec-id-6",
+                           },
+                       },
+                   },
+                },
             };
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -1116,436 +1871,6 @@ namespace CalculateFunding.Services.Results.Services
                 .Be(2);
         }
 
-        [TestMethod]
-        public void AssemblePublishedCalculationResults_WhenCalculationResultsGeneratedIsProvidedWithNoItems_ThenEmptyResultsReturned()
-        {
-            // Arrange
-            List<ProviderResult> providerResults = new List<ProviderResult>();
-            Reference author = new Reference("a", "Author Name");
-            SpecificationCurrentVersion specification = new SpecificationCurrentVersion();
-
-            PublishedProviderResultsAssemblerService service = CreateAssemblerService();
-
-            // Act
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = service.AssemblePublishedCalculationResults(providerResults, author, specification);
-
-            // Assert
-            publishedProviderCalculationResults
-                .Should()
-                .BeEmpty();
-        }
-
-        [TestMethod]
-        public void AssemblePublishedCalculationResults_WhenCalculationResultsGenerated_ThenPublishedProviderCalculationResultsAreReturned()
-        {
-            // Arrange
-            List<ProviderResult> providerResults = new List<ProviderResult>();
-            Reference author = new Reference("a", "Author Name");
-            SpecificationCurrentVersion specification = new SpecificationCurrentVersion();
-
-            List<Policy> policies = new List<Policy>();
-            policies.Add(new Policy()
-            {
-                Id = "p1",
-                Name = "Policy 1",
-                Calculations = new List<Calculation>(),
-                SubPolicies = new List<Policy>(),
-            });
-
-            policies.Add(new Policy()
-            {
-                Id = "p2",
-                Name = "Policy 2",
-                Calculations = new List<Calculation>()
-                {
-                     new Calculation()
-                     {
-                         Id = "calc1",
-                         Name = "Calculation 1 - Policy 2",
-                         CalculationType = CalculationType.Funding,
-                         AllocationLine = new Reference("al1", "Allocation Line 1"),
-                     },
-                     new Calculation()
-                     {
-                         Id = "calc2",
-                         Name = "Calculation 2 - Policy 2",
-                         CalculationType = CalculationType.Funding,
-                         AllocationLine = new Reference("al2", "Allocation Line 2"),
-                     },
-                     new Calculation()
-                     {
-                         Id = "calc3",
-                         Name = "Calculation 3 - Policy 2",
-                         CalculationType = CalculationType.Number,
-                         IsPublic = true,
-                         AllocationLine = new Reference("al1", "Allocation Line 1"),
-                     },
-                },
-                SubPolicies = new List<Policy>(),
-            });
-
-            specification.Policies = policies;
-
-            providerResults.Add(new ProviderResult()
-            {
-                AllocationLineResults = new List<AllocationLineResult>(),
-                CalculationResults = new List<CalculationResult>()
-                {
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc1", "Calculation Specification 1"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 12345.66M,
-                    }
-                },
-                Id = "p1",
-                Provider = new ProviderSummary()
-                {
-                    Id = "provider1",
-                    Name = "Provider 1",
-                    UKPRN = "123"
-                },
-                SourceDatasets = new List<object>(),
-                SpecificationId = specification.Id,
-            });
-
-            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = Enumerable.Empty<PublishedProviderCalculationResultExisting>();
-
-            PublishedProviderResultsAssemblerService service = CreateAssemblerService();
-
-            // Act
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = service.AssemblePublishedCalculationResults(providerResults, author, specification);
-
-            // Assert
-            publishedProviderCalculationResults
-                .Should()
-                .HaveCount(1);
-
-            PublishedProviderCalculationResult result = publishedProviderCalculationResults.First();
-
-            result.Current.Author.Should().BeEquivalentTo(author);
-            result.Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-            result.Current.Commment.Should().BeNullOrWhiteSpace();
-            result.Current.Date.Should().BeAfter(DateTimeOffset.Now.AddHours(-1));
-            result.Current.Provider.Should().BeEquivalentTo(new ProviderSummary()
-            {
-                Id = "provider1",
-                Name = "Provider 1",
-                UKPRN = "123",
-            });
-            result.Current.Value.Should().Be(12345.66M);
-            result.Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-            result.ParentPolicy.Should().BeNull();
-        }
-
-        [TestMethod]
-        public void AssemblePublishedCalculationResults_WhenCalculationResultsGeneratedForASubPolicy_ThenPublishedProviderCalculationResultsAreReturned()
-        {
-            // Arrange
-            List<ProviderResult> providerResults = new List<ProviderResult>();
-            Reference author = new Reference("a", "Author Name");
-            SpecificationCurrentVersion specification = GenerateSpecificationWithPoliciesAndSubpolicies();
-
-            providerResults.Add(new ProviderResult()
-            {
-                AllocationLineResults = new List<AllocationLineResult>(),
-                CalculationResults = new List<CalculationResult>()
-                {
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("subpolicy2Calc2", "Subpolicy 1 Calculation 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 12345.66M,
-                    }
-                },
-                Id = "p1",
-                Provider = new ProviderSummary()
-                {
-                    Id = "provider1",
-                    Name = "Provider 1",
-                    UKPRN = "123"
-                },
-                SourceDatasets = new List<object>(),
-                SpecificationId = specification.Id,
-            });
-
-            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = Enumerable.Empty<PublishedProviderCalculationResultExisting>();
-
-            PublishedProviderResultsAssemblerService service = CreateAssemblerService();
-
-            // Act
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = service.AssemblePublishedCalculationResults(providerResults, author, specification);
-
-            // Assert
-            publishedProviderCalculationResults
-                .Should()
-                .HaveCount(1);
-
-            PublishedProviderCalculationResult result = publishedProviderCalculationResults.First();
-
-            result.Current.Author.Should().BeEquivalentTo(author);
-            result.Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-            result.Current.Commment.Should().BeNullOrWhiteSpace();
-            result.Current.Date.Should().BeAfter(DateTimeOffset.Now.AddHours(-1));
-            result.Current.Provider.Should().BeEquivalentTo(new ProviderSummary()
-            {
-                Id = "provider1",
-                Name = "Provider 1",
-                UKPRN = "123",
-            });
-            result.Current.Value.Should().Be(12345.66M);
-            result.Policy.Should().BeEquivalentTo(new Reference("subpolicy2", "SubPolicy 2"));
-            result.ParentPolicy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-        }
-
-        [TestMethod]
-        public void AssemblePublishedCalculationResults_WhenMultipleCalculationResultsGeneratedForPoliciesAndSubpolicies_ThenPublishedProviderCalculationResultsAreReturned()
-        {
-            // Arrange
-            List<ProviderResult> providerResults = new List<ProviderResult>();
-            Reference author = new Reference("a", "Author Name");
-            SpecificationCurrentVersion specification = GenerateSpecificationWithPoliciesAndSubpolicies();
-
-            providerResults.Add(new ProviderResult()
-            {
-                AllocationLineResults = new List<AllocationLineResult>(),
-                CalculationResults = new List<CalculationResult>()
-                {
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("subpolicy2Calc2", "Subpolicy 1 Calculation 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 12345.66M,
-                    },
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc1", "Calculation 1 - Policy 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 12345.2M,
-                    },
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc2", "Calculation 2 - Policy 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 12345.3M,
-                    },
-                },
-                Id = "p1",
-                Provider = new ProviderSummary()
-                {
-                    Id = "provider1",
-                    Name = "Provider 1",
-                    UKPRN = "123"
-                },
-                SourceDatasets = new List<object>(),
-                SpecificationId = specification.Id,
-            });
-
-            providerResults.Add(new ProviderResult()
-            {
-                AllocationLineResults = new List<AllocationLineResult>(),
-                CalculationResults = new List<CalculationResult>()
-                {
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("subpolicy2Calc3", "Subpolicy 1 Calculation 3"),
-                        CalculationType = Models.Calcs.CalculationType.Number,
-                        Value = 2.1M,
-                    },
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc1", "Calculation 1 - Policy 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 2.2M,
-                    },
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc2", "Calculation 2 - Policy 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 2.3M,
-                    },
-                },
-                Id = "p2",
-                Provider = new ProviderSummary()
-                {
-                    Id = "provider2",
-                    Name = "Provider 1",
-                    UKPRN = "456"
-                },
-                SourceDatasets = new List<object>(),
-                SpecificationId = specification.Id,
-            });
-
-            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = Enumerable.Empty<PublishedProviderCalculationResultExisting>();
-
-            PublishedProviderResultsAssemblerService service = CreateAssemblerService();
-
-            // Act
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = service.AssemblePublishedCalculationResults(providerResults, author, specification);
-
-            // Assert
-            publishedProviderCalculationResults
-                .Should()
-                .HaveCount(5);
-
-            PublishedProviderCalculationResult result = publishedProviderCalculationResults.First();
-
-            List<PublishedProviderCalculationResult> resultsList = new List<PublishedProviderCalculationResult>(publishedProviderCalculationResults);
-
-            result.CalculationSpecification.Should().BeEquivalentTo(new Reference("subpolicy2Calc2", "Subpolicy 1 Calculation 2"));
-            result.Current.Author.Should().BeEquivalentTo(author);
-            result.Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-            result.Current.Commment.Should().BeNullOrWhiteSpace();
-            result.Current.Date.Should().BeAfter(DateTimeOffset.Now.AddHours(-1));
-            result.Current.Provider.Should().BeEquivalentTo(new ProviderSummary()
-            {
-                Id = "provider1",
-                Name = "Provider 1",
-                UKPRN = "123",
-            });
-            result.Current.Value.Should().Be(12345.66M);
-            result.Policy.Should().BeEquivalentTo(new Reference("subpolicy2", "SubPolicy 2"));
-            result.ParentPolicy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-
-            resultsList[1].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc1", "Calculation 1 - Policy 2"));
-            resultsList[1].ProviderId.Should().Be("provider1");
-            resultsList[1].Current.Value.Should().Be(12345.2M);
-            resultsList[1].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-            resultsList[1].ParentPolicy.Should().BeNull();
-            resultsList[1].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-
-            resultsList[2].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc2", "Calculation 2 - Policy 2"));
-            resultsList[2].ProviderId.Should().Be("provider1");
-            resultsList[2].Current.Value.Should().Be(12345.3M);
-            resultsList[2].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-            resultsList[2].ParentPolicy.Should().BeNull();
-            resultsList[2].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-
-            resultsList[3].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc1", "Calculation 1 - Policy 2"));
-            resultsList[3].ProviderId.Should().Be("provider2");
-            resultsList[3].Current.Value.Should().Be(2.2M);
-            resultsList[3].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-            resultsList[3].ParentPolicy.Should().BeNull();
-            resultsList[3].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-
-            resultsList[4].CalculationSpecification.Should().BeEquivalentTo(new Reference("calc2", "Calculation 2 - Policy 2"));
-            resultsList[4].ProviderId.Should().Be("provider2");
-            resultsList[4].Current.Value.Should().Be(2.3M);
-            resultsList[4].Policy.Should().BeEquivalentTo(new Reference("p2", "Policy 2"));
-            resultsList[4].ParentPolicy.Should().BeNull();
-            resultsList[4].Current.CalculationType.Should().Be(PublishedCalculationType.Funding);
-        }
-
-        [TestMethod]
-        public void AssemblePublishedCalculationResults_WhenMultipleCalculationResultsGeneratedForPoliciesAndSubpoliciesAndAtLeastOneCalcHasChanged_ThenPublishedProviderCalculationResultsAndHasCalcsIsTrueAreReturned()
-        {
-            // Arrange
-            List<ProviderResult> providerResults = new List<ProviderResult>();
-            Reference author = new Reference("a", "Author Name");
-            SpecificationCurrentVersion specification = GenerateSpecificationWithPoliciesAndSubpolicies();
-
-            providerResults.Add(new ProviderResult()
-            {
-                AllocationLineResults = new List<AllocationLineResult>(),
-                CalculationResults = new List<CalculationResult>()
-                {
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("subpolicy2Calc2", "Subpolicy 1 Calculation 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 12345.66M,
-                        Version = 2
-                    },
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc1", "Calculation 1 - Policy 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 12345.2M,
-                        Version = 2
-                    },
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc2", "Calculation 2 - Policy 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 12345.3M,
-                        Version = 2
-                    },
-                },
-                Id = "p1",
-                Provider = new ProviderSummary()
-                {
-                    Id = "provider1",
-                    Name = "Provider 1",
-                    UKPRN = "123"
-                },
-                SourceDatasets = new List<object>(),
-                SpecificationId = specification.Id,
-            });
-
-            providerResults.Add(new ProviderResult()
-            {
-                AllocationLineResults = new List<AllocationLineResult>(),
-                CalculationResults = new List<CalculationResult>()
-                {
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("subpolicy2Calc3", "Subpolicy 1 Calculation 3"),
-                        CalculationType = Models.Calcs.CalculationType.Number,
-                        Value = 2.1M,
-                        Version = 2
-                    },
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc1", "Calculation 1 - Policy 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 2.2M,
-                        Version = 2
-                    },
-                    new CalculationResult()
-                    {
-                        CalculationSpecification = new Reference("calc2", "Calculation 2 - Policy 2"),
-                        CalculationType = Models.Calcs.CalculationType.Funding,
-                        Value = 2.3M,
-                        Version = 2
-                    },
-                },
-                Id = "p2",
-                Provider = new ProviderSummary()
-                {
-                    Id = "provider2",
-                    Name = "Provider 1",
-                    UKPRN = "456"
-                },
-                SourceDatasets = new List<object>(),
-                SpecificationId = specification.Id,
-            });
-
-            IEnumerable<PublishedProviderCalculationResultExisting> existingResults = new[]
-            {
-                new PublishedProviderCalculationResultExisting
-                {
-                    CalculationVersion = 2,
-                    ProviderId = "provider1",
-                    CalculationSpecificationId = "calc1"
-                },
-                new PublishedProviderCalculationResultExisting
-                {
-                    CalculationVersion = 1,
-                    ProviderId = "provider2",
-                    CalculationSpecificationId = "calc1"
-                }
-            };
-
-            PublishedProviderResultsAssemblerService service = CreateAssemblerService();
-
-            // Act
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = service.AssemblePublishedCalculationResults(providerResults, author, specification);
-
-            // Assert
-            publishedProviderCalculationResults
-                .Should()
-                .HaveCount(5);
-        }
 
         [TestMethod]
         public async Task GeneratePublishedProviderResultsToSave_WhenNoResultsGenerated_ThenNoResultsReturned()
@@ -1555,7 +1880,6 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
-
 
             // Act
             (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
@@ -2201,19 +2525,12 @@ namespace CalculateFunding.Services.Results.Services
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
             ISpecificationsRepository specificationsRepository = null,
             ILogger logger = null,
-            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = null,
-            IVersionRepository<PublishedProviderCalculationResultVersion> calculationResultsVersionRepository = null)
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = null)
         {
             return new PublishedProviderResultsAssemblerService(
                 specificationsRepository ?? CreateSpecificationsRepository(),
                 logger ?? CreateLogger(),
-                allocationResultsVersionRepository ?? CreateAllocationResultsVersionRepository(),
-                calculationResultsVersionRepository ?? CreateCalculationResultsVersionRepository());
-        }
-
-        static IVersionRepository<PublishedProviderCalculationResultVersion> CreateCalculationResultsVersionRepository()
-        {
-            return Substitute.For<IVersionRepository<PublishedProviderCalculationResultVersion>>();
+                allocationResultsVersionRepository ?? CreateAllocationResultsVersionRepository());
         }
 
         static IVersionRepository<PublishedAllocationLineResultVersion> CreateAllocationResultsVersionRepository()
@@ -2430,14 +2747,14 @@ namespace CalculateFunding.Services.Results.Services
             return specification;
         }
 
-        private static IEnumerable<ProviderResult> CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines()
+        private static IEnumerable<ProviderResult> CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines(List<CalculationResult> calculationResults = null)
         {
             //Arrange
             return new[] {
                 new ProviderResult
             {
                 SpecificationId = "spec-id",
-                CalculationResults = new List<CalculationResult>
+                CalculationResults = !calculationResults.IsNullOrEmpty() ? calculationResults :  new List<CalculationResult>
                     {
                         new CalculationResult
                         {

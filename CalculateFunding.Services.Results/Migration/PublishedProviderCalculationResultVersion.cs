@@ -1,8 +1,8 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
-using System;
 
-namespace CalculateFunding.Models.Results
+namespace CalculateFunding.Services.Results.Migration
 {
     public class PublishedProviderCalculationResultVersion : VersionedItem
     {
@@ -46,5 +46,4 @@ namespace CalculateFunding.Models.Results
             return JsonConvert.DeserializeObject<PublishedProviderCalculationResultVersion>(json);
         }
     }
-
 }

@@ -400,7 +400,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
@@ -676,7 +676,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
@@ -812,7 +812,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
@@ -939,7 +939,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
@@ -1064,7 +1064,7 @@ namespace CalculateFunding.Services.Results.Services
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
             }
 
             PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
@@ -1171,6 +1171,13 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(true);
 
             Job newJob = new Job { Id = "new-job-id" };
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient

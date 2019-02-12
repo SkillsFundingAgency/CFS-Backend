@@ -1,29 +1,12 @@
-﻿using System;
-using System.Text;
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-    public class PublishedProviderCalculationResult : IIdentifiable
+    public class PublishedProviderCalculationResult
     {
-        [JsonProperty("id")]
-        public string Id
-        {
-            get
-            {
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{Specification.Id}{ProviderId}{CalculationSpecification.Id}"));
-            }
-        }
-
-        [JsonProperty("providerId")]
-        public string ProviderId { get; set; }
-
-        [JsonProperty("specification")]
-        public Reference Specification { get; set; }
-
         [JsonProperty("calculationSpecification")]
         public Reference CalculationSpecification { get; set; }
 
@@ -32,9 +15,6 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
-
-        [JsonProperty("fundingPeriod")]
-        public Reference FundingPeriod { get; set; }
 
         [JsonProperty("parentPolicy")]
         public PolicySummary ParentPolicy { get; set; }
@@ -45,8 +25,13 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("status")]
         public PublishStatus Status { get; set; }
 
-        [JsonProperty("current")]
-        public PublishedProviderCalculationResultVersion Current { get; set; }
-    }
+        [JsonProperty("value")]
+        public decimal? Value { get; set; }
 
+        [JsonProperty("calculationVersion")]
+        public int CalculationVersion { get; set; }
+
+        [JsonProperty("calculationType")]
+        public PublishedCalculationType CalculationType { get; set; }
+    }
 }

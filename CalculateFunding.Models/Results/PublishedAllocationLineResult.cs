@@ -13,5 +13,8 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("current")]
         public PublishedAllocationLineResultVersion Current { get; set; }
+
+        [JsonProperty("published")]
+        public PublishedAllocationLineResultVersion Published { get; set; }
     }
 }

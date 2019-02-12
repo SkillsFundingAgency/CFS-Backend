@@ -125,7 +125,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             allocationModel.Provider.OpenDate.Should().NotBeNull();
             allocationModel.AllocationLine.Id.Should().Be("AAAAA");
             allocationModel.AllocationLine.Name.Should().Be("test allocation line 1");
-            allocationModel.ProfilePeriods.Count.Should().Be(1);
+            allocationModel.ProfilePeriods.Should().HaveCount(1);
         }
 
         [TestMethod]
@@ -289,6 +289,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                                 Id = "1111",
                                 Name = "test provider name 1"
                             },
+                            ProfilingPeriods = new[]
+                            {
+                                new ProfilingPeriod()
+                            },
                         }
                     }
                 },
@@ -297,10 +301,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                     Id = "Ay12345",
                     Name = "fp-1"
                 },
-                ProfilingPeriods = new[]
-                {
-                    new ProfilingPeriod()
-                }
+
             };
         }
 

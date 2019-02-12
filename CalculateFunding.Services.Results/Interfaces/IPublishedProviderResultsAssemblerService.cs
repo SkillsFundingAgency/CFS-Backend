@@ -10,8 +10,6 @@ namespace CalculateFunding.Services.Results.Interfaces
     {
         Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion);
 
-        IEnumerable<PublishedProviderCalculationResult> AssemblePublishedCalculationResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion);
-
         /// <summary>
         /// Determines which PublishedProviderResults should be saved.
         /// If a result is not found in current results, then the value is set to 0
