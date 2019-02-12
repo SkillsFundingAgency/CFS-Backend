@@ -1,5 +1,5 @@
 {
-`	"name": "datasetversionindex",
+"name": "datasetversionindex",
   "fields": [
     {
       "name": "id",
@@ -130,7 +130,7 @@
       "analyzer": null,
       "searchAnalyzer": null,
       "indexAnalyzer": null
-    },
+    }
   ],
 	"scoringProfiles": [],
 	"suggesters": [],
