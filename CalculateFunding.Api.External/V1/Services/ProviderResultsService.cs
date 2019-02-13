@@ -198,6 +198,9 @@ namespace CalculateFunding.Api.External.V1.Services
 
         private LocalAuthorityResultsSummary CreateLocalAuthorityResultsSummary(IEnumerable<AllocationNotificationFeedIndex> entries, HttpRequest request)
         {
+            ///TODO: Require permanent fix
+            entries = entries.Where(m => m.ProviderUkPrn != "10080459");
+
             IEnumerable<IGrouping<string, AllocationNotificationFeedIndex>> localAuthorityResultSummaryGroups = entries.GroupBy(m => m.LaCode);
 
             AllocationNotificationFeedIndex firstEntry = entries.First();
@@ -345,6 +348,13 @@ namespace CalculateFunding.Api.External.V1.Services
 
         private ProviderResultSummary CreateProviderResultSummary(IEnumerable<AllocationNotificationFeedIndex> entries, HttpRequest request)
         {
+            ///TODO: Require permanent fix
+            
+            if (entries.First().ProviderUkPrn == "10080459")
+            {
+                entries = entries.Where(m => m.ProviderStatus == "Closed");
+            }
+
             IEnumerable<IGrouping<string, AllocationNotificationFeedIndex>> fundingPeriodResultSummaryGroups = entries.GroupBy(m => m.FundingPeriodId);
 
             AllocationNotificationFeedIndex firstEntry = entries.First();
