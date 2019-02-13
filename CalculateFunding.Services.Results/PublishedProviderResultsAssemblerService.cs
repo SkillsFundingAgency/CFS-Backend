@@ -140,6 +140,11 @@ namespace CalculateFunding.Services.Results
                                         providerResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Updated;
                                     }
 
+                                    if(existingResult.Published != null)
+                                    {
+                                        providerResult.FundingStreamResult.AllocationLineResult.Published = existingResult.Published;
+                                    }
+
                                     providerResult.FundingStreamResult.AllocationLineResult.Current.Major = existingResult.Major;
                                     providerResult.FundingStreamResult.AllocationLineResult.Current.Minor = existingResult.Minor;
 

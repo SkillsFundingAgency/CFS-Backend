@@ -121,6 +121,6 @@ namespace CalculateFunding.Api.External.V2.Models
         /// <summary>
         /// The profiling periods associated allocation model
         /// </summary>
-        public IEnumerable<ProfilePeriod> ProfilePeriods { get; set; }
+        public List<ProfilePeriod> ProfilePeriods { get; set; }
     }
 }

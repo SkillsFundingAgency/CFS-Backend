@@ -12,6 +12,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using LinqKit;
+using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Results
 {
@@ -119,7 +120,19 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IEnumerable<PublishedProviderResultExisting>> GetExistingPublishedProviderResultsForSpecificationId(string specificationId)
         {
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>($"SELECT r.id, r.updatedAt, r.content.providerId,r.content.fundingStreamResult.allocationLineResult.current[\"value\"], r.content.fundingStreamResult.allocationLineResult.allocationLine.id as allocationLineId, r.content.fundingStreamResult.allocationLineResult.current.major as major, r.content.fundingStreamResult.allocationLineResult.current.minor as minor, r.content.fundingStreamResult.allocationLineResult.current.version as version, r.content.fundingStreamResult.allocationLineResult.current.status as status FROM Root r where r.documentType = 'PublishedProviderResult' and r.deleted = false and r.content.specificationId = '{specificationId}'", true, 1000);
+            string query = "SELECT r.id, r.updatedAt, r.content.providerId," +
+                "r.content.fundingStreamResult.allocationLineResult.current[\"value\"], " +
+                "r.content.fundingStreamResult.allocationLineResult.allocationLine.id as allocationLineId, " +
+                "r.content.fundingStreamResult.allocationLineResult.current.major as major, " +
+                "r.content.fundingStreamResult.allocationLineResult.current.minor as minor, " +
+                "r.content.fundingStreamResult.allocationLineResult.current.version as version, " +
+                "r.content.fundingStreamResult.allocationLineResult.current.status as status, " +
+                "r.content.fundingStreamResult.allocationLineResult.published as published " +
+                "FROM Root r where r.documentType = 'PublishedProviderResult' " + 
+                "and r.deleted = false " +
+                "and r.content.specificationId = '" + specificationId + "'";
+
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>(query, true, 1000);
 
             List<PublishedProviderResultExisting> results = new List<PublishedProviderResultExisting>();
             foreach (dynamic existingResult in existingResults)
@@ -134,6 +147,7 @@ namespace CalculateFunding.Services.Results
                     Major = DynamicExtensions.PropertyExists(existingResult, "major") ? (int)existingResult.major : 0,
                     UpdatedAt = (DateTimeOffset?)existingResult.updatedAt,
                     Version = DynamicExtensions.PropertyExists(existingResult, "version") ? (int)existingResult.version : 0,
+                    Published = DynamicExtensions.PropertyExists(existingResult, "published") ? ((JObject)existingResult.published).ToObject<PublishedAllocationLineResultVersion>() : null,
                 };
 
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);

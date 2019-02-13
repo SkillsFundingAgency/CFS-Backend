@@ -156,7 +156,7 @@ namespace CalculateFunding.Api.External.V2.Services
                             AllocationAmount = (decimal)feedIndex.AllocationAmount,
                             AllocationResultId = feedIndex.Id,
                             AllocationResultTitle = feedIndex.Title,
-                            ProfilePeriods = new Collection<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(feedIndex.ProviderProfiling).Select(
+                            ProfilePeriods = new List<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(feedIndex.ProviderProfiling).Select(
                                     m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe())
                         }
                     }

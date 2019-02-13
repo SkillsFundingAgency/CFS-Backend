@@ -2522,6 +2522,132 @@ namespace CalculateFunding.Services.Results.Services
                 .Be(1);
         }
 
+        [TestMethod]
+        public async Task GeneratePublishedProviderResultsToSave_WhenExistingResultsExistAndOneResultsShouldBeUpdatedDueToValueChangeAndPublishedFieldIsNotNull_ThenResultsReturnedToSaveEbsuringPublishedFieldIsCloned()
+        {
+            // Arrange
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = CreateAllocationResultsVersionRepository();
+
+            PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
+
+            AllocationLine allocationLine1 = new AllocationLine()
+            {
+                Id = "AAAAA",
+                Name = "Allocation Line 1"
+            };
+
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
+            publishedProviderResults
+                .Add(new PublishedProviderResult()
+                {
+                    ProviderId = "1",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Published,
+                                Value = 123,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
+                            }
+                        }
+                    }
+                });
+
+            publishedProviderResults
+               .Add(new PublishedProviderResult()
+               {
+                   ProviderId = "2",
+                   FundingStreamResult = new PublishedFundingStreamResult()
+                   {
+                       AllocationLineResult = new PublishedAllocationLineResult()
+                       {
+                           AllocationLine = allocationLine1,
+                           Current = new PublishedAllocationLineResultVersion()
+                           {
+                               Status = AllocationLineStatus.Published,
+                               Value = 789,
+                               Major = 0,
+                               Minor = 1,
+                               Provider = new ProviderSummary
+                               {
+                                   UKPRN = "2",
+                                   ProviderProfileIdType = "UKPRN"
+                               }
+                           }
+                       }
+                   }
+               });
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "1",
+                Status = AllocationLineStatus.Published,
+                Value = 123,
+                Published = new PublishedAllocationLineResultVersion()
+            });
+
+            PublishedAllocationLineResultVersion publishedVersion = new PublishedAllocationLineResultVersion()
+            {
+                Status = AllocationLineStatus.Published,
+                Value = 456,
+                Major = 0,
+                Minor = 1,
+                Provider = new ProviderSummary
+                {
+                    UKPRN = "2",
+                    ProviderProfileIdType = "UKPRN"
+                }
+            };
+
+            existingResults.Add(new PublishedProviderResultExisting()
+            {
+                AllocationLineId = allocationLine1.Id,
+                ProviderId = "2",
+                Status = AllocationLineStatus.Published,
+                Value = 456,
+                Published = publishedVersion
+            });
+
+            allocationResultsVersionRepository
+                .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<int>(), incrementFromCurrentVersion: Arg.Is(true))
+                .Returns(2);
+
+            // Act
+            (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
+
+            // Assert
+            resultsToSave
+                .Should()
+                .HaveCount(1);
+
+            resultsToSave
+                .Should()
+                .BeEquivalentTo(new List<PublishedProviderResult>() { publishedProviderResults[1] });
+
+            resultsToExclude
+                .Should()
+                .BeEmpty();
+
+            resultsToSave.First().FundingStreamResult.AllocationLineResult.Published
+               .Should()
+               .NotBeNull();
+
+            resultsToSave.First().FundingStreamResult.AllocationLineResult.Published
+                .Should()
+                .BeEquivalentTo(publishedVersion);
+        }
+
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
             ISpecificationsRepository specificationsRepository = null,
             ILogger logger = null,

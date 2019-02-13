@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V2.Interfaces;
@@ -104,7 +105,7 @@ namespace CalculateFunding.Api.External.V2.Services
                     ProviderId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Id,
 
                 },
-                ProfilePeriods = new Collection<ProfilePeriod>(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods?.Select(m =>
+                ProfilePeriods = new List<ProfilePeriod>(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods?.Select(m =>
                     new ProfilePeriod
                     {
                         DistributionPeriod = m.DistributionPeriod,

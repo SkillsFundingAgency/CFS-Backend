@@ -21,5 +21,7 @@ namespace CalculateFunding.Models.Results
         public int Version { get; set; }
 
         public DateTimeOffset? UpdatedAt { get; set; }
+
+        public PublishedAllocationLineResultVersion Published { get; set; }
     }
 }
