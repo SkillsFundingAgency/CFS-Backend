@@ -1885,7 +1885,7 @@ namespace CalculateFunding.Services.Results
                 return;
             }
 
-           
+
             IList<PublishedAllocationLineResultVersion> updatedVersions = new List<PublishedAllocationLineResultVersion>();
             IList<PublishedProviderResult> updatedResults = new List<PublishedProviderResult>();
 
@@ -1899,7 +1899,7 @@ namespace CalculateFunding.Services.Results
 
                 IEnumerable<Migration.PublishedProviderCalculationResult> relatedPublishedProviderCalculationResults = publishedProviderCalculationResults.Where(m => m.AllocationLine?.Id == allocationLineId || m.IsPublic).ToArraySafe();
 
-                if(relatedPublishedProviderCalculationResults.IsNullOrEmpty())
+                if (relatedPublishedProviderCalculationResults.IsNullOrEmpty())
                 {
                     continue;
                 }
@@ -1920,7 +1920,7 @@ namespace CalculateFunding.Services.Results
                         {
                             CalculationSpecification = m.CalculationSpecification,
                             Policy = m.Policy,
-                            AllocationLine =  m.AllocationLine,
+                            AllocationLine = m.AllocationLine,
                             ParentPolicy = m.ParentPolicy,
                             IsPublic = m.IsPublic,
                             Status = m.Current.PublishStatus,
@@ -1936,9 +1936,9 @@ namespace CalculateFunding.Services.Results
                     {
                         version.ProfilingPeriods = publishedProviderResult.ProfilingPeriods;
 
-                        foreach(Models.Results.ProfilingPeriod profilingPeriod in version.ProfilingPeriods)
+                        foreach (Models.Results.ProfilingPeriod profilingPeriod in version.ProfilingPeriods)
                         {
-                            if(profilingPeriod.Period.Equals("Oct", StringComparison.InvariantCultureIgnoreCase))
+                            if (profilingPeriod.Period.Equals("Oct", StringComparison.InvariantCultureIgnoreCase))
                             {
                                 profilingPeriod.Period = "October";
                             }
@@ -1960,17 +1960,17 @@ namespace CalculateFunding.Services.Results
 
                 PublishedProviderResult updatedPublishedProviderResult = new PublishedProviderResult
                 {
-                     FundingPeriod = publishedProviderResult.FundingPeriod,
-                     FundingStreamResult = publishedProviderResult.FundingStreamResult,
-                     ProviderId = publishedProviderResult.ProviderId,
-                     SpecificationId = publishedProviderResult.SpecificationId,
-                     Title = publishedProviderResult.Title
+                    FundingPeriod = publishedProviderResult.FundingPeriod,
+                    FundingStreamResult = publishedProviderResult.FundingStreamResult,
+                    ProviderId = publishedProviderResult.ProviderId,
+                    SpecificationId = publishedProviderResult.SpecificationId,
+                    Title = publishedProviderResult.Title
                 };
 
                 //Ensure very latest is added to published
                 foreach (PublishedAllocationLineResultVersion version in versions)
                 {
-                    if(version.Status == AllocationLineStatus.Published)
+                    if (version.Status == AllocationLineStatus.Published)
                     {
                         updatedPublishedProviderResult.FundingStreamResult.AllocationLineResult.Published = version;
                         break;
@@ -2195,7 +2195,7 @@ namespace CalculateFunding.Services.Results
                     ProviderUpin = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UPIN,
                     ProviderUrn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.URN,
                     ProviderOpenDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
-                    ProviderClosedDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
+                    ProviderClosedDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateClosed,
                     AllocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                     AllocationLineName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
                     AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
@@ -2216,7 +2216,7 @@ namespace CalculateFunding.Services.Results
                     NavVendorNo = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.NavVendorNo,
                     DfeEstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DfeEstablishmentNumber,
                     ProviderStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
-                    PolicySummaries = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations !=  null ?
+                    PolicySummaries = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations != null ?
                         JsonConvert.SerializeObject(CreatePolicySummaries(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations, specification)) : "",
                     Calculations = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations != null ?
                         JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations.Select(m =>
@@ -2231,7 +2231,7 @@ namespace CalculateFunding.Services.Results
                                PolicyId = m.Policy.Id,
                                PolicyName = m.Policy.Name
                            })) : "",
-                    FinancialEnvelopes = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes != null ? 
+                    FinancialEnvelopes = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes != null ?
                         JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes) : "",
                 };
 
@@ -2355,7 +2355,7 @@ namespace CalculateFunding.Services.Results
 
         private void SetPublishedField(PublishedProviderResult publishedProviderResult)
         {
-            if(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Published)
+            if (publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Published)
             {
                 publishedProviderResult.FundingStreamResult.AllocationLineResult.Published = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
             }
