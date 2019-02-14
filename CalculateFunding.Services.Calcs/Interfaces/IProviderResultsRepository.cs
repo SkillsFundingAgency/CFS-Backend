@@ -26,6 +26,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IEnumerable<string>> GetScopedProviderIds(string specificationId);
 
-        Task PopulateProviderSummariesForSpecification(string specificationId);
+        Task<int> PopulateProviderSummariesForSpecification(string specificationId);
     }
 }

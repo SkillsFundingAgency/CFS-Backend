@@ -103,7 +103,7 @@ namespace CalculateFunding.Services.Calcs
             return _apiClient.GetAsync<IEnumerable<ProviderSourceDataset>>(url);
         }
 
-        public async Task PopulateProviderSummariesForSpecification(string specificationId)
+        public async Task<int> PopulateProviderSummariesForSpecification(string specificationId)
         {
             IEnumerable<ProviderSummary> allCachedProviders = Enumerable.Empty<ProviderSummary>();
 
@@ -136,7 +136,9 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<string> providerIds = await GetScopedProviderIds(specificationId);
 
-            IList<ProviderSummary> providerSummaries = new List<ProviderSummary>();
+            int providerIdCount = providerIds.Count();
+
+            IList<ProviderSummary> providerSummaries = new List<ProviderSummary>(providerIdCount);
 
             foreach (string providerId in providerIds)
             {
@@ -151,6 +153,8 @@ namespace CalculateFunding.Services.Calcs
             await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKey);
 
             await _cacheProvider.CreateListAsync<ProviderSummary>(providerSummaries, cacheKey);
+
+            return providerIdCount;
         }
 
         public Task<IEnumerable<string>> GetScopedProviderIds(string specificationId)

@@ -191,9 +191,29 @@ namespace CalculateFunding.Services.Calcs
             bool summariesExist = await _cacheProvider.KeyExists<ProviderSummary>(cacheKey);
             long totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey);
 
-            if (!summariesExist || totalCount == 0)
+            bool refreshCachedScopedProviders = false;
+
+            if (summariesExist)
             {
-                await _providerResultsRepository.PopulateProviderSummariesForSpecification(specificationId);
+                IEnumerable<string> scopedProviderIds = await _providerResultsRepository.GetScopedProviderIds(specificationId);
+
+                if (scopedProviderIds.Count() != totalCount)
+                {
+                    refreshCachedScopedProviders = true;
+                }
+                else
+                {
+                    IEnumerable<ProviderSummary> cachedScopedSummaries = await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKey, 0, (int)totalCount);
+
+                    IEnumerable<string> differences = scopedProviderIds.Except(cachedScopedSummaries.Select(m => m.Id));
+
+                    refreshCachedScopedProviders = differences.AnyWithNullCheck();
+                }
+            }
+
+            if (!summariesExist || refreshCachedScopedProviders)
+            {
+                totalCount = await _providerResultsRepository.PopulateProviderSummariesForSpecification(specificationId);
             }
 
             const string providerSummariesPartitionIndex = "provider-summaries-partition-index";
