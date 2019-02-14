@@ -1495,6 +1495,11 @@ namespace CalculateFunding.Services.Results.Services
                 cacheProvider
                 .Received(1)
                 .KeyDeleteAsync<List<ProviderSummary>>(Arg.Is(CacheKeys.AllProviderSummaries));
+
+            await
+                cacheProvider
+                .Received(1)
+                .RemoveByPatternAsync(Arg.Is("scoped-provider-summaries:*"));
         }
 
         [TestMethod]
@@ -1526,13 +1531,19 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 cacheProvider
-                .DidNotReceive()
-                .KeyExists<string>(Arg.Any<string>());
+                    .DidNotReceive()
+                    .KeyExists<string>(Arg.Any<string>());
 
             await
                 cacheProvider
                 .DidNotReceive()
                 .KeyExists<List<ProviderSummary>>(Arg.Any<string>());
+
+            await
+                cacheProvider
+                    .DidNotReceive()
+                    .RemoveByPatternAsync(Arg.Any<string>());
+                    
         }
 
         [TestMethod]

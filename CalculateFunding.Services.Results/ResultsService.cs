@@ -462,6 +462,8 @@ namespace CalculateFunding.Services.Results
                 await _cacheProvider.KeyDeleteAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
             }
 
+            await _cacheProvider.RemoveByPatternAsync("scoped-provider-summaries:*");
+
             return new NoContentResult();
         }
 
@@ -518,8 +520,7 @@ namespace CalculateFunding.Services.Results
 				return new InternalServerErrorResult(errorMessage);
 			}
 
-
-			return new NoContentResult();
+            return new NoContentResult();
         }
 
         public async Task<IActionResult> HasCalculationResults(string calculationId)
