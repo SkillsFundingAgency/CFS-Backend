@@ -18,4 +18,8 @@
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Filtering\" />
+  </ItemGroup>
 </Project>

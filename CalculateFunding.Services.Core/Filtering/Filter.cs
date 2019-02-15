@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace CalculateFunding.Services.Results.Filtering
+namespace CalculateFunding.Services.Core.Filtering
 {
 	public class Filter
 	{

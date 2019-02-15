@@ -480,7 +480,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Query
                 .Returns(queryStringValues);
 
-            Dataset dataset = new Dataset();
+	        Dataset dataset = new Dataset()
+	        {
+		        History = new List<DatasetVersion>()
+		        {
+			        new DatasetVersion()
+			        {
+				        BlobName = "BlobName"
+			        }
+		        }
+	        };
 
             ILogger logger = CreateLogger();
 
@@ -532,8 +541,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = new DatasetVersion
                 {
                     BlobName = blobName
-                }
-            };
+                },
+	            History = new List<DatasetVersion>()
+	            {
+		            new DatasetVersion()
+		            {
+			            BlobName = "BlobName"
+		            }
+	            }
+			};
 
             ILogger logger = CreateLogger();
 
@@ -584,8 +600,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 Current = new DatasetVersion
                 {
                     BlobName = blobName
-                }
-            };
+                },
+	            History = new List<DatasetVersion>()
+	            {
+		            new DatasetVersion()
+		            {
+			            BlobName = "BlobName"
+		            }
+	            }
+			};
 
             ILogger logger = CreateLogger();
 
@@ -614,9 +637,189 @@ namespace CalculateFunding.Services.Datasets.Services
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
+
+	        OkObjectResult okObjectResult = result as OkObjectResult;
+	        DatasetDownloadModel objectResult = okObjectResult.Value as DatasetDownloadModel;
+
+	        objectResult.Url.Should().Be(blobUrl);
         }
 
-        [TestMethod]
+		[TestMethod]
+		public async Task DownloadDatasetFile_GivenVersionIsSpecifiedAndVersionExists_ReturnsOKResult()
+		{
+			//Arrange
+			const string blobUrl = "http://this-is-a-bloburl?this=is-a-token";
+			const string blobName = "blob-name.xlsx";
+			const int versionSpecified = 2;
+
+			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+			{
+				{ "datasetId", new StringValues(DatasetId) },
+				{ "datasetVersion", new StringValues(versionSpecified.ToString()) }
+			});
+
+			HttpRequest request = Substitute.For<HttpRequest>();
+			request
+				.Query
+				.Returns(queryStringValues);
+
+			Dataset dataset = new Dataset
+			{
+				Current = new DatasetVersion
+				{
+					BlobName = "CurrentsBlobName"
+				},
+				History = new List<DatasetVersion>()
+				{
+					new DatasetVersion()
+					{
+						BlobName = "blobName v1",
+						Version = 1
+					},
+					new DatasetVersion()
+					{
+						BlobName = blobName,
+						Version = versionSpecified
+					}
+				}
+			};
+
+			ILogger logger = CreateLogger();
+
+			IDatasetRepository datasetRepository = CreateDatasetsRepository();
+			datasetRepository
+				.GetDatasetByDatasetId(Arg.Is(DatasetId))
+				.Returns(dataset);
+
+			ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
+
+			IBlobClient blobClient = CreateBlobClient();
+			blobClient
+				.GetBlobReferenceFromServerAsync(Arg.Is(blobName))
+				.Returns(cloudBlob);
+
+			blobClient
+					.GetBlobSasUrl(blobName, Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
+					.Returns(blobUrl);
+
+			DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+
+			// Act
+			IActionResult result = await service.DownloadDatasetFile(request);
+
+			// Assert
+			result
+				.Should()
+				.BeOfType<OkObjectResult>();
+
+			OkObjectResult okObjectResult = result as OkObjectResult;
+			DatasetDownloadModel objectResult = okObjectResult.Value as DatasetDownloadModel;
+
+			objectResult.Url.Should().Be(blobUrl);
+		}
+
+		[TestMethod]
+		public async Task DownloadDatasetFile_GivenVersionIsSpecifiedButDoesNotExist_ReturnsPreconditionFailedResult()
+		{
+			//Arrange
+			const string blobUrl = "http://this-is-a-bloburl?this=is-a-token";
+			const string blobName = "blob-name.xlsx";
+			const int versionSpecified = 2;
+
+			IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+			{
+				{ "datasetId", new StringValues(DatasetId) },
+				{ "datasetVersion", new StringValues(versionSpecified.ToString()) }
+			});
+
+			HttpRequest request = Substitute.For<HttpRequest>();
+			request
+				.Query
+				.Returns(queryStringValues);
+
+			Dataset dataset = new Dataset
+			{
+				Current = new DatasetVersion
+				{
+					BlobName = "CurrentsBlobName"
+				},
+				History = new List<DatasetVersion>()
+				{
+					new DatasetVersion()
+					{
+						BlobName = "blobName v1",
+						Version = 1
+					},
+					new DatasetVersion()
+					{
+						BlobName = blobName,
+						Version = 3
+					}
+				}
+			};
+
+			ILogger logger = CreateLogger();
+
+			IDatasetRepository datasetRepository = CreateDatasetsRepository();
+			datasetRepository
+				.GetDatasetByDatasetId(Arg.Is(DatasetId))
+				.Returns(dataset);
+
+			ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
+
+			IBlobClient blobClient = CreateBlobClient();
+			blobClient
+				.GetBlobReferenceFromServerAsync(Arg.Is(blobName))
+				.Returns(cloudBlob);
+
+			blobClient
+					.GetBlobSasUrl(blobName, Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
+					.Returns(blobUrl);
+
+			DatasetService service = CreateDatasetService(logger: logger, datasetRepository: datasetRepository, blobClient: blobClient);
+
+			// Act
+			IActionResult result = await service.DownloadDatasetFile(request);
+
+			// Assert
+			result
+				.Should()
+				.BeOfType<StatusCodeResult>()
+				.Which
+				.StatusCode
+				.Should().Be(412);
+			
+		}
+
+		[TestMethod]
+	    public async Task DownloadDatasetFile_GivenAnInvalidVersionWasProvided_ReturnsBadRequest()
+	    {
+		    //Arrange
+		    IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+		    {
+			    { "datasetId", new StringValues(DatasetId) },
+			    { "datasetVersion", new StringValues("one") }
+		    });
+
+		    HttpRequest request = Substitute.For<HttpRequest>();
+		    request
+			    .Query
+			    .Returns(queryStringValues);
+
+			ILogger logger = CreateLogger();
+
+		    DatasetService service = CreateDatasetService(logger: logger);
+
+		    // Act
+		    IActionResult result = await service.DownloadDatasetFile(request);
+
+		    // Assert
+		    result
+			    .Should()
+			    .BeOfType<BadRequestObjectResult>();
+	    }
+
+		[TestMethod]
         public async Task DatasetVersionUpdate_WhenValidDatasetVersionUpdateRequested_ThenDatasetVersionAdded()
         {
             // Arrange

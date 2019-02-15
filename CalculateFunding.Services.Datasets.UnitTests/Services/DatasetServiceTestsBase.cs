@@ -41,6 +41,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IMapper mapper = null,
             IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null,
             ISearchRepository<DatasetIndex> searchRepository = null,
+			ISearchRepository<DatasetVersionIndex> datasetVersionIndex = null,
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null,
             IMessengerService messengerService = null,
             ICacheProvider cacheProvider = null,
@@ -68,8 +69,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetUploadValidator ?? CreateDatasetUploadValidator(),
                 DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 featureToggle ?? CreateFeatureToggle(),
-                jobsApiClient ?? CreateJobsApiClient()
-                );
+                jobsApiClient ?? CreateJobsApiClient(),
+                datasetVersionIndex ?? CreateDatasetVersionRepository()
+				);
         }
 
         protected IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()
@@ -107,7 +109,12 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ISearchRepository<DatasetIndex>>();
         }
 
-        protected ISpecificationsRepository CreateSpecificationsRepository()
+	    protected ISearchRepository<DatasetVersionIndex> CreateDatasetVersionRepository()
+	    {
+		    return Substitute.For<ISearchRepository<DatasetVersionIndex>>();
+	    }
+
+		protected ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
         }

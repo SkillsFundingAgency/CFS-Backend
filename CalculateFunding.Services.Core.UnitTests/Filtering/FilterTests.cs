@@ -2,7 +2,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Results.Filtering
+namespace CalculateFunding.Services.Core.Filtering
 {
 	[TestClass]
 	public class FilterTests

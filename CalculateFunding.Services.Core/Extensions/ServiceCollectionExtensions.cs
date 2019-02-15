@@ -229,6 +229,9 @@ namespace CalculateFunding.Services.Core.Extensions
             builder
              .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
+	        builder
+		        .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
+
             return builder;
         }
 

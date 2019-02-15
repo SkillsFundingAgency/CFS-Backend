@@ -7,8 +7,8 @@ using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Results.Filtering;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.Search.Models;
 

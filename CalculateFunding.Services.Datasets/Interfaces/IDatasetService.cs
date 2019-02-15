@@ -25,6 +25,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<IActionResult> Reindex(HttpRequest request);
 
+	    Task<IActionResult> ReindexDatasetVersions(HttpRequest request);
+
         Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest);
 
         Task<IActionResult> GetValidateDatasetStatus(HttpRequest httpRequest);

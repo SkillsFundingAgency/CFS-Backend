@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Datasets;
@@ -15,6 +16,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -711,14 +715,131 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
-        static DatasetSearchService CreateDatasetSearchService(
-           ILogger logger = null, ISearchRepository<DatasetIndex> serachRepository = null)
-        {
-            return new DatasetSearchService(
-                logger ?? CreateLogger(), serachRepository ?? CreateSearchRepository());
-        }
+	    [TestMethod]
+	    public async Task SearchDatasetVersion_GivenValidParameters_ShouldReturnOkResult()
+	    {
+			// Arrange
+		    SearchModel model = new SearchModel
+		    {
+			    PageNumber = 10,
+			    Top = 50,
+			    IncludeFacets = false
+		    };
 
-        static ILogger CreateLogger()
+		    string blobName = "v1/Pe and sports Data.xlsx";
+
+			string json = JsonConvert.SerializeObject(model);
+		    byte[] byteArray = Encoding.UTF8.GetBytes(json);
+		    MemoryStream stream = new MemoryStream(byteArray);
+
+		    HttpRequest request = Substitute.For<HttpRequest>();
+		    request
+			    .Body
+			    .Returns(stream);
+
+			SearchResults<DatasetVersionIndex> mockSearchResults = new SearchResults<DatasetVersionIndex>();
+		    mockSearchResults.Results = new List<Repositories.Common.Search.SearchResult<DatasetVersionIndex>>()
+		    {
+			    CreateDatasetVersionResult(new DatasetVersionIndex()
+			    {
+				    Id = "df073a02-bbc5-44ee-a84b-5931c6e7cf1e-v1",
+				    Name = "Pe and sports Data",
+				    Version = 1,
+				    BlobName = blobName,
+				    DefinitionName = "PSG",
+				    DatasetId = "df073a02-bbc5-44ee-a84b-5931c6e7cf1e",
+				    Description = "150 rows starting",
+				    LastUpdatedByName = "James",
+				    LastUpdatedDate = new DateTime(2019, 1, 1)
+			    })
+		    };
+
+			ISearchRepository<DatasetVersionIndex> mockDatasetVersionIndexRepository = CreateDatasetVersionSearchRepository();
+		    mockDatasetVersionIndexRepository.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()).Returns(mockSearchResults);
+		    DatasetSearchService service = CreateDatasetSearchService(searchRepositoryDatasetVersion: mockDatasetVersionIndexRepository);
+
+			// Act
+		    IActionResult actionResult = await service.SearchDatasetVersion(request);
+			
+		    // Assert
+		    actionResult.Should().BeOfType<OkObjectResult>();
+
+		    OkObjectResult objectResult = actionResult as OkObjectResult;
+		    DatasetVersionSearchResults datasetVersionSearchResults = objectResult.Value as DatasetVersionSearchResults;
+
+		    datasetVersionSearchResults.Results.Count().Should().Be(1);
+
+		    DatasetVersionSearchResult datasetVersionSearchResult = datasetVersionSearchResults.Results.First();
+		    datasetVersionSearchResult.Id.Should().Be("df073a02-bbc5-44ee-a84b-5931c6e7cf1e-v1");
+		    datasetVersionSearchResult.Name.Should().Be("Pe and sports Data");
+		    datasetVersionSearchResult.Version.Should().Be(1);
+		    datasetVersionSearchResult.BlobName.Should().Be(blobName);
+		    datasetVersionSearchResult.DefinitionName.Should().Be("PSG");
+		    datasetVersionSearchResult.DatasetId.Should().Be("df073a02-bbc5-44ee-a84b-5931c6e7cf1e");
+		    datasetVersionSearchResult.Description.Should().Be("150 rows starting");
+		    datasetVersionSearchResult.LastUpdatedByName.Should().Be("James");
+		    datasetVersionSearchResult.LastUpdatedDate.Should().Be(new DateTime(2019, 1, 1));
+	    }
+
+		[TestMethod]
+		public async Task SearchDatasetVersion_GivenInvalidParameters_ShouldReturnBadRequestResult()
+		{
+			// Arrange
+			SearchModel model = new SearchModel
+			{
+				PageNumber = 0,
+				Top = 0,
+				IncludeFacets = false
+			};
+
+			string json = JsonConvert.SerializeObject(model);
+			byte[] byteArray = Encoding.UTF8.GetBytes(json);
+			MemoryStream stream = new MemoryStream(byteArray);
+
+			HttpRequest request = Substitute.For<HttpRequest>();
+			request
+				.Body
+				.Returns(stream);
+
+			SearchResults<DatasetVersionIndex> mockSearchResults = new SearchResults<DatasetVersionIndex>();
+
+			ISearchRepository<DatasetVersionIndex> mockDatasetVersionIndexRepository = CreateDatasetVersionSearchRepository();
+			mockDatasetVersionIndexRepository.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()).Returns(mockSearchResults);
+
+			DatasetSearchService service = CreateDatasetSearchService(searchRepositoryDatasetVersion: mockDatasetVersionIndexRepository);
+
+			// Act
+			IActionResult actionResult = await service.SearchDatasetVersion(request);
+
+			// Assert
+			actionResult
+				.Should().BeOfType<BadRequestObjectResult>()
+				.Which
+				.Value
+				.Should().Be("An invalid search model was provided");
+		}
+
+		private static Repositories.Common.Search.SearchResult<DatasetVersionIndex> CreateDatasetVersionResult(DatasetVersionIndex datasetVersionIndex)
+	    {
+		    return new Repositories.Common.Search.SearchResult<DatasetVersionIndex>()
+		    {
+			    Result = datasetVersionIndex
+		    };
+	    }
+
+
+	    static DatasetSearchService CreateDatasetSearchService(
+		    ILogger logger = null,
+		    ISearchRepository<DatasetIndex> serachRepository = null,
+		    ISearchRepository<DatasetVersionIndex> searchRepositoryDatasetVersion = null)
+	    {
+		    return new DatasetSearchService(
+			    logger ?? CreateLogger(),
+			    serachRepository ?? CreateSearchRepository(),
+			    searchRepositoryDatasetVersion ?? CreateDatasetVersionSearchRepository());
+	    }
+
+	    static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
@@ -727,5 +848,10 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             return Substitute.For<ISearchRepository<DatasetIndex>>();
         }
+
+	    static ISearchRepository<DatasetVersionIndex> CreateDatasetVersionSearchRepository()
+	    {
+		    return Substitute.For<ISearchRepository<DatasetVersionIndex>>();
+	    }
     }
 }
