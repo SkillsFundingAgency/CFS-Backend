@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
@@ -46,7 +47,7 @@ namespace CalculateFunding.Services.Results
 
             if (fundingPeriod == null)
             {
-                throw new Exception($"Failed to find a funding period for id: {specificationCurrentVersion.FundingPeriod.Id}");
+                throw new NonRetriableException($"Failed to find a funding period for id: {specificationCurrentVersion.FundingPeriod.Id}");
             }
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
@@ -224,7 +225,7 @@ namespace CalculateFunding.Services.Results
                 case Models.Calcs.CalculationType.Baseline:
                     return PublishedCalculationType.Baseline;
                 default:
-                    throw new InvalidOperationException($"Unknown {typeof(Models.Calcs.CalculationType)}");
+                    throw new NonRetriableException($"Unknown CalculationType: {calculationType}");
             }
         }
 
@@ -238,7 +239,7 @@ namespace CalculateFunding.Services.Results
 
                 if (fundingStream == null)
                 {
-                    throw new Exception($"Failed to find a funding stream for id: {fundingStreamReference.Id}");
+                    throw new NonRetriableException($"Failed to find a funding stream for id: {fundingStreamReference.Id}");
                 }
 
                 List<PublishedProviderCalculationResult> publishedProviderCalculationResults = new List<PublishedProviderCalculationResult>(providerResult.CalculationResults.Count());
@@ -249,7 +250,7 @@ namespace CalculateFunding.Services.Results
 
                     if (calculation == null)
                     {
-                        throw new InvalidOperationException($"Calculation specification not found in specification. Calculation Spec Id ='{calculationResult?.CalculationSpecification?.Id}'");
+                        throw new NonRetriableException($"Calculation specification not found in specification. Calculation Spec Id ='{calculationResult?.CalculationSpecification?.Id}'");
                     }
 
                     if (calculation.CalculationType == CalculationType.Number && !calculation.IsPublic)
@@ -291,8 +292,6 @@ namespace CalculateFunding.Services.Results
 
                     if (allocationLine != null)
                     {
-                        allocationLine.ProviderLookups = Enumerable.Empty<ProviderLookup>();
-
                         PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult
                         {
                             FundingStream = fundingStream,
@@ -335,7 +334,7 @@ namespace CalculateFunding.Services.Results
 
             if (allFundingStreams.IsNullOrEmpty())
             {
-                throw new Exception("Failed to get all funding streams");
+                throw new NonRetriableException("Failed to get all funding streams");
             }
 
             return allFundingStreams;

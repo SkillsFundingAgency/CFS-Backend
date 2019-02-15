@@ -18,6 +18,9 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("lastCalculationUpdatedAt")]
         public DateTimeOffset? LastCalculationUpdatedAt { get; set; }
 
+        [JsonProperty("variationDate")]
+        public DateTimeOffset? VariationDate { get; set; }
+
         [JsonIgnore]
         public bool ShouldRefresh
         {

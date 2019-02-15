@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
@@ -38,7 +39,7 @@ namespace CalculateFunding.Services.Results.Services
 
             //Assert
             test
-                .Should().ThrowExactly<Exception>()
+                .Should().ThrowExactly<NonRetriableException>()
                 .Which
                 .Message
                 .Should()
@@ -78,7 +79,7 @@ namespace CalculateFunding.Services.Results.Services
             //Assert
             test
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactly<NonRetriableException>()
                 .Which
                 .Message
                 .Should()
@@ -130,7 +131,7 @@ namespace CalculateFunding.Services.Results.Services
             //Assert
             test
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactly<NonRetriableException>()
                 .Which
                 .Message
                 .Should()

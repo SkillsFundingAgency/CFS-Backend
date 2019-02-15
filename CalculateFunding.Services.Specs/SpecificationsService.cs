@@ -2048,14 +2048,7 @@ namespace CalculateFunding.Services.Specs
                     return new BadRequestObjectResult($"Specification {specificationId} - was not found");
                 }
 
-                if (!specification.ShouldRefresh)
-                {
-                    SpecificationCalculationExecutionStatus statusToCache = new SpecificationCalculationExecutionStatus(specificationId, 100, CalculationProgressStatus.Finished);
-                    statusToCache.PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt;
-
-                    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
-                }
-                else
+                if (_featureToggle.IsProviderVariationsEnabled() || (!_featureToggle.IsProviderVariationsEnabled() && specification.ShouldRefresh))
                 {
                     try
                     {
@@ -2065,6 +2058,13 @@ namespace CalculateFunding.Services.Specs
                     {
                         return new InternalServerErrorResult(e.Message);
                     }
+                }
+                else
+                {
+                    SpecificationCalculationExecutionStatus statusToCache = new SpecificationCalculationExecutionStatus(specificationId, 100, CalculationProgressStatus.Finished);
+                    statusToCache.PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt;
+
+                    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
                 }
             }
             else
@@ -2351,7 +2351,9 @@ namespace CalculateFunding.Services.Specs
                 FundingStreams = fundingStreams,
                 PublishStatus = specification.Content.Current.PublishStatus,
                 IsSelectedForFunding = specification.Content.IsSelectedForFunding,
-                PublishedResultsRefreshedAt = specification.Content.PublishedResultsRefreshedAt
+                PublishedResultsRefreshedAt = specification.Content.PublishedResultsRefreshedAt,
+                LastCalculationUpdatedAt = specification.Content.LastCalculationUpdatedAt,
+                VariationDate = specification.Content.VariationDate
             };
         }
 

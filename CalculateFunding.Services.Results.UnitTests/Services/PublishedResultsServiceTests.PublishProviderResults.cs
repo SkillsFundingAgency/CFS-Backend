@@ -399,17 +399,9 @@ namespace CalculateFunding.Services.Results.Services
                 new ProviderResult()
             };
 
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new[]
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
             {
-                new PublishedProviderCalculationResult
-                {
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
-                }
-            };
-
-            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+                new PublishedProviderResult()
                 {
                     FundingStreamResult = new PublishedFundingStreamResult()
                     {
@@ -417,20 +409,28 @@ namespace CalculateFunding.Services.Results.Services
                         {
                             Current = new PublishedAllocationLineResultVersion()
                             {
-                                Status = AllocationLineStatus.Updated
+                                Status = AllocationLineStatus.Updated,
+                                Provider = new ProviderSummary { UKPRN = "prov1" },
+                                Major = 1,
+                                Minor = 2
                             },
                             AllocationLine = new AllocationLine()
                             {
                                 Id = "alId",
                                 Name = "Allocation Line",
-                            },
-                        }
-                    }
-                });
+                            }
+                        },
+                        FundingStream = new FundingStream { Id = "fs1", Name = "fs one", PeriodType = new PeriodType { Id = "pt1", Name = "pt" } }
+                    },
+                    FundingPeriod = new Period { Id = "fp1" }
+                }
+            };
 
             SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
             {
-                Id = specificationId
+                Id = specificationId,
+                LastCalculationUpdatedAt = DateTimeOffset.Parse("12/02/2019 10:42:00"),
+                PublishedResultsRefreshedAt = DateTimeOffset.Parse("11/02/2019 11:00:00")
             };
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
@@ -439,27 +439,20 @@ namespace CalculateFunding.Services.Results.Services
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specificationCurrentVersion);
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-                .Returns(Task.CompletedTask);
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
-                .Returns(Task.CompletedTask);
+            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) resultsToSave =
+                (publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>());
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns(resultsToSave);
 
             IMessengerService messengerService = CreateMessengerService();
 
-            assembler
-                .AssemblePublishedProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Reference>(), Arg.Is(specificationCurrentVersion))
-                .Returns(publishedProviderResults);
-
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
-                publishedProviderResultsVersionRepository: versionRepository,
                 messengerService: messengerService);
 
             Message message = new Message();
@@ -485,14 +478,6 @@ namespace CalculateFunding.Services.Results.Services
                 new ProviderResult()
             };
 
-            IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new[]
-            {
-                new PublishedProviderCalculationResult
-                {
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
-                }
-            };
-
             List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
 
             for (int i = 0; i < 560; i++)
@@ -506,21 +491,28 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Current = new PublishedAllocationLineResultVersion()
                                 {
-                                    Status = AllocationLineStatus.Updated
+                                    Status = AllocationLineStatus.Updated,
+                                    Provider = new ProviderSummary { UKPRN = "prov1" },
+                                    Major = 1,
+                                    Minor = 2
                                 },
                                 AllocationLine = new AllocationLine()
                                 {
                                     Id = "alId",
                                     Name = "Allocation Line",
-                                },
-                            }
-                        }
+                                }
+                            },
+                            FundingStream = new FundingStream { Id = "fs1", Name = "fs one", PeriodType = new PeriodType { Id = "pt1", Name = "pt" } }
+                        },
+                        FundingPeriod = new Period { Id = "fp1" }
                     });
             }
 
             SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
             {
-                Id = specificationId
+                Id = specificationId,
+                LastCalculationUpdatedAt = DateTimeOffset.Parse("12/02/2019 10:42:00"),
+                PublishedResultsRefreshedAt = DateTimeOffset.Parse("11/02/2019 11:00:00")
             };
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
@@ -529,27 +521,20 @@ namespace CalculateFunding.Services.Results.Services
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specificationCurrentVersion);
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-                .Returns(Task.CompletedTask);
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
-                .Returns(Task.CompletedTask);
+            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) resultsToSave =
+                (publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>());
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns(resultsToSave);
 
             IMessengerService messengerService = CreateMessengerService();
 
-            assembler
-                .AssemblePublishedProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Reference>(), Arg.Is(specificationCurrentVersion))
-                .Returns(publishedProviderResults);
-
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
-                publishedProviderResultsVersionRepository: versionRepository,
                 messengerService: messengerService);
 
             Message message = new Message();
@@ -645,11 +630,6 @@ namespace CalculateFunding.Services.Results.Services
             SpecificationCalculationExecutionStatus expectedProgressCall6 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 58);
             SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 73);
             SpecificationCalculationExecutionStatus expectedProgressCall8 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 78);
-            SpecificationCalculationExecutionStatus expectedProgressCall9 = CreateSpecificationCalculationProgress(c =>
-            {
-                c.PercentageCompleted = 100;
-                c.CalculationProgress = CalculationProgressStatus.Finished;
-            });
 
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
@@ -675,7 +655,6 @@ namespace CalculateFunding.Services.Results.Services
             mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall6, TimeSpan.FromHours(6), false);
             mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall7, TimeSpan.FromHours(6), false);
             mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall8, TimeSpan.FromHours(6), false);
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall9, TimeSpan.FromHours(6), false);
 
             mockCacheProvider.Received(9).SetAsync(Arg.Any<string>(), Arg.Any<SpecificationCalculationExecutionStatus>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
 
@@ -1097,7 +1076,9 @@ namespace CalculateFunding.Services.Results.Services
 
             SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
             {
-                Id = specificationId
+                Id = specificationId,
+                LastCalculationUpdatedAt = DateTimeOffset.Parse("12/02/2019 10:42:00"),
+                PublishedResultsRefreshedAt = DateTimeOffset.Parse("11/02/2019 11:00:00")
             };
 
             IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
@@ -1116,16 +1097,41 @@ namespace CalculateFunding.Services.Results.Services
             specificationsRepository.UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
                 .Returns(Task.FromResult(HttpStatusCode.OK));
 
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-                .Returns(Task.CompletedTask);
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>()
+            {
+                new PublishedProviderResult()
+                {
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Updated,
+                                Provider = new ProviderSummary { UKPRN = "prov1" },
+                                Major = 1,
+                                Minor = 2
+                            },
+                            AllocationLine = new AllocationLine()
+                            {
+                                Id = "alId",
+                                Name = "Allocation Line",
+                            }
+                        },
+                        FundingStream = new FundingStream { Id = "fs1", Name = "fs one", PeriodType = new PeriodType { Id = "pt1", Name = "pt" } }
+                    },
+                    FundingPeriod = new Period { Id = "fp1" }
+                }
+            };
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
-                .Returns(Task.CompletedTask);
+            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) resultsToSave =
+                (publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>());
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
-           
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns(resultsToSave);
+
             ILogger logger = CreateLogger();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
@@ -1140,11 +1146,12 @@ namespace CalculateFunding.Services.Results.Services
             jobsApiClient
                 .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
                 .Returns(new ApiResponse<JobLog>(HttpStatusCode.OK, new JobLog()));
+            jobsApiClient
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob))
+                .Returns(new Job { Id = "job-34" });
 
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
-                publishedProviderResultsVersionRepository: versionRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
                 featureToggle: featureToggle,
@@ -1165,7 +1172,10 @@ namespace CalculateFunding.Services.Results.Services
             await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 5));
             await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 10));
             await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 28));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 33));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 43));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 58));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 73));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 78));
         }
 
         [TestMethod]
@@ -1176,7 +1186,9 @@ namespace CalculateFunding.Services.Results.Services
 
             SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
             {
-                Id = specificationId
+                Id = specificationId,
+                LastCalculationUpdatedAt = DateTimeOffset.Parse("12/02/2019 10:42:00"),
+                PublishedResultsRefreshedAt = DateTimeOffset.Parse("11/02/2019 11:00:00")
             };
 
             IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
@@ -1197,15 +1209,20 @@ namespace CalculateFunding.Services.Results.Services
                             {
                                 Current = new PublishedAllocationLineResultVersion()
                                 {
-                                    Status = AllocationLineStatus.Updated
+                                    Status = AllocationLineStatus.Updated,
+                                    Provider = new ProviderSummary { UKPRN = "prov1" },
+                                    Major = 1,
+                                    Minor = 2
                                 },
                                 AllocationLine = new AllocationLine()
                                 {
                                     Id = "alId",
                                     Name = "Allocation Line",
-                                },
-                            }
-                        }
+                                }
+                            },
+                            FundingStream = new FundingStream { Id = "fs1", Name = "fs one", PeriodType = new PeriodType { Id = "pt1", Name = "pt" } }
+                        },
+                        FundingPeriod = new Period { Id = "fp1" }
                     });
             }
 
@@ -1220,19 +1237,13 @@ namespace CalculateFunding.Services.Results.Services
             specificationsRepository.UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
                 .Returns(Task.FromResult(HttpStatusCode.OK));
 
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
-                .Returns(Task.CompletedTask);
-
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
-                .Returns(Task.CompletedTask);
-
+            (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) resultsToSave =
+                (publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>());
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
             assembler
-                .AssemblePublishedProviderResults(Arg.Is(providerResults), Arg.Any<Reference>(), Arg.Is(specificationCurrentVersion))
-                .Returns(publishedProviderResults);
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns(resultsToSave);
 
             ILogger logger = CreateLogger();
 
@@ -1253,9 +1264,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(new Job { Id = "fpp-job" });
 
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
-                publishedProviderResultsVersionRepository: versionRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
                 featureToggle: featureToggle,

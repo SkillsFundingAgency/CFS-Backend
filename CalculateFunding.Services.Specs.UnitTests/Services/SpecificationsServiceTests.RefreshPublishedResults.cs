@@ -114,6 +114,55 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
+        public async Task RefreshPublishResults_GivenLastPublishedTimeAfterLastCalcTime_AndVariationsFeatureToggleSet_ThenSubmitsJob()
+        {
+            // Arrange
+            const string specificationId1 = "123";
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsJobServiceForPublishProviderResultsEnabled()
+                .Returns(true);
+            featureToggle
+                .IsProviderVariationsEnabled()
+                .Returns(true);
+
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+
+            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
+            mockSpecificationsRepository.
+                GetSpecificationById(Arg.Any<string>())
+                .Returns(new Specification { LastCalculationUpdatedAt = DateTimeOffset.UtcNow.AddHours(-1), PublishedResultsRefreshedAt = DateTimeOffset.UtcNow });
+
+            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 = new SpecificationCalculationExecutionStatus(specificationId1, 0, CalculationProgressStatus.NotStarted);
+
+            ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: mockSpecificationsRepository,
+                cacheProvider: mockCacheProvider, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+
+            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
+            {
+                { "specificationId", new StringValues($"{specificationId1}") }
+            }));
+
+            // Act
+            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
+
+            // Assert
+            actionResultReturned.Should().BeOfType<NoContentResult>();
+            await mockCacheProvider
+                .Received()
+                .SetAsync($"{CalculationProgressPrependKey}{specificationId1}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
+
+            await jobsApiClient
+                .Received(1)
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.PublishProviderResultsJob && j.SpecificationId == specificationId1 && j.Trigger.Message == $"Refreshing published provider results for specification"));
+        }
+
+        [TestMethod]
         public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnException_ShouldReturnInternalServerError()
         {
             // Arrange

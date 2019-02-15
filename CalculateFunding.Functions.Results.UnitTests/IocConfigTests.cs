@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.Results.UnitTests
             IConfigurationRoot configuration = CreateTestConfiguration();
 
             // Act
-            using (var scope = IocConfig.Build(configuration).CreateScope())
+            using (IServiceScope scope = IocConfig.Build(configuration).CreateScope())
             {
                 // Assert
                 scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));
@@ -36,7 +36,7 @@ namespace CalculateFunding.Functions.Results.UnitTests
 
         protected override Dictionary<string, string> AddToConfiguration()
         {
-            var configData = new Dictionary<string, string>
+            Dictionary<string, string> configData = new Dictionary<string, string>
             {
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
@@ -55,8 +55,8 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
                 { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
-                { "redisSettings:CacheConnection", "CacheConnection"}
-
+                { "redisSettings:CacheConnection", "CacheConnection"},
+                { "CommonStorageSettings:ConnectionString", "StorageConnection" }
             };
 
             return configData;

@@ -8,6 +8,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
@@ -127,7 +128,10 @@ namespace CalculateFunding.Services.Results
                 "r.content.fundingStreamResult.allocationLineResult.current.minor as minor, " +
                 "r.content.fundingStreamResult.allocationLineResult.current.version as version, " +
                 "r.content.fundingStreamResult.allocationLineResult.current.status as status, " +
-                "r.content.fundingStreamResult.allocationLineResult.published as published " +
+                "r.content.fundingStreamResult.allocationLineResult.published as published, " +
+                "r.content.fundingStreamResult.allocationLineResult.current.profilePeriods, " +
+                "r.content.fundingStreamResult.allocationLIneResult.allocationLine.providerLookups, " +
+                "r.content.fundingStreamResult.allocationLIneResult.hasResultBeenVaried " +
                 "FROM Root r where r.documentType = 'PublishedProviderResult' " + 
                 "and r.deleted = false " +
                 "and r.content.specificationId = '" + specificationId + "'";
@@ -148,12 +152,17 @@ namespace CalculateFunding.Services.Results
                     UpdatedAt = (DateTimeOffset?)existingResult.updatedAt,
                     Version = DynamicExtensions.PropertyExists(existingResult, "version") ? (int)existingResult.version : 0,
                     Published = DynamicExtensions.PropertyExists(existingResult, "published") ? ((JObject)existingResult.published).ToObject<PublishedAllocationLineResultVersion>() : null,
+                    HasResultBeenVaried = DynamicExtensions.PropertyExists(existingResult, "hasResultBeenVaried") ? (bool)existingResult.hasResultBeenVaried : false
                 };
 
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);
 
+                result.ProfilePeriods = DynamicExtensions.PropertyExists(existingResult, "profilePeriods") ? existingResult.profilePeriods : Enumerable.Empty<ProfilingPeriod>();
+                result.ProviderLookups = DynamicExtensions.PropertyExists(existingResult, "providerLookups") ? existingResult.providerLookups : Enumerable.Empty<ProviderLookup>();
+
                 results.Add(result);
             }
+
             return results;
         }
 

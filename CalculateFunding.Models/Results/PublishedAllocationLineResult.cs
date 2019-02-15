@@ -1,8 +1,5 @@
 ﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
-using System;
-using System.Linq;
 
 namespace CalculateFunding.Models.Results
 {
@@ -16,5 +13,11 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("published")]
         public PublishedAllocationLineResultVersion Published { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag indicating whether the result has been altered due to a variation
+        /// </summary>
+        [JsonProperty("hasResultBeenVaried")]
+        public bool HasResultBeenVaried { get; set; }
     }
 }

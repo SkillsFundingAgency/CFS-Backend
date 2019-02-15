@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Models.Results
 {
@@ -23,5 +25,11 @@ namespace CalculateFunding.Models.Results
         public DateTimeOffset? UpdatedAt { get; set; }
 
         public PublishedAllocationLineResultVersion Published { get; set; }
+
+        public IEnumerable<ProfilingPeriod> ProfilePeriods { get; set; }
+
+        public IEnumerable<ProviderLookup> ProviderLookups { get; set; }
+
+        public bool HasResultBeenVaried { get; set; }
     }
 }

@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
@@ -24,5 +22,14 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("distributionPeriod")]
         public string DistributionPeriod { get; set; }
+
+        [JsonIgnore]
+        public DateTime PeriodDate
+        {
+            get
+            {
+                return DateTime.Parse($"1 {Period} {Year}");
+            }
+        }
     }
 }

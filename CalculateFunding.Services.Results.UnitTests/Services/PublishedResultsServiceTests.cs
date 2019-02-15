@@ -18,6 +18,7 @@ using CalculateFunding.Services.Results.UnitTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using CalculateFunding.Services.Results.Repositories;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -47,7 +48,9 @@ namespace CalculateFunding.Services.Results.Services
             IFeatureToggle featureToggle = null,
             IJobsApiClient jobsApiClient = null,
             IPublishedProviderResultsSettings publishedProviderResultsSettings = null,
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null)
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
+            IProviderVariationsService providerVariationsService = null,
+            IProviderVariationsStorageRepository providerVariationsStorageRepository = null)
         {
             return new PublishedResultsService(
                 logger ?? CreateLogger(),
@@ -67,7 +70,27 @@ namespace CalculateFunding.Services.Results.Services
                 featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings(),
-                publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository());
+                publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
+                providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService()),
+                providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository());
+        }
+
+        static IProviderVariationsStorageRepository CreateProviderVariationsStorageRepository()
+        {
+            return Substitute.For<IProviderVariationsStorageRepository>();
+        }
+
+        static IProviderVariationsService CreateProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ILogger logger = null)
+        {
+            return new ProviderVariationsService(
+                providerVariationAssemblerService,
+                logger ?? CreateLogger()
+                );
+        }
+
+        static IProviderVariationAssemblerService CreateProviderVariationAssemblerService()
+        {
+            return Substitute.For<IProviderVariationAssemblerService>();
         }
 
         static IPublishedProviderResultsSettings CreatePublishedProviderResultsSettings()

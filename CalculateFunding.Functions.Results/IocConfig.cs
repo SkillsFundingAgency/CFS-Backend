@@ -10,6 +10,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
@@ -19,8 +20,11 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Repositories;
 using CalculateFunding.Services.Results.Validators;
 using FluentValidation;
 using Microsoft.Azure.ServiceBus;
@@ -98,6 +102,19 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
 	        builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
+            builder.AddSingleton<IProviderVariationAssemblerService, ProviderVariationAssemblerService>();
+            builder.AddSingleton<IProviderVariationsService, ProviderVariationsService>();
+            builder.AddSingleton<IProviderService, ProviderService>();
+            builder.AddSingleton<IProviderVariationsStorageRepository, ProviderVariationsStorageRepository>((ctx) =>
+            {
+                BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
+
+                config.Bind("CommonStorageSettings", blobStorageOptions);
+
+                blobStorageOptions.ContainerName = "providervariations";
+
+                return new ProviderVariationsStorageRepository(blobStorageOptions);
+            });
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
@@ -203,6 +220,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
+            builder.AddResultsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

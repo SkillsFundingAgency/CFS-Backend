@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -15,25 +17,37 @@ namespace CalculateFunding.Functions.Results.ServiceBus
         [FunctionName("on-provider-results-published")]
         public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.PublishProviderResults, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            var config = ConfigHelper.AddConfig();
+            Microsoft.Extensions.Configuration.IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            using (var scope = IocConfig.Build(config).CreateScope())
+            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
             {
-                var resultsService = scope.ServiceProvider.GetService<IPublishedResultsService>();
-                var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
+                IPublishedResultsService resultsService = scope.ServiceProvider.GetService<IPublishedResultsService>();
+                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
+                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
+                IFeatureToggle featureToggle = scope.ServiceProvider.GetService<IFeatureToggle>();
 
                 try
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await resultsService.PublishProviderResults(message);
+
+                    if (featureToggle.IsProviderVariationsEnabled())
+                    {
+                        await resultsService.PublishProviderResultsWithVariations(message);
+                    }
+                    else
+                    {
+                        await resultsService.PublishProviderResults(message);
+                    }
+                }
+                catch (NonRetriableException ex)
+                {
+                    logger.Error(ex, $"A fatal error occurred while processing the message from the queue: {ServiceBusConstants.QueueNames.PublishProviderResults}");
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.PublishProviderResults}");
+                    logger.Error(exception, $"An error occurred processing message from queue: {ServiceBusConstants.QueueNames.PublishProviderResults}");
                     throw;
                 }
-
             }
         }
     }

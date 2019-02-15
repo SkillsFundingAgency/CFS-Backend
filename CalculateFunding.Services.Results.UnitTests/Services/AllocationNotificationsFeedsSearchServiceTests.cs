@@ -160,13 +160,13 @@ namespace CalculateFunding.Services.Results.Services
             SearchResults<AllocationNotificationFeedIndex> searchResults = new SearchResults<AllocationNotificationFeedIndex>
             {
                 TotalCount = 2,
-                Results = new List<Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
+                Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
                 {
-                    new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
                     {
                         Result = new AllocationNotificationFeedIndex()
                     },
-                    new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
                     {
                         Result = new AllocationNotificationFeedIndex()
                     }
@@ -209,13 +209,13 @@ namespace CalculateFunding.Services.Results.Services
             SearchResults<AllocationNotificationFeedIndex> searchResults = new SearchResults<AllocationNotificationFeedIndex>
             {
                 TotalCount = 20,
-                Results = new List<Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
+                Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
                 {
-                    new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
                     {
                         Result = new AllocationNotificationFeedIndex()
                     },
-                    new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
                     {
                         Result = new AllocationNotificationFeedIndex()
                     }
@@ -258,13 +258,13 @@ namespace CalculateFunding.Services.Results.Services
             SearchResults<AllocationNotificationFeedIndex> searchResults = new SearchResults<AllocationNotificationFeedIndex>
             {
                 TotalCount = 20,
-                Results = new List<Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
+                Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
                 {
-                    new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
                     {
                         Result = new AllocationNotificationFeedIndex()
                     },
-                    new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+                    new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
                     {
                         Result = new AllocationNotificationFeedIndex()
                     }
@@ -397,13 +397,13 @@ namespace CalculateFunding.Services.Results.Services
 			SearchResults<AllocationNotificationFeedIndex> searchResults = new SearchResults<AllocationNotificationFeedIndex>
 			{
 				TotalCount = 2,
-				Results = new List<Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
+				Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
 				{
-					new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+					new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
 					{
 						Result = new AllocationNotificationFeedIndex()
 					},
-					new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+					new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
 					{
 						Result = new AllocationNotificationFeedIndex()
 					}
@@ -445,19 +445,19 @@ namespace CalculateFunding.Services.Results.Services
 			SearchResults<AllocationNotificationFeedIndex> searchResultsForCount = new SearchResults<AllocationNotificationFeedIndex>()
 			{
 				TotalCount = 20,
-				Results = new List<Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>()
+				Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>()
 			};
 
 			SearchResults<AllocationNotificationFeedIndex> searchResults = new SearchResults<AllocationNotificationFeedIndex>
 			{
 				TotalCount = 20,
-				Results = new List<Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
+				Results = new List<CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>>
 				{
-					new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+					new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
 					{
 						Result = new AllocationNotificationFeedIndex()
 					},
-					new Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
+					new CalculateFunding.Repositories.Common.Search.SearchResult<AllocationNotificationFeedIndex>
 					{
 						Result = new AllocationNotificationFeedIndex()
 					}

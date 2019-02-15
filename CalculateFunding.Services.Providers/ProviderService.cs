@@ -7,8 +7,6 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;

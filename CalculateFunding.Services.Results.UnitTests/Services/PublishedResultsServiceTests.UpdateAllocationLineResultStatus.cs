@@ -932,7 +932,7 @@ namespace CalculateFunding.Services.Results.Services
            
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
-                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod { Period = "Apr", Year = 2019 } };
 
                 publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
             }

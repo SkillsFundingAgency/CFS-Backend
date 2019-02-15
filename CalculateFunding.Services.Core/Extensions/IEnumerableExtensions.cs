@@ -4,73 +4,91 @@ using System.ComponentModel;
 namespace System.Linq
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
-	static public class IEnumerableExtensions
+    static public class IEnumerableExtensions
     {
-		static public bool AnyWithNullCheck<T>(this IEnumerable<T> enumerable)
-		{
-			if (enumerable == null)
-				return false;
+        public static bool AnyWithNullCheck<T>(this IEnumerable<T> enumerable)
+        {
+            if (enumerable == null)
+            {
+                return false;
+            }
 
-			return enumerable.Any();
-		}
+            return enumerable.Any();
+        }
 
-		static public bool IsNullOrEmpty<T>(this IEnumerable<T> enumerable)
-		{
-			return !enumerable.AnyWithNullCheck();
-		}
+        public static bool AnyWithNullCheck<T>(this IEnumerable<T> enumerable, Func<T, bool> predicate)
+        {
+            if (enumerable == null)
+            {
+                return false;
+            }
 
-		static public T[] ToArraySafe<T>(this IEnumerable<T> enumerable)
-		{
-			return (enumerable ?? Enumerable.Empty<T>()).ToArray();
-		}
+            return enumerable.Any(predicate);
+        }
 
-        static public bool EqualTo<T>(this IEnumerable<T> enumerable, IEnumerable<T> other)
-		{
-			return enumerable.OrderBy(m => m).SequenceEqual(other.OrderBy(m => m));
-		}
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T> enumerable)
+        {
+            return !enumerable.AnyWithNullCheck();
+        }
 
-		static public IEnumerable<IEnumerable<TSource>> Partition<TSource>(this IEnumerable<TSource> source, int size)
-		{
-			var batch = new List<TSource>();
-			foreach (var item in source)
-			{
-				batch.Add(item);
-				if (batch.Count != size)
-					continue;
+        static public T[] ToArraySafe<T>(this IEnumerable<T> enumerable)
+        {
+            return (enumerable ?? Enumerable.Empty<T>()).ToArray();
+        }
 
-				yield return batch;
-				batch = new List<TSource>();
-			}
+        public static bool EqualTo<T>(this IEnumerable<T> enumerable, IEnumerable<T> other)
+        {
+            return enumerable.OrderBy(m => m).SequenceEqual(other.OrderBy(m => m));
+        }
 
-			if (batch.Any())
-				yield return batch;
-		}
+        public static IEnumerable<IEnumerable<TSource>> Partition<TSource>(this IEnumerable<TSource> source, int size)
+        {
+            List<TSource> batch = new List<TSource>();
+            foreach (TSource item in source)
+            {
+                batch.Add(item);
+                if (batch.Count != size)
+                {
+                    continue;
+                }
 
-		static public bool ContainsDuplicates<T>(this IEnumerable<T> enumerable)
-		{
-			if (enumerable.IsNullOrEmpty())
-				return false;
+                yield return batch;
+                batch = new List<TSource>();
+            }
 
-			var knownKeys = new HashSet<T>();
+            if (batch.Any())
+            {
+                yield return batch;
+            }
+        }
 
-			return enumerable.Any(item => !knownKeys.Add(item));
-		}
+        public static bool ContainsDuplicates<T>(this IEnumerable<T> enumerable)
+        {
+            if (enumerable.IsNullOrEmpty())
+            {
+                return false;
+            }
 
-		static public IEnumerable<T> Flatten<T>(this IEnumerable<T> enumerable, Func<T, IEnumerable<T>> func)
-		{
-			return enumerable.SelectMany(c => func(c).Flatten(func)).Concat(enumerable);
-		}
+            HashSet<T> knownKeys = new HashSet<T>();
 
-		static public IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
-		{
-			var keys = new HashSet<TKey>();
-			foreach (TSource element in source)
-			{
-				if (keys.Add(keySelector(element)))
-				{
-					yield return element;
-				}
-			}
-		}
+            return enumerable.Any(item => !knownKeys.Add(item));
+        }
+
+        public static IEnumerable<T> Flatten<T>(this IEnumerable<T> enumerable, Func<T, IEnumerable<T>> func)
+        {
+            return enumerable.SelectMany(c => func(c).Flatten(func)).Concat(enumerable);
+        }
+
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
+        {
+            HashSet<TKey> keys = new HashSet<TKey>();
+            foreach (TSource element in source)
+            {
+                if (keys.Add(keySelector(element)))
+                {
+                    yield return element;
+                }
+            }
+        }
     }
 }
