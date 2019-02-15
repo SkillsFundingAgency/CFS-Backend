@@ -402,6 +402,13 @@
         "description": "Feature toggle to enable aggregating over calculations"
       }
     },
+    "EnableNewProviderCalculationResultsIndex": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable new calc results index"
+      }
+    },
     "storageFirewallEnabled": {
       "type": "bool",
       "metadata": {
@@ -1759,6 +1766,10 @@
               "value": "[parameters('EnableDatasetAggregations')]"
             },
             {
+              "name": "features:newProviderCalculationResultsIndexEnabled",
+              "value": "[parameters('EnableNewProviderCalculationResultsIndex')]"
+            },
+            {
               "name": "jobsClient:ApiKey",
               "value": "[parameters('ApiKeyJobs')]"
             },
@@ -2059,6 +2070,10 @@
             {
               "name": "features:jobServiceForPublishProviderResultsEnabled",
               "value": "[parameters('EnableJobServiceForPublishProviderResults')]"
+            },
+            {
+              "name": "features:newProviderCalculationResultsIndexEnabled",
+              "value": "[parameters('EnableNewProviderCalculationResultsIndex')]"
             },
             {
               "name": "jobsClient:ApiKey",

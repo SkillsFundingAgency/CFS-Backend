@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -11,22 +12,30 @@ namespace CalculateFunding.Api.Results.Controllers
 		private readonly IResultsSearchService _resultsSearchService;
         private readonly ICalculationProviderResultsSearchService _calculationProviderResultsSearchService;
         private readonly IPublishedResultsService _publishedResultsService;
+        private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
+        private readonly IFeatureToggle _featureToggle;
 
         public ResultsController(
 			 IResultsService resultsService,
              IResultsSearchService resultsSearchService,
              ICalculationProviderResultsSearchService calculationProviderResultsSearchService,
-             IPublishedResultsService publishedResultsService)
+             IPublishedResultsService publishedResultsService,
+             IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
+             IFeatureToggle featureToggle)
 		{
 			Guard.ArgumentNotNull(resultsSearchService, nameof(resultsSearchService));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
             Guard.ArgumentNotNull(calculationProviderResultsSearchService, nameof(calculationProviderResultsSearchService));
             Guard.ArgumentNotNull(publishedResultsService, nameof(publishedResultsService));
+            Guard.ArgumentNotNull(providerCalculationResultsSearchService, nameof(providerCalculationResultsSearchService));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _resultsSearchService = resultsSearchService; 
             _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
             _publishedResultsService = publishedResultsService;
             _resultsService = resultsService;
+            _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
+            _featureToggle = featureToggle;
         }
 
 		[Route("api/results/providers-search")]
@@ -75,7 +84,14 @@ namespace CalculateFunding.Api.Results.Controllers
         [HttpPost]
         public async Task<IActionResult> RunCalculationProviderResultsSearch()
         {
-            return await _calculationProviderResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
+            if (_featureToggle.IsNewProviderCalculationResultsIndexEnabled())
+            {
+                return await _providerCalculationResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
+            }
+            else
+            {
+                return await _calculationProviderResultsSearchService.SearchCalculationProviderResults(ControllerContext.HttpContext.Request);
+            }
         }
 
         [Route("api/results/get-scoped-providerids")]

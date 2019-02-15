@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
@@ -20,22 +21,30 @@ namespace CalculateFunding.Services.Calculator
         private readonly ISearchRepository<CalculationProviderResultsIndex> _searchRepository;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ILogger _logger;
+        private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
+        private readonly IFeatureToggle _featureToggle;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
             ISearchRepository<CalculationProviderResultsIndex> searchRepository,
             ISpecificationsRepository specificationsRepository,
-            ILogger logger)
+            ILogger logger,
+            ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
+            IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _cosmosRepository = cosmosRepository;
             _searchRepository = searchRepository;
             _specificationsRepository = specificationsRepository;
             _logger = logger;
+            _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
+            _featureToggle = featureToggle;
         }
 
         public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs)> SaveProviderResults(IEnumerable<ProviderResult> providerResults, int degreeOfParallelism = 5)
@@ -83,6 +92,11 @@ namespace CalculateFunding.Services.Calculator
 
         private async Task<long> UpdateSearch(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecificationSummary> specifications)
         {
+            if (_featureToggle.IsNewProviderCalculationResultsIndexEnabled())
+            {
+                return await UpdateCalculationProviderResultsIndex(providerResults, specifications);
+            }
+
             IList<CalculationProviderResultsIndex> results = new List<CalculationProviderResultsIndex>();
 
             foreach (ProviderResult providerResult in providerResults)
@@ -123,6 +137,56 @@ namespace CalculateFunding.Services.Calculator
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             IEnumerable<IndexError> indexErrors = await _searchRepository.Index(results);
+
+            stopwatch.Stop();
+
+            if (!indexErrors.IsNullOrEmpty())
+            {
+                _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
+
+                // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
+                throw new FailedToIndexSearchException(indexErrors);
+            }
+
+            return stopwatch.ElapsedMilliseconds;
+        }
+
+        private async Task<long> UpdateCalculationProviderResultsIndex(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecificationSummary> specifications)
+        {
+            IList<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
+
+            foreach (ProviderResult providerResult in providerResults)
+            {
+                if (!providerResult.CalculationResults.IsNullOrEmpty())
+                {
+                    SpecificationSummary specification = specifications[providerResult.SpecificationId];
+
+                    results.Add(new ProviderCalculationResultsIndex
+                    {
+                        SpecificationId = providerResult.SpecificationId,
+                        SpecificationName = specification?.Name,
+                        ProviderId = providerResult.Provider?.Id,
+                        ProviderName = providerResult.Provider?.Name,
+                        ProviderType = providerResult.Provider?.ProviderType,
+                        ProviderSubType = providerResult.Provider?.ProviderSubType,
+                        LocalAuthority = providerResult.Provider?.Authority,
+                        LastUpdatedDate = DateTimeOffset.Now,
+                        UKPRN = providerResult.Provider?.UKPRN,
+                        URN = providerResult.Provider?.URN,
+                        UPIN = providerResult.Provider?.UPIN,
+                        EstablishmentNumber = providerResult.Provider?.EstablishmentNumber,
+                        OpenDate = providerResult.Provider?.DateOpened,
+                        CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
+                        CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
+                        CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
+                    });
+                    
+                }
+            }
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            IEnumerable<IndexError> indexErrors = await _providerCalculationResultsSearchRepository.Index(results);
 
             stopwatch.Stop();
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
@@ -22,7 +23,10 @@ namespace CalculateFunding.Services.Calculator
         public async Task SaveProviderResults_WhenNoResults_ThenNoResultsSaved()
         {
             // Arrange
-            ProviderResultsRepository repo = CreateProviderResultsRepository(out ICosmosRepository cosmosRepository, out ISearchRepository<CalculationProviderResultsIndex> searchRepository, out ISpecificationsRepository specificationsRepository);
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository);
 
             IEnumerable<ProviderResult> results = Enumerable.Empty<ProviderResult>();
 
@@ -38,7 +42,11 @@ namespace CalculateFunding.Services.Calculator
         public async Task SaveProviderResults_WhenResults_ThenResultsSavedToCosmos()
         {
             // Arrange
-            ProviderResultsRepository repo = CreateProviderResultsRepository(out ICosmosRepository cosmosRepository, out ISearchRepository<CalculationProviderResultsIndex> searchRepository, out ISpecificationsRepository specificationsRepository);
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository);
 
             specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
 
@@ -94,7 +102,11 @@ namespace CalculateFunding.Services.Calculator
         public async Task SaveProviderResults_WhenResults_ThenResultsSavedToSearch()
         {
             // Arrange
-            ProviderResultsRepository repo = CreateProviderResultsRepository(out ICosmosRepository cosmosRepository, out ISearchRepository<CalculationProviderResultsIndex> searchRepository, out ISpecificationsRepository specificationsRepository);
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository);
 
             specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
 
@@ -171,7 +183,11 @@ namespace CalculateFunding.Services.Calculator
         public async Task SaveProviderResults_WhenExcludedResults_ThenResultsSavedToCosmos()
         {
             // Arrange
-            ProviderResultsRepository repo = CreateProviderResultsRepository(out ICosmosRepository cosmosRepository, out ISearchRepository<CalculationProviderResultsIndex> searchRepository, out ISpecificationsRepository specificationsRepository);
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository);
 
             specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
 
@@ -227,7 +243,11 @@ namespace CalculateFunding.Services.Calculator
         public async Task SaveProviderResults_WhenExcludedResults_ThenResultsSavedToSearch()
         {
             // Arrange
-            ProviderResultsRepository repo = CreateProviderResultsRepository(out ICosmosRepository cosmosRepository, out ISearchRepository<CalculationProviderResultsIndex> searchRepository, out ISpecificationsRepository specificationsRepository);
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository);
 
             specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
 
@@ -300,14 +320,227 @@ namespace CalculateFunding.Services.Calculator
                 r.First().IsExcluded == true));
         }
 
-        private static ProviderResultsRepository CreateProviderResultsRepository(out ICosmosRepository cosmosRepository, out ISearchRepository<CalculationProviderResultsIndex> searchRepository, out ISpecificationsRepository specificationsRepository)
+        [TestMethod]
+        public async Task SaveProviderResults_WhenResultsAndIsNewProviderCalculationResultsIndexEnabled_ThenResultsSavedToSearch()
         {
-            cosmosRepository = Substitute.For<ICosmosRepository>();
-            searchRepository = Substitute.For<ISearchRepository<CalculationProviderResultsIndex>>();
-            specificationsRepository = Substitute.For<ISpecificationsRepository>();
-            ILogger logger = Substitute.For<ILogger>();
+            // Arrange
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-            return new ProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository, logger);
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsNewProviderCalculationResultsIndexEnabled()
+                .Returns(true);
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsRepository: specificationsRepository, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
+
+            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+
+            IEnumerable<ProviderResult> results = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
+                            Value = 1112.3M
+                        }
+                    },
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
+                            Calculation = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            Value = 1112.3M
+                        }
+                    },
+                    Id = Guid.NewGuid().ToString(),
+                    Provider = new ProviderSummary
+                    {
+                        Id = "prov1",
+                        Name = "Provider 1",
+                        ProviderType = "TYpe 1",
+                        ProviderSubType = "Sub type 1",
+                        Authority = "Authority",
+                        UKPRN = "ukprn123",
+                        URN = "urn123",
+                        EstablishmentNumber = "en123",
+                        UPIN = "upin123",
+                        DateOpened = DateTime.Now
+                    },
+                    SpecificationId = "spec1"
+                }
+            };
+
+            // Act
+            await repo.SaveProviderResults(results);
+
+            // Assert
+            await searchRepository.Received(1).Index(Arg.Is<IList<ProviderCalculationResultsIndex>>(r => r.Count() == 1));
+
+            await searchRepository.Received(1).Index(Arg.Is<IList<ProviderCalculationResultsIndex>>(r =>
+                r.First().SpecificationId == results.First().SpecificationId &&
+                r.First().SpecificationName == "Specification 1" &&
+                r.First().CalculationId.Any() &&
+                r.First().CalculationId.First() == results.First().CalculationResults.First().Calculation.Id &&
+                r.First().CalculationName.Any() &&
+                r.First().CalculationName.First() == results.First().CalculationResults.First().Calculation.Name &&
+                r.First().ProviderId == results.First().Provider.Id &&
+                r.First().ProviderName == results.First().Provider.Name &&
+                r.First().ProviderType == results.First().Provider.ProviderType &&
+                r.First().ProviderSubType == results.First().Provider.ProviderSubType &&
+                r.First().LocalAuthority == results.First().Provider.Authority &&
+                r.First().UKPRN == results.First().Provider.UKPRN &&
+                r.First().URN == results.First().Provider.URN &&
+                r.First().UPIN == results.First().Provider.UPIN &&
+                r.First().EstablishmentNumber == results.First().Provider.EstablishmentNumber &&
+                r.First().OpenDate == results.First().Provider.DateOpened &&
+                r.First().CalculationResult.Any() &&
+                r.First().CalculationResult.First() == results.First().CalculationResults.First().Value.ToString()));
+        }
+
+        [TestMethod]
+        public async Task SaveProviderResults_WhenExcludedResultsAndIsNewProviderCalculationResultsIndexEnabled_ThenResultsSavedToCosmosSavesNull()
+        {
+            // Arrange
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsNewProviderCalculationResultsIndexEnabled()
+                .Returns(true);
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsRepository: specificationsRepository, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
+
+            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+
+            IEnumerable<ProviderResult> results = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
+                            Value = 1112.3M
+                        }
+                    },
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
+                            Calculation = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            Value = null
+                        }
+                    },
+                    Id = Guid.NewGuid().ToString(),
+                    Provider = new ProviderSummary
+                    {
+                        Id = "prov1",
+                        Name = "Provider 1",
+                        ProviderType = "TYpe 1",
+                        ProviderSubType = "Sub type 1",
+                        Authority = "Authority",
+                        UKPRN = "ukprn123",
+                        URN = "urn123",
+                        EstablishmentNumber = "en123",
+                        UPIN = "upin123",
+                        DateOpened = DateTime.Now
+                    },
+                    SpecificationId = "spec1"
+                }
+            };
+
+            // Act
+            await repo.SaveProviderResults(results);
+
+            // Assert
+            await cosmosRepository.Received().BulkCreateAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1));
+
+            await searchRepository.Received(1).Index(Arg.Is<IList<ProviderCalculationResultsIndex>>(r =>
+               r.First().SpecificationId == results.First().SpecificationId &&
+               r.First().SpecificationName == "Specification 1" &&
+               r.First().CalculationId.Any() &&
+               r.First().CalculationId.First() == results.First().CalculationResults.First().Calculation.Id &&
+               r.First().CalculationName.Any() &&
+               r.First().CalculationName.First() == results.First().CalculationResults.First().Calculation.Name &&
+               r.First().ProviderId == results.First().Provider.Id &&
+               r.First().ProviderName == results.First().Provider.Name &&
+               r.First().ProviderType == results.First().Provider.ProviderType &&
+               r.First().ProviderSubType == results.First().Provider.ProviderSubType &&
+               r.First().LocalAuthority == results.First().Provider.Authority &&
+               r.First().UKPRN == results.First().Provider.UKPRN &&
+               r.First().URN == results.First().Provider.URN &&
+               r.First().UPIN == results.First().Provider.UPIN &&
+               r.First().EstablishmentNumber == results.First().Provider.EstablishmentNumber &&
+               r.First().OpenDate == results.First().Provider.DateOpened &&
+               r.First().CalculationResult.Any() &&
+               r.First().CalculationResult.First() == "null"));
+        }
+
+        private static ProviderResultsRepository CreateProviderResultsRepository(
+            ICosmosRepository cosmosRepository = null, 
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = null, 
+            ISpecificationsRepository specificationsRepository = null, 
+            ILogger logger = null,
+            IFeatureToggle featureToggle = null,
+            ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null)
+        {
+           
+            return new ProviderResultsRepository(
+                cosmosRepository ?? CreateCosmosRepository(), 
+                searchRepository ?? CreateCalculationProviderResultsSearchRepository(), 
+                specificationsRepository ?? CreateSpecificationsRepository(), 
+                logger ?? CreateLogger(), 
+                providerCalculationResultsSearchRepository ?? CreateProviderCalculationResultsSearchRepository(), 
+                featureToggle ?? CreateFeatureToggle());
+        }
+
+        private static ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
+        }
+
+        private static ICosmosRepository CreateCosmosRepository()
+        {
+            return Substitute.For<ICosmosRepository>();
+        }
+
+        private static ISearchRepository<CalculationProviderResultsIndex> CreateCalculationProviderResultsSearchRepository()
+        {
+            return Substitute.For<ISearchRepository<CalculationProviderResultsIndex>>();
+        }
+
+        private static ISpecificationsRepository CreateSpecificationsRepository()
+        {
+            return Substitute.For<ISpecificationsRepository>();
+        }
+
+        private static IFeatureToggle CreateFeatureToggle()
+        {
+            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
+            featureToggle
+                .IsNewProviderCalculationResultsIndexEnabled()
+                .Returns(false);
+
+            return featureToggle;
+        }
+
+        private static ISearchRepository<ProviderCalculationResultsIndex> CreateProviderCalculationResultsSearchRepository()
+        {
+            return Substitute.For<ISearchRepository<ProviderCalculationResultsIndex>>();
         }
     }
 }

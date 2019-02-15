@@ -1,6 +1,7 @@
 ﻿using System;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
@@ -74,11 +75,15 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = ctx.GetService<ISearchRepository<CalculationProviderResultsIndex>>();
 
+                ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = ctx.GetService<ISearchRepository<ProviderCalculationResultsIndex>>();
+
                 ISpecificationsRepository specificationsRepository = ctx.GetService<ISpecificationsRepository>();
 
                 ILogger logger = ctx.GetService<ILogger>();
 
-                return new ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger);
+                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
+
+                return new ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle);
             });
 
             builder

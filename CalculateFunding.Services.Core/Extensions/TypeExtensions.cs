@@ -39,5 +39,27 @@ namespace CalculateFunding.Services.Core.Extensions
 
             return friendlyName.ToString();
         }
+
+        public static T? GetValueOrNull<T>(this string valueAsString) where T : struct
+        {
+            if (string.IsNullOrWhiteSpace(valueAsString))
+            {
+                return null;
+            }
+
+            if (string.Equals(valueAsString, "null", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return null;
+            }
+
+            try
+            {
+                return (T)Convert.ChangeType(valueAsString, typeof(T));
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

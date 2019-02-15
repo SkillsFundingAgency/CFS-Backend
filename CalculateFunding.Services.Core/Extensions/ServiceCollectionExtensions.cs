@@ -226,6 +226,9 @@ namespace CalculateFunding.Services.Core.Extensions
             builder
                 .AddSingleton<ISearchRepository<AllocationNotificationFeedIndex>, SearchRepository<AllocationNotificationFeedIndex>>();
 
+            builder
+             .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
+
             return builder;
         }
 

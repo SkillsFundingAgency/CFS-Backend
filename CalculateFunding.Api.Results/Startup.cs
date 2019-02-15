@@ -79,9 +79,15 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton<IResultsSearchService, ResultsSearchService>()
                 .AddSingleton<IHealthChecker, ResultsSearchService>();
+
+            builder
+                .AddSingleton<IProviderCalculationResultsSearchService, ProviderCalculationResultsSearchService>()
+                .AddSingleton<IHealthChecker, ProviderCalculationResultsSearchService>();
+           
             builder
                 .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
+
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
 
             builder
@@ -236,7 +242,8 @@ namespace CalculateFunding.Api.Results
                     PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

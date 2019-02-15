@@ -21,7 +21,7 @@ using Serilog;
 namespace CalculateFunding.Services.Results.Services
 {
     [TestClass]
-    public class CalculationProviderResultsSearchServiceTests
+    public class ProviderCalculationResultsSearchServiceTests
     {
         [TestMethod]
         public async Task SearchCalculationProviderResults_GivenNullModel_ReturnsBadRequest()
@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger: logger);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger: logger);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(httpRequest);
@@ -62,9 +62,9 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(request);
@@ -99,9 +99,9 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(request);
@@ -139,14 +139,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
 
             searchRepository
                 .When(s => s.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
                     .Do(x => { throw new FailedToQuerySearchException("Test Message", null); });
 
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(request);
@@ -172,6 +172,7 @@ namespace CalculateFunding.Services.Results.Services
                 Top = 50,
                 IncludeFacets = true
             };
+
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -183,14 +184,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            SearchResults<CalculationProviderResultsIndex> searchResults = new SearchResults<CalculationProviderResultsIndex>();
+            SearchResults<ProviderCalculationResultsIndex> searchResults = new SearchResults<ProviderCalculationResultsIndex>();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(request);
@@ -202,7 +203,7 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 searchRepository
-                    .Received(11)
+                    .Received(10)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -228,14 +229,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            SearchResults<CalculationProviderResultsIndex> searchResults = new SearchResults<CalculationProviderResultsIndex>();
+            SearchResults<ProviderCalculationResultsIndex> searchResults = new SearchResults<ProviderCalculationResultsIndex>();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(request);
@@ -247,7 +248,7 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 searchRepository
-                    .Received(11)
+                    .Received(10)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -278,14 +279,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            SearchResults<CalculationProviderResultsIndex> searchResults = new SearchResults<CalculationProviderResultsIndex>();
+            SearchResults<ProviderCalculationResultsIndex> searchResults = new SearchResults<ProviderCalculationResultsIndex>();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(request);
@@ -297,7 +298,7 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                searchRepository
-               .Received(10)
+               .Received(9)
                    .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                        model.Filters.Keys.All(f => c.Filter.Contains(f))
                        && !string.IsNullOrWhiteSpace(c.Filter)
@@ -331,14 +332,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            SearchResults<CalculationProviderResultsIndex> searchResults = new SearchResults<CalculationProviderResultsIndex>();
+            SearchResults<ProviderCalculationResultsIndex> searchResults = new SearchResults<ProviderCalculationResultsIndex>();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(request);
@@ -350,7 +351,7 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 searchRepository
-                .Received(10)
+                .Received(9)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -385,14 +386,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            SearchResults<CalculationProviderResultsIndex> searchResults = new SearchResults<CalculationProviderResultsIndex>();
+            SearchResults<ProviderCalculationResultsIndex> searchResults = new SearchResults<ProviderCalculationResultsIndex>();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
 
-            CalculationProviderResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
 
             //Act
             IActionResult result = await service.SearchCalculationProviderResults(request);
@@ -411,14 +412,12 @@ namespace CalculateFunding.Services.Results.Services
                     ));
         }
 
-        static CalculationProviderResultsSearchService CreateTestResultsSearchService(
+        static ProviderCalculationResultsSearchService CreateTestResultsSearchService(
           ILogger logger = null,
-          ISearchRepository<CalculationProviderResultsIndex> serachRepository = null,
-          IResultsResilliencePolicies resiliencePolicies = null,
-          ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
-          IFeatureToggle featureToggle = null)
+          ISearchRepository<ProviderCalculationResultsIndex> serachRepository = null,
+          IResultsResilliencePolicies resiliencePolicies = null)
         {
-            return new CalculationProviderResultsSearchService(
+            return new ProviderCalculationResultsSearchService(
                 logger ?? CreateLogger(),
                 serachRepository ?? CreateSearchRepository(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies());
@@ -429,9 +428,9 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ILogger>();
         }
 
-        static ISearchRepository<CalculationProviderResultsIndex> CreateSearchRepository()
+        static ISearchRepository<ProviderCalculationResultsIndex> CreateSearchRepository()
         {
-            return Substitute.For<ISearchRepository<CalculationProviderResultsIndex>>();
+            return Substitute.For<ISearchRepository<ProviderCalculationResultsIndex>>();
         }
     }
 }
