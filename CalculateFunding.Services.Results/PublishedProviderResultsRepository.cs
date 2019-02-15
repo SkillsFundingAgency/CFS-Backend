@@ -157,8 +157,8 @@ namespace CalculateFunding.Services.Results
 
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);
 
-                result.ProfilePeriods = DynamicExtensions.PropertyExists(existingResult, "profilePeriods") ? existingResult.profilePeriods : Enumerable.Empty<ProfilingPeriod>();
-                result.ProviderLookups = DynamicExtensions.PropertyExists(existingResult, "providerLookups") ? existingResult.providerLookups : Enumerable.Empty<ProviderLookup>();
+                result.ProfilePeriods = DynamicExtensions.PropertyExists(existingResult, "profilePeriods") ? ((JArray)existingResult.profilePeriods).ToObject<List<ProfilingPeriod>>() : Enumerable.Empty<ProfilingPeriod>();
+                result.ProviderLookups = DynamicExtensions.PropertyExists(existingResult, "providerLookups") ? ((JArray)existingResult.providerLookups).ToObject<List<ProviderLookup>>() : Enumerable.Empty<ProviderLookup>();
 
                 results.Add(result);
             }
