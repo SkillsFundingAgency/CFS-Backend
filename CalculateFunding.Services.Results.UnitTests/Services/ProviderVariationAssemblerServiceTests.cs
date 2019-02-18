@@ -1067,6 +1067,70 @@ namespace CalculateFunding.Services.Results.Services
             results.Should().HaveCount(1);
         }
 
+        [TestMethod]
+        public void GivenProviderNotFoundInCoreData_ThenExceptionThrown()
+        {
+            // Arrange
+            string providerId = "prov1";
+            string specificationId = "spec123";
+
+            List<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary
+                    {
+                        Id = providerId,
+                        Authority = "authority2",
+                        EstablishmentNumber = "en2",
+                        DfeEstablishmentNumber = "den2",
+                        LACode = "lac2",
+                        LegalName = "ln2",
+                        Name = "name2"
+                    },
+                    SpecificationId = specificationId,
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "Allocation 1" }
+                        }
+                    }
+                }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
+            {
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+            };
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository
+                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .Returns(existingPublishedResults);
+
+            List<ProviderSummary> coreProviderData = new List<ProviderSummary>();
+
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
+                .Returns(coreProviderData);
+
+            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+
+            // Act
+            Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, specificationId);
+
+            // Assert
+            action
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .And
+                .Message
+                .Should()
+                .Be($"Could not find provider in core data with id '{providerId}'");
+        }
+
         private IProviderVariationAssemblerService CreateService(IPublishedProviderResultsRepository publishedProviderResultsRepository = null, IProviderService providerService = null)
         {
             return new ProviderVariationAssemblerService(

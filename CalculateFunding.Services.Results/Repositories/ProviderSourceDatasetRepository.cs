@@ -7,7 +7,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.Repositories
 {
     public class ProviderSourceDatasetRepository : IProviderSourceDatasetRepository, IHealthChecker
     {
@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -31,63 +32,69 @@ namespace CalculateFunding.Services.Results
             List<ProviderVariationError> errors = new List<ProviderVariationError>();
 
             // Only process on a refresh, not on choose
-            if (triggeringJob.Trigger.Message.StartsWith("Refreshing"))
+            if (existingPublishedProviderResults.Any())
             {
                 _logger.Information($"Processing provider variations for specification '{specification.Id}' and job '{triggeringJob.Id}'");
 
-                IEnumerable<ProviderChangeItem> providerVariations = await _providerVariationAssemblerService.AssembleProviderVariationItems(providerResults, specification.Id);
+                IEnumerable<ProviderChangeItem> providerVariations;
+                try
+                {
+                    providerVariations = await _providerVariationAssemblerService.AssembleProviderVariationItems(providerResults, specification.Id);
+                }
+                catch (Exception ex)
+                {
+                    errors.Add(new ProviderVariationError { Error = ex.Message });
+                    return errors;
+                }
 
                 foreach (ProviderChangeItem providerChange in providerVariations)
                 {
-                    foreach (FundingStream fundingStream in specification.FundingStreams)
+                    foreach (AllocationLine allocationLine in specification.FundingStreams.SelectMany(f => f.AllocationLines))
                     {
-                        foreach (AllocationLine allocationLine in fundingStream.AllocationLines)
+                        (IEnumerable<ProviderVariationError> variationErrors, bool canContinue) processingResult = (Enumerable.Empty<ProviderVariationError>(), true);
+
+                        if (providerChange.HasProviderClosed && providerChange.DoesProviderHaveSuccessor)
                         {
-                            (IEnumerable<ProviderVariationError> variationErrors, bool canContinue) processingResult = (Enumerable.Empty<ProviderVariationError>(), true);
+                            // If successor has a previous result
+                            PublishedProviderResultExisting successorExistingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.SuccessorProviderId
+                                && (r.ProviderLookups != null
+                                && r.ProviderLookups.Any(p => p.ProviderType == providerChange.UpdatedProvider.ProviderType && p.ProviderSubType == providerChange.UpdatedProvider.ProviderSubType)));
 
-                            if (providerChange.HasProviderClosed && providerChange.DoesProviderHaveSuccessor)
+                            if (successorExistingResult != null)
                             {
-                                // If successor has a previous result
-                                PublishedProviderResultExisting successorExistingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.SuccessorProviderId
-                                    && (r.ProviderLookups != null
-                                    && r.ProviderLookups.Any(p => p.ProviderType == providerChange.UpdatedProvider.ProviderType && p.ProviderSubType == providerChange.UpdatedProvider.ProviderSubType)));
-
-                                if (successorExistingResult != null)
-                                {
-                                    processingResult = ProcessProviderClosedWithSuccessor(providerChange, allocationLine, specification, existingPublishedProviderResults, allPublishedProviderResults, resultsToSave, successorExistingResult);
-                                }
-                                else
-                                {
-                                    _logger.Information($"Provider '{providerChange.UpdatedProvider.Id}' has closed and has successor but has no existing result. Specifiction '{specification.Id}' and allocation line {allocationLine.Id}");
-                                }
+                                processingResult = ProcessProviderClosedWithSuccessor(providerChange, allocationLine, specification, existingPublishedProviderResults, allPublishedProviderResults, resultsToSave, successorExistingResult);
                             }
-                            else if (providerChange.HasProviderClosed && !providerChange.DoesProviderHaveSuccessor)
+                            else
                             {
-                                // Get previous result for affected provider
-                                PublishedProviderResultExisting affectedProviderExistingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.UpdatedProvider.Id
-                                    && r.AllocationLineId == allocationLine.Id);
-
-                                if (affectedProviderExistingResult != null)
-                                {
-                                    processingResult = ProcessProviderClosedWithoutSuccessor(providerChange, allocationLine, specification, affectedProviderExistingResult, allPublishedProviderResults, resultsToSave);
-                                }
-                                else
-                                {
-                                    _logger.Information($"Provider '{providerChange.UpdatedProvider.Id}' has closed without successor but has no existing result. Specification '{specification.Id}' and allocation line {allocationLine.Id}");
-                                }
+                                _logger.Information($"Provider '{providerChange.UpdatedProvider.Id}' has closed and has successor but has no existing result. Specifiction '{specification.Id}' and allocation line {allocationLine.Id}");
                             }
+                        }
+                        else if (providerChange.HasProviderClosed && !providerChange.DoesProviderHaveSuccessor)
+                        {
+                            // Get previous result for affected provider
+                            PublishedProviderResultExisting affectedProviderExistingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.UpdatedProvider.Id
+                                && r.AllocationLineId == allocationLine.Id);
 
-                            errors.AddRange(processingResult.variationErrors);
-
-                            if (!processingResult.canContinue)
+                            if (affectedProviderExistingResult != null)
                             {
-                                continue;
+                                processingResult = ProcessProviderClosedWithoutSuccessor(providerChange, allocationLine, specification, affectedProviderExistingResult, allPublishedProviderResults, resultsToSave);
                             }
-
-                            if (providerChange.HasProviderDataChanged)
+                            else
                             {
-                                ProcessProviderDataChanged(providerChange, allocationLine, existingPublishedProviderResults, allPublishedProviderResults, resultsToSave);
+                                _logger.Information($"Provider '{providerChange.UpdatedProvider.Id}' has closed without successor but has no existing result. Specification '{specification.Id}' and allocation line '{allocationLine.Id}'");
                             }
+                        }
+
+                        errors.AddRange(processingResult.variationErrors);
+
+                        if (!processingResult.canContinue)
+                        {
+                            continue;
+                        }
+
+                        if (providerChange.HasProviderDataChanged)
+                        {
+                            ProcessProviderDataChanged(providerChange, allocationLine, existingPublishedProviderResults, allPublishedProviderResults, resultsToSave);
                         }
                     }
                 }
@@ -116,6 +123,12 @@ namespace CalculateFunding.Services.Results
             // Get previous result for affected provider
             PublishedProviderResultExisting affectedProviderExistingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.UpdatedProvider.Id
                 && r.AllocationLineId == allocationLine.Id);
+
+            if (affectedProviderExistingResult == null)
+            {
+                errors.Add(new ProviderVariationError { AllocationLineId = allocationLine.Id, Error = "Could not find existing result for affected provider", UKPRN = providerChange.UpdatedProvider.UKPRN });
+                return (errors, false);
+            }
 
             if (affectedProviderExistingResult.HasResultBeenVaried)
             {
@@ -201,6 +214,12 @@ namespace CalculateFunding.Services.Results
                 affectedResult = allPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.UpdatedProvider.Id
                     && r.FundingStreamResult.AllocationLineResult.AllocationLine.Id == allocationLine.Id);
 
+                if (affectedResult == null)
+                {
+                    errors.Add(new ProviderVariationError { AllocationLineId = allocationLine.Id, Error = "Could not find/create result for successor", UKPRN = providerChange.UpdatedProvider.UKPRN });
+                    return (errors, false);
+                }
+
                 _logger.Information($"Creating new result for affected provider {providerChange.UpdatedProvider.Id} and allocation line {allocationLine.Id}. Specification '{specification.Id}'");
                 resultsToSave.Add(affectedResult);
             }
@@ -258,6 +277,12 @@ namespace CalculateFunding.Services.Results
                 // No new result to save so copy the from the generated version to use as a base
                 affectedResult = allPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.UpdatedProvider.Id
                     && r.FundingStreamResult.AllocationLineResult.AllocationLine.Id == allocationLine.Id);
+
+                if (affectedResult == null)
+                {
+                    errors.Add(new ProviderVariationError { AllocationLineId = allocationLine.Id, Error = "Could not find/create result for successor", UKPRN = providerChange.UpdatedProvider.UKPRN });
+                    return (errors, false);
+                }
 
                 _logger.Information($"Creating new result for affected provider {providerChange.UpdatedProvider.Id} and allocation line {allocationLine.Id}. Specification '{specification.Id}'");
                 resultsToSave.Add(affectedResult);
@@ -318,6 +343,7 @@ namespace CalculateFunding.Services.Results
                 _logger.Information($"Processing data update for provider {providerChange.UpdatedProvider.Id} and allocation line {allocationLine.Id}. Specification '{affectedResult.SpecificationId}'");
 
                 affectedResult.FundingStreamResult.AllocationLineResult.Current.Provider = providerChange.UpdatedProvider;
+                affectedResult.FundingStreamResult.AllocationLineResult.Current.VariationReasons = providerChange.VariationReasons;
             }
         }
 
@@ -327,6 +353,7 @@ namespace CalculateFunding.Services.Results
             result.FundingStreamResult.AllocationLineResult.Current.Minor = existingResult.Minor;
 
             result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = existingResult.ProfilePeriods.ToArray();
+            result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = existingResult.FinancialEnvelopes;
         }
     }
 }

@@ -20,6 +20,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Repositories;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -37,7 +38,7 @@ using Newtonsoft.Json;
 using Polly.Bulkhead;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using ISpecificationsRepository = CalculateFunding.Services.Results.Interfaces.ISpecificationsRepository;
-using SpecificationsRepository = CalculateFunding.Services.Results.SpecificationsRepository;
+using SpecificationsRepository = CalculateFunding.Services.Results.Repositories.SpecificationsRepository;
 
 namespace CalculateFunding.Api.External
 {

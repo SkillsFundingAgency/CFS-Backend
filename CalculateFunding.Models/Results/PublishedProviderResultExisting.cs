@@ -28,6 +28,8 @@ namespace CalculateFunding.Models.Results
 
         public IEnumerable<ProfilingPeriod> ProfilePeriods { get; set; }
 
+        public IEnumerable<FinancialEnvelope> FinancialEnvelopes { get; set; }
+
         public IEnumerable<ProviderLookup> ProviderLookups { get; set; }
 
         public bool HasResultBeenVaried { get; set; }

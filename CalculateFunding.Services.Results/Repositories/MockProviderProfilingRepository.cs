@@ -6,7 +6,7 @@ using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Services.Core.Helpers;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.Repositories
 {
     public class MockProviderProfilingRepository : IProfilingApiClient
     {
@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Results
             {
                 string yearsPart = requestModel.FundingStreamPeriod.Substring(requestModel.FundingStreamPeriod.Length - 4);
 
-                if (!int.TryParse(yearsPart, out var yearsPartAsInteger))
+                if (!int.TryParse(yearsPart, out int yearsPartAsInteger))
                 {
                     startYear = DateTime.Now.Year;
                     endYear = DateTime.Now.Year + 1;

@@ -68,6 +68,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("calculations")]
         public IEnumerable<PublishedProviderCalculationResult> Calculations { get; set; }
 
+        [JsonProperty("variationReasons")]
+        public IEnumerable<VariationReason> VariationReasons { get; set; }
+
         public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy

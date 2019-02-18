@@ -15,7 +15,7 @@ using CalculateFunding.Services.Results.Interfaces;
 using LinqKit;
 using Newtonsoft.Json.Linq;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.Repositories
 {
     public class PublishedProviderResultsRepository : IPublishedProviderResultsRepository, IHealthChecker
     {
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -130,9 +130,10 @@ namespace CalculateFunding.Services.Results
                 "r.content.fundingStreamResult.allocationLineResult.current.status as status, " +
                 "r.content.fundingStreamResult.allocationLineResult.published as published, " +
                 "r.content.fundingStreamResult.allocationLineResult.current.profilePeriods, " +
+                "r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes " +
                 "r.content.fundingStreamResult.allocationLIneResult.allocationLine.providerLookups, " +
                 "r.content.fundingStreamResult.allocationLIneResult.hasResultBeenVaried " +
-                "FROM Root r where r.documentType = 'PublishedProviderResult' " + 
+                "FROM Root r where r.documentType = 'PublishedProviderResult' " +
                 "and r.deleted = false " +
                 "and r.content.specificationId = '" + specificationId + "'";
 
@@ -159,6 +160,7 @@ namespace CalculateFunding.Services.Results
 
                 result.ProfilePeriods = DynamicExtensions.PropertyExists(existingResult, "profilePeriods") ? ((JArray)existingResult.profilePeriods).ToObject<List<ProfilingPeriod>>() : Enumerable.Empty<ProfilingPeriod>();
                 result.ProviderLookups = DynamicExtensions.PropertyExists(existingResult, "providerLookups") ? ((JArray)existingResult.providerLookups).ToObject<List<ProviderLookup>>() : Enumerable.Empty<ProviderLookup>();
+                result.FinancialEnvelopes = DynamicExtensions.PropertyExists(existingResult, "financialEnvelopes") ? ((JArray)existingResult.financialEnvelopes).ToObject<List<FinancialEnvelope>>() : Enumerable.Empty<FinancialEnvelope>();
 
                 results.Add(result);
             }
@@ -177,15 +179,15 @@ namespace CalculateFunding.Services.Results
         {
             IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId && m.FundingStreamResult.AllocationLineResult.Current.Status == filterCriteria.Status);
 
-            var providerPredicate = PredicateBuilder.New<PublishedProviderResult>(false);
+            ExpressionStarter<PublishedProviderResult> providerPredicate = PredicateBuilder.New<PublishedProviderResult>(false);
 
-            foreach (var provider in filterCriteria.Providers)
+            foreach (UpdatePublishedAllocationLineResultStatusProviderModel provider in filterCriteria.Providers)
             {
                 string providerId = provider.ProviderId;
                 providerPredicate = providerPredicate.Or(p => p.ProviderId == providerId);
 
-                var allocationLinePredicate = PredicateBuilder.New<PublishedProviderResult>(false);
-                foreach (var allocationLineId in provider.AllocationLineIds)
+                ExpressionStarter<PublishedProviderResult> allocationLinePredicate = PredicateBuilder.New<PublishedProviderResult>(false);
+                foreach (string allocationLineId in provider.AllocationLineIds)
                 {
                     string temp = allocationLineId;
                     allocationLinePredicate = allocationLinePredicate.Or(a => a.FundingStreamResult.AllocationLineResult.AllocationLine.Id == temp);
@@ -231,7 +233,7 @@ namespace CalculateFunding.Services.Results
         {
             Guard.IsNullOrWhiteSpace(feedIndexId, nameof(feedIndexId));
 
-            IQueryable<PublishedAllocationLineResultVersion> results = _cosmosRepository.Query<PublishedAllocationLineResultVersion>(enableCrossPartitionQuery: true).Where(m => 
+            IQueryable<PublishedAllocationLineResultVersion> results = _cosmosRepository.Query<PublishedAllocationLineResultVersion>(enableCrossPartitionQuery: true).Where(m =>
                 m.FeedIndexId == feedIndexId);
 
             return results.AsEnumerable().FirstOrDefault();

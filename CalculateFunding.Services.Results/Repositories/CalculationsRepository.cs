@@ -1,13 +1,10 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Results.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.Repositories
 {
     public class CalculationsRepository : ICalculationsRepository
     {

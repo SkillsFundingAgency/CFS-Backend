@@ -1,13 +1,13 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Results.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Results.Interfaces;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.Repositories
 {
     public class SpecificationsRepository : ISpecificationsRepository
     {

@@ -685,6 +685,15 @@ namespace CalculateFunding.Services.Results
                 {
                     string errorFileLocation = await _providerVariationsStorageRepository.SaveErrors(specificationId, jobId, variationErrors);
                     _logger.Information($"Provider variation errors for specification '{specificationId}'  and job '{jobId}' have been saved to '{errorFileLocation}'");
+
+                    IDictionary<string, string> errorProperties = new Dictionary<string, string>
+                    {
+                        { "specificationId", specificationId },
+                        { "jobId", jobId },
+                        { "errorFile", errorFileLocation },
+                        { "numberOfErrors", variationErrors.Count().ToString() }
+                    };
+                    _telemetry.TrackEvent("VariationsEvent", errorProperties);
                 }
                 catch (Exception ex)
                 {

@@ -9,11 +9,10 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.Repositories
 {
     public class CalculationResultsRepository : ICalculationResultsRepository, IHealthChecker
     {
@@ -26,7 +25,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -39,7 +38,7 @@ namespace CalculateFunding.Services.Results
 
         public Task<ProviderResult> GetProviderResult(string providerId, string specificationId)
         {
-            var results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId).ToList().Take(1);
+            IEnumerable<ProviderResult> results = _cosmosRepository.Query<ProviderResult>().Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId).ToList().Take(1);
 
             return Task.FromResult(results.FirstOrDefault());
         }
@@ -68,9 +67,9 @@ namespace CalculateFunding.Services.Results
         {
             string sql = $"select * from r where r.content.provider.id = \"{ providerId }\"";
 
-            var resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sql, enableCrossPartitionQuery: true).ToArray();
+            dynamic[] resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sql, enableCrossPartitionQuery: true).ToArray();
 
-            var resultsString = JsonConvert.SerializeObject(resultsArray);
+            string resultsString = JsonConvert.SerializeObject(resultsArray);
 
             resultsString = resultsString.ConvertExpotentialNumber();
 

@@ -43,6 +43,11 @@ namespace CalculateFunding.Services.Results
 
                 ProviderSummary coreProvider = coreProviderData.FirstOrDefault(p => p.Id == providerResult.Provider.Id);
 
+                if (coreProvider == null)
+                {
+                    throw new NonRetriableException($"Could not find provider in core data with id '{providerResult.Provider.Id}'");
+                }
+
                 ProviderChangeItem changeItem = new ProviderChangeItem
                 {
                     UpdatedProvider = coreProvider

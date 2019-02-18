@@ -11,7 +11,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Migration;
 
-namespace CalculateFunding.Services.Results
+namespace CalculateFunding.Services.Results.Repositories
 {
     public class PublishedProviderCalculationResultsRepository : IPublishedProviderCalculationResultsRepository, IHealthChecker
     {
@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok,string Message) cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
