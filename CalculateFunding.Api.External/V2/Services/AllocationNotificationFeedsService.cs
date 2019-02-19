@@ -87,7 +87,29 @@ namespace CalculateFunding.Api.External.V2.Services
 
             foreach (AllocationNotificationFeedIndex feedIndex in searchFeed.Entries)
             {
-                atomFeed.AtomEntry.Add(new AtomEntry<AllocationModel>
+	            ProviderVariation providerVariation = new ProviderVariation();
+
+	            if (!feedIndex.VariationReasons.IsNullOrEmpty())
+	            {
+		            providerVariation.VariationReasons = new Collection<string>(feedIndex.VariationReasons);
+	            }
+
+				if (!feedIndex.Successors.IsNullOrEmpty())
+	            {
+		            List<AllocationProviderModel> allocationProviderModels = feedIndex.Successors.Select(fi => new AllocationProviderModel() {ProviderId = fi}).ToList();
+		            providerVariation.Successors = new Collection<AllocationProviderModel>(allocationProviderModels);
+	            }
+
+	            if (!feedIndex.Predecessors.IsNullOrEmpty())
+	            {
+					List<AllocationProviderModel> allocationProviderModels = feedIndex.Predecessors.Select(fi => new AllocationProviderModel(){ProviderId = fi}).ToList();
+		            providerVariation.Predecessors = new Collection<AllocationProviderModel>(allocationProviderModels);
+	            }
+
+	            providerVariation.OpenReason = feedIndex.OpenReason;
+	            providerVariation.CloseReason = feedIndex.CloseReason;
+
+				atomFeed.AtomEntry.Add(new AtomEntry<AllocationModel>
                 {
                     Id = $"{request.Scheme}://{request.Host.Value}{allocationTrimmedRequestPath}/{feedIndex.Id}",
                     Title = feedIndex.Title,
@@ -140,7 +162,7 @@ namespace CalculateFunding.Api.External.V2.Services
                                 CrmAccountId = feedIndex.CrmAccountId,
                                 NavVendorNo = feedIndex.NavVendorNo,
                                 Status = feedIndex.ProviderStatus,
-                                ProviderId = feedIndex.ProviderId,
+                                ProviderId = feedIndex.ProviderId
                             },
                             AllocationLine = new AllocationLine
                             {

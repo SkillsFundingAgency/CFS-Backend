@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 
@@ -69,10 +70,10 @@ namespace CalculateFunding.Api.External.V2.Models
         /// </summary>
         public string SubType { get; set; }
 
-        /// <summary>
-        /// The date that this provider entity was opened as recorded in Get Information about Schools attribute 'OpenDate'
-        /// </summary>
-        public DateTimeOffset? OpenDate { get; set; }
+		/// <summary>
+		/// The date that this provider entity was opened as recorded in Get Information about Schools attribute 'OpenDate'
+		/// </summary>
+		public DateTimeOffset? OpenDate { get; set; }
 
         /// <summary>
         /// The date this provider ceased to be a provider of education or skills. Get Information About Schools attribute CloseDate
@@ -93,5 +94,10 @@ namespace CalculateFunding.Api.External.V2.Models
         /// The current status of provider as a deliverer of education and skills from Get Information about schools attribute EstablishmentStatus (name)
         /// </summary>
         public string Status { get; set; }
-    }
+
+		/// <summary>
+		/// Provider variation information
+		/// </summary>
+	    public ProviderVariation ProviderVariation { get; set; }
+	}
 }

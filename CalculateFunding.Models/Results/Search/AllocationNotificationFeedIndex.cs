@@ -176,5 +176,20 @@ namespace CalculateFunding.Models.Results.Search
         [IsFilterable]
         [JsonProperty("isDeleted")]
         public bool IsDeleted { get; set; }
-    }
+
+		[JsonProperty("variationReasons")]
+		public string[] VariationReasons { get; set; }
+
+		[JsonProperty("successors")]
+		public string[] Successors { get; set; }
+
+		[JsonProperty("predecessors")]
+		public string[] Predecessors { get; set; }
+
+		[JsonProperty("openReason")]
+		public string OpenReason { get; set; }
+
+	    [JsonProperty("openReason")]
+	    public string CloseReason { get; set; }
+	}
 }
