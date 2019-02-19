@@ -1309,7 +1309,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2);
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new [] {"prov1"});
         }
 
         [Ignore("Scenario not supported at the moment - needs clarification from BA")]
@@ -1376,7 +1376,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 16, 15, AllocationLineStatus.Held, 2);
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 16, 15, AllocationLineStatus.Held, 2, new []{"prov1"});
         }
 
         [TestMethod]
@@ -1863,7 +1863,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 2);
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 2, new []{"prov1", "prov2"});
         }
 
         [TestMethod]
@@ -2125,7 +2125,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2);
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new [] {"prov1"});
         }
 
         [TestMethod]
@@ -2737,7 +2737,7 @@ namespace CalculateFunding.Services.Results.Services
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
         }
 
-        private static void AssertProviderAllocationLineCorrect(IEnumerable<PublishedProviderResult> resultsToSave, string providerId, DateTimeOffset specVariationDate, decimal expectedValueBeforeVariation, decimal expectedValueAfterVariation, AllocationLineStatus expectedStatus, int expectedMinorVersion)
+        private static void AssertProviderAllocationLineCorrect(IEnumerable<PublishedProviderResult> resultsToSave, string providerId, DateTimeOffset specVariationDate, decimal expectedValueBeforeVariation, decimal expectedValueAfterVariation, AllocationLineStatus expectedStatus, int expectedMinorVersion, string[] expectedPredecessors = null)
         {
             PublishedProviderResult provResult = resultsToSave.FirstOrDefault(r => r.ProviderId == providerId);
 
@@ -2763,6 +2763,12 @@ namespace CalculateFunding.Services.Results.Services
             provResult.FundingStreamResult.AllocationLineResult.Current.Minor
                 .Should()
                 .Be(expectedMinorVersion, "Minor version");
+
+	        if (expectedPredecessors == null) return;
+	        foreach (string predecessor in expectedPredecessors)
+	        {
+		        provResult.FundingStreamResult.AllocationLineResult.Current.Predecessors.Should().Contain(predecessor);
+	        }
         }
 
         private PublishedResultsService InitialisePublishedResultsService(

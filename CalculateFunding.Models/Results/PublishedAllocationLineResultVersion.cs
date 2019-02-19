@@ -71,6 +71,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("variationReasons")]
         public IEnumerable<VariationReason> VariationReasons { get; set; }
 
+		[JsonProperty("predecessors")]
+	    public IEnumerable<string> Predecessors { get; set; }
+
         public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy

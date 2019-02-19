@@ -2514,8 +2514,20 @@ namespace CalculateFunding.Services.Results
                                PolicyName = m.Policy.Name
                            })) : "",
                     FinancialEnvelopes = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes != null ?
-                        JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes) : "",
+                        JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes) : ""
                 };
+
+	            if (publishedProviderResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried)
+	            {
+		            PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
+		            ProviderSummary currentProvider = publishedAllocationLineResultVersion.Provider;
+
+		            feedIndex.Successors = currentProvider.Successor != null ? new[] {currentProvider.Successor} : null;
+		            feedIndex.VariationReasons = publishedAllocationLineResultVersion.VariationReasons?.Select(vr => vr.ToString()).ToArray();
+		            feedIndex.OpenReason = currentProvider.ReasonEstablishmentOpened;
+		            feedIndex.CloseReason = currentProvider.ReasonEstablishmentClosed;
+		            feedIndex.Predecessors = publishedAllocationLineResultVersion.Predecessors?.ToArray();
+	            }
 
                 if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
                 {

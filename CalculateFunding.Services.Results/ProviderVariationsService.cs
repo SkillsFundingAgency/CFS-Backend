@@ -239,7 +239,17 @@ namespace CalculateFunding.Services.Results
             // Set a flag to indicate result has been varied
             affectedResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried = true;
 
-            return (errors, true);
+			// Concat the predecessor information to the successor
+	        PublishedAllocationLineResultVersion currentPublishedAllocationLineResult = successorResult.FundingStreamResult.AllocationLineResult.Current;
+
+	        if (currentPublishedAllocationLineResult.Predecessors == null)
+	        {
+		        currentPublishedAllocationLineResult.Predecessors = Enumerable.Empty<string>();
+	        }
+
+	        currentPublishedAllocationLineResult.Predecessors = currentPublishedAllocationLineResult.Predecessors.Concat(new []{providerChange.UpdatedProvider.Id});
+
+			return (errors, true);
         }
 
         private (IEnumerable<ProviderVariationError> variationErrors, bool canContinue) ProcessProviderClosedWithoutSuccessor(
