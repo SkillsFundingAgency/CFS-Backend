@@ -211,8 +211,8 @@ namespace CalculateFunding.Api.External.V2.Services
             foreach (IGrouping<string, AllocationNotificationFeedIndex> localAuthorityResultSummaryGroup in localAuthorityResultSummaryGroups)
             {
                 AllocationNotificationFeedIndex firstFeedIndex = localAuthorityResultSummaryGroup.First();
-
-                LocalAuthorityResultSummary localAuthorityResultSummary = new LocalAuthorityResultSummary
+	            
+				LocalAuthorityResultSummary localAuthorityResultSummary = new LocalAuthorityResultSummary
                 {
                     LANo = firstFeedIndex.LaCode,
                     LAName = firstFeedIndex.Authority
@@ -220,7 +220,8 @@ namespace CalculateFunding.Api.External.V2.Services
 
                 foreach (AllocationNotificationFeedIndex feedIndex in localAuthorityResultSummaryGroup)
                 {
-                    LocalAuthorityProviderResultSummary resultSummary = new LocalAuthorityProviderResultSummary
+	                ProviderVariation providerVariation = CreateProviderVariationFromAllocationNotificationFeedIndexItem(feedIndex);
+					LocalAuthorityProviderResultSummary resultSummary = new LocalAuthorityProviderResultSummary
                     {
                         Provider = new AllocationProviderModel
                         {
@@ -240,7 +241,8 @@ namespace CalculateFunding.Api.External.V2.Services
                             CloseDate = feedIndex.ProviderClosedDate,
                             CrmAccountId = feedIndex.CrmAccountId,
                             NavVendorNo = feedIndex.NavVendorNo,
-                            Status = feedIndex.ProviderStatus
+                            Status = feedIndex.ProviderStatus, 
+							ProviderVariation = providerVariation
                         }
                     };
 
@@ -352,7 +354,9 @@ namespace CalculateFunding.Api.External.V2.Services
 
             AllocationNotificationFeedIndex firstEntry = entries.First();
 
-            ProviderResultSummary providerResutSummary = new ProviderResultSummary
+	        ProviderVariation providerVariation = CreateProviderVariationFromAllocationNotificationFeedIndexItem(firstEntry);
+
+	        ProviderResultSummary providerResutSummary = new ProviderResultSummary
             {
                 Provider = new AllocationProviderModel
                 {
@@ -371,7 +375,8 @@ namespace CalculateFunding.Api.External.V2.Services
                     CloseDate = firstEntry.ProviderClosedDate,
                     CrmAccountId = firstEntry.CrmAccountId,
                     NavVendorNo = firstEntry.NavVendorNo,
-                    Status = firstEntry.ProviderStatus
+                    Status = firstEntry.ProviderStatus,
+					ProviderVariation = providerVariation
                 }
             };
 
@@ -479,7 +484,36 @@ namespace CalculateFunding.Api.External.V2.Services
             return providerResutSummary;
         }
 
-        private IEnumerable<AllocationNotificationFeedIndex> ValidateFeeds(IEnumerable<AllocationNotificationFeedIndex> feeds, bool checkProfiling = true, bool checkPolicySummaries = true)
+	    private static ProviderVariation CreateProviderVariationFromAllocationNotificationFeedIndexItem(
+		    AllocationNotificationFeedIndex firstEntry)
+	    {
+		    ProviderVariation providerVariation = new ProviderVariation();
+
+		    if (!firstEntry.VariationReasons.IsNullOrEmpty())
+		    {
+			    providerVariation.VariationReasons = new Collection<string>(firstEntry.VariationReasons);
+		    }
+
+		    if (!firstEntry.Successors.IsNullOrEmpty())
+		    {
+			    List<ProviderInformationModel> providerInformationModels =
+				    firstEntry.Successors.Select(fi => new ProviderInformationModel() {ProviderId = fi}).ToList();
+			    providerVariation.Successors = new Collection<ProviderInformationModel>(providerInformationModels);
+		    }
+
+		    if (!firstEntry.Predecessors.IsNullOrEmpty())
+		    {
+			    List<ProviderInformationModel> providerInformationModels =
+				    firstEntry.Predecessors.Select(fi => new ProviderInformationModel() {ProviderId = fi}).ToList();
+			    providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerInformationModels);
+		    }
+
+		    providerVariation.OpenReason = firstEntry.OpenReason;
+		    providerVariation.CloseReason = firstEntry.CloseReason;
+		    return providerVariation;
+	    }
+
+	    private IEnumerable<AllocationNotificationFeedIndex> ValidateFeeds(IEnumerable<AllocationNotificationFeedIndex> feeds, bool checkProfiling = true, bool checkPolicySummaries = true)
         {
             IList<AllocationNotificationFeedIndex> validFeeds = new List<AllocationNotificationFeedIndex>();
 
