@@ -189,7 +189,7 @@ namespace CalculateFunding.Models.Results.Search
 		[JsonProperty("openReason")]
 		public string OpenReason { get; set; }
 
-	    [JsonProperty("openReason")]
+	    [JsonProperty("closeReason")]
 	    public string CloseReason { get; set; }
 	}
 }

@@ -627,9 +627,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			ProviderVariation providerVariation = providerResultSummary.Provider.ProviderVariation;
 			providerVariation.Should().NotBeNull();
 			providerVariation.VariationReasons.Should().BeEquivalentTo("LegalNameFieldUpdated", "LACodeFieldUpdated");
-			providerVariation.Successors.First().ProviderId.Should().Be("provider4");
-			providerVariation.Predecessors.First().ProviderId.Should().Be("provider1");
-			providerVariation.Predecessors[1].ProviderId.Should().Be("provider2");
+			providerVariation.Successors.First().Ukprn.Should().Be("provider4");
+			providerVariation.Predecessors.First().Ukprn.Should().Be("provider1");
+			providerVariation.Predecessors[1].Ukprn.Should().Be("provider2");
 			providerVariation.OpenReason.Should().Be("Fresh Start");
 			providerVariation.CloseReason.Should().Be("Closure");
 		}
@@ -1272,9 +1272,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			ProviderVariation providerVariation = providerResultSummary.Provider.ProviderVariation;
 			providerVariation.Should().NotBeNull();
 			providerVariation.VariationReasons.Should().BeEquivalentTo("LegalNameFieldUpdated", "LACodeFieldUpdated");
-			providerVariation.Successors.First().ProviderId.Should().Be("provider4");
-			providerVariation.Predecessors.First().ProviderId.Should().Be("provider1");
-			providerVariation.Predecessors[1].ProviderId.Should().Be("provider2");
+			providerVariation.Successors.First().Ukprn.Should().Be("provider4");
+			providerVariation.Predecessors.First().Ukprn.Should().Be("provider1");
+			providerVariation.Predecessors[1].Ukprn.Should().Be("provider2");
 			providerVariation.OpenReason.Should().Be("Fresh Start");
 			providerVariation.CloseReason.Should().Be("Closure");
 		}
@@ -1796,9 +1796,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 	        ProviderVariation providerVariation1 = localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(0).Provider.ProviderVariation;
 	        providerVariation1.Should().NotBeNull();
 	        providerVariation1.VariationReasons.Should().BeEquivalentTo("LegalNameFieldUpdated", "LACodeFieldUpdated");
-	        providerVariation1.Successors.First().ProviderId.Should().Be("provider4");
-	        providerVariation1.Predecessors.First().ProviderId.Should().Be("provider1");
-	        providerVariation1.Predecessors[1].ProviderId.Should().Be("provider2");
+	        providerVariation1.Successors.First().Ukprn.Should().Be("provider4");
+	        providerVariation1.Predecessors.First().Ukprn.Should().Be("provider1");
+	        providerVariation1.Predecessors[1].Ukprn.Should().Be("provider2");
 	        providerVariation1.OpenReason.Should().Be("Fresh Start");
 	        providerVariation1.CloseReason.Should().Be("Closure");
 

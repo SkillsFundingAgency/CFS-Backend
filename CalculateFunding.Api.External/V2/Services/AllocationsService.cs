@@ -57,12 +57,12 @@ namespace CalculateFunding.Api.External.V2.Services
 
 			if (allocationLineResult.Current.Provider.Successor != null)
 			{
-				providerVariation.Successors = new Collection<ProviderInformationModel> {new ProviderInformationModel(){ProviderId = allocationLineResult.Current.Provider.Successor}};
+				providerVariation.Successors = new Collection<ProviderInformationModel> {new ProviderInformationModel(){Ukprn = allocationLineResult.Current.Provider.Successor}};
 			}
 
 			if (!allocationLineResult.Current.Predecessors.IsNullOrEmpty())
 		    {
-			    List<ProviderInformationModel> providerModelsForPredecessor = allocationLineResult.Current.Predecessors.Select(fi => new ProviderInformationModel() { ProviderId = fi }).ToList();
+			    List<ProviderInformationModel> providerModelsForPredecessor = allocationLineResult.Current.Predecessors.Select(fi => new ProviderInformationModel() { Ukprn = fi }).ToList();
 			    providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerModelsForPredecessor);
 		    }
 

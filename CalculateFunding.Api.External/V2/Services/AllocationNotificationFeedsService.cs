@@ -96,13 +96,13 @@ namespace CalculateFunding.Api.External.V2.Services
 
 				if (!feedIndex.Successors.IsNullOrEmpty())
 	            {
-		            List<ProviderInformationModel> providerInformationModels = feedIndex.Successors.Select(fi => new ProviderInformationModel() {ProviderId = fi}).ToList();
+		            List<ProviderInformationModel> providerInformationModels = feedIndex.Successors.Select(fi => new ProviderInformationModel() {Ukprn = fi}).ToList();
 		            providerVariation.Successors = new Collection<ProviderInformationModel>(providerInformationModels);
 	            }
 
 	            if (!feedIndex.Predecessors.IsNullOrEmpty())
 	            {
-					List<ProviderInformationModel> providerInformationModels = feedIndex.Predecessors.Select(fi => new ProviderInformationModel(){ProviderId = fi}).ToList();
+					List<ProviderInformationModel> providerInformationModels = feedIndex.Predecessors.Select(fi => new ProviderInformationModel(){Ukprn = fi}).ToList();
 		            providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerInformationModels);
 	            }
 

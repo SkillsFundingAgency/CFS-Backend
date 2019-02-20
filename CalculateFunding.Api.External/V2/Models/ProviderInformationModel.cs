@@ -5,7 +5,7 @@ namespace CalculateFunding.Api.External.V2.Models
 {
 	public class ProviderInformationModel
 	{
-		[JsonProperty("providerId")]
-		public string ProviderId { get; set; }
+		[JsonProperty("UkPrn")]
+		public string Ukprn { get; set; }
 	}
 }

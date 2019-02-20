@@ -194,9 +194,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 			ProviderVariation providerVariationModel = allocationModel.Provider.ProviderVariation;
 			providerVariationModel.Should().NotBeNull();
 			providerVariationModel.VariationReasons.Should().BeEquivalentTo("LegalNameFieldUpdated", "LACodeFieldUpdated");
-			providerVariationModel.Successors.First().ProviderId.Should().Be("provider3");
-			providerVariationModel.Predecessors.First().ProviderId.Should().Be("provider1");
-			providerVariationModel.Predecessors[1].ProviderId.Should().Be("provider2");
+			providerVariationModel.Successors.First().Ukprn.Should().Be("provider3");
+			providerVariationModel.Predecessors.First().Ukprn.Should().Be("provider1");
+			providerVariationModel.Predecessors[1].Ukprn.Should().Be("provider2");
 			providerVariationModel.OpenReason.Should().Be("Fresh Start");
 			providerVariationModel.CloseReason.Should().Be("Closure");
 		}

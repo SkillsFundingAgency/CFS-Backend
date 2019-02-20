@@ -497,14 +497,14 @@ namespace CalculateFunding.Api.External.V2.Services
 		    if (!firstEntry.Successors.IsNullOrEmpty())
 		    {
 			    List<ProviderInformationModel> providerInformationModels =
-				    firstEntry.Successors.Select(fi => new ProviderInformationModel() {ProviderId = fi}).ToList();
+				    firstEntry.Successors.Select(fi => new ProviderInformationModel() {Ukprn = fi}).ToList();
 			    providerVariation.Successors = new Collection<ProviderInformationModel>(providerInformationModels);
 		    }
 
 		    if (!firstEntry.Predecessors.IsNullOrEmpty())
 		    {
 			    List<ProviderInformationModel> providerInformationModels =
-				    firstEntry.Predecessors.Select(fi => new ProviderInformationModel() {ProviderId = fi}).ToList();
+				    firstEntry.Predecessors.Select(fi => new ProviderInformationModel() {Ukprn = fi}).ToList();
 			    providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerInformationModels);
 		    }
 
