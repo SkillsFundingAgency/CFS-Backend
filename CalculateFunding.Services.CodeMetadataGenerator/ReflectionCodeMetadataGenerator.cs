@@ -117,6 +117,52 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         }
                     }
 
+                    List<MethodInformation> fields = new List<MethodInformation>();
+
+                    FieldInfo[] fieldInfos = typeInfo.DeclaredFields.ToArray();
+
+                    foreach (FieldInfo fieldInfo in fieldInfos.Where(m => m.FieldType == typeof(Func<decimal?>)).ToList())
+                    {
+                        if (!fieldInfo.IsSpecialName)
+                        {
+                            string entityId = null;
+
+                            bool isCustom = false;
+
+                            var calculationAttribute = fieldInfo.CustomAttributes.Where(c => c.AttributeType.Name == "CalculationAttribute").FirstOrDefault();
+
+                            if (calculationAttribute != null)
+                            {
+                                entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
+
+                                if (_featureToggle.IsAggregateOverCalculationsEnabled())
+                                {
+                                    isCustom = true;
+                                }
+                            }
+
+                            MethodInformation methodInformation = new MethodInformation()
+                            {
+                                Name = fieldInfo.Name,
+                                ReturnType = ConvertTypeName(fieldInfo.ReflectedType),
+                                EntityId = entityId,
+                                IsCustom = isCustom
+                            };
+
+                            if (string.IsNullOrWhiteSpace(methodInformation.FriendlyName))
+                            {
+                                methodInformation.FriendlyName = GetAttributeProperty(fieldInfo.CustomAttributes, "Calculation", "Name");
+                            }
+
+                            if (string.IsNullOrWhiteSpace(methodInformation.Description))
+                            {
+                                methodInformation.Description = GetAttributeProperty(fieldInfo.CustomAttributes, "Description", "Description");
+                            }
+
+                            methods.Add(methodInformation);
+                        }
+                    }
+
                     List<PropertyInformation> properties = new List<PropertyInformation>();
 
                     foreach (PropertyInfo property in typeInfo.GetProperties())

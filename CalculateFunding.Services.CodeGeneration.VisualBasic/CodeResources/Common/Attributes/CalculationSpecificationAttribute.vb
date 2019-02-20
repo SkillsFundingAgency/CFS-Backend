@@ -1,5 +1,5 @@
 ﻿Imports System
-<AttributeUsage(AttributeTargets.Method)> Class CalculationSpecificationAttribute
+<AttributeUsage(AttributeTargets.Method Or AttributeTargets.Field)> Class CalculationSpecificationAttribute
     Inherits  System.Attribute
 
     Public Property Id() As String

@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Calculator
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-
+          
             IEnumerable<CalculationResult> calculationResults = null;
 
             if (aggregationValues != null)
@@ -148,7 +148,8 @@ namespace CalculateFunding.Services.Calculator
                             result.Value = 0;
                         }
 
-                        result.Exception = calculationResult.Exception;
+                        result.ExceptionType = calculationResult.ExceptionType;
+                        result.ExceptionMessage = calculationResult.ExceptionMessage;
                     }
 
                     results.Add(result);

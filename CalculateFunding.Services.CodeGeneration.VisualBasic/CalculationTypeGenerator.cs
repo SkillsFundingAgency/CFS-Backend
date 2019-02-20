@@ -40,22 +40,27 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private static IEnumerable<StatementSyntax> Methods(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
+
             yield return GetDatasetProperties();
             yield return GetProviderProperties();
+
             if (calculations != null)
             {
                 foreach (var calc in calculations)
                 {
-                    yield return GetMethod(calc);
+                    yield return GetFunc(calc);
                 }
+
+                yield return GetMainMethod(calculations);
             }
         }
 
-        private static StatementSyntax GetMethod(Calculation calc)
+        private static StatementSyntax GetFunc(Calculation calc)
         {
             var builder = new StringBuilder();
+
             builder.AppendLine($"<Calculation(Id := \"{calc.Id}\", Name := \"{calc.Name}\")>");
-            if (calc.CalculationSpecification!= null)
+            if (calc.CalculationSpecification != null)
             {
                 builder.AppendLine($"<CalculationSpecification(Id := \"{calc.CalculationSpecification.Id}\", Name := \"{calc.CalculationSpecification.Name}\")>");
             }
@@ -75,48 +80,62 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             if (!string.IsNullOrWhiteSpace(calc.Description))
             {
-                builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"","\"\"")}\")>");
+                builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"", "\"\"")}\")>");
             }
+            builder.AppendLine($"Dim {GenerateIdentifier(calc.Name)} As Func(Of decimal?) = nothing");
+            
+            builder.AppendLine();
 
-            if (!string.IsNullOrWhiteSpace(calc.Current?.SourceCode))
-            {
-                calc.Current.SourceCode = QuoteAggregateFunctionCalls(calc.Current.SourceCode);
-            }
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
 
-            builder.AppendLine($"Public Function {GenerateIdentifier(calc.Name)} As System.Nullable(Of Decimal)");
+
+            return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
+                .FirstOrDefault();
+        }
+
+        private static StatementSyntax GetMainMethod(IEnumerable<Calculation> calcs)
+        {
+            var builder = new StringBuilder();
+
+            builder.AppendLine();
+            builder.AppendLine($"Public Function MainCalc As Dictionary(Of String, String())");
             builder.AppendLine();
             builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
             builder.AppendLine("If frameCount > 1000 Then");
             builder.AppendLine("Throw New Exception(\"The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop\")");
             builder.AppendLine("End If");
-            builder.AppendLine();
-            builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
-            builder.AppendLine();
-            builder.AppendLine($"If CalcResultsCache.ContainsKey(\"{calc.Id}\") Then");
-            builder.AppendLine($"            Return CalcResultsCache.Item(\"{calc.Id}\")");
-            builder.AppendLine("        End If");
-            builder.AppendLine();
-            builder.AppendLine("Dim calcFunc As Func(Of System.Nullable(Of Decimal)) = Function() As System.Nullable(Of Decimal)");
-            builder.AppendLine();
-            builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
-            builder.AppendLine();
-            builder.AppendLine("End Function");
-            builder.AppendLine();
-            builder.AppendLine("Dim calcResult As System.Nullable(Of Decimal) = calcFunc()");
-            builder.AppendLine();
-            builder.AppendLine($"CalcResultsCache.Add(\"{calc.Id}\", calcResult)");
-            builder.AppendLine();
-            builder.AppendLine("Return calcResult");
-            builder.AppendLine();
-            builder.AppendLine("#End ExternalSource");
-            builder.AppendLine();
-            builder.AppendLine("End Function");
-            builder.AppendLine();
-            var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
+            builder.AppendLine("Dim dictionary as new Dictionary(Of String, String())");
+            builder.AppendLine($"#ExternalSource(\"Main Calc\", 1)");
+           
+            foreach (var calc in calcs)
+            {
+                builder.AppendLine($"{GenerateIdentifier(calc.Name)} = Function() As decimal?");
+                builder.AppendLine();
+                builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
+                builder.AppendLine();
+                builder.AppendLine("End Function");
+               
+            }
 
+            builder.AppendLine();
+
+            foreach (var calc in calcs)
+            {
+                builder.AppendLine("Try");
+                builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {GenerateIdentifier(calc.Name)}()");
+                builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\"),\"\", \"\"}})");
+                builder.AppendLine("Catch ex as System.Exception");
+                builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
+                builder.AppendLine("End Try");
+            }
+            builder.AppendLine("#End ExternalSource");
+            builder.AppendLine("return dictionary");
+            builder.AppendLine("End Function");
+            builder.AppendLine();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
 
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
-                .FirstOrDefault();
+               .FirstOrDefault();
         }
 
         private static StatementSyntax GetDatasetProperties()

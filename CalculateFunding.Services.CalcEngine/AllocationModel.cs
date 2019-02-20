@@ -9,18 +9,20 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core.Extensions;
 using Serilog;
 
 namespace CalculateFunding.Services.Calculator
 {
     public class AllocationModel : IAllocationModel
     {
-        private readonly List<Tuple<MethodInfo, CalculationResult>> _methods = new List<Tuple<MethodInfo, CalculationResult>>();
+        private readonly List<Tuple<FieldInfo, CalculationResult>> _funcs = new List<Tuple<FieldInfo, CalculationResult>>();
         private readonly Dictionary<string, PropertyInfo> _datasetSetters = new Dictionary<string, PropertyInfo>();
         private readonly object _instance;
         private readonly object _datasetsInstance;
         private readonly object _providerInstance;
         private readonly ILogger _logger;
+        private MethodInfo _mainMethod;
 
         public AllocationModel(Type allocationType, Dictionary<string, Type> datasetTypes, ILogger logger)
         {
@@ -40,13 +42,13 @@ namespace CalculateFunding.Services.Calculator
             PropertyInfo providerSetter = allocationType.GetProperty("Provider");
             Type providerType = providerSetter.PropertyType;
 
-            IEnumerable<MethodInfo> executeMethods = allocationType.GetMethods().Where(x => x.ReturnType == typeof(Nullable<decimal>));
+            IEnumerable<FieldInfo> executeFuncs = allocationType.GetTypeInfo().DeclaredFields.Where(x => x.FieldType == typeof(Func<decimal?>));
 
-            foreach (MethodInfo executeMethod in executeMethods)
+            _mainMethod = allocationType.GetMethods().FirstOrDefault(x => x.Name == "MainCalc");
+
+            foreach (FieldInfo executeFunc in executeFuncs)
             {
-                ParameterInfo[] parameters = executeMethod.GetParameters();
-
-                IList<CustomAttributeData> attributes = executeMethod.GetCustomAttributesData();
+                IList<CustomAttributeData> attributes = executeFunc.GetCustomAttributesData();
                 CustomAttributeData calcAttribute = attributes.FirstOrDefault(x => x.AttributeType.Name == "CalculationAttribute");
                 if (calcAttribute != null)
                 {
@@ -58,10 +60,7 @@ namespace CalculateFunding.Services.Calculator
                         PolicySpecifications = GetReferences(attributes, "PolicySpecification").ToList()
                     };
 
-                    if (parameters.Length == 0)
-                    {
-                        _methods.Add(new Tuple<MethodInfo, CalculationResult>(executeMethod, result));
-                    }
+                   _funcs.Add(new Tuple<FieldInfo, CalculationResult>(executeFunc, result));
                 }
             }
 
@@ -193,38 +192,30 @@ namespace CalculateFunding.Services.Calculator
 
             IList<CalculationResult> calculationResults = new List<CalculationResult>();
 
-            foreach (Tuple<MethodInfo, CalculationResult> executeMethod in _methods)
+            Dictionary<string, string[]> results = (Dictionary<string,string[]>)_mainMethod.Invoke(_instance, null);
+
+            foreach(KeyValuePair<string, string[]> calcResult in results)
             {
-                if (!calcsToProcess.IsNullOrEmpty())
+                if(calcResult.Value.Length < 3)
                 {
-                    if (!calcsToProcess.Contains(VisualBasicTypeGenerator.GenerateIdentifier(executeMethod.Item2.Calculation.Name)))
-                    {
-                        continue;
-                    }
+                    _logger.Error("Calc result does not contain the 3 elements required");
+                    continue;
                 }
 
-                CalculationResult result = executeMethod.Item2;
-                try
-                {
-                    result.Value = (decimal?)executeMethod.Item1.Invoke(_instance, null);
-                }
-                catch (Exception exception)
-                {
-                    result.Exception = new CaclulationResultException
-                    {
-                        ExceptionType = exception.GetType().Name,
-                        Message = exception.Message,
-                        InnerException = exception.InnerException != null ? new CaclulationResultException
-                        {
-                            ExceptionType = exception.InnerException.GetType().Name,
-                            Message = exception.InnerException.Message
-                        } : null
-                    };
+                Tuple<FieldInfo, CalculationResult> func = _funcs.FirstOrDefault(m => string.Equals(m.Item2.Calculation.Id, calcResult.Key, StringComparison.InvariantCultureIgnoreCase));
 
-                    _logger.Error(exception, $"Failed to create result for calculation id '{result.Calculation.Id}'");
+                if(func != null)
+                {
+                    CalculationResult calculationResult = func.Item2;
+
+                    calculationResult.Value = calcResult.Value[0].GetValueOrNull<decimal>();
+
+                    calculationResult.ExceptionType = calcResult.Value[1];
+
+                    calculationResult.ExceptionMessage = calcResult.Value[2];
+
+                    calculationResults.Add(calculationResult);
                 }
-             
-                calculationResults.Add(result);
             }
 
             return calculationResults;

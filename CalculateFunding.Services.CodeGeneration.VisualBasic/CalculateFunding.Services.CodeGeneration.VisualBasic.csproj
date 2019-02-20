@@ -18,9 +18,11 @@
     <None Remove="CodeResources\Common\Attributes\DescriptionAttribute.vb" />
     <None Remove="CodeResources\Common\Attributes\FieldAttribute.vb" />
     <None Remove="CodeResources\Common\Attributes\IsAggregableAttribute.vb" />
+    <None Remove="CodeResources\Common\ProjectData.vb" />
     <None Remove="CodeResources\Common\Provider.vb" />
     <None Remove="CodeResources\Common\Scenario.vb" />
     <None Remove="CodeResources\PolicySpecificationAttribute.vb" />
+    <None Remove="CodeResources\ProjectData.vb" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,6 +32,7 @@
     <EmbeddedResource Include="CodeResources\Common\Attributes\DatasetRelationshipAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\AllocationLineAttribute.vb" />
     <EmbeddedResource Include="CodeResources\CalculateFunding.vbproj" />
+    <EmbeddedResource Include="CodeResources\Common\ProjectData.vb" />
     <EmbeddedResource Include="CodeResources\Common\Scenario.vb" />
     <EmbeddedResource Include="CodeResources\Common\Provider.vb" />
     <EmbeddedResource Include="CodeResources\Common\BaseCalculation.vb" />

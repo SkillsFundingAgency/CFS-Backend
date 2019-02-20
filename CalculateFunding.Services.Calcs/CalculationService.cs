@@ -1189,7 +1189,7 @@ namespace CalculateFunding.Services.Calcs
                 Id = Guid.NewGuid().ToString(),
                 Name = specificationId
             };
-
+            
             buildproject.Build = Compile(buildproject, calculations);
 
             await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.CreateBuildProject(buildproject));

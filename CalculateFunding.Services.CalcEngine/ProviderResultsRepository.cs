@@ -11,6 +11,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace CalculateFunding.Services.Calculator
@@ -153,6 +154,8 @@ namespace CalculateFunding.Services.Calculator
 
         private async Task<long> UpdateCalculationProviderResultsIndex(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecificationSummary> specifications)
         {
+            Stopwatch assembleStopwatch = Stopwatch.StartNew();
+
             IList<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
 
             foreach (ProviderResult providerResult in providerResults)
@@ -183,6 +186,8 @@ namespace CalculateFunding.Services.Calculator
                     
                 }
             }
+
+            assembleStopwatch.Stop();
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 

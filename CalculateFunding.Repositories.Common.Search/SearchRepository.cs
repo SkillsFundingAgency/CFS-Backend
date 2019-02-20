@@ -179,15 +179,27 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)
         {
-                var client = await GetOrCreateIndex();
-                var errors = new List<IndexError>();
+            var client = await GetOrCreateIndex();
+            var errors = new List<IndexError>();
 
-                foreach (var batch in documents.ToBatches(1000))
+            foreach (var batch in documents.ToBatches(1000))
+            {
+                try
                 {
-                    try
+                    var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(IndexAction.MergeOrUpload)));
+                    foreach (IndexingResult result in indexResult.Results)
                     {
-                        var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(IndexAction.MergeOrUpload)));
-                        foreach (IndexingResult result in indexResult.Results)
+                        if (!result.Succeeded)
+                        {
+                            errors.Add(new IndexError { Key = result.Key, ErrorMessage = result.ErrorMessage });
+                        }
+                    }
+                }
+                catch (IndexBatchException ex )
+                {
+                    if (ex.IndexingResults != null)
+                    {
+                        foreach (IndexingResult result in ex.IndexingResults)
                         {
                             if (!result.Succeeded)
                             {
@@ -195,21 +207,9 @@ namespace CalculateFunding.Repositories.Common.Search
                             }
                         }
                     }
-                    catch (IndexBatchException ex )
-                    {
-                        if (ex.IndexingResults != null)
-                        {
-                            foreach (IndexingResult result in ex.IndexingResults)
-                            {
-                                if (!result.Succeeded)
-                                {
-                                    errors.Add(new IndexError { Key = result.Key, ErrorMessage = result.ErrorMessage });
-                                }
-                            }
-                        }
-                    }
                 }
-                return errors;
+            }
+            return errors;
         }
 
         public async Task DeleteIndex()

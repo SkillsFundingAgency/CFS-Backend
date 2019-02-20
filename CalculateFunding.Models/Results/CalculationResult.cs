@@ -24,8 +24,11 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("value")]
         public decimal? Value { get; set; }
 
-        [JsonProperty("exception")]
-        public CaclulationResultException Exception { get; set; }
+        [JsonProperty("exceptionType")]
+        public string ExceptionType { get; set; }
+
+        [JsonProperty("exceptionMessage")]
+        public string ExceptionMessage { get; set; }
 
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }

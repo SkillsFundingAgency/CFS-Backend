@@ -28,6 +28,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 using Polly;
 using Serilog;
 
@@ -242,6 +243,7 @@ namespace CalculateFunding.Services.Calculator
                 {
                     metrics.Add("calculation-run-for-tests-ms", calcTiming.ElapsedMilliseconds);
                 }
+
 
                 _telemetry.TrackEvent("CalculationRunProvidersProcessed",
                     new Dictionary<string, string>()
