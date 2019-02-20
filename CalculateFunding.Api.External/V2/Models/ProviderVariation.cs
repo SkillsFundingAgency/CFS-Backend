@@ -12,12 +12,12 @@ namespace CalculateFunding.Api.External.V2.Models
 		/// <summary>
 		/// Collection of successor providers
 		/// </summary>
-		public Collection<AllocationProviderModel> Successors { get; set; }
+		public Collection<ProviderInformationModel> Successors { get; set; }
 
 		/// <summary>
 		/// Collection of predecessor providers
 		/// </summary>
-		public Collection<AllocationProviderModel> Predecessors { get; set; }
+		public Collection<ProviderInformationModel> Predecessors { get; set; }
 
 		/// <summary>
 		/// Open reason

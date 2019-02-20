@@ -46,78 +46,103 @@ namespace CalculateFunding.Api.External.V2.Services
 
         AllocationModel CreateAllocation(PublishedProviderResult publishedProviderResult)
         {
-            return new AllocationModel
-            {
-                AllocationResultTitle = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Title,
-                AllocationResultId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId,
-                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
-                AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major : 0,
-                AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor : 0,
-                AllocationLine = new Models.AllocationLine
-                {
-                    Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
-                    Name = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
-                    ShortName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.ShortName,
-                    FundingRoute = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.ToString(),
-                    ContractRequired = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired ? "Y" : "N"
-                },
-                AllocationStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString(),
-                FundingStream = new AllocationFundingStreamModel
-                {
-                    Id = publishedProviderResult.FundingStreamResult.FundingStream.Id,
-                    Name = publishedProviderResult.FundingStreamResult.FundingStream.Name,
-                    ShortName = publishedProviderResult.FundingStreamResult.FundingStream.ShortName,
-                    PeriodType = new AllocationFundingStreamPeriodTypeModel
-                    {
-                        Id = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.Id,
-                        Name = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.Id,
-                        StartDay = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.StartDay,
-                        StartMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.StartMonth,
-                        EndDay = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndDay,
-                        EndMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndMonth,
-                    }
-                },
-                Period = new Models.Period
-                {
-                    Id = publishedProviderResult.FundingPeriod.Id,
-                    Name = publishedProviderResult.FundingPeriod.Name,
-                    StartYear = publishedProviderResult.FundingPeriod.StartYear,
-                    EndYear = publishedProviderResult.FundingPeriod.EndYear
-                },
-                Provider = new AllocationProviderModel
-                {
-                    Name = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name,
-                    LegalName = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LegalName,
-                    UkPrn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN,
-                    Upin = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UPIN,
-                    Urn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.URN,
-                    DfeEstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DfeEstablishmentNumber,
-                    EstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.EstablishmentNumber,
-                    LaCode = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LACode,
-                    LocalAuthority = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Authority,
-                    Type = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType,
-                    SubType = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderSubType,
-                    OpenDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
-                    CloseDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateClosed,
-                    CrmAccountId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.CrmAccountId,
-                    NavVendorNo = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.NavVendorNo,
-                    Status = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
-                    ProviderId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Id,
+			ProviderVariation providerVariation = new ProviderVariation();
 
-                },
-                ProfilePeriods = new List<ProfilePeriod>(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods?.Select(m =>
-                    new ProfilePeriod
-                    {
-                        DistributionPeriod = m.DistributionPeriod,
-                        Occurrence = m.Occurrence,
-                        Period = m.Period,
-                        PeriodType = m.Type,
-                        PeriodYear = m.Year.ToString(),
-                        ProfileValue = (decimal)m.Value
-                    }
-                ).ToArraySafe())
-            };
-        }
+	        PublishedAllocationLineResult allocationLineResult = publishedProviderResult.FundingStreamResult.AllocationLineResult;
+	        
+			if (!allocationLineResult.Current.VariationReasons.IsNullOrEmpty())
+			{
+				providerVariation.VariationReasons = new Collection<string>(allocationLineResult.Current.VariationReasons.Select(vr => vr.ToString()).ToList());
+			}
+
+			if (allocationLineResult.Current.Provider.Successor != null)
+			{
+				providerVariation.Successors = new Collection<ProviderInformationModel> {new ProviderInformationModel(){ProviderId = allocationLineResult.Current.Provider.Successor}};
+			}
+
+			if (!allocationLineResult.Current.Predecessors.IsNullOrEmpty())
+		    {
+			    List<ProviderInformationModel> providerModelsForPredecessor = allocationLineResult.Current.Predecessors.Select(fi => new ProviderInformationModel() { ProviderId = fi }).ToList();
+			    providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerModelsForPredecessor);
+		    }
+
+		    providerVariation.OpenReason = allocationLineResult.Current.Provider.ReasonEstablishmentOpened;
+		    providerVariation.CloseReason = allocationLineResult.Current.Provider.ReasonEstablishmentClosed;
+	        
+
+			return new AllocationModel
+			{
+				AllocationResultTitle = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Title,
+				AllocationResultId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId,
+				AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
+				AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major : 0,
+				AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor : 0,
+				AllocationLine = new Models.AllocationLine
+				{
+					Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
+					Name = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
+					ShortName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.ShortName,
+					FundingRoute = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.ToString(),
+					ContractRequired = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired ? "Y" : "N"
+				},
+				AllocationStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString(),
+				FundingStream = new AllocationFundingStreamModel
+				{
+					Id = publishedProviderResult.FundingStreamResult.FundingStream.Id,
+					Name = publishedProviderResult.FundingStreamResult.FundingStream.Name,
+					ShortName = publishedProviderResult.FundingStreamResult.FundingStream.ShortName,
+					PeriodType = new AllocationFundingStreamPeriodTypeModel
+					{
+						Id = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.Id,
+						Name = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.Id,
+						StartDay = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.StartDay,
+						StartMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.StartMonth,
+						EndDay = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndDay,
+						EndMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndMonth,
+					}
+				},
+				Period = new Models.Period
+				{
+					Id = publishedProviderResult.FundingPeriod.Id,
+					Name = publishedProviderResult.FundingPeriod.Name,
+					StartYear = publishedProviderResult.FundingPeriod.StartYear,
+					EndYear = publishedProviderResult.FundingPeriod.EndYear
+				},
+				Provider = new AllocationProviderModel
+				{
+					Name = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Name,
+					LegalName = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LegalName,
+					UkPrn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN,
+					Upin = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.UPIN,
+					Urn = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.URN,
+					DfeEstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DfeEstablishmentNumber,
+					EstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.EstablishmentNumber,
+					LaCode = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.LACode,
+					LocalAuthority = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Authority,
+					Type = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderType,
+					SubType = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ProviderSubType,
+					OpenDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateOpened,
+					CloseDate = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DateClosed,
+					CrmAccountId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.CrmAccountId,
+					NavVendorNo = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.NavVendorNo,
+					Status = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
+					ProviderId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Id,
+					ProviderVariation = providerVariation
+
+				},
+				ProfilePeriods = new List<ProfilePeriod>(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods?.Select(m =>
+					new ProfilePeriod
+					{
+						DistributionPeriod = m.DistributionPeriod,
+						Occurrence = m.Occurrence,
+						Period = m.Period,
+						PeriodType = m.Type,
+						PeriodYear = m.Year.ToString(),
+						ProfileValue = (decimal)m.Value
+					}
+				).ToArraySafe())
+			};
+		}
 
         AllocationWithHistoryModel CreateAllocationWithHistoryModel(PublishedProviderResultWithHistory publishedProviderResultWithHistory)
         {

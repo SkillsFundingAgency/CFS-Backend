@@ -247,7 +247,7 @@ namespace CalculateFunding.Services.Results
 		        currentPublishedAllocationLineResult.Predecessors = Enumerable.Empty<string>();
 	        }
 
-	        currentPublishedAllocationLineResult.Predecessors = currentPublishedAllocationLineResult.Predecessors.Concat(new []{providerChange.UpdatedProvider.Id});
+	        currentPublishedAllocationLineResult.Predecessors = currentPublishedAllocationLineResult.Predecessors.Concat(new []{providerChange.UpdatedProvider.UKPRN});
 
 			return (errors, true);
         }

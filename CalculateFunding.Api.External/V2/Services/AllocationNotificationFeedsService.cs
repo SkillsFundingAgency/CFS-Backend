@@ -96,14 +96,14 @@ namespace CalculateFunding.Api.External.V2.Services
 
 				if (!feedIndex.Successors.IsNullOrEmpty())
 	            {
-		            List<AllocationProviderModel> allocationProviderModels = feedIndex.Successors.Select(fi => new AllocationProviderModel() {ProviderId = fi}).ToList();
-		            providerVariation.Successors = new Collection<AllocationProviderModel>(allocationProviderModels);
+		            List<ProviderInformationModel> providerInformationModels = feedIndex.Successors.Select(fi => new ProviderInformationModel() {ProviderId = fi}).ToList();
+		            providerVariation.Successors = new Collection<ProviderInformationModel>(providerInformationModels);
 	            }
 
 	            if (!feedIndex.Predecessors.IsNullOrEmpty())
 	            {
-					List<AllocationProviderModel> allocationProviderModels = feedIndex.Predecessors.Select(fi => new AllocationProviderModel(){ProviderId = fi}).ToList();
-		            providerVariation.Predecessors = new Collection<AllocationProviderModel>(allocationProviderModels);
+					List<ProviderInformationModel> providerInformationModels = feedIndex.Predecessors.Select(fi => new ProviderInformationModel(){ProviderId = fi}).ToList();
+		            providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerInformationModels);
 	            }
 
 	            providerVariation.OpenReason = feedIndex.OpenReason;

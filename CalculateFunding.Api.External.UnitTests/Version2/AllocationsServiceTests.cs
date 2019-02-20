@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using CalculateFunding.Api.External.V2.Models;
 using CalculateFunding.Api.External.V2.Services;
@@ -126,9 +127,81 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             allocationModel.AllocationLine.Id.Should().Be("AAAAA");
             allocationModel.AllocationLine.Name.Should().Be("test allocation line 1");
             allocationModel.ProfilePeriods.Should().HaveCount(1);
+			
+			AssertProviderVariationValuesNotSet(allocationModel.Provider.ProviderVariation);
         }
 
-        [TestMethod]
+		[TestMethod]
+		public void GetAllocationByAllocationResultId_GivenResultHasVariation_ReturnsContentResult()
+		{
+			//Arrange
+			string allocationResultId = "12345";
+
+			IHeaderDictionary headerDictionary = new HeaderDictionary();
+			headerDictionary.Add("Accept", new StringValues("application/json"));
+
+			HttpRequest request = Substitute.For<HttpRequest>();
+			request
+				.Headers
+				.Returns(headerDictionary);
+
+			PublishedProviderResult publishedProviderResult = CreatePublishedProviderResult();
+			publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId = allocationResultId;
+			publishedProviderResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried = true;
+			publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.VariationReasons = new[] { VariationReason.LegalNameFieldUpdated, VariationReason.LACodeFieldUpdated };
+			publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Successor = "provider3";
+			publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Predecessors = new []{"provider1", "provider2"};
+			publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ReasonEstablishmentOpened = "Fresh Start";
+			publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.ReasonEstablishmentClosed = "Closure";
+
+
+			IPublishedResultsService resultsService = CreateResultsService();
+			resultsService
+				.GetPublishedProviderResultByVersionId(Arg.Is(allocationResultId))
+				.Returns(publishedProviderResult);
+
+			AllocationsService service = CreateService(resultsService);
+
+			//Act
+			IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);
+
+			//Assert
+			result
+				.Should()
+				.BeOfType<ContentResult>();
+
+			ContentResult contentResult = result as ContentResult;
+
+			AllocationModel allocationModel = JsonConvert.DeserializeObject<AllocationModel>(contentResult.Content);
+
+			allocationModel
+				.Should()
+				.NotBeNull();
+
+			allocationModel.AllocationResultId.Should().Be(allocationResultId);
+			allocationModel.AllocationStatus.Should().Be("Published");
+			allocationModel.AllocationAmount.Should().Be(50);
+			allocationModel.FundingStream.Id.Should().Be("fs-1");
+			allocationModel.FundingStream.Name.Should().Be("funding stream 1");
+			allocationModel.Period.Id.Should().Be("Ay12345");
+			allocationModel.Provider.UkPrn.Should().Be("1111");
+			allocationModel.Provider.Upin.Should().Be("2222");
+			allocationModel.Provider.OpenDate.Should().NotBeNull();
+			allocationModel.AllocationLine.Id.Should().Be("AAAAA");
+			allocationModel.AllocationLine.Name.Should().Be("test allocation line 1");
+			allocationModel.ProfilePeriods.Should().HaveCount(1);
+
+			ProviderVariation providerVariationModel = allocationModel.Provider.ProviderVariation;
+			providerVariationModel.Should().NotBeNull();
+			providerVariationModel.VariationReasons.Should().BeEquivalentTo("LegalNameFieldUpdated", "LACodeFieldUpdated");
+			providerVariationModel.Successors.First().ProviderId.Should().Be("provider3");
+			providerVariationModel.Predecessors.First().ProviderId.Should().Be("provider1");
+			providerVariationModel.Predecessors[1].ProviderId.Should().Be("provider2");
+			providerVariationModel.OpenReason.Should().Be("Fresh Start");
+			providerVariationModel.CloseReason.Should().Be("Closure");
+		}
+
+		[TestMethod]
         public void GetAllocationByAllocationResultId_GivenMajorMinorFeatureToggleOn_ReturnsMajorMinorVersions()
         {
             //Arrange
@@ -178,9 +251,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             allocationModel.AllocationMajorVersion.Should().Be(1);
             allocationModel.AllocationMinorVersion.Should().Be(1);
-        }
 
-        [TestMethod]
+	        AssertProviderVariationValuesNotSet(allocationModel.Provider.ProviderVariation);
+		}
+
+		[TestMethod]
         public void GetAllocationByAllocationResultId_GivenMajorMinorFeatureToggleOff_ReturnsMajorMinorVersionsAsZero()
         {
             //Arrange
@@ -228,9 +303,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             allocationModel.AllocationMajorVersion.Should().Be(0);
             allocationModel.AllocationMinorVersion.Should().Be(0);
-        }
 
-        private static AllocationsService CreateService(IPublishedResultsService resultsService = null, IFeatureToggle featureToggle = null)
+	        AssertProviderVariationValuesNotSet(allocationModel.Provider.ProviderVariation);
+		}
+
+		private static AllocationsService CreateService(IPublishedResultsService resultsService = null, IFeatureToggle featureToggle = null)
         {
             return new AllocationsService(resultsService ?? CreateResultsService(), featureToggle ?? CreateFeatureToggle());
         }
@@ -340,5 +417,16 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                  }
             };
         }
+
+	    private static void AssertProviderVariationValuesNotSet(ProviderVariation providerVariation)
+	    {
+		    providerVariation.Should().NotBeNull();
+
+		    providerVariation.CloseReason.Should().BeNull();
+		    providerVariation.OpenReason.Should().BeNull();
+		    providerVariation.Predecessors.Should().BeNull();
+		    providerVariation.Successors.Should().BeNull();
+		    providerVariation.VariationReasons.Should().BeNull();
+	    }
     }
 }

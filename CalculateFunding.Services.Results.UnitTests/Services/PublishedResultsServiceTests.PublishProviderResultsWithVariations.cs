@@ -1278,6 +1278,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov1",
+							UKPRN = "prov1u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -1309,7 +1310,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new [] {"prov1"});
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new [] {"prov1u"});
         }
 
         [Ignore("Scenario not supported at the moment - needs clarification from BA")]
@@ -1345,6 +1346,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov1",
+							UKPRN = "prov1u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -1818,6 +1820,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov1",
+							UKPRN = "prov1u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -1832,6 +1835,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov2",
+							UKPRN = "prov2u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -1863,7 +1867,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 2, new []{"prov1", "prov2"});
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 2, new []{"prov1u", "prov2u"});
         }
 
         [TestMethod]
@@ -2092,6 +2096,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov1",
+							UKPRN = "prov1u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -2125,7 +2130,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new [] {"prov1"});
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new [] {"prov1u"});
         }
 
         [TestMethod]
@@ -2884,7 +2889,7 @@ namespace CalculateFunding.Services.Results.Services
                         }
                     },
                     Id = "provresult" + (i + 1),
-                    Provider = new ProviderSummary { Id = "prov" + (i + 1) }
+                    Provider = new ProviderSummary { Id = "prov" + (i + 1)}
                 });
             }
 

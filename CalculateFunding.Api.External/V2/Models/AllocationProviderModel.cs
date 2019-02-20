@@ -11,8 +11,8 @@ namespace CalculateFunding.Api.External.V2.Models
     [Serializable]
     public class AllocationProviderModel
     {
-        [JsonIgnore]
-        [XmlIgnore]
+		[JsonIgnore]
+		[XmlIgnore]
         public string ProviderId { get; set; }
 
         /// <summary>
