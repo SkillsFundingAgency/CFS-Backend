@@ -168,8 +168,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 TotalCount = 8,
                 Entries = CreateFeedIndexes()
             };
+	        AllocationNotificationFeedIndex firstFeedItem = feeds.Entries.ElementAt(0);
+	        firstFeedItem.VariationReasons = new[] { "LegalNameFieldUpdated", "LACodeFieldUpdated" };
+	        firstFeedItem.Successors = new[] { "provider4" };
+	        firstFeedItem.Predecessors = new[] { "provider1", "provider2" };
+	        firstFeedItem.OpenReason = "Fresh Start";
+			firstFeedItem.CloseReason = "Closure";
 
-            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
                 .GetFeedsV2(Arg.Is(2), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
                 .Returns(feeds);
@@ -258,7 +264,16 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationLine.FundingRoute.Should().Be("LA");
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationLine.ContractRequired.Should().Be("Y");
             atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationResultTitle.Should().Be("test title 1");
-            atomFeed.AtomEntry.ElementAt(1).Id.Should().Be("https://wherever.naf:12345/api/v2/allocations/id-2");
+	        ProviderVariation providerVariation1 = atomFeed.AtomEntry.ElementAt(0).Content.Allocation.Provider.ProviderVariation;
+			providerVariation1.Should().NotBeNull();
+	        providerVariation1.VariationReasons.Should().BeEquivalentTo("LegalNameFieldUpdated", "LACodeFieldUpdated");
+	        providerVariation1.Successors.First().Ukprn.Should().Be("provider4");
+	        providerVariation1.Predecessors.First().Ukprn.Should().Be("provider1");
+	        providerVariation1.Predecessors[1].Ukprn.Should().Be("provider2");
+	        providerVariation1.OpenReason.Should().Be("Fresh Start");
+	        providerVariation1.CloseReason.Should().Be("Closure");
+
+			atomFeed.AtomEntry.ElementAt(1).Id.Should().Be("https://wherever.naf:12345/api/v2/allocations/id-2");
             atomFeed.AtomEntry.ElementAt(1).Title.Should().Be("test title 2");
             atomFeed.AtomEntry.ElementAt(1).Summary.Should().Be("test summary 2");
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.FundingStream.Id.Should().Be("fs-2");
@@ -299,7 +314,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationLine.FundingRoute.Should().Be("LA");
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationLine.ContractRequired.Should().Be("Y");
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationResultTitle.Should().Be("test title 2");
-            atomFeed.AtomEntry.ElementAt(2).Id.Should().Be("https://wherever.naf:12345/api/v2/allocations/id-3");
+	        ProviderVariation providerVariation2 = atomFeed.AtomEntry.ElementAt(1).Content.Allocation.Provider.ProviderVariation;
+	        AssertProviderVariationValuesNotSet(providerVariation2);
+
+			atomFeed.AtomEntry.ElementAt(2).Id.Should().Be("https://wherever.naf:12345/api/v2/allocations/id-3");
             atomFeed.AtomEntry.ElementAt(2).Title.Should().Be("test title 3");
             atomFeed.AtomEntry.ElementAt(2).Summary.Should().Be("test summary 3");
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.FundingStream.Id.Should().Be("fs-3");
@@ -339,7 +357,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationLine.FundingRoute.Should().Be("LA");
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationLine.ContractRequired.Should().Be("Y");
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationResultTitle.Should().Be("test title 3");
-        }
+	        ProviderVariation providerVariation3 = atomFeed.AtomEntry.ElementAt(2).Content.Allocation.Provider.ProviderVariation;
+	        AssertProviderVariationValuesNotSet(providerVariation2);
+		}
 
         [TestMethod]
         public async Task GetNotifications_GivenSearchFeedReturnsResultsWhenNoQueryParameters_EnsuresAtomLinksCorrect()
@@ -730,5 +750,16 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                     }
                 };
         }
-    }
+
+	    private static void AssertProviderVariationValuesNotSet(ProviderVariation providerVariation)
+	    {
+		    providerVariation.Should().NotBeNull();
+
+		    providerVariation.CloseReason.Should().BeNull();
+		    providerVariation.OpenReason.Should().BeNull();
+		    providerVariation.Predecessors.Should().BeNull();
+		    providerVariation.Successors.Should().BeNull();
+		    providerVariation.VariationReasons.Should().BeNull();
+	    }
+	}
 }

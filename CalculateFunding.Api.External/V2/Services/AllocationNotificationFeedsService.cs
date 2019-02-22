@@ -162,7 +162,8 @@ namespace CalculateFunding.Api.External.V2.Services
                                 CrmAccountId = feedIndex.CrmAccountId,
                                 NavVendorNo = feedIndex.NavVendorNo,
                                 Status = feedIndex.ProviderStatus,
-                                ProviderId = feedIndex.ProviderId
+                                ProviderId = feedIndex.ProviderId,
+								ProviderVariation = providerVariation
                             },
                             AllocationLine = new AllocationLine
                             {
