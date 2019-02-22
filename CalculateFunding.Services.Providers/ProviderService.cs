@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Providers
             }
             else
             {
-                return await _cacheProvider.GetAsync<IEnumerable<ProviderSummary>>(CacheKeys.AllProviderSummaries);
+                return await _cacheProvider.ListRangeAsync<ProviderSummary>(CacheKeys.AllProviderSummaries, 0, totalCount);
             }
         }
 

@@ -455,11 +455,11 @@ namespace CalculateFunding.Services.Results
                 await _cacheProvider.KeyDeleteAsync<string>(CacheKeys.AllProviderSummaryCount);
             }
 
-            bool cachedSummariesExists = await _cacheProvider.KeyExists<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
+            bool cachedSummariesExists = await _cacheProvider.KeyExists<ProviderSummary>(CacheKeys.AllProviderSummaries);
 
             if (cachedSummariesExists)
             {
-                await _cacheProvider.KeyDeleteAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
+                await _cacheProvider.RemoveAsync<ProviderSummary>(CacheKeys.AllProviderSummaries);
             }
 
             await _cacheProvider.RemoveByPatternAsync("scoped-provider-summaries:*");

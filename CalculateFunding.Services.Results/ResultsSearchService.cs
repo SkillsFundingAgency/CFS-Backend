@@ -219,7 +219,10 @@ namespace CalculateFunding.Services.Results
                         ProviderProfileIdType = m.Result.ProviderIdType,
                         Status = m.Result.Status,
                         DfeEstablishmentNumber = m.Result.DfeEstablishmentNumber,
-                        PhaseOfEducation = m.Result.PhaseOfEducation
+                        PhaseOfEducation = m.Result.PhaseOfEducation,
+                        ReasonEstablishmentClosed = m.Result.ReasonEstablishmentClosed,
+                        ReasonEstablishmentOpened = m.Result.ReasonEstablishmentOpened,
+                        Successor = m.Result.Successor
                     });
                 }
             }

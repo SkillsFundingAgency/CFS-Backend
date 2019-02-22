@@ -612,7 +612,6 @@ namespace CalculateFunding.Services.Results
                 return;
             }
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
             IEnumerable<PublishedProviderCalculationResult> publishedProviderCalculationResults = new List<PublishedProviderCalculationResult>();
             List<PublishedProviderResult> publishedProviderResultsToSave = new List<PublishedProviderResult>();
             int numberOfRecordsToZero = 0;
@@ -624,23 +623,23 @@ namespace CalculateFunding.Services.Results
             Stopwatch existingPublishedProviderResultsStopwatch = new Stopwatch();
             Stopwatch assembleSaveAndExcludeStopwatch = new Stopwatch();
 
+            Reference author = message.GetUserDetails();
+
             // Fetch existing published provider results
             existingPublishedProviderResultsStopwatch.Start();
             IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetExistingPublishedProviderResultsForSpecificationId(specificationId));
             existingPublishedProviderResultsStopwatch.Stop();
 
+            // Assemble published provider results
+            assemblePublishedProviderResultsStopwatch.Start();
+            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
+            assemblePublishedProviderResultsStopwatch.Stop();
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 18, CalculationProgressStatus.InProgress);
+            await UpdateJobStatus(true, jobId, calculationProgress, null);
+
             // Can we shortcut the processing time if the results haven't been updated since the last time we did this
             if (specification.ShouldRefresh)
             {
-                Reference author = message.GetUserDetails();
-
-                // Assemble published provider results
-                assemblePublishedProviderResultsStopwatch.Start();
-                publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
-                assemblePublishedProviderResultsStopwatch.Stop();
-                UpdateCacheForSegmentDone(specificationId, calculationProgress += 18, CalculationProgressStatus.InProgress);
-                await UpdateJobStatus(true, jobId, calculationProgress, null);
-
                 // Compare newly generated and existing published provider results to get a delta
                 assembleSaveAndExcludeStopwatch.Start();
                 (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) =

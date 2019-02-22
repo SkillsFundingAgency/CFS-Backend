@@ -47,6 +47,12 @@ namespace CalculateFunding.Services.Results
                     return errors;
                 }
 
+                if (providerVariations.AnyWithNullCheck() && !specification.VariationDate.HasValue)
+                {
+                    errors.Add(new ProviderVariationError { Error = "Variations have been found for the scoped providers, but the specification has no variation date set" });
+                    return errors;
+                }
+
                 foreach (ProviderChangeItem providerChange in providerVariations)
                 {
                     foreach (AllocationLine allocationLine in specification.FundingStreams.SelectMany(f => f.AllocationLines))
@@ -126,8 +132,8 @@ namespace CalculateFunding.Services.Results
 
             if (affectedProviderExistingResult == null)
             {
-                errors.Add(new ProviderVariationError { AllocationLineId = allocationLine.Id, Error = "Could not find existing result for affected provider", UKPRN = providerChange.UpdatedProvider.UKPRN });
-                return (errors, false);
+                _logger.Information($"No existing result for provider {providerChange.UpdatedProvider.Id} and allocation line {allocationLine.Id} to vary. Specification '{specification.Id}'");
+                return (errors, true);
             }
 
             if (affectedProviderExistingResult.HasResultBeenVaried)
@@ -142,6 +148,12 @@ namespace CalculateFunding.Services.Results
             if (!affectedProviderExistingResult.ProfilePeriods.IsNullOrEmpty())
             {
                 affectedProfilingPeriods = affectedProviderExistingResult.ProfilePeriods.Where(p => p.PeriodDate > specification.VariationDate);
+            }
+
+            if (affectedProfilingPeriods.IsNullOrEmpty())
+            {
+                _logger.Information($"There are no affected profiling periods for the allocation line result {allocationLine.Id} and provider {providerChange.UpdatedProvider.Id}");
+                return (errors, true);
             }
 
             // See if the successor has already had a result generated that needs to be saved
@@ -276,6 +288,12 @@ namespace CalculateFunding.Services.Results
             if (!affectedProviderExistingResult.ProfilePeriods.IsNullOrEmpty())
             {
                 affectedProfilingPeriods = affectedProviderExistingResult.ProfilePeriods.Where(p => p.PeriodDate > specification.VariationDate);
+            }
+
+            if (affectedProfilingPeriods.IsNullOrEmpty())
+            {
+                _logger.Information($"There are no affected profiling periods for the allocation line result {allocationLine.Id} and provider {providerChange.UpdatedProvider.Id}");
+                return (errors, true);
             }
 
             // See if the affected provider has already had a result generated that needs to be saved

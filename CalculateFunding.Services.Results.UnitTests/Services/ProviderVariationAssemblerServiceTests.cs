@@ -28,8 +28,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Provider = new ProviderSummary
                     {
-                        Id = providerId,
-                        Status = "Closed"
+                        Id = providerId
                     },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
@@ -54,7 +53,7 @@ namespace CalculateFunding.Services.Results.Services
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason" }
+                new ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Status = "Closed" }
             };
 
             IProviderService providerService = CreateProviderService();
@@ -73,6 +72,7 @@ namespace CalculateFunding.Services.Results.Services
             results.First().ProviderReasonCode.Should().Be("Test closed reason");
             results.First().UpdatedProvider.Should().NotBeNull();
             results.First().UpdatedProvider.Id.Should().Be(providerId);
+            results.First().DoesProviderHaveSuccessor.Should().BeFalse();
         }
 
         [TestMethod]
@@ -559,8 +559,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     Provider = new ProviderSummary
                     {
-                        Id = providerId,
-                        Status = "Closed"
+                        Id = providerId
                     },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
@@ -585,7 +584,8 @@ namespace CalculateFunding.Services.Results.Services
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Successor = "prov2" }
+                new ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Successor = "prov2", Status = "Closed" },
+                new ProviderSummary { Id = "prov2" }
             };
 
             IProviderService providerService = CreateProviderService();
@@ -603,6 +603,7 @@ namespace CalculateFunding.Services.Results.Services
             results.First().HasProviderClosed.Should().BeTrue();
             results.First().ProviderReasonCode.Should().Be("Test closed reason");
             results.First().SuccessorProviderId.Should().Be("prov2");
+            results.First().DoesProviderHaveSuccessor.Should().BeTrue();
         }
 
         [TestMethod]
@@ -1109,7 +1110,10 @@ namespace CalculateFunding.Services.Results.Services
                 .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
                 .Returns(existingPublishedResults);
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>();
+            List<ProviderSummary> coreProviderData = new List<ProviderSummary>()
+            {
+                new ProviderSummary { Id = "prov2"}
+            };
 
             IProviderService providerService = CreateProviderService();
             providerService
@@ -1129,6 +1133,70 @@ namespace CalculateFunding.Services.Results.Services
                 .Message
                 .Should()
                 .Be($"Could not find provider in core data with id '{providerId}'");
+        }
+
+        [TestMethod]
+        public void GivenNoCoreProviderData_ThenExceptionThrown()
+        {
+            // Arrange
+            string providerId = "prov1";
+            string specificationId = "spec123";
+
+            List<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary
+                    {
+                        Id = providerId,
+                        Authority = "authority2",
+                        EstablishmentNumber = "en2",
+                        DfeEstablishmentNumber = "den2",
+                        LACode = "lac2",
+                        LegalName = "ln2",
+                        Name = "name2"
+                    },
+                    SpecificationId = specificationId,
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "Allocation 1" }
+                        }
+                    }
+                }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
+            {
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+            };
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository
+                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .Returns(existingPublishedResults);
+
+            List<ProviderSummary> coreProviderData = new List<ProviderSummary>();
+
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
+                .Returns(coreProviderData);
+
+            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+
+            // Act
+            Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, specificationId);
+
+            // Assert
+            action
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .And
+                .Message
+                .Should()
+                .Be("Failed to retrieve core provider data");
         }
 
         private IProviderVariationAssemblerService CreateService(IPublishedProviderResultsRepository publishedProviderResultsRepository = null, IProviderService providerService = null)

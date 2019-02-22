@@ -2353,7 +2353,7 @@ namespace CalculateFunding.Services.Specs
                 IsSelectedForFunding = specification.Content.IsSelectedForFunding,
                 PublishedResultsRefreshedAt = specification.Content.PublishedResultsRefreshedAt,
                 LastCalculationUpdatedAt = specification.Content.LastCalculationUpdatedAt,
-                VariationDate = specification.Content.VariationDate
+                VariationDate = specification.Content.Current.VariationDate
             };
         }
 

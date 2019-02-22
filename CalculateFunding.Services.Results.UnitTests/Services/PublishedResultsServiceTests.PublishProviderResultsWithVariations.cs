@@ -1278,7 +1278,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov1",
-							UKPRN = "prov1u",
+                            UKPRN = "prov1u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -1310,7 +1310,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new [] {"prov1u"});
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new[] { "prov1u" });
         }
 
         [Ignore("Scenario not supported at the moment - needs clarification from BA")]
@@ -1346,7 +1346,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov1",
-							UKPRN = "prov1u",
+                            UKPRN = "prov1u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -1378,7 +1378,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 16, 15, AllocationLineStatus.Held, 2, new []{"prov1"});
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 16, 15, AllocationLineStatus.Held, 2, new[] { "prov1" });
         }
 
         [TestMethod]
@@ -1413,7 +1413,7 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod {  Period = "Apr", Year = 2018, Type = "Calendar", Value = 7 },
                         new ProfilingPeriod {  Period = "Jan", Year = 2019, Type = "Calendar", Value = 5 }
-                    }                    
+                    }
                 }
             };
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepository(existingResults);
@@ -1820,7 +1820,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov1",
-							UKPRN = "prov1u",
+                            UKPRN = "prov1u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -1835,7 +1835,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov2",
-							UKPRN = "prov2u",
+                            UKPRN = "prov2u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -1845,7 +1845,7 @@ namespace CalculateFunding.Services.Results.Services
                 });
 
             PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
-            
+
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
 
@@ -1867,7 +1867,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 2, new []{"prov1u", "prov2u"});
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 2, new[] { "prov1u", "prov2u" });
         }
 
         [TestMethod]
@@ -2096,7 +2096,7 @@ namespace CalculateFunding.Services.Results.Services
                         UpdatedProvider = new ProviderSummary
                         {
                             Id = "prov1",
-							UKPRN = "prov1u",
+                            UKPRN = "prov1u",
                             Status = "Closed",
                             ProviderSubType = "Academy sponsor led",
                             ProviderType = "Academies",
@@ -2130,7 +2130,7 @@ namespace CalculateFunding.Services.Results.Services
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new [] {"prov1u"});
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, new[] { "prov1u" });
         }
 
         [TestMethod]
@@ -2447,7 +2447,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor_AndAffectedProviderHasNoExistingResult_ThenRefreshFails()
+        public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor_AndAffectedProviderHasNoExistingResult_ThenMessageLogged()
         {
             // Arrange
             Message message = new Message();
@@ -2526,11 +2526,7 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             logger
                 .Received(1)
-                .Error($"Failed to process provider variations for specification: {specificationId}");
-
-            await publishedProviderResultsRepository
-                .DidNotReceive()
-                .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+                .Information($"No existing result for provider prov1 and allocation line alloc1 to vary. Specification '{specificationId}'");
         }
 
         [TestMethod]
@@ -2742,6 +2738,169 @@ namespace CalculateFunding.Services.Results.Services
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
         }
 
+        [TestMethod]
+        public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor__AndNoAffectedPeriods_ThenAmendProfilePeriodsForBothProviders()
+        {
+            // Arrange
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            DateTimeOffset specVariationDate = DateTimeOffset.Parse("2019-02-01T23:59:59");
+            ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
+
+            List<ProviderResult> providerResults = CreateProviderResults(12, 24);
+
+            ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
+
+            IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
+            providerVariationAssembler
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .Returns(new List<ProviderChangeItem>
+                {
+                    new ProviderChangeItem
+                    {
+                        DoesProviderHaveSuccessor = true,
+                        HasProviderClosed = true,
+                        SuccessorProviderId = "prov2",
+                        UpdatedProvider = new ProviderSummary
+                        {
+                            Id = "prov1",
+                            Status = "Closed",
+                            ProviderSubType = "Academy sponsor led",
+                            ProviderType = "Academies",
+                            Successor = "prov2"
+                        }
+                    }
+                });
+
+            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+
+            // Act
+            await service.PublishProviderResultsWithVariations(message);
+
+            // Assert
+            await publishedProviderResultsRepository
+                .DidNotReceive()
+                .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+        }
+
+        [TestMethod]
+        public async Task PublishProviderResultsWithVariations_WhenProviderHasClosedWithNoSuccessor_AndNoAffectedPeriods_ThenNoResultsSaved()
+        {
+            // Arrange
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            DateTimeOffset specVariationDate = DateTimeOffset.Parse("2019-02-01T23:59:59");
+            ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
+
+            List<ProviderResult> providerResults = CreateProviderResults(12, 24);
+
+            ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
+
+            IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
+            providerVariationAssembler
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .Returns(new List<ProviderChangeItem>
+                {
+                    new ProviderChangeItem
+                    {
+                        DoesProviderHaveSuccessor = false,
+                        HasProviderClosed = true,
+                        UpdatedProvider = new ProviderSummary
+                        {
+                            Id = "prov1",
+                            Status = "Closed",
+                            ProviderSubType = "x",
+                            ProviderType = "y",
+                            Successor = "prov2"
+                        }
+                    }
+                });
+
+            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+
+            // Act
+            await service.PublishProviderResultsWithVariations(message);
+
+            // Assert
+            await publishedProviderResultsRepository
+                .DidNotReceive()
+                .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+        }
+
+        [TestMethod]
+        public async Task PublishProviderResultsWithVariations_WhenVariationsPresent_AndNoSpecificationVariationDate_ThenRefreshFails()
+        {
+            // Arrange
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(null);
+
+            List<ProviderResult> providerResults = CreateProviderResults(12, 24);
+
+            ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
+
+            IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
+            providerVariationAssembler
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .Returns(new List<ProviderChangeItem>
+                {
+                    new ProviderChangeItem
+                    {
+                        DoesProviderHaveSuccessor = true,
+                        HasProviderClosed = true,
+                        SuccessorProviderId = "prov2",
+                        UpdatedProvider = new ProviderSummary
+                        {
+                            Id = "prov1",
+                            Status = "Closed",
+                            ProviderSubType = "Academy sponsor led",
+                            ProviderType = "Academies",
+                            Successor = "prov2"
+                        }
+                    }
+                });
+
+            ILogger logger = CreateLogger();
+
+            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler, logger: logger);
+
+            // Act
+            await service.PublishProviderResultsWithVariations(message);
+
+            // Assert
+            logger
+                .Received(1)
+                .Error($"Failed to process provider variations for specification: {specificationId}");
+
+            await publishedProviderResultsRepository
+                .DidNotReceive()
+                .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+        }
+
         private static void AssertProviderAllocationLineCorrect(IEnumerable<PublishedProviderResult> resultsToSave, string providerId, DateTimeOffset specVariationDate, decimal expectedValueBeforeVariation, decimal expectedValueAfterVariation, AllocationLineStatus expectedStatus, int expectedMinorVersion, string[] expectedPredecessors = null)
         {
             PublishedProviderResult provResult = resultsToSave.FirstOrDefault(r => r.ProviderId == providerId);
@@ -2769,18 +2928,20 @@ namespace CalculateFunding.Services.Results.Services
                 .Should()
                 .Be(expectedMinorVersion, "Minor version");
 
-	        if (expectedPredecessors == null) return;
-	        foreach (string predecessor in expectedPredecessors)
-	        {
-		        provResult.FundingStreamResult.AllocationLineResult.Current.Predecessors.Should().Contain(predecessor);
-	        }
+            if (expectedPredecessors.AnyWithNullCheck())
+            {
+                foreach (string predecessor in expectedPredecessors)
+                {
+                    provResult.FundingStreamResult.AllocationLineResult.Current.Predecessors.Should().Contain(predecessor);
+                }
+            }
         }
 
         private PublishedResultsService InitialisePublishedResultsService(
             ISpecificationsRepository specificationsRepository,
-            ICalculationResultsRepository calculationResultsRepository, 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler, 
-            IPublishedProviderResultsRepository publishedProviderResultsRepository, 
+            ICalculationResultsRepository calculationResultsRepository,
+            IPublishedProviderResultsAssemblerService providerResultsAssembler,
+            IPublishedProviderResultsRepository publishedProviderResultsRepository,
             IProviderVariationAssemblerService providerVariationAssembler,
             ILogger logger = null,
             ICacheProvider cacheProvider = null)
@@ -2889,7 +3050,7 @@ namespace CalculateFunding.Services.Results.Services
                         }
                     },
                     Id = "provresult" + (i + 1),
-                    Provider = new ProviderSummary { Id = "prov" + (i + 1)}
+                    Provider = new ProviderSummary { Id = "prov" + (i + 1) }
                 });
             }
 

@@ -37,6 +37,11 @@ namespace CalculateFunding.Services.Results
             IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults = existingResultsTask.Result;
             IEnumerable<ProviderSummary> coreProviderData = coreProviderTask.Result;
 
+            if (coreProviderData.IsNullOrEmpty())
+            {
+                throw new NonRetriableException("Failed to retrieve core provider data");
+            }
+
             foreach (ProviderResult providerResult in providerResults)
             {
                 PublishedProviderResultExisting existingResult = existingPublishedProviderResults.SingleOrDefault(r => r.ProviderId == providerResult.Provider.Id);
@@ -57,11 +62,12 @@ namespace CalculateFunding.Services.Results
                 {
                     List<VariationReason> variationReasons = new List<VariationReason>();
 
-                    if (providerResult.Provider.Status == ProviderStatusClosed)
+                    if (coreProvider.Status == ProviderStatusClosed)
                     {
                         changeItem.HasProviderClosed = true;
                         changeItem.ProviderReasonCode = coreProvider.ReasonEstablishmentClosed;
                         changeItem.SuccessorProviderId = coreProvider.Successor;
+                        changeItem.DoesProviderHaveSuccessor = !string.IsNullOrWhiteSpace(coreProvider.Successor);
                     }
 
                     if (providerResult.Provider.Authority != coreProvider.Authority)
@@ -100,7 +106,7 @@ namespace CalculateFunding.Services.Results
                         variationReasons.Add(VariationReason.LegalNameFieldUpdated);
                     }
 
-                    if (providerResult.Provider.Status != ProviderStatusClosed && !string.IsNullOrWhiteSpace(coreProvider.Successor))
+                    if (coreProvider.Status != ProviderStatusClosed && !string.IsNullOrWhiteSpace(coreProvider.Successor))
                     {
                         throw new NonRetriableException($"Provider has successor in core provider data but is not set to 'Closed' for provider '{providerResult.Id}'");
                     }

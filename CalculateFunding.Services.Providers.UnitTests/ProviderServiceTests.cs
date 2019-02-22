@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .GetAsync<string>(Arg.Is(CacheKeys.AllProviderSummaryCount))
                 .Returns("3");
             cacheProvider
-                .GetAsync<IEnumerable<ProviderSummary>>(Arg.Is(CacheKeys.AllProviderSummaries))
+                .ListRangeAsync<ProviderSummary>(Arg.Is(CacheKeys.AllProviderSummaries), Arg.Is(0), Arg.Is(3))
                 .Returns(cachedProviderSummaries);
 
             IProviderService providerService = CreateProviderService(cacheProvider: cacheProvider, resultsApiClient: resultsApiClient);

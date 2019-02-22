@@ -130,9 +130,9 @@ namespace CalculateFunding.Services.Results.Repositories
                 "r.content.fundingStreamResult.allocationLineResult.current.status as status, " +
                 "r.content.fundingStreamResult.allocationLineResult.published as published, " +
                 "r.content.fundingStreamResult.allocationLineResult.current.profilePeriods, " +
-                "r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes " +
-                "r.content.fundingStreamResult.allocationLIneResult.allocationLine.providerLookups, " +
-                "r.content.fundingStreamResult.allocationLIneResult.hasResultBeenVaried " +
+                "r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes, " +
+                "r.content.fundingStreamResult.allocationLineResult.allocationLine.providerLookups, " +
+                "r.content.fundingStreamResult.allocationLineResult.hasResultBeenVaried " +
                 "FROM Root r where r.documentType = 'PublishedProviderResult' " +
                 "and r.deleted = false " +
                 "and r.content.specificationId = '" + specificationId + "'";
@@ -152,7 +152,7 @@ namespace CalculateFunding.Services.Results.Repositories
                     Major = DynamicExtensions.PropertyExists(existingResult, "major") ? (int)existingResult.major : 0,
                     UpdatedAt = (DateTimeOffset?)existingResult.updatedAt,
                     Version = DynamicExtensions.PropertyExists(existingResult, "version") ? (int)existingResult.version : 0,
-                    Published = DynamicExtensions.PropertyExists(existingResult, "published") ? ((JObject)existingResult.published).ToObject<PublishedAllocationLineResultVersion>() : null,
+                    Published = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "published") ? ((JObject)existingResult.published).ToObject<PublishedAllocationLineResultVersion>() : null,
                     HasResultBeenVaried = DynamicExtensions.PropertyExists(existingResult, "hasResultBeenVaried") ? (bool)existingResult.hasResultBeenVaried : false
                 };
 

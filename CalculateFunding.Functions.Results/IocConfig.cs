@@ -120,6 +120,7 @@ namespace CalculateFunding.Functions.Results
             {
                 c.AddProfile<DatasetsMappingProfile>();
                 c.AddProfile<ResultServiceMappingProfile>();
+                c.AddProfile<ProviderMappingProfile>();
             });
 
             builder

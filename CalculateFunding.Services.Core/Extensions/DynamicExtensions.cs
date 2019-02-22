@@ -10,5 +10,17 @@ namespace CalculateFunding.Services.Core.Extensions
         {
              return ((IDictionary<string, object>)obj).ContainsKey(name);
         }
+
+        public static bool PropertyExistsAndIsNotNull(dynamic obj, string name)
+        {
+            if (((IDictionary<string, object>)obj).ContainsKey(name))
+            {
+                return ((IDictionary<string, object>)obj)[name] != null;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

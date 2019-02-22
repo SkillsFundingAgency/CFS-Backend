@@ -1478,7 +1478,7 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .KeyExists<List<ProviderSummary>>(Arg.Is(CacheKeys.AllProviderSummaries))
+                .KeyExists<ProviderSummary>(Arg.Is(CacheKeys.AllProviderSummaries))
                 .Returns(true);
 
             ResultsService resultsService = CreateResultsService(cacheProvider: cacheProvider);
@@ -1494,7 +1494,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 cacheProvider
                 .Received(1)
-                .KeyDeleteAsync<List<ProviderSummary>>(Arg.Is(CacheKeys.AllProviderSummaries));
+                .RemoveAsync<ProviderSummary>(Arg.Is(CacheKeys.AllProviderSummaries));
 
             await
                 cacheProvider
