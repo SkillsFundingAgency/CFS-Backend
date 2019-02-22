@@ -14,6 +14,7 @@ namespace CalculateFunding.Api.External.V2.Models.Examples
             foreach (var atomEntry in feeds.AtomEntry)
             {
                 atomEntry.Content.Allocation.Provider.ProviderId = atomEntry.Content.Allocation.Provider.UkPrn;
+				atomEntry.Content.Allocation.Provider.ProviderVariation = ProviderVariationExample.GetProviderVariationExample();
             }
 
             return feeds;

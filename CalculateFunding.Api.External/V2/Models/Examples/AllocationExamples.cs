@@ -12,6 +12,8 @@ namespace CalculateFunding.Api.External.V2.Models.Examples
             // Provider ID is XML ignored and json ignored, so provider ID does not get set from the value in the resources sample json
             allocation.Provider.ProviderId = allocation.Provider.UkPrn;
 
+	        allocation.Provider.ProviderVariation = ProviderVariationExample.GetProviderVariationExample();
+
             return allocation;
         }
     }

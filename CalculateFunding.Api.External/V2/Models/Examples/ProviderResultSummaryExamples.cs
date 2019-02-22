@@ -8,6 +8,7 @@ namespace CalculateFunding.Api.External.V2.Models.Examples
         public object GetExamples()
         {
             ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(Properties.Resources.V1_Sample_Provider_Results);
+	        providerResultSummary.Provider.ProviderVariation = ProviderVariationExample.GetProviderVariationExample();
 
             return providerResultSummary;
         }
