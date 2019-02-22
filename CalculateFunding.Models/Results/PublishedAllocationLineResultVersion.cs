@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
@@ -71,8 +72,14 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("variationReasons")]
         public IEnumerable<VariationReason> VariationReasons { get; set; }
 
-		[JsonProperty("predecessors")]
-	    public IEnumerable<string> Predecessors { get; set; }
+        [JsonProperty("jobId")]
+        public string JobId { get; set; }
+
+        [JsonProperty("correlationId")]
+        public string CorrelationId { get; set; }
+
+        [JsonProperty("predecessors")]
+        public IEnumerable<string> Predecessors { get; set; }
 
         public override VersionedItem Clone()
         {

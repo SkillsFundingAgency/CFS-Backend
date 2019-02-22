@@ -17,6 +17,7 @@ using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Messages;
 using CalculateFunding.Models.Results.Search;
@@ -67,6 +68,8 @@ namespace CalculateFunding.Services.Results
         private readonly IFeatureToggle _featureToggle;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly IPublishedProviderResultsSettings _publishedProviderResultsSettings;
+        private readonly IProviderChangesRepository _providerChangesRepository;
+        private readonly Polly.Policy _providerChangesRepositoryPolicy;
         private readonly IPublishedProviderCalculationResultsRepository _publishedProviderCalculationResultsRepository;
         private readonly IProviderVariationsService _providerVariationsService;
         private readonly IProviderVariationsStorageRepository _providerVariationsStorageRepository;
@@ -151,6 +154,7 @@ namespace CalculateFunding.Services.Results
             IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
             IPublishedProviderResultsSettings publishedProviderResultsSettings,
+            IProviderChangesRepository providerChangesRepository,
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
             IProviderVariationsService providerVariationsService,
             IProviderVariationsStorageRepository providerVariationsStorageRepository)
@@ -174,6 +178,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(publishedProviderCalculationResultsRepository, nameof(publishedProviderCalculationResultsRepository));
             Guard.ArgumentNotNull(providerVariationsService, nameof(providerVariationsService));
             Guard.ArgumentNotNull(providerVariationsStorageRepository, nameof(providerVariationsStorageRepository));
+            Guard.ArgumentNotNull(providerChangesRepository, nameof(providerChangesRepository));
 
             _logger = logger;
             _mapper = mapper;
@@ -198,6 +203,8 @@ namespace CalculateFunding.Services.Results
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
             _publishedProviderResultsSettings = publishedProviderResultsSettings;
+            _providerChangesRepository = providerChangesRepository;
+            _providerChangesRepositoryPolicy = resiliencePolicies.ProviderChangesRepository;
             _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
             _providerVariationsService = providerVariationsService;
             _providerVariationsStorageRepository = providerVariationsStorageRepository;
@@ -206,6 +213,7 @@ namespace CalculateFunding.Services.Results
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_publishedProviderResultsRepository).IsHealthOk();
+            ServiceHealth providerChangesRepoHealth = await ((IHealthChecker)_providerChangesRepository).IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
@@ -214,6 +222,7 @@ namespace CalculateFunding.Services.Results
             };
 
             health.Dependencies.AddRange(providerRepoHealth.Dependencies);
+            health.Dependencies.AddRange(providerChangesRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
 
             return health;
@@ -411,47 +420,66 @@ namespace CalculateFunding.Services.Results
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
             assemblePublishedProviderResultsStopwatch.Stop();
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 18, CalculationProgressStatus.InProgress);
-
             await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
 
             Stopwatch existingPublishedProviderResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetExistingPublishedProviderResultsForSpecificationId(specificationId));
             existingPublishedProviderResultsStopwatch.Stop();
 
-            List<PublishedProviderResult> publishedProviderResultsToSave = new List<PublishedProviderResult>();
-
             Stopwatch assembleSaveAndExcludeStopwatch = Stopwatch.StartNew();
             (IEnumerable<PublishedProviderResult> newOrUpdatedPublishedProviderResults, IEnumerable<PublishedProviderResultExisting> existingRecordsToZero) =
                 await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsAssemblerService.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingPublishedProviderResults));
             assembleSaveAndExcludeStopwatch.Stop();
 
-            if (newOrUpdatedPublishedProviderResults.AnyWithNullCheck())
+            if (newOrUpdatedPublishedProviderResults == null)
             {
-                publishedProviderResultsToSave.AddRange(newOrUpdatedPublishedProviderResults);
+                newOrUpdatedPublishedProviderResults = Enumerable.Empty<PublishedProviderResult>();
             }
 
             // When the assembly doesn't return an allocation line result for a provider and it already exists, set to value to 0 and update the status to Updated
             Stopwatch existingRecordsToZeroStopwatch = Stopwatch.StartNew();
+            IEnumerable<PublishedProviderResult> recordsToZero;
             if (existingRecordsToZero.AnyWithNullCheck())
             {
-                IEnumerable<PublishedProviderResult> recordsToZero = await FetchAndCheckExistingRecordsToZero(existingRecordsToZero);
-                if (recordsToZero.AnyWithNullCheck())
-                {
-                    publishedProviderResultsToSave.AddRange(recordsToZero);
-                }
+                recordsToZero = await FetchAndCheckExistingRecordsToZero(existingRecordsToZero);
+            }
+            else
+            {
+                recordsToZero = Enumerable.Empty<PublishedProviderResult>();
             }
             existingPublishedProviderResultsStopwatch.Stop();
+
+            List<PublishedProviderResult> publishedProviderResultsToSave = new List<PublishedProviderResult>(newOrUpdatedPublishedProviderResults.Count() + recordsToZero.Count());
+            if (newOrUpdatedPublishedProviderResults.AnyWithNullCheck())
+            {
+                publishedProviderResultsToSave.AddRange(newOrUpdatedPublishedProviderResults);
+            }
+            if (recordsToZero.AnyWithNullCheck())
+            {
+                publishedProviderResultsToSave.AddRange(recordsToZero);
+            }
 
             Stopwatch savePublishedResultsStopwatch = new Stopwatch();
             Stopwatch savePublishedResultsHistoryStopwatch = new Stopwatch();
             Stopwatch savePublishedResultsSearchStopwatch = new Stopwatch();
             Stopwatch sendToProfilingStopwatch = new Stopwatch();
 
+            DateTimeOffset publishedResultsRefreshedAt = DateTimeOffset.Now;
+
             if (publishedProviderResultsToSave.Any())
             {
-                publishedProviderResultsToSave.ForEach(m => _publishedAllocationLineLogicalResultVersionService.SetVersion(m.FundingStreamResult.AllocationLineResult.Current));
+                publishedProviderResultsToSave.ForEach(m =>
+                {
+                    // Set versioning
+                    _publishedAllocationLineLogicalResultVersionService.SetVersion(m.FundingStreamResult.AllocationLineResult.Current);
 
-                publishedProviderResultsToSave.ForEach(SetFeedIndexId);
+                    // Set feed index ID for search
+                    SetFeedIndexId(m);
+
+                    // Set job ID and correlation ID for current operation
+                    m.FundingStreamResult.AllocationLineResult.Current.JobId = jobId;
+                    m.FundingStreamResult.AllocationLineResult.Current.CorrelationId = jobId;
+                });
 
                 try
                 {
@@ -489,13 +517,14 @@ namespace CalculateFunding.Services.Results
                 sendToProfilingStopwatch.Start();
                 await GenerateProfilingPeriods(message, publishedProviderResultsToSave, specification.Id, jobId);
                 sendToProfilingStopwatch.Stop();
-                UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-                await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+
                 canCompleteJob = false;
             }
 
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
+            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+
             // Update the specification to store when this refresh happened
-            DateTimeOffset publishedResultsRefreshedAt = DateTimeOffset.Now;
             HttpStatusCode updatePublishedRefreshedDateStatus = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.UpdatePublishedRefreshedDate(specification.Id, publishedResultsRefreshedAt));
             if (updatePublishedRefreshedDateStatus.IsSuccess())
             {
@@ -634,7 +663,7 @@ namespace CalculateFunding.Services.Results
             assemblePublishedProviderResultsStopwatch.Start();
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
             assemblePublishedProviderResultsStopwatch.Stop();
-            UpdateCacheForSegmentDone(specificationId, calculationProgress += 18, CalculationProgressStatus.InProgress);
+            UpdateCacheForSegmentDone(specificationId, calculationProgress += 13, CalculationProgressStatus.InProgress);
             await UpdateJobStatus(true, jobId, calculationProgress, null);
 
             // Can we shortcut the processing time if the results haven't been updated since the last time we did this
@@ -669,14 +698,24 @@ namespace CalculateFunding.Services.Results
             Stopwatch savePublishedResultsHistoryStopwatch = new Stopwatch();
             Stopwatch savePublishedResultsSearchStopwatch = new Stopwatch();
             Stopwatch sendToProfilingStopwatch = new Stopwatch();
-            Stopwatch processVariationsStopwatch = new Stopwatch();
+            long saveProviderChangesMs = 0;
 
             // Process Provider Variations
-            processVariationsStopwatch.Start();
-            IEnumerable<ProviderVariationError> variationErrors = await _providerVariationsService.ProcessProviderVariations(triggeringJob, specification, providerResults, existingPublishedProviderResults, publishedProviderResults, publishedProviderResultsToSave);
+            Stopwatch processVariationsStopwatch = Stopwatch.StartNew();
+            ProcessProviderVariationsResult providerChanges = await _providerVariationsService.ProcessProviderVariations(triggeringJob, specification, providerResults, existingPublishedProviderResults, publishedProviderResults, publishedProviderResultsToSave);
             processVariationsStopwatch.Stop();
 
-            if (variationErrors.Any())
+            if (providerChanges == null)
+            {
+                _logger.Error("Provider changes returned null for specification '{specificationId}'", specificationId);
+                UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "Provider changes returned null");
+                await UpdateJobStatus(true, jobId, 100, false, "Failed to process - provider changes returned null");
+                return;
+            }
+
+            IEnumerable<ProviderVariationError> variationErrors = providerChanges.Errors;
+
+            if (variationErrors.AnyWithNullCheck())
             {
                 _logger.Error($"Failed to process provider variations for specification: {specificationId}");
 
@@ -704,11 +743,22 @@ namespace CalculateFunding.Services.Results
                 return;
             }
 
+            DateTimeOffset publishedResultsRefreshedAt = DateTimeOffset.Now;
+
             if (publishedProviderResultsToSave.Any())
             {
-                publishedProviderResultsToSave.ForEach(m => _publishedAllocationLineLogicalResultVersionService.SetVersion(m.FundingStreamResult.AllocationLineResult.Current));
+                publishedProviderResultsToSave.ForEach(m =>
+                {
+                    // Set versioning
+                    _publishedAllocationLineLogicalResultVersionService.SetVersion(m.FundingStreamResult.AllocationLineResult.Current);
 
-                publishedProviderResultsToSave.ForEach(SetFeedIndexId);
+                    // Set feed index ID for search
+                    SetFeedIndexId(m);
+
+                    // Set job ID and correlation ID for current operation
+                    m.FundingStreamResult.AllocationLineResult.Current.JobId = jobId;
+                    m.FundingStreamResult.AllocationLineResult.Current.CorrelationId = jobId;
+                });
 
                 try
                 {
@@ -741,6 +791,8 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
+            saveProviderChangesMs = await SaveProviderChanges(providerChanges.ProviderChanges, specification.Id, jobId, publishedResultsRefreshedAt, calculationProgress += 5);
+
             bool canCompleteJob = true;
 
             // Profile the delta of the published provider results
@@ -755,7 +807,6 @@ namespace CalculateFunding.Services.Results
                 canCompleteJob = false;
 
                 // Update the specification to store when this refresh happened
-                DateTimeOffset publishedResultsRefreshedAt = DateTimeOffset.Now;
                 HttpStatusCode updatePublishedRefreshedDateStatus = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.UpdatePublishedRefreshedDate(specification.Id, publishedResultsRefreshedAt));
                 if (updatePublishedRefreshedDateStatus.IsSuccess())
                 {
@@ -791,7 +842,7 @@ namespace CalculateFunding.Services.Results
                 { "publishproviderresults-assembleSaveAndExcludeMs", assembleSaveAndExcludeStopwatch.ElapsedMilliseconds },
                 { "publishproviderresults-savePublishedResultsCount", publishedProviderResultsToSave.Count },
                 { "publishproviderresults-savePublishedCalculationsResultsCount", publishedProviderCalculationResults.Count() },
-                { "publishproviderresults-processProviderVariationsMs", processVariationsStopwatch.ElapsedMilliseconds }
+                { "publishproviderresults-processProviderVariationsMs", processVariationsStopwatch.ElapsedMilliseconds },
             };
 
             if (publishedProviderResultsToSave.Any())
@@ -808,6 +859,11 @@ namespace CalculateFunding.Services.Results
                 metrics.Add("publishproviderresults-existingRecordsToZeroTotal", numberOfRecordsToZero);
             }
 
+            if (providerChanges.ProviderChanges.AnyWithNullCheck())
+            {
+                metrics.Add("publishproviderresults-saveProviderChangesMs", saveProviderChangesMs);
+            }
+
             _telemetry.TrackEvent("PublishProviderResults",
                 new Dictionary<string, string>()
                 {
@@ -815,6 +871,37 @@ namespace CalculateFunding.Services.Results
                 },
                 metrics
             );
+        }
+
+        private async Task<long> SaveProviderChanges(IEnumerable<ProviderChangeItem> providerChanges, string specificationId, string jobId, DateTimeOffset publishedResultsRefreshedAt, int calculationProgress)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            if (providerChanges.AnyWithNullCheck())
+            {
+                List<ProviderChangeRecord> providerChangeRecords = new List<ProviderChangeRecord>(providerChanges.Count());
+                foreach (ProviderChangeItem changeItem in providerChanges)
+                {
+                    providerChangeRecords.Add(new ProviderChangeRecord()
+                    {
+                        ChangeItem = changeItem,
+                        Id = Guid.NewGuid().ToString(),
+                        JobId = jobId,
+                        CorrelationId = jobId,
+                        ProcessedDate = publishedResultsRefreshedAt,
+                        ProviderId = changeItem.UpdatedProvider.Id,
+                        SpecificationId = specificationId,
+                    });
+                }
+
+                await _providerChangesRepositoryPolicy.ExecuteAsync(() => _providerChangesRepository.AddProviderChanges(providerChangeRecords));
+            }
+
+            stopwatch.Stop();
+
+            UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
+            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+
+            return stopwatch.ElapsedMilliseconds;
         }
 
         private async Task<IEnumerable<PublishedProviderResult>> FetchAndCheckExistingRecordsToZero(IEnumerable<PublishedProviderResultExisting> existingRecordsToZero)
@@ -2450,7 +2537,10 @@ namespace CalculateFunding.Services.Results
                 }
                 else
                 {
-                    providerProfiles = JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods);
+                    if (!publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.IsNullOrEmpty())
+                    {
+                        providerProfiles = JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods);
+                    }
                 }
 
                 AllocationNotificationFeedIndex feedIndex = new AllocationNotificationFeedIndex
@@ -2516,17 +2606,17 @@ namespace CalculateFunding.Services.Results
                         JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes) : ""
                 };
 
-	            if (publishedProviderResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried)
-	            {
-		            PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
-		            ProviderSummary currentProvider = publishedAllocationLineResultVersion.Provider;
+                if (publishedProviderResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried)
+                {
+                    PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
+                    ProviderSummary currentProvider = publishedAllocationLineResultVersion.Provider;
 
-		            feedIndex.Successors = currentProvider.Successor != null ? new[] {currentProvider.Successor} : null;
-		            feedIndex.VariationReasons = publishedAllocationLineResultVersion.VariationReasons?.Select(vr => vr.ToString()).ToArray();
-		            feedIndex.OpenReason = currentProvider.ReasonEstablishmentOpened;
-		            feedIndex.CloseReason = currentProvider.ReasonEstablishmentClosed;
-		            feedIndex.Predecessors = publishedAllocationLineResultVersion.Predecessors?.ToArray();
-	            }
+                    feedIndex.Successors = currentProvider.Successor != null ? new[] { currentProvider.Successor } : null;
+                    feedIndex.VariationReasons = publishedAllocationLineResultVersion.VariationReasons?.Select(vr => vr.ToString()).ToArray();
+                    feedIndex.OpenReason = currentProvider.ReasonEstablishmentOpened;
+                    feedIndex.CloseReason = currentProvider.ReasonEstablishmentClosed;
+                    feedIndex.Predecessors = publishedAllocationLineResultVersion.Predecessors?.ToArray();
+                }
 
                 if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
                 {
@@ -2556,7 +2646,7 @@ namespace CalculateFunding.Services.Results
         {
             IList<PublishedProviderResultsPolicySummary> policySummaries = new List<PublishedProviderResultsPolicySummary>();
 
-            foreach (Policy policy in specification.Policies)
+            foreach (Models.Specs.Policy policy in specification.Policies)
             {
                 PublishedProviderResultsPolicySummary publishedProviderResultsPolicySummary = new PublishedProviderResultsPolicySummary
                 {
@@ -2564,7 +2654,7 @@ namespace CalculateFunding.Services.Results
                     Calculations = AddCalculationSummaries(policy, calculationResults).ToArraySafe(),
                 };
 
-                foreach (Policy subPolicy in policy.SubPolicies)
+                foreach (Models.Specs.Policy subPolicy in policy.SubPolicies)
                 {
                     PublishedProviderResultsPolicySummary publishedProviderResultsSubPolicySummary = new PublishedProviderResultsPolicySummary
                     {

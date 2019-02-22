@@ -11,6 +11,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core;
@@ -488,10 +489,11 @@ namespace CalculateFunding.Services.Results.Services
             });
             SpecificationCalculationExecutionStatus expectedProgressCall2 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 5);
             SpecificationCalculationExecutionStatus expectedProgressCall3 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 10);
-            SpecificationCalculationExecutionStatus expectedProgressCall4 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 28);
-            SpecificationCalculationExecutionStatus expectedProgressCall5 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 43);
-            SpecificationCalculationExecutionStatus expectedProgressCall6 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 58);
-            SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 73);
+            SpecificationCalculationExecutionStatus expectedProgressCall4 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 23);
+            SpecificationCalculationExecutionStatus expectedProgressCall5 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 38);
+            SpecificationCalculationExecutionStatus expectedProgressCall6 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 53);
+            SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 63);
+            SpecificationCalculationExecutionStatus expectedProgressCall8 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 73);
 
             PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService, cacheProvider: mockCacheProvider);
 
@@ -512,8 +514,9 @@ namespace CalculateFunding.Services.Results.Services
             mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall5, TimeSpan.FromHours(6), false);
             mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall6, TimeSpan.FromHours(6), false);
             mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall7, TimeSpan.FromHours(6), false);
+            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall8, TimeSpan.FromHours(6), false);
 
-            mockCacheProvider.Received(9).SetAsync(Arg.Any<string>(), Arg.Any<SpecificationCalculationExecutionStatus>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+            mockCacheProvider.Received(10).SetAsync(Arg.Any<string>(), Arg.Any<SpecificationCalculationExecutionStatus>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
 
             publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current.FeedIndexId.Should().Be("AAAAA-fp-1-99999-v1-2");
         }
@@ -1040,10 +1043,12 @@ namespace CalculateFunding.Services.Results.Services
             await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 0));
             await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 5));
             await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 10));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 28));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 43));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 58));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 23));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 38));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 53));
+            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 63));
             await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 73));
+            await jobsApiClient.Received(0).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue && l.CompletedSuccessfully.Value && l.ItemsProcessed.Value == 100));
         }
 
         [TestMethod]
@@ -2715,9 +2720,13 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler, logger: logger);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                providerVariationAssembler: providerVariationAssembler,
+                logger: logger);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2736,6 +2745,245 @@ namespace CalculateFunding.Services.Results.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+        }
+
+        [TestMethod]
+        public async Task PublishProviderResults_WhenProviderChangesAreGenerated_ThenChangesAreSaved()
+        {
+            // Arrange
+            string specificationId = "spec-1";
+
+            SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+                .Returns(CreateProviderResults(3));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specificationCurrentVersion);
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+            assembler
+                .AssemblePublishedProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Reference>(), Arg.Any<SpecificationCurrentVersion>())
+                .Returns(publishedProviderResults);
+
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
+
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+
+            IProviderChangesRepository providerChangesRepository = CreateProviderChangesRepository();
+
+            IProviderVariationsService providerVariationsService = CreateProviderVariationsService();
+            IEnumerable<ProviderChangeItem> changeItems = CreateProviderChangeResults();
+
+            ProcessProviderVariationsResult processProviderVariationsResult = new ProcessProviderVariationsResult()
+            {
+                ProviderChanges = changeItems,
+            };
+
+            providerVariationsService
+                .ProcessProviderVariations(
+                Arg.Any<JobViewModel>(),
+                Arg.Any<SpecificationCurrentVersion>(),
+                Arg.Any<IEnumerable<ProviderResult>>(),
+                Arg.Any<IEnumerable<PublishedProviderResultExisting>>(),
+                Arg.Any<IEnumerable<PublishedProviderResult>>(),
+                Arg.Any<List<PublishedProviderResult>>())
+                .Returns(processProviderVariationsResult);
+
+            IFeatureToggle featureToggles = InitialiseFeatureToggle(true);
+
+            IJobsApiClient jobsApiClient = InitialiseJobsApiClient(true);
+
+            PublishedResultsService resultsService = CreateResultsService(
+                resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                publishedProviderResultsAssemblerService: assembler,
+                providerChangesRepository: providerChangesRepository,
+                providerVariationsService: providerVariationsService,
+                jobsApiClient: jobsApiClient,
+                featureToggle: featureToggles);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await resultsService.PublishProviderResultsWithVariations(message);
+
+            //Assert
+            await providerChangesRepository
+                .Received(1)
+                .AddProviderChanges(Arg.Is<IEnumerable<ProviderChangeRecord>>(c => c.Count() == 3));
+        }
+
+        [TestMethod]
+        public async Task PublishProviderResults_WhenProviderChangesReturnedAreNull_ThenErrorsReturned()
+        {
+            // Arrange
+            string specificationId = "spec-1";
+
+            SpecificationCurrentVersion specificationCurrentVersion = new SpecificationCurrentVersion
+            {
+                Id = specificationId
+            };
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+                .Returns(CreateProviderResults(3));
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specificationCurrentVersion);
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
+            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+                .Returns(Task.CompletedTask);
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
+                .Returns(Task.CompletedTask);
+
+            IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
+            assembler
+                .AssemblePublishedProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<Reference>(), Arg.Any<SpecificationCurrentVersion>())
+                .Returns(publishedProviderResults);
+
+            assembler
+                .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
+                .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
+
+            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
+
+            IProviderChangesRepository providerChangesRepository = CreateProviderChangesRepository();
+
+            IProviderVariationsService providerVariationsService = CreateProviderVariationsService();
+            IEnumerable<ProviderChangeItem> changeItems = CreateProviderChangeResults();
+
+            ProcessProviderVariationsResult processProviderVariationsResult = null;
+
+            providerVariationsService
+                .ProcessProviderVariations(
+                Arg.Any<JobViewModel>(),
+                Arg.Any<SpecificationCurrentVersion>(),
+                Arg.Any<IEnumerable<ProviderResult>>(),
+                Arg.Any<IEnumerable<PublishedProviderResultExisting>>(),
+                Arg.Any<IEnumerable<PublishedProviderResult>>(),
+                Arg.Any<List<PublishedProviderResult>>())
+                .Returns(processProviderVariationsResult);
+
+            IFeatureToggle featureToggles = InitialiseFeatureToggle(true);
+
+            IJobsApiClient jobsApiClient = InitialiseJobsApiClient(true);
+
+            ILogger logger = CreateLogger();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            PublishedResultsService resultsService = CreateResultsService(
+                resultsRepository: resultsRepository,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
+                publishedProviderResultsAssemblerService: assembler,
+                providerChangesRepository: providerChangesRepository,
+                providerVariationsService: providerVariationsService,
+                jobsApiClient: jobsApiClient,
+                featureToggle: featureToggles,
+                logger: logger,
+                cacheProvider: cacheProvider);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            // Act
+            await resultsService.PublishProviderResultsWithVariations(message);
+
+            //Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is<string>("Provider changes returned null for specification '{specificationId}'"), Arg.Is(specificationCurrentVersion.Id));
+        }
+
+        private static IEnumerable<ProviderChangeItem> CreateProviderChangeResults()
+        {
+            List<ProviderChangeItem> changeItems = new List<ProviderChangeItem>();
+            changeItems.Add(new ProviderChangeItem()
+            {
+                DoesProviderHaveSuccessor = false,
+                HasProviderClosed = true,
+                HasProviderDataChanged = false,
+                HasProviderOpened = false,
+                PriorProviderState = new ProviderSummary()
+                {
+                    Id = "provider1",
+                },
+                ProviderReasonCode = "ProviderReason",
+                SuccessorProviderId = null,
+                UpdatedProvider = new ProviderSummary()
+                {
+                    Id = "provider1",
+                },
+                VariationReasons = Enumerable.Empty<VariationReason>(),
+            });
+
+            changeItems.Add(new ProviderChangeItem()
+            {
+                DoesProviderHaveSuccessor = false,
+                HasProviderClosed = true,
+                HasProviderDataChanged = false,
+                HasProviderOpened = false,
+                PriorProviderState = new ProviderSummary()
+                {
+                    Id = "provider2",
+                },
+                ProviderReasonCode = "ProviderReason",
+                SuccessorProviderId = null,
+                UpdatedProvider = new ProviderSummary()
+                {
+                    Id = "provider2",
+                },
+                VariationReasons = Enumerable.Empty<VariationReason>(),
+            });
+
+            changeItems.Add(new ProviderChangeItem()
+            {
+                DoesProviderHaveSuccessor = false,
+                HasProviderClosed = true,
+                HasProviderDataChanged = false,
+                HasProviderOpened = false,
+                PriorProviderState = new ProviderSummary()
+                {
+                    Id = "provider3",
+                },
+                ProviderReasonCode = "ProviderReason",
+                SuccessorProviderId = null,
+                UpdatedProvider = new ProviderSummary()
+                {
+                    Id = "provider3",
+                },
+                VariationReasons = Enumerable.Empty<VariationReason>(),
+            });
+            return changeItems;
         }
 
         [TestMethod]

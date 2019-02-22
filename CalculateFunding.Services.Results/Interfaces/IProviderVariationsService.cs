@@ -8,6 +8,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IProviderVariationsService
     {
-        Task<IEnumerable<ProviderVariationError>> ProcessProviderVariations(JobViewModel triggeringJob, SpecificationCurrentVersion specification, IEnumerable<ProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults, IEnumerable<PublishedProviderResult> allPublishedProviderResults, List<PublishedProviderResult> resultsToSave);
+        Task<ProcessProviderVariationsResult> ProcessProviderVariations(JobViewModel triggeringJob, SpecificationCurrentVersion specification, IEnumerable<ProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults, IEnumerable<PublishedProviderResult> allPublishedProviderResults, List<PublishedProviderResult> resultsToSave);
     }
 }

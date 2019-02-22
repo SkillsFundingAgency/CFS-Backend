@@ -496,22 +496,22 @@ namespace CalculateFunding.Services.Calcs
                 return new NotFoundResult();
             }
 
-            //IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
 
-            //IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
+            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
 
-            //string sourceDirectory = @"c:\dev\vbout";
-            //foreach (SourceFile sourceFile in sourceFiles)
-            //{
-            //    string filename = sourceDirectory + "\\" + sourceFile.FileName;
-            //    string directory = System.IO.Path.GetDirectoryName(filename);
-            //    if (!System.IO.Directory.Exists(directory))
-            //    {
-            //        System.IO.Directory.CreateDirectory(directory);
-            //    }
+            string sourceDirectory = @"c:\dev\vbout";
+            foreach (SourceFile sourceFile in sourceFiles)
+            {
+                string filename = sourceDirectory + "\\" + sourceFile.FileName;
+                string directory = System.IO.Path.GetDirectoryName(filename);
+                if (!System.IO.Directory.Exists(directory))
+                {
+                    System.IO.Directory.CreateDirectory(directory);
+                }
 
-            //    System.IO.File.WriteAllText(filename, sourceFile.SourceCode);
-            //}
+                System.IO.File.WriteAllText(filename, sourceFile.SourceCode);
+            }
 
 
             return new OkObjectResult(buildProject);

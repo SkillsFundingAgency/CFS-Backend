@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Providers.Interfaces;
@@ -112,6 +113,7 @@ namespace CalculateFunding.Services.Results
                     }
 
                     changeItem.VariationReasons = variationReasons;
+                    changeItem.PriorProviderState = providerResult.Provider;
                 }
                 else
                 {

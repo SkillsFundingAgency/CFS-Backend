@@ -34,7 +34,7 @@
 
         public static string AllFundingStreams { get; set; } = "all-funding-streams";
 
-        public static string UserById { get; set; } = "user";
+        public static string UserById { get; set; } = "users";
 
         public static string DatasetRows { get; set; } = "ds-table-rows";
 

@@ -26,5 +26,7 @@ namespace CalculateFunding.Services.Results
         public Policy JobsApiClient { get; set; }
 
         public Policy ProviderCalculationResultsSearchRepository { get; set; }
+
+        public Policy ProviderChangesRepository { get; set; }
     }
 }

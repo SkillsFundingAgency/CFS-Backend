@@ -229,8 +229,8 @@ namespace CalculateFunding.Services.Core.Extensions
             builder
              .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
-	        builder
-		        .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
+            builder
+                .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
 
             return builder;
         }
@@ -379,7 +379,8 @@ namespace CalculateFunding.Services.Core.Extensions
             {
                 new ServiceNameLogEnricher(serviceName)
             })
-            .WriteTo.ApplicationInsightsTraces(telemetryClient, LogEventLevel.Verbose, null, null);
+            .Enrich.FromLogContext()
+            .WriteTo.ApplicationInsights(telemetryClient, TelemetryConverter.Traces);
         }
 
         public static IServiceCollection AddCaching(this IServiceCollection builder, IConfiguration config)

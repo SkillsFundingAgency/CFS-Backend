@@ -101,10 +101,11 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
             builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
-	        builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
+            builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
             builder.AddSingleton<IProviderVariationAssemblerService, ProviderVariationAssemblerService>();
             builder.AddSingleton<IProviderVariationsService, ProviderVariationsService>();
             builder.AddSingleton<IProviderService, ProviderService>();
+
             builder.AddSingleton<IProviderVariationsStorageRepository, ProviderVariationsStorageRepository>((ctx) =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
@@ -165,6 +166,21 @@ namespace CalculateFunding.Functions.Results
                 CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
 
                 return new PublishedProviderResultsRepository(resultsRepostory);
+            });
+
+            builder.AddSingleton<IProviderChangesRepository, ProviderChangesRepository>((ctx) =>
+            {
+                CosmosDbSettings cosmosSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", cosmosSettings);
+
+                cosmosSettings.CollectionName = "publishedproviderchanges";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(cosmosSettings);
+
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new ProviderChangesRepository(resultsRepostory, logger);
             });
 
             builder.AddSingleton<IPublishedProviderCalculationResultsRepository, PublishedProviderCalculationResultsRepository>((ctx) =>
@@ -304,7 +320,9 @@ namespace CalculateFunding.Functions.Results
                     PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 };
 
                 return resiliencePolicies;

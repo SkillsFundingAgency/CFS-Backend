@@ -1,4 +1,4 @@
-﻿namespace CalculateFunding.Models.Results
+﻿namespace CalculateFunding.Models.Providers
 {
     public enum VariationReason
     {

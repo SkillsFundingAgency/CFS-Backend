@@ -1,12 +1,12 @@
 ﻿using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Users.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Users
                 return new NotFoundResult();
             }
 
-            await _cacheProvider.SetAsync($"{CacheKeys.UserById}-{username}", user);
+            await _cacheProvider.SetAsync($"{CacheKeys.UserById}:{username}", user);
 
             return new OkObjectResult(user);
         }
@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Users
                 return new InternalServerErrorResult("Failed to confirm skills");
             }
 
-            await _cacheProvider.SetAsync($"{CacheKeys.UserById}-{userId}", user);
+            await _cacheProvider.SetAsync($"{CacheKeys.UserById}:{userId}", user);
 
 
             return new OkObjectResult(user);
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Users
 
         async Task<User> GetUserByUserId(string userId)
         {
-            string cacheKey = $"{CacheKeys.UserById}-{userId}";
+            string cacheKey = $"{CacheKeys.UserById}:{userId}";
 
             User user = await _cacheProvider.GetAsync<User>(cacheKey);
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
@@ -14,11 +14,11 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.Repositories;
 using CalculateFunding.Services.Results.UnitTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using CalculateFunding.Services.Results.Repositories;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -48,6 +48,7 @@ namespace CalculateFunding.Services.Results.Services
             IFeatureToggle featureToggle = null,
             IJobsApiClient jobsApiClient = null,
             IPublishedProviderResultsSettings publishedProviderResultsSettings = null,
+            IProviderChangesRepository providerChangesRepository = null,
             IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
             IProviderVariationsService providerVariationsService = null,
             IProviderVariationsStorageRepository providerVariationsStorageRepository = null)
@@ -70,9 +71,11 @@ namespace CalculateFunding.Services.Results.Services
                 featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings(),
+                providerChangesRepository ?? CreateProviderChangesRepository(),
                 publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
                 providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService()),
-                providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository());
+                providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository()
+                );
         }
 
         static IProviderVariationsStorageRepository CreateProviderVariationsStorageRepository()
@@ -86,6 +89,11 @@ namespace CalculateFunding.Services.Results.Services
                 providerVariationAssemblerService,
                 logger ?? CreateLogger()
                 );
+        }
+
+        static IProviderVariationsService CreateProviderVariationsService()
+        {
+            return Substitute.For<IProviderVariationsService>();
         }
 
         static IProviderVariationAssemblerService CreateProviderVariationAssemblerService()
@@ -182,6 +190,11 @@ namespace CalculateFunding.Services.Results.Services
         static ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
+        }
+
+        public static IProviderChangesRepository CreateProviderChangesRepository()
+        {
+            return Substitute.For<IProviderChangesRepository>();
         }
 
         static SpecificationCurrentVersion CreateSpecification(string specificationId)

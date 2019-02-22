@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Results.Interfaces;
@@ -25,11 +26,16 @@ namespace CalculateFunding.Services.Results
             _logger = logger;
         }
 
-        public async Task<IEnumerable<ProviderVariationError>> ProcessProviderVariations(JobViewModel triggeringJob, SpecificationCurrentVersion specification,
-            IEnumerable<ProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults,
-            IEnumerable<PublishedProviderResult> allPublishedProviderResults, List<PublishedProviderResult> resultsToSave)
+        public async Task<ProcessProviderVariationsResult> ProcessProviderVariations(
+            JobViewModel triggeringJob,
+            SpecificationCurrentVersion specification,
+            IEnumerable<ProviderResult> providerResults,
+            IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults,
+            IEnumerable<PublishedProviderResult> allPublishedProviderResults,
+            List<PublishedProviderResult> resultsToSave)
         {
             List<ProviderVariationError> errors = new List<ProviderVariationError>();
+            ProcessProviderVariationsResult result = new ProcessProviderVariationsResult();
 
             // Only process on a refresh, not on choose
             if (existingPublishedProviderResults.Any())
@@ -44,13 +50,15 @@ namespace CalculateFunding.Services.Results
                 catch (Exception ex)
                 {
                     errors.Add(new ProviderVariationError { Error = ex.Message });
-                    return errors;
+                    result.Errors = errors;
+                    return result;
                 }
 
                 if (providerVariations.AnyWithNullCheck() && !specification.VariationDate.HasValue)
                 {
                     errors.Add(new ProviderVariationError { Error = "Variations have been found for the scoped providers, but the specification has no variation date set" });
-                    return errors;
+                    result.Errors = errors;
+                    return result;
                 }
 
                 foreach (ProviderChangeItem providerChange in providerVariations)
@@ -104,13 +112,20 @@ namespace CalculateFunding.Services.Results
                         }
                     }
                 }
+
+                if (!errors.Any())
+                {
+                    result.ProviderChanges = providerVariations;
+                }
             }
             else
             {
                 _logger.Information($"Not processing variations for specification '{specification.Id}' as job '{triggeringJob.Id}' is not for Refresh.");
             }
 
-            return errors;
+            result.Errors = errors;
+
+            return result;
         }
 
         private (IEnumerable<ProviderVariationError> variationErrors, bool canContinue) ProcessProviderClosedWithSuccessor(
@@ -251,17 +266,17 @@ namespace CalculateFunding.Services.Results
             // Set a flag to indicate result has been varied
             affectedResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried = true;
 
-			// Concat the predecessor information to the successor
-	        PublishedAllocationLineResultVersion currentPublishedAllocationLineResult = successorResult.FundingStreamResult.AllocationLineResult.Current;
+            // Concat the predecessor information to the successor
+            PublishedAllocationLineResultVersion currentPublishedAllocationLineResult = successorResult.FundingStreamResult.AllocationLineResult.Current;
 
-	        if (currentPublishedAllocationLineResult.Predecessors == null)
-	        {
-		        currentPublishedAllocationLineResult.Predecessors = Enumerable.Empty<string>();
-	        }
+            if (currentPublishedAllocationLineResult.Predecessors == null)
+            {
+                currentPublishedAllocationLineResult.Predecessors = Enumerable.Empty<string>();
+            }
 
-	        currentPublishedAllocationLineResult.Predecessors = currentPublishedAllocationLineResult.Predecessors.Concat(new []{providerChange.UpdatedProvider.UKPRN});
+            currentPublishedAllocationLineResult.Predecessors = currentPublishedAllocationLineResult.Predecessors.Concat(new[] { providerChange.UpdatedProvider.UKPRN });
 
-			return (errors, true);
+            return (errors, true);
         }
 
         private (IEnumerable<ProviderVariationError> variationErrors, bool canContinue) ProcessProviderClosedWithoutSuccessor(
@@ -337,8 +352,8 @@ namespace CalculateFunding.Services.Results
         }
 
         private void ProcessProviderDataChanged(
-            ProviderChangeItem providerChange, 
-            AllocationLine allocationLine, 
+            ProviderChangeItem providerChange,
+            AllocationLine allocationLine,
             IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults,
             IEnumerable<PublishedProviderResult> allPublishedProviderResults,
             List<PublishedProviderResult> resultsToSave)

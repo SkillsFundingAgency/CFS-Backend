@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
+using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Results
+namespace CalculateFunding.Models.Providers
 {
     public class ProviderChangeItem
     {
@@ -34,7 +33,16 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("successorProviderId")]
         public string SuccessorProviderId { get; set; }
 
+        /// <summary>
+        /// Latest (current) provider information which is being compared against the prior provider information
+        /// </summary>
         [JsonProperty("updatedProvider")]
         public ProviderSummary UpdatedProvider { get; set; }
+
+        /// <summary>
+        /// Provider information in it's prior state used for this comparison
+        /// </summary>
+        [JsonProperty("priorProviderState")]
+        public ProviderSummary PriorProviderState { get; set; }
     }
 }

@@ -87,29 +87,29 @@ namespace CalculateFunding.Api.External.V2.Services
 
             foreach (AllocationNotificationFeedIndex feedIndex in searchFeed.Entries)
             {
-	            ProviderVariation providerVariation = new ProviderVariation();
+                ProviderVariation providerVariation = new ProviderVariation();
 
-	            if (!feedIndex.VariationReasons.IsNullOrEmpty())
-	            {
-		            providerVariation.VariationReasons = new Collection<string>(feedIndex.VariationReasons);
-	            }
+                if (!feedIndex.VariationReasons.IsNullOrEmpty())
+                {
+                    providerVariation.VariationReasons = new Collection<string>(feedIndex.VariationReasons);
+                }
 
-				if (!feedIndex.Successors.IsNullOrEmpty())
-	            {
-		            List<ProviderInformationModel> providerInformationModels = feedIndex.Successors.Select(fi => new ProviderInformationModel() {Ukprn = fi}).ToList();
-		            providerVariation.Successors = new Collection<ProviderInformationModel>(providerInformationModels);
-	            }
+                if (!feedIndex.Successors.IsNullOrEmpty())
+                {
+                    List<ProviderInformationModel> providerInformationModels = feedIndex.Successors.Select(fi => new ProviderInformationModel() { Ukprn = fi }).ToList();
+                    providerVariation.Successors = new Collection<ProviderInformationModel>(providerInformationModels);
+                }
 
-	            if (!feedIndex.Predecessors.IsNullOrEmpty())
-	            {
-					List<ProviderInformationModel> providerInformationModels = feedIndex.Predecessors.Select(fi => new ProviderInformationModel(){Ukprn = fi}).ToList();
-		            providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerInformationModels);
-	            }
+                if (!feedIndex.Predecessors.IsNullOrEmpty())
+                {
+                    List<ProviderInformationModel> providerInformationModels = feedIndex.Predecessors.Select(fi => new ProviderInformationModel() { Ukprn = fi }).ToList();
+                    providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerInformationModels);
+                }
 
-	            providerVariation.OpenReason = feedIndex.OpenReason;
-	            providerVariation.CloseReason = feedIndex.CloseReason;
+                providerVariation.OpenReason = feedIndex.OpenReason;
+                providerVariation.CloseReason = feedIndex.CloseReason;
 
-				atomFeed.AtomEntry.Add(new AtomEntry<AllocationModel>
+                atomFeed.AtomEntry.Add(new AtomEntry<AllocationModel>
                 {
                     Id = $"{request.Scheme}://{request.Host.Value}{allocationTrimmedRequestPath}/{feedIndex.Id}",
                     Title = feedIndex.Title,
@@ -179,7 +179,7 @@ namespace CalculateFunding.Api.External.V2.Services
                             AllocationAmount = (decimal)feedIndex.AllocationAmount,
                             AllocationResultId = feedIndex.Id,
                             AllocationResultTitle = feedIndex.Title,
-                            ProfilePeriods = new List<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(feedIndex.ProviderProfiling).Select(
+                            ProfilePeriods = string.IsNullOrEmpty(feedIndex.ProviderProfiling) ? new List<ProfilePeriod>() : new List<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(feedIndex.ProviderProfiling).Select(
                                     m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe())
                         }
                     }
