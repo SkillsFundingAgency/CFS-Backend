@@ -36,6 +36,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Polly.Bulkhead;
+using Serilog;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using ISpecificationsRepository = CalculateFunding.Services.Results.Interfaces.ISpecificationsRepository;
 using SpecificationsRepository = CalculateFunding.Services.Results.Repositories.SpecificationsRepository;
@@ -247,6 +248,21 @@ namespace CalculateFunding.Api.External
                 return new PublishedProviderCalculationResultsRepository(resultsRepostory);
             });
 
+            builder.AddSingleton<IProviderChangesRepository, ProviderChangesRepository>((ctx) =>
+            {
+                CosmosDbSettings repoSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", repoSettings);
+
+                repoSettings.CollectionName = "publishedproviderchanges";
+
+                CosmosRepository repo = new CosmosRepository(repoSettings);
+
+                ILogger logger = ctx.GetRequiredService<ILogger>();
+
+                return new ProviderChangesRepository(repo, logger);
+            });
+
             builder
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
@@ -353,7 +369,10 @@ namespace CalculateFunding.Api.External
                     ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 };
             });
             builder.AddHealthCheckMiddleware();

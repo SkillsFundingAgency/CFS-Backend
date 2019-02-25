@@ -92,7 +92,8 @@ namespace CalculateFunding.Services.Results
           IFeatureToggle featureToggle,
           IJobsApiClient jobsApiClient,
           IPublishedProviderResultsSettings publishedProviderResultsSettings,
-          IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository)
+          IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
+          IProviderChangesRepository providerChangesRepository)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -110,6 +111,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(publishedProviderResultsSettings, nameof(publishedProviderResultsSettings));
             Guard.ArgumentNotNull(publishedProviderCalculationResultsRepository, nameof(publishedProviderCalculationResultsRepository));
+            Guard.ArgumentNotNull(providerChangesRepository, nameof(providerChangesRepository));
 
             _logger = logger;
             _mapper = mapper;
@@ -133,6 +135,8 @@ namespace CalculateFunding.Services.Results
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
             _publishedProviderResultsSettings = publishedProviderResultsSettings;
             _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
+            _providerChangesRepository = providerChangesRepository;
+            _providerChangesRepositoryPolicy = resiliencePolicies.ProviderChangesRepository;
         }
 
         // This constructor is used from the Results Function project
