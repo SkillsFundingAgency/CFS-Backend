@@ -84,7 +84,10 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
 	        const EstablishmentClosedReason masterReasonEstablishmentClosed = EstablishmentClosedReason.ResultOfAmalgamation;
 	        const EstablishmentOpenedReason masterReasonEstablishmentOpened = EstablishmentOpenedReason.ResultOfClosure;
-			const string masterSuccessor = "12345678";
+            const TrustStatus masterTrustStatus = TrustStatus.NotApplicable;
+            const string masterSuccessor = "12345678";
+            const string masterTrustCode = "12312";
+            const String masterTrustName = "Parent Trust";
 
 	        MasterProviderModel model = new MasterProviderModel
             {
@@ -107,8 +110,11 @@ namespace CalculateFunding.Services.Results.Services
                 MasterPhaseOfEducation = "0",
 				MasterSuccessor = masterSuccessor,
 				MasterReasonEstablishmentClosed = masterReasonEstablishmentClosed,
-				MasterReasonEstablishmentOpened = masterReasonEstablishmentOpened
-			};
+				MasterReasonEstablishmentOpened = masterReasonEstablishmentOpened,
+                MasterTrustStatus = masterTrustStatus,
+                MasterTrustCode= masterTrustCode,
+                MasterTrustName = masterTrustName
+            };
 
             ProviderImportMappingService mappingService = new ProviderImportMappingService();
 
@@ -136,6 +142,9 @@ namespace CalculateFunding.Services.Results.Services
             providerIndex.ReasonEstablishmentClosed.Should().Be("Result of Amalgamation/Merger");
             providerIndex.ReasonEstablishmentOpened.Should().Be("Result of Closure");
             providerIndex.Successor.Should().Be(masterSuccessor);
+            providerIndex.TrustStatus.Should().Be("Not applicable");
+            providerIndex.TrustCode.Should().Be(masterTrustCode);
+            providerIndex.TrustName.Should().Be(masterTrustName);
         }
     }
 }

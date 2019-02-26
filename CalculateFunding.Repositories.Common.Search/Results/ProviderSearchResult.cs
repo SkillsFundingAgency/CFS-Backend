@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CalculateFunding.Models.Results;
+using System;
 
 namespace CalculateFunding.Repositories.Common.Search.Results
 {
@@ -28,5 +29,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 		public string ReasonEstablishmentOpened { get; set; }
 		public string ReasonEstablishmentClosed { get; set; }
 		public string Successor { get; set; }
+        public TrustStatus TrustStatus { get; set; }
+        public string TrustCode { get; set; }
+        public string TrustName { get; set; }
     }
 }

@@ -92,5 +92,16 @@ namespace CalculateFunding.Models.Results.Search
 
 		[JsonProperty("successor")]
 		public string Successor { get; set; }
+
+        [IsFilterable, IsSortable, IsFacetable]
+        [JsonProperty("trustStatus")]
+        public string TrustStatus { get; set; }
+
+        [IsFilterable, IsSortable, IsFacetable]
+        [JsonProperty("trustName")]
+        public string TrustName { get; set; }
+
+        [JsonProperty("trustCode")]
+        public string TrustCode { get; set; }
     }
 }

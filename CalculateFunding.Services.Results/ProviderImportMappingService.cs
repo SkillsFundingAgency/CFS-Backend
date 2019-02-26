@@ -50,6 +50,9 @@ namespace CalculateFunding.Services.Results
 	            providerIndex.ReasonEstablishmentOpened = masterProviderModel.MasterReasonEstablishmentOpened?.GetAttributeOfType<EnumMemberAttribute>().Value;
 	            providerIndex.ReasonEstablishmentClosed = masterProviderModel.MasterReasonEstablishmentClosed?.GetAttributeOfType<EnumMemberAttribute>().Value;
 	            providerIndex.Successor = masterProviderModel.MasterSuccessor;
+                providerIndex.TrustStatus = masterProviderModel.MasterTrustStatus?.GetAttributeOfType<EnumMemberAttribute>().Value;
+                providerIndex.TrustCode = masterProviderModel.MasterTrustCode;
+                providerIndex.TrustName = masterProviderModel.MasterTrustName;
 
                 return providerIndex;
             }

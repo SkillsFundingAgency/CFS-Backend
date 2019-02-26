@@ -65,5 +65,14 @@ namespace CalculateFunding.Models.Results
 
 		[JsonProperty("successor")]
 	    public string Successor { get; set; }
+
+        [JsonProperty("trustStatus")]
+        public TrustStatus TrustStatus { get; set; }
+
+        [JsonProperty("trustName")]
+        public string TrustName { get; set; }
+
+        [JsonProperty("trustCode")]
+        public string TrustCode { get; set; }
     }
 }

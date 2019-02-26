@@ -51,5 +51,13 @@ namespace CalculateFunding.Models.Results
 		public EstablishmentClosedReason? MasterReasonEstablishmentClosed { get; set; }
 
 	    public string MasterSuccessor { get; set; }
+
+        [JsonConverter(typeof(StringEnumConverter))]
+        public TrustStatus? MasterTrustStatus { get; set; }
+
+        public string MasterTrustName { get; set; }
+
+        public string MasterTrustCode { get; set; }
+
     }
 }

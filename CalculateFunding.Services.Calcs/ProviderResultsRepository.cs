@@ -203,8 +203,11 @@ namespace CalculateFunding.Services.Calcs
                 PhaseOfEducation = x.PhaseOfEducation,
 				ReasonEstablishmentClosed = x.ReasonEstablishmentClosed,
 				ReasonEstablishmentOpened = x.ReasonEstablishmentOpened,
-				Successor = x.Successor
-			});
+				Successor = x.Successor,
+                TrustStatus = x.TrustStatus,
+                TrustName =x.TrustName,
+                TrustCode = x.TrustCode
+            });
         }
 
         public async Task<IEnumerable<ProviderSummary>> LoadAllProvidersFromSearch()
