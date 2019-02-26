@@ -2076,6 +2076,10 @@
               "value": "[parameters('EnableNewProviderCalculationResultsIndex')]"
             },
             {
+              "name": "features:approvalBatchingServerSideEnabled",
+              "value": "[parameters('EnableApprovalBatchingServerSide')]"
+            },
+            {
               "name": "jobsClient:ApiKey",
               "value": "[parameters('ApiKeyJobs')]"
             },
