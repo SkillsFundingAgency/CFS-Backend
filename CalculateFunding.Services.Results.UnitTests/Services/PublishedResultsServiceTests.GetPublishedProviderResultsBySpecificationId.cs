@@ -1,21 +1,16 @@
-﻿using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -89,11 +84,11 @@ namespace CalculateFunding.Services.Results.Services
                 .Query
                 .Returns(queryStringValues);
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
+            IEnumerable<Models.Results.PublishedProviderResultByAllocationLineViewModel> publishedProviderResults = CreatePublishedProviderResultByAllocationLineViewModel();
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .GetPublishedProviderResultSummaryForSpecificationId(Arg.Is(specificationId))
                 .Returns(publishedProviderResults);
 
             PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);

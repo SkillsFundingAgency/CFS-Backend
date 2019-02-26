@@ -48,9 +48,10 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationId(string specificationId)
         {
-            IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId);
+            IQueryable<PublishedProviderResult> cosmosResults = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId);
 
-            return Task.FromResult(results.AsEnumerable());
+            List<PublishedProviderResult> result = new List<PublishedProviderResult>(cosmosResults);
+            return Task.FromResult(result.AsEnumerable());
         }
 
         public async Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds)
@@ -175,6 +176,61 @@ namespace CalculateFunding.Services.Results.Repositories
             return Task.FromResult(results.AsEnumerable());
         }
 
+        public Task<IEnumerable<PublishedProviderResultByAllocationLineViewModel>> GetPublishedProviderResultsSummaryByFundingPeriodIdAndSpecificationIdAndFundingStreamId(string fundingPeriodId, string specificationId, string fundingStreamId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+
+            string query = @"SELECT r.content.specificationId,
+r.content.fundingStreamResult.allocationLineResult.current.provider.name AS providerName,
+r.content.providerId AS providerId,
+r.content.fundingStreamResult.allocationLineResult.current.provider.providerType AS providerType,
+r.content.fundingStreamResult.allocationLineResult.current.provider.ukPrn AS ukprn,
+r.content.fundingStreamResult.fundingStream.name AS fundingStreamName,
+r.content.fundingStreamResult.fundingStream.id AS fundingStreamId,
+r.content.fundingStreamResult.allocationLineResult.allocationLine.id AS allocationLineId,
+r.content.fundingStreamResult.allocationLineResult.allocationLine.name AS allocationLineName,
+r.content.fundingStreamResult.allocationLineResult.current[""value""] AS fundingAmount,
+r.content.fundingStreamResult.allocationLineResult.current.status AS status,
+r.content.fundingStreamResult.allocationLineResult.current.date AS lastUpdated,
+r.content.fundingStreamResult.allocationLineResult.current.provider.authority AS authority,
+r.content.fundingStreamResult.allocationLineResult.current.versionNumber AS versionNumber
+FROM Root r WHERE r.documentType = 'PublishedProviderResult'
+AND r.content.specificationId = '" + specificationId + "' AND r.content.fundingPeriod.id = '" + fundingPeriodId + "' AND r.content.fundingStreamResult.fundingStream.id = '" + fundingStreamId + "'";
+
+            IQueryable<PublishedProviderResultByAllocationLineViewModel> cosmosQuery = _cosmosRepository.RawQuery<PublishedProviderResultByAllocationLineViewModel>(query, enableCrossPartitionQuery: true);
+
+            List<PublishedProviderResultByAllocationLineViewModel> result = new List<PublishedProviderResultByAllocationLineViewModel>(cosmosQuery);
+            return Task.FromResult(result.AsEnumerable());
+        }
+
+        public Task<IEnumerable<PublishedProviderResultByAllocationLineViewModel>> GetPublishedProviderResultSummaryForSpecificationId(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            string query = @"SELECT r.content.specificationId,
+r.content.fundingStreamResult.allocationLineResult.current.provider.name AS providerName,
+r.content.providerId AS providerId,
+r.content.fundingStreamResult.allocationLineResult.current.provider.providerType AS providerType,
+r.content.fundingStreamResult.allocationLineResult.current.provider.ukPrn AS ukprn,
+r.content.fundingStreamResult.fundingStream.name AS fundingStreamName,
+r.content.fundingStreamResult.fundingStream.id AS fundingStreamId,
+r.content.fundingStreamResult.allocationLineResult.allocationLine.id AS allocationLineId,
+r.content.fundingStreamResult.allocationLineResult.allocationLine.name AS allocationLineName,
+r.content.fundingStreamResult.allocationLineResult.current[""value""] AS fundingAmount,
+r.content.fundingStreamResult.allocationLineResult.current.status AS status,
+r.content.fundingStreamResult.allocationLineResult.current.date AS lastUpdated,
+r.content.fundingStreamResult.allocationLineResult.current.provider.authority AS authority,
+r.content.fundingStreamResult.allocationLineResult.current.versionNumber AS versionNumber
+FROM Root r WHERE r.documentType = 'PublishedProviderResult'
+AND r.content.specificationId = '" + specificationId + "'";
+
+            IQueryable<PublishedProviderResultByAllocationLineViewModel> cosmosQuery = _cosmosRepository.RawQuery<PublishedProviderResultByAllocationLineViewModel>(query, enableCrossPartitionQuery: true);
+            List<PublishedProviderResultByAllocationLineViewModel> result = new List<PublishedProviderResultByAllocationLineViewModel>(cosmosQuery);
+            return Task.FromResult(result.AsEnumerable());
+        }
+
         public Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationAndStatus(string specificationId, UpdatePublishedAllocationLineResultStatusModel filterCriteria)
         {
             IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId && m.FundingStreamResult.AllocationLineResult.Current.Status == filterCriteria.Status);
@@ -197,7 +253,8 @@ namespace CalculateFunding.Services.Results.Repositories
             }
 
             results = results.AsExpandable().Where(providerPredicate);
-            return Task.FromResult(results.AsEnumerable());
+            List<PublishedProviderResult> result = new List<PublishedProviderResult>(results);
+            return Task.FromResult(result.AsEnumerable());
         }
 
         public PublishedProviderResult GetPublishedProviderResultForId(string publishedProviderResultId)

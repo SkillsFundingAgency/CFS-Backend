@@ -961,7 +961,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationId(specificationId));
+            IEnumerable<PublishedProviderResultByAllocationLineViewModel> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultSummaryForSpecificationId(specificationId));
 
             if (publishedProviderResults.IsNullOrEmpty())
             {
@@ -1000,7 +1000,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty fundingStream Id provided");
             }
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(fundingPeriodId, specificationId, fundingStreamId));
+            IEnumerable<PublishedProviderResultByAllocationLineViewModel> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsSummaryByFundingPeriodIdAndSpecificationIdAndFundingStreamId(fundingPeriodId, specificationId, fundingStreamId));
 
             if (publishedProviderResults.IsNullOrEmpty())
             {
@@ -1414,68 +1414,81 @@ namespace CalculateFunding.Services.Results
             return new NoContentResult();
         }
 
-        private IEnumerable<PublishedProviderResultModel> MapPublishedProviderResultModels(IEnumerable<PublishedProviderResult> publishedProviderResults)
+        private IEnumerable<PublishedProviderResultModel> MapPublishedProviderResultModels(IEnumerable<PublishedProviderResultByAllocationLineViewModel> publishedProviderResults)
         {
             if (publishedProviderResults.IsNullOrEmpty())
             {
                 return Enumerable.Empty<PublishedProviderResultModel>();
             }
 
-            IList<PublishedProviderResultModel> results = new List<PublishedProviderResultModel>();
+            ConcurrentDictionary<string, PublishedProviderResultModel> results = new ConcurrentDictionary<string, PublishedProviderResultModel>(5, publishedProviderResults.Count());
+            ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedFundingStreamResultModel>> fundingStreams = new ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedFundingStreamResultModel>>(5, publishedProviderResults.Count());
+            ConcurrentDictionary<string, ConcurrentDictionary<string, List<PublishedAllocationLineResultModel>>> allocationLines = new ConcurrentDictionary<string, ConcurrentDictionary<string, List<PublishedAllocationLineResultModel>>>(5, publishedProviderResults.Count());
 
-            IEnumerable<IGrouping<string, PublishedProviderResult>> providerResultsGroups = publishedProviderResults.GroupBy(m => m.ProviderId);
-
-            foreach (IGrouping<string, PublishedProviderResult> providerResultGroup in providerResultsGroups)
+            Parallel.ForEach(publishedProviderResults, (providerResult) =>
             {
-                IEnumerable<PublishedFundingStreamResult> fundingStreamResults = providerResultGroup.Select(m => m.FundingStreamResult);
-
-                PublishedProviderResult providerResult = providerResultGroup.First();
-
-                PublishedProviderResultModel publishedProviderResultModel = new PublishedProviderResultModel
+                if (!results.ContainsKey(providerResult.ProviderId))
                 {
-                    ProviderId = providerResult.ProviderId,
-                    ProviderName = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.Name,
-                    ProviderType = providerResult.FundingStreamResult.AllocationLineResult.Current.Provider?.ProviderType
+                    PublishedProviderResultModel publishedProviderResultModel = new PublishedProviderResultModel
+                    {
+                        ProviderId = providerResult.ProviderId,
+                        ProviderName = providerResult.ProviderName,
+                        ProviderType = providerResult.ProviderType,
+                    };
+
+                    // Add funding stream container
+                    fundingStreams.TryAdd(providerResult.ProviderId, new ConcurrentDictionary<string, PublishedFundingStreamResultModel>());
+
+                    // Add allocation line container
+                    allocationLines.TryAdd(providerResult.ProviderId, new ConcurrentDictionary<string, List<PublishedAllocationLineResultModel>>());
+
+                    // Add provider to results
+                    results.TryAdd(providerResult.ProviderId, publishedProviderResultModel);
+                }
+
+                if (!fundingStreams[providerResult.ProviderId].ContainsKey(providerResult.FundingStreamId))
+                {
+                    PublishedFundingStreamResultModel publishedFundingStreamResult = new PublishedFundingStreamResultModel()
+                    {
+                        FundingStreamId = providerResult.FundingStreamId,
+                        FundingStreamName = providerResult.FundingStreamName,
+                    };
+
+                    fundingStreams[providerResult.ProviderId].TryAdd(providerResult.FundingStreamId, publishedFundingStreamResult);
+                }
+
+                PublishedAllocationLineResultModel allocationLine = new PublishedAllocationLineResultModel
+                {
+                    AllocationLineId = providerResult.AllocationLineId,
+                    AllocationLineName = providerResult.AllocationLineName,
+                    FundingAmount = providerResult.FundingAmount,
+                    Status = providerResult.Status,
+                    LastUpdated = providerResult.LastUpdated,
+                    Authority = providerResult.Authority,
+                    Version = string.IsNullOrWhiteSpace(providerResult.VersionNumber) ? "n/a" : providerResult.VersionNumber,
                 };
 
-                if (!results.Any(m => m.ProviderId == providerResultGroup.Key))
+                if (!allocationLines[providerResult.ProviderId].ContainsKey(providerResult.FundingStreamId))
                 {
-                    results.Add(publishedProviderResultModel);
+                    allocationLines[providerResult.ProviderId].TryAdd(providerResult.FundingStreamId, new List<PublishedAllocationLineResultModel>());
                 }
 
-                IEnumerable<IGrouping<string, PublishedFundingStreamResult>> fundingStreamResultsGroups = fundingStreamResults.GroupBy(m => m.FundingStream.Id);
+                allocationLines[providerResult.ProviderId][providerResult.FundingStreamId].Add(allocationLine);
+            });
 
-                foreach (IGrouping<string, PublishedFundingStreamResult> fundingStreamResultsGroup in fundingStreamResultsGroups)
+            // Sort funding streams and allocation lines by name for each provider
+            foreach (var provider in results)
+            {
+                foreach (var fundingStream in fundingStreams[provider.Key])
                 {
-                    IEnumerable<PublishedAllocationLineResult> allocationLineResults = fundingStreamResultsGroup.Select(m => m.AllocationLineResult);
-
-                    PublishedFundingStreamResult fundingStreamResult = fundingStreamResultsGroup.First();
-
-                    if (!publishedProviderResultModel.FundingStreamResults.Any(m => m.FundingStreamId == fundingStreamResultsGroup.Key))
-                    {
-                        publishedProviderResultModel.FundingStreamResults = publishedProviderResultModel.FundingStreamResults.Concat(new[] { new PublishedFundingStreamResultModel
-                        {
-                            FundingStreamId = fundingStreamResult.FundingStream.Id,
-                            FundingStreamName = fundingStreamResult.FundingStream.Name,
-                            AllocationLineResults = allocationLineResults.IsNullOrEmpty() ? Enumerable.Empty<PublishedAllocationLineResultModel>() : allocationLineResults.Select(
-                                        alr => new PublishedAllocationLineResultModel
-                                        {
-                                            AllocationLineId = alr.AllocationLine.Id,
-                                            AllocationLineName = alr.AllocationLine.Name,
-                                            FundingAmount = alr.Current.Value,
-                                            Status = alr.Current.Status,
-                                            LastUpdated = alr.Current.Date,
-                                            Authority = alr.Current.Provider.Authority,
-                                            Version = string.IsNullOrWhiteSpace(alr.Current.VersionNumber) ? "n/a" : alr.Current.VersionNumber
-                                        }
-                                    ).OrderBy(r => r.AllocationLineName)
-                        } });
-                    }
-
+                    fundingStream.Value.AllocationLineResults = allocationLines[provider.Key][fundingStream.Key].OrderBy(a => a.AllocationLineName);
                 }
+
+                provider.Value.FundingStreamResults = fundingStreams[provider.Key].Values.OrderBy(f => f.FundingStreamName);
             }
 
-            return results.OrderBy(r => r.ProviderName);
+            // Order providers by Provider name
+            return results.Values.OrderBy(r => r.ProviderName);
         }
 
         private async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,

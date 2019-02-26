@@ -500,6 +500,65 @@ namespace CalculateFunding.Services.Results.Services
             };
         }
 
+        static IEnumerable<PublishedProviderResultByAllocationLineViewModel> CreatePublishedProviderResultByAllocationLineViewModel()
+        {
+            return new[]
+            {
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111",
+                    FundingStreamId = "fs-1",
+                    FundingStreamName = "funding stream 1",
+                    AllocationLineId = "AAAAA",
+                    AllocationLineName = "test allocation line 1",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 50,
+                    VersionNumber = "0.1",
+                    LastUpdated = DateTimeOffset.Now,
+                    Ukprn = "1111",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "test provider name 1",
+
+                },
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111",
+                    FundingStreamId = "fs-1",
+                    FundingStreamName = "funding stream 1",
+                    AllocationLineId = "AAAAA",
+                    AllocationLineName = "test allocation line 1",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 100,
+                    VersionNumber = "0.1",
+                    LastUpdated = DateTimeOffset.Now,
+                    Ukprn = "1111",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "test provider name 1",
+                },
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111",
+                    FundingStreamId = "fs-2",
+                    FundingStreamName = "funding stream 2",
+                    AllocationLineId = "AAAAA",
+                    AllocationLineName = "test allocation line 1",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 100,
+                    VersionNumber = "0.1",
+                    LastUpdated = DateTimeOffset.Now,
+                    Ukprn = "1111",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "test provider name 1",
+                }
+            };
+        }
+
         static IEnumerable<PublishedProviderResult> CreatePublishedProviderResultsWithDifferentProviders()
         {
             return new[]

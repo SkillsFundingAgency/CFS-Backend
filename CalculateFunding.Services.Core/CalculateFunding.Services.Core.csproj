@@ -38,7 +38,7 @@
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
     <PackageReference Include="StackExchange.Redis" Version="1.2.6" />
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.2" />
-    <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.ApplicationInsights" Version="3.0.2" />
   </ItemGroup>
 
   <ItemGroup>

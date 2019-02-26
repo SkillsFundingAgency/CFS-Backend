@@ -12,9 +12,13 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<IEnumerable<PublishedProviderResultExisting>> GetExistingPublishedProviderResultsForSpecificationId(string specificationId);
 
+        Task<IEnumerable<PublishedProviderResultByAllocationLineViewModel>> GetPublishedProviderResultSummaryForSpecificationId(string specificationId);
+
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationIdAndProviderId(string specificationId, IEnumerable<string> providerIds);
 
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(string fundingPeriod, string specificationId, string fundingStreamId);
+
+        Task<IEnumerable<PublishedProviderResultByAllocationLineViewModel>> GetPublishedProviderResultsSummaryByFundingPeriodIdAndSpecificationIdAndFundingStreamId(string fundingPeriodId, string specificationId, string fundingStreamId);
 
         Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationAndStatus(string specificationId, UpdatePublishedAllocationLineResultStatusModel filterCriteria);
 

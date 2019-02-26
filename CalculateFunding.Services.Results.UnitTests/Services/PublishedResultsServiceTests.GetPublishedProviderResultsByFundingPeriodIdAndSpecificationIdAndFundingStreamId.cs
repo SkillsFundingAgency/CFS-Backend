@@ -1,4 +1,8 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
@@ -6,16 +10,10 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -168,11 +166,11 @@ namespace CalculateFunding.Services.Results.Services
                 .Query
                 .Returns(queryStringValues);
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
+            IEnumerable<PublishedProviderResultByAllocationLineViewModel> publishedProviderResults = CreatePublishedProviderResultByAllocationLineViewModel();
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId),Arg.Is(specificationId), Arg.Is(fundingStreamId))
+                .GetPublishedProviderResultsSummaryByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId), Arg.Is(specificationId), Arg.Is(fundingStreamId))
                 .Returns(publishedProviderResults);
 
             PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
@@ -249,11 +247,11 @@ namespace CalculateFunding.Services.Results.Services
                 .Query
                 .Returns(queryStringValues);
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProvidersUnordered();
+            IEnumerable<PublishedProviderResultByAllocationLineViewModel> publishedProviderResults = CreatePublishedProviderResultByAllocationLineViewModelWithDifferentProvidersUnordered();
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId), Arg.Is(specificationId), Arg.Is(fundingStreamId))
+                .GetPublishedProviderResultsSummaryByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId), Arg.Is(specificationId), Arg.Is(fundingStreamId))
                 .Returns(publishedProviderResults);
 
             PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
@@ -282,7 +280,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public async Task GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId_GivenProviderResultsFound_ReturnsAllocationResultsOrderedByAllocationName()
         {
-            //arrange
+            // Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "specificationId", new StringValues(specificationId) },
@@ -295,19 +293,19 @@ namespace CalculateFunding.Services.Results.Services
                 .Query
                 .Returns(queryStringValues);
 
-            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithMultipleAllocationLines();
+            IEnumerable<PublishedProviderResultByAllocationLineViewModel> publishedProviderResults = CreatePublishedProviderResultByAllocationLineViewModelWithMultipleAllocationLines();
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
-                .GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId), Arg.Is(specificationId), Arg.Is(fundingStreamId))
+                .GetPublishedProviderResultsSummaryByFundingPeriodIdAndSpecificationIdAndFundingStreamId(Arg.Is(fundingPeriodId), Arg.Is(specificationId), Arg.Is(fundingStreamId))
                 .Returns(publishedProviderResults);
 
             PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
 
-            //Act
+            // Act
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);
 
-            //Assert
+            // Assert
             actionResult
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -523,6 +521,63 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
         }
+        static IEnumerable<PublishedProviderResultByAllocationLineViewModel> CreatePublishedProviderResultByAllocationLineViewModelWithDifferentProvidersUnordered()
+        {
+            return new[]
+            {
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111",
+                    FundingStreamId = "fs-1",
+                    FundingStreamName = "funding stream 1",
+                    AllocationLineId = "AAAAA",
+                    AllocationLineName = "test allocation line 1",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 50,
+                    VersionNumber = "0.1",
+                    LastUpdated = DateTimeOffset.Now,
+                    Ukprn = "1111",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "zz test provider name 1",
+                },
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111-1",
+                    FundingStreamId = "fs-1",
+                    FundingStreamName = "funding stream 1",
+                    AllocationLineId = "AAAAA",
+                    AllocationLineName = "test allocation line 1",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 100,
+                    VersionNumber = "0.1",
+                    LastUpdated = DateTimeOffset.Now,
+                    Ukprn = "1111-1",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "aa test provider name 2",
+
+                },
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111-2",
+                    FundingStreamId = "fs-1",
+                    FundingStreamName = "funding stream 1",
+                    AllocationLineId = "AAAAA",
+                    AllocationLineName = "test allocation line 1",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 100,
+                    VersionNumber = "0.1",
+                    Ukprn = "1111-2",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "gg test provider name 3"
+                }
+            };
+        }
 
         static IEnumerable<PublishedProviderResult> CreatePublishedProviderResultsWithMultipleAllocationLines()
         {
@@ -719,6 +774,64 @@ namespace CalculateFunding.Services.Results.Services
                         StartDate = DateTimeOffset.Now,
                         EndDate = DateTimeOffset.Now.AddYears(1)
                     }
+                }
+            };
+        }
+        static IEnumerable<PublishedProviderResultByAllocationLineViewModel> CreatePublishedProviderResultByAllocationLineViewModelWithMultipleAllocationLines()
+        {
+            return new[]
+            {
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111",
+                    FundingStreamId= "fs-1",
+                    FundingStreamName = "funding stream 1",
+                    AllocationLineId = "AAAAA",
+                    AllocationLineName = "zz test allocation line 1",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 50,
+                    LastUpdated = DateTimeOffset.Now,
+                    Ukprn = "1111",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "test provider name 1",
+                    VersionNumber = "0.1"
+
+                },
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111",
+                    FundingStreamId= "fs-1",
+                    FundingStreamName = "funding stream 1",
+                    AllocationLineId = "BBBBB",
+                    AllocationLineName = "zz test allocation line 2",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 50,
+                    LastUpdated = DateTimeOffset.Now,
+                    Ukprn = "1111",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "test provider name 1",
+                    VersionNumber = "0.1"
+                },
+                new PublishedProviderResultByAllocationLineViewModel
+                {
+                    SpecificationId = "spec-1",
+                    ProviderId = "1111",
+                    FundingStreamId= "fs-1",
+                    FundingStreamName = "funding stream 1",
+                    AllocationLineId = "CCCCC",
+                    AllocationLineName = "zz test allocation line 3",
+                    Status = AllocationLineStatus.Held,
+                    FundingAmount = 50,
+                    LastUpdated = DateTimeOffset.Now,
+                    Ukprn = "1111",
+                    Authority = "London",
+                    ProviderType = "test type",
+                    ProviderName = "test provider name 1",
+                    VersionNumber = "0.1"
                 }
             };
         }
