@@ -18,7 +18,6 @@ using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using FluentValidation;
@@ -30,6 +29,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Api.Calcs
 {
@@ -128,6 +128,19 @@ namespace CalculateFunding.Api.Calcs
             builder
               .AddSingleton<IDatasetRepository, DatasetRepository>();
 
+            builder.AddSingleton<ISourceCodeService, SourceCodeService>();
+
+            builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
+            {
+                BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
+
+                Configuration.Bind("AzureStorageSettings", blobStorageOptions);
+
+                blobStorageOptions.ContainerName = "source";
+
+                return new SourceFileRepository(blobStorageOptions);
+            });
+
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
             {
                 CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
@@ -184,7 +197,8 @@ namespace CalculateFunding.Api.Calcs
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-	                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+	                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

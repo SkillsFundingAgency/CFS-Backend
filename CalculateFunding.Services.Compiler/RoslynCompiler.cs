@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Core.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
 using Serilog;
@@ -37,7 +39,8 @@ namespace CalculateFunding.Services.Compiler
 
                     byte[] data = new byte[ms.Length];
                     ms.Read(data, 0, data.Length);
-                    build.AssemblyBase64 = Convert.ToBase64String(data);
+
+                    build.Assembly = data;
                 }
 
                 return build;
@@ -46,13 +49,13 @@ namespace CalculateFunding.Services.Compiler
 
         protected Build GenerateCode(List<SourceFile> sourceFiles, MetadataReference[] references, MemoryStream ms)
         {
-            var stopwatch = new Stopwatch();
+            Stopwatch stopwatch = new Stopwatch();
 
             stopwatch.Start();
 
-            var result = Compile(references, ms, sourceFiles);
+            EmitResult result = Compile(references, ms, sourceFiles);
 
-            var compilerOutput = new Build
+            Build compilerOutput = new Build
             {
                 SourceFiles = sourceFiles,
                 Success = result.Success

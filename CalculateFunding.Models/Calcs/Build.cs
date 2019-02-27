@@ -7,10 +7,13 @@ namespace CalculateFunding.Models.Calcs
     {
         [JsonProperty("success")]
         public bool Success { get; set; }
-        [JsonProperty("assemblyBase64")]
-        public string AssemblyBase64 { get; set; }
+
+        [JsonIgnore]
+        public byte[] Assembly { get; set; }
+
         [JsonProperty("compilerMessages")]
         public List<CompilerMessage> CompilerMessages { get; set; }
+
         [JsonProperty("sourceFiles")]
         public List<SourceFile> SourceFiles { get; set; }
     }

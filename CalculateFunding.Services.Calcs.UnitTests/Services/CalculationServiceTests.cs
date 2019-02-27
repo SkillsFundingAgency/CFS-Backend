@@ -36,16 +36,14 @@ namespace CalculateFunding.Services.Calcs.Services
             ISearchRepository<CalculationIndex> searchRepository = null,
             IValidator<Calculation> calcValidator = null,
             IBuildProjectsRepository buildProjectsRepository = null,
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
-            ICompilerFactory compilerFactory = null,
             IMessengerService messengerService = null,
-            ICodeMetadataGeneratorService codeMetadataGenerator = null,
             ISpecificationRepository specificationRepository = null,
             ICacheProvider cacheProvider = null,
             ICalcsResilliencePolicies resilliencePolicies = null,
             IVersionRepository<CalculationVersion> calculationVersionRepository = null,
             IJobsApiClient jobsApiClient = null,
-            IFeatureToggle featureToggle = null)
+            IFeatureToggle featureToggle = null,
+            ISourceCodeService sourceCodeService = null)
         {
             return new CalculationService
                 (calculationsRepository ?? CreateCalculationsRepository(),
@@ -54,16 +52,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository ?? CreateSearchRepository(),
                 calcValidator ?? CreateCalculationValidator(),
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
-                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(),
-                compilerFactory ?? CreateCompilerFactory(),
                 messengerService ?? CreateMessengerService(),
-                codeMetadataGenerator ?? CreateCodeMetadataGenerator(),
                 specificationRepository ?? CreateSpecificationRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 calculationVersionRepository ?? CreateCalculationVersionRepository(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                featureToggle ?? CreateFeatureToggle());
+                featureToggle ?? CreateFeatureToggle(),
+                sourceCodeService ?? CreateSourceCodeService());
+        }
+
+        static ISourceCodeService CreateSourceCodeService()
+        {
+            return Substitute.For<ISourceCodeService>();
         }
 
         static IJobsApiClient CreateJobsApiClient()
@@ -106,11 +107,6 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ISearchRepository<CalculationIndex>>();
         }
 
-        static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
-        {
-            return Substitute.For<ISourceFileGeneratorProvider>();
-        }
-
         static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
@@ -121,22 +117,27 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ISpecificationRepository>();
         }
 
-        static ICodeMetadataGeneratorService CreateCodeMetadataGenerator()
-        {
-            return Substitute.For<ICodeMetadataGeneratorService>();
-        }
+        //static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider()
+        //{
+        //    return Substitute.For<ISourceFileGeneratorProvider>();
+        //}
 
-        static ICompilerFactory CreateCompilerFactory()
-        {
-            ICompiler compiler = Substitute.For<ICompiler>();
+        //static ICodeMetadataGeneratorService CreateCodeMetadataGenerator()
+        //{
+        //    return Substitute.For<ICodeMetadataGeneratorService>();
+        //}
 
-            ICompilerFactory compilerFactory = Substitute.For<ICompilerFactory>();
-            compilerFactory
-                .GetCompiler(Arg.Any<IEnumerable<SourceFile>>())
-                .Returns(compiler);
+        //static ICompilerFactory CreateCompilerFactory()
+        //{
+        //    ICompiler compiler = Substitute.For<ICompiler>();
 
-            return compilerFactory;
-        }
+        //    ICompilerFactory compilerFactory = Substitute.For<ICompilerFactory>();
+        //    compilerFactory
+        //        .GetCompiler(Arg.Any<IEnumerable<SourceFile>>())
+        //        .Returns(compiler);
+
+        //    return compilerFactory;
+        //}
 
         static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
         {

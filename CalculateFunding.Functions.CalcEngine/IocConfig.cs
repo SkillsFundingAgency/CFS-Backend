@@ -3,9 +3,12 @@ using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine.Validators;
+using CalculateFunding.Services.Calcs;
+using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
@@ -63,7 +66,7 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new ProviderSourceDatasetsRepository(calcsCosmosRepostory, engineSettings);
             });
 
-            builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>((ctx) =>
+            builder.AddSingleton<Services.Calculator.Interfaces.IProviderResultsRepository, Services.Calculator.ProviderResultsRepository>((ctx) =>
             {
                 CosmosDbSettings calcResultsDbSettings = new CosmosDbSettings();
 
@@ -83,20 +86,34 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
 
-                return new ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle);
+                return new Services.Calculator.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle);
+            });
+
+            builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
+            {
+                BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
+
+                config.Bind("AzureStorageSettings", blobStorageOptions);
+
+                blobStorageOptions.ContainerName = "source";
+
+                return new SourceFileRepository(blobStorageOptions);
             });
 
             builder
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
-                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
+                .AddSingleton<Services.Calculator.Interfaces.ICalculationsRepository, Services.Calculator.CalculationsRepository>();
 
             builder
                .AddSingleton<IDatasetAggregationsRepository, DatasetAggregationsRepository>();
 
             builder
                 .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
+
+            builder
+                .AddSingleton<ISourceCodeService, SourceCodeService>();
 
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);

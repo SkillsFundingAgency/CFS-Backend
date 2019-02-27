@@ -46,19 +46,21 @@ namespace CalculateFunding.Services.Compiler.Languages
 
             Dictionary<string, string> functions = new Dictionary<string, string>();
 
-            foreach (MethodBlockSyntax method in syntaxTree.GetRoot().DescendantNodes().OfType<MethodBlockSyntax>())
+            foreach (LambdaExpressionSyntax func in syntaxTree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
             {
-                MethodStatementSyntax methodStatementSyntax = method.BlockStatement as MethodStatementSyntax;
+                AssignmentStatementSyntax assignmentStatementSyntax = func.Parent as AssignmentStatementSyntax;
 
-                string methodName = methodStatementSyntax.Identifier.Text;
+                IdentifierNameSyntax identifierNameSyntax = assignmentStatementSyntax.Left as IdentifierNameSyntax;
 
-                string body = method.ToFullString();
+                string funcName = identifierNameSyntax.Identifier.Text;
+
+                string body = func.ToFullString();
 
                 MatchCollection matches = Regex.Matches(body, "#ExternalSource.*?\\)(.*?)#End\\sExternalSource", RegexOptions.Singleline);
 
                 if (matches.Count > 0 && matches[0].Groups.Count > 1)
                 {
-                    functions.Add(methodName, matches[0].Groups[1].Value);
+                    functions.Add(funcName, matches[0].Groups[1].Value);
                 }
             }
 

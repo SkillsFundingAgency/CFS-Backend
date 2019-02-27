@@ -21,6 +21,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Caching;
 using System;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Services.TestEngine.Interfaces;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
@@ -36,6 +37,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ITestResultsRepository _testResultsRepository;
         private readonly IBuildProjectRepository _buildProjectRepository;
         private readonly ITelemetry _telemetry;
+        private readonly ICalculationsRepository _calculationsRepository;
 
         private readonly Polly.Policy _cacheProviderPolicy;
         private readonly Polly.Policy _specificationRepositoryPolicy;
@@ -43,7 +45,6 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly Polly.Policy _providerSourceDatasetsRepositoryPolicy;
         private readonly Polly.Policy _testResultsRepositoryPolicy;
         private readonly Polly.Policy _builProjectsRepositoryPolicy;
-       
 
         public TestEngineService(
             ICacheProvider cacheProvider,
@@ -56,7 +57,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             ITestResultsRepository testResultsRepository,
             IBuildProjectRepository buildProjectRepository,
             ITelemetry telemetry,
-            ITestRunnerResiliencePolicies resiliencePolicies)
+            ITestRunnerResiliencePolicies resiliencePolicies,
+            ICalculationsRepository calculationsRepository)
         {
             _cacheProvider = cacheProvider;
             _specificationRepository = specificationRepository;
@@ -75,6 +77,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             _testResultsRepositoryPolicy = resiliencePolicies.TestResultsRepository;
             _builProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepository;
             _buildProjectRepository = buildProjectRepository;
+            _calculationsRepository = calculationsRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -172,6 +175,15 @@ namespace CalculateFunding.Services.TestRunner.Services
                 _logger.Error($"No source datasets found for specification id: {specificationId}");
                 return;
             }
+
+            byte[] assembly = await _calculationsRepository.GetAssemblyBySpecificationId(specificationId);
+            if (assembly.IsNullOrEmpty())
+            {
+                _logger.Error($"No assemblyfor specification id: {specificationId}");
+                return;
+            }
+
+            buildProject.Build.Assembly = assembly;
 
             Stopwatch existingTestResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsRepositoryPolicy.ExecuteAsync(() => _testResultsRepository.GetCurrentTestResults(providerIds, specificationId));

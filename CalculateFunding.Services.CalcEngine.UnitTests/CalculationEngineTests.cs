@@ -29,6 +29,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             BuildProject buildProject = CreateBuildProject();
+            buildProject.Build.Assembly = MockData.GetMockAssembly();
 
             IEnumerable<ProviderSummary> providers = new[]
             {
@@ -80,6 +81,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             BuildProject buildProject = CreateBuildProject();
+            buildProject.Build.Assembly = MockData.GetMockAssembly();
 
             IEnumerable<ProviderSummary> providers = new[]
             {
@@ -161,6 +163,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             BuildProject buildProject = CreateBuildProject();
+            buildProject.Build.Assembly = MockData.GetMockAssembly();
 
             IEnumerable<ProviderSummary> providers = new[]
             {
@@ -271,6 +274,7 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             BuildProject buildProject = CreateBuildProject();
+            buildProject.Build.Assembly = MockData.GetMockAssembly();
 
             IEnumerable<ProviderSummary> providers = new[]
             {

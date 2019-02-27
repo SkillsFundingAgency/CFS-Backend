@@ -3,6 +3,7 @@ using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
@@ -135,6 +136,20 @@ namespace CalculateFunding.Functions.Calcs
             builder
                 .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 
+            builder
+                .AddSingleton<ISourceCodeService, SourceCodeService>();
+
+            builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
+            {
+                BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
+
+                config.Bind("AzureStorageSettings", blobStorageOptions);
+
+                blobStorageOptions.ContainerName = "source";
+
+                return new SourceFileRepository(blobStorageOptions);
+            });
+
             builder.AddSingleton<IVersionRepository<CalculationVersion>, VersionRepository<CalculationVersion>>((ctx) =>
             {
                 CosmosDbSettings calcsVersioningDbSettings = new CosmosDbSettings();
@@ -193,7 +208,8 @@ namespace CalculateFunding.Functions.Calcs
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace System
@@ -29,6 +30,20 @@ namespace System
             }
 
             return text.Trim().Replace(" ", "");
+        }
+
+        public static Stream ToStream(this string text)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                using (StreamWriter writer = new StreamWriter(stream))
+                {
+                    writer.Write(text);
+                    writer.Flush();
+                    stream.Position = 0;
+                    return stream;
+                }
+            }
         }
     }
 }

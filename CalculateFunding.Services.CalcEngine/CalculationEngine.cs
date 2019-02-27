@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Calculator
 
         async public Task<IEnumerable<ProviderResult>> GenerateAllocations(BuildProject buildProject, IEnumerable<ProviderSummary> providers, Func<string, string, Task<IEnumerable<ProviderSourceDataset>>> getProviderSourceDatasets)
         {
-            var assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
+            var assembly = Assembly.Load(buildProject.Build.Assembly);
 
             var allocationModel = _allocationFactory.CreateAllocationModel(assembly);
 
@@ -71,28 +71,12 @@ namespace CalculateFunding.Services.Calculator
         }
 
         public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations, 
-            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<CalculationAggregation> aggregationValues = null, IEnumerable<string> calcsToProcess = null)
+            ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<CalculationAggregation> aggregations = null)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
           
-            IEnumerable<CalculationResult> calculationResults = null;
-
-            if (aggregationValues != null)
-            {
-                if (!calcsToProcess.IsNullOrEmpty())
-                {
-                    calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregationValues, calcsToProcess).ToArray();
-                }
-                else
-                {
-                    calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregationValues).ToArray();
-                }
-            }
-            else
-            {
-                calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, calcsToProcess: calcsToProcess).ToArray();
-            }
+            IEnumerable<CalculationResult> calculationResults = calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregations).ToArray();
 
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();

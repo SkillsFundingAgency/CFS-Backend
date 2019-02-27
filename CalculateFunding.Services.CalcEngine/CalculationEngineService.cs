@@ -17,6 +17,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -158,6 +159,17 @@ namespace CalculateFunding.Services.Calculator
             _logger.Information($"Generating allocations for specification id {messageProperties.SpecificationId}");
 
             BuildProject buildProject = await GetBuildProject(messageProperties.SpecificationId);
+
+            byte[] assembly = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAssemblyBySpecificationId(messageProperties.SpecificationId));
+
+            if (assembly == null)
+            {
+                string error = $"Failed to get assembly for specification Id '{messageProperties.SpecificationId}'";
+                _logger.Error(error);
+                throw new RetriableException(error);
+            }
+
+            buildProject.Build.Assembly = assembly;
 
             Dictionary<string, List<decimal>> cachedCalculationAggregationsBatch = CreateCalculationAggregateBatchDictionary(messageProperties);
 
@@ -331,55 +343,26 @@ namespace CalculateFunding.Services.Calculator
 
             _logger.Information($"calculating results for specification id {messageProperties.SpecificationId}");
 
-            Assembly assembly = Assembly.Load(Convert.FromBase64String(buildProject.Build.AssemblyBase64));
+            Assembly assembly = Assembly.Load(buildProject.Build.Assembly);
 
-            IEnumerable<string> calcsToProcess = null;
-
-            if (messageProperties.GenerateCalculationAggregationsOnly)
+            Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
             {
-                calcsToProcess = messageProperties.CalculationsToAggregate;
-            }
+                IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
 
-            if (_engineSettings.CalculateProviderResultsDegreeOfParallelism > 1)
-            {
-                Parallel.ForEach(partitionedSummaries, new ParallelOptions { MaxDegreeOfParallelism = _engineSettings.CalculateProviderResultsDegreeOfParallelism }, provider =>
+                IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
+
+                ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations);
+
+                if (result != null)
                 {
-                    IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
-
-                    IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
-
-                    ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations, calcsToProcess);
-
-                    if (result != null)
-                    {
-                        providerResults.Add(result);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
-                    }
-                });
-            }
-            else
-            {
-                foreach (ProviderSummary provider in partitionedSummaries)
-                {
-                    IAllocationModel allocationModel = _calculationEngine.GenerateAllocationModel(assembly);
-
-                    IEnumerable<ProviderSourceDataset> providerDatasets = providerSourceDatasets.Where(m => m.ProviderId == provider.Id);
-
-                    ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations, calcsToProcess);
-
-                    if (result != null)
-                    {
-                        providerResults.Add(result);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
-                    }
+                    providerResults.Add(result);
                 }
-            }
+                else
+                {
+                    throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
+                }
+            });
+           
 
             _logger.Information($"calculating results complete for specification id {messageProperties.SpecificationId}");
 
@@ -618,9 +601,13 @@ namespace CalculateFunding.Services.Calculator
                 throw new Exception($"Cached calculation aggregations not found for key: {messageProperties.CalculationsAggregationsBatchCacheKey}");
             }
 
+            IEnumerable<string> calculationsToAggregate = messageProperties.CalculationsToAggregate;
+
             foreach (ProviderResult providerResult in providerResults)
             {
-                foreach (CalculationResult calculationResult in providerResult.CalculationResults)
+                IEnumerable<CalculationResult> calculationResultsForAggregation = providerResult.CalculationResults.Where(m => calculationsToAggregate.Contains(VisualBasicTypeGenerator.GenerateIdentifier(m.Calculation.Name)));
+
+                foreach (CalculationResult calculationResult in calculationResultsForAggregation)
                 {
                     string calculationReferenceName = CalculationTypeGenerator.GenerateIdentifier(calculationResult.Calculation.Name.Trim());
 

@@ -23,6 +23,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Bulkhead;
+using CalculateFunding.Services.TestEngine.Interfaces;
 
 namespace CalculateFunding.Api.TestRunner
 {
@@ -103,6 +104,9 @@ namespace CalculateFunding.Api.TestRunner
 
             builder
                .AddSingleton<IGherkinExecutor, GherkinExecutor>();
+
+            builder
+                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {

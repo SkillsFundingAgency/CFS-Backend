@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Calculator
 
         private Dictionary<string, Type> DatasetTypes { get; }
 
-        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null, IEnumerable<string> calcsToProcess = null)
+        public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null)
         {
          
             HashSet<string> datasetNamesUsed = new HashSet<string>();
@@ -192,7 +192,9 @@ namespace CalculateFunding.Services.Calculator
 
             IList<CalculationResult> calculationResults = new List<CalculationResult>();
 
-            Dictionary<string, string[]> results = (Dictionary<string,string[]>)_mainMethod.Invoke(_instance, null);
+           
+            Dictionary<string, string[]> results = (Dictionary<string, string[]>)_mainMethod.Invoke(_instance, null);
+          
 
             foreach(KeyValuePair<string, string[]> calcResult in results)
             {

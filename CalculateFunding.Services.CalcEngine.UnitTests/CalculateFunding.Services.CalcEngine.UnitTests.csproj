@@ -6,17 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\test-assembly-with-aggregation.txt" />
-    <None Remove="Resources\test-assembly-with-calc-aggregation.txt" />
-    <None Remove="Resources\test-assembly-with-stackoverflow.txt" />
-    <None Remove="Resources\test-assembly.txt" />
+    <None Remove="Resources\implementation-test-assembly.dll" />
+    <None Remove="Resources\implementation-test-with-aggregates.dll" />
+    <None Remove="Resources\implementation-test-with-datasets.dll" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\test-assembly-with-aggregation.txt" />
-    <EmbeddedResource Include="Resources\test-assembly-with-calc-aggregation.txt" />
-    <EmbeddedResource Include="Resources\test-assembly-with-stackoverflow.txt" />
-    <EmbeddedResource Include="Resources\test-assembly.txt" />
+    <EmbeddedResource Include="Resources\implementation-test-assembly.dll" />
+    <EmbeddedResource Include="Resources\implementation-test-with-datasets.dll" />
+    <EmbeddedResource Include="Resources\implementation-test-with-aggregates.dll" />
   </ItemGroup>
 
   <ItemGroup>

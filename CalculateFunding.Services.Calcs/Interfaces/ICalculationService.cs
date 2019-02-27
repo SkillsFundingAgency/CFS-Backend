@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
-using CalculateFunding.Models.Results;
 using System.Collections.Generic;
 using CalculateFunding.Models.Calcs;
 
@@ -17,7 +16,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> GetCurrentCalculationsForSpecification(HttpRequest request);
 
         Task<IActionResult> GetCalculationSummariesForSpecification(HttpRequest request);
-
 
         Task<IActionResult> GetCalculationVersions(HttpRequest request);
 
@@ -41,6 +39,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationStatusCounts(HttpRequest request);
 
-	    Task<IActionResult> GetCalculationByCalculationSpecificationId(string calcSpecId);
+	    Task<IActionResult> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
     }
 }

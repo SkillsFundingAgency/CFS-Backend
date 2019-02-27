@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Calculator.Interfaces
 {
     public interface IAllocationModel
     {
-        IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null, IEnumerable<string> calcsToProcess = null);
+        IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null);
     }
 }

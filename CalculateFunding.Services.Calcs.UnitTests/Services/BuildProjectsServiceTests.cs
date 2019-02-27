@@ -33,6 +33,8 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using CalculateFunding.Services.Core.Options;
+using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using CalculateFunding.Services.Core.Extensions;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -216,6 +218,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 }
             };
 
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
             buildProjectsRepository
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
@@ -223,7 +227,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICompilerFactory compilerFactory = CreateCompilerfactory();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, compilerFactory: compilerFactory);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, sourceCodeService: sourceCodeService);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -234,9 +238,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .DidNotReceive()
                 .UpdateBuildProject(Arg.Any<BuildProject>());
 
-            compilerFactory
+            sourceCodeService
                 .DidNotReceive()
-                .GetCompiler(Arg.Any<IEnumerable<SourceFile>>());
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>());
         }
 
         [TestMethod]
@@ -272,9 +276,9 @@ namespace CalculateFunding.Services.Calcs.Services
                  .UpdateBuildProject(Arg.Is(buildProject))
                  .Returns(HttpStatusCode.OK);
 
-            ICompilerFactory compilerFactory = CreateCompilerfactory();
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, compilerFactory: compilerFactory);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, sourceCodeService: sourceCodeService);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -285,9 +289,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .UpdateBuildProject(Arg.Any<BuildProject>());
 
-            compilerFactory
+            sourceCodeService
                 .Received(1)
-                .GetCompiler(Arg.Any<IEnumerable<SourceFile>>());
+                .Compile(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>());
         }
 
         [TestMethod]
@@ -325,7 +329,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICompilerFactory compilerFactory = CreateCompilerfactory();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, compilerFactory: compilerFactory);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository);
 
             //Act
             Func<Task> test = () => buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -516,7 +520,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            ICompilerFactory compilerFactory = CreateCompilerfactory();
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
 
             ICalculationService calculationService = CreateCalculationService();
             calculationService
@@ -528,7 +532,7 @@ namespace CalculateFunding.Services.Calcs.Services
                .Returns(HttpStatusCode.OK);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
-                specificationsRepository: specificationRepository, compilerFactory: compilerFactory, calculationService: calculationService);
+                specificationsRepository: specificationRepository, calculationService: calculationService, sourceCodeService: sourceCodeService);
 
             //Act
             await buildProjectsService.UpdateBuildProjectRelationships(message);
@@ -539,9 +543,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Received(1)
                 .UpdateBuildProject(Arg.Any<BuildProject>());
 
-            compilerFactory
+            sourceCodeService
                 .Received(1)
-                .GetCompiler(Arg.Any<IEnumerable<SourceFile>>());
+                .Compile(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>());
         }
 
         [TestMethod]
@@ -633,489 +637,127 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void CompileBuildProject_WhenBuildingBasicCalculation_ThenCompilesOk()
+        public async Task GetAssemblyBySpecificationId_GivenNoSpecificationId_ReturnsBadRequest()
         {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
+            //Arrange
+            const string specificationId = "";
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+            ILogger logger = CreateLogger();
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+            //Act
+            IActionResult result = await buildProjectsService.GetAssemblyBySpecificationId(specificationId);
 
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            // Act
-            Func<Task> action = async () => await buildProjectsService.CompileBuildProject(buildProject);
-
-            // Assert
-            action.Should().NotThrow();
-            buildProject.Build.Success.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsLessThanSign_ThenCompilesOkEnsuresLessThanSignTranslatesToLessThanText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 <",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            // Act
-            await buildProjectsService.CompileBuildProject(buildProject);
-
-            // Assert
-
-            buildProject
-                .Build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
+            //Assert
+            result
                 .Should()
-                .Contain("Calc1LessThan");
-        }
-
-        [TestMethod]
-        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsGreaterThanSign_ThenCompilesOkEnsuresGreaterThanSignTranslatesToGreaterThanText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 >",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            // Act
-            await buildProjectsService.CompileBuildProject(buildProject);
-
-            // Assert
-
-            buildProject
-                .Build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
+                .BeAssignableTo<BadRequestObjectResult>()
+                .Which
+                .Value
                 .Should()
-                .Contain("Calc1GreaterThan");
+                .Be("Null or empty specificationId provided");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specificationId was provided to GetAssemblyBySpecificationId"));
         }
 
         [TestMethod]
-        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPoundSign_ThenCompilesOkEnsuresPoundSignTranslatesToPoundText()
+        public async Task GetAssemblyBySpecificationId_GivenNoBuildProject_CallsCreateBuildProject()
         {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 £",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
+            //Arrange
+            const string specificationId = "spec-id-1";
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+            ILogger logger = CreateLogger();
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+            IBuildProjectsRepository buildProjectRepository = CreateBuildProjectsRepository();
+            buildProjectRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns((BuildProject)null);
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+            ICalculationService calculationService = CreateCalculationService();
 
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, buildProjectsRepository: buildProjectRepository, calculationService: calculationService);
 
-            // Act
-            await buildProjectsService.CompileBuildProject(buildProject);
+            //Act
+            IActionResult result = await buildProjectsService.GetAssemblyBySpecificationId(specificationId);
 
-            // Assert
+            //Assert
+            await
+            calculationService
+                .Received(1)
+                .CreateBuildProject(Arg.Is(specificationId), Arg.Is(Enumerable.Empty<Calculation>()));
+        }
 
-            buildProject
-                .Build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
+        [TestMethod]
+        public async Task GetAssemblyBySpecificationId_GivenBuildProjectFoundButReturnsEmptyAssembly_ReturnsInternalServerErrorResult()
+        {
+            //Arrange
+            const string specificationId = "spec-id-1";
+
+            ILogger logger = CreateLogger();
+
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsRepository buildProjectRepository = CreateBuildProjectsRepository();
+            buildProjectRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .GetAssembly(Arg.Is(buildProject))
+                .Returns(new byte[0]);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, buildProjectsRepository: buildProjectRepository, sourceCodeService: sourceCodeService);
+
+            //Act
+            IActionResult result = await buildProjectsService.GetAssemblyBySpecificationId(specificationId);
+
+            //Assert
+            result
                 .Should()
-                .Contain("Calc1Pound");
-        }
-
-        [TestMethod]
-        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsEqualsSign_ThenCompilesOkEnsuresEqualsSignTranslatesToEqualsText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 =",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            // Act
-            await buildProjectsService.CompileBuildProject(buildProject);
-
-            // Assert
-
-            buildProject
-                .Build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
+                .BeOfType<InternalServerErrorResult>()
+                .Which
+                .Value
                 .Should()
-                .Contain("Calc1Equals");
+                .Be($"Failed to get assembly for specification id '{specificationId}'");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to get assembly for specification id '{specificationId}'"));
         }
 
         [TestMethod]
-        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPercentSign_ThenCompilesOkEnsuresPercentSignTranslatesToPercentText()
+        public async Task GetAssemblyBySpecificationId_GivenBuildProjectFoundAndGetsAssembly_ReturnsPKObjectResult()
         {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 %",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
+            //Arrange
+            const string specificationId = "spec-id-1";
 
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
+            ILogger logger = CreateLogger();
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
+            BuildProject buildProject = new BuildProject();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
+            IBuildProjectsRepository buildProjectRepository = CreateBuildProjectsRepository();
+            buildProjectRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
 
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .GetAssembly(Arg.Is(buildProject))
+                .Returns(new byte[100]);
 
-            // Act
-            await buildProjectsService.CompileBuildProject(buildProject);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, buildProjectsRepository: buildProjectRepository, sourceCodeService: sourceCodeService);
 
-            // Assert
+            //Act
+            IActionResult result = await buildProjectsService.GetAssemblyBySpecificationId(specificationId);
 
-            buildProject
-                .Build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
+            //Assert
+            result
                 .Should()
-                .Contain("Calc1Percent");
-        }
-
-        [TestMethod]
-        public async Task CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPlusSign_ThenCompilesOkEnsuresPlusSignTranslatesToPlusText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 +",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            // Act
-            await buildProjectsService.CompileBuildProject(buildProject);
-
-            // Assert
-
-            buildProject
-                .Build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
-                .Should()
-                .Contain("Calc1Plus");
-        }
-
-
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingCalculationWithMinimumDetail_ThenCompilesOk()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1"
-                }
-            };
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            // Act
-            Func<Task> action = async () => await buildProjectsService.CompileBuildProject(buildProject);
-
-            // Assert
-            action.Should().NotThrow();
-            buildProject.Build.Success.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingCalculationWithCodeError_ThenFailsToCompiles()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1",
-                    Current = new CalculationVersion
-                    {
-                        SourceCode = "return \"abc\""
-                    }
-                }
-            };
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            // Act
-            Func<Task> action = async () => await buildProjectsService.CompileBuildProject(buildProject);
-
-            // Assert
-            action.Should().NotThrow();
-            buildProject.Build.Success.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingCalculationUsingExcludeFunction_ThenCompilesSuccessfully()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1",
-                    Current = new CalculationVersion
-                    {
-                        SourceCode = "return Exclude()"
-                    }
-                }
-            };
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository.GetCalculationsBySpecificationId(Arg.Is(specificationId)).Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository.UpdateBuildProject(Arg.Any<BuildProject>()).Returns(HttpStatusCode.OK);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsServiceWithRealCompiler(buildProjectsRepository, calculationsRepository: calculationsRepository);
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            // Act
-            Func<Task> action = async () => await buildProjectsService.CompileBuildProject(buildProject);
-
-            // Assert
-            action.Should().NotThrow();
-            buildProject.Build.Success.Should().BeTrue();
+                .BeOfType<OkObjectResult>();
         }
 
         [TestMethod]
@@ -2949,16 +2591,16 @@ namespace CalculateFunding.Services.Calcs.Services
             return jobs;
         }
 
-        private BuildProjectsService CreateBuildProjectsServiceWithRealCompiler(IBuildProjectsRepository buildProjectsRepository, ICalculationsRepository calculationsRepository)
-        {
-            ILogger logger = CreateLogger();
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
-            sourceFileGeneratorProvider.CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic)).Returns(new VisualBasicSourceFileGenerator(logger));
-            VisualBasicCompiler vbCompiler = new VisualBasicCompiler(logger);
-            CompilerFactory compilerFactory = new CompilerFactory(null, vbCompiler);
+        //private BuildProjectsService CreateBuildProjectsServiceWithRealCompiler(IBuildProjectsRepository buildProjectsRepository, ICalculationsRepository calculationsRepository)
+        //{
+        //    ILogger logger = CreateLogger();
+        //    ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
+        //    sourceFileGeneratorProvider.CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic)).Returns(new VisualBasicSourceFileGenerator(logger));
+        //    VisualBasicCompiler vbCompiler = new VisualBasicCompiler(logger);
+        //    CompilerFactory compilerFactory = new CompilerFactory(null, vbCompiler);
 
-            return CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, calculationsRepository: calculationsRepository, logger: logger, compilerFactory: compilerFactory);
-        }
+        //    return CreateBuildProjectsService(buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, calculationsRepository: calculationsRepository, logger: logger, compilerFactory: compilerFactory);
+        //}
 
         private static BuildProjectsService CreateBuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository = null,
@@ -2967,14 +2609,13 @@ namespace CalculateFunding.Services.Calcs.Services
             ITelemetry telemetry = null,
             IProviderResultsRepository providerResultsRepository = null,
             ISpecificationRepository specificationsRepository = null,
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
-            ICompilerFactory compilerFactory = null,
             ICacheProvider cacheProvider = null,
             ICalculationService calculationService = null,
             ICalculationsRepository calculationsRepository = null,
             IFeatureToggle featureToggle = null,
             IJobsApiClient jobsApiClient = null,
-            EngineSettings engineSettings = null)
+            EngineSettings engineSettings = null,
+            ISourceCodeService sourceCodeService = null)
         {
             return new BuildProjectsService(
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
@@ -2983,15 +2624,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 telemetry ?? CreateTelemetry(),
                 providerResultsRepository ?? CreateProviderResultsRepository(),
                 specificationsRepository ?? CreateSpecificationRepository(),
-                sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(),
-                compilerFactory ?? CreateCompilerfactory(),
                 cacheProvider ?? CreateCacheProvider(),
                 calculationService ?? CreateCalculationService(),
                 calculationsRepository ?? CreateCalculationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 CalcsResilienceTestHelper.GenerateTestPolicies(),
-                engineSettings ?? CreateEngineSettings());
+                engineSettings ?? CreateEngineSettings(),
+                sourceCodeService ?? CreateSourceCodeService());
+        }
+
+        private static ISourceCodeService CreateSourceCodeService()
+        {
+            return Substitute.For<ISourceCodeService>();
         }
 
         private static EngineSettings CreateEngineSettings(int maxPartitionSize = 1000)

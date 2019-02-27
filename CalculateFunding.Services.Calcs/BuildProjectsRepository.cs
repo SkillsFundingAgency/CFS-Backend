@@ -31,17 +31,6 @@ namespace CalculateFunding.Services.Calcs
             return health;
         }
 
-        // No longer used directly, lookup is by specification ID instead
-        //public async Task<BuildProject> GetBuildProjectById(string buildProjectId)
-        //{
-        //    var buildProject = await _cosmosRepository.ReadAsync<BuildProject>(buildProjectId);
-
-        //    if (buildProject == null)
-        //        return null;
-
-        //    return buildProject.Content;
-        //}
-
         public Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId)
         {
             IEnumerable<BuildProject> buildProjects = _cosmosRepository.Query<BuildProject>().Where(x => x.SpecificationId == specificiationId).ToList();

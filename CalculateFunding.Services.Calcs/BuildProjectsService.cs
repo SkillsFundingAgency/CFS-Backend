@@ -13,11 +13,8 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -41,9 +38,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
         private readonly ISpecificationRepository _specificationsRepository;
-        private readonly ICompilerFactory _compilerFactory;
-        private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
-        private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;
@@ -51,6 +45,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IJobsApiClient _jobsApiClient;
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly EngineSettings _engineSettings;
+        private readonly ISourceCodeService _sourceCodeService;
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
@@ -59,15 +54,14 @@ namespace CalculateFunding.Services.Calcs
             ITelemetry telemetry,
             IProviderResultsRepository providerResultsRepository,
             ISpecificationRepository specificationsRepository,
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider,
-            ICompilerFactory compilerFactory,
             ICacheProvider cacheProvider,
             ICalculationService calculationService,
             ICalculationsRepository calculationsRepository,
             IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
             ICalcsResilliencePolicies resilliencePolicies,
-            EngineSettings engineSettings)
+            EngineSettings engineSettings,
+            ISourceCodeService sourceCodeService)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -75,8 +69,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
-            Guard.ArgumentNotNull(sourceFileGeneratorProvider, nameof(sourceFileGeneratorProvider));
-            Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
@@ -84,6 +76,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
+            Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
 
             _buildProjectsRepository = buildProjectsRepository;
             _messengerService = messengerService;
@@ -91,9 +84,6 @@ namespace CalculateFunding.Services.Calcs
             _telemetry = telemetry;
             _providerResultsRepository = providerResultsRepository;
             _specificationsRepository = specificationsRepository;
-            _compilerFactory = compilerFactory;
-            _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
-            _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
             _cacheProvider = cacheProvider;
             _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
@@ -101,6 +91,7 @@ namespace CalculateFunding.Services.Calcs
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
             _engineSettings = engineSettings;
+            _sourceCodeService = sourceCodeService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -344,6 +335,8 @@ namespace CalculateFunding.Services.Calcs
                 buildProject.DatasetRelationships.Add(relationship);
 
                 await CompileBuildProject(buildProject);
+
+                await _sourceCodeService.SaveAssembly(buildProject);
             }
 
             return new OkObjectResult(buildProject);
@@ -407,6 +400,8 @@ namespace CalculateFunding.Services.Calcs
                 buildProject.DatasetRelationships.Add(relationship);
 
                 await CompileBuildProject(buildProject);
+
+                await _sourceCodeService.SaveAssembly(buildProject);
             }
         }
 
@@ -462,11 +457,40 @@ namespace CalculateFunding.Services.Calcs
             return buildProject;
         }
 
+        public async Task<IActionResult> GetAssemblyBySpecificationId(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specificationId was provided to GetAssemblyBySpecificationId");
+
+                return new BadRequestObjectResult("Null or empty specificationId provided");
+            }
+
+            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
+
+            if (buildProject == null)
+            {
+                 buildProject = await _calculationService.CreateBuildProject(specificationId, Enumerable.Empty<Models.Calcs.Calculation>());
+            }
+
+           
+            byte[] assembly = await _sourceCodeService.GetAssembly(buildProject);
+
+            if (assembly.IsNullOrEmpty())
+            {
+                _logger.Error($"Failed to get assembly for specification id '{specificationId}'");
+
+                return new InternalServerErrorResult($"Failed to get assembly for specification id '{specificationId}'");
+            }
+
+            return new OkObjectResult(assembly);
+        }
+
         public async Task CompileBuildProject(BuildProject buildProject)
         {
             IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(buildProject.SpecificationId);
 
-            buildProject.Build = Compile(buildProject, calculations);
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations);
 
             HttpStatusCode statusCode = await _buildProjectsRepository.UpdateBuildProject(buildProject);
 
@@ -474,48 +498,6 @@ namespace CalculateFunding.Services.Calcs
             {
                 throw new Exception($"Failed to update build project for id: {buildProject.Id} with status code {statusCode.ToString()}");
             }
-        }
-
-        public async Task<IActionResult> OutputBuildProjectToFilesystem(HttpRequest request)
-        {
-            request.Query.TryGetValue("specificationId", out var specId);
-
-            var specificationId = specId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specification Id was provided to GetBuildProjectBySpecificationId");
-
-                return new BadRequestObjectResult("Null or empty specificationId Id provided");
-            }
-
-            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
-
-            if (buildProject == null)
-            {
-                return new NotFoundResult();
-            }
-
-            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
-
-            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
-
-            string sourceDirectory = @"c:\dev\vbout";
-            foreach (SourceFile sourceFile in sourceFiles)
-            {
-                string filename = sourceDirectory + "\\" + sourceFile.FileName;
-                string directory = System.IO.Path.GetDirectoryName(filename);
-                if (!System.IO.Directory.Exists(directory))
-                {
-                    System.IO.Directory.CreateDirectory(directory);
-                }
-
-                System.IO.File.WriteAllText(filename, sourceFile.SourceCode);
-            }
-
-
-            return new OkObjectResult(buildProject);
-
         }
 
         public async Task UpdateDeadLetteredJobLog(Message message)
@@ -565,22 +547,12 @@ namespace CalculateFunding.Services.Calcs
             return _buildProjectsRepository.UpdateBuildProject(buildProject);
         }
 
-        Build Compile(BuildProject buildProject, IEnumerable<Models.Calcs.Calculation> calculations)
-        {
-            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
-
-            ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
-
-            return compiler.GenerateCode(sourceFiles?.ToList());
-        }
-
         private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string, string>> jobProperties)
         {
             HashSet<string> calculationsToAggregate = new HashSet<string>();
 
             if (parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
             {
-
                 IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(parentJob.SpecificationId);
 
                 foreach (Models.Calcs.Calculation calculation in calculations)

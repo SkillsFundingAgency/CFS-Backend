@@ -82,6 +82,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"", "\"\"")}\")>");
             }
+
+            if (!string.IsNullOrWhiteSpace(calc.Current?.SourceCode))
+            {
+                calc.Current.SourceCode = QuoteAggregateFunctionCalls(calc.Current.SourceCode);
+            }
+
+            builder.AppendLine($"Dim {GenerateIdentifier(calc.Name)} As Func(Of decimal?) = nothing");
+            
+            builder.AppendLine();
+
             builder.AppendLine($"Dim {GenerateIdentifier(calc.Name)} As Func(Of decimal?) = nothing");
             
             builder.AppendLine();
@@ -105,13 +115,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             builder.AppendLine("Throw New Exception(\"The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop\")");
             builder.AppendLine("End If");
             builder.AppendLine("Dim dictionary as new Dictionary(Of String, String())");
-            builder.AppendLine($"#ExternalSource(\"Main Calc\", 1)");
-           
+
             foreach (var calc in calcs)
             {
                 builder.AppendLine($"{GenerateIdentifier(calc.Name)} = Function() As decimal?");
                 builder.AppendLine();
+                builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
+                builder.AppendLine();
                 builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
+                builder.AppendLine();
+                builder.AppendLine("#End ExternalSource");
                 builder.AppendLine();
                 builder.AppendLine("End Function");
                
@@ -128,7 +141,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
                 builder.AppendLine("End Try");
             }
-            builder.AppendLine("#End ExternalSource");
+            
             builder.AppendLine("return dictionary");
             builder.AppendLine("End Function");
             builder.AppendLine();
@@ -137,6 +150,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                .FirstOrDefault();
         }
+
 
         private static StatementSyntax GetDatasetProperties()
         {

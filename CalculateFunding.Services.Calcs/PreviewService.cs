@@ -2,11 +2,8 @@
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -25,30 +22,33 @@ namespace CalculateFunding.Services.Calcs
 {
     public class PreviewService : IPreviewService, IHealthChecker
     {
-        private readonly ISourceFileGeneratorProvider _sourceFileGeneratorProvider;
         private readonly ILogger _logger;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
-        private readonly ICompilerFactory _compilerFactory;
         private readonly IValidator<PreviewRequest> _previewRequestValidator;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IDatasetRepository _datasetRepository;
         private readonly IFeatureToggle _featureToggle;
         private readonly ICacheProvider _cacheProvider;
+        private readonly ISourceCodeService _sourceCodeService;
 
-        public PreviewService(ISourceFileGeneratorProvider sourceFileGeneratorProvider,
-            ILogger logger, IBuildProjectsRepository buildProjectsRepository, ICompilerFactory compilerFactory,
-            IValidator<PreviewRequest> previewRequestValidator, ICalculationsRepository calculationsRepository,
-            IDatasetRepository datasetRepository, IFeatureToggle featureToggle, ICacheProvider cacheProvider)
+        public PreviewService(
+            ILogger logger, 
+            IBuildProjectsRepository buildProjectsRepository,
+            IValidator<PreviewRequest> previewRequestValidator, 
+            ICalculationsRepository calculationsRepository,
+            IDatasetRepository datasetRepository, 
+            IFeatureToggle featureToggle, 
+            ICacheProvider cacheProvider, 
+            ISourceCodeService sourceCodeService)
         {
-            _sourceFileGeneratorProvider = sourceFileGeneratorProvider;
             _logger = logger;
             _buildProjectsRepository = buildProjectsRepository;
-            _compilerFactory = compilerFactory;
             _previewRequestValidator = previewRequestValidator;
             _calculationsRepository = calculationsRepository;
             _datasetRepository = datasetRepository;
             _featureToggle = featureToggle;
             _cacheProvider = cacheProvider;
+            _sourceCodeService = sourceCodeService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -131,37 +131,17 @@ namespace CalculateFunding.Services.Calcs
 
             if (_featureToggle.IsAggregateOverCalculationsEnabled())
             {
-                return GenerateAndCompile(buildProject, calculation, calculations, previewRequest);
+                return await GenerateAndCompile(buildProject, calculation, calculations, previewRequest);
             }
             else
             {
-                return GenerateAndCompile(buildProject, calculation, calculations);
+                return await GenerateAndCompile(buildProject, calculation, calculations);
             }
         }
 
-        private IActionResult GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations, PreviewRequest previewRequest = null)
+        private async Task<IActionResult> GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations, PreviewRequest previewRequest = null)
         {
-            ISourceFileGenerator sourceFileGenerator = _sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
-
-            if (sourceFileGenerator == null)
-            {
-                _logger.Warning("Source file generator was not created");
-
-                return new InternalServerErrorResult("Source file generator was not created");
-            }
-
-            IEnumerable<SourceFile> sourceFiles = sourceFileGenerator.GenerateCode(buildProject, calculations);
-
-            if (sourceFiles.IsNullOrEmpty())
-            {
-                _logger.Warning("Source file generator did not generate any source file");
-
-                return new InternalServerErrorResult("Source file generator did not generate any source file");
-            }
-
-            ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
-
-            Build compilerOutput = compiler.GenerateCode(sourceFiles.ToList());
+            Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations);
 
             if (compilerOutput.Success)
             {
@@ -171,25 +151,46 @@ namespace CalculateFunding.Services.Calcs
                 {
                     string calculationIdentifier = VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name);
 
-                    IDictionary<string, string> functions = compiler.GetCalulationFunctions(compilerOutput.SourceFiles);
+                    IDictionary<string, string> functions = _sourceCodeService.GetCalulationFunctions(compilerOutput.SourceFiles);
 
                     if (!functions.ContainsKey(calculationIdentifier))
                     {
+                        compilerOutput.Success = false;
                         compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is not an aggregatable field", Severity = Models.Calcs.Severity.Error });
                     }
                     else
                     {
                         if (previewRequest != null)
                         {
-                            if (SourceCodeHelpers.GetCalculationAggregateFunctionParameters(previewRequest.SourceCode).Any())
+                            IEnumerable<string> aggregateParameters = SourceCodeHelpers.GetCalculationAggregateFunctionParameters(previewRequest.SourceCode);
+
+                            bool continueChecking = true;
+
+                            if (!aggregateParameters.IsNullOrEmpty())
                             {
-                                if (SourceCodeHelpers.IsCalcReferencedInAnAggregate(functions, calculationIdentifier))
+                                foreach(string aggregateParameter in aggregateParameters)
                                 {
-                                    compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is already referenced in an aggregation that would cause nesting", Severity = Models.Calcs.Severity.Error });
+                                    if (!functions.ContainsKey(aggregateParameter))
+                                    {
+                                        compilerOutput.Success = false;
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{aggregateParameter} is not an aggregatable field", Severity = Models.Calcs.Severity.Error });
+                                        continueChecking = false;
+                                        break;
+                                    }
                                 }
-                                else if (SourceCodeHelpers.CheckSourceForExistingCalculationAggregates(functions, previewRequest.SourceCode))
+
+                                if (continueChecking)
                                 {
-                                    compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} cannot reference another calc that is being aggregated", Severity = Models.Calcs.Severity.Error });
+                                    if (SourceCodeHelpers.IsCalcReferencedInAnAggregate(functions, calculationIdentifier))
+                                    {
+                                        compilerOutput.Success = false;
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is already referenced in an aggregation that would cause nesting", Severity = Models.Calcs.Severity.Error });
+                                    }
+                                    else if (SourceCodeHelpers.CheckSourceForExistingCalculationAggregates(functions, previewRequest.SourceCode))
+                                    {
+                                        compilerOutput.Success = false;
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} cannot reference another calc that is being aggregated", Severity = Models.Calcs.Severity.Error });
+                                    }
                                 }
                             }
                         }
@@ -207,6 +208,8 @@ namespace CalculateFunding.Services.Calcs
                 Calculation = calculationToPreview,
                 CompilerOutput = compilerOutput
             };
+
+            await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId);
 
             return new OkObjectResult(response);
         }
@@ -258,6 +261,5 @@ namespace CalculateFunding.Services.Calcs
   
             return build;
         }
-
     }
 }

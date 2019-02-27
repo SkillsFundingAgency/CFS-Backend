@@ -43,6 +43,7 @@ using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationCurrentVersion = CalculateFunding.Models.Calcs.CalculationCurrentVersion;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
 using CalculateFunding.Services.Core;
+using System.IO;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -53,10 +54,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly IValidator<Calculation> _calculationValidator;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
-        private readonly ICompilerFactory _compilerFactory;
-        private readonly ISourceFileGenerator _sourceFileGenerator;
         private readonly IMessengerService _messengerService;
-        private readonly ICodeMetadataGeneratorService _codeMetadataGenerator;
         private readonly ISpecificationRepository _specsRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly ITelemetry _telemetry;
@@ -71,6 +69,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly IFeatureToggle _featureToggle;
+        private readonly ISourceCodeService _sourceCodeService;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -79,29 +78,26 @@ namespace CalculateFunding.Services.Calcs
             ISearchRepository<CalculationIndex> searchRepository,
             IValidator<Calculation> calculationValidator,
             IBuildProjectsRepository buildProjectsRepository,
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider,
-            ICompilerFactory compilerFactory,
             IMessengerService messengerService,
-            ICodeMetadataGeneratorService codeMetadataGenerator,
             ISpecificationRepository specificationRepository,
             ICacheProvider cacheProvider,
             ICalcsResilliencePolicies resilliencePolicies,
             IVersionRepository<CalculationVersion> calculationVersionRepository,
             IJobsApiClient jobsApiClient,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            ISourceCodeService sourceCodeService)
         {
-            Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(calculationValidator, nameof(calculationValidator));
-            Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -109,10 +105,7 @@ namespace CalculateFunding.Services.Calcs
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
             _buildProjectsRepository = buildProjectsRepository;
-            _compilerFactory = compilerFactory;
-            _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
             _messengerService = messengerService;
-            _codeMetadataGenerator = codeMetadataGenerator;
             _specsRepository = specificationRepository;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resilliencePolicies.CalculationsRepository;
@@ -126,6 +119,7 @@ namespace CalculateFunding.Services.Calcs
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
             _featureToggle = featureToggle;
+            _sourceCodeService = sourceCodeService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -144,28 +138,6 @@ namespace CalculateFunding.Services.Calcs
             health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
 
             return health;
-        }
-
-        Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations)
-        {
-            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
-
-            //string sourceDirectory = @"c:\dev\vbout";
-            //foreach (SourceFile sourceFile in sourceFiles)
-            //{
-            //    string filename = sourceDirectory + "\\" + sourceFile.FileName;
-            //    string directory = System.IO.Path.GetDirectoryName(filename);
-            //    if (!System.IO.Directory.Exists(directory))
-            //    {
-            //        System.IO.Directory.CreateDirectory(directory);
-            //    }
-
-            //    System.IO.File.WriteAllText(filename, sourceFile.SourceCode);
-            //}
-
-            ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
-
-            return compiler.GenerateCode(sourceFiles?.ToList());
         }
 
         async public Task<IActionResult> GetCalculationHistory(HttpRequest request)
@@ -791,8 +763,6 @@ namespace CalculateFunding.Services.Calcs
 
                     string correlationId = request.GetCorrelationId();
 
-
-
                     IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(calculation.SpecificationId));
 
                     bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
@@ -1013,23 +983,7 @@ namespace CalculateFunding.Services.Calcs
                 return new StatusCodeResult(500);
             }
 
-            if (project.Build.AssemblyBase64 == null)
-            {
-                _logger.Error($"Build AssemblyBase64 was null for Specification {specificationId} with Build Project ID {project.Id}");
-
-                return new StatusCodeResult(500);
-            }
-
-            if (project.Build.AssemblyBase64.Length == 0)
-            {
-                _logger.Error($"Build AssemblyBase64 was zero bytes for Specification {specificationId} with Build Project ID {project.Id}");
-
-                return new StatusCodeResult(500);
-            }
-
-            byte[] rawAssembly = Convert.FromBase64String(project.Build.AssemblyBase64);
-
-            IEnumerable<TypeInformation> result = _codeMetadataGenerator.GetTypeInformation(rawAssembly);
+            IEnumerable<TypeInformation> result = await _sourceCodeService.GetTypeInformation(project);
 
             return new OkObjectResult(result);
         }
@@ -1190,7 +1144,7 @@ namespace CalculateFunding.Services.Calcs
                 Name = specificationId
             };
             
-            buildproject.Build = Compile(buildproject, calculations);
+            buildproject.Build = _sourceCodeService.Compile(buildproject, calculations);
 
             await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.CreateBuildProject(buildproject));
 
@@ -1233,7 +1187,10 @@ namespace CalculateFunding.Services.Calcs
             }
             else
             {
-                buildProject.Build = Compile(buildProject, calculations);
+                buildProject.Build = _sourceCodeService.Compile(buildProject, calculations);
+
+                await _sourceCodeService.SaveAssembly(buildProject);
+
                 await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
             }
 
@@ -1349,5 +1306,6 @@ namespace CalculateFunding.Services.Calcs
 
             return result;
         }
+
     }
 }

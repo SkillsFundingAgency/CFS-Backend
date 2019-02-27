@@ -19,5 +19,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Policy MessagePolicy { get; set; }
 
         Policy JobsApiClient { get; set; }
+
+        Policy SourceFilesRepository { get; set; }
     }
 }

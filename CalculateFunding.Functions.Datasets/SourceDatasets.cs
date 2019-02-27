@@ -11,31 +11,31 @@ namespace CalculateFunding.Functions.Datasets
 {
     public static class SourceDatasets
     {
-        [FunctionName("source-datasets")]
-        public static async System.Threading.Tasks.Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequest req, TraceWriter log)
-        {
-            log.Info("C# HTTP trigger function processed a request.");
+        //[FunctionName("source-datasets")]
+        //public static async System.Threading.Tasks.Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]HttpRequest req, TraceWriter log)
+        //{
+        //    log.Info("C# HTTP trigger function processed a request.");
 
-            var file = req.Form.Files.FirstOrDefault();
+        //    var file = req.Form.Files.FirstOrDefault();
 
-            if (file == null) return new BadRequestResult();
+        //    if (file == null) return new BadRequestResult();
 
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-                Environment.GetEnvironmentVariable("DatasetStorage"));
-            var blobClient = storageAccount.CreateCloudBlobClient();
+        //    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
+        //        Environment.GetEnvironmentVariable("DatasetStorage"));
+        //    var blobClient = storageAccount.CreateCloudBlobClient();
             
-            var container = blobClient.GetContainerReference("source-datasets");
-            await container.CreateIfNotExistsAsync();
+        //    var container = blobClient.GetContainerReference("source-datasets");
+        //    await container.CreateIfNotExistsAsync();
 
-            var blockBlob = container.GetBlockBlobReference(file.FileName);
+        //    var blockBlob = container.GetBlockBlobReference(file.FileName);
            
-            // Create or overwrite the "myblob" blob with contents from a local file.
-            using (var fileStream = file.OpenReadStream())
-            {
-                await blockBlob.UploadFromStreamAsync(fileStream);
-            }
+        //    // Create or overwrite the "myblob" blob with contents from a local file.
+        //    using (var fileStream = file.OpenReadStream())
+        //    {
+        //        await blockBlob.UploadFromStreamAsync(fileStream);
+        //    }
 
-            return new AcceptedResult();
-        }
+        //    return new AcceptedResult();
+        //}
     }
 }

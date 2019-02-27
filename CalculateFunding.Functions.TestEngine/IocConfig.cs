@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Bulkhead;
+using CalculateFunding.Services.TestEngine.Interfaces;
 
 namespace CalculateFunding.Functions.TestEngine
 {
@@ -77,6 +78,9 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder
                .AddSingleton<IGherkinExecutor, GherkinExecutor>();
+
+            builder
+                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {

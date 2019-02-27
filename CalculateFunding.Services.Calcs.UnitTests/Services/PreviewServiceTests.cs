@@ -391,162 +391,6 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task Compile_GivenSourceFileGeneratorWasNotFound_ReturnsInternalServerError()
-        {
-            // Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId,
-                SpecificationId = SpecificationId,
-            };
-
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-            };
-
-            List<Calculation> calculations = new List<Calculation>() { calculation };
-
-            BuildProject buildProject = new BuildProject
-            {
-            };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
-
-            calculationsRepository
-               .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
-               .Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(buildProject);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
-            sourceFileGeneratorProvider
-                .CreateSourceFileGenerator(Arg.Any<TargetLanguage>())
-                .Returns((ISourceFileGenerator)null);
-
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
-
-            // Act
-            IActionResult result = await service.Compile(request);
-
-            // Assert
-            result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Source file generator was not created");
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"Source file generator was not created"));
-        }
-
-        [TestMethod]
-        public async Task Compile_GivenSourceFileGeneratorWasCreatedButDidNotGenerateAnyFiles_ReturnsInternalServerError()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId,
-                SpecificationId = SpecificationId,
-            };
-
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-            };
-
-            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
-
-            BuildProject buildProject = new BuildProject
-            {
-            };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
-
-            calculationsRepository
-                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(calculations);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
-                .Returns(buildProject);
-
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
-            IEnumerable<SourceFile> sourceFiles = new List<SourceFile>();
-
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations))
-                .Returns(sourceFiles);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider);
-
-            //Act
-            IActionResult result = await service.Compile(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Source file generator did not generate any source file");
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"Source file generator did not generate any source file"));
-        }
-
-        [TestMethod]
         public async Task Compile_GivenSourceFileGeneratorCreatedFilesButCodeDidNotSucceed_ReturnsOK()
         {
             //Arrange
@@ -569,6 +413,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProject buildProject = new BuildProject
             {
+                SpecificationId = SpecificationId
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -598,38 +443,34 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
-                new SourceFile()
+                new SourceFile { FileName = "test.vb", SourceCode = "any content"}
             };
-
-            sourceFileGenerator
-               .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-               .Returns(sourceFiles);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
 
             Build build = new Build
             {
-                Success = false
+                Success = false,
+                SourceFiles = sourceFiles
             };
 
-            ICompiler compiler = Substitute.For<ICompiler>();
-            compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
-            ICompilerFactory compilerFactory = CreateCompilerFactory();
-            compilerFactory
-                .GetCompiler(Arg.Is(sourceFiles))
-                .Returns(compiler);
-
-
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
+                buildProjectsRepository: buildProjectsRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -687,6 +528,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProject buildProject = new BuildProject
             {
+                SpecificationId = SpecificationId
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -716,36 +558,34 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
-                new SourceFile()
+                new SourceFile { FileName = "test.vb", SourceCode = "any content"}
             };
-
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
 
             Build build = new Build
             {
-                Success = true
+                Success = true,
+                SourceFiles = sourceFiles
             };
 
-            ICompiler compiler = Substitute.For<ICompiler>();
-            compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
-            ICompilerFactory compilerFactory = CreateCompilerFactory();
-            compilerFactory
-                .GetCompiler(Arg.Is(sourceFiles))
-                .Returns(compiler);
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes); ;
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
+                buildProjectsRepository: buildProjectsRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -803,7 +643,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
-            BuildProject buildProject = new BuildProject();
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -832,8 +675,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
@@ -841,16 +682,29 @@ namespace CalculateFunding.Services.Calcs.Services
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
 
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles
+            };
 
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" }
+            };
 
-            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(build);
+
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
+                buildProjectsRepository: buildProjectsRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -902,7 +756,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
-            BuildProject buildProject = new BuildProject();
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -931,20 +788,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
                 new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
-
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
@@ -953,24 +802,19 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Build compilerOutput = new Build
             {
-                Success = true
+                Success = true,
+                SourceFiles = sourceFiles
             };
 
-            ICompiler compiler = Substitute.For<ICompiler>();
-            compiler
-                .GetCalulationFunctions(Arg.Any<List<SourceFile>>())
-                .Returns(sourceCodes);
-
-            compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(compilerOutput);
 
-            ICompilerFactory compilerFactory = Substitute.For<ICompilerFactory>();
-            compilerFactory
-                .GetCompiler(Arg.Any<List<SourceFile>>())
-                .Returns(compiler);
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
 
-          
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsAggregateSupportInCalculationsEnabled()
@@ -981,10 +825,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(true);
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
-           
+
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
-                datasetRepository: datasetRepository, featureToggle: featureToggle);
+                buildProjectsRepository: buildProjectsRepository, 
+                datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1010,6 +854,11 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+
+            await
+                sourceCodeService
+                    .Received(1)
+                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId));
         }
 
         [TestMethod]
@@ -1035,7 +884,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
-            BuildProject buildProject = new BuildProject();
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -1064,8 +916,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
@@ -1073,13 +923,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
 
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>();
 
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
-            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
+            Build compilerOutput = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles
+            };
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -1088,9 +938,18 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(compilerOutput);
+
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
+
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
-                datasetRepository: datasetRepository, featureToggle: featureToggle);
+                buildProjectsRepository: buildProjectsRepository,
+                datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1111,15 +970,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CompilerOutput
                 .Success
                 .Should()
-                .BeFalse();
-
-            previewResponse
-               .CompilerOutput
-               .CompilerMessages
-               .First()
-               .Severity
-               .Should()
-               .Be(Models.Calcs.Severity.Error);
+                .BeTrue();
         }
 
         [TestMethod]
@@ -1174,8 +1025,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
@@ -1183,14 +1032,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
 
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
-            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
-
+           
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsAggregateSupportInCalculationsEnabled()
@@ -1213,7 +1055,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(relationshipModels);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                buildProjectsRepository: buildProjectsRepository,
                 datasetRepository: datasetRepository, featureToggle: featureToggle);
 
             //Act
@@ -1306,22 +1148,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
                 new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
-
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
-            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -1345,7 +1177,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(relationshipModels);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                buildProjectsRepository: buildProjectsRepository,
                 datasetRepository: datasetRepository, featureToggle: featureToggle);
 
             //Act
@@ -1445,22 +1277,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
                 new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
-
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
-            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -1486,7 +1308,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                buildProjectsRepository: buildProjectsRepository,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
 
             //Act
@@ -1599,22 +1421,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
                 new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
-
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
-            ICompilerFactory compilerFactory = new CompilerFactory(new Compiler.Languages.CSharpCompiler(logger), new Compiler.Languages.VisualBasicCompiler(logger));
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -1640,7 +1452,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = CreateDatasetRepository();
            
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
+                buildProjectsRepository: buildProjectsRepository,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
 
             //Act
@@ -1711,7 +1523,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
-            BuildProject buildProject = new BuildProject();
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -1740,8 +1555,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
@@ -1749,37 +1562,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
 
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
-
             Build build = new Build
             {
                 Success = true,
-                SourceFiles = sourceFiles
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>()
             };
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
+       
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
                 { "TestFunction", model.SourceCode },
                 { "Calc1", "return 1" }
             };
-
-            ICompiler compiler = Substitute.For<ICompiler>();
-            compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
-                .Returns(build);
-
-            compiler
-                .GetCalulationFunctions(Arg.Any<List<SourceFile>>())
-                .Returns(sourceCodes);
-
-            ICompilerFactory compilerFactory = CreateCompilerFactory();
-            compilerFactory
-                .GetCompiler(Arg.Any<List<SourceFile>>())
-                .Returns(compiler);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -1788,9 +1582,17 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Returns(build);
+
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
+
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
-                datasetRepository: datasetRepository, featureToggle: featureToggle);
+                buildProjectsRepository: buildProjectsRepository, datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1838,7 +1640,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
-            BuildProject buildProject = new BuildProject();
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -1867,18 +1672,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
                 new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
-
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
 
             Build build = new Build
             {
@@ -1887,8 +1686,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CompilerMessages = new List<CompilerMessage>()
             };
 
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
                 { "TestFunction", model.SourceCode },
@@ -1896,19 +1693,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 { "Calc2", "Avg(TestFunction)" }
             };
 
-            ICompiler compiler = Substitute.For<ICompiler>();
-            compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
-            compiler
-                .GetCalulationFunctions(Arg.Any<List<SourceFile>>())
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
-
-            ICompilerFactory compilerFactory = CreateCompilerFactory();
-            compilerFactory
-                .GetCompiler(Arg.Any<List<SourceFile>>())
-                .Returns(compiler);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -1918,8 +1710,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
-                datasetRepository: datasetRepository, featureToggle: featureToggle);
+                buildProjectsRepository: buildProjectsRepository,
+                datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1976,7 +1768,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
-            BuildProject buildProject = new BuildProject();
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -2005,8 +1800,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
-
             List<SourceFile> sourceFiles = new List<SourceFile>
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
@@ -2014,19 +1807,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
 
-            sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>())
-                .Returns(sourceFiles);
-
             Build build = new Build
             {
                 Success = true,
                 SourceFiles = sourceFiles,
                 CompilerMessages = new List<CompilerMessage>()
             };
-
-            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider(sourceFileGenerator);
-
+  
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
                 { "TestFunction", "return 1" },
@@ -2034,19 +1821,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 { "Calc2", "return Avg(Calc1)" }
             };
 
-            ICompiler compiler = Substitute.For<ICompiler>();
-            compiler
-                .GenerateCode(Arg.Any<List<SourceFile>>())
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
-            compiler
-                .GetCalulationFunctions(Arg.Any<List<SourceFile>>())
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
-
-            ICompilerFactory compilerFactory = CreateCompilerFactory();
-            compilerFactory
-                .GetCompiler(Arg.Any<List<SourceFile>>())
-                .Returns(compiler);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
@@ -2056,8 +1838,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory,
-                datasetRepository: datasetRepository, featureToggle: featureToggle);
+                buildProjectsRepository: buildProjectsRepository,
+                datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -2088,16 +1870,37 @@ namespace CalculateFunding.Services.Calcs.Services
                .Message
                .Should()
                .Be($"Calc2 cannot reference another calc that is being aggregated");
+
+            await
+               sourceCodeService
+                   .Received(1)
+                   .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId));
         }
 
-        static PreviewService CreateService(ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
-            ILogger logger = null, IBuildProjectsRepository buildProjectsRepository = null, ICompilerFactory compilerFactory = null,
-            IValidator<PreviewRequest> previewRequestValidator = null, ICalculationsRepository calculationsRepository = null, 
-            IDatasetRepository datasetRepository = null, IFeatureToggle featureToggle = null, ICacheProvider cacheProvider = null)
+        static PreviewService CreateService(
+            ILogger logger = null, 
+            IBuildProjectsRepository buildProjectsRepository = null, 
+            IValidator<PreviewRequest> previewRequestValidator = null, 
+            ICalculationsRepository calculationsRepository = null, 
+            IDatasetRepository datasetRepository = null, 
+            IFeatureToggle featureToggle = null, 
+            ICacheProvider cacheProvider = null, 
+            ISourceCodeService sourceCodeService = null)
         {
-            return new PreviewService(sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(), logger ?? CreateLogger(),
-                buildProjectsRepository ?? CreateBuildProjectsRepository(), compilerFactory ?? CreateCompilerFactory(), previewRequestValidator ?? CreatePreviewRequestValidator(),
-                calculationsRepository ?? CreateCalculationsRepository(), datasetRepository ?? CreateDatasetRepository(), featureToggle ?? CreateFeatureToggle(), cacheProvider ?? CreateCacheProvider());
+            return new PreviewService(
+                logger ?? CreateLogger(),
+                buildProjectsRepository ?? CreateBuildProjectsRepository(), 
+                previewRequestValidator ?? CreatePreviewRequestValidator(),
+                calculationsRepository ?? CreateCalculationsRepository(), 
+                datasetRepository ?? CreateDatasetRepository(), 
+                featureToggle ?? CreateFeatureToggle(), 
+                cacheProvider ?? CreateCacheProvider(), 
+                sourceCodeService ?? CreateSourceCodeService());
+        }
+
+        static ISourceCodeService CreateSourceCodeService()
+        {
+            return Substitute.For<ISourceCodeService>();
         }
 
         static ISourceFileGeneratorProvider CreateSourceFileGeneratorProvider(ISourceFileGenerator sourceFileGenerator = null)

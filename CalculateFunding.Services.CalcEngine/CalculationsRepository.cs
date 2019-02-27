@@ -39,5 +39,15 @@ namespace CalculateFunding.Services.Calculator
 
             return _apiClient.GetAsync<BuildProject>(url);
         }
+
+        public Task<byte[]> GetAssemblyBySpecificationId(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+                throw new ArgumentNullException(nameof(specificationId));
+
+            string url = $"calcs/{specificationId}/assembly";
+
+            return _apiClient.GetAsync<byte[]>(url);
+        }
     }
 }

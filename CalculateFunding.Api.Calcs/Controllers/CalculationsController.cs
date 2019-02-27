@@ -153,5 +153,12 @@ namespace CalculateFunding.Api.Calcs.Controllers
 	    {
 		    return await _calcsService.GetCalculationByCalculationSpecificationId(calcSpecId);
 	    }
+
+        [Route("api/calcs/{specificationId}/assembly")]
+        [HttpGet]
+        public Task<IActionResult> GetAssemblyBySpecificationId(string specificationId)
+        {
+            return _buildProjectsService.GetAssemblyBySpecificationId(specificationId);
+        }
     }
 }

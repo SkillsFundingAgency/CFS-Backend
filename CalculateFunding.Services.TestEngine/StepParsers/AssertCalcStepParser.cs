@@ -24,13 +24,13 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
         public Task Parse(Step step, string stepExpression, GherkinParseResult parseResult, BuildProject buildProject)
         {
-            if (string.IsNullOrWhiteSpace(buildProject.Build.AssemblyBase64))
+            if (buildProject.Build.Assembly.IsNullOrEmpty())
             {
                 parseResult.AddError("No valid assembly to test", step.Location.Line, step.Location.Column);
             }
             else
             {
-                byte[] assembly = Convert.FromBase64String(buildProject.Build.AssemblyBase64);
+                byte[] assembly = buildProject.Build.Assembly;
 
                 if (assembly == null)
                 {
