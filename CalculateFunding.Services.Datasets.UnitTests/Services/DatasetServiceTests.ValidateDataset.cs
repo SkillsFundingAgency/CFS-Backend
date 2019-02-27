@@ -1120,7 +1120,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
-                string.IsNullOrWhiteSpace(d.Current.Commment)
+                string.IsNullOrWhiteSpace(d.Current.Comment)
                 ));
 
             // Ensure the rest of the properties are set
@@ -1301,7 +1301,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
-                d.Current.Commment == updateComment
+                d.Current.Comment == updateComment
                 ));
 
             // Ensure description is updated
@@ -2736,7 +2736,7 @@ namespace CalculateFunding.Services.Datasets.Services
             await datasetRepository
                 .Received(1)
                 .SaveDataset(Arg.Is<Dataset>(d =>
-                string.IsNullOrWhiteSpace(d.Current.Commment)
+                string.IsNullOrWhiteSpace(d.Current.Comment)
                 ));
 
             // Ensure the rest of the properties are set

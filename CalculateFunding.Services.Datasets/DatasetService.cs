@@ -734,7 +734,7 @@ namespace CalculateFunding.Services.Datasets
 					Status = Enum.GetName(typeof(Models.Versioning.PublishStatus), dataset.Content.Current.PublishStatus),
 					Description = dataset.Content.Description,
 					Version = dataset.Content.Current.Version,
-					ChangeNote = dataset.Content.Current.Commment,
+					ChangeNote = dataset.Content.Current.Comment,
 					LastUpdatedByName = dataset.Content.Current.Author?.Name,
 					LastUpdatedById = dataset.Content.Current.Author?.Id
 				};
@@ -781,7 +781,7 @@ namespace CalculateFunding.Services.Datasets
 						Name = dataset.Content.Name,
 						Version = datasetVersion.Version,
 						BlobName = datasetVersion.BlobName,
-						ChangeNote = datasetVersion.Commment,
+						ChangeNote = datasetVersion.Comment,
 						DefinitionName = dataset.Content.Definition.Name,
 						Description = dataset.Content.Description,
 						LastUpdatedDate = datasetVersion.Date,
@@ -924,7 +924,7 @@ namespace CalculateFunding.Services.Datasets
 				PublishStatus = Models.Versioning.PublishStatus.Draft,
 				BlobName = blob.Name,
 				RowCount = rowCount,
-				Commment = metadataModel.Comment
+				Comment = metadataModel.Comment
 			};
 
 			Dataset dataset = new Dataset
@@ -994,7 +994,7 @@ namespace CalculateFunding.Services.Datasets
 				Date = DateTimeOffset.Now,
 				PublishStatus = Models.Versioning.PublishStatus.Draft,
 				BlobName = blob.Name,
-				Commment = model.Comment,
+				Comment = model.Comment,
 				RowCount = rowCount,
 			};
 
@@ -1042,7 +1042,7 @@ namespace CalculateFunding.Services.Datasets
 					LastUpdatedDate = DateTimeOffset.Now,
 					Description = dataset.Description,
 					Version = dataset.Current.Version,
-					ChangeNote = dataset.Current.Commment,
+					ChangeNote = dataset.Current.Comment,
 					LastUpdatedById = dataset.Current.Author?.Id,
 					LastUpdatedByName = dataset.Current.Author?.Name
 				}
@@ -1062,7 +1062,7 @@ namespace CalculateFunding.Services.Datasets
 					Name = dataset.Name,
 					Version = datasetVersion.Version,
 					BlobName = datasetVersion.BlobName,
-					ChangeNote = datasetVersion.Commment,
+					ChangeNote = datasetVersion.Comment,
 					DefinitionName = dataset.Definition.Name,
 					Description = dataset.Description,
 					LastUpdatedDate = datasetVersion.Date,
@@ -1162,7 +1162,7 @@ namespace CalculateFunding.Services.Datasets
 				Name = dataset.Content.Name,
 				PublishStatus = dataset.Content.Current.PublishStatus,
 				Version = dataset.Content.Current.Version,
-				Comment = dataset.Content.Current.Commment,
+				Comment = dataset.Content.Current.Comment,
 				CurrentDataSourceRows = dataset.Content.Current.RowCount,
 			};
 

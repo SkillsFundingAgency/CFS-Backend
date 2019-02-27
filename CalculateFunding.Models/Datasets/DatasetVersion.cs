@@ -31,7 +31,7 @@ namespace CalculateFunding.Models.Datasets
                 Version = Version,
                 Date = Date,
                 Author = Author,
-                Commment = Commment,
+                Comment = Comment,
                 BlobName = BlobName
             };
         }

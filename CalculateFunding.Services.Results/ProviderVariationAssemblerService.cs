@@ -112,6 +112,18 @@ namespace CalculateFunding.Services.Results
                         throw new NonRetriableException($"Provider has successor in core provider data but is not set to 'Closed' for provider '{providerResult.Id}'");
                     }
 
+                    if (!string.IsNullOrWhiteSpace(coreProvider.Successor))
+                    {
+                        ProviderSummary successorCoreProvider = coreProviderData.FirstOrDefault(p => p.Id == coreProvider.Successor);
+
+                        if (successorCoreProvider == null)
+                        {
+                            throw new NonRetriableException($"Could not find provider successor in core provider data for provider '{providerResult.Id}' and successor '{coreProvider.Successor}'");
+                        }
+
+                        changeItem.SuccessorProvider = successorCoreProvider;
+                    }
+
                     changeItem.VariationReasons = variationReasons;
                     changeItem.PriorProviderState = providerResult.Provider;
                 }

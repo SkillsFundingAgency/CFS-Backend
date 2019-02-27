@@ -706,7 +706,7 @@ namespace CalculateFunding.Services.Results
 
             // Process Provider Variations
             Stopwatch processVariationsStopwatch = Stopwatch.StartNew();
-            ProcessProviderVariationsResult providerChanges = await _providerVariationsService.ProcessProviderVariations(triggeringJob, specification, providerResults, existingPublishedProviderResults, publishedProviderResults, publishedProviderResultsToSave);
+            ProcessProviderVariationsResult providerChanges = await _providerVariationsService.ProcessProviderVariations(triggeringJob, specification, providerResults, existingPublishedProviderResults, publishedProviderResults, publishedProviderResultsToSave, author);
             processVariationsStopwatch.Stop();
 
             if (providerChanges == null)

@@ -33,7 +33,7 @@ namespace CalculateFunding.Models.Versioning
 
         [JsonProperty("comment")]
 
-        public string Commment { get; set; }
+        public string Comment { get; set; }
 
         [JsonProperty("publishStatus")]
         public PublishStatus PublishStatus { get; set; }

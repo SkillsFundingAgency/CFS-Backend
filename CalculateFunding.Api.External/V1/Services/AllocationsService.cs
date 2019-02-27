@@ -141,7 +141,7 @@ namespace CalculateFunding.Api.External.V1.Services
                        Status = m.Status.ToString(),
                        Date = m.Date,
                        Author = m.Author.Name,
-                       Comment = m.Commment
+                       Comment = m.Comment
                    }
                 ).OrderByDescending(m => m.Date).ToArraySafe();
 

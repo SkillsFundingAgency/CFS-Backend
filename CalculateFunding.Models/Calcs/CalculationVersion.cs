@@ -36,7 +36,7 @@ namespace CalculateFunding.Models.Calcs
                 SourceCode = SourceCode,
                 Date = Date,
                 Author = Author,
-                Commment = Commment,
+                Comment = Comment,
                 DecimalPlaces = DecimalPlaces,
                 CalculationId = CalculationId
             };

@@ -605,6 +605,8 @@ namespace CalculateFunding.Services.Results.Services
             results.First().ProviderReasonCode.Should().Be("Test closed reason");
             results.First().SuccessorProviderId.Should().Be("prov2");
             results.First().DoesProviderHaveSuccessor.Should().BeTrue();
+            results.First().SuccessorProvider.Should().NotBeNull();
+            results.First().SuccessorProvider.Id.Should().Be("prov2", "SuccessorProvider object set correctly");
         }
 
         [TestMethod]

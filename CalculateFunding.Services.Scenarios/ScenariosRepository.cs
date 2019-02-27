@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Scenarios
                 Name = scenario.Content.Name,
                 Description = scenario.Content.Current.Description,
                 Author = scenario.Content.Current.Author,
-                Commment = scenario.Content.Current.Commment,
+                Comment = scenario.Content.Current.Comment,
                 CurrentVersionDate = scenario.Content.Current.Date,
                 PublishStatus = scenario.Content.Current.PublishStatus,
                 Gherkin = scenario.Content.Current.Gherkin,

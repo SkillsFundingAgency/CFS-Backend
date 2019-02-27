@@ -159,9 +159,9 @@ namespace CalculateFunding.Services.Results.Repositories
 
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);
 
-                result.ProfilePeriods = DynamicExtensions.PropertyExists(existingResult, "profilePeriods") ? ((JArray)existingResult.profilePeriods).ToObject<List<ProfilingPeriod>>() : Enumerable.Empty<ProfilingPeriod>();
-                result.ProviderLookups = DynamicExtensions.PropertyExists(existingResult, "providerLookups") ? ((JArray)existingResult.providerLookups).ToObject<List<ProviderLookup>>() : Enumerable.Empty<ProviderLookup>();
-                result.FinancialEnvelopes = DynamicExtensions.PropertyExists(existingResult, "financialEnvelopes") ? ((JArray)existingResult.financialEnvelopes).ToObject<List<FinancialEnvelope>>() : Enumerable.Empty<FinancialEnvelope>();
+                result.ProfilePeriods = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "profilePeriods") ? ((JArray)existingResult.profilePeriods).ToObject<List<ProfilingPeriod>>() : Enumerable.Empty<ProfilingPeriod>();
+                result.ProviderLookups = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "providerLookups") ? ((JArray)existingResult.providerLookups).ToObject<List<ProviderLookup>>() : Enumerable.Empty<ProviderLookup>();
+                result.FinancialEnvelopes = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "financialEnvelopes") ? ((JArray)existingResult.financialEnvelopes).ToObject<List<FinancialEnvelope>>() : Enumerable.Empty<FinancialEnvelope>();
 
                 results.Add(result);
             }

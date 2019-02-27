@@ -44,5 +44,8 @@ namespace CalculateFunding.Models.Providers
         /// </summary>
         [JsonProperty("priorProviderState")]
         public ProviderSummary PriorProviderState { get; set; }
+
+        [JsonIgnore]
+        public ProviderSummary SuccessorProvider { get; set; }
     }
 }

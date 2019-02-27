@@ -342,7 +342,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                         {
                             Name = "Joe Bloggs"
                         },
-                        Commment = "Wahey",
+                        Comment = "Wahey",
                         Date = DateTimeOffset.Now.AddDays(-2)
                     },
                      new PublishedAllocationLineResultVersion
@@ -354,7 +354,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                         {
                             Name = "Joe Bloggs"
                         },
-                        Commment = "Wahey",
+                        Comment = "Wahey",
                         Date = DateTimeOffset.Now.AddDays(-1)
                     }
                  }

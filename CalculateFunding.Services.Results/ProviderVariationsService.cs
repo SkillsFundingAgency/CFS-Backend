@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Results.Interfaces;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace CalculateFunding.Services.Results
@@ -15,14 +18,17 @@ namespace CalculateFunding.Services.Results
     public class ProviderVariationsService : IProviderVariationsService
     {
         private readonly IProviderVariationAssemblerService _providerVariationAssemblerService;
+        private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ILogger _logger;
 
-        public ProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ILogger logger)
+        public ProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ISpecificationsRepository specificationsRepository, ILogger logger)
         {
             Guard.ArgumentNotNull(providerVariationAssemblerService, nameof(providerVariationAssemblerService));
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _providerVariationAssemblerService = providerVariationAssemblerService;
+            _specificationsRepository = specificationsRepository;
             _logger = logger;
         }
 
@@ -32,8 +38,17 @@ namespace CalculateFunding.Services.Results
             IEnumerable<ProviderResult> providerResults,
             IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults,
             IEnumerable<PublishedProviderResult> allPublishedProviderResults,
-            List<PublishedProviderResult> resultsToSave)
+            List<PublishedProviderResult> resultsToSave,
+            Reference author)
         {
+            Guard.ArgumentNotNull(triggeringJob, nameof(triggeringJob));
+            Guard.ArgumentNotNull(specification, nameof(specification));
+            Guard.ArgumentNotNull(providerResults, nameof(providerResults));
+            Guard.ArgumentNotNull(existingPublishedProviderResults, nameof(existingPublishedProviderResults));
+            Guard.ArgumentNotNull(allPublishedProviderResults, nameof(allPublishedProviderResults));
+            Guard.ArgumentNotNull(resultsToSave, nameof(resultsToSave));
+            Guard.ArgumentNotNull(author, nameof(author));
+
             List<ProviderVariationError> errors = new List<ProviderVariationError>();
             ProcessProviderVariationsResult result = new ProcessProviderVariationsResult();
 
@@ -61,6 +76,8 @@ namespace CalculateFunding.Services.Results
                     return result;
                 }
 
+                Period fundingPeriod = await GetFundingPeriod(specification);
+
                 foreach (ProviderChangeItem providerChange in providerVariations)
                 {
                     foreach (AllocationLine allocationLine in specification.FundingStreams.SelectMany(f => f.AllocationLines))
@@ -80,7 +97,7 @@ namespace CalculateFunding.Services.Results
                             }
                             else
                             {
-                                _logger.Information($"Provider '{providerChange.UpdatedProvider.Id}' has closed and has successor but has no existing result. Specifiction '{specification.Id}' and allocation line {allocationLine.Id}");
+                                processingResult = await ProcessProviderClosedWithSuccessor(providerChange, allocationLine, specification, existingPublishedProviderResults, allPublishedProviderResults, resultsToSave, author, fundingPeriod);
                             }
                         }
                         else if (providerChange.HasProviderClosed && !providerChange.DoesProviderHaveSuccessor)
@@ -279,6 +296,135 @@ namespace CalculateFunding.Services.Results
             return (errors, true);
         }
 
+        private async Task<(IEnumerable<ProviderVariationError> variationErrors, bool canContinue)> ProcessProviderClosedWithSuccessor(
+            ProviderChangeItem providerChange,
+            AllocationLine allocationLine,
+            SpecificationCurrentVersion specification,
+            IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults,
+            IEnumerable<PublishedProviderResult> allPublishedProviderResults,
+            List<PublishedProviderResult> resultsToSave,
+            Reference author,
+            Period fundingPeriod)
+        {
+            List<ProviderVariationError> errors = new List<ProviderVariationError>();
+
+            _logger.Information($"Processing Provider '{providerChange.UpdatedProvider.Id}' when closed with successor but has no existing result. Specifiction '{specification.Id}' and allocation line {allocationLine.Id}");
+
+            // Get previous result for affected provider
+            PublishedProviderResultExisting affectedProviderExistingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.UpdatedProvider.Id
+                && r.AllocationLineId == allocationLine.Id);
+
+            if (affectedProviderExistingResult == null)
+            {
+                _logger.Information($"No existing result for provider {providerChange.UpdatedProvider.Id} and allocation line {allocationLine.Id} to vary. Specification '{specification.Id}'");
+                return (errors, true);
+            }
+
+            if (affectedProviderExistingResult.HasResultBeenVaried)
+            {
+                // Don't apply variation logic to an already varied result
+                _logger.Information($"Result for provider {providerChange.UpdatedProvider.Id} and allocation line {allocationLine.Id} has already been varied. Specification '{specification.Id}'");
+                return (errors, false);
+            }
+
+            // Find profiling periods after the variation date, for the affected provider
+            IEnumerable<ProfilingPeriod> affectedProfilingPeriods = Enumerable.Empty<ProfilingPeriod>();
+            if (!affectedProviderExistingResult.ProfilePeriods.IsNullOrEmpty())
+            {
+                affectedProfilingPeriods = affectedProviderExistingResult.ProfilePeriods.Where(p => p.PeriodDate > specification.VariationDate);
+            }
+
+            if (affectedProfilingPeriods.IsNullOrEmpty())
+            {
+                _logger.Information($"There are no affected profiling periods for the allocation line result {allocationLine.Id} and provider {providerChange.UpdatedProvider.Id}");
+                return (errors, true);
+            }
+
+            // Check for an existing result for the successor
+            PublishedProviderResult successorResult = resultsToSave.FirstOrDefault(r => r.ProviderId == providerChange.SuccessorProviderId
+                && (r.FundingStreamResult.AllocationLineResult.AllocationLine.ProviderLookups != null
+                && r.FundingStreamResult.AllocationLineResult.AllocationLine.ProviderLookups.Any(p => p.ProviderType == providerChange.SuccessorProvider.ProviderType && p.ProviderSubType == providerChange.SuccessorProvider.ProviderSubType)));
+
+            if (successorResult == null)
+            {
+                // If no new result for the successor then create one
+                successorResult = await CreateSuccessorResult(specification, providerChange, author, fundingPeriod);
+
+                _logger.Information($"Creating new result for successor provider {providerChange.UpdatedProvider.Id} and allocation line {allocationLine.Id}. Specification '{specification.Id}'");
+                resultsToSave.Add(successorResult);
+            }
+
+            // Copy info from existing result otherwise they won't be set
+            successorResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = MergeProfilingPeriods(successorResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods, affectedProviderExistingResult.ProfilePeriods);
+            successorResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = MergeFinancialEnvelopes(successorResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes, affectedProviderExistingResult.FinancialEnvelopes);
+
+            decimal affectedProfilingPeriodsTotal = affectedProfilingPeriods.Sum(p => p.Value);
+
+            // As we have moved all the periods from the affected result to the successor result we need to zero out the unaffected profile periods
+            IEnumerable<ProfilingPeriod> unaffectedProfilingPeriods = affectedProviderExistingResult.ProfilePeriods.Except(affectedProfilingPeriods);
+
+            foreach (ProfilingPeriod profilePeriod in unaffectedProfilingPeriods)
+            {
+                ProfilingPeriod successorProfilePeriod = successorResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.FirstOrDefault(p => p.Period == profilePeriod.Period && p.Year == profilePeriod.Year && p.Type == profilePeriod.Type);
+
+                // Zero the unaffected profile period
+                successorProfilePeriod.Value = 0;
+            }
+
+            // Set the allocation total to the sum of the affected profiling periods
+            successorResult.FundingStreamResult.AllocationLineResult.Current.Value += affectedProfilingPeriodsTotal;
+
+            // Set a flag to indicate successor result has been varied
+            successorResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried = true;
+
+            // See if the affected provider has already had a result generated that needs to be saved
+            PublishedProviderResult affectedResult = resultsToSave.FirstOrDefault(r => r.ProviderId == providerChange.UpdatedProvider.Id
+                && r.FundingStreamResult.AllocationLineResult.AllocationLine.Id == allocationLine.Id);
+
+            if (affectedResult == null)
+            {
+                // No new result to save so copy the from the generated version to use as a base
+                affectedResult = allPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.UpdatedProvider.Id
+                    && r.FundingStreamResult.AllocationLineResult.AllocationLine.Id == allocationLine.Id);
+
+                if (affectedResult == null)
+                {
+                    errors.Add(new ProviderVariationError { AllocationLineId = allocationLine.Id, Error = "Could not find/create result for affected provider", UKPRN = providerChange.UpdatedProvider.UKPRN });
+                    return (errors, false);
+                }
+
+                _logger.Information($"Creating new result for affected provider {providerChange.UpdatedProvider.Id} and allocation line {allocationLine.Id}. Specification '{specification.Id}'");
+                resultsToSave.Add(affectedResult);
+            }
+
+            // Have to copy info from existing result otherwise they won't be set
+            CopyPropertiesFromExisitngResult(affectedResult, affectedProviderExistingResult);
+
+            // Zero out the affected profile periods in the affected provider
+            foreach (ProfilingPeriod profilePeriod in affectedProfilingPeriods)
+            {
+                profilePeriod.Value = 0;
+            }
+
+            // Remove the amount in the affected profiling periods from the affected providers allocation total
+            affectedResult.FundingStreamResult.AllocationLineResult.Current.Value -= affectedProfilingPeriodsTotal;
+
+            // Set a flag to indicate result has been varied
+            affectedResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried = true;
+
+            // Concat the predecessor information to the successor
+            PublishedAllocationLineResultVersion currentPublishedAllocationLineResult = successorResult.FundingStreamResult.AllocationLineResult.Current;
+
+            if (currentPublishedAllocationLineResult.Predecessors == null)
+            {
+                currentPublishedAllocationLineResult.Predecessors = Enumerable.Empty<string>();
+            }
+
+            currentPublishedAllocationLineResult.Predecessors = currentPublishedAllocationLineResult.Predecessors.Concat(new[] { providerChange.UpdatedProvider.UKPRN });
+
+            return (errors, true);
+        }
+
         private (IEnumerable<ProviderVariationError> variationErrors, bool canContinue) ProcessProviderClosedWithoutSuccessor(
             ProviderChangeItem providerChange,
             AllocationLine allocationLine,
@@ -397,6 +543,149 @@ namespace CalculateFunding.Services.Results
 
             result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = existingResult.ProfilePeriods.ToArray();
             result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = existingResult.FinancialEnvelopes;
+        }
+
+        private async Task<PublishedProviderResult> CreateSuccessorResult(SpecificationCurrentVersion specification, ProviderChangeItem providerChangeItem, Reference author, Period fundingPeriod)
+        {
+            FundingStream fundingStream = GetFundingStream(specification, providerChangeItem);
+
+            AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(a => a.ProviderLookups.Any(l => l.ProviderType == providerChangeItem.SuccessorProvider.ProviderType && l.ProviderSubType == providerChangeItem.SuccessorProvider.ProviderSubType));
+
+            PublishedProviderResult successorResult = new PublishedProviderResult
+            {
+                FundingPeriod = fundingPeriod,
+                FundingStreamResult = new PublishedFundingStreamResult
+                {
+                    AllocationLineResult = new PublishedAllocationLineResult
+                    {
+                        AllocationLine = allocationLine,
+                        Current = new PublishedAllocationLineResultVersion
+                        {
+                            Author = author,
+                            Calculations = null, // don't set calcs as result hasn't been generated from calculation run
+                            Date = DateTimeOffset.Now,
+                            Provider = providerChangeItem.SuccessorProvider,
+                            ProviderId = providerChangeItem.SuccessorProviderId,
+                            SpecificationId = specification.Id,
+                            Status = AllocationLineStatus.Held,
+                            Value = 0
+                        },
+                        HasResultBeenVaried = true
+                    },
+                    DistributionPeriod = $"{fundingStream.PeriodType.Id}{specification.FundingPeriod.Id}",
+                    FundingStream = fundingStream,
+                    FundingStreamPeriod = $"{fundingStream.Id}{specification.FundingPeriod.Id}"
+                },
+                ProviderId = providerChangeItem.SuccessorProviderId,
+                SpecificationId = specification.Id,
+                Title = $"Allocation {allocationLine.Name} was Held"
+            };
+
+            successorResult.FundingStreamResult.AllocationLineResult.Current.PublishedProviderResultId = successorResult.Id;
+
+            return successorResult;
+        }
+
+        private static FundingStream GetFundingStream(SpecificationCurrentVersion specification, ProviderChangeItem providerChangeItem)
+        {
+            FundingStream fundingStream = specification.FundingStreams.FirstOrDefault(s => s.AllocationLines.Any(a => a.ProviderLookups.Any(l => l.ProviderType == providerChangeItem.SuccessorProvider.ProviderType && l.ProviderSubType == providerChangeItem.SuccessorProvider.ProviderSubType)));
+
+            if (fundingStream == null)
+            {
+                throw new NonRetriableException($"Could not find funding stream with matching provider type '{providerChangeItem.SuccessorProvider.ProviderType}' and subtype '{providerChangeItem.SuccessorProvider.ProviderSubType} for specification '{specification.Id}'");
+            }
+
+            return fundingStream;
+        }
+
+        private async Task<Period> GetFundingPeriod(SpecificationCurrentVersion specification)
+        {
+            Period fundingPeriod = await _specificationsRepository.GetFundingPeriodById(specification.FundingPeriod.Id);
+
+            if (fundingPeriod == null)
+            {
+                throw new NonRetriableException($"Failed to find a funding period for id: {specification.FundingPeriod.Id}");
+            }
+
+            return fundingPeriod;
+        }
+
+        private IEnumerable<ProfilingPeriod> MergeProfilingPeriods(IEnumerable<ProfilingPeriod> lhs, IEnumerable<ProfilingPeriod> rhs)
+        {
+            if (lhs.IsNullOrEmpty())
+            {
+                return DuplicateEnumerable(rhs);
+            }
+
+            List<ProfilingPeriod> list = new List<ProfilingPeriod>(lhs);
+            JsonSerializerSettings deserialiseSettings = new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace };
+
+            foreach (ProfilingPeriod item in rhs)
+            {
+                ProfilingPeriod foundItem = lhs.FirstOrDefault(p => p.PeriodDate == item.PeriodDate && p.Type == item.Type && p.DistributionPeriod == item.DistributionPeriod);
+
+                if (foundItem == null)
+                {
+                    ProfilingPeriod clone = JsonConvert.DeserializeObject<ProfilingPeriod>(JsonConvert.SerializeObject(item), deserialiseSettings);
+
+                    list.Add(clone);
+                }
+                else
+                {
+                    foundItem.Value += item.Value;
+                }
+            }
+
+            return list;
+        }
+
+        private IEnumerable<FinancialEnvelope> MergeFinancialEnvelopes(IEnumerable<FinancialEnvelope> lhs, IEnumerable<FinancialEnvelope> rhs)
+        {
+            if (lhs.IsNullOrEmpty())
+            {
+                return DuplicateEnumerable(rhs);
+            }
+
+            List<FinancialEnvelope> list = new List<FinancialEnvelope>(lhs);
+            JsonSerializerSettings deserialiseSettings = new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace };
+
+            foreach (FinancialEnvelope item in rhs)
+            {
+                FinancialEnvelope foundItem = lhs.FirstOrDefault(e => e.StartDate == item.StartDate && e.EndDate == item.EndDate);
+
+                if (foundItem == null)
+                {
+                    FinancialEnvelope clone = JsonConvert.DeserializeObject<FinancialEnvelope>(JsonConvert.SerializeObject(item), deserialiseSettings);
+
+                    list.Add(clone);
+                }
+                else
+                {
+                    foundItem.Value += item.Value;
+                }
+            }
+
+            return list;
+        }
+
+        private IEnumerable<T> DuplicateEnumerable<T>(IEnumerable<T> source)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            List<T> list = new List<T>();
+            JsonSerializerSettings deserialiseSettings = new JsonSerializerSettings { ObjectCreationHandling = ObjectCreationHandling.Replace };
+
+            foreach (T item in source)
+            {
+                T clone = JsonConvert.DeserializeObject<T>(JsonConvert.SerializeObject(item), deserialiseSettings);
+
+                list.Add(clone);
+            }
+
+            return list;
         }
     }
 }

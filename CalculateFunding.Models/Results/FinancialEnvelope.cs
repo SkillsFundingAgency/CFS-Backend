@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
@@ -19,5 +20,23 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("value")]
         public decimal Value { get; set; }
+
+        [JsonIgnore]
+        public DateTime StartDate
+        {
+            get
+            {
+                return DateTime.Parse($"1 {MonthStart} {YearStart}");
+            }
+        }
+
+        [JsonIgnore]
+        public DateTime EndDate
+        {
+            get
+            {
+                return DateTime.Parse($"1 {MonthEnd} {YearEnd}");
+            }
+        }
     }
 }

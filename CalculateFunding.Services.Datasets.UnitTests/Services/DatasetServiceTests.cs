@@ -1065,7 +1065,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Version = 1,
                 Author = new Reference("authorId", "Author Name"),
                 BlobName = "file/name.xlsx",
-                Commment = "My update comment",
+                Comment = "My update comment",
                 Date = new DateTime(2018, 12, 1, 3, 4, 5),
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
             };
@@ -1144,7 +1144,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Version = 1,
                 Author = new Reference("authorId", "Author Name"),
                 BlobName = "file/name.xlsx",
-                Commment = "My update comment",
+                Comment = "My update comment",
                 Date = new DateTime(2018, 12, 1, 3, 4, 5),
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
             };
@@ -1154,7 +1154,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Version = 2,
                 Author = new Reference("authorId2", "Author Name Two"),
                 BlobName = "file/name2.xlsx",
-                Commment = "My update comment for second",
+                Comment = "My update comment for second",
                 Date = new DateTime(2018, 12, 1, 3, 2, 2),
                 PublishStatus = Models.Versioning.PublishStatus.Draft,
             };

@@ -53,12 +53,14 @@ namespace CalculateFunding.Services.Results.Services
             IProviderVariationsService providerVariationsService = null,
             IProviderVariationsStorageRepository providerVariationsStorageRepository = null)
         {
+            ISpecificationsRepository specsRepo = specificationsRepository ?? CreateSpecificationsRepository();
+
             return new PublishedResultsService(
                 logger ?? CreateLogger(),
                 mapper ?? CreateMapper(),
                 telemetry ?? CreateTelemetry(),
                 resultsRepository ?? CreateResultsRepository(),
-                specificationsRepository ?? CreateSpecificationsRepository(),
+                specsRepo,
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
                 publishedProviderResultsAssemblerService ?? CreateResultsAssembler(),
                 publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository(),
@@ -73,7 +75,7 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings(),
                 providerChangesRepository ?? CreateProviderChangesRepository(),
                 publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
-                providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService()),
+                providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService(), specsRepo),
                 providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository()
                 );
         }
@@ -83,10 +85,11 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<IProviderVariationsStorageRepository>();
         }
 
-        static IProviderVariationsService CreateProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ILogger logger = null)
+        static IProviderVariationsService CreateProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ISpecificationsRepository specificationsRepository, ILogger logger = null)
         {
             return new ProviderVariationsService(
                 providerVariationAssemblerService,
+                specificationsRepository,
                 logger ?? CreateLogger()
                 );
         }

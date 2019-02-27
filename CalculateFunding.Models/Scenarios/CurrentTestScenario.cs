@@ -16,7 +16,7 @@ namespace CalculateFunding.Models.Scenarios
 
         public Reference Author { get; set; }
 
-        public string Commment { get; set; }
+        public string Comment { get; set; }
 
         public PublishStatus PublishStatus { get; set; }
 

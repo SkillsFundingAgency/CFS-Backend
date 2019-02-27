@@ -156,7 +156,7 @@ namespace CalculateFunding.Api.External.V2.Services
                        Status = m.Status.ToString(),
                        Date = m.Date,
                        Author = m.Author.Name,
-                       Comment = m.Commment,
+                       Comment = m.Comment,
                        AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Major : 0,
                        AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Minor : 0,
                    }
