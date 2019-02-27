@@ -14,6 +14,7 @@ namespace CalculateFunding.Api.Results.Controllers
         private readonly IPublishedResultsService _publishedResultsService;
         private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
 
         public ResultsController(
 			 IResultsService resultsService,
@@ -21,7 +22,8 @@ namespace CalculateFunding.Api.Results.Controllers
              ICalculationProviderResultsSearchService calculationProviderResultsSearchService,
              IPublishedResultsService publishedResultsService,
              IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
-             IFeatureToggle featureToggle)
+             IFeatureToggle featureToggle,
+             IProviderCalculationResultsReIndexerService providerCalculationResultsReIndexerService)
 		{
 			Guard.ArgumentNotNull(resultsSearchService, nameof(resultsSearchService));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
@@ -29,6 +31,7 @@ namespace CalculateFunding.Api.Results.Controllers
             Guard.ArgumentNotNull(publishedResultsService, nameof(publishedResultsService));
             Guard.ArgumentNotNull(providerCalculationResultsSearchService, nameof(providerCalculationResultsSearchService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(providerCalculationResultsReIndexerService, nameof(providerCalculationResultsReIndexerService));
 
             _resultsSearchService = resultsSearchService; 
             _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
@@ -36,6 +39,7 @@ namespace CalculateFunding.Api.Results.Controllers
             _resultsService = resultsService;
             _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
             _featureToggle = featureToggle;
+            _providerCalculationResultsReIndexerService = providerCalculationResultsReIndexerService;
         }
 
 		[Route("api/results/providers-search")]
@@ -190,6 +194,13 @@ namespace CalculateFunding.Api.Results.Controllers
         public async Task<IActionResult> MigratePublishedCalculationResults()
         {
             return await _publishedResultsService.MigratePublishedCalculationResults(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/results/reindex/calculation-results")]
+        [HttpGet]
+        public async Task<IActionResult> ReIndexCalulationResults()
+        {
+            return await _providerCalculationResultsReIndexerService.ReIndex();
         }
     }
 }

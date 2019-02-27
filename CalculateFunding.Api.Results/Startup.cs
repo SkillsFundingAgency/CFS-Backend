@@ -173,6 +173,8 @@ namespace CalculateFunding.Api.Results
                 return new ProviderChangesRepository(resultsRepostory, logger);
             });
 
+            builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
+
             builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
 
             builder
