@@ -17,6 +17,7 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -187,6 +188,7 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddEngineSettings(config);
 
+            builder.AddApplicationInsights(config, "CalculateFunding.Functions.Calcs");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Calcs");
             builder.AddLogging("CalculateFunding.Functions.Calcs");
             builder.AddTelemetry();

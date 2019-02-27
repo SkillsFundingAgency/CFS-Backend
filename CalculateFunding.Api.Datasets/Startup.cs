@@ -10,6 +10,7 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -212,6 +213,7 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddFeatureToggling(Configuration);
 
+            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Datasets");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Datasets");
             builder.AddLogging("CalculateFunding.Api.Datasets");
             builder.AddTelemetry();

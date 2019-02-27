@@ -1,14 +1,16 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.TestEngine.Interfaces;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
@@ -17,7 +19,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Bulkhead;
-using CalculateFunding.Services.TestEngine.Interfaces;
 
 namespace CalculateFunding.Functions.TestEngine
 {
@@ -139,9 +140,9 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.TestRunner");
-
-            builder.AddLogging("CalculateFunding.Functions.TestRunner");
+            builder.AddApplicationInsights(config, "CalculateFunding.Functions.TestEngine");
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.TestEngine");
+            builder.AddLogging("CalculateFunding.Functions.TestEngine");
 
             builder.AddTelemetry();
 

@@ -11,6 +11,7 @@ using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
@@ -127,6 +128,8 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddServiceBus(config);
 
             builder.AddCaching(config);
+
+            builder.AddApplicationInsights(config, "CalculateFunding.Functions.CalcEngine");
 
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.CalcEngine");
 

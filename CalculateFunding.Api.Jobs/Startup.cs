@@ -5,6 +5,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
@@ -114,6 +115,7 @@ namespace CalculateFunding.Api.Jobs
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 
+            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Jobs");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Jobs");
             builder.AddLogging("CalculateFunding.Api.Jobs");
             builder.AddTelemetry();

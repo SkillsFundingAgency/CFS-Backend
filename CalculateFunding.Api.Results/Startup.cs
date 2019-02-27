@@ -8,6 +8,7 @@ using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -216,6 +217,7 @@ namespace CalculateFunding.Api.Results
 
             builder.AddCaching(Configuration);
 
+            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Results");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Results");
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();

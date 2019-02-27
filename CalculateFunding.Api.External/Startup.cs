@@ -13,6 +13,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -341,6 +342,7 @@ namespace CalculateFunding.Api.External
 
             builder.AddCaching(Configuration);
 
+            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.External");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");
             builder.AddLogging("CalculateFunding.Api.External");
             builder.AddTelemetry();

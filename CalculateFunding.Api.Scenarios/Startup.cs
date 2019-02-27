@@ -5,6 +5,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -93,7 +94,7 @@ namespace CalculateFunding.Api.Scenarios
 
                 return new VersionRepository<TestScenarioVersion>(resultsRepostory);
             });
-           
+
             builder
               .AddSingleton<ICalcsRepository, CalcsRepository>();
 
@@ -118,10 +119,9 @@ namespace CalculateFunding.Api.Scenarios
 
             builder.AddFeatureToggling(Configuration);
 
+            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Scenarios");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Scenarios");
-
             builder.AddLogging("CalculateFunding.Api.Scenarios");
-
             builder.AddTelemetry();
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);

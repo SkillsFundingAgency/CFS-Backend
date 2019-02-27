@@ -3,6 +3,7 @@ using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -94,6 +95,7 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder.AddCaching(config);
 
+            builder.AddApplicationInsights(config, "CalculateFunding.Functions.Scenarios");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Scenarios");
 
             builder.AddLogging("CalculateFunding.Functions.Scenarios");

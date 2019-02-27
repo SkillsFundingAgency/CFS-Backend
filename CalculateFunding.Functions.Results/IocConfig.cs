@@ -14,6 +14,7 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -230,6 +231,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddCaching(config);
 
+            builder.AddApplicationInsights(config, "CalculateFunding.Functions.Results");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Results");
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();

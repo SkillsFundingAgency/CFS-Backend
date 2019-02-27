@@ -5,10 +5,10 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Users;
@@ -134,10 +134,9 @@ namespace CalculateFunding.Api.Users
 
             builder.AddCaching(Configuration);
 
+            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Users");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Users");
-
             builder.AddLogging("CalculateFunding.Api.Users");
-
             builder.AddTelemetry();
 
             builder.AddHttpContextAccessor();

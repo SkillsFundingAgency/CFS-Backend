@@ -5,6 +5,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -138,8 +139,8 @@ namespace CalculateFunding.Functions.Users
 
             builder.AddCaching(config);
 
+            builder.AddApplicationInsights(config, "CalculateFunding.Functions.Users");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Users");
-
             builder.AddLogging("CalculateFunding.Functions.Users");
 
             builder.AddTelemetry();

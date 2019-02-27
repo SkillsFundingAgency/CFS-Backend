@@ -4,6 +4,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Services;
@@ -92,6 +93,7 @@ namespace CalculateFunding.Functions.Specs
 
             builder.AddFeatureToggling(config);
 
+            builder.AddApplicationInsights(config, "CalculateFunding.Functions.Specs");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Specs");
             builder.AddLogging("CalculateFunding.Functions.Specs");
             builder.AddTelemetry();

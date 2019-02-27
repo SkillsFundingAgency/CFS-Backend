@@ -6,10 +6,10 @@ using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Specs;
@@ -132,6 +132,7 @@ namespace CalculateFunding.Api.Specs
                 };
             });
 
+            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Specs");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.Specs");
             builder.AddLogging("CalculateFunding.Apis.Specs");
             builder.AddTelemetry();
