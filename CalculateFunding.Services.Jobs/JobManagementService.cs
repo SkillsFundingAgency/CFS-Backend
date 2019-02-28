@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -31,6 +32,8 @@ namespace CalculateFunding.Services.Jobs
         private readonly ILogger _logger;
         private readonly IValidator<CreateJobValidationModel> _createJobValidator;
         private readonly IMessengerService _messengerService;
+
+        private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         public JobManagementService(
             IJobRepository jobRepository,
@@ -325,17 +328,29 @@ namespace CalculateFunding.Services.Jobs
 
                     if (!childJobs.IsNullOrEmpty() && childJobs.All(j => j.RunningStatus == RunningStatus.Completed))
                     {
-                        Job parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(job.ParentJobId));
+                        await semaphoreSlim.WaitAsync();
 
-                        parentJob.Completed = DateTimeOffset.UtcNow;
-                        parentJob.RunningStatus = RunningStatus.Completed;
-                        parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
-                        parentJob.Outcome = "All child jobs completed";
+                        try
+                        {
+                            Job parentJob = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobById(job.ParentJobId));
 
-                        await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(parentJob));
-                        _logger.Information("Parent Job {ParentJobId} of Completed Job {JobId} has been completed because all child jobs are now complete", job.ParentJobId, jobId);
+                            if (parentJob.RunningStatus != RunningStatus.Completed)
+                            {
+                                parentJob.Completed = DateTimeOffset.UtcNow;
+                                parentJob.RunningStatus = RunningStatus.Completed;
+                                parentJob.CompletionStatus = DetermineCompletionStatus(childJobs);
+                                parentJob.Outcome = "All child jobs completed";
 
-                        await _notificationService.SendNotification(CreateJobNotificationFromJob(parentJob));
+                                await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.UpdateJob(parentJob));
+                                _logger.Information("Parent Job {ParentJobId} of Completed Job {JobId} has been completed because all child jobs are now complete", job.ParentJobId, jobId);
+
+                                await _notificationService.SendNotification(CreateJobNotificationFromJob(parentJob));
+                            }
+                        }
+                        finally
+                        {
+                            semaphoreSlim.Release();
+                        }
                     }
                     else
                     {

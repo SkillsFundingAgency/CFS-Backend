@@ -553,6 +553,10 @@ namespace CalculateFunding.Services.Calcs
 
             if (parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
             {
+                string calculationAggregatesCacheKeyPrefix = $"{CacheKeys.CalculationAggregations}:{parentJob.SpecificationId}";
+
+                await _cacheProvider.RemoveByPatternAsync(calculationAggregatesCacheKeyPrefix);
+
                 IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(parentJob.SpecificationId);
 
                 foreach (Models.Calcs.Calculation calculation in calculations)

@@ -275,6 +275,66 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
+        public async Task ProcessJobCompletion_WhenMultipleVhildJobsCompled_EnsuresOnlyCompletesParentOnce()
+        {
+            // Arrange
+            string parentJobId = "parent123";
+            string jobId1 = "child123";
+            string jobId2 = "child456";
+
+            Job job1 = new Job { Id = jobId1, ParentJobId = parentJobId, CompletionStatus = CompletionStatus.Succeeded, RunningStatus = RunningStatus.Completed };
+
+            Job job2 = new Job { Id = jobId2, ParentJobId = parentJobId, RunningStatus = RunningStatus.Completed };
+
+            Job parentJob = new Job { Id = parentJobId, RunningStatus = RunningStatus.InProgress };
+
+            ILogger logger = CreateLogger();
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .GetJobById(jobId1)
+                .Returns(job1);
+            jobRepository
+                .GetJobById(jobId2)
+                .Returns(job2);
+
+            jobRepository
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJob, new Job { Id = parentJobId, RunningStatus = RunningStatus.Completed });
+
+            jobRepository
+                .GetChildJobsForParent(Arg.Is(parentJobId))
+                .Returns(new List<Job> { job1, job2 });
+
+            INotificationService notificationService = CreateNotificationsService();
+
+            JobManagementService jobManagementService = CreateJobManagementService(jobRepository, logger: logger, notificationService: notificationService);
+
+            JobNotification jobNotification = new JobNotification { JobId = jobId1, RunningStatus = RunningStatus.Completed };
+
+            string json = JsonConvert.SerializeObject(jobNotification);
+
+            Message message1 = new Message(Encoding.UTF8.GetBytes(json));
+            message1.UserProperties["jobId"] = jobId1;
+
+            Message message2 = new Message(Encoding.UTF8.GetBytes(json));
+            message2.UserProperties["jobId"] = jobId2;
+
+            // Act
+            await jobManagementService.ProcessJobCompletion(message1);
+            await jobManagementService.ProcessJobCompletion(message2);
+
+            // Assert
+            await jobRepository
+                    .Received(1)
+                    .UpdateJob(Arg.Is<Job>(j => j.Id == parentJobId && j.RunningStatus == RunningStatus.Completed && j.Completed.HasValue));
+
+            await
+                notificationService
+                    .Received(1)
+                    .SendNotification(Arg.Is<JobNotification>(m => m.JobId == parentJobId));
+        }
+
+        [TestMethod]
         public async Task ProcessJobCompletion_JobHasParentTwoChildrenOnlyBothCompleted_ThenParentCompleted()
         {
             // Arrange

@@ -2183,6 +2183,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CalculationAggregations}:{specificationId}"));
         }
 
         [TestMethod]
@@ -2369,6 +2374,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient
                     .Received(1)
                     .AddJobLog(Arg.Is(parentJobId), Arg.Any<JobLogUpdateModel>());
+
+            await
+               cacheProvider
+                   .Received(1)
+                   .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CalculationAggregations}:{specificationId}"));
         }
 
         [TestMethod]
