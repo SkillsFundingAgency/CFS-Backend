@@ -3380,6 +3380,10 @@
               "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
             },
             {
+              "name": "features:newProviderCalculationResultsIndexEnabled",
+              "value": "[parameters('EnableNewProviderCalculationResultsIndex')]"
+            },
+            {
               "name": "jobsClient:ApiKey",
               "value": "[parameters('ApiKeyJobs')]"
             },
