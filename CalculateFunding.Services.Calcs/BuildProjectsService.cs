@@ -553,7 +553,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
             {
-                string calculationAggregatesCacheKeyPrefix = $"{CacheKeys.CalculationAggregations}:{parentJob.SpecificationId}";
+                string calculationAggregatesCacheKeyPrefix = $"{CacheKeys.CalculationAggregations}{parentJob.SpecificationId}";
 
                 await _cacheProvider.RemoveByPatternAsync(calculationAggregatesCacheKeyPrefix);
 

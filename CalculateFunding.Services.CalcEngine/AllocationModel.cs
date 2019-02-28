@@ -109,7 +109,6 @@ namespace CalculateFunding.Services.Calculator
 
         public IEnumerable<CalculationResult> Execute(List<ProviderSourceDataset> datasets, ProviderSummary providerSummary, IEnumerable<CalculationAggregation> aggregationValues = null)
         {
-         
             HashSet<string> datasetNamesUsed = new HashSet<string>();
             foreach (ProviderSourceDataset dataset in datasets)
             {
@@ -146,7 +145,7 @@ namespace CalculateFunding.Services.Calculator
             providerSetter.SetValue(_instance, provider);
 
 
-            if (aggregationValues != null)
+            if (!aggregationValues.IsNullOrEmpty())
             {
                 PropertyInfo aggregationsSetter = _instance.GetType().GetProperty("Aggregations");
 

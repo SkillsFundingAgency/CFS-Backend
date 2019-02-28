@@ -2187,7 +2187,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 cacheProvider
                     .Received(1)
-                    .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CalculationAggregations}:{specificationId}"));
+                    .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CalculationAggregations}{specificationId}"));
         }
 
         [TestMethod]
@@ -2378,7 +2378,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                cacheProvider
                    .Received(1)
-                   .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CalculationAggregations}:{specificationId}"));
+                   .RemoveByPatternAsync(Arg.Is($"{CacheKeys.CalculationAggregations}{specificationId}"));
         }
 
         [TestMethod]

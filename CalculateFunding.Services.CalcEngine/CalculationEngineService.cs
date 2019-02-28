@@ -525,7 +525,9 @@ namespace CalculateFunding.Services.Calculator
 
                     for (int i = 1; i <= messageProperties.BatchCount; i++)
                     {
-                        Dictionary<string, List<decimal>> cachedCalculationAggregationsPart = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Dictionary<string, List<decimal>>>(messageProperties.CalculationsAggregationsBatchCacheKey));
+                        string batchedCacheKey = $"{CacheKeys.CalculationAggregations}{messageProperties.SpecificationId}_{i}";
+
+                        Dictionary<string, List<decimal>> cachedCalculationAggregationsPart = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Dictionary<string, List<decimal>>>(batchedCacheKey));
 
                         if (!cachedCalculationAggregationsPart.IsNullOrEmpty())
                         {
