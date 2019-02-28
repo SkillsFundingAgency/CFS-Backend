@@ -78,3 +78,10 @@ All operations will return one of the following messages in the event a generic 
 ## What is non breaking change in API (REST)?
 - Introducing additional optional parameters
 - Introducing new attributes in the Data Model
+
+## Changes since V1
+  - Added additional filters to AllocationNotification API
+  - Removal of allocationStatuses from URL of AllocationNotification API (now querystring parameter)
+  - Removed internal versioning (integer versioning) from API - client should now use major and minor versions
+  - Add provider variation details to ProviderSummary. See model documentation for more details.
+  - Added Financial Envelopes to allocation line result APIs

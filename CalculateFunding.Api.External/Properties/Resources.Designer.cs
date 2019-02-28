@@ -100,7 +100,7 @@ namespace CalculateFunding.Api.External.Properties {
         ///		&quot;Name&quot;: &quot;Calculate Funding Service&quot;
         ///	},
         ///	&quot;Updated&quot;: &quot;2018-09-06T08:10:03.4240706+01:00&quot;,
-        ///	&quot;Rights&quot;: &quot;Copyright (C) 2018 Department for Education&quot;,
+        ///	&quot;Rights&quot;: &quot;Copyright (C) 2019 Department for Education&quot;,
         ///	&quot;Link&quot;: [
         ///		{
         ///			&quot;Href&quot;: &quot;https://dummy-url/api/v1/allocations/1?pageRef=1&amp;allocationStatuses=Published&quot;,
@@ -290,7 +290,7 @@ namespace CalculateFunding.Api.External.Properties {
         ///    &quot;Name&quot;: &quot;Calculate Funding Service&quot;
         ///  },
         ///  &quot;Updated&quot;: &quot;2019-01-08T11:18:21.1814346+00:00&quot;,
-        ///  &quot;Rights&quot;: &quot;Copyright (C) 2018 Department for Education&quot;,
+        ///  &quot;Rights&quot;: &quot;Copyright (C) 2019 Department for Education&quot;,
         ///  &quot;Link&quot;: [
         ///    {
         ///      &quot;Href&quot;: &quot;https://dummy-url/api/v2/allocations/notifications/notifications?pageRef=1&quot;,

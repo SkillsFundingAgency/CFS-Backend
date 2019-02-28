@@ -78,7 +78,7 @@ namespace CalculateFunding.Api.External.V2.Services
                     Email = "calculate-funding@education.gov.uk"
                 },
                 Updated = DateTimeOffset.Now,
-                Rights = "Copyright (C) 2018 Department for Education",
+                Rights = "Copyright (C) 2019 Department for Education",
                 Link = searchFeed.GenerateAtomLinksForResultGivenBaseUrl(notificationsUrl).ToList(),
                 AtomEntry = new List<AtomEntry<AllocationModel>>(),
                 IsArchived = searchFeed.IsArchivePage

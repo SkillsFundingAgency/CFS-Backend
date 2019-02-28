@@ -403,7 +403,7 @@
 		"Name": "Calculate Funding Service"
 	},
 	"Updated": "2018-09-06T08:10:03.4240706+01:00",
-	"Rights": "Copyright (C) 2018 Department for Education",
+	"Rights": "Copyright (C) 2019 Department for Education",
 	"Link": [
 		{
 			"Href": "https://dummy-url/api/v1/allocations/1?pageRef=1&amp;allocationStatuses=Published",
@@ -937,7 +937,7 @@
     "Name": "Calculate Funding Service"
   },
   "Updated": "2019-01-08T11:18:21.1814346+00:00",
-  "Rights": "Copyright (C) 2018 Department for Education",
+  "Rights": "Copyright (C) 2019 Department for Education",
   "Link": [
     {
       "Href": "https://dummy-url/api/v2/allocations/notifications/notifications?pageRef=1",

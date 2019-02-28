@@ -91,7 +91,7 @@ namespace CalculateFunding.Api.External.V1.Services
                     Email = "calculate-funding@education.gov.uk"
                 },
                 Updated = DateTimeOffset.Now,
-                Rights = "Copyright (C) 2018 Department for Education",
+                Rights = "Copyright (C) 2019 Department for Education",
                 Link = new List<AtomLink>
                 {
                     new AtomLink(string.Format(notificationsUrl, searchFeed.Self), "self"),
