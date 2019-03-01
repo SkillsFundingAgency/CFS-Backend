@@ -339,7 +339,22 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Returns(build);
+
+            CalculationService service = CreateCalculationService(
+                calculationsRepository: repository, 
+                logger: logger, 
+                searchRepository: searchRepository, 
+                specificationRepository: specificationRepository,
+                sourceCodeService: sourceCodeService);
 
             //Act
             await service.CreateCalculation(message);
@@ -438,7 +453,22 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, searchRepository: searchRepository, specificationRepository: specificationRepository);
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Returns(build);
+
+            CalculationService service = CreateCalculationService(
+                calculationsRepository: repository, 
+                logger: logger, searchRepository: 
+                searchRepository, 
+                specificationRepository: specificationRepository,
+                sourceCodeService: sourceCodeService);
 
             //Act
             await service.CreateCalculation(message);

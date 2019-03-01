@@ -514,9 +514,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Returns(build);
+
             CalculationService service = CreateCalculationService(
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, 
-                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository);
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.UpdateCalculationStatus(request);
@@ -696,9 +706,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Returns(build);
+
             CalculationService service = CreateCalculationService(
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, 
-                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository);
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.UpdateCalculationStatus(request);

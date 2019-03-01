@@ -670,13 +670,10 @@ namespace CalculateFunding.Services.Calcs
             {
                 IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(comparison.SpecificationId));
 
-                string existingFunctionName = VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name);
-                string sourceFieldRegex = $"\\b({existingFunctionName})\\((\\s)*\\)";
-                string newFunctionReplacement = $"{VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name)}()";
-
                 foreach (Calculation calculation in calculations)
                 {
-                    string result = Regex.Replace(calculation.Current.SourceCode, sourceFieldRegex, newFunctionReplacement);
+                    string result = UpdateCalculationReferences(calculation.Current.SourceCode, comparison.Previous.Name, comparison.Current.Name);
+
                     if (result != calculation.Current.SourceCode)
                     {
                         CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
@@ -1151,6 +1148,15 @@ namespace CalculateFunding.Services.Calcs
             return buildproject;
         }
 
+        public static string UpdateCalculationReferences(string sourceCode, string previousCalculationName, string newCalculationName)
+        {
+            string existingFunctionName = VisualBasicTypeGenerator.GenerateIdentifier(previousCalculationName);
+
+            string newFunctionName = VisualBasicTypeGenerator.GenerateIdentifier(newCalculationName);
+
+            return sourceCode.Replace(existingFunctionName, newFunctionName, StringComparison.InvariantCultureIgnoreCase);
+        }
+
         async Task<BuildProject> UpdateBuildProject(string specificationId)
         {
             Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
@@ -1189,10 +1195,12 @@ namespace CalculateFunding.Services.Calcs
             {
                 buildProject.Build = _sourceCodeService.Compile(buildProject, calculations);
 
-                await _sourceCodeService.SaveAssembly(buildProject);
-
                 await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
             }
+
+            await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId);
+
+            await _sourceCodeService.SaveAssembly(buildProject);
 
             return buildProject;
         }

@@ -122,6 +122,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
                 .Returns(calculationVersion);
 
+            BuildProject buildProject = new BuildProject
+            {
+                Build = new Build
+                {
+                    SourceFiles = new List<SourceFile>()
+                }
+            };
+
             // Act
             IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
 

@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task SaveSourceFiles(byte[] zippedContent, string specificationId)
         {
-            ICloudBlob blockBlob = GetBlockBlobReference($"{specificationId}/source.zip");
+            ICloudBlob blockBlob = GetBlockBlobReference($"{specificationId}/source-{specificationId}.zip");
 
             using (MemoryStream memoryStream = new MemoryStream(zippedContent))
             {
