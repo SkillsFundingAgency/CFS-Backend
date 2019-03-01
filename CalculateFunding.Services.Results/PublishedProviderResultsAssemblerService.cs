@@ -136,6 +136,8 @@ namespace CalculateFunding.Services.Results
                                     providerResult.FundingStreamResult.AllocationLineResult.Current.Version =
                                         await _allocationResultsVersionRepository.GetNextVersionNumber(providerResult.FundingStreamResult.AllocationLineResult.Current, existingResult.Version, incrementFromCurrentVersion: true);
 
+                                    providerResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried = existingResult.HasResultBeenVaried;
+
                                     if (existingResult.Status != AllocationLineStatus.Held)
                                     {
                                         providerResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Updated;
@@ -172,13 +174,17 @@ namespace CalculateFunding.Services.Results
             }
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
+            // Need to remove results that have been varied
+            List<PublishedProviderResult> publishedProviderResultsToSaveList = publishedProviderResultsToSave.ToList();
+            publishedProviderResultsToSaveList.RemoveAll(r => r.FundingStreamResult.AllocationLineResult.HasResultBeenVaried);
+
             List<PublishedProviderResultExisting> existingRecordsExclude = new List<PublishedProviderResultExisting>(existingProviderResults.Values.Count);
             foreach (ConcurrentDictionary<string, PublishedProviderResultExisting> existingList in existingProviderResults.Values)
             {
-                existingRecordsExclude.AddRange(existingList.Values);
+                existingRecordsExclude.AddRange(existingList.Values.Where(r => !r.HasResultBeenVaried));
             }
 
-            return (publishedProviderResultsToSave, existingRecordsExclude);
+            return (publishedProviderResultsToSaveList, existingRecordsExclude);
         }
 
         private (Policy policy, Policy parentPolicy, Calculation calculation) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)

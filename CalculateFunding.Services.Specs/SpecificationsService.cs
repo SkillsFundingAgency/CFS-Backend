@@ -554,6 +554,7 @@ namespace CalculateFunding.Services.Specs
             }
 
             await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+            await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
 
             return new NoContentResult();
         }

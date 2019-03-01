@@ -1252,6 +1252,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR03
         public async Task PublishProviderResultsWithVariations_WhenAllocationResultHasNotChangedFromExisting_AndProviderClosedWithSuccessor_ThenAmendProfilePeriodsForBothProviders()
         {
             // Arrange
@@ -1313,9 +1314,9 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, "Alloc 1", new[] { "prov1u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 0, 2, "Alloc 1", new[] { "prov1u" });
         }
 
         [Ignore("Scenario not supported at the moment - needs clarification from BA")]
@@ -1381,12 +1382,13 @@ namespace CalculateFunding.Services.Results.Services
             // Should have a result for the provider and the successor
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, "alloc1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "alloc1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 16, 15, AllocationLineStatus.Held, 2, "alloc1", new[] { "prov1" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 16, 15, AllocationLineStatus.Held, 0, 2, "alloc1", new[] { "prov1" });
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR05 and VAR08
         public async Task PublishProviderResultsWithVariations_WhenProviderDataHasChanged_AndResultNotChanged_ThenAllocationLineMinorVersionUpdated()
         {
             // Arrange
@@ -1479,6 +1481,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR05 and VAR08
         public async Task PublishProviderResultsWithVariations_WhenProviderDataHasChanged_AndResultHasChangedFromExisting_ThenAllocationLineMinorVersionUpdated()
         {
             // Arrange
@@ -1660,6 +1663,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR02
         public async Task PublishProviderResultsWithVariations_WhenProviderHasClosed_AndNoSuccessor_ThenProfileValuesUpdated()
         {
             // Arrange
@@ -1734,6 +1738,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR03
         public async Task PublishProviderResultsWithVariations_WhenMultipleProvidersMergeIntoOneSuccessor_ThenSuccessorVersionOnlyUpdatedOnce()
         {
             // Arrange
@@ -1868,14 +1873,15 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(3);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 0, 2, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 2, "Alloc 1", new[] { "prov1u", "prov2u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 0, 2, "Alloc 1", new[] { "prov1u", "prov2u" });
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR02 and VAR03
         public async Task PublishProviderResultsWithVariations_WhenProviderClosed_ThenNotProfiled()
         {
             // Arrange
@@ -1934,6 +1940,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR16 and VAR17
         public async Task PublishProviderResultsWithVariations_WhenProviderHasNotVaried_ThenNoUpdatesPerfomed()
         {
             // Arrange
@@ -1982,6 +1989,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR03
         public async Task PublishProviderResultsWithVariations_WhenAllocationResultHasNotChangedFromExisting_AndProviderClosedWithSuccessor_ThenCanOnlyBeVariedOnce()
         {
             // Arrange
@@ -2133,12 +2141,13 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, "Alloc 1", new[] { "prov1u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 0, 2, "Alloc 1", new[] { "prov1u" });
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR02
         public async Task PublishProviderResultsWithVariations_WhenProviderHasClosed_AndNoSuccessor_ThenCanOnlyBeVariedOnce()
         {
             // Arrange
@@ -2303,6 +2312,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to all provider variation scenarios
         public async Task PublishProviderResultsWithVariations_WhenRequestIsToChoose_ThenNoVariationsProcessed()
         {
             // Arrange
@@ -2350,6 +2360,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR03
         public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor_AndSuccessorNotFound_ThenRefreshFails()
         {
             // Arrange
@@ -2409,6 +2420,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to all provider variation scenarios
         public async Task PublishProviderResultsWithVariations_WhenProviderVariationAssemblerThrowsException_ThenRefreshFails()
         {
             // Arrange
@@ -2452,6 +2464,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR03
         public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor_AndAffectedProviderHasNoExistingResult_ThenMessageLogged()
         {
             // Arrange
@@ -2535,6 +2548,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR02
         public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithoutSuccessor_AndAffectedProviderHasNoExistingResult_ThenMessageLogged()
         {
             // Arrange
@@ -2615,6 +2629,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR03
         public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor_AndNoResultGenerated_ThenRefreshFails()
         {
             // Arrange
@@ -2681,6 +2696,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR02
         public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithoutSuccessor_AndNoResultGenerated_ThenRefreshFails()
         {
             // Arrange
@@ -2748,6 +2764,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to all provider variation scenarios
         public async Task PublishProviderResults_WhenProviderChangesAreGenerated_ThenChangesAreSaved()
         {
             // Arrange
@@ -2836,6 +2853,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to all provider variation scenarios
         public async Task PublishProviderResults_WhenProviderChangesReturnedAreNull_ThenErrorsReturned()
         {
             // Arrange
@@ -2989,7 +3007,8 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor__AndNoAffectedPeriods_ThenAmendProfilePeriodsForBothProviders()
+        // Applies to provider variation scenario VAR03
+        public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor__AndNoAffectedPeriods_ThenNoResultsSaved()
         {
             // Arrange
             Message message = new Message();
@@ -3042,6 +3061,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to provider variation scenario VAR02
         public async Task PublishProviderResultsWithVariations_WhenProviderHasClosedWithNoSuccessor_AndNoAffectedPeriods_ThenNoResultsSaved()
         {
             // Arrange
@@ -3094,6 +3114,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        // Applies to all provider variation scenario
         public async Task PublishProviderResultsWithVariations_WhenVariationsPresent_AndNoSpecificationVariationDate_ThenRefreshFails()
         {
             // Arrange
@@ -3152,7 +3173,8 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task V_PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewSchool_ThenCreateNewResultForSuccessor()
+        // Applies to provider variation scenario VAR01
+        public async Task PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewSchool_ThenCreateNewResultForSuccessor()
         {
             // Arrange
             Message message = new Message();
@@ -3325,15 +3347,16 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(3);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 1, "Alloc 2", new[] { "prov1u", "prov2u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 0, 1, "Alloc 2", new[] { "prov1u", "prov2u" });
         }
 
         [TestMethod]
-        public async Task V_PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewAcademy_ThenCreateNewResultForSuccessor()
+        // Applies to provider variation scenario VAR04
+        public async Task PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewAcademy_ThenCreateNewResultForSuccessor()
         {
             // Arrange
             Message message = new Message();
@@ -3506,15 +3529,16 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(3);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 1, "Alloc 1", new[] { "prov1u", "prov2u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 0, 1, "Alloc 1", new[] { "prov1u", "prov2u" });
         }
 
         [TestMethod]
-        public async Task V_PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewSchool_AndHaveNoExistingResult_ThenNoActionTaken()
+        // Applies to provider variation scenario VAR21
+        public async Task PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewSchool_AndHaveNoExistingResult_ThenNoActionTaken()
         {
             // Arrange
             Message message = new Message();
@@ -3665,7 +3689,8 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task V_PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewSchool_AndAlreadyVaried_ThenNoActionTaken()
+        // Applies to provider variation scenario VAR21
+        public async Task PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewSchool_AndAlreadyVaried_ThenNoActionTaken()
         {
             // Arrange
             Message message = new Message();
@@ -3843,7 +3868,8 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task V_PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewSchool_AndNoAffectedPeriods_ThenNoActionTaken()
+        // Applies to provider variation scenario VAR21
+        public async Task PublishProviderResultsWithVariations_WhenTwoSchoolsMergeToFormNewSchool_AndNoAffectedPeriods_ThenNoActionTaken()
         {
             // Arrange
             Message message = new Message();
@@ -4019,7 +4045,8 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task V_PublishProviderResultsWithVariations_WhenSchoolClosesAndReOpensAsANewSchool_ThenCreateNewResultForNewSchool()
+        // Applies to provider variation scenario VAR19
+        public async Task PublishProviderResultsWithVariations_WhenSchoolClosesAndReOpensAsANewSchool_ThenCreateNewResultForNewSchool()
         {
             // Arrange
             Message message = new Message();
@@ -4130,13 +4157,14 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 1, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 0, 1, "Alloc 2");
         }
 
         [TestMethod]
-        public async Task V_PublishProviderResultsWithVariations_WhenSchoolClosesAndReOpensAsAcademy_ThenCreateNewResultForAcademy()
+        // Applies to provider variation scenario VAR19
+        public async Task PublishProviderResultsWithVariations_WhenSchoolClosesAndReOpensAsAcademy_ThenCreateNewResultForAcademy()
         {
             // Arrange
             Message message = new Message();
@@ -4247,9 +4275,328 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 1, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 0, 1, "Alloc 1");
+        }
+
+        [TestMethod]
+        // Applies to provider variation scenario VAR19
+        public async Task PublishProviderResultsWithVariations_WhenSchoolClosesAndReOpens_AndOriginalStatusIsPublished_ThenNewResultIsUpdated()
+        {
+            // Arrange
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            DateTimeOffset specVariationDate = DateTimeOffset.Parse("2018-04-30T23:59:59");
+            ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
+
+            List<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult { AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" }, Value = 12 }
+                    },
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
+                            Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
+                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            Value = 12
+                        }
+                    },
+                    Id = "provresult1",
+                    Provider = new ProviderSummary { Id = "prov1" }
+                }
+            };
+
+            ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
+            {
+                new PublishedProviderResultExisting
+                {
+                    AllocationLineId = "alloc2",
+                    Major = 1,
+                    Minor = 0,
+                    ProviderId = "prov1",
+                    Status = AllocationLineStatus.Published,
+                    Value = 12,
+                    Version = 1,
+                    ProfilePeriods = new List<ProfilingPeriod>
+                    {
+                        new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
+                        new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
+                    },
+                    ProviderLookups = new List<ProviderLookup>
+                    {
+                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
+                    }
+                }
+            };
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepository(existingResults);
+
+            IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
+            providerVariationAssembler
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .Returns(new List<ProviderChangeItem>
+                {
+                    new ProviderChangeItem
+                    {
+                        DoesProviderHaveSuccessor = true,
+                        HasProviderClosed = true,
+                        SuccessorProviderId = "prov3",
+                        SuccessorProvider = new ProviderSummary
+                        {
+                            Id = "prov3",
+                            UKPRN = "prov3u",
+                            Status = "Open",
+                            ProviderSubType = "Academy sponsor led",
+                            ProviderType = "Academies"
+                        },
+                        UpdatedProvider = new ProviderSummary
+                        {
+                            Id = "prov1",
+                            UKPRN = "prov1u",
+                            Status = "Closed",
+                            ProviderSubType = "Free schools special",
+                            ProviderType = "Free Schools",
+                            Successor = "prov3"
+                        }
+                    }
+                });
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+
+            // Setup saving results being saved - makes asserting easier
+            IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
+
+            await publishedProviderResultsRepository
+                .SavePublishedResults(Arg.Do<IEnumerable<PublishedProviderResult>>(r => resultsBeingSaved = r));
+
+            // Act
+            await service.PublishProviderResultsWithVariations(message);
+
+            // Assert
+            await publishedProviderResultsRepository
+                .Received(1)
+                .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            // Should have results for both original and successor providers
+            resultsBeingSaved.Should().HaveCount(2);
+
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Updated, 1, 1, "Alloc 2");
+
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 0, 1, "Alloc 1");
+        }
+
+        [TestMethod]
+        // Applies to provider variation scenario VAR03
+        public async Task PublishProviderResultsWithVariations_WhenProviderClosedWithSuccessor_AndOriginalStatusIsPublished_ThenNewResultIsUpdated()
+        {
+            // Arrange
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            DateTimeOffset specVariationDate = DateTimeOffset.Parse("2018-04-30T23:59:59");
+            ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
+
+            List<ProviderResult> providerResults = CreateProviderResults(12, 24);
+
+            ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults(AllocationLineStatus.Published);
+
+            IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
+            providerVariationAssembler
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .Returns(new List<ProviderChangeItem>
+                {
+                    new ProviderChangeItem
+                    {
+                        DoesProviderHaveSuccessor = true,
+                        HasProviderClosed = true,
+                        SuccessorProviderId = "prov2",
+                        UpdatedProvider = new ProviderSummary
+                        {
+                            Id = "prov1",
+                            UKPRN = "prov1u",
+                            Status = "Closed",
+                            ProviderSubType = "Academy sponsor led",
+                            ProviderType = "Academies",
+                            Successor = "prov2"
+                        }
+                    }
+                });
+
+            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+
+            // Setup saving results being saved - makes asserting easier
+            IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
+
+            await publishedProviderResultsRepository
+                .SavePublishedResults(Arg.Do<IEnumerable<PublishedProviderResult>>(r => resultsBeingSaved = r));
+
+            // Act
+            await service.PublishProviderResultsWithVariations(message);
+
+            // Assert
+            await publishedProviderResultsRepository
+                .Received(1)
+                .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            // Should have results for both original and successor providers
+            resultsBeingSaved.Should().HaveCount(2);
+
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Updated, 1, 1, "Alloc 1");
+
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Updated, 1, 1, "Alloc 1", new[] { "prov1u" });
+        }
+
+        [TestMethod]
+        // Applies to provider variation scenario VAR19
+        public async Task PublishProviderResultsWithVariations_WhenSchoolClosesAndReOpensAsAcademy_AndAlreadyVaried_ThenNoActionTaken()
+        {
+            // Arrange
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            DateTimeOffset specVariationDate = DateTimeOffset.Parse("2018-04-30T23:59:59");
+            ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
+
+            List<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult { AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" }, Value = 12 }
+                    },
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
+                            Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
+                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            Value = 12
+                        }
+                    },
+                    Id = "provresult1",
+                    Provider = new ProviderSummary { Id = "prov1" }
+                }
+            };
+
+            ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
+            {
+                new PublishedProviderResultExisting
+                {
+                    AllocationLineId = "alloc2",
+                    Major = 1,
+                    Minor = 0,
+                    ProviderId = "prov1",
+                    Status = AllocationLineStatus.Published,
+                    Value = 7,
+                    Version = 3,
+                    ProfilePeriods = new List<ProfilingPeriod>
+                    {
+                        new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
+                        new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 0, Year = 2019 }
+                    },
+                    ProviderLookups = new List<ProviderLookup>
+                    {
+                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
+                    },
+                    HasResultBeenVaried = true
+                },
+                new PublishedProviderResultExisting
+                {
+                    AllocationLineId = "alloc1",
+                    Major = 0,
+                    Minor = 2,
+                    ProviderId = "prov3",
+                    Status = AllocationLineStatus.Approved,
+                    Value = 5,
+                    Version = 2,
+                    ProfilePeriods = new List<ProfilingPeriod>
+                    {
+                        new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 0, Year = 2018 },
+                        new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
+                    },
+                    ProviderLookups = new List<ProviderLookup>
+                    {
+                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
+                    },
+                    HasResultBeenVaried = true
+                }
+            };
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepository(existingResults);
+
+            IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
+            providerVariationAssembler
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .Returns(new List<ProviderChangeItem>
+                {
+                    new ProviderChangeItem
+                    {
+                        DoesProviderHaveSuccessor = true,
+                        HasProviderClosed = true,
+                        SuccessorProviderId = "prov3",
+                        SuccessorProvider = new ProviderSummary
+                        {
+                            Id = "prov3",
+                            UKPRN = "prov3u",
+                            Status = "Open",
+                            ProviderSubType = "Academy sponsor led",
+                            ProviderType = "Academies"
+                        },
+                        UpdatedProvider = new ProviderSummary
+                        {
+                            Id = "prov1",
+                            UKPRN = "prov1u",
+                            Status = "Closed",
+                            ProviderSubType = "Free schools special",
+                            ProviderType = "Free Schools",
+                            Successor = "prov3"
+                        }
+                    }
+                });
+
+            ILogger logger = CreateLogger();
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+
+            // Act
+            await service.PublishProviderResultsWithVariations(message);
+
+            // Assert
+            await publishedProviderResultsRepository
+                            .DidNotReceive()
+                            .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            logger
+                .Received(1)
+                .Information($"Result for provider prov1 and allocation line alloc2 has already been varied. Specification '{specificationId}'");
         }
 
         private static void AssertProviderAllocationLineCorrect(
@@ -4259,11 +4606,16 @@ namespace CalculateFunding.Services.Results.Services
             decimal expectedValueBeforeVariation,
             decimal expectedValueAfterVariation,
             AllocationLineStatus expectedStatus,
+            int expectedMajorVersion,
             int expectedMinorVersion,
             string expectedAllocationLineName,
             string[] expectedPredecessors = null)
         {
             PublishedProviderResult provResult = resultsToSave.FirstOrDefault(r => r.ProviderId == providerId);
+
+            provResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried
+                .Should()
+                .BeTrue("The result should have been varied");
 
             // The profile periods before the variation date should match the expected value
             provResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Where(p => p.PeriodDate < specVariationDate)
@@ -4283,6 +4635,10 @@ namespace CalculateFunding.Services.Results.Services
             provResult.FundingStreamResult.AllocationLineResult.Current.Status
                 .Should()
                 .Be(expectedStatus, "Allocation Status");
+
+            provResult.FundingStreamResult.AllocationLineResult.Current.Major
+                .Should()
+                .Be(expectedMajorVersion, "Major version");
 
             provResult.FundingStreamResult.AllocationLineResult.Current.Minor
                 .Should()
@@ -4322,17 +4678,17 @@ namespace CalculateFunding.Services.Results.Services
                 cacheProvider: cacheProvider ?? CreateCacheProvider());
         }
 
-        private static IPublishedProviderResultsRepository InitialisePublishedProviderResultsRepositoryWithExistingResults()
+        private static IPublishedProviderResultsRepository InitialisePublishedProviderResultsRepositoryWithExistingResults(AllocationLineStatus status = AllocationLineStatus.Held)
         {
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
                 new PublishedProviderResultExisting
                 {
                     AllocationLineId = "alloc1",
-                    Major = 0,
-                    Minor = 1,
+                    Major = status == AllocationLineStatus.Held ? 0 : 1,
+                    Minor = status == AllocationLineStatus.Held ? 1 : 0,
                     ProviderId = "prov1",
-                    Status = AllocationLineStatus.Held,
+                    Status = status,
                     Value = 12,
                     Version = 1,
                     ProfilePeriods = new List<ProfilingPeriod>
@@ -4348,10 +4704,10 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting
                 {
                     AllocationLineId = "alloc1",
-                    Major = 0,
-                    Minor = 1,
+                    Major = status == AllocationLineStatus.Held ? 0 : 1,
+                    Minor = status == AllocationLineStatus.Held ? 1 : 0,
                     ProviderId = "prov2",
-                    Status = AllocationLineStatus.Held,
+                    Status = status,
                     Value = 24,
                     Version = 1,
                     ProfilePeriods = new List<ProfilingPeriod>

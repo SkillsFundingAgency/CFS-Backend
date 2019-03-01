@@ -2738,6 +2738,7 @@ namespace CalculateFunding.Services.Results
 
             if (!publishedProviderResults.IsNullOrEmpty())
             {
+                calculationProgress.NewCount = publishedProviderResults.Count(m => m.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Held);
                 calculationProgress.ApprovedCount = publishedProviderResults.Count(m => m.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Approved);
                 calculationProgress.UpdatedCount = publishedProviderResults.Count(m => m.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Updated);
                 calculationProgress.PublishedCount = publishedProviderResults.Count(m => m.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Published);
