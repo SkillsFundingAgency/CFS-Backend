@@ -229,6 +229,16 @@ namespace CalculateFunding.Services.Calculator
                     }
 
                     totalProviderResults += calculationResults.ProviderResults.Count();
+
+                    if (calculationResults.ResultsContainExceptions)
+                    {
+                        if (_featureToggle.IsJobServiceEnabled())
+                        {
+                            await FailJob(messageProperties.JobId, totalProviderResults, "Exceptions were thrown during generation of calculation results");
+                        }
+
+                        throw new NonRetriableException($"Exceptions were thrown during generation of calculation results for specification Id: '{messageProperties.SpecificationId}'");
+                    }
                 }
 
                 calcTiming.Stop();
@@ -662,6 +672,23 @@ namespace CalculateFunding.Services.Calculator
             _logger.Information($"Message sent for test exceution for specification id {messageProperties.SpecificationId}");
 
             return (saveProviderResultsTimings.saveToCosmosElapsedMs, saveProviderResultsTimings.saveToSearchElapsedMs, saveRedisStopwatch.ElapsedMilliseconds, saveQueueStopwatch.ElapsedMilliseconds);
+        }
+
+        private async Task FailJob(string jobId, int itemsProcessed, string outcome = null)
+        {
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                ItemsProcessed = itemsProcessed,
+                Outcome = outcome
+            };
+
+            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+
+            if (jobLogResponse == null || jobLogResponse.Content == null)
+            {
+                _logger.Error($"Failed to add a job log for job id '{jobId}'");
+            }
         }
     }
 }

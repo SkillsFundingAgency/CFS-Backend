@@ -583,6 +583,233 @@ namespace CalculateFunding.Services.Calculator
         }
 
         [TestMethod]
+        public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnAndCalcyulationResultsContainExcption_ThrowsNoRetriableExceptionEnsuresJobLogsAdded()
+        {
+            //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+            const int stop = partitionIndex + partitionSize - 1;
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId });
+
+            IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
+
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(new List<CalculationResult>());
+
+            calculationEngineServiceTestsHelper
+                .MockCacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
+                .Returns(providerSummaries);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetBuildProjectBySpecificationId(Arg.Any<string>())
+                .Returns(buildProject);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
+                .Returns(MockData.GetMockAssembly());
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModel);
+
+            IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetCalculationSummariesForSpecification(specificationId)
+                .Returns(calculationSummaryModelsReturn);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .GenerateAllocationModel(Arg.Any<Assembly>())
+                .Returns(mockAllocationModel);
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                .Returns(new ProviderResult()
+                {
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            ExceptionMessage = "Exception occurred"
+                        }
+                    }
+                });
+
+            calculationEngineServiceTestsHelper
+                .MockEngineSettings
+                .ProviderBatchSize = 3;
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
+            messageUserProperties.Add("jobId", jobId);
+
+            //Act
+            Func<Task> test = async () => await service.GenerateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<NonRetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Exceptions were thrown during generation of calculation results for specification Id: '{specificationId}'");
+
+            await
+                calculationEngineServiceTestsHelper
+                    .MockJobsApiClient
+                    .Received(1)
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => 
+                        m.CompletedSuccessfully == false &&
+                        m.Outcome == "Exceptions were thrown during generation of calculation results" &&
+                        m.ItemsProcessed == 3));
+        }
+
+        [TestMethod]
+        public void GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnAndCalcyulationResultsContainExcptionButFailsToAddAJobLog_ThrowsNoRetriableExceptionAndLogsError()
+        {
+            //Arrange
+            const string cacheKey = "Cache-key";
+            const string specificationId = "spec1";
+            const int partitionIndex = 0;
+            const int partitionSize = 100;
+            const int stop = partitionIndex + partitionSize - 1;
+            const string jobId = "job-id-1";
+
+            CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
+                new CalculationEngineServiceTestsHelper();
+
+            BuildProject buildProject = CreateBuildProject();
+
+            ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId });
+
+            IList<ProviderSummary> providerSummaries = MockData.GetDummyProviders(20);
+
+            IAllocationModel mockAllocationModel = Substitute.For<IAllocationModel>();
+            mockAllocationModel
+                .Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>())
+                .Returns(new List<CalculationResult>());
+
+            calculationEngineServiceTestsHelper
+                .MockCacheProvider
+                .ListRangeAsync<ProviderSummary>(cacheKey, partitionIndex, stop)
+                .Returns(providerSummaries);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetBuildProjectBySpecificationId(Arg.Any<string>())
+                .Returns(buildProject);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetAssemblyBySpecificationId(Arg.Is(specificationId))
+                .Returns(MockData.GetMockAssembly());
+
+            calculationEngineServiceTestsHelper
+                .FeatureToggle
+                .IsJobServiceEnabled()
+                .Returns(true);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModel);
+
+            calculationEngineServiceTestsHelper
+                .MockJobsApiClient
+                .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m => m.ItemsProcessed == 3))
+                .Returns((ApiResponse<JobLog>)null);
+
+            IList<CalculationSummaryModel> calculationSummaryModelsReturn = CreateDummyCalculationSummaryModels();
+            calculationEngineServiceTestsHelper
+                .MockCalculationRepository
+                .GetCalculationSummariesForSpecification(specificationId)
+                .Returns(calculationSummaryModelsReturn);
+
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .GenerateAllocationModel(Arg.Any<Assembly>())
+                .Returns(mockAllocationModel);
+            calculationEngineServiceTestsHelper
+                .MockCalculationEngine
+                .CalculateProviderResults(mockAllocationModel, buildProject, calculationSummaryModelsReturn,
+                    Arg.Is<ProviderSummary>(summary => providerSummaries.Contains(summary)),
+                    Arg.Any<IEnumerable<ProviderSourceDataset>>(), Arg.Any<IEnumerable<CalculationAggregation>>())
+                .Returns(new ProviderResult()
+                {
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            ExceptionMessage = "Exception occurred"
+                        }
+                    }
+                });
+
+            calculationEngineServiceTestsHelper
+                .MockEngineSettings
+                .ProviderBatchSize = 3;
+
+            CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
+
+            Message message = new Message();
+            IDictionary<string, object> messageUserProperties = message.UserProperties;
+
+            messageUserProperties.Add("provider-summaries-partition-index", partitionIndex);
+            messageUserProperties.Add("provider-summaries-partition-size", partitionSize);
+            messageUserProperties.Add("provider-cache-key", cacheKey);
+            messageUserProperties.Add("specification-id", specificationId);
+            messageUserProperties.Add("ignore-save-provider-results", "true");
+            messageUserProperties.Add("jobId", jobId);
+
+            //Act
+            Func<Task> test = async () => await service.GenerateAllocations(message);
+
+            //Assert
+            test
+                .ShouldThrowExactly<NonRetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Exceptions were thrown during generation of calculation results for specification Id: '{specificationId}'");
+
+            calculationEngineServiceTestsHelper
+                .MockLogger
+                .Received(1)
+                .Error(Arg.Is($"Failed to add a job log for job id '{jobId}'"));
+        }
+
+        [TestMethod]
         public async Task GenerateAllocations_GivenIsJobServiceEnabledSwitcheOnAndMessgeCompletionStatusAlredaySet_LogsDoesntUpdateJobLog()
         {
             //Arrange
