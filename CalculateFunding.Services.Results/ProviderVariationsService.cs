@@ -213,6 +213,8 @@ namespace CalculateFunding.Services.Results
             // Have to copy info from existing result otherwise they won't be set
             CopyPropertiesFromExisitngResult(successorResult, successorExistingResult);
 
+            EnsurePredecessors(successorResult, affectedProviderExistingResult.ProviderId);
+
             decimal affectedProfilingPeriodsTotal = affectedProfilingPeriods.Sum(p => p.Value);
 
             // Move the values from each affected profiling periods from the affected provider to the successor
@@ -271,6 +273,8 @@ namespace CalculateFunding.Services.Results
             // Have to copy info from existing result otherwise they won't be set
             CopyPropertiesFromExisitngResult(affectedResult, affectedProviderExistingResult);
 
+            EnsureProviderUpToDate(affectedResult, providerChange);
+
             // Zero out the affected profile periods in the affected provider
             foreach (ProfilingPeriod profilePeriod in affectedProfilingPeriods)
             {
@@ -283,15 +287,8 @@ namespace CalculateFunding.Services.Results
             // Set a flag to indicate result has been varied
             affectedResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried = true;
 
-            // Concat the predecessor information to the successor
-            PublishedAllocationLineResultVersion currentPublishedAllocationLineResult = successorResult.FundingStreamResult.AllocationLineResult.Current;
-
-            if (currentPublishedAllocationLineResult.Predecessors == null)
-            {
-                currentPublishedAllocationLineResult.Predecessors = Enumerable.Empty<string>();
-            }
-
-            currentPublishedAllocationLineResult.Predecessors = currentPublishedAllocationLineResult.Predecessors.Concat(new[] { providerChange.UpdatedProvider.UKPRN });
+            // Ensure the predecessor information is added to the successor
+            EnsurePredecessors(successorResult, providerChange.UpdatedProvider.UKPRN);
 
             return (errors, true);
         }
@@ -400,6 +397,8 @@ namespace CalculateFunding.Services.Results
             // Have to copy info from existing result otherwise they won't be set
             CopyPropertiesFromExisitngResult(affectedResult, affectedProviderExistingResult);
 
+            EnsureProviderUpToDate(affectedResult, providerChange);
+
             // Zero out the affected profile periods in the affected provider
             foreach (ProfilingPeriod profilePeriod in affectedProfilingPeriods)
             {
@@ -412,15 +411,8 @@ namespace CalculateFunding.Services.Results
             // Set a flag to indicate result has been varied
             affectedResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried = true;
 
-            // Concat the predecessor information to the successor
-            PublishedAllocationLineResultVersion currentPublishedAllocationLineResult = successorResult.FundingStreamResult.AllocationLineResult.Current;
-
-            if (currentPublishedAllocationLineResult.Predecessors == null)
-            {
-                currentPublishedAllocationLineResult.Predecessors = Enumerable.Empty<string>();
-            }
-
-            currentPublishedAllocationLineResult.Predecessors = currentPublishedAllocationLineResult.Predecessors.Concat(new[] { providerChange.UpdatedProvider.UKPRN });
+            // Ensure the predecessor information is added to the successor
+            EnsurePredecessors(successorResult, providerChange.UpdatedProvider.UKPRN);
 
             return (errors, true);
         }
@@ -479,6 +471,8 @@ namespace CalculateFunding.Services.Results
 
             // Have to copy info from existing result otherwise they won't be set
             CopyPropertiesFromExisitngResult(affectedResult, affectedProviderExistingResult);
+
+            EnsureProviderUpToDate(affectedResult, providerChange);
 
             decimal affectedProfilingPeriodsTotal = affectedProfilingPeriods.Sum(p => p.Value);
 
@@ -555,6 +549,24 @@ namespace CalculateFunding.Services.Results
             }
         }
 
+        private void EnsureProviderUpToDate(PublishedProviderResult affectedResult, ProviderChangeItem providerChangeItem)
+        {
+            affectedResult.FundingStreamResult.AllocationLineResult.Current.Provider = providerChangeItem.UpdatedProvider;
+        }
+
+        private void EnsurePredecessors(PublishedProviderResult successorResult, string affectedProviderId)
+        {
+            if (successorResult.FundingStreamResult.AllocationLineResult.Current.Predecessors == null)
+            {
+                successorResult.FundingStreamResult.AllocationLineResult.Current.Predecessors = new List<string>();
+            }
+
+            if (!successorResult.FundingStreamResult.AllocationLineResult.Current.Predecessors.Contains(affectedProviderId))
+            {
+                ((List<string>)successorResult.FundingStreamResult.AllocationLineResult.Current.Predecessors).Add(affectedProviderId);
+            }
+        }
+
         private PublishedProviderResult CreateSuccessorResult(SpecificationCurrentVersion specification, ProviderChangeItem providerChangeItem, Reference author, Period fundingPeriod)
         {
             FundingStream fundingStream = GetFundingStream(specification, providerChangeItem);
@@ -592,6 +604,8 @@ namespace CalculateFunding.Services.Results
             };
 
             successorResult.FundingStreamResult.AllocationLineResult.Current.PublishedProviderResultId = successorResult.Id;
+
+            EnsurePredecessors(successorResult, providerChangeItem.UpdatedProvider.Id);
 
             return successorResult;
         }

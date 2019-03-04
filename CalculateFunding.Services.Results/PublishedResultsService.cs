@@ -2629,10 +2629,15 @@ namespace CalculateFunding.Services.Results
                     ProviderSummary currentProvider = publishedAllocationLineResultVersion.Provider;
 
                     feedIndex.Successors = currentProvider.Successor != null ? new[] { currentProvider.Successor } : null;
-                    feedIndex.VariationReasons = publishedAllocationLineResultVersion.VariationReasons?.Select(vr => vr.ToString()).ToArray();
                     feedIndex.OpenReason = currentProvider.ReasonEstablishmentOpened;
                     feedIndex.CloseReason = currentProvider.ReasonEstablishmentClosed;
                     feedIndex.Predecessors = publishedAllocationLineResultVersion.Predecessors?.ToArray();
+                }
+
+                if (_featureToggle.IsProviderVariationsEnabled())
+                {
+                    PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
+                    feedIndex.VariationReasons = publishedAllocationLineResultVersion.VariationReasons?.Select(vr => vr.ToString()).ToArray();
                 }
 
                 if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
