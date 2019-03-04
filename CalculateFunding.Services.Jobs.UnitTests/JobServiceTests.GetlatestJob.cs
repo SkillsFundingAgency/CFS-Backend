@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentAssertions;
@@ -22,7 +23,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService service = CreateJobService();
 
             // Act
-            Action action = () => service.GetLatestJob(specificationId, null);
+            Func<Task> action = () => service.GetLatestJob(specificationId, null);
 
             // Assert
             action
@@ -35,7 +36,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetLatestJob_WhenNoJobsForSpecification_ReturnNotFoundResult()
+        public async Task GetLatestJob_WhenNoJobsForSpecification_ReturnNotFoundResult()
         {
             // Arrange
             string specificationId = "spec123";
@@ -43,23 +44,22 @@ namespace CalculateFunding.Services.Jobs
             IJobService service = CreateJobService();
 
             // Act
-            IActionResult result = service.GetLatestJob(specificationId, null);
+            IActionResult result = await service.GetLatestJob(specificationId, null);
 
             // Assert
             result.Should().BeOfType<NotFoundResult>();
         }
 
         [TestMethod]
-        public void GetLatestJob_WhenOnlyOneJobForSpecification_ReturnJob()
+        public async Task GetLatestJob_WhenOnlyOneJobForSpecification_ReturnJob()
         {
             // Arrange
             string specificationId = "spec123";
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
-                .GetJobs()
-                .Returns(new List<Job>
-                {
+                .GetLastestJobBySpecificationId(Arg.Is(specificationId))
+                .Returns(
                     new Job
                     {
                         Created = DateTimeOffset.UtcNow.AddHours(-1),
@@ -71,13 +71,12 @@ namespace CalculateFunding.Services.Jobs
                         RunningStatus = RunningStatus.InProgress,
                         SpecificationId = specificationId,
                         Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                    }
-                }.AsQueryable());
+                    });
 
             IJobService service = CreateJobService(jobRepository);
 
             // Act
-            IActionResult result = service.GetLatestJob(specificationId, null);
+            IActionResult result = await service.GetLatestJob(specificationId, null);
 
             // Assert
             OkObjectResult okResult = result
@@ -94,16 +93,17 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetLatestJob_WhenMultipleJobsForSpecification_ReturnLatestJob()
+        public async Task GetLatestJob_WhenSingleJobTypeGiven_ReturnLatestJobOfType()
         {
             // Arrange
             string specificationId = "spec123";
 
+            string jobType = "jobType1";
+
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
-                .GetJobs()
-                .Returns(new List<Job>
-                {
+                .GetLastestJobBySpecificationId(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(m => m.First() == "jobType1"))
+                .Returns(
                     new Job
                     {
                         Created = DateTimeOffset.UtcNow.AddHours(-1),
@@ -115,81 +115,12 @@ namespace CalculateFunding.Services.Jobs
                         RunningStatus = RunningStatus.InProgress,
                         SpecificationId = specificationId,
                         Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                    },
-                    new Job
-                    {
-                        Created = DateTimeOffset.UtcNow.AddHours(-1),
-                        Id = "job2",
-                        InvokerUserDisplayName = "test",
-                        InvokerUserId = "test1",
-                        JobDefinitionId = "jobType1",
-                        LastUpdated = DateTimeOffset.UtcNow.AddMinutes(-20),
-                        RunningStatus = RunningStatus.InProgress,
-                        SpecificationId = specificationId,
-                        Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                    }
-                }.AsQueryable());
+                    });
 
             IJobService service = CreateJobService(jobRepository);
 
             // Act
-            IActionResult result = service.GetLatestJob(specificationId, null);
-
-            // Assert
-            OkObjectResult okResult = result
-                .Should()
-                .BeOfType<OkObjectResult>()
-                .Subject;
-
-            JobSummary summary = okResult.Value
-                .Should()
-                .BeOfType<JobSummary>()
-                .Subject;
-
-            summary.JobId.Should().Be("job2");
-        }
-        
-        [TestMethod]
-        public void GetLatestJob_WhenSingleJobTypeGiven_ReturnLatestJobOfType()
-        {
-            // Arrange
-            string specificationId = "spec123";
-
-            IJobRepository jobRepository = CreateJobRepository();
-            jobRepository
-                .GetJobs()
-                .Returns(new List<Job>
-                {
-                    new Job
-                    {
-                        Created = DateTimeOffset.UtcNow.AddHours(-1),
-                        Id = "job1",
-                        InvokerUserDisplayName = "test",
-                        InvokerUserId = "test1",
-                        JobDefinitionId = "jobType1",
-                        LastUpdated = DateTimeOffset.UtcNow.AddHours(-1),
-                        RunningStatus = RunningStatus.InProgress,
-                        SpecificationId = specificationId,
-                        Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                    },
-                    new Job
-                    {
-                        Created = DateTimeOffset.UtcNow.AddHours(-1),
-                        Id = "job2",
-                        InvokerUserDisplayName = "test",
-                        InvokerUserId = "test1",
-                        JobDefinitionId = "jobType2",
-                        LastUpdated = DateTimeOffset.UtcNow.AddMinutes(-20),
-                        RunningStatus = RunningStatus.InProgress,
-                        SpecificationId = specificationId,
-                        Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                    }
-                }.AsQueryable());
-
-            IJobService service = CreateJobService(jobRepository);
-
-            // Act
-            IActionResult result = service.GetLatestJob(specificationId, "jobType1");
+            IActionResult result = await service.GetLatestJob(specificationId, jobType);
 
             // Assert
             OkObjectResult okResult = result
@@ -206,7 +137,7 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetLatestJob_WhenSingleJobTypeGivenAndNoJobsOfType_ReturnNotFoundResult()
+        public async Task GetLatestJob_WhenSingleJobTypeGivenAndNoJobsOfType_ReturnNotFoundResult()
         {
             // Arrange
             string specificationId = "spec123";
@@ -245,7 +176,7 @@ namespace CalculateFunding.Services.Jobs
             IJobService service = CreateJobService(jobRepository);
 
             // Act
-            IActionResult result = service.GetLatestJob(specificationId, "jobType2");
+            IActionResult result = await service.GetLatestJob(specificationId, "jobType2");
 
             // Assert
             result
@@ -254,20 +185,19 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
-        public void GetLatestJob_WhenMultipleJobTypesGiven_ReturnLatestJobOfGivenTypes()
+        public async Task GetLatestJob_WhenMultipleJobTypesGiven_ReturnLatestJobOfGivenTypes()
         {
             // Arrange
             string specificationId = "spec123";
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
-                .GetJobs()
-                .Returns(new List<Job>
-                {
+                .GetLastestJobBySpecificationId(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(m => m.ElementAt(0) == "jobType1" && m.ElementAt(1) == "jobType2"))
+                .Returns(
                     new Job
                     {
                         Created = DateTimeOffset.UtcNow.AddHours(-1),
-                        Id = "job1",
+                        Id = "job2",
                         InvokerUserDisplayName = "test",
                         InvokerUserId = "test1",
                         JobDefinitionId = "jobType1",
@@ -275,25 +205,12 @@ namespace CalculateFunding.Services.Jobs
                         RunningStatus = RunningStatus.InProgress,
                         SpecificationId = specificationId,
                         Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                    },
-                    new Job
-                    {
-                        Created = DateTimeOffset.UtcNow.AddHours(-1),
-                        Id = "job2",
-                        InvokerUserDisplayName = "test",
-                        InvokerUserId = "test1",
-                        JobDefinitionId = "jobType2",
-                        LastUpdated = DateTimeOffset.UtcNow.AddMinutes(-20),
-                        RunningStatus = RunningStatus.InProgress,
-                        SpecificationId = specificationId,
-                        Trigger = new Trigger { EntityId = "calc1", EntityType = "Calculation", Message = "Calc run started" }
-                    }
-                }.AsQueryable());
+                    });
 
             IJobService service = CreateJobService(jobRepository);
 
             // Act
-            IActionResult result = service.GetLatestJob(specificationId, "jobType1,jobType2");
+            IActionResult result = await service.GetLatestJob(specificationId, "jobType1,jobType2");
 
             // Assert
             OkObjectResult okResult = result

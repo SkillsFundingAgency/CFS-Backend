@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         IActionResult GetJobs(string specificationId, string jobType, string entityId, RunningStatus? runningStatus, CompletionStatus? completionStatus, bool excludeChildJobs, int pageNumber);
 
-        IActionResult GetLatestJob(string specificationId, string jobTypes);
+        Task<IActionResult> GetLatestJob(string specificationId, string jobTypes);
 
         Task<IActionResult> GetJobLogs(string jobId);
 

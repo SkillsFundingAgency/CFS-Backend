@@ -25,5 +25,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         IEnumerable<JobLog> GetJobLogsByJobId(string jobId);
 
         IEnumerable<Job> GetNonCompletedJobs();
+
+        Task<Job> GetLastestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null);
     }
 }

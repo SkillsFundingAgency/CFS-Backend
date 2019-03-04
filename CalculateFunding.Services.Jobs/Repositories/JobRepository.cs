@@ -10,6 +10,7 @@ using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Jobs.Interfaces;
+using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Jobs.Repositories
 {
@@ -110,6 +111,84 @@ namespace CalculateFunding.Services.Jobs.Repositories
             IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => !m.CompletionStatus.HasValue);
 
             return query.AsEnumerable();
+        }
+
+        public async Task<Job> GetLastestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null)
+        {
+            string query = $"select top 1 r.content.id as id, " +
+                           "r.content.jobDefinitionId as jobDefinitionId, " +
+                           "r.content.runningStatus as runningStatus, " +
+                           "r.content.completionStatus as completionStatus, " +
+                           "r.content.invokerUserId as invokeUserId, " +
+                           "r.content.invokerDisplayName as invokerDisplatName, " +
+                           "r.content.itemCount as itemCount, " +
+                           "r.content.specificationId as specificationId, " +
+                           "r.content.trigger.message as triggerMessage, " +
+                           "r.content.trigger.entityId as triggerEntityId, " +
+                           "r.content.trigger.entityType as triggerEntityType, " +
+                           "r.content.parentJobId as parentJobId, " +
+                           "r.content.supersededByJobId as supersededByJobId, " +
+                           "r.content.correlationId as correlationId, " +
+                           "r.content.properties as properties, " +
+                           "r.content.messageBody as messageBody, " +
+                           "r.content.created as created, " +
+                           "r.content.completed as completed, " +
+                           "r.content.outcome as outcome, " +
+                           "r.content.lastUpdated as lastUpdated " +
+                           "from r " +
+                           "where r.documentType = 'Job' " +
+                           "and r.deleted = false " +
+                           "and r.content.specificationId = '" + specificationId + "' ";
+
+            if (!jobDefinitionIds.IsNullOrEmpty())
+            {
+                IList<string> jobDefinitionIdFilters = new List<string>();
+
+                foreach(string jobDefinitionId in jobDefinitionIds)
+                {
+                    jobDefinitionIdFilters.Add($"r.content.jobDefinitionId = '{jobDefinitionId}'");
+                }
+
+                query += $" and ({string.Join(" or ", jobDefinitionIdFilters)})";
+            }
+
+            query += " order by r.content.created desc";
+
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>(query, true, 1);
+
+            dynamic existingResult = existingResults.FirstOrDefault();
+
+            if(existingResult == null)
+            {
+                return null;
+            }
+
+            return new Job
+            {
+                Id = existingResult.id,
+                JobDefinitionId = existingResult.jobDefinitionId,
+                RunningStatus = Enum.Parse(typeof(RunningStatus), existingResult.runningStatus),
+                CompletionStatus = Enum.Parse(typeof(CompletionStatus), existingResult.completionStatus),
+                InvokerUserId = existingResult.invokeUserId,
+                InvokerUserDisplayName = existingResult.invokerDisplatName,
+                ItemCount = existingResult.itemCount,
+                SpecificationId = existingResult.specificationId,
+                Trigger = new Trigger
+                {
+                    Message = existingResult.triggerMessage != null ? existingResult.triggerMessage : "",
+                    EntityId = existingResult.triggerEntityId != null ? existingResult.triggerEntityId : "",
+                    EntityType = existingResult.triggerEntityType != null ? existingResult.triggerEntityType : ""
+                },
+                ParentJobId = existingResult.parentJobId,
+                SupersededByJobId = existingResult.supersededByJobId,
+                CorrelationId = existingResult.correlationId,
+                Properties = existingResult == null ? new Dictionary<string, string>() : ((JObject)existingResult.properties).ToObject<Dictionary<string, string>>(),
+                MessageBody = existingResult.messageBody,
+                Created = (DateTimeOffset)existingResult.created,
+                Completed = (DateTimeOffset?)existingResult.completed,
+                Outcome = existingResult.outcome,
+                LastUpdated = (DateTimeOffset)existingResult.lastUpdated
+            };
         }
     }
 }

@@ -150,29 +150,26 @@ namespace CalculateFunding.Services.Jobs
             return new OkObjectResult(jobQueryResponse);
         }
 
-        public IActionResult GetLatestJob(string specificationId, string jobTypes)
+        public async Task<IActionResult> GetLatestJob(string specificationId, string jobTypes)
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 
-            IQueryable<Job> allJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobs().Where(j => j.SpecificationId == specificationId));
+            string[] jobDefinitionIds = null;
 
             if (!string.IsNullOrEmpty(jobTypes))
             {
-                string[] splitJobTypes = jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-
-                allJobs = allJobs.Where(j => splitJobTypes.Contains(j.JobDefinitionId));
+                jobDefinitionIds = jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
             }
 
-            // Have to order by date in memory as server doesn't support this, hence the .ToList() call
-            Job lastJob = allJobs.ToList().OrderByDescending(j => j.LastUpdated).FirstOrDefault();
-
-            if (lastJob == null)
+            Job job = await _jobRepository.GetLastestJobBySpecificationId(specificationId, jobDefinitionIds);
+  
+            if (job == null)
             {
                 return new NotFoundResult();
             }
             else
             {
-                return new OkObjectResult(_mapper.Map<JobSummary>(lastJob));
+                return new OkObjectResult(_mapper.Map<JobSummary>(job));
             }
         }
 
