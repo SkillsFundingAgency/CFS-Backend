@@ -31,10 +31,10 @@ namespace CalculateFunding.Api.External.V2.Services
             _featureToggle = featureToggle;
         }
 
-        public async Task<IActionResult> GetNotifications(HttpRequest request, int? pageRef, int? startYear = null, int? endYear = null, string[] fundingStreamIds = null, string[] allocationLineIds = null, string[] allocationStatuses = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, int? pageSize = MaxRecords)
+        public async Task<IActionResult> GetNotifications(HttpRequest request, int? pageRef, int? startYear = null, int? endYear = null, string[] fundingStreamIds = null, string[] allocationLineIds = null, IEnumerable<string> allocationStatuses = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, int? pageSize = MaxRecords)
         {
             pageSize = pageSize ?? MaxRecords;
-            string[] statusesArray = allocationStatuses ?? new[] { "Published" };
+            IEnumerable<string> statusesArray = allocationStatuses.IsNullOrEmpty() ? new[] { "Published" } : allocationStatuses;
 
             if (pageRef < 1)
             {

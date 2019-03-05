@@ -64,7 +64,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenInvallidPageSizeOfZero_ReturnsBadRequest()
+        public async Task GetNotifications_GivenInvalidPageSizeOfZero_ReturnsBadRequest()
         {
             //Arrange
             AllocationNotificationFeedsService service = CreateService();
@@ -85,7 +85,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenInvallidPageSizeOfThousand_ReturnsBadRequest()
+        public async Task GetNotifications_GivenInvalidPageSizeOfThousand_ReturnsBadRequest()
         {
             //Arrange
             AllocationNotificationFeedsService service = CreateService();
@@ -583,6 +583,137 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationMinorVersion.Should().Be(0);
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMajorVersion.Should().Be(0);
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMinorVersion.Should().Be(0);
+        }
+
+        [TestMethod]
+        public async Task GetNotifications_GivenNullAllocationStatus_ThenOnlyPublishedStatusRequested()
+        {
+            //Arrange
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("1") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v2/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.QueryString.Returns(new QueryString("?pageRef=1&pageSize=2"));
+            request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
+
+            //Act
+            IActionResult result = await service.GetNotifications(request, pageRef: 1, pageSize: 2, allocationStatuses: null);
+
+            //Assert
+            await feedsSearchService
+                .Received(1)
+                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool?>(),
+                Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("Published")),
+                Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
+        }
+
+        [TestMethod]
+        public async Task GetNotifications_GivenEmptyAllocationStatus_ThenOnlyPublishedStatusRequested()
+        {
+            //Arrange
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("1") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v2/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.QueryString.Returns(new QueryString("?pageRef=1&pageSize=2"));
+            request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
+
+            //Act
+            IActionResult result = await service.GetNotifications(request, pageRef: 1, pageSize: 2, allocationStatuses: new string[0]);
+
+            //Assert
+            await feedsSearchService
+                .Received(1)
+                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool?>(),
+                Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("Published")),
+                Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
+        }
+
+        [TestMethod]
+        public async Task GetNotifications_GivenApprovedAllocationStatus_ThenOnlyApprovedStatusRequested()
+        {
+            //Arrange
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("1") },
+                { "allocationStatuses", new StringValues("Approved") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v2/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.QueryString.Returns(new QueryString("?pageRef=1&pageSize=2&allocationStatuses=Approved"));
+            request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
+
+            //Act
+            IActionResult result = await service.GetNotifications(request, pageRef: 1, pageSize: 2, allocationStatuses: new[] { "Approved" });
+
+            //Assert
+            await feedsSearchService
+                .Received(1)
+                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool?>(), 
+                Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("Approved")), 
+                Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
+
         }
 
         private static AllocationNotificationFeedsService CreateService(IAllocationNotificationsFeedsSearchService searchService = null, IFeatureToggle featureToggle = null)
