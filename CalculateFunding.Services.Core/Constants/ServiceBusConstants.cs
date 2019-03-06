@@ -32,6 +32,10 @@
 
             public const string PublishProviderResults = "publish-provider-results";
 
+            public const string PublishProviderResultsPoisoned = "publish-provider-results/$DeadLetterQueue";
+
+            public const string PublishProviderResultsPoisonedLocal = "publish-provider-results-poison";
+
             public const string FetchProviderProfile = "fetch-provider-profile";
 
             public const string FetchProviderProfilePoisoned = "fetch-provider-profile/$DeadLetterQueue";
