@@ -11,9 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace CalculateFunding.Functions.Jobs.ServiceBus
 {
-    public static class OnJobCompletion
+    public static class OnJobNotification
     {
-        [FunctionName("on-job-completion")]
+        [FunctionName("on-job-notification")]
         public static async Task Run([ServiceBusTrigger(
             ServiceBusConstants.TopicNames.JobNotifications,
             ServiceBusConstants.TopicSubscribers.UpdateJobsOnCompletion,
@@ -30,7 +30,7 @@ namespace CalculateFunding.Functions.Jobs.ServiceBus
                 try
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await jobManagementService.ProcessJobCompletion(message);
+                    await jobManagementService.ProcessJobNotification(message);
                 }
                 catch (Exception exception)
                 {

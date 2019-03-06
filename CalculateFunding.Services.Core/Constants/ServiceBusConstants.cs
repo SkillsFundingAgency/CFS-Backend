@@ -34,6 +34,10 @@
 
             public const string FetchProviderProfile = "fetch-provider-profile";
 
+            public const string FetchProviderProfilePoisoned = "fetch-provider-profile/$DeadLetterQueue";
+
+            public const string FetchProviderProfilePoisonedLocal = "fetch-provider-profile-poison";
+
             public const string MigrateResultVersions = "migrate-result-versions";
 
             public const string MigrateFeedIndexId = "migrate-feed-index-id";

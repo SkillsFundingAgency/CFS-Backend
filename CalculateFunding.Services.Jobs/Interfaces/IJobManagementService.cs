@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         Task SupersedeJob(Job runningJob, Job replacementJob);
         
-        Task ProcessJobCompletion(Message message);
+        Task ProcessJobNotification(Message message);
 
         Task CheckAndProcessTimedOutJobs();
     }

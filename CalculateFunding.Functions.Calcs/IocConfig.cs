@@ -84,61 +84,28 @@ namespace CalculateFunding.Functions.Calcs
 
         static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder
-                .AddSingleton<Services.Calcs.Interfaces.ICalculationsRepository, Services.Calcs.CalculationsRepository>();
-
-            builder
-               .AddSingleton<ICalculationService, CalculationService>();
-
-            builder
-               .AddSingleton<ICalculationsSearchService, CalculationSearchService>();
-
-            builder
-                .AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
-
-            builder
-               .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
-
-            builder
-                .AddSingleton<IPreviewService, PreviewService>();
-
-            builder
-               .AddSingleton<ICompilerFactory, CompilerFactory>();
-
-            builder
-              .AddSingleton<IDatasetRepository, DatasetRepository>();
-
-            builder
-              .AddSingleton<IJobService, JobService>();
-
+            builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
+            builder.AddSingleton<ICalculationService, CalculationService>();
+            builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
+            builder.AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
+            builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
+            builder.AddSingleton<IPreviewService, PreviewService>();
+            builder.AddSingleton<ICompilerFactory, CompilerFactory>();
+            builder.AddSingleton<IDatasetRepository, DatasetRepository>();
+            builder.AddSingleton<IJobService, JobService>();
             builder
                 .AddSingleton<CSharpCompiler>()
                 .AddSingleton<VisualBasicCompiler>()
                 .AddSingleton<VisualBasicSourceFileGenerator>();
-
-            builder
-              .AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
-
-            builder
-               .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
-
-            builder
-                .AddSingleton<Services.Calcs.Interfaces.IProviderResultsRepository, Services.Calcs.ProviderResultsRepository>();
-
-            builder
-               .AddSingleton<ISpecificationRepository, SpecificationRepository>();
-
-            builder
-                .AddSingleton<IBuildProjectsService, BuildProjectsService>();
-
-            builder
-                .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
-
-            builder
-                .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
-
-            builder
-                .AddSingleton<ISourceCodeService, SourceCodeService>();
+            builder.AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
+            builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
+            builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>();
+            builder.AddSingleton<ISpecificationRepository, SpecificationRepository>();
+            builder.AddSingleton<IBuildProjectsService, BuildProjectsService>();
+            builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
+            builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
+            builder.AddSingleton<ISourceCodeService, SourceCodeService>();
+            builder.AddSingleton<IJobHelperService, JobHelperService>();
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
             {
@@ -193,27 +160,28 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddLogging("CalculateFunding.Functions.Calcs");
             builder.AddTelemetry();
 
-            builder.AddPolicySettings(config);
+            PolicySettings policySettings = builder.GetPolicySettings(config);
+            ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
+            builder.AddSingleton<ICalcsResilliencePolicies>(resiliencePolicies);
+            builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
+        }
 
-            builder.AddSingleton<ICalcsResilliencePolicies>((ctx) =>
+        private static ResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
+        {
+            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+            return new ResiliencePolicies
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
-
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
-                return new Services.Calcs.ResiliencePolicies
-                {
-                    CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    CalculationsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
-                    CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
-                };
-            });
+                CalculationsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                CalculationsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                CalculationsVersionsRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+            };
         }
     }
 }

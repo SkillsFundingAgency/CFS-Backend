@@ -295,7 +295,7 @@ namespace CalculateFunding.Services.Jobs
             }
         }
 
-        public async Task ProcessJobCompletion(Message message)
+        public async Task ProcessJobNotification(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
 

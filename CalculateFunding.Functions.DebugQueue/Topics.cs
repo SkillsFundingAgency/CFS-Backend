@@ -47,8 +47,8 @@ namespace CalculateFunding.Functions.DebugQueue
             logger.Info($"C# Queue trigger function processed: {item}");
         }
 
-        [FunctionName("on-job-completion")]
-        public static async Task OnJobCompletion(
+        [FunctionName("on-job-notification")]
+        public static async Task OnJobNotification(
             [QueueTrigger(ServiceBusConstants.TopicNames.JobNotifications, Connection = "AzureConnectionString")] string item,
             [SignalR(HubName = JobConstants.NotificationsHubName)] IAsyncCollector<SignalRMessage> signalRMessages,
             TraceWriter logger)
@@ -64,12 +64,12 @@ namespace CalculateFunding.Functions.DebugQueue
                 }
                 else
                 {
-                    await Jobs.ServiceBus.OnJobCompletion.Run(message);
+                    await Jobs.ServiceBus.OnJobNotification.Run(message);
                 }
             }
             catch (Exception ex)
             {
-                logger.Error("Error while executing Jobs Completion Event", ex);
+                logger.Error("Error while executing Jobs Notification Event", ex);
             }
 
             try

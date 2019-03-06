@@ -179,18 +179,19 @@ namespace CalculateFunding.Services.Results.Services
             IActionResult actionResult = await resultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(request);
 
             //Assert
-            actionResult
+            OkObjectResult okObjectResult = actionResult
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeOfType<OkObjectResult>()
+                .Subject;
 
-            OkObjectResult okObjectResult = actionResult as OkObjectResult;
-
-            IEnumerable<PublishedProviderResultModel> publishedProviderResultModels = okObjectResult.Value as IEnumerable<PublishedProviderResultModel>;
+            IEnumerable<PublishedProviderResultModel> publishedProviderResultModels = okObjectResult.Value
+                .Should()
+                .BeAssignableTo<IEnumerable<PublishedProviderResultModel>>()
+                .Subject;
 
             publishedProviderResultModels
-                .Count()
                 .Should()
-                .Be(1);
+                .HaveCount(1);
 
             publishedProviderResultModels
               .First()
@@ -207,28 +208,24 @@ namespace CalculateFunding.Services.Results.Services
             publishedProviderResultModels
                 .First()
                 .FundingStreamResults
-                .Count()
                 .Should()
-                .Be(2);
+                .HaveCount(2);
 
             publishedProviderResultModels
                 .First()
                 .FundingStreamResults
-                .First()
+                .First(f => f.FundingStreamId == "fs-1")
                 .AllocationLineResults
-                .Count()
                 .Should()
-                .Be(2);
+                .HaveCount(2);
 
             publishedProviderResultModels
                .First()
                .FundingStreamResults
-               .Last()
+               .First(f => f.FundingStreamId == "fs-2")
                .AllocationLineResults
-               .Count()
                .Should()
-               .Be(1);
-
+               .HaveCount(1);
         }
 
         [TestMethod]

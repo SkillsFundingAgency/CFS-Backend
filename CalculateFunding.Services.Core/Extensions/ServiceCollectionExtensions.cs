@@ -446,13 +446,20 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static IServiceCollection AddPolicySettings(this IServiceCollection builder, IConfiguration config)
         {
-            PolicySettings policySettings = new PolicySettings();
-
-            config.Bind("policy", policySettings);
+            PolicySettings policySettings = GetPolicySettings(builder, config);
 
             builder.AddSingleton<PolicySettings>(policySettings);
 
             return builder;
+        }
+
+        public static PolicySettings GetPolicySettings(this IServiceCollection builder, IConfiguration config)
+        {
+            PolicySettings policySettings = new PolicySettings();
+
+            config.Bind("policy", policySettings);
+
+            return policySettings;
         }
 
         public static IFeatureToggle CreateFeatureToggles(this IServiceCollection builder, IConfiguration config)

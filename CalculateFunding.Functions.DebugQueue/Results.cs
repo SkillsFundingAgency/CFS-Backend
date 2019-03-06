@@ -31,6 +31,16 @@ namespace CalculateFunding.Functions.DebugQueue
             log.Info($"C# Queue trigger function processed: {item}");
         }
 
+        [FunctionName("on-fetch-provider-profile-poisoned")]
+        public static async Task RunFetchProviderProfilePoisoned([QueueTrigger(ServiceBusConstants.QueueNames.FetchProviderProfilePoisonedLocal, Connection = "AzureConnectionString")] string item, TraceWriter log)
+        {
+            Message message = Helpers.ConvertToMessage<IEnumerable<FetchProviderProfilingMessageItem>>(item);
+
+            await Functions.Results.ServiceBus.OnFetchProviderProfileFailure.Run(message);
+
+            log.Info($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName("on-migrate-result-versions")]
         public static async Task RunMigrateResultVersions([QueueTrigger(ServiceBusConstants.QueueNames.MigrateResultVersions, Connection = "AzureConnectionString")] string item, TraceWriter log)
         {

@@ -106,6 +106,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IProviderVariationAssemblerService, ProviderVariationAssemblerService>();
             builder.AddSingleton<IProviderVariationsService, ProviderVariationsService>();
             builder.AddSingleton<IProviderService, ProviderService>();
+            builder.AddSingleton<IJobHelperService, JobHelperService>();
 
             builder.AddSingleton<IProviderVariationsStorageRepository, ProviderVariationsStorageRepository>((ctx) =>
             {
@@ -241,8 +242,6 @@ namespace CalculateFunding.Functions.Results
             builder.AddJobsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
 
-            builder.AddPolicySettings(config);
-
             builder.AddFeatureToggling(config);
 
             builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
@@ -305,30 +304,34 @@ namespace CalculateFunding.Functions.Results
                 }
             });
 
-            builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
+            PolicySettings policySettings = builder.GetPolicySettings(config);
+            ResiliencePolicies resultsResiliencePolicies = CreateResiliencePolicies(policySettings);
+
+            builder.AddSingleton<IResultsResilliencePolicies>(resultsResiliencePolicies);
+            builder.AddSingleton<IJobHelperResiliencePolicies>(resultsResiliencePolicies);
+        }
+
+        private static ResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
+        {
+            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+            ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
             {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+                CalculationProviderResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+            };
 
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
-                ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
-                {
-                    CalculationProviderResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
-                    ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                };
-
-                return resiliencePolicies;
-            });
+            return resiliencePolicies;
         }
 
         private static void SetDefaultApiClientConfigurationOptions(HttpClient httpClient, ApiClientConfigurationOptions options, IServiceCollection services)

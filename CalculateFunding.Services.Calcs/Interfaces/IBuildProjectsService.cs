@@ -16,8 +16,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request);
 
-        Task UpdateDeadLetteredJobLog(Message message);
-
         Task<IActionResult> GetAssemblyBySpecificationId(string specificationId);
     }
 }

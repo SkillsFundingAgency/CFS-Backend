@@ -500,53 +500,6 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        public async Task UpdateDeadLetteredJobLog(Message message)
-        {
-            if (!_featureToggle.IsJobServiceEnabled())
-            {
-                return;
-            }
-
-            Guard.ArgumentNotNull(message, nameof(message));
-
-            if (!message.UserProperties.ContainsKey("jobId"))
-            {
-                _logger.Error("Missing job id from dead lettered message");
-                return;
-            }
-
-            string jobId = message.UserProperties["jobId"].ToString();
-
-            Common.ApiClient.Jobs.Models.JobLogUpdateModel jobLogUpdateModel = new Common.ApiClient.Jobs.Models.JobLogUpdateModel
-            {
-                CompletedSuccessfully = false,
-                Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
-            };
-
-            try
-            {
-                ApiResponse<Common.ApiClient.Jobs.Models.JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
-
-                if (jobLogResponse == null || jobLogResponse.Content == null)
-                {
-                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
-                }
-                else
-                {
-                    _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLogResponse.Content.Id}' on job with id '{jobId}' while attempting to instruct allocations");
-                }
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"Failed to add a job log for job id '{jobId}'");
-            }
-        }
-
-        Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject)
-        {
-            return _buildProjectsRepository.UpdateBuildProject(buildProject);
-        }
-
         private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string, string>> jobProperties)
         {
             HashSet<string> calculationsToAggregate = new HashSet<string>();
