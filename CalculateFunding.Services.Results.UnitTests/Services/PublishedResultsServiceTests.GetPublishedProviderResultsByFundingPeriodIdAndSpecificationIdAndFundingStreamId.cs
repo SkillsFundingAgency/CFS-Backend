@@ -191,7 +191,7 @@ namespace CalculateFunding.Services.Results.Services
 
             publishedProviderResultModels
                 .Should()
-                .HaveCount(1);
+                .HaveCount(1, "there should be 1 results");
 
             publishedProviderResultModels
               .First()
@@ -209,7 +209,7 @@ namespace CalculateFunding.Services.Results.Services
                 .First()
                 .FundingStreamResults
                 .Should()
-                .HaveCount(2);
+                .HaveCount(2, "there should be 2 funding stream results");
 
             publishedProviderResultModels
                 .First()
@@ -217,7 +217,7 @@ namespace CalculateFunding.Services.Results.Services
                 .First(f => f.FundingStreamId == "fs-1")
                 .AllocationLineResults
                 .Should()
-                .HaveCount(2);
+                .HaveCount(2, "there should be 2 allocation line results for fs-1");
 
             publishedProviderResultModels
                .First()
@@ -225,7 +225,7 @@ namespace CalculateFunding.Services.Results.Services
                .First(f => f.FundingStreamId == "fs-2")
                .AllocationLineResults
                .Should()
-               .HaveCount(1);
+               .HaveCount(1, "there should be 1 allocation line results for fs-2");
         }
 
         [TestMethod]
