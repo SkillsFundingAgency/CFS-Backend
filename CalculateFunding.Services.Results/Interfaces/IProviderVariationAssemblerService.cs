@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IProviderVariationAssemblerService
     {
-        Task<IEnumerable<ProviderChangeItem>> AssembleProviderVariationItems(IEnumerable<ProviderResult> providerResults, string specificationId);
+        Task<IEnumerable<ProviderChangeItem>> AssembleProviderVariationItems(IEnumerable<ProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults, string specificationId);
     }
 }

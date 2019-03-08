@@ -1273,7 +1273,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -1341,7 +1341,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -1427,7 +1427,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -1520,7 +1520,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -1612,7 +1612,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -1684,7 +1684,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -1819,7 +1819,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -1906,7 +1906,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -1970,7 +1970,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>());
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository);
@@ -2098,7 +2098,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -2256,7 +2256,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -2352,7 +2352,7 @@ namespace CalculateFunding.Services.Results.Services
             // Assert
             await providerVariationAssembler
                 .DidNotReceive()
-                .AssembleProviderVariationItems(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<string>());
+                .AssembleProviderVariationItems(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Any<string>());
 
             logger
                 .Received(1)
@@ -2381,7 +2381,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -2441,7 +2441,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns<Task<IEnumerable<ProviderChangeItem>>>(x => { throw new NonRetriableException("Assembler error"); });
 
             ILogger logger = CreateLogger();
@@ -2507,7 +2507,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -2591,7 +2591,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -2651,7 +2651,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -2718,7 +2718,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -2966,7 +2966,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -3020,7 +3020,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -3072,7 +3072,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -3215,7 +3215,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -3397,7 +3397,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -3550,7 +3550,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -3733,7 +3733,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -3910,7 +3910,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4048,7 +4048,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4166,7 +4166,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4284,7 +4284,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4358,7 +4358,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4492,7 +4492,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4559,7 +4559,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4637,7 +4637,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4789,7 +4789,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem
@@ -4924,7 +4924,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             providerVariationAssembler
-                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Is(specificationId))
+                .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>
                 {
                     new ProviderChangeItem

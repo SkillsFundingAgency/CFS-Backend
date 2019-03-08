@@ -27,10 +27,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -44,13 +41,8 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -62,10 +54,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -87,11 +79,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        Authority = "authority2"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -105,13 +93,13 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = providerId,
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary { Id = providerId, Authority = "authority2" }
+                }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -123,10 +111,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -145,11 +133,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        EstablishmentNumber = "en2"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -163,13 +147,13 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = providerId,
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary { Id = providerId, EstablishmentNumber = "en2" }
+                }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -181,10 +165,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -203,11 +187,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        DfeEstablishmentNumber = "den2"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -221,13 +201,13 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = providerId,
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary { Id = providerId, DfeEstablishmentNumber = "den2" }
+                }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -239,10 +219,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -261,11 +241,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        Name = "name2"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -279,13 +255,13 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = providerId,
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary { Id = providerId, Name = "name2" }
+                }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -297,10 +273,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -319,11 +295,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        LACode = "lac2"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -337,13 +309,13 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = providerId,
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary { Id = providerId, LACode = "lac2" }
+                }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -355,10 +327,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -377,11 +349,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        LegalName = "ln2"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -395,13 +363,13 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = providerId,
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary { Id = providerId, LegalName = "ln2" }
+                }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -413,10 +381,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -435,16 +403,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        Authority = "authority2",
-                        EstablishmentNumber = "en2",
-                        DfeEstablishmentNumber = "den2",
-                        LACode = "lac2",
-                        LegalName = "ln2",
-                        Name = "name2"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -458,13 +417,22 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = providerId,
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary
+                    {
+                        Id = providerId,
+                        Authority = "authority2",
+                        EstablishmentNumber = "en2",
+                        DfeEstablishmentNumber = "den2",
+                        LACode = "lac2",
+                        LegalName = "ln2",
+                        Name = "name2"
+                    }
+                }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -476,10 +444,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -503,10 +471,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -520,13 +485,8 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -538,10 +498,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, specificationId);
+            Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             action.Should().ThrowExactly<NonRetriableException>();
@@ -558,10 +518,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -575,13 +532,8 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -594,10 +546,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -620,27 +572,20 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
                         new AllocationLineResult
                         {
-                            AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "Allocation 1" }
+                            AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "Allocation 1" },
+                            Value = 12
                         }
                     }
                 }
             };
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>();
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -652,10 +597,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -674,6 +619,17 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
+                    Provider = new ProviderSummary { Id = providerId },
+                    SpecificationId = specificationId
+                }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
+            {
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = providerId,
+                    AllocationLineId = "alloc1",
                     Provider = new ProviderSummary
                     {
                         Id = providerId,
@@ -684,20 +640,9 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 }
             };
-
-            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
-            {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
-            };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -709,10 +654,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().BeEmpty();
@@ -728,6 +673,27 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
+                    Provider = new ProviderSummary { Id = "prov1" },
+                    SpecificationId = specificationId
+                },
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = "prov2" },
+                    SpecificationId = specificationId
+                },
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = "prov3" },
+                    SpecificationId = specificationId
+                }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
+            {
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = "prov1",
+                    AllocationLineId = "alloc1",
                     Provider = new ProviderSummary
                     {
                         Id = "prov1",
@@ -738,11 +704,12 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 },
-                new ProviderResult
+                new PublishedProviderResultExisting
                 {
+                    ProviderId = "prov2",
+                    AllocationLineId = "alloc1",
                     Provider = new ProviderSummary
                     {
                         Id = "prov2",
@@ -753,11 +720,12 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 },
-                new ProviderResult
+                new PublishedProviderResultExisting
                 {
+                    ProviderId = "prov3",
+                    AllocationLineId = "alloc1",
                     Provider = new ProviderSummary
                     {
                         Id = "prov3",
@@ -768,22 +736,8 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
-                }
+                    } }
             };
-
-            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
-            {
-                new PublishedProviderResultExisting { ProviderId = "prov1", AllocationLineId = "alloc1" },
-                new PublishedProviderResultExisting { ProviderId = "prov2", AllocationLineId = "alloc1" },
-                new PublishedProviderResultExisting { ProviderId = "prov3", AllocationLineId = "alloc1" }
-            };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -797,10 +751,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().BeEmpty();
@@ -816,6 +770,27 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
+                    Provider = new ProviderSummary { Id = "prov1" },
+                    SpecificationId = specificationId
+                },
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = "prov2" },
+                    SpecificationId = specificationId
+                },
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = "prov3" },
+                    SpecificationId = specificationId
+                }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
+            {
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = "prov1",
+                    AllocationLineId = "alloc1",
                     Provider = new ProviderSummary
                     {
                         Id = "prov1",
@@ -826,11 +801,12 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 },
-                new ProviderResult
+                new PublishedProviderResultExisting
                 {
+                    ProviderId = "prov2",
+                    AllocationLineId = "alloc1",
                     Provider = new ProviderSummary
                     {
                         Id = "prov2",
@@ -841,11 +817,12 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 },
-                new ProviderResult
+                new PublishedProviderResultExisting
                 {
+                    ProviderId = "prov3",
+                    AllocationLineId = "alloc1",
                     Provider = new ProviderSummary
                     {
                         Id = "prov3",
@@ -856,22 +833,9 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 }
             };
-
-            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
-            {
-                new PublishedProviderResultExisting { ProviderId = "prov1", AllocationLineId = "alloc1" },
-                new PublishedProviderResultExisting { ProviderId = "prov2", AllocationLineId = "alloc1" },
-                new PublishedProviderResultExisting { ProviderId = "prov3", AllocationLineId = "alloc1" }
-            };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -885,10 +849,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -903,8 +867,17 @@ namespace CalculateFunding.Services.Results.Services
 
             List<ProviderResult> providerResults = new List<ProviderResult>
             {
-                new ProviderResult
+                new ProviderResult { Provider = new ProviderSummary { Id = "prov1" }, SpecificationId = specificationId },
+                new ProviderResult { Provider = new ProviderSummary { Id = "prov2" }, SpecificationId = specificationId },
+                new ProviderResult { Provider = new ProviderSummary { Id = "prov3" }, SpecificationId = specificationId }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
+            {
+                new PublishedProviderResultExisting
                 {
+                    AllocationLineId = "alloc1",
+                    ProviderId = "prov1",
                     Provider = new ProviderSummary
                     {
                         Id = "prov1",
@@ -915,11 +888,12 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 },
-                new ProviderResult
+                new PublishedProviderResultExisting
                 {
+                    AllocationLineId = "alloc1",
+                    ProviderId = "prov2",
                     Provider = new ProviderSummary
                     {
                         Id = "prov2",
@@ -930,11 +904,12 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 },
-                new ProviderResult
+                new PublishedProviderResultExisting
                 {
+                    AllocationLineId = "alloc1",
+                    ProviderId = "prov3",
                     Provider = new ProviderSummary
                     {
                         Id = "prov3",
@@ -945,22 +920,9 @@ namespace CalculateFunding.Services.Results.Services
                         LegalName = "ln",
                         Name = "name",
                         Status = "Open"
-                    },
-                    SpecificationId = specificationId
+                    }
                 }
             };
-
-            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
-            {
-                new PublishedProviderResultExisting { ProviderId = "prov1", AllocationLineId = "alloc1" },
-                new PublishedProviderResultExisting { ProviderId = "prov2", AllocationLineId = "alloc1" },
-                new PublishedProviderResultExisting { ProviderId = "prov3", AllocationLineId = "alloc1" }
-            };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -974,10 +936,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(3);
@@ -997,60 +959,25 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        Authority = "authority2",
-                        DfeEstablishmentNumber = "den",
-                        EstablishmentNumber = "en",
-                        LACode = "lac",
-                        LegalName = "ln",
-                        Name = "name",
-                        Status = "Open"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId
                 },
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        Authority = "authority2",
-                        DfeEstablishmentNumber = "den",
-                        EstablishmentNumber = "en",
-                        LACode = "lac",
-                        LegalName = "ln",
-                        Name = "name",
-                        Status = "Open"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId
                 },
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        Authority = "authority2",
-                        DfeEstablishmentNumber = "den",
-                        EstablishmentNumber = "en",
-                        LACode = "lac",
-                        LegalName = "ln",
-                        Name = "name",
-                        Status = "Open"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId
                 }
             };
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId }, }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>
             {
@@ -1062,10 +989,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, specificationId);
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             results.Should().HaveCount(1);
@@ -1082,16 +1009,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new ProviderResult
                 {
-                    Provider = new ProviderSummary
-                    {
-                        Id = providerId,
-                        Authority = "authority2",
-                        EstablishmentNumber = "en2",
-                        DfeEstablishmentNumber = "den2",
-                        LACode = "lac2",
-                        LegalName = "ln2",
-                        Name = "name2"
-                    },
+                    Provider = new ProviderSummary { Id = providerId },
                     SpecificationId = specificationId,
                     AllocationLineResults = new List<AllocationLineResult>
                     {
@@ -1105,13 +1023,8 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
             {
-                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } }
             };
-
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
 
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>()
             {
@@ -1123,10 +1036,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, specificationId);
+            Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             action
@@ -1175,11 +1088,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
             };
 
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository
-                .GetExistingPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
-                .Returns(existingPublishedResults);
-
             List<ProviderSummary> coreProviderData = new List<ProviderSummary>();
 
             IProviderService providerService = CreateProviderService();
@@ -1187,10 +1095,10 @@ namespace CalculateFunding.Services.Results.Services
                 .FetchCoreProviderData()
                 .Returns(coreProviderData);
 
-            IProviderVariationAssemblerService service = CreateService(publishedProviderResultsRepository, providerService);
+            IProviderVariationAssemblerService service = CreateService(providerService);
 
             // Act
-            Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, specificationId);
+            Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
 
             // Assert
             action
@@ -1202,21 +1110,59 @@ namespace CalculateFunding.Services.Results.Services
                 .Be("Failed to retrieve core provider data");
         }
 
-        private IProviderVariationAssemblerService CreateService(IPublishedProviderResultsRepository publishedProviderResultsRepository = null, IProviderService providerService = null)
+        [TestMethod]
+        public async Task GivenNoExistingResultBecauseExcluded_ThenNoVariationReturned()
         {
-            return new ProviderVariationAssemblerService(
-                publishedProviderResultsRepository ?? CreatePublishedProviderResultsRepository(),
-                providerService ?? CreateProviderService());
+            // Arrange
+            string providerId = "prov1";
+            string specificationId = "spec123";
+
+            List<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = providerId },
+                    SpecificationId = specificationId,
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "Allocation 1" },
+                            Value = null // excluded
+                        }
+                    }
+                }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>();
+
+            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            {
+                new ProviderSummary { Id = providerId, ReasonEstablishmentOpened = "Test opened reason" }
+            };
+
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
+                .Returns(coreProviderData);
+
+            IProviderVariationAssemblerService service = CreateService(providerService);
+
+            // Act
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
+
+            // Assert
+            results.Should().BeEmpty("Excluded results should not cause an open variation to be produced");
+        }
+
+        private IProviderVariationAssemblerService CreateService(IProviderService providerService = null)
+        {
+            return new ProviderVariationAssemblerService(providerService ?? CreateProviderService());
         }
 
         private IProviderService CreateProviderService()
         {
             return Substitute.For<IProviderService>();
-        }
-
-        private IPublishedProviderResultsRepository CreatePublishedProviderResultsRepository()
-        {
-            return Substitute.For<IPublishedProviderResultsRepository>();
         }
     }
 }

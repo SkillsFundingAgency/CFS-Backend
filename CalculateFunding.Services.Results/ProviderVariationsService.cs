@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Results
                 IEnumerable<ProviderChangeItem> providerVariations;
                 try
                 {
-                    providerVariations = await _providerVariationAssemblerService.AssembleProviderVariationItems(providerResults, specification.Id);
+                    providerVariations = await _providerVariationAssemblerService.AssembleProviderVariationItems(providerResults, existingPublishedProviderResults, specification.Id);
 
                     if (providerVariations.AnyWithNullCheck() && !specification.VariationDate.HasValue)
                     {

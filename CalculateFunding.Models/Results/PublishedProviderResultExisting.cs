@@ -16,6 +16,8 @@ namespace CalculateFunding.Models.Results
 
         public string ProviderId { get; set; }
 
+        public ProviderSummary Provider { get; set; }
+
         public int Minor { get; set; }
 
         public int Major { get; set; }

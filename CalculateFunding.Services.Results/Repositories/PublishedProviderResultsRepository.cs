@@ -133,7 +133,8 @@ namespace CalculateFunding.Services.Results.Repositories
                 "r.content.fundingStreamResult.allocationLineResult.current.profilePeriods, " +
                 "r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes, " +
                 "r.content.fundingStreamResult.allocationLineResult.allocationLine.providerLookups, " +
-                "r.content.fundingStreamResult.allocationLineResult.hasResultBeenVaried " +
+                "r.content.fundingStreamResult.allocationLineResult.hasResultBeenVaried, " +
+                "r.content.fundingStreamResult.allocationLineResult.current.provider " +
                 "FROM Root r where r.documentType = 'PublishedProviderResult' " +
                 "and r.deleted = false " +
                 "and r.content.specificationId = '" + specificationId + "'";
@@ -154,7 +155,8 @@ namespace CalculateFunding.Services.Results.Repositories
                     UpdatedAt = (DateTimeOffset?)existingResult.updatedAt,
                     Version = DynamicExtensions.PropertyExists(existingResult, "version") ? (int)existingResult.version : 0,
                     Published = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "published") ? ((JObject)existingResult.published).ToObject<PublishedAllocationLineResultVersion>() : null,
-                    HasResultBeenVaried = DynamicExtensions.PropertyExists(existingResult, "hasResultBeenVaried") ? (bool)existingResult.hasResultBeenVaried : false
+                    HasResultBeenVaried = DynamicExtensions.PropertyExists(existingResult, "hasResultBeenVaried") ? (bool)existingResult.hasResultBeenVaried : false,
+                    Provider = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "provider") ? ((JObject)existingResult.provider).ToObject<ProviderSummary>() : null
                 };
 
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);
@@ -162,7 +164,7 @@ namespace CalculateFunding.Services.Results.Repositories
                 result.ProfilePeriods = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "profilePeriods") ? ((JArray)existingResult.profilePeriods).ToObject<List<ProfilingPeriod>>() : Enumerable.Empty<ProfilingPeriod>();
                 result.ProviderLookups = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "providerLookups") ? ((JArray)existingResult.providerLookups).ToObject<List<ProviderLookup>>() : Enumerable.Empty<ProviderLookup>();
                 result.FinancialEnvelopes = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "financialEnvelopes") ? ((JArray)existingResult.financialEnvelopes).ToObject<List<FinancialEnvelope>>() : Enumerable.Empty<FinancialEnvelope>();
-
+                
                 results.Add(result);
             }
 
