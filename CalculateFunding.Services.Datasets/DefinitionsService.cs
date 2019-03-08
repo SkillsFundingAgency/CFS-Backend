@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IBlobClient _blobClient;
         private readonly Policy _blobClientPolicy;
 
-        public DefinitionsService(ILogger logger, IDatasetRepository dataSetsRepository, 
+        public DefinitionsService(ILogger logger, IDatasetRepository dataSetsRepository,
             ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository, IDatasetsResiliencePolicies datasetsResiliencePolicies, IExcelWriter<DatasetDefinition> excelWriter, IBlobClient blobClient)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -134,7 +134,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 await SaveToBlobStorage(excelAsBytes, definition.Name);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return new InternalServerErrorResult(ex.Message);
             }
@@ -275,18 +275,23 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult("No dataset schema request model was provided");
             }
 
-            if (requestModel.DatasetDefinitionName.IsNullOrEmpty())
+            if (requestModel.DatasetDefinitionId.IsNullOrEmpty())
             {
                 _logger.Warning("No dataset schema name was provided");
                 return new BadRequestObjectResult("No dataset schema name was provided");
             }
 
-            string definitionName = requestModel.DatasetDefinitionName.Replace("/", "_").Replace("\\", "_");
+            DatasetDefinition datasetDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(requestModel.DatasetDefinitionId));
+            if (datasetDefinition == null)
+            {
+                return new NotFoundObjectResult("Data schema definiton not found");
+            }
+
+            string definitionName = datasetDefinition.Name.Replace("/", "_").Replace("\\", "_");
 
             string fileName = $"schemas/{definitionName}.xlsx";
 
-            string blobUrl = _blobClient.GetBlobSasUrl(fileName,
-                DateTimeOffset.Now.AddDays(1), SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Write);
+            string blobUrl = _blobClient.GetBlobSasUrl(fileName, DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read);
 
             return new OkObjectResult(new DatasetSchemaSasUrlResponseModel { SchemaUrl = blobUrl });
         }

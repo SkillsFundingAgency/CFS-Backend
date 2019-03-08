@@ -763,10 +763,10 @@ namespace CalculateFunding.Services.Datasets.Services
         [TestMethod]
         public async Task GetDatasetSchemaSasUrl_GivenModelAndDatasetNameContainsSlashes_ReplacesSlashesWithUnderscoreAndReturnsUrl()
         {
-            //Arrange
+            // Arrange
             DatasetSchemaSasUrlRequestModel model = new DatasetSchemaSasUrlRequestModel
             {
-                DatasetDefinitionName = "14/15"
+                DatasetDefinitionId = "12345"
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -780,19 +780,32 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IBlobClient blobClient = CreateBlobClient();
 
-            DefinitionsService definitionsService = CreateDefinitionsService(blobClient: blobClient);
+            DatasetDefinition datasetDefinition = new DatasetDefinition()
+            {
+                Id = "12345",
+                Name = "TEST/SLASH Definition",
+            };
 
-            //Act
+            IDatasetRepository datasetRepository = CreateDataSetsRepository();
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is(model.DatasetDefinitionId))
+                .Returns(datasetDefinition);
+
+            DefinitionsService definitionsService = CreateDefinitionsService(
+                datasetsRepository: datasetRepository,
+                blobClient: blobClient);
+
+            // Act
             IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
 
             blobClient
                 .Received(1)
-                .GetBlobSasUrl(Arg.Is("schemas/14_15.xlsx"), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>());
+                .GetBlobSasUrl(Arg.Is("schemas/TEST_SLASH Definition.xlsx"), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>());
         }
 
         [TestMethod]
@@ -803,7 +816,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             DatasetSchemaSasUrlRequestModel model = new DatasetSchemaSasUrlRequestModel
             {
-                DatasetDefinitionName = "14 15"
+                DatasetDefinitionId = "12345"
             };
 
             string json = JsonConvert.SerializeObject(model);
@@ -820,7 +833,20 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlobSasUrl(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<SharedAccessBlobPermissions>())
                 .Returns(sasUrl);
 
-            DefinitionsService definitionsService = CreateDefinitionsService(blobClient: blobClient);
+            DatasetDefinition datasetDefinition = new DatasetDefinition()
+            {
+                Id = "12345",
+                Name = "14 15",
+            };
+
+            IDatasetRepository datasetRepository = CreateDataSetsRepository();
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is(model.DatasetDefinitionId))
+                .Returns(datasetDefinition);
+
+            DefinitionsService definitionsService = CreateDefinitionsService(
+                datasetsRepository: datasetRepository,
+                blobClient: blobClient);
 
             //Act
             IActionResult result = await definitionsService.GetDatasetSchemaSasUrl(request);
