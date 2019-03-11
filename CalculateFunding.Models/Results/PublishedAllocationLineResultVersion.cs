@@ -63,9 +63,6 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("financialEnvelopes")]
         public IEnumerable<FinancialEnvelope> FinancialEnvelopes { get; set; }
 
-        [JsonProperty("title")]
-        public string Title { get; set; }
-
         [JsonProperty("calculations")]
         public IEnumerable<PublishedProviderCalculationResult> Calculations { get; set; }
 

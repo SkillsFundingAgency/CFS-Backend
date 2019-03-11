@@ -299,7 +299,6 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderResult result = results.First();
 
-            result.Title.Should().Be("Allocation test allocation line 1 was Held");
             result.Id.Should().NotBeEmpty();
             result.FundingStreamResult.AllocationLineResult.Current.Provider.URN.Should().Be("urn");
             result.FundingStreamResult.AllocationLineResult.Current.Provider.UKPRN.Should().Be("ukprn");
@@ -1731,7 +1730,7 @@ namespace CalculateFunding.Services.Results.Services
               .Should()
               .HaveCount(1);
 
-        PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
+            PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
 
             allocationLine2
             .Should()

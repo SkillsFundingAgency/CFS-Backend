@@ -67,8 +67,7 @@ namespace CalculateFunding.Services.Results
                         ProviderId = providerResult.Provider.Id,
                         SpecificationId = specificationId,
                         FundingStreamResult = publishedFundingStreamResult,
-                        Title = $"Allocation {publishedFundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedFundingStreamResult.AllocationLineResult.Current.Status.ToString()}",
-                        FundingPeriod = fundingPeriod
+                        FundingPeriod = fundingPeriod,
                     };
 
                     publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.PublishedProviderResultId = publishedProviderResult.Id;
@@ -143,16 +142,13 @@ namespace CalculateFunding.Services.Results
                                         providerResult.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Updated;
                                     }
 
-                                    if(existingResult.Published != null)
+                                    if (existingResult.Published != null)
                                     {
                                         providerResult.FundingStreamResult.AllocationLineResult.Published = existingResult.Published;
                                     }
 
                                     providerResult.FundingStreamResult.AllocationLineResult.Current.Major = existingResult.Major;
                                     providerResult.FundingStreamResult.AllocationLineResult.Current.Minor = existingResult.Minor;
-
-                                    providerResult.FundingStreamResult.AllocationLineResult.Current.Title = $"Allocation {providerResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {providerResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
-
                                 }
                                 else
                                 {

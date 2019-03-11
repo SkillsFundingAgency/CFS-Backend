@@ -436,7 +436,6 @@ namespace CalculateFunding.Services.Results.Services
             result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
             result.FundingStreamResult.AllocationLineResult.Current.Minor = 1;
             result.FundingStreamResult.AllocationLineResult.Current.FeedIndexId = "feed-index-id-1";
-            result.FundingStreamResult.AllocationLineResult.Current.Title = "title";
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
             requestModel.First().ProviderId = result.ProviderId;
@@ -506,7 +505,7 @@ namespace CalculateFunding.Services.Results.Services
                 m.Count() == 1 &&
                 m.First().MajorVersion == 1 &&
                 m.First().MinorVersion == 1 &&
-                m.First().Title == "title" &&
+                m.First().Title == "Allocation test allocation line 1 was Approved" &&
                 m.First().Id == "feed-index-id-1"));
 
             await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>

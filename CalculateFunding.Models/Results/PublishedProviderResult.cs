@@ -15,9 +15,6 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
-        [JsonProperty("title")]
-        public string Title { get; set; }
-
         [JsonProperty("summary")]
         public string Summary
         {

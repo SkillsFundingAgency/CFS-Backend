@@ -340,7 +340,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "test title 1",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -394,7 +393,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "test title 2",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -448,7 +446,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "test title 3",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -568,7 +565,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "test title 1",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -635,7 +631,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "test title 2",
                     SpecificationId = "spec-1",
                     ProviderId = "1111-1",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -702,7 +697,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "test title 3",
                     SpecificationId = "spec-1",
                     ProviderId = "1111-2",
                     FundingStreamResult = new PublishedFundingStreamResult

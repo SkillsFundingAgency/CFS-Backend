@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
@@ -12,7 +13,6 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
@@ -1661,7 +1661,7 @@ namespace CalculateFunding.Services.Results.Services
 
             masterProviderModels[0]
                 .MasterTrustCode
-                .Should().BeEmpty();         
+                .Should().BeEmpty();
         }
 
 
@@ -2300,7 +2300,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "test title 1",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -2354,7 +2353,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "test title 2",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -2408,7 +2406,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "test title 3",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -2469,7 +2466,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "test title 1",
                     SpecificationId = "spec-1",
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -2534,7 +2530,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "test title 2",
                     SpecificationId = "spec-1",
                     ProviderId = "1111-1",
                     FundingStreamResult = new PublishedFundingStreamResult
@@ -2599,7 +2594,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "test title 3",
                     SpecificationId = "spec-1",
                     ProviderId = "1111-2",
                     FundingStreamResult = new PublishedFundingStreamResult

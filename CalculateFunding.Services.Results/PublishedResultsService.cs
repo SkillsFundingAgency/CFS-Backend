@@ -1570,8 +1570,6 @@ namespace CalculateFunding.Services.Results
                 {
                     foreach (PublishedProviderResult result in results)
                     {
-                        result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
-
                         if (updateStatusModel.Status == AllocationLineStatus.Approved)
                         {
                             resultsToProfile.Add(result);
@@ -1693,8 +1691,6 @@ namespace CalculateFunding.Services.Results
                 {
                     foreach (PublishedProviderResult result in results)
                     {
-                        result.Title = $"Allocation {result.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {result.FundingStreamResult.AllocationLineResult.Current.Status.ToString()}";
-
                         if (updateStatusModel.Status == AllocationLineStatus.Approved)
                         {
                             resultsToProfile.Add(result);
@@ -2091,7 +2087,6 @@ namespace CalculateFunding.Services.Results
                             foreach (PublishedAllocationLineResultVersion version in versions)
                             {
                                 SetFeedIndexId(publishedProviderResult, version);
-                                version.Title = $"Allocation {publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {version.Status.ToString()}";
                                 updatedVersions.Add(version);
 
                                 if (version.Status != AllocationLineStatus.Held)
@@ -2316,8 +2311,6 @@ namespace CalculateFunding.Services.Results
                         }
                     ).ToList();
 
-                    version.Title = $"Allocation {publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {version.Status.ToString()}";
-
                     if (!publishedProviderResult.ProfilingPeriods.IsNullOrEmpty())
                     {
                         version.ProfilingPeriods = publishedProviderResult.ProfilingPeriods;
@@ -2350,7 +2343,6 @@ namespace CalculateFunding.Services.Results
                     FundingStreamResult = publishedProviderResult.FundingStreamResult,
                     ProviderId = publishedProviderResult.ProviderId,
                     SpecificationId = publishedProviderResult.SpecificationId,
-                    Title = publishedProviderResult.Title
                 };
 
                 //Ensure very latest is added to published
@@ -2562,6 +2554,7 @@ namespace CalculateFunding.Services.Results
 
                 AllocationNotificationFeedIndex feedIndex = new AllocationNotificationFeedIndex
                 {
+                    Title = $"Allocation {publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status}",
                     Summary = publishedProviderResult.Summary,
                     DatePublished = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Published
                         ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Date : (DateTimeOffset?)null,
@@ -2650,12 +2643,10 @@ namespace CalculateFunding.Services.Results
                 {
                     feedIndex.Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId;
                     feedIndex.IsDeleted = false;
-                    feedIndex.Title = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Title;
                 }
                 else
                 {
                     feedIndex.Id = publishedProviderResult.Id;
-                    feedIndex.Title = publishedProviderResult.Title;
                 }
 
                 notifications.Add(feedIndex);

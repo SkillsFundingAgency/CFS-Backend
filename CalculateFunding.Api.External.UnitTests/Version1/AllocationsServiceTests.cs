@@ -200,7 +200,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 .Returns(headerDictionary);
 
             PublishedProviderResultWithHistory publishedProviderResult = CreatePublishedProviderResultWithHistory();
-            foreach(PublishedAllocationLineResultVersion historyItem in publishedProviderResult.History)
+            foreach (PublishedAllocationLineResultVersion historyItem in publishedProviderResult.History)
             {
                 historyItem.Major = 1;
                 historyItem.Minor = 0;
@@ -269,8 +269,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         {
             return new PublishedProviderResult
             {
-                Title = "test title 1",
-
                 SpecificationId = "spec-1",
                 FundingStreamResult = new PublishedFundingStreamResult
                 {

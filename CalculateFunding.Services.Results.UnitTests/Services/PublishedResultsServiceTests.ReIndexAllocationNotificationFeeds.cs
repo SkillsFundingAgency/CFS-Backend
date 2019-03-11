@@ -190,7 +190,7 @@ namespace CalculateFunding.Services.Results.Services
                    .Received(1)
                    .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
                        m.First().ProviderId == "1111" &&
-                       m.First().Title == "test title 1" &&
+                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
                        m.First().Summary == "UKPRN: 1111, version 0.1" &&
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&
@@ -280,7 +280,7 @@ namespace CalculateFunding.Services.Results.Services
                    .Received(1)
                    .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
                        m.First().ProviderId == "1111" &&
-                       m.First().Title == "test title 1" &&
+                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
                        m.First().Summary == "UKPRN: 1111, version 1.5" &&
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&
@@ -388,7 +388,7 @@ namespace CalculateFunding.Services.Results.Services
                    .Received(1)
                    .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
                        m.First().ProviderId == "1111" &&
-                       m.First().Title == "test title 1" &&
+                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
                        m.First().Summary == "UKPRN: 1111, version 0.1" &&
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&
@@ -493,7 +493,7 @@ namespace CalculateFunding.Services.Results.Services
                    .Received(1)
                    .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
                        m.First().ProviderId == "1111" &&
-                       m.First().Title == "test title 1" &&
+                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
                        m.First().Summary == "UKPRN: 1111, version 0.1" &&
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&
@@ -545,7 +545,6 @@ namespace CalculateFunding.Services.Results.Services
                 result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
                 result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
                 result.FundingStreamResult.AllocationLineResult.Current.Minor = 5;
-                result.FundingStreamResult.AllocationLineResult.Current.Title = "title";
                 result.FundingStreamResult.AllocationLineResult.Current.FeedIndexId = "feed-index-id";
             }
 
@@ -594,7 +593,7 @@ namespace CalculateFunding.Services.Results.Services
                    .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
                        m.First().Id == "feed-index-id" &&
                        m.First().ProviderId == "1111" &&
-                       m.First().Title == "title" &&
+                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
                        m.First().Summary == "UKPRN: 1111, version 1.5" &&
                        m.First().DatePublished.HasValue == false &&
                        m.First().FundingStreamId == "fs-1" &&

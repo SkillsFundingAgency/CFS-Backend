@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
 using FluentAssertions;
@@ -10,13 +15,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -210,7 +208,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "Test 1",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -277,7 +274,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "Test 1",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -291,7 +287,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "Test 2",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -358,7 +353,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "Test 1",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -372,7 +366,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "Test 2",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -437,7 +430,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "Test 1",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -451,7 +443,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "Test 2",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -521,7 +512,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "Test 1",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -535,7 +525,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "Test 2",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -605,7 +594,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 new PublishedProviderResult
                 {
-                    Title = "Test 1",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
@@ -619,7 +607,6 @@ namespace CalculateFunding.Services.Results.Services
                 },
                 new PublishedProviderResult
                 {
-                    Title = "Test 2",
                     FundingPeriod = new Models.Specs.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {

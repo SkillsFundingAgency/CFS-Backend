@@ -600,7 +600,6 @@ namespace CalculateFunding.Services.Results
                 },
                 ProviderId = providerChangeItem.SuccessorProviderId,
                 SpecificationId = specification.Id,
-                Title = $"Allocation {allocationLine.Name} was Held"
             };
 
             successorResult.FundingStreamResult.AllocationLineResult.Current.PublishedProviderResultId = successorResult.Id;
