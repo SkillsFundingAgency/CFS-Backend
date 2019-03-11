@@ -96,5 +96,200 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vs.UnitTests
                 .Should()
                 .Be("RangePlus3");
         }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenNoAggregateCalls_DoesNotQuoteParameter()
+        {
+            //Arrange
+            string sourceCode = "return calc1()";
+
+            string expected = sourceCode;
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenAggregateAvgCall_QuotesParameter()
+        {
+            //Arrange
+            string sourceCode = "return Avg(calc1)";
+            string expected = "return Avg(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenAggregateMaxCall_QuotesParameter()
+        {
+            //Arrange
+            string sourceCode = "return Max(calc1)";
+            string expected = "return Max(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenAggregateMinCall_QuotesParameter()
+        {
+            //Arrange
+            string sourceCode = "return Min(calc1)";
+            string expected = "return Min(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenAggregateSumCall_QuotesParameter()
+        {
+            //Arrange
+            string sourceCode = "return Sum(calc1)";
+            string expected = "return Sum(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenAggregateSumCall_QuotesParameterIgnoringWhitespace()
+        {
+            //Arrange
+            string sourceCode = "return    Max(calc1)";
+            string expected = "return    Max(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenCalculationReferenceContainsAvgButNotAnAggregateCall_DoesNotQuoteParameter()
+        {
+            //Arrange
+            string sourceCode = "return AvgTest()";
+            string expected = "return AvgTest()";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenCalculationReferenceContainsSumButNotAnAggregateCall_DoesNotQuoteParameter()
+        {
+            //Arrange
+            string sourceCode = "return SumTest()";
+            string expected = "return SumTest()";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenCalculationReferenceContainsMinButNotAnAggregateCall_DoesNotQuoteParameter()
+        {
+            //Arrange
+            string sourceCode = "return TestMinTest()";
+            string expected = "return TestMinTest()";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenCalculationReferenceContainsAvgButNotAAggregateCallButDoesContainMaxAggregateCall_QuotesCorrectParameter()
+        {
+            //Arrange
+            string sourceCode = "return TestSum() + Max(calc1)";
+            string expected = "return TestSum() + Max(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenAggregateSumAndMaxCall_QuotesParameterIgnoringWhitespace()
+        {
+            //Arrange
+            string sourceCode = "return    Max(calc1) + Sum(calc1)";
+            string expected = "return    Max(\"calc1\") + Sum(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenAggregateSumAndMaxCallWithSpacesInsideParentheses_QuotesParameterIgnoringWhitespace()
+        {
+            //Arrange
+            string sourceCode = "return    Max( calc1     ) + Sum(    calc1    )";
+            string expected = "return    Max(\"calc1\") + Sum(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
     }
 }

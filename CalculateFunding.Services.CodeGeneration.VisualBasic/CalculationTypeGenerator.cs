@@ -168,9 +168,11 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Provider"))));
         }
 
-        private static string QuoteAggregateFunctionCalls(string sourceCode)
+        public static string QuoteAggregateFunctionCalls(string sourceCode)
         {
-            Regex x = new Regex("( Min|Avg|Max|Sum\\()(.*?)(\\))");
+            sourceCode = Regex.Replace(sourceCode, @"\s+(?=[^(\]]*\))", "");
+
+            Regex x = new Regex(@"(\bMin\b|\bAvg\b|\bMax\b|\bSum\b)()(.*?\)$)");
 
             foreach (Match match in x.Matches(sourceCode))
             {
