@@ -211,8 +211,8 @@ namespace CalculateFunding.Api.External.V2.Services
             foreach (IGrouping<string, AllocationNotificationFeedIndex> localAuthorityResultSummaryGroup in localAuthorityResultSummaryGroups)
             {
                 AllocationNotificationFeedIndex firstFeedIndex = localAuthorityResultSummaryGroup.First();
-	            
-				LocalAuthorityResultSummary localAuthorityResultSummary = new LocalAuthorityResultSummary
+
+                LocalAuthorityResultSummary localAuthorityResultSummary = new LocalAuthorityResultSummary
                 {
                     LANo = firstFeedIndex.LaCode,
                     LAName = firstFeedIndex.Authority
@@ -220,8 +220,8 @@ namespace CalculateFunding.Api.External.V2.Services
 
                 foreach (AllocationNotificationFeedIndex feedIndex in localAuthorityResultSummaryGroup)
                 {
-	                ProviderVariation providerVariation = CreateProviderVariationFromAllocationNotificationFeedIndexItem(feedIndex);
-					LocalAuthorityProviderResultSummary resultSummary = new LocalAuthorityProviderResultSummary
+                    ProviderVariation providerVariation = CreateProviderVariationFromAllocationNotificationFeedIndexItem(feedIndex);
+                    LocalAuthorityProviderResultSummary resultSummary = new LocalAuthorityProviderResultSummary
                     {
                         Provider = new AllocationProviderModel
                         {
@@ -241,8 +241,8 @@ namespace CalculateFunding.Api.External.V2.Services
                             CloseDate = feedIndex.ProviderClosedDate,
                             CrmAccountId = feedIndex.CrmAccountId,
                             NavVendorNo = feedIndex.NavVendorNo,
-                            Status = feedIndex.ProviderStatus, 
-							ProviderVariation = providerVariation
+                            Status = feedIndex.ProviderStatus,
+                            ProviderVariation = providerVariation
                         }
                     };
 
@@ -296,7 +296,6 @@ namespace CalculateFunding.Api.External.V2.Services
                                     ContractRequired = allocationFeedIndex.AllocationLineContractRequired ? "Y" : "N"
                                 },
                                 AllocationStatus = allocationFeedIndex.AllocationStatus,
-                                AllocationVersionNumber = (ushort)allocationFeedIndex.AllocationVersionNumber,
                                 AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
                                 AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                                 AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount)
@@ -354,9 +353,9 @@ namespace CalculateFunding.Api.External.V2.Services
 
             AllocationNotificationFeedIndex firstEntry = entries.First();
 
-	        ProviderVariation providerVariation = CreateProviderVariationFromAllocationNotificationFeedIndexItem(firstEntry);
+            ProviderVariation providerVariation = CreateProviderVariationFromAllocationNotificationFeedIndexItem(firstEntry);
 
-	        ProviderResultSummary providerResutSummary = new ProviderResultSummary
+            ProviderResultSummary providerResutSummary = new ProviderResultSummary
             {
                 Provider = new AllocationProviderModel
                 {
@@ -376,7 +375,7 @@ namespace CalculateFunding.Api.External.V2.Services
                     CrmAccountId = firstEntry.CrmAccountId,
                     NavVendorNo = firstEntry.NavVendorNo,
                     Status = firstEntry.ProviderStatus,
-					ProviderVariation = providerVariation
+                    ProviderVariation = providerVariation
                 }
             };
 
@@ -417,38 +416,38 @@ namespace CalculateFunding.Api.External.V2.Services
                                 EndDay = feedIndex.FundingStreamEndDay,
                                 EndMonth = feedIndex.FundingStreamEndMonth
                             },
-							//todo Version = feedIndex.FundingStreamVersionNumber
-							//todo Version = feedIndex.FundingStreamVersion
+                            //todo Version = feedIndex.FundingStreamVersionNumber
+                            //todo Version = feedIndex.FundingStreamVersion
                         }
                     };
 
                     foreach (AllocationNotificationFeedIndex allocationFeedIndex in fundingStreamResultSummaryGroup)
                     {
-						IEnumerable<PublishedProviderResultsPolicySummary> policySummaries = JsonConvert.DeserializeObject<IEnumerable<PublishedProviderResultsPolicySummary>>(feedIndex.PolicySummaries);
-	                    IList<CalculationResult> calculations = new List<CalculationResult>();
+                        IEnumerable<PublishedProviderResultsPolicySummary> policySummaries = JsonConvert.DeserializeObject<IEnumerable<PublishedProviderResultsPolicySummary>>(feedIndex.PolicySummaries);
+                        IList<CalculationResult> calculations = new List<CalculationResult>();
 
-	                    if (!string.IsNullOrWhiteSpace(feedIndex.PolicySummaries))
-	                    {
-		                    foreach (PublishedProviderResultsPolicySummary publishedPolicySummaryResult in policySummaries)
-		                    {
-			                    foreach (PublishedProviderResultsCalculationSummary publishedCalculationSummary in publishedPolicySummaryResult.Calculations)
-			                    {
-				                    calculations.Add(new Models.CalculationResult
-				                    {
-					                    CalculationName = publishedCalculationSummary.Name,
-					                    CalculationVersionNumber = (ushort)publishedCalculationSummary.Version,
-					                    CalculationType = publishedCalculationSummary.CalculationType.ToString(),
-										CalculationValue = publishedCalculationSummary.Amount,
-										PolicyId = publishedPolicySummaryResult.Policy.Id,
-										
-					                    //todo CalculationDisplayName = publishedCalculationSummary.DisplayName,
-					                    //todo AssociatedWithAllocation = publishedCalculationSummary.AssociatedWithAllocation ? true
-									});
-			                    }
-							}
-	                    }
+                        if (!string.IsNullOrWhiteSpace(feedIndex.PolicySummaries))
+                        {
+                            foreach (PublishedProviderResultsPolicySummary publishedPolicySummaryResult in policySummaries)
+                            {
+                                foreach (PublishedProviderResultsCalculationSummary publishedCalculationSummary in publishedPolicySummaryResult.Calculations)
+                                {
+                                    calculations.Add(new Models.CalculationResult
+                                    {
+                                        CalculationName = publishedCalculationSummary.Name,
+                                        CalculationVersionNumber = (ushort)publishedCalculationSummary.Version,
+                                        CalculationType = publishedCalculationSummary.CalculationType.ToString(),
+                                        CalculationValue = publishedCalculationSummary.Amount,
+                                        PolicyId = publishedPolicySummaryResult.Policy.Id,
 
-	                    fundingStreamResultSummary.Allocations.Add(new AllocationResult
+                                        //todo CalculationDisplayName = publishedCalculationSummary.DisplayName,
+                                        //todo AssociatedWithAllocation = publishedCalculationSummary.AssociatedWithAllocation ? true
+                                    });
+                                }
+                            }
+                        }
+
+                        fundingStreamResultSummary.Allocations.Add(new AllocationResult
                         {
                             AllocationLine = new AllocationLine
                             {
@@ -458,15 +457,14 @@ namespace CalculateFunding.Api.External.V2.Services
                                 FundingRoute = allocationFeedIndex.AllocationLineFundingRoute,
                                 ContractRequired = allocationFeedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
-                            AllocationVersionNumber = (ushort)allocationFeedIndex.AllocationVersionNumber,
                             AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
                             AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
                             AllocationStatus = allocationFeedIndex.AllocationStatus,
                             AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount),
                             ProfilePeriods = new Collection<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
                                     m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()),
-							Calculations = new Collection<CalculationResult>(calculations)
-						});
+                            Calculations = new Collection<CalculationResult>(calculations)
+                        });
                     }
 
                     fundingStreamResultSummary.FundingStreamTotalAmount = fundingStreamResultSummary.Allocations.Sum(m => m.AllocationAmount);
@@ -476,44 +474,44 @@ namespace CalculateFunding.Api.External.V2.Services
                     providerPeriodResultSummary.FundingStreamResults.Add(fundingStreamResultSummary);
                 }
 
-	            providerResutSummary.FundingPeriodResults = new Collection<ProviderPeriodResultSummary>(
-		            providerResutSummary.FundingPeriodResults.Concat(new[] {providerPeriodResultSummary}).ToArraySafe());
+                providerResutSummary.FundingPeriodResults = new Collection<ProviderPeriodResultSummary>(
+                    providerResutSummary.FundingPeriodResults.Concat(new[] { providerPeriodResultSummary }).ToArraySafe());
 
             }
 
             return providerResutSummary;
         }
 
-	    private static ProviderVariation CreateProviderVariationFromAllocationNotificationFeedIndexItem(
-		    AllocationNotificationFeedIndex firstEntry)
-	    {
-		    ProviderVariation providerVariation = new ProviderVariation();
+        private static ProviderVariation CreateProviderVariationFromAllocationNotificationFeedIndexItem(
+            AllocationNotificationFeedIndex firstEntry)
+        {
+            ProviderVariation providerVariation = new ProviderVariation();
 
-		    if (!firstEntry.VariationReasons.IsNullOrEmpty())
-		    {
-			    providerVariation.VariationReasons = new Collection<string>(firstEntry.VariationReasons);
-		    }
+            if (!firstEntry.VariationReasons.IsNullOrEmpty())
+            {
+                providerVariation.VariationReasons = new Collection<string>(firstEntry.VariationReasons);
+            }
 
-		    if (!firstEntry.Successors.IsNullOrEmpty())
-		    {
-			    List<ProviderInformationModel> providerInformationModels =
-				    firstEntry.Successors.Select(fi => new ProviderInformationModel() {Ukprn = fi}).ToList();
-			    providerVariation.Successors = new Collection<ProviderInformationModel>(providerInformationModels);
-		    }
+            if (!firstEntry.Successors.IsNullOrEmpty())
+            {
+                List<ProviderInformationModel> providerInformationModels =
+                    firstEntry.Successors.Select(fi => new ProviderInformationModel() { Ukprn = fi }).ToList();
+                providerVariation.Successors = new Collection<ProviderInformationModel>(providerInformationModels);
+            }
 
-		    if (!firstEntry.Predecessors.IsNullOrEmpty())
-		    {
-			    List<ProviderInformationModel> providerInformationModels =
-				    firstEntry.Predecessors.Select(fi => new ProviderInformationModel() {Ukprn = fi}).ToList();
-			    providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerInformationModels);
-		    }
+            if (!firstEntry.Predecessors.IsNullOrEmpty())
+            {
+                List<ProviderInformationModel> providerInformationModels =
+                    firstEntry.Predecessors.Select(fi => new ProviderInformationModel() { Ukprn = fi }).ToList();
+                providerVariation.Predecessors = new Collection<ProviderInformationModel>(providerInformationModels);
+            }
 
-		    providerVariation.OpenReason = firstEntry.OpenReason;
-		    providerVariation.CloseReason = firstEntry.CloseReason;
-		    return providerVariation;
-	    }
+            providerVariation.OpenReason = firstEntry.OpenReason;
+            providerVariation.CloseReason = firstEntry.CloseReason;
+            return providerVariation;
+        }
 
-	    private IEnumerable<AllocationNotificationFeedIndex> ValidateFeeds(IEnumerable<AllocationNotificationFeedIndex> feeds, bool checkProfiling = true, bool checkPolicySummaries = true)
+        private IEnumerable<AllocationNotificationFeedIndex> ValidateFeeds(IEnumerable<AllocationNotificationFeedIndex> feeds, bool checkProfiling = true, bool checkPolicySummaries = true)
         {
             IList<AllocationNotificationFeedIndex> validFeeds = new List<AllocationNotificationFeedIndex>();
 
