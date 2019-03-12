@@ -172,7 +172,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             sourceCode = Regex.Replace(sourceCode, @"\s+(?=[^(\]]*\))", "");
 
-            Regex x = new Regex(@"(\bMin\b|\bAvg\b|\bMax\b|\bSum\b)()(.*?\)$)");
+            Regex x = new Regex(@"(\bMin\b|\bAvg\b|\bMax\b|\bSum\b)()(.*?\))");
 
             foreach (Match match in x.Matches(sourceCode))
             {

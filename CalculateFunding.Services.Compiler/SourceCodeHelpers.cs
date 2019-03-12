@@ -139,8 +139,15 @@ namespace CalculateFunding.Services.Compiler
 
         private static IEnumerable<string> GetAggregateFunctionParameter(string sourceCode)
         {
-            return Regex.Matches(sourceCode, "( Min|Avg|Max|Sum\\()(.*?)(\\))")
-             .OfType<Match>()
+            MatchCollection matchCollection = Regex.Matches(sourceCode, "( Min|Avg|Max|Sum\\()(.*?)(\\))");
+
+            IEnumerable<Match> matches = matchCollection.Where(
+                m => m.Value.TrimStart().StartsWith("Sum(") ||
+                m.Value.TrimStart().StartsWith("Max(") ||
+                m.Value.TrimStart().StartsWith("Min(") ||
+                m.Value.TrimStart().StartsWith("Avg("));
+
+            return matches
              .Select(m => m.Groups.Count > 0 ? m.Groups[0].Value.Trim().Replace("Sum(", "").Replace("Min(", "").Replace("Max(", "").Replace("Avg(", "").Replace(")", "") : "");
         }
     }

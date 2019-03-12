@@ -225,6 +225,58 @@ namespace CalculateFunding.Services.Compiler.UnitTests
         }
 
         [TestMethod]
+        public void CheckSourceForExistingCalculationAggregates_GivenCalcIsReferencedInAnAggregateAndAlsoContainsCalcReferenceThatIncludesAvgInTheName_ReturnsTrue()
+        {
+            //Arrange
+            Dictionary<string, string> functions = new Dictionary<string, string>
+            {
+                { "Calc1","Return Calc2() + Min( Calc6)" },
+                { "Calc2","Return 1" },
+                { "Calc3","Return Sum(Calc2) + 5" },
+                { "Calc4","Return Sum(Calc2) + Avg(Calc2) + Min( Calc3)" },
+                { "Calc5","Return CalcAvg1()" },
+                { "Calc6","Return Calc5()" },
+                { "Calc7","Return Calc6()" }
+            };
+
+            string calcToCheck = "Return Sum(Calc2) + Avg(Calc2) + Sum(Calc3) + CalcAvg1()";
+
+            //Act
+            bool result = SourceCodeHelpers.CheckSourceForExistingCalculationAggregates(functions, calcToCheck);
+
+            //Assert
+            result
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
+        public void CheckSourceForExistingCalculationAggregates_GivenCalcContainsCalcReferenceThatIncludesAvgInTheNameButNoOtherAggregateRefrences_ReturnsFalse()
+        {
+            //Arrange
+            Dictionary<string, string> functions = new Dictionary<string, string>
+            {
+                { "Calc1","Return Calc2() + Min( Calc6)" },
+                { "Calc2","Return 1" },
+                { "Calc3","Return Sum(Calc2) + 5" },
+                { "Calc4","Return Sum(Calc2) + Avg(Calc2) + Min( Calc3)" },
+                { "Calc5","Return CalcAvg1()" },
+                { "Calc6","Return Calc5()" },
+                { "Calc7","Return Calc6()" }
+            };
+
+            string calcToCheck = "Return CalcAvg1() = Calc6()";
+
+            //Act
+            bool result = SourceCodeHelpers.CheckSourceForExistingCalculationAggregates(functions, calcToCheck);
+
+            //Assert
+            result
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
         public void GetDatasetAggregateFunctionParameters_GivenSourceHasOneDatasetParameter_ReturnsOneParameter()
         {
             //Arrange
