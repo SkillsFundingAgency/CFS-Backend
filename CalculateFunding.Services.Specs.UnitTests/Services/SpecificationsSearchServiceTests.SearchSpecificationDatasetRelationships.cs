@@ -130,7 +130,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .When(x => x.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
-                .Do(x => { throw new FailedToQuerySearchException(Arg.Any<string>(), Arg.Any<Exception>()); });
+                .Do(x => { throw new FailedToQuerySearchException("main", new Exception("inner")); });
 
             ILogger logger = CreateLogger();
 

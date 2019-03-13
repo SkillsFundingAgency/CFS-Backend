@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Calculator
             Action specificationRepositoryCtor = () => { new SpecificationsRepository(nullApiClient); };
 
             // Assert
-            specificationRepositoryCtor.ShouldThrow<ArgumentNullException>();
+            specificationRepositoryCtor.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Calculator
             Action getSpecificationBySummaryIdCall = () => { specificationRepo.GetSpecificationSummaryById(string.Empty);};
 
             // Assert
-            getSpecificationBySummaryIdCall.ShouldThrow<ArgumentNullException>();
+            getSpecificationBySummaryIdCall.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Calculator
             Action getSpecificationBySummaryIdCall = () => { specificationRepo.GetSpecificationSummaryById(null);};
 
             // Assert
-            getSpecificationBySummaryIdCall.ShouldThrow<ArgumentNullException>();
+            getSpecificationBySummaryIdCall.Should().ThrowExactly<ArgumentNullException>();
         }
 
         [TestMethod]

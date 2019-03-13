@@ -205,6 +205,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
@@ -212,7 +217,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationRepository: specificationRepository,
                 calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -357,6 +363,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
@@ -364,7 +375,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationRepository: specificationRepository,
                 calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -461,6 +473,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
@@ -468,7 +485,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationRepository: specificationRepository,
                 calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -583,6 +601,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
@@ -590,7 +613,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationRepository: specificationRepository,
                 calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             // Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -710,6 +734,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
@@ -717,7 +746,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 specificationRepository: specificationRepository,
                 calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -866,6 +896,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
@@ -873,7 +908,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
                 calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1041,6 +1077,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
@@ -1048,7 +1089,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
                 calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1154,14 +1196,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository,
-               searchRepository: searchRepository,
-               specificationRepository: specificationRepository,
-               calculationVersionRepository: versionRepository,
-               sourceCodeService: sourceCodeService);
+                buildProjectsRepository: buildProjectsRepository,
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository,
+                calculationVersionRepository: versionRepository,
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1277,13 +1325,19 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(logger: logger,
                 calculationsRepository: calculationsRepository,
                buildProjectsRepository: buildProjectsRepository,
                searchRepository: searchRepository,
                specificationRepository: specificationRepository,
                calculationVersionRepository: versionRepository,
-               sourceCodeService: sourceCodeService);
+               sourceCodeService: sourceCodeService,
+               jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1395,14 +1449,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository,
-               searchRepository: searchRepository,
-               specificationRepository: specificationRepository,
-               calculationVersionRepository: versionRepository,
-               sourceCodeService: sourceCodeService);
+                buildProjectsRepository: buildProjectsRepository,
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository,
+                calculationVersionRepository: versionRepository,
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1499,8 +1559,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -1527,15 +1585,20 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
                 .Returns(build);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                messengerService: messengerService,
                 specificationRepository: specificationRepository,
                 calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1557,13 +1620,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
 
             await
-                messengerService
-                    .Received(1)
-                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
-                        Arg.Is((string)null),
-                        Arg.Any<IDictionary<string, string>>());
-
-            await
               versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(calculationVersion));
@@ -1575,14 +1631,9 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenFeatureToggleIsOn_SetsPublishStateToUpdatedAddNewJob()
+        async public Task SaveCalculationVersion_SetsPublishStateToUpdatedAddNewJob()
         {
             //Arrange
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             string buildProjectId = Guid.NewGuid().ToString();
 
             string specificationId = Guid.NewGuid().ToString();
@@ -1659,8 +1710,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -1697,10 +1746,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                buildProjectsRepository: buildProjectsRepository,
                searchRepository: searchRepository,
-               messengerService: messengerService,
                specificationRepository: specificationRepository,
                calculationVersionRepository: versionRepository,
-               featureToggle: featureToggle,
                jobsApiClient: jobsApiClient,
                sourceCodeService: sourceCodeService);
 
@@ -1723,12 +1770,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Received(1)
                     .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
 
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
-                        Arg.Any<string>(),
-                        Arg.Any<IDictionary<string, string>>());
             await
                 jobsApiClient
                     .Received(1)
@@ -1754,14 +1795,9 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenFeatureToggleIsOnAndUserIsNull_SetsPublishStateToUpdatedAddNewJobWithEmptyUser()
+        async public Task SaveCalculationVersion_GivenUserIsNull_SetsPublishStateToUpdatedAddNewJobWithEmptyUser()
         {
             //Arrange
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             string buildProjectId = Guid.NewGuid().ToString();
 
             string specificationId = Guid.NewGuid().ToString();
@@ -1829,8 +1865,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -1865,14 +1899,12 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository,
-               searchRepository: searchRepository,
-               messengerService: messengerService,
-               specificationRepository: specificationRepository,
-               calculationVersionRepository: versionRepository,
-               featureToggle: featureToggle,
-               jobsApiClient: jobsApiClient,
-               sourceCodeService: sourceCodeService);
+                buildProjectsRepository: buildProjectsRepository,
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository,
+                calculationVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient,
+                sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.SaveCalculationVersion(request);
@@ -1894,12 +1926,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
 
             await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
-                        Arg.Any<string>(),
-                        Arg.Any<IDictionary<string, string>>());
-            await
                 jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(
@@ -1919,14 +1945,9 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenFeatureToggleIsOnButCreatingJobReturnsNull_LogsErrorReturnsInternalServerError()
+        async public Task SaveCalculationVersion_GivenCreatingJobReturnsNull_LogsErrorReturnsInternalServerError()
         {
             //Arrange
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             string buildProjectId = Guid.NewGuid().ToString();
 
             string specificationId = Guid.NewGuid().ToString();
@@ -2002,8 +2023,6 @@ namespace CalculateFunding.Services.Calcs.Services
             searchRepository
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
-
-            IMessengerService messengerService = CreateMessengerService();
 
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
@@ -2041,10 +2060,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                messengerService: messengerService,
                 specificationRepository: specificationRepository,
                 calculationVersionRepository: versionRepository,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient,
                 sourceCodeService: sourceCodeService);
 
@@ -2060,12 +2077,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .Be($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
 
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
-                        Arg.Any<string>(),
-                        Arg.Any<IDictionary<string, string>>());
             await
                 jobsApiClient
                     .Received(1)
@@ -2150,8 +2161,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -2166,10 +2175,9 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 calculationsRepository: calculationsRepository,
-               buildProjectsRepository: buildProjectsRepository,
-               searchRepository: searchRepository,
-               messengerService: messengerService,
-               specificationRepository: specificationRepository);
+                buildProjectsRepository: buildProjectsRepository,
+                searchRepository: searchRepository,
+                specificationRepository: specificationRepository);
 
             //Act
             Func<Task<IActionResult>> resultFunc = async () => await service.SaveCalculationVersion(request);
@@ -2184,7 +2192,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenFeatureToggleIsOnAndCalcsContainCalculationAggregates_AddsNewJobToAggregateCalculations()
+        async public Task SaveCalculationVersion_GivenCalcsContainCalculationAggregates_AddsNewJobToAggregateCalculations()
         {
             //Arrange
             IEnumerable<Calculation> calculations = new[]
@@ -2197,11 +2205,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     }
                 }
             };
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             string buildProjectId = Guid.NewGuid().ToString();
 
@@ -2283,8 +2286,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SearchById(Arg.Is(CalculationId))
                 .Returns(calcIndex);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -2324,10 +2325,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                messengerService: messengerService,
                 specificationRepository: specificationRepository,
                 calculationVersionRepository: versionRepository,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient,
                 sourceCodeService: sourceCodeService);
 
@@ -2350,12 +2349,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Received(1)
                     .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
 
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue(Arg.Is("calc-events-instruct-generate-allocations"),
-                        Arg.Any<string>(),
-                        Arg.Any<IDictionary<string, string>>());
             await
                 jobsApiClient
                     .Received(1)

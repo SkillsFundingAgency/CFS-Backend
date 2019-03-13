@@ -73,7 +73,8 @@ namespace CalculateFunding.Services.Calculator
 
             //Assert
             test
-                .ShouldThrowExactly<Exception>();
+                .Should()
+                .ThrowExactly<Exception>();
         }
 
         [TestMethod]
@@ -363,7 +364,9 @@ namespace CalculateFunding.Services.Calculator
             };
 
             // Assert
-            calculateProviderResultMethod.ShouldThrow<Exception>();
+            calculateProviderResultMethod
+                .Should()
+                .ThrowExactly<DivideByZeroException>();
         }
 
         [TestMethod]
@@ -387,8 +390,8 @@ namespace CalculateFunding.Services.Calculator
             result.CalculationResults.Should().BeEmpty();
             result.AllocationLineResults.Should().BeEmpty();
             result.Provider.Should().Be(providerSummary);
-            result.SpecificationId.ShouldBeEquivalentTo(buildProject.SpecificationId);
-            result.Id.ShouldBeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
+            result.SpecificationId.Should().BeEquivalentTo(buildProject.SpecificationId);
+            result.Id.Should().BeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
         }
 
         [TestMethod]
@@ -475,8 +478,8 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             result.Provider.Should().Be(providerSummary);
-            result.SpecificationId.ShouldBeEquivalentTo(buildProject.SpecificationId);
-            result.Id.ShouldBeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
+            result.SpecificationId.Should().BeEquivalentTo(buildProject.SpecificationId);
+            result.Id.Should().BeEquivalentTo(GenerateId(providerSummary.Id, buildProject.SpecificationId));
             result.CalculationResults.Should().HaveCount(3);
             result.AllocationLineResults.Should().HaveCount(1);
 
@@ -484,24 +487,24 @@ namespace CalculateFunding.Services.Calculator
             allocationLine.Value = 30000;
 
             CalculationResult fundingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == fundingCalcReference.Id);
-            fundingCalcResult.Calculation.ShouldBeEquivalentTo(fundingCalcReference);
-            fundingCalcResult.CalculationType.ShouldBeEquivalentTo(fundingCalcReturned.CalculationType);
-            fundingCalcResult.AllocationLine.ShouldBeEquivalentTo(allocationLineReturned);
-            fundingCalcResult.CalculationSpecification.ShouldBeEquivalentTo(fundingCalcSpecificationReference);
-            fundingCalcResult.PolicySpecifications.ShouldBeEquivalentTo(policySpecificationsForFundingCalc);
-            fundingCalcResult.Value.ShouldBeEquivalentTo(fundingCalcReturned.Value.Value);
+            fundingCalcResult.Calculation.Should().BeEquivalentTo(fundingCalcReference);
+            fundingCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned.CalculationType);
+            fundingCalcResult.AllocationLine.Should().BeEquivalentTo(allocationLineReturned);
+            fundingCalcResult.CalculationSpecification.Should().BeEquivalentTo(fundingCalcSpecificationReference);
+            fundingCalcResult.PolicySpecifications.Should().BeEquivalentTo(policySpecificationsForFundingCalc);
+            fundingCalcResult.Value.Should().Be(fundingCalcReturned.Value.Value);
 
             CalculationResult numberCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == numbercalcReference.Id);
-            numberCalcResult.Calculation.ShouldBeEquivalentTo(numbercalcReference);
-            numberCalcResult.CalculationType.ShouldBeEquivalentTo(fundingCalcReturned2.CalculationType);
-            numberCalcResult.AllocationLine.ShouldBeEquivalentTo(allocationLineReturned);
-            numberCalcResult.CalculationSpecification.ShouldBeEquivalentTo(numbercalcSpecificationReference);
-            numberCalcResult.PolicySpecifications.ShouldBeEquivalentTo(policySpecificationsForNumberCalc);
-            numberCalcResult.Value.ShouldBeEquivalentTo(fundingCalcReturned2.Value.Value);
+            numberCalcResult.Calculation.Should().BeEquivalentTo(numbercalcReference);
+            numberCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned2.CalculationType);
+            numberCalcResult.AllocationLine.Should().BeEquivalentTo(allocationLineReturned);
+            numberCalcResult.CalculationSpecification.Should().BeEquivalentTo(numbercalcSpecificationReference);
+            numberCalcResult.PolicySpecifications.Should().BeEquivalentTo(policySpecificationsForNumberCalc);
+            numberCalcResult.Value.Should().Be(fundingCalcReturned2.Value.Value);
 
             CalculationResult nonMatchingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == "Non matching calculation");
-            nonMatchingCalcResult.Calculation.ShouldBeEquivalentTo(new Reference(nonMatchingCalculationModel.Id, nonMatchingCalculationModel.Name));
-            nonMatchingCalcResult.CalculationType.ShouldBeEquivalentTo(nonMatchingCalculationModel.CalculationType);
+            nonMatchingCalcResult.Calculation.Should().BeEquivalentTo(new Reference(nonMatchingCalculationModel.Id, nonMatchingCalculationModel.Name));
+            nonMatchingCalcResult.CalculationType.Should().BeEquivalentTo(nonMatchingCalculationModel.CalculationType);
             nonMatchingCalcResult.AllocationLine.Should().BeNull();
             nonMatchingCalcResult.CalculationSpecification.Should().BeNull();
             nonMatchingCalcResult.PolicySpecifications.Should().BeNull();

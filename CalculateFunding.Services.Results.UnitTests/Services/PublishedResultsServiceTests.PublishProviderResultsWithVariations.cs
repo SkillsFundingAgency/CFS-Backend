@@ -1006,11 +1006,6 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
@@ -1026,7 +1021,6 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -1120,11 +1114,6 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
@@ -1140,7 +1129,6 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -1217,11 +1205,6 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient();
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
@@ -1231,7 +1214,6 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResultsAssemblerService: assembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 logger: logger,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -5315,9 +5297,6 @@ namespace CalculateFunding.Services.Results.Services
         private static IFeatureToggle InitialiseFeatureToggle(bool enableProviderVariations = true)
         {
             IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
             featureToggle
                 .IsProviderVariationsEnabled()
                 .Returns(enableProviderVariations);

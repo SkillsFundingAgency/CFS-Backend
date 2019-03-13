@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
@@ -19,7 +20,6 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -56,6 +56,7 @@ namespace CalculateFunding.Services.Datasets.Services
         {
             //Arrange
             Message message = new Message(new byte[0]);
+            message.UserProperties.Add("jobId", "job1");
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             ILogger logger = CreateLogger();
@@ -84,6 +85,7 @@ namespace CalculateFunding.Services.Datasets.Services
             string json = JsonConvert.SerializeObject(dataset);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties.Add("jobId", "job1");
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             ILogger logger = CreateLogger();
@@ -112,9 +114,8 @@ namespace CalculateFunding.Services.Datasets.Services
             string json = JsonConvert.SerializeObject(dataset);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", "");
+            message.UserProperties.Add("specification-id", "");
+            message.UserProperties.Add("jobId", "job1");
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             ILogger logger = CreateLogger();
@@ -158,13 +159,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
@@ -224,13 +221,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -300,13 +293,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -385,13 +374,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -478,13 +463,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -576,13 +557,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -688,17 +665,11 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
-
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("user-id", UserId);
             message.UserProperties.Add("user-name", Username);
-
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -808,13 +779,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -921,13 +888,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1033,13 +996,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipId = "relId";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1166,13 +1125,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1337,13 +1292,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1513,13 +1464,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1703,13 +1650,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -1908,13 +1851,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -2106,13 +2045,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -2269,13 +2204,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -2424,7 +2355,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndGetsExistingButNoChanges_DoesnotUpdate()
+        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndGetsExistingButNoChanges_DoesNotUpdate()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2462,13 +2393,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -2655,14 +2582,9 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
-
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("user-id", UserId);
             message.UserProperties.Add("user-name", Username);
 
@@ -2837,7 +2759,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndJobServiceFeatureIsOn_EnsuresCreatesNewJob()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIds_EnsuresCreatesNewJob()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2875,21 +2797,11 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
-
-            message
-               .UserProperties
-               .Add("user-id", UserId);
-
-            message
-               .UserProperties
-               .Add("user-name", Username);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -2989,11 +2901,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
                 .Returns(tableLoadResults.ToArraySafe());
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
@@ -3008,8 +2915,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                jobsApiClient: jobsApiClient,
-                featureToggle: featureToggle);
+                jobsApiClient: jobsApiClient);
 
             // Act
             await service.ProcessDataset(message);
@@ -3074,21 +2980,11 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
-
-            message
-               .UserProperties
-               .Add("user-id", UserId);
-
-            message
-               .UserProperties
-               .Add("user-name", Username);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -3200,11 +3096,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
                 .Returns(tableLoadResults.ToArraySafe());
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
@@ -3219,8 +3110,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                jobsApiClient: jobsApiClient,
-                featureToggle: featureToggle);
+                jobsApiClient: jobsApiClient);
 
             // Act
             await service.ProcessDataset(message);
@@ -3247,7 +3137,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndJobServiceFeatureIsOnButcreatingJobReturnsNull_LogsErrorAndThrowsException()
+        public async Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsButCreatingJobReturnsNull_LogsErrorAndThrowsException()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -3285,21 +3175,11 @@ namespace CalculateFunding.Services.Datasets.Services
             string relationshipName = "Relationship Name";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
-
-            message
-               .UserProperties
-               .Add("user-id", UserId);
-
-            message
-               .UserProperties
-               .Add("user-name", Username);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -3399,11 +3279,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
                 .Returns(tableLoadResults.ToArraySafe());
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
@@ -3418,8 +3293,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                jobsApiClient: jobsApiClient,
-                featureToggle: featureToggle);
+                jobsApiClient: jobsApiClient);
 
             // Act
             Func<Task> test = async () => await service.ProcessDataset(message);
@@ -3493,25 +3367,11 @@ namespace CalculateFunding.Services.Datasets.Services
             string jobId = "jobId1";
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message
-                .UserProperties
-                .Add("specification-id", SpecificationId);
-
-            message
-               .UserProperties
-               .Add("relationship-id", relationshipId);
-
-            message
-               .UserProperties
-               .Add("user-id", UserId);
-
-            message
-               .UserProperties
-               .Add("user-name", Username);
-
-            message
-                .UserProperties
-                .Add("jobId", jobId);
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", jobId);
+            message.UserProperties.Add("user-id", UserId);
+            message.UserProperties.Add("user-name", Username);
 
             IEnumerable<DatasetDefinition> datasetDefinitions = new[]
             {
@@ -3611,14 +3471,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
                 .Returns(tableLoadResults.ToArraySafe());
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-            featureToggle
-                .IsJobServiceForMainActionsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .CreateJob(Arg.Any<JobCreateModel>())
@@ -3633,8 +3485,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerRepository: resultsRepository,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                jobsApiClient: jobsApiClient,
-                featureToggle: featureToggle);
+                jobsApiClient: jobsApiClient);
 
             // Act
             await service.ProcessDataset(message);

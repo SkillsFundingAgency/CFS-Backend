@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
@@ -20,14 +21,14 @@ namespace CalculateFunding.Functions.Results.ServiceBus
 
             using (IServiceScope scope = IocConfig.Build(config).CreateScope())
             {
-                IPublishedResultsService resultsService = scope.ServiceProvider.GetService<IPublishedResultsService>();
+                IJobHelperService jobHelperService = scope.ServiceProvider.GetService<IJobHelperService>();
                 ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
                 Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
 
                 try
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await resultsService.UpdateDeadLetteredJobLog(message);
+                    await jobHelperService.ProcessDeadLetteredMessage(message);
                 }
                 catch (Exception exception)
                 {

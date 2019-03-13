@@ -5,7 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
@@ -13,7 +12,6 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -160,7 +158,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, jobsApiClient: jobsApiClient);
 
             //Act
             await service.UpdateCalculationsForSpecification(message);
@@ -174,88 +177,6 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Warning(Arg.Is($"A build project could not be found for specification id: {specificationId}"));
-        }
-
-        [TestMethod]
-        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedFundingPeriodsButBuildProjectNotFound_AssignsCalculationsToBuildProjectAndSaves()
-        {
-            // Arrange
-            const string specificationId = "spec-id";
-
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
-            {
-                Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion
-                {
-                    FundingPeriod = new Reference { Id = "fp2" },
-                    Name = "any-name"
-                },
-                Previous = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
-            };
-
-            string json = JsonConvert.SerializeObject(specificationVersionComparison);
-
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-
-            ILogger logger = CreateLogger();
-
-            IEnumerable<Calculation> calcs = new[]
-            {
-                new Calculation
-                {
-                    SpecificationId =  "spec-id",
-                    Name = "any name",
-                    Id = "any-id",
-                    CalculationSpecification = new Reference("any name", "any-id"),
-                    FundingPeriod = new Reference("18/19", "2018/2019"),
-                    CalculationType = CalculationType.Number,
-                    FundingStream = new Reference("fs1","fs1-111"),
-                    Current = new CalculationVersion
-                    {
-                        Author = new Reference(UserId, Username),
-                        Date = DateTimeOffset.Now,
-                        PublishStatus = PublishStatus.Draft,
-                        SourceCode = "source code",
-                        Version = 1
-                    },
-                    Policies = new List<Reference>()
-                }
-            };
-
-            BuildProject buildProject = null;
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
-                .Returns(calcs);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
-                .Returns(buildProject);
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, messengerService: messengerService);
-
-            // Act
-            await service.UpdateCalculationsForSpecification(message);
-
-            // Assert
-            calcs
-                .First()
-                .FundingPeriod.Id
-                .Should()
-                .Be("fp2");
-
-            await buildProjectsRepository
-               .Received(1)
-               .CreateBuildProject(Arg.Any<BuildProject>());
-
-            await
-                messengerService
-                    .Received(1)
-                    .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Is((string)null), Arg.Any<IDictionary<string, string>>());
         }
 
         [TestMethod]
@@ -321,11 +242,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
 
             // Act
             await service.UpdateCalculationsForSpecification(message);
@@ -408,11 +332,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, messengerService: messengerService, searchRepository: searchRepository);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
 
             //Act
             await service.UpdateCalculationsForSpecification(message);
@@ -436,21 +363,12 @@ namespace CalculateFunding.Services.Calcs.Services
                     c.First().Id == calcs.First().Id &&
                     c.First().FundingStreamId == "" &&
                     c.First().FundingStreamName == "No funding stream set"));
-            await
-                messengerService
-                    .Received(1)
-                    .SendToQueue(Arg.Is(ServiceBusConstants.QueueNames.CalculationJobInitialiser), Arg.Is((string)null), Arg.Any<IDictionary<string, string>>());
         }
 
         [TestMethod]
-        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyNameAndJobFeatureToggledIsOn_SavesChangesEnsuresJobCreated()
+        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyName_SavesChangesEnsuresJobCreated()
         {
             // Arrange
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             const string specificationId = "spec-id";
 
             Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
@@ -516,8 +434,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -530,19 +446,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                featureToggle: featureToggle,
-                jobsApiClient: jobsApiClient,
-                messengerService: messengerService);
+                jobsApiClient: jobsApiClient);
 
             // Act
             await service.UpdateCalculationsForSpecification(message);
 
             // Assert
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue<string>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
-
             await
                  jobsApiClient
                      .Received(1)
@@ -563,14 +472,9 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyNameAndJobFeatureToggledIsOnButCreatingJobReturnsNull_LogsError()
+        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyNameButCreatingJobReturnsNull_LogsError()
         {
             // Arrange
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             const string specificationId = "spec-id";
 
             Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
@@ -636,8 +540,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -650,9 +552,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                featureToggle: featureToggle,
-                jobsApiClient: jobsApiClient,
-                messengerService: messengerService);
+                jobsApiClient: jobsApiClient);
 
             // Act
             Func<Task> test = async () => await service.UpdateCalculationsForSpecification(message);
@@ -665,11 +565,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Message
                 .Should()
                 .Be($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
-
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue<string>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
 
             await
                  jobsApiClient
@@ -691,14 +586,9 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyNameAndJobFeatureToggledIsOnAndSourceCodeContainsCalculationAggregate_SavesChangesEnsuresGenerateAggregationsJobCreated()
+        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyNameAndSourceCodeContainsCalculationAggregate_SavesChangesEnsuresGenerateAggregationsJobCreated()
         {
             // Arrange
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             const string specificationId = "spec-id";
 
             Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
@@ -764,8 +654,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -778,19 +666,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger,
                 buildProjectsRepository: buildProjectsRepository,
                 searchRepository: searchRepository,
-                featureToggle: featureToggle,
-                jobsApiClient: jobsApiClient,
-                messengerService: messengerService);
+                jobsApiClient: jobsApiClient);
 
             // Act
             await service.UpdateCalculationsForSpecification(message);
 
             // Assert
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue<string>(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
-
             await
                  jobsApiClient
                      .Received(1)

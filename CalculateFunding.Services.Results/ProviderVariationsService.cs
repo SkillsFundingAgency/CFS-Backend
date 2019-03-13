@@ -615,7 +615,7 @@ namespace CalculateFunding.Services.Results
 
             if (fundingStream == null)
             {
-                throw new NonRetriableException($"Could not find funding stream with matching provider type '{providerChangeItem.SuccessorProvider.ProviderType}' and subtype '{providerChangeItem.SuccessorProvider.ProviderSubType} for specification '{specification.Id}'");
+                throw new NonRetriableException($"Could not find funding stream with matching provider type '{providerChangeItem.SuccessorProvider.ProviderType}' and subtype '{providerChangeItem.SuccessorProvider.ProviderSubType}' for specification '{specification.Id}'");
             }
 
             return fundingStream;

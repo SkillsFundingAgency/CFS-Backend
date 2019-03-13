@@ -29,7 +29,6 @@ using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
 using Polly;
 using Serilog;
 
@@ -95,7 +94,7 @@ namespace CalculateFunding.Services.Calculator
             _datasetAggregationsRepository = datasetAggregationsRepository;
             _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
-            _jobsApiClientPolicy = resiliencePolicies.JobsRepository;
+            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
         }
 
         async public Task<IActionResult> GenerateAllocations(HttpRequest request)
@@ -114,7 +113,7 @@ namespace CalculateFunding.Services.Calculator
             Message message = new Message(body);
             message.PartitionKey = Guid.NewGuid().ToString();
 
-            foreach (var property in properties)
+            foreach (KeyValuePair<string, object> property in properties)
             {
                 message.UserProperties.Add(property.Key, property.Value);
             }
@@ -126,7 +125,7 @@ namespace CalculateFunding.Services.Calculator
 
         public string GetMessage()
         {
-            var sb = new System.Text.StringBuilder();
+            StringBuilder sb = new System.Text.StringBuilder();
 
             sb.AppendLine("Copy message here from dead letter");
             return sb.ToString();
@@ -142,17 +141,14 @@ namespace CalculateFunding.Services.Calculator
 
             GenerateAllocationMessageProperties messageProperties = GetMessageProperties(message);
 
-            if (_featureToggle.IsJobServiceEnabled())
+            JobViewModel job = await AddStartingProcessJobLog(messageProperties.JobId);
+
+            if (job == null)
             {
-                JobViewModel job = await AddStartingProcessJobLog(messageProperties.JobId);
-
-                if (job == null)
-                {
-                    return;
-                }
-
-                messageProperties.GenerateCalculationAggregationsOnly = (job.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalculationAggregationsJob);
+                return;
             }
+
+            messageProperties.GenerateCalculationAggregationsOnly = (job.JobDefinitionId == JobConstants.DefinitionNames.GenerateCalculationAggregationsJob);
 
             IEnumerable<ProviderSummary> summaries = null;
 
@@ -232,10 +228,7 @@ namespace CalculateFunding.Services.Calculator
 
                     if (calculationResults.ResultsContainExceptions)
                     {
-                        if (_featureToggle.IsJobServiceEnabled())
-                        {
-                            await FailJob(messageProperties.JobId, totalProviderResults, "Exceptions were thrown during generation of calculation results");
-                        }
+                        await FailJob(messageProperties.JobId, totalProviderResults, "Exceptions were thrown during generation of calculation results");
 
                         throw new NonRetriableException($"Exceptions were thrown during generation of calculation results for specification Id: '{messageProperties.SpecificationId}'");
                     }
@@ -277,50 +270,7 @@ namespace CalculateFunding.Services.Calculator
                 );
             }
 
-            if (_featureToggle.IsJobServiceEnabled())
-            {
-                await CompleteBatch(messageProperties, cachedCalculationAggregationsBatch, summaries.Count(), totalProviderResults);
-            }
-        }
-
-        public async Task UpdateDeadLetteredJobLog(Message message)
-        {
-            if (!_featureToggle.IsJobServiceEnabled())
-            {
-                return;
-            }
-
-            Guard.ArgumentNotNull(message, nameof(message));
-
-            if (!message.UserProperties.ContainsKey("jobId"))
-            {
-                _logger.Error("Missing job id from dead lettered message");
-                return;
-            }
-
-            string jobId = message.UserProperties["jobId"].ToString();
-
-            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-            {
-                CompletedSuccessfully = false,
-                Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
-            };
-
-            try
-            {
-                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
-
-                if (jobLogResponse == null || jobLogResponse.Content == null)
-                {
-                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
-                }
-
-                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLogResponse.Content.Id}' on job with id '{jobId}' while attempting to generate allocations");
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"Failed to add a job log for job id '{jobId}'");
-            }
+            await CompleteBatch(messageProperties, cachedCalculationAggregationsBatch, summaries.Count(), totalProviderResults);
         }
 
         private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries, IEnumerable<CalculationSummaryModel> calculations, IEnumerable<CalculationAggregation> aggregations, BuildProject buildProject,
@@ -372,7 +322,7 @@ namespace CalculateFunding.Services.Calculator
                     throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
                 }
             });
-           
+
 
             _logger.Information($"calculating results complete for specification id {messageProperties.SpecificationId}");
 
@@ -389,16 +339,13 @@ namespace CalculateFunding.Services.Calculator
         {
             GenerateAllocationMessageProperties properties = new GenerateAllocationMessageProperties();
 
-            if (_featureToggle.IsJobServiceEnabled())
+            if (message.UserProperties.ContainsKey("jobId"))
             {
-                if (message.UserProperties.ContainsKey("jobId"))
-                {
-                    properties.JobId = message.UserProperties["jobId"].ToString();
-                }
-                else
-                {
-                    _logger.Error("Missing job id for generating allocations");
-                }
+                properties.JobId = message.UserProperties["jobId"].ToString();
+            }
+            else
+            {
+                _logger.Error("Missing job id for generating allocations");
             }
 
             string specificationId = message.UserProperties["specification-id"].ToString();
@@ -440,7 +387,8 @@ namespace CalculateFunding.Services.Calculator
         {
             if (string.IsNullOrWhiteSpace(jobId))
             {
-                return null;
+                _logger.Error($"No jobId given.");
+                throw new NonRetriableException("No Job Id given");
             }
 
             ApiResponse<JobViewModel> jobResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
@@ -449,7 +397,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 _logger.Error($"Could not find the parent job with job id: '{jobId}'");
 
-                throw new Exception($"Could not find the parent job with job id: '{jobId}'");
+                throw new NonRetriableException($"Could not find the parent job with job id: '{jobId}'");
             }
 
             JobViewModel job = jobResponse.Content;
@@ -632,16 +580,16 @@ namespace CalculateFunding.Services.Calculator
             }
         }
 
-        private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs,  long saveRedisElapsedMs, long saveQueueElapsedMs)> ProcessProviderResults(IEnumerable<ProviderResult> providerResults,
+        private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs)> ProcessProviderResults(IEnumerable<ProviderResult> providerResults,
             GenerateAllocationMessageProperties messageProperties, Message message)
         {
-            (long saveToCosmosElapsedMs, long saveToSearchElapsedMs) saveProviderResultsTimings = (-1,-1);
+            (long saveToCosmosElapsedMs, long saveToSearchElapsedMs) saveProviderResultsTimings = (-1, -1);
 
             if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))
             {
                 _logger.Information($"Saving results for specification id {messageProperties.SpecificationId}");
 
-                saveProviderResultsTimings  = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism));
+                saveProviderResultsTimings = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism));
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");
             }

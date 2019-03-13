@@ -47,12 +47,18 @@ namespace CalculateFunding.Services.Results.Services
         {
             // Arrange
             ILogger logger = Substitute.For<ILogger>();
-            PublishedResultsService service = CreateResultsService(logger: logger);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
+            PublishedResultsService service = CreateResultsService(logger: logger, jobsApiClient: jobsApiClient);
 
             ProviderProfilingRequestModel requestModel = CreateProviderProfilingRequestModel();
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties.Add("jobId", jobId);
 
             // Act
             await service.FetchProviderProfile(message);
@@ -66,9 +72,16 @@ namespace CalculateFunding.Services.Results.Services
         {
             // Arrange
             ILogger logger = Substitute.For<ILogger>();
-            PublishedResultsService service = CreateResultsService(logger: logger);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
+            PublishedResultsService service = CreateResultsService(logger: logger, jobsApiClient: jobsApiClient);
+
             Message message = new Message();
             message.UserProperties["specification-id"] = "test";
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await service.FetchProviderProfile(message);
@@ -84,13 +97,19 @@ namespace CalculateFunding.Services.Results.Services
             ILogger logger = Substitute.For<ILogger>();
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-            PublishedResultsService service = CreateResultsService(logger: logger, specificationsRepository: specificationsRepository);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
+            PublishedResultsService service = CreateResultsService(logger: logger, specificationsRepository: specificationsRepository, jobsApiClient: jobsApiClient);
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = "spec1";
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await service.FetchProviderProfile(message);
@@ -121,16 +140,23 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                jobsApiClient: jobsApiClient);
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await service.FetchProviderProfile(message);
@@ -186,16 +212,23 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 profilingApiClient: providerProfilingRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> test = async () => await service.FetchProviderProfile(message);
@@ -255,16 +288,23 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 profilingApiClient: providerProfilingRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> test = async () => await service.FetchProviderProfile(message);
@@ -327,16 +367,23 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 profilingApiClient: providerProfilingRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> test = async () => await service.FetchProviderProfile(message);
@@ -401,13 +448,20 @@ namespace CalculateFunding.Services.Results.Services
                 .IsAllocationLineMajorMinorVersioningEnabled()
                 .Returns(true);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
-                profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, featureToggle: featureToggler);
+                profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, 
+                featureToggle: featureToggler, jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await service.FetchProviderProfile(message);
@@ -480,18 +534,25 @@ namespace CalculateFunding.Services.Results.Services
                 .IsAllAllocationResultsVersionsInFeedIndexEnabled()
                 .Returns(true);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 profilingApiClient: providerProfilingRepository,
                 specificationsRepository: specificationsRepository,
                 allocationNotificationFeedSearchRepository: feedsSearchRepository,
-                featureToggle: featureToggler);
+                featureToggle: featureToggler,
+                jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await service.FetchProviderProfile(message);
@@ -563,6 +624,11 @@ namespace CalculateFunding.Services.Results.Services
                 .IsAllocationLineMajorMinorVersioningEnabled()
                 .Returns(false);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
@@ -570,12 +636,14 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 allocationNotificationFeedSearchRepository:
                 feedsSearchRepository,
-                featureToggle: featureToggle);
+                featureToggle: featureToggle,
+                jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await service.FetchProviderProfile(message);
@@ -675,17 +743,24 @@ namespace CalculateFunding.Services.Results.Services
                 new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
             };
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 profilingApiClient: providerProfilingRepository,
                 specificationsRepository: specificationsRepository,
-                allocationNotificationFeedSearchRepository: feedsSearchRepository);
+                allocationNotificationFeedSearchRepository: feedsSearchRepository,
+                jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await service.FetchProviderProfile(message);
@@ -775,13 +850,20 @@ namespace CalculateFunding.Services.Results.Services
                 new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
             };
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
-                profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository);
+                profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository,
+                jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> test = () => service.FetchProviderProfile(message);
@@ -880,11 +962,6 @@ namespace CalculateFunding.Services.Results.Services
                 new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
             };
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
@@ -896,7 +973,6 @@ namespace CalculateFunding.Services.Results.Services
                 profilingApiClient: providerProfilingRepository,
                 specificationsRepository: specificationsRepository,
                 allocationNotificationFeedSearchRepository: feedsSearchRepository,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);

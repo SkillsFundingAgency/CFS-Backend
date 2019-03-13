@@ -10,7 +10,5 @@ namespace CalculateFunding.Services.Calculator.Interfaces
         Task GenerateAllocations(Message message);
 
         Task<IActionResult> GenerateAllocations(HttpRequest request);
-
-        Task UpdateDeadLetteredJobLog(Message message);
     }
 }

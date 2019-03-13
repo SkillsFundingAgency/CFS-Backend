@@ -52,7 +52,8 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             validateAction
-                .ShouldThrow<ArgumentNullException>()
+                .Should()
+                .ThrowExactly<ArgumentNullException>()
                 .And.Message
                 .Should().Contain("CacheProvider")
                 .And.Contain("ProviderSourceDatasetsRepository")
@@ -77,7 +78,8 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             validateAction
-                .ShouldThrow<ArgumentNullException>()
+                .Should()
+                .ThrowExactly<ArgumentNullException>()
                 .And.Message
                 .Should()
                 .Contain("Parameter name: engineSettings");
@@ -139,9 +141,11 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             validateMethod
-                .ShouldThrow<KeyNotFoundException>()
+                .Should()
+                .ThrowExactly<KeyNotFoundException>()
                 .And.Message
-                .ShouldBeEquivalentTo(GenerateExpectedErrorMessage(PartitionIndexKey));
+                .Should()
+                .BeEquivalentTo(GenerateExpectedErrorMessage(PartitionIndexKey));
         }
 
         [TestMethod]
@@ -166,9 +170,11 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             validateMethod
-                .ShouldThrow<KeyNotFoundException>()
+                .Should()
+                .ThrowExactly<KeyNotFoundException>()
                 .And.Message
-                .ShouldBeEquivalentTo(GenerateExpectedErrorMessage(PartitionSizeKey));
+                .Should()
+                .BeEquivalentTo(GenerateExpectedErrorMessage(PartitionSizeKey));
         }
 
         [TestMethod]
@@ -193,9 +199,11 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             validateMethod
-                .ShouldThrow<KeyNotFoundException>()
+                .Should()
+                .ThrowExactly<KeyNotFoundException>()
                 .And.Message
-                .ShouldBeEquivalentTo("Provider cache key not found");
+                .Should()
+                .BeEquivalentTo("Provider cache key not found");
         }
 
         [TestMethod]
@@ -222,9 +230,11 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             validateMethod
-                .ShouldThrow<KeyNotFoundException>()
+                .Should()
+                .ThrowExactly<KeyNotFoundException>()
                 .And.Message
-                .ShouldBeEquivalentTo(GeneratePartitionSizeErrorMessage(partitionSize));
+                .Should()
+                .BeEquivalentTo(GeneratePartitionSizeErrorMessage(partitionSize));
         }
 
         [TestMethod]
@@ -251,9 +261,11 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             validateMethod
-                .ShouldThrow<KeyNotFoundException>()
+                .Should()
+                .ThrowExactly<KeyNotFoundException>()
                 .And.Message
-                .ShouldBeEquivalentTo(GeneratePartitionSizeErrorMessage(partitionSize));
+                .Should()
+                .BeEquivalentTo(GeneratePartitionSizeErrorMessage(partitionSize));
         }
 
         private static string GenerateExpectedErrorMessage(string missingComponentName)

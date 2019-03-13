@@ -8,15 +8,12 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Results.Messages;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -57,8 +54,14 @@ namespace CalculateFunding.Services.Results.Services
             ILogger logger = CreateLogger();
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-            PublishedResultsService resultsService = CreateResultsService(specificationsRepository: specificationsRepository, logger: logger);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
+            PublishedResultsService resultsService = CreateResultsService(specificationsRepository: specificationsRepository, logger: logger, jobsApiClient: jobsApiClient);
             Message message = new Message();
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await resultsService.PublishProviderResults(message);
@@ -80,9 +83,15 @@ namespace CalculateFunding.Services.Results.Services
             ILogger logger = CreateLogger();
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
 
-            PublishedResultsService resultsService = CreateResultsService(logger: logger, resultsRepository: calculationResultsRepository);
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
+            PublishedResultsService resultsService = CreateResultsService(logger: logger, resultsRepository: calculationResultsRepository, jobsApiClient: jobsApiClient);
             Message message = new Message();
             message.UserProperties["specification-id"] = "-1";
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await resultsService.PublishProviderResults(message);
@@ -116,13 +125,20 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(Task.FromResult(providerResults));
             IPublishedProviderResultsAssemblerService resultsAssembler = CreateResultsAssembler();
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 logger: logger,
                 publishedProviderResultsAssemblerService: resultsAssembler,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await resultsService.PublishProviderResults(message);
@@ -204,14 +220,21 @@ namespace CalculateFunding.Services.Results.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService resultsService = CreateResultsService(
                 resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
-                publishedProviderResultsAssemblerService: assembler);
+                publishedProviderResultsAssemblerService: assembler,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> test = () => resultsService.PublishProviderResults(message);
@@ -300,15 +323,22 @@ namespace CalculateFunding.Services.Results.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService resultsService = CreateResultsService(
                 resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
-                publishedProviderResultsVersionRepository: versionRepository);
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> test = () => resultsService.PublishProviderResults(message);
@@ -369,15 +399,25 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            jobsApiClient
+                .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>())
+                .Returns(new ApiResponse<JobLog>(HttpStatusCode.OK, new JobLog()));
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository,
                 publishedProviderResultsAssemblerService: assembler,
-                logger: logger);
+                logger: logger,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> test = () => resultsService.PublishProviderResults(message);
@@ -448,23 +488,30 @@ namespace CalculateFunding.Services.Results.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns(resultsToSave);
 
-            IMessengerService messengerService = CreateMessengerService();
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "newJobId" });
 
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
-                messengerService: messengerService);
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await resultsService.PublishProviderResults(message);
 
             //Assert
-            await messengerService
+            await jobsApiClient
                 .Received(1)
-                .SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, Arg.Any<IEnumerable<FetchProviderProfilingMessageItem>>(), Arg.Any<IDictionary<string, string>>());
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.SpecificationId == specificationId && j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob && j.ParentJobId == jobId && j.MessageBody.Length > 0));
         }
 
         [TestMethod]
@@ -530,23 +577,30 @@ namespace CalculateFunding.Services.Results.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns(resultsToSave);
 
-            IMessengerService messengerService = CreateMessengerService();
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "newJobId" });
 
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
-                messengerService: messengerService);
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await resultsService.PublishProviderResults(message);
 
             //Assert
-            await messengerService
+            await jobsApiClient
                 .Received(6)
-                .SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, Arg.Any<IEnumerable<FetchProviderProfilingMessageItem>>(), Arg.Any<IDictionary<string, string>>());
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.SpecificationId == specificationId && j.ParentJobId == jobId && j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob && j.MessageBody.Length > 0));
         }
 
 
@@ -631,16 +685,25 @@ namespace CalculateFunding.Services.Results.Services
             SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 73);
             SpecificationCalculationExecutionStatus expectedProgressCall8 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 78);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "newJobId" });
 
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 cacheProvider: mockCacheProvider,
                 publishedProviderResultsAssemblerService: assembler,
-                publishedProviderResultsVersionRepository: versionRepository);
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = SpecificationId1;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> publishProviderResultsAction = () => resultsService.PublishProviderResults(message);
@@ -740,15 +803,22 @@ namespace CalculateFunding.Services.Results.Services
                 c.ErrorMessage = "Failed to create published provider calculation results";
             });
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 cacheProvider: mockCacheProvider,
                 publishedProviderResultsAssemblerService: assemblerService,
-                publishedProviderResultsVersionRepository: versionRepository);
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = SpecificationId1;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> publishProviderAction = () => resultsService.PublishProviderResults(message);
@@ -840,13 +910,23 @@ namespace CalculateFunding.Services.Results.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "newJobId" });
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
-                publishedProviderResultsAssemblerService: assembler);
+                publishedProviderResultsAssemblerService: assembler,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await resultsService.PublishProviderResults(message);
@@ -981,14 +1061,24 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForId("c3BlYy0xMTIzQUFBQUE=", "123")
                 .Returns(existingProviderResultToRemove);
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "newJobId" });
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
-                publishedProviderResultsVersionRepository: versionRepository);
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             await resultsService.PublishProviderResults(message);
@@ -1050,15 +1140,22 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId)).
+                Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository,
                 logger: logger,
-                publishedProviderResultsAssemblerService: assembler);
+                publishedProviderResultsAssemblerService: assembler,
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
 
             // Act
             Func<Task> test = () => resultsService.PublishProviderResults(message);
@@ -1070,7 +1167,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task PublishProviderResults_WhenUseJobServiceToggleSet_ThenJobServiceCalled()
+        public async Task PublishProviderResults_GivenValidRequst_ThenJobServiceCalled()
         {
             // Arrange
             string specificationId = "1";
@@ -1135,11 +1232,6 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
@@ -1155,7 +1247,6 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -1180,7 +1271,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task PublishProviderResults_WhenUseJobServiceToggleSet_ThenFetchProfilePeriodIsUsingJobService()
+        public async Task PublishProviderResults_GivenValidRequest_ThenFetchProfilePeriodIsUsingJobService()
         {
             // Arrange
             string specificationId = "1";
@@ -1248,11 +1339,6 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
@@ -1268,7 +1354,6 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();

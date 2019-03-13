@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Scenarios
     public class ProviderSummaryExtensionTests
     {
         [TestMethod]
-        public void GetIdentifierBasedOnIdentifierType_GivenSummaryAndUkprmIdentifier_ReturnsUkPrnValue()
+        public void GetIdentifierBasedOnIdentifierType_GivenSummaryAndUkprnIdentifier_ReturnsUkPrnValue()
         {
             //Arrange
             ProviderSummary providerSummary = CreateProviderSummary();
@@ -111,7 +111,8 @@ namespace CalculateFunding.Services.Scenarios
 
             //Assert
             test
-                .ShouldThrow<ArgumentOutOfRangeException>()
+                .Should()
+                .Throw<ArgumentOutOfRangeException>()
                 .Which
                 .Message
                 .Should()

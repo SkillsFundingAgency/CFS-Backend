@@ -2,6 +2,7 @@ using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
@@ -29,12 +30,12 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
                 ILogger logger = scope.ServiceProvider.GetService<ILogger>();
                 logger.Information("Scope created, starting to process dead letter message for generating allocations");
                 ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                ICalculationEngineService calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();
+                IJobHelperService jobHelperService = scope.ServiceProvider.GetService<IJobHelperService>();
 
                 try
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await calculationEngineService.UpdateDeadLetteredJobLog(message);
+                    await jobHelperService.ProcessDeadLetteredMessage(message);
 
                     logger.Information("Proccessed generate allocations dead lettered message complete");
                 }

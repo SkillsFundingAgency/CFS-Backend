@@ -3,11 +3,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Aggregations;
@@ -18,21 +17,17 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Calcs.ResultModels;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
-using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -42,8 +37,6 @@ using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationCurrentVersion = CalculateFunding.Models.Calcs.CalculationCurrentVersion;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
-using CalculateFunding.Services.Core;
-using System.IO;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -54,7 +47,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly IValidator<Calculation> _calculationValidator;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
-        private readonly IMessengerService _messengerService;
         private readonly ISpecificationRepository _specsRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly ITelemetry _telemetry;
@@ -68,7 +60,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly IFeatureToggle _featureToggle;
         private readonly ISourceCodeService _sourceCodeService;
 
         public CalculationService(
@@ -78,13 +69,11 @@ namespace CalculateFunding.Services.Calcs
             ISearchRepository<CalculationIndex> searchRepository,
             IValidator<Calculation> calculationValidator,
             IBuildProjectsRepository buildProjectsRepository,
-            IMessengerService messengerService,
             ISpecificationRepository specificationRepository,
             ICacheProvider cacheProvider,
             ICalcsResilliencePolicies resilliencePolicies,
             IVersionRepository<CalculationVersion> calculationVersionRepository,
             IJobsApiClient jobsApiClient,
-            IFeatureToggle featureToggle,
             ISourceCodeService sourceCodeService)
         {
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
@@ -93,10 +82,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(calculationValidator, nameof(calculationValidator));
-            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
-            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
 
             _calculationsRepository = calculationsRepository;
@@ -105,7 +92,6 @@ namespace CalculateFunding.Services.Calcs
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
             _buildProjectsRepository = buildProjectsRepository;
-            _messengerService = messengerService;
             _specsRepository = specificationRepository;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resilliencePolicies.CalculationsRepository;
@@ -118,16 +104,13 @@ namespace CalculateFunding.Services.Calcs
             _calculationVersionsRepositoryPolicy = resilliencePolicies.CalculationsVersionsRepositoryPolicy;
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
-            _featureToggle = featureToggle;
             _sourceCodeService = sourceCodeService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth calcsRepoHealth = await ((IHealthChecker)_calculationsRepository).IsHealthOk();
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
-            string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
-            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -135,14 +118,13 @@ namespace CalculateFunding.Services.Calcs
             };
             health.Dependencies.AddRange(calcsRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
 
             return health;
         }
 
-        async public Task<IActionResult> GetCalculationHistory(HttpRequest request)
+        public async Task<IActionResult> GetCalculationHistory(HttpRequest request)
         {
-            request.Query.TryGetValue("calculationId", out var calcId);
+            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
 
             string calculationId = calcId.FirstOrDefault();
 
@@ -165,7 +147,7 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(history);
         }
 
-        async public Task<IActionResult> GetCalculationVersions(HttpRequest request)
+        public async Task<IActionResult> GetCalculationVersions(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
@@ -191,7 +173,7 @@ namespace CalculateFunding.Services.Calcs
 
             IList<CalculationVersion> versions = new List<CalculationVersion>();
 
-            foreach (var version in compareModel.Versions)
+            foreach (int version in compareModel.Versions)
             {
                 versions.Add(allVersions.FirstOrDefault(m => m.Version == version));
             }
@@ -206,11 +188,11 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(versions);
         }
 
-        async public Task<IActionResult> GetCalculationCurrentVersion(HttpRequest request)
+        public async Task<IActionResult> GetCalculationCurrentVersion(HttpRequest request)
         {
-            request.Query.TryGetValue("calculationId", out var calcId);
+            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
 
-            var calculationId = calcId.FirstOrDefault();
+            string calculationId = calcId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(calculationId))
             {
@@ -250,9 +232,9 @@ namespace CalculateFunding.Services.Calcs
 
         async public Task<IActionResult> GetCalculationById(HttpRequest request)
         {
-            request.Query.TryGetValue("calculationId", out var calcId);
+            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
 
-            var calculationId = calcId.FirstOrDefault();
+            string calculationId = calcId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(calculationId))
             {
@@ -277,7 +259,7 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> GetCurrentCalculationsForSpecification(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
 
             string specificationId = specId.FirstOrDefault();
 
@@ -315,7 +297,7 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> GetCalculationSummariesForSpecification(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
 
             string specificationId = specId.FirstOrDefault();
 
@@ -351,7 +333,7 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculations);
         }
 
-        async public Task CreateCalculation(Message message)
+        public async Task CreateCalculation(Message message)
         {
             Reference user = message.GetUserDetails();
 
@@ -363,7 +345,7 @@ namespace CalculateFunding.Services.Calcs
             }
             else
             {
-                var validationResult = await _calculationValidator.ValidateAsync(calculation);
+                FluentValidation.Results.ValidationResult validationResult = await _calculationValidator.ValidateAsync(calculation);
 
                 if (!validationResult.IsValid)
                 {
@@ -378,7 +360,7 @@ namespace CalculateFunding.Services.Calcs
 
                 IEnumerable<Models.Specs.Calculation> calculationSpecifications = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetCalculationSpecificationsForSpecification(calculation.SpecificationId));
 
-                if(calculationSpecifications?.FirstOrDefault(m => m.Id == calculation.CalculationSpecification.Id) == null)
+                if (calculationSpecifications?.FirstOrDefault(m => m.Id == calculation.CalculationSpecification.Id) == null)
                 {
                     _logger.Error($"A calculation specification was not found for calculation specification id '{calculation.CalculationSpecification.Id}'");
 
@@ -496,42 +478,30 @@ namespace CalculateFunding.Services.Calcs
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
-            if (_featureToggle.IsJobServiceEnabled())
+            string userId = properties.ContainsKey("user-id") ? properties["user-id"] : "";
+            string userName = properties.ContainsKey("user-name") ? properties["user-name"] : "";
+            string correlationId = message.GetCorrelationId();
+
+            try
             {
-                string userId = properties.ContainsKey("user-id") ? properties["user-id"] : "";
-                string userName = properties.ContainsKey("user-name") ? properties["user-name"] : "";
-                string correlationId = message.GetCorrelationId();
-
-                try
+                Trigger trigger = new Trigger
                 {
-                    Trigger trigger = new Trigger
-                    {
-                        EntityId = specificationId,
-                        EntityType = nameof(Specification),
-                        Message = $"Updating calculations for specification: '{specificationId}'"
-                    };
+                    EntityId = specificationId,
+                    EntityType = nameof(Specification),
+                    Message = $"Updating calculations for specification: '{specificationId}'"
+                };
 
-                    bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(calculations.Select(m => m.Current.SourceCode));
+                bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(calculations.Select(m => m.Current.SourceCode));
 
-                    Job job = await SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
+                Job job = await SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
 
-                    _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
-
-                    throw new Exception($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
-                }
+                _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
             }
-            else
+            catch (Exception ex)
             {
+                _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
 
-                properties.Add("specification-id", specificationId);
-
-                await _messagePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                    null,
-                    properties));
+                throw new Exception($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
             }
         }
 
@@ -689,9 +659,9 @@ namespace CalculateFunding.Services.Calcs
             return updatedCalculations;
         }
 
-        async public Task<IActionResult> SaveCalculationVersion(HttpRequest request)
+        public async Task<IActionResult> SaveCalculationVersion(HttpRequest request)
         {
-            request.Query.TryGetValue("calculationId", out var calcId);
+            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
 
             string calculationId = calcId.FirstOrDefault();
 
@@ -744,40 +714,33 @@ namespace CalculateFunding.Services.Calcs
 
             UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, user);
 
-            if (_featureToggle.IsJobServiceEnabled())
+            string userId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : "";
+            string userName = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : "";
+
+            try
             {
-                string userId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : "";
-                string userName = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : "";
-
-                try
+                Trigger trigger = new Trigger
                 {
-                    Trigger trigger = new Trigger
-                    {
-                        EntityId = calculation.Id,
-                        EntityType = nameof(Calculation),
-                        Message = $"Saving calculation: '{calculationId}' for specification: '{calculation.SpecificationId}'"
-                    };
+                    EntityId = calculation.Id,
+                    EntityType = nameof(Calculation),
+                    Message = $"Saving calculation: '{calculationId}' for specification: '{calculation.SpecificationId}'"
+                };
 
-                    string correlationId = request.GetCorrelationId();
+                string correlationId = request.GetCorrelationId();
 
-                    IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(calculation.SpecificationId));
+                IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(calculation.SpecificationId));
 
-                    bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
+                bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
 
-                    Job job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
+                Job job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
 
-                    _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{result.BuildProject.SpecificationId}'");
-
-                    return new InternalServerErrorResult($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{result.BuildProject.SpecificationId}'");
-                }
+                _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
             }
-            else
+            catch (Exception ex)
             {
-                await SendGenerateAllocationsMessage(result.BuildProject, request);
+                _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{result.BuildProject.SpecificationId}'");
+
+                return new InternalServerErrorResult($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{result.BuildProject.SpecificationId}'");
             }
 
             _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
@@ -842,11 +805,11 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        async public Task<IActionResult> UpdateCalculationStatus(HttpRequest request)
+        public async Task<IActionResult> UpdateCalculationStatus(HttpRequest request)
         {
-            request.Query.TryGetValue("calculationId", out var calcId);
+            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
 
-            var calculationId = calcId.FirstOrDefault();
+            string calculationId = calcId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(calculationId))
             {
@@ -941,9 +904,9 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> GetCalculationCodeContext(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -1030,7 +993,7 @@ namespace CalculateFunding.Services.Calcs
             return new NoContentResult();
         }
 
-        async public Task<IActionResult> GetCalculationStatusCounts(HttpRequest request)
+        public async Task<IActionResult> GetCalculationStatusCounts(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
@@ -1099,7 +1062,7 @@ namespace CalculateFunding.Services.Calcs
             return new NotFoundObjectResult($"No result was found for {calculationSpecificationId}");
         }
 
-        async Task UpdateSearch(Calculation calculation, string specificationName)
+        private async Task UpdateSearch(Calculation calculation, string specificationName)
         {
             IEnumerable<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
             {
@@ -1107,7 +1070,7 @@ namespace CalculateFunding.Services.Calcs
             });
         }
 
-        CalculationIndex CreateCalculationIndexItem(Calculation calculation, string specificationName)
+        private CalculationIndex CreateCalculationIndexItem(Calculation calculation, string specificationName)
         {
             return new CalculationIndex
             {
@@ -1140,7 +1103,7 @@ namespace CalculateFunding.Services.Calcs
                 Id = Guid.NewGuid().ToString(),
                 Name = specificationId
             };
-            
+
             buildproject.Build = _sourceCodeService.Compile(buildproject, calculations);
 
             await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.CreateBuildProject(buildproject));
@@ -1157,7 +1120,7 @@ namespace CalculateFunding.Services.Calcs
             return sourceCode.Replace(existingFunctionName, newFunctionName, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        async Task<BuildProject> UpdateBuildProject(string specificationId)
+        private async Task<BuildProject> UpdateBuildProject(string specificationId)
         {
             Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
             Task<BuildProject> buildProjectRequest = _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId));
@@ -1205,7 +1168,7 @@ namespace CalculateFunding.Services.Calcs
             return buildProject;
         }
 
-        CalculationCurrentVersion GetCurrentVersionFromCalculation(Calculation calculation)
+        private CalculationCurrentVersion GetCurrentVersionFromCalculation(Calculation calculation)
         {
             CalculationCurrentVersion calculationCurrentVersion = new CalculationCurrentVersion
             {
@@ -1226,7 +1189,7 @@ namespace CalculateFunding.Services.Calcs
             return calculationCurrentVersion;
         }
 
-        CalculationSummaryModel GetCalculationSummaryFromCalculation(Calculation calculation)
+        private CalculationSummaryModel GetCalculationSummaryFromCalculation(Calculation calculation)
         {
             CalculationSummaryModel calculationCurrentVersion = new CalculationSummaryModel
             {
@@ -1239,18 +1202,6 @@ namespace CalculateFunding.Services.Calcs
             };
 
             return calculationCurrentVersion;
-        }
-
-        private Task SendGenerateAllocationsMessage(BuildProject buildProject, HttpRequest request)
-        {
-            IDictionary<string, string> properties = request.BuildMessageProperties();
-
-            properties.Add("specification-id", buildProject.SpecificationId);
-            properties.Add("buildproject-id", buildProject.Id);
-
-            return _messagePolicy.ExecuteAsync(() => _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                null,
-                properties));
         }
 
         private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool generateAggregations = false)
@@ -1270,24 +1221,6 @@ namespace CalculateFunding.Services.Calcs
             };
 
             return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
-        }
-
-        IDictionary<string, string> CreateMessageProperties(HttpRequest request)
-        {
-            Reference user = request.GetUser();
-
-            IDictionary<string, string> properties = new Dictionary<string, string>
-            {
-                { "sfa-correlationId", request.GetCorrelationId() }
-            };
-
-            if (user != null)
-            {
-                properties.Add("user-id", user.Id);
-                properties.Add("user-name", user.Name);
-            }
-
-            return properties;
         }
 
         private async Task UpdateCalculationInCache(Calculation calculation, CalculationCurrentVersion currentVersion)
@@ -1314,6 +1247,5 @@ namespace CalculateFunding.Services.Calcs
 
             return result;
         }
-
     }
 }

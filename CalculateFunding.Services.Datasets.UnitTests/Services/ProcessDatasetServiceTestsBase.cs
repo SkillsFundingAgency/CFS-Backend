@@ -27,7 +27,6 @@ namespace CalculateFunding.Services.Datasets.Services
             IBlobClient blobClient = null,
             ILogger logger = null,
             IDatasetRepository datasetRepository = null,
-            IMessengerService messengerService = null,
             IExcelDatasetReader excelDatasetReader = null,
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
@@ -44,7 +43,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             return new ProcessDatasetService(
                 datasetRepository ?? CreateDatasetsRepository(),
-                messengerService ?? CreateMessengerService(),
                 excelDatasetReader ?? CreateExcelDatasetReader(),
                 cacheProvider ?? CreateCacheProvider(),
                 calcsRepository ?? CreateCalcsRepository(),
@@ -66,10 +64,6 @@ namespace CalculateFunding.Services.Datasets.Services
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
             featureToggle
                 .IsAggregateSupportInCalculationsEnabled()
-                .Returns(false);
-
-            featureToggle
-                .IsJobServiceEnabled()
                 .Returns(false);
 
             return featureToggle;
@@ -118,11 +112,6 @@ namespace CalculateFunding.Services.Datasets.Services
         protected static IExcelDatasetReader CreateExcelDatasetReader()
         {
             return Substitute.For<IExcelDatasetReader>();
-        }
-
-        protected static IMessengerService CreateMessengerService()
-        {
-            return Substitute.For<IMessengerService>();
         }
 
         protected static ICacheProvider CreateCacheProvider()

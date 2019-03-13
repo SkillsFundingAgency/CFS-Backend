@@ -1,15 +1,13 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
@@ -41,15 +39,13 @@ namespace CalculateFunding.Services.Datasets.Services
             IMapper mapper = null,
             IValidator<DatasetMetadataModel> datasetMetadataModelValidator = null,
             ISearchRepository<DatasetIndex> searchRepository = null,
-			ISearchRepository<DatasetVersionIndex> datasetVersionIndex = null,
+            ISearchRepository<DatasetVersionIndex> datasetVersionIndex = null,
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null,
-            IMessengerService messengerService = null,
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
             IProviderRepository providerRepository = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
             IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
-            IFeatureToggle featureToggle = null,
             IJobsApiClient jobsApiClient = null)
         {
             return new DatasetService(
@@ -62,16 +58,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetMetadataModelValidator ?? CreateDatasetMetadataModelValidator(),
                 searchRepository ?? CreateSearchRepository(),
                 getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
-                messengerService ?? CreateMessengerService(),
                 cacheProvider ?? CreateCacheProvider(),
                 providerRepository ?? CreateProviderRepository(),
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
                 datasetUploadValidator ?? CreateDatasetUploadValidator(),
                 DatasetsResilienceTestHelper.GenerateTestPolicies(),
-                featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 datasetVersionIndex ?? CreateDatasetVersionRepository()
-				);
+                );
         }
 
         protected IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()
@@ -109,24 +103,14 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ISearchRepository<DatasetIndex>>();
         }
 
-	    protected ISearchRepository<DatasetVersionIndex> CreateDatasetVersionRepository()
-	    {
-		    return Substitute.For<ISearchRepository<DatasetVersionIndex>>();
-	    }
+        protected ISearchRepository<DatasetVersionIndex> CreateDatasetVersionRepository()
+        {
+            return Substitute.For<ISearchRepository<DatasetVersionIndex>>();
+        }
 
-		protected ISpecificationsRepository CreateSpecificationsRepository()
+        protected ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
-        }
-
-        protected IMessengerService CreateMessengerService()
-        {
-            return Substitute.For<IMessengerService>();
-        }
-
-        protected ServiceBusSettings CreateEventHubSettings()
-        {
-            return new ServiceBusSettings();
         }
 
         protected ICacheProvider CreateCacheProvider()
@@ -272,11 +256,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
                 return package.GetAsByteArray();
             }
-        }
-
-        protected IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
         }
 
         protected IJobsApiClient CreateJobsApiClient()

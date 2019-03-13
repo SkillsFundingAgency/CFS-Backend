@@ -232,46 +232,6 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-        public async Task UpdateDeadLetteredJobLog(Message message)
-        {
-            if (!_featureToggle.IsApprovalBatchingServerSideEnabled())
-            {
-                return;
-            }
-
-            Guard.ArgumentNotNull(message, nameof(message));
-
-            if (!message.UserProperties.ContainsKey("jobId"))
-            {
-                _logger.Error("Missing job id from dead lettered message");
-                return;
-            }
-
-            string jobId = message.UserProperties["jobId"].ToString();
-
-            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-            {
-                CompletedSuccessfully = false,
-                Outcome = $"The job has exceeded its maximum retry count and failed to complete successfully"
-            };
-
-            try
-            {
-                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
-
-                if (jobLogResponse == null || jobLogResponse.Content == null)
-                {
-                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
-                }
-
-                _logger.Information($"A new job log was added to inform of a dead lettered message with job log id '{jobLogResponse.Content.Id}' on job with id '{jobId}' while attempting to generate allocations");
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, $"Failed to add a job log for job id '{jobId}'");
-            }
-        }
-
         public async Task<PublishedProviderResult> GetPublishedProviderResultByAllocationResultId(string allocationResultId, int? version = null)
         {
             Guard.IsNullOrWhiteSpace(allocationResultId, nameof(allocationResultId));
@@ -365,21 +325,17 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            string jobId = null;
-            if (_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
-            {
-                jobId = message.UserProperties["jobId"].ToString();
+            string jobId = message.UserProperties["jobId"].ToString();
 
-                if (await RetrieveJobAndCheckCanBeProcessed(jobId) == null)
-                {
-                    return;
-                }
+            if (await RetrieveJobAndCheckCanBeProcessed(jobId) == null)
+            {
+                return;
             }
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
                 _logger.Error("No specification Id was provided to PublishProviderResults");
-                await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, 100, false, "Failed to Process - no specification id provided");
+                await UpdateJobStatus(jobId, 100, false, "Failed to Process - no specification id provided");
                 return;
             }
 
@@ -387,20 +343,20 @@ namespace CalculateFunding.Services.Results
 
             string specificationId = message.UserProperties["specification-id"].ToString();
             UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             Stopwatch getSpecificationStopwatch = Stopwatch.StartNew();
             SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
             getSpecificationStopwatch.Stop();
 
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             if (specification == null)
             {
                 _logger.Error($"Specification not found for specification id {specificationId}");
                 UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "specification not found");
-                await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, 100, false, "Failed to process - specification not found");
+                await UpdateJobStatus(jobId, 100, false, "Failed to process - specification not found");
                 return;
             }
 
@@ -408,13 +364,13 @@ namespace CalculateFunding.Services.Results
             IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
             getCalculationResultsStopwatch.Stop();
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             if (providerResults.IsNullOrEmpty())
             {
                 _logger.Error($"Provider results not found for specification id {specificationId}");
                 UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "Could not find any provider results");
-                await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, 100, false, "Failed to process - could not find any provider results");
+                await UpdateJobStatus(jobId, 100, false, "Failed to process - could not find any provider results");
                 return;
             }
 
@@ -424,7 +380,7 @@ namespace CalculateFunding.Services.Results
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
             assemblePublishedProviderResultsStopwatch.Stop();
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 18, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             Stopwatch existingPublishedProviderResultsStopwatch = Stopwatch.StartNew();
             IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetExistingPublishedProviderResultsForSpecificationId(specificationId));
@@ -491,19 +447,19 @@ namespace CalculateFunding.Services.Results
                     await _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResultsToSave);
                     savePublishedResultsStopwatch.Stop();
                     UpdateCacheForSegmentDone(specificationId, calculationProgress += 15, CalculationProgressStatus.InProgress);
-                    await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+                    await UpdateJobStatus(jobId, calculationProgress, null);
 
                     savePublishedResultsHistoryStopwatch.Start();
                     await SavePublishedAllocationLineResultVersionHistory(publishedProviderResultsToSave);
                     savePublishedResultsHistoryStopwatch.Stop();
                     UpdateCacheForSegmentDone(specificationId, calculationProgress += 15, CalculationProgressStatus.InProgress);
-                    await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+                    await UpdateJobStatus(jobId, calculationProgress, null);
 
                     savePublishedResultsSearchStopwatch.Start();
                     await UpdateAllocationNotificationsFeedIndex(publishedProviderResultsToSave, specification);
                     savePublishedResultsSearchStopwatch.Stop();
                     UpdateCacheForSegmentDone(specificationId, calculationProgress += 15, CalculationProgressStatus.InProgress);
-                    await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+                    await UpdateJobStatus(jobId, calculationProgress, null);
                 }
                 catch (Exception ex)
                 {
@@ -526,7 +482,7 @@ namespace CalculateFunding.Services.Results
             }
 
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             // Update the specification to store when this refresh happened
             HttpStatusCode updatePublishedRefreshedDateStatus = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.UpdatePublishedRefreshedDate(specification.Id, publishedResultsRefreshedAt));
@@ -543,7 +499,7 @@ namespace CalculateFunding.Services.Results
 
             if (canCompleteJob)
             {
-                await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, 100, true, "Published Provider Results Updated");
+                await UpdateJobStatus(jobId, 100, true, "Published Provider Results Updated");
             }
 
             IDictionary<string, double> metrics = new Dictionary<string, double>()
@@ -583,11 +539,6 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(message, nameof(message));
 
-            if (!_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
-            {
-                throw new NonRetriableException("The job service must be enabled in order to process variations");
-            }
-
             if (!message.UserProperties.ContainsKey("jobId"))
             {
                 throw new NonRetriableException("No job id was provided to the PublishProviderResultsWithVariations");
@@ -604,7 +555,7 @@ namespace CalculateFunding.Services.Results
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
                 _logger.Error("No specification Id was provided to PublishProviderResultsWithVariations");
-                await UpdateJobStatus(true, jobId, 100, false, "Failed to Process - no specification id provided");
+                await UpdateJobStatus(jobId, 100, false, "Failed to Process - no specification id provided");
                 return;
             }
 
@@ -612,7 +563,7 @@ namespace CalculateFunding.Services.Results
 
             string specificationId = message.UserProperties["specification-id"].ToString();
             UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(true, jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             // Fetch Specification
             Stopwatch getSpecificationStopwatch = Stopwatch.StartNew();
@@ -620,13 +571,13 @@ namespace CalculateFunding.Services.Results
             getSpecificationStopwatch.Stop();
 
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(true, jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             if (specification == null)
             {
                 _logger.Error($"Specification not found for specification id {specificationId}");
                 UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "specification not found");
-                await UpdateJobStatus(true, jobId, 100, false, "Failed to process - specification not found");
+                await UpdateJobStatus(jobId, 100, false, "Failed to process - specification not found");
                 return;
             }
 
@@ -635,13 +586,13 @@ namespace CalculateFunding.Services.Results
             IEnumerable<ProviderResult> providerResults = await GetProviderResultsBySpecificationId(specificationId);
             getCalculationResultsStopwatch.Stop();
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(true, jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             if (providerResults.IsNullOrEmpty())
             {
                 _logger.Error($"Provider results not found for specification id {specificationId}");
                 UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "Could not find any provider results");
-                await UpdateJobStatus(true, jobId, 100, false, "Failed to process - could not find any provider results");
+                await UpdateJobStatus(jobId, 100, false, "Failed to process - could not find any provider results");
                 return;
             }
 
@@ -668,7 +619,7 @@ namespace CalculateFunding.Services.Results
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsAssemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
             assemblePublishedProviderResultsStopwatch.Stop();
             UpdateCacheForSegmentDone(specificationId, calculationProgress += 13, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(true, jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             // Can we shortcut the processing time if the results haven't been updated since the last time we did this
             if (specification.ShouldRefresh)
@@ -713,7 +664,7 @@ namespace CalculateFunding.Services.Results
             {
                 _logger.Error("Provider changes returned null for specification '{specificationId}'", specificationId);
                 UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "Provider changes returned null");
-                await UpdateJobStatus(true, jobId, 100, false, "Failed to process - provider changes returned null");
+                await UpdateJobStatus(jobId, 100, false, "Failed to process - provider changes returned null");
                 return;
             }
 
@@ -743,7 +694,7 @@ namespace CalculateFunding.Services.Results
                 }
 
                 UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.Error, "Failed to process provider variations");
-                await UpdateJobStatus(true, jobId, 100, false, "Failed to process provider variations");
+                await UpdateJobStatus(jobId, 100, false, "Failed to process provider variations");
                 return;
             }
 
@@ -771,21 +722,21 @@ namespace CalculateFunding.Services.Results
                     await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(publishedProviderResultsToSave));
                     savePublishedResultsStopwatch.Stop();
                     UpdateCacheForSegmentDone(specificationId, calculationProgress += 15, CalculationProgressStatus.InProgress);
-                    await UpdateJobStatus(true, jobId, calculationProgress, null);
+                    await UpdateJobStatus(jobId, calculationProgress, null);
 
                     // Save history of delta of published provider results
                     savePublishedResultsHistoryStopwatch.Start();
                     await SavePublishedAllocationLineResultVersionHistory(publishedProviderResultsToSave);
                     savePublishedResultsHistoryStopwatch.Stop();
                     UpdateCacheForSegmentDone(specificationId, calculationProgress += 15, CalculationProgressStatus.InProgress);
-                    await UpdateJobStatus(true, jobId, calculationProgress, null);
+                    await UpdateJobStatus(jobId, calculationProgress, null);
 
                     // Update the search index for the delta of published provider results
                     savePublishedResultsSearchStopwatch.Start();
                     await UpdateAllocationNotificationsFeedIndex(publishedProviderResultsToSave, specification);
                     savePublishedResultsSearchStopwatch.Stop();
                     UpdateCacheForSegmentDone(specificationId, calculationProgress += 10, CalculationProgressStatus.InProgress);
-                    await UpdateJobStatus(true, jobId, calculationProgress, null);
+                    await UpdateJobStatus(jobId, calculationProgress, null);
                 }
                 catch (Exception ex)
                 {
@@ -807,7 +758,7 @@ namespace CalculateFunding.Services.Results
                 await GenerateProfilingPeriods(message, publishedProviderResultsToSave.Where(r => !r.FundingStreamResult.AllocationLineResult.HasResultBeenVaried), specification.Id, jobId);
                 sendToProfilingStopwatch.Stop();
                 UpdateCacheForSegmentDone(specificationId, calculationProgress += 5, CalculationProgressStatus.InProgress);
-                await UpdateJobStatus(true, jobId, calculationProgress, null);
+                await UpdateJobStatus(jobId, calculationProgress, null);
                 canCompleteJob = false;
 
                 // Update the specification to store when this refresh happened
@@ -831,7 +782,7 @@ namespace CalculateFunding.Services.Results
 
             if (canCompleteJob)
             {
-                await UpdateJobStatus(true, jobId, 100, true, "Published Provider Results Updated");
+                await UpdateJobStatus(jobId, 100, true, "Published Provider Results Updated");
             }
 
             IDictionary<string, double> metrics = new Dictionary<string, double>()
@@ -903,7 +854,7 @@ namespace CalculateFunding.Services.Results
             stopwatch.Stop();
 
             UpdateCacheForSegmentDone(specificationId, calculationProgress, CalculationProgressStatus.InProgress);
-            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, calculationProgress, null);
+            await UpdateJobStatus(jobId, calculationProgress, null);
 
             return stopwatch.ElapsedMilliseconds;
         }
@@ -1110,64 +1061,37 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty providers was provided");
             }
 
-            if (_featureToggle.IsApprovalBatchingServerSideEnabled())
+            string cacheKey = $"{CacheKeys.AllocationLineResultStatusUpdates}{Guid.NewGuid().ToString()}";
+
+            await _cacheProvider.SetAsync<UpdatePublishedAllocationLineResultStatusModel>(cacheKey, updateStatusModel);
+
+            Reference user = request.GetUserOrDefault();
+
+            JobCreateModel job = new JobCreateModel
             {
-
-                string cacheKey = $"{CacheKeys.AllocationLineResultStatusUpdates}{Guid.NewGuid().ToString()}";
-
-                await _cacheProvider.SetAsync<UpdatePublishedAllocationLineResultStatusModel>(cacheKey, updateStatusModel);
-
-                Reference user = request.GetUserOrDefault();
-
-                JobCreateModel job = new JobCreateModel
+                InvokerUserDisplayName = user.Name,
+                InvokerUserId = user.Id,
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationLineResultStatusUpdateJob,
+                SpecificationId = specificationId,
+                Properties = new Dictionary<string, string>
                 {
-                    InvokerUserDisplayName = user.Name,
-                    InvokerUserId = user.Id,
-                    JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationLineResultStatusUpdateJob,
-                    SpecificationId = specificationId,
-                    Properties = new Dictionary<string, string>
-                    {
-                        { "specification-id", specificationId },
-                        { "cache-key", cacheKey }
-                    },
-                    Trigger = new Trigger
-                    {
-                        EntityId = specificationId,
-                        EntityType = nameof(Specification),
-                        Message = $"Updating allocation line results status"
-                    },
-                    CorrelationId = request.GetCorrelationId()
-                };
-
-                Job newJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
-
-                _logger.Information($"New job: '{JobConstants.DefinitionNames.CreateInstructAllocationLineResultStatusUpdateJob}' created with id: '{newJob.Id}'");
-
-                return new OkResult();
-            }
-            else
-            {
-
-                IEnumerable<string> providerIds = updateStatusModel.Providers.Select(p => p.ProviderId).Distinct();
-                IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationIdAndProviderId(specificationId, providerIds));
-
-                if (publishedProviderResults.IsNullOrEmpty())
+                    { "specification-id", specificationId },
+                    { "cache-key", cacheKey }
+                },
+                Trigger = new Trigger
                 {
-                    return new NotFoundObjectResult($"No provider results to update for specification id: {specificationId}");
-                }
+                    EntityId = specificationId,
+                    EntityType = nameof(Specification),
+                    Message = $"Updating allocation line results status"
+                },
+                CorrelationId = request.GetCorrelationId()
+            };
 
-                try
-                {
-                    Tuple<int, int> updateCounts = await UpdateAllocationLineResultsStatus(publishedProviderResults.ToList(), updateStatusModel, request, specificationId);
+            Job newJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
 
-                    return new OkObjectResult(new UpdateAllocationResultsStatusCounts { UpdatedAllocationLines = updateCounts.Item1, UpdatedProviderIds = updateCounts.Item2 });
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "Failed to update result status's");
-                    return new InternalServerErrorResult(ex.Message);
-                }
-            }
+            _logger.Information($"New job: '{JobConstants.DefinitionNames.CreateInstructAllocationLineResultStatusUpdateJob}' created with id: '{newJob.Id}'");
+
+            return new OkResult();
         }
 
         public async Task CreateAllocationLineResultStatusUpdateJobs(Message message)
@@ -1267,7 +1191,7 @@ namespace CalculateFunding.Services.Results
                 return;
             }
 
-            await UpdateJobStatus(_featureToggle.IsApprovalBatchingServerSideEnabled(), jobId);
+            await UpdateJobStatus(jobId);
 
             UpdatePublishedAllocationLineResultStatusModel publishedAllocationLineResultStatusUpdateModel = message.GetPayloadAsInstanceOf<UpdatePublishedAllocationLineResultStatusModel>();
 
@@ -1298,11 +1222,6 @@ namespace CalculateFunding.Services.Results
                 await UpdateAllocationLineResultsStatus(publishedProviderResults.ToList(), publishedAllocationLineResultStatusUpdateModel, job);
 
                 await CompleteBatch(jobId);
-
-                if (publishedAllocationLineResultStatusUpdateModel.Status == AllocationLineStatus.Approved && !_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
-                {
-                    await GenerateProfilingPeriods(message, publishedProviderResults, job.SpecificationId, job.ParentJobId);
-                }
             }
             catch (RetriableException ex)
             {
@@ -1477,9 +1396,9 @@ namespace CalculateFunding.Services.Results
             });
 
             // Sort funding streams and allocation lines by name for each provider
-            foreach (var provider in results)
+            foreach (KeyValuePair<string, PublishedProviderResultModel> provider in results)
             {
-                foreach (var fundingStream in fundingStreams[provider.Key])
+                foreach (KeyValuePair<string, PublishedFundingStreamResultModel> fundingStream in fundingStreams[provider.Key])
                 {
                     fundingStream.Value.AllocationLineResults = allocationLines[provider.Key][fundingStream.Key].OrderBy(a => a.AllocationLineName);
                 }
@@ -1489,127 +1408,6 @@ namespace CalculateFunding.Services.Results
 
             // Order providers by Provider name
             return results.Values.OrderBy(r => r.ProviderName);
-        }
-
-        private async Task<Tuple<int, int>> UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,
-            UpdatePublishedAllocationLineResultStatusModel updateStatusModel, HttpRequest request, string specificationId)
-        {
-            IList<string> updatedAllocationLineIds = new List<string>();
-            IList<string> updatedProviderIds = new List<string>();
-            IList<PublishedProviderResult> resultsToProfile = new List<PublishedProviderResult>();
-
-            List<PublishedProviderResult> resultsToUpdate = new List<PublishedProviderResult>();
-            List<PublishedAllocationLineResultVersion> historyToSave = new List<PublishedAllocationLineResultVersion>();
-
-            Reference author = request.GetUser();
-
-            foreach (UpdatePublishedAllocationLineResultStatusProviderModel providerstatusModel in updateStatusModel.Providers)
-            {
-                if (providerstatusModel.AllocationLineIds.IsNullOrEmpty())
-                {
-                    continue;
-                }
-
-                IEnumerable<PublishedProviderResult> results = publishedProviderResults.Where(m => m.ProviderId == providerstatusModel.ProviderId);
-
-                if (results.IsNullOrEmpty())
-                {
-                    continue;
-                }
-
-                IEnumerable<PublishedAllocationLineResult> publishedAllocationLineResults = results.Select(m => m.FundingStreamResult.AllocationLineResult).ToArraySafe();
-
-                if (publishedAllocationLineResults.IsNullOrEmpty())
-                {
-                    continue;
-                }
-
-                bool isUpdated = false;
-
-                foreach (string allocationLineResultId in providerstatusModel.AllocationLineIds)
-                {
-                    IEnumerable<PublishedAllocationLineResult> allocationLineResults = publishedAllocationLineResults.Where(m => m.AllocationLine.Id == allocationLineResultId);
-
-                    foreach (PublishedAllocationLineResult allocationLineResult in allocationLineResults)
-                    {
-                        if (CanUpdateAllocationLineResult(allocationLineResult, updateStatusModel.Status))
-                        {
-                            PublishedAllocationLineResultVersion newVersion = allocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
-                            newVersion.Author = author;
-                            newVersion.Date = DateTimeOffset.Now.ToLocalTime();
-                            newVersion.Status = updateStatusModel.Status;
-
-                            newVersion = await _publishedProviderResultsVersionRepository.CreateVersion(newVersion, allocationLineResult.Current, providerstatusModel.ProviderId, true);
-
-                            if (updateStatusModel.Status != AllocationLineStatus.Approved)
-                            {
-                                _publishedAllocationLineLogicalResultVersionService.SetVersion(newVersion);
-                            }
-
-                            allocationLineResult.Current = newVersion;
-
-                            historyToSave.Add(newVersion);
-
-                            if (!updatedAllocationLineIds.Contains(allocationLineResultId))
-                            {
-                                updatedAllocationLineIds.Add(allocationLineResultId);
-                            }
-
-                            if (!updatedProviderIds.Contains(providerstatusModel.ProviderId))
-                            {
-                                updatedProviderIds.Add(providerstatusModel.ProviderId);
-                            }
-
-                            isUpdated = true;
-                        }
-                    }
-                }
-
-
-                if (isUpdated)
-                {
-                    foreach (PublishedProviderResult result in results)
-                    {
-                        if (updateStatusModel.Status == AllocationLineStatus.Approved)
-                        {
-                            resultsToProfile.Add(result);
-                        }
-                    }
-
-                    resultsToUpdate.AddRange(results);
-                }
-            }
-
-            if (resultsToUpdate.Any())
-            {
-                SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
-
-                try
-                {
-                    resultsToUpdate.ForEach(SetFeedIndexId);
-
-                    await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(resultsToUpdate));
-
-                    IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>> history = historyToSave.Select(m => new KeyValuePair<string, PublishedAllocationLineResultVersion>(m.ProviderId, m));
-
-                    await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.SaveVersions(history));
-
-                    await UpdateAllocationNotificationsFeedIndex(resultsToUpdate, specification);
-                }
-                catch (Exception ex)
-                {
-                    _logger.Error(ex, "Failed when updating allocation line results");
-
-                    throw new Exception("Failed when updating allocation line results");
-                }
-            }
-
-            if (!_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
-            {
-                await GenerateProfilingPeriods(request, resultsToProfile, specificationId);
-            }
-
-            return new Tuple<int, int>(updatedAllocationLineIds.Count, updatedProviderIds.Count);
         }
 
         private async Task UpdateAllocationLineResultsStatus(IEnumerable<PublishedProviderResult> publishedProviderResults,
@@ -1728,17 +1526,6 @@ namespace CalculateFunding.Services.Results
             }
         }
 
-        private async Task GenerateProfilingPeriods(HttpRequest request, IEnumerable<PublishedProviderResult> resultsToProfile, string specificationId)
-        {
-            Dictionary<string, string> properties = new Dictionary<string, string>();
-            properties.Add("specification-id", specificationId);
-
-            properties.AddRange(request.BuildMessageProperties());
-            // NOTE: This method will never have a parent job id due to being the old way of requesting allocation line status change
-            // Should remove this whole method once the IsJobServiceForPublishProviderResultsEnabled feature toggle is removed
-            await GenerateProfilingPeriods(resultsToProfile, properties, request.GetUser(), specificationId, null);
-        }
-
         private async Task GenerateProfilingPeriods(Message message, IEnumerable<PublishedProviderResult> resultsToProfile, string specificationId, string parentJobId)
         {
             Dictionary<string, string> properties = new Dictionary<string, string>();
@@ -1757,38 +1544,27 @@ namespace CalculateFunding.Services.Results
             {
                 IEnumerable<FetchProviderProfilingMessageItem> batchOfResultsToProfile = resultsToProfile.Skip(startPosition).Take(batchSize).Select(r => new FetchProviderProfilingMessageItem { AllocationLineResultId = r.Id, ProviderId = r.ProviderId });
 
-                if (!string.IsNullOrWhiteSpace(parentJobId))
+                JobCreateModel jobCreateModel = new JobCreateModel
                 {
-                    JobCreateModel jobCreateModel = new JobCreateModel
+                    InvokerUserDisplayName = userDetails.Name,
+                    InvokerUserId = userDetails.Id,
+                    ItemCount = batchOfResultsToProfile.Count(),
+                    JobDefinitionId = JobConstants.DefinitionNames.FetchProviderProfileJob,
+                    MessageBody = JsonConvert.SerializeObject(batchOfResultsToProfile),
+                    ParentJobId = parentJobId,
+                    Properties = properties,
+                    SpecificationId = specificationId,
+                    Trigger = new Trigger
                     {
-                        InvokerUserDisplayName = userDetails.Name,
-                        InvokerUserId = userDetails.Id,
-                        ItemCount = batchOfResultsToProfile.Count(),
-                        JobDefinitionId = JobConstants.DefinitionNames.FetchProviderProfileJob,
-                        MessageBody = JsonConvert.SerializeObject(batchOfResultsToProfile),
-                        ParentJobId = parentJobId,
-                        Properties = properties,
-                        SpecificationId = specificationId,
-                        Trigger = new Trigger
-                        {
-                            EntityId = specificationId,
-                            EntityType = nameof(Specification),
-                            Message = "Fetching Profile Period for batch of providers"
-                        }
-                    };
+                        EntityId = specificationId,
+                        EntityType = nameof(Specification),
+                        Message = "Fetching Profile Period for batch of providers"
+                    }
+                };
 
-                    Job newJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(jobCreateModel));
+                Job newJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(jobCreateModel));
 
-                    _logger.Information($"New job: '{JobConstants.DefinitionNames.FetchProviderProfileJob}' created with id: '{newJob.Id}'");
-                }
-                else
-                {
-                    _logger.Information($"Sending new provider profiling message for {batchOfResultsToProfile.Count()} results");
-
-                    await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.FetchProviderProfile, batchOfResultsToProfile, properties);
-
-                    _logger.Information($"Sent new provider profiling message for {batchOfResultsToProfile.Count()} results");
-                }
+                _logger.Information($"New job: '{JobConstants.DefinitionNames.FetchProviderProfileJob}' created with id: '{newJob.Id}'");
 
                 startPosition += batchOfResultsToProfile.Count();
             }
@@ -1802,24 +1578,21 @@ namespace CalculateFunding.Services.Results
 
             string jobId = string.Empty;
 
-            if (_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
+            if (!message.UserProperties.ContainsKey("jobId"))
             {
-                if (!message.UserProperties.ContainsKey("jobId"))
-                {
-                    _logger.Error("Missing parent job id to fetch provider profile periods");
-                    return;
-                }
-
-                jobId = message.UserProperties["jobId"].ToString();
-
-                JobViewModel job = await RetrieveJobAndCheckCanBeProcessed(jobId);
-                if (job == null)
-                {
-                    return;
-                }
-
-                await UpdateJobStatus(true, jobId);
+                _logger.Error("Missing parent job id to fetch provider profile periods");
+                return;
             }
+
+            jobId = message.UserProperties["jobId"].ToString();
+
+            JobViewModel job = await RetrieveJobAndCheckCanBeProcessed(jobId);
+            if (job == null)
+            {
+                return;
+            }
+
+            await UpdateJobStatus(jobId);
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
@@ -1887,7 +1660,7 @@ namespace CalculateFunding.Services.Results
             }
 
             bool wasSuccessful = numFailed == 0;
-            await UpdateJobStatus(_featureToggle.IsJobServiceForPublishProviderResultsEnabled(), jobId, data.Count(), numFailed, wasSuccessful, wasSuccessful ? "Profile periods fetched" : $"Failed to fetch {numFailed} profile periods");
+            await UpdateJobStatus(jobId, data.Count(), numFailed, wasSuccessful, wasSuccessful ? "Profile periods fetched" : $"Failed to fetch {numFailed} profile periods");
 
             profilingStopWatch.Stop();
 
@@ -2787,45 +2560,39 @@ namespace CalculateFunding.Services.Results
             return job;
         }
 
-        private async Task UpdateJobStatus(bool shouldSendUpdate, string jobId, int percentComplete = 0, bool? completedSuccessfully = null, string outcome = null)
+        private async Task UpdateJobStatus(string jobId, int percentComplete = 0, bool? completedSuccessfully = null, string outcome = null)
         {
-            if (shouldSendUpdate)
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
             {
-                JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-                {
-                    CompletedSuccessfully = completedSuccessfully,
-                    ItemsProcessed = percentComplete,
-                    Outcome = outcome
-                };
+                CompletedSuccessfully = completedSuccessfully,
+                ItemsProcessed = percentComplete,
+                Outcome = outcome
+            };
 
-                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
 
-                if (jobLogResponse == null || jobLogResponse.Content == null)
-                {
-                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
-                }
+            if (jobLogResponse == null || jobLogResponse.Content == null)
+            {
+                _logger.Error($"Failed to add a job log for job id '{jobId}'");
             }
         }
 
-        private async Task UpdateJobStatus(bool shouldSendUpdate, string jobId, int totalItemsCount, int failedItemsCount, bool? completedSuccessfully = null, string outcome = null)
+        private async Task UpdateJobStatus(string jobId, int totalItemsCount, int failedItemsCount, bool? completedSuccessfully = null, string outcome = null)
         {
-            if (shouldSendUpdate)
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
             {
-                JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-                {
-                    CompletedSuccessfully = completedSuccessfully,
-                    ItemsProcessed = totalItemsCount,
-                    ItemsFailed = failedItemsCount,
-                    ItemsSucceeded = totalItemsCount - failedItemsCount,
-                    Outcome = outcome
-                };
+                CompletedSuccessfully = completedSuccessfully,
+                ItemsProcessed = totalItemsCount,
+                ItemsFailed = failedItemsCount,
+                ItemsSucceeded = totalItemsCount - failedItemsCount,
+                Outcome = outcome
+            };
 
-                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
 
-                if (jobLogResponse == null || jobLogResponse.Content == null)
-                {
-                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
-                }
+            if (jobLogResponse == null || jobLogResponse.Content == null)
+            {
+                _logger.Error($"Failed to add a job log for job id '{jobId}'");
             }
         }
     }

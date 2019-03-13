@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Calculator
 
             // Assert
             calculationSummaryModels.Should().NotBeNull();
-            calculationSummaryModels.ShouldBeEquivalentTo(summaryModels);
+            calculationSummaryModels.Should().BeEquivalentTo(summaryModels);
             mockApi.Received(1).GetAsync<IEnumerable<CalculationSummaryModel>>(Arg.Any<string>());
         }
 

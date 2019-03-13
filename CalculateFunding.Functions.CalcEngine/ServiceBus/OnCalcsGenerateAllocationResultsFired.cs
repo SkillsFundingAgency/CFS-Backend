@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -19,12 +20,12 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            using (var scope = IocConfig.Build(config).CreateScope())
+            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
             {
                 ILogger logger = scope.ServiceProvider.GetService<ILogger>();
                 logger.Information("Scope created, starting to generate allocations");
-                var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                var calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();
+                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
+                ICalculationEngineService calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();
 
                 try
                 {
@@ -32,6 +33,10 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
                     await calculationEngineService.GenerateAllocations(message);
 
                     logger.Information("Generate allocations complete");
+                }
+                catch (NonRetriableException nrEx)
+                {
+                    logger.Error(nrEx, $"An error occurred processing message on queue: {ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults}");
                 }
                 catch (Exception exception)
                 {

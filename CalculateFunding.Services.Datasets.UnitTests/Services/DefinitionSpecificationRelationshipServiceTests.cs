@@ -8,13 +8,12 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -1169,7 +1168,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Error(Arg.Is("The relationshipId id was not provided to GetDataSourcesByRelationshipId"));
         }
 
-
         [TestMethod]
         public async Task GetDataSourcesByRelationshipId_GivenRelationshipNotFound_ReturnsPreConditionFailed()
         {
@@ -1618,14 +1616,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 .UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.OK);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle.IsJobServiceForMainActionsEnabled().Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             IMessengerService messengerService = CreateMessengerService();
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, featureToggle: featureToggle, jobsApiClient: jobsApiClient, messengerService: messengerService);
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository, jobsApiClient: jobsApiClient, messengerService: messengerService);
 
             //Act
             IActionResult result = await service.AssignDatasourceVersionToRelationship(request);
@@ -1647,13 +1642,13 @@ namespace CalculateFunding.Services.Datasets.Services
         private static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
             ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
             IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null,
-            IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null, IFeatureToggle featureToggle = null, IJobsApiClient jobsApiClient = null)
+            IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null, IJobsApiClient jobsApiClient = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
                 specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
                 messengerService ?? CreateMessengerService(), datasetService ?? CreateDatasetService(),
                 calcsRepository ?? CreateCalcsRepository(), definitionsService ?? CreateDefinitionService(), cacheProvider ?? CreateCacheProvider(),
-                DatasetsResilienceTestHelper.GenerateTestPolicies(), featureToggle ?? CreateFeatureToggle(), jobsApiClient ?? CreateJobsApiClient());
+                DatasetsResilienceTestHelper.GenerateTestPolicies(), jobsApiClient ?? CreateJobsApiClient());
         }
 
         private static IValidator<CreateDefinitionSpecificationRelationshipModel> CreateRelationshipModelValidator(ValidationResult validationResult = null)
@@ -1710,11 +1705,6 @@ namespace CalculateFunding.Services.Datasets.Services
         private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
-        }
-
-        private static IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
         }
 
         private static IJobsApiClient CreateJobsApiClient()

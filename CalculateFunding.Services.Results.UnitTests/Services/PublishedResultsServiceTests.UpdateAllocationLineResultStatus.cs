@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public void UpdateAllocationLineResultStatus_GivenNoJobId_LogsErrorAndThrowsException()
         {
-            //Arrange
+            // Arrange
             Message message = new Message();
 
             ILogger logger = CreateLogger();
@@ -42,10 +42,10 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
-            //Act
+            // Act
             Func<Task> test = async () => await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             test
                 .Should()
                 .ThrowExactly<Exception>()
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public async Task UpdateAllocationLineResultStatus_GivenNullModel_LogsErrorCreatesFailedJobLog()
         {
-            //Arrange
+            // Arrange
             Message message = new Message();
             message.UserProperties.Add("jobId", jobId);
 
@@ -75,10 +75,10 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
-            //Act
+            // Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             logger
                 .Received(1)
                 .Error(Arg.Is($"A null allocation line result status update model was provided for job id  '{jobId}'"));
@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public async Task UpdateAllocationLineResultStatus_GivenParentJobResponseNotFound_LogsErrorAndStopsProcessing()
         {
-            //Arrange
+            // Arrange
             UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel();
             string json = JsonConvert.SerializeObject(model);
 
@@ -113,10 +113,10 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
-            //Act
+            // Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             logger
                 .Received(1)
                 .Error(Arg.Is($"Could not find the job with id: '{jobId}'"));
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public async Task UpdateAllocationLineResultStatus_GivenParentJobResponseIsNull_LogsErrorAndStopsProcessing()
         {
-            //Arrange
+            // Arrange
             UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel();
             string json = JsonConvert.SerializeObject(model);
 
@@ -141,10 +141,10 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
-            //Act
+            // Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             logger
                 .Received(1)
                 .Error(Arg.Is($"Could not find the job with id: '{jobId}'"));
@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public async Task UpdateAllocationLineResultStatus_GivenParentJobAlreadyCancelled_LogsAndDoesntCreateStartingLog()
         {
-            //Arrange
+            // Arrange
             UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel();
             string json = JsonConvert.SerializeObject(model);
 
@@ -177,10 +177,10 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
 
-            //Act
+            // Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             logger
                 .Received(1)
                 .Information(Arg.Is($"Received job with id: '{jobId}' is already in a completed state with status {jobViewModel.CompletionStatus.ToString()}"));
@@ -194,7 +194,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public async Task UpdateAllocationLineResultStatus_GivenUpdateModelButPublishedProviderResultsCannotBeFound_LogsAndAddsJobLog()
         {
-            //Arrange
+            // Arrange
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
             {
                 new UpdatePublishedAllocationLineResultStatusProviderModel
@@ -247,10 +247,10 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient, publishedProviderResultsRepository: resultsRepository);
 
-            //Act
+            // Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             await
                 jobsApiClient
                     .Received(1)
@@ -264,7 +264,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public async Task UpdateAllocationLineResultStatus_GivenUpdateModelAndCompletesSuccessfully_AddsJobLog()
         {
-            //Arrange
+            // Arrange
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
             {
                 new UpdatePublishedAllocationLineResultStatusProviderModel
@@ -341,10 +341,10 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
-            //Act
+            // Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             await
                 jobsApiClient
                 .Received(1)
@@ -358,7 +358,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public async Task UpdateAllocationLineResultStatus_GivenUpdateModelWithThreeResultsButOnlyOneCompletedSuccessfully_AddsJobLog()
         {
-            //Arrange
+            // Arrange
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
             {
                 new UpdatePublishedAllocationLineResultStatusProviderModel
@@ -449,10 +449,10 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
-            //Act
+            // Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             await
                 jobsApiClient
                 .Received(1)
@@ -466,7 +466,7 @@ namespace CalculateFunding.Services.Results.Services
         [TestMethod]
         public void UpdateAllocationLineResultStatus_GivenUpdateCauseExceptionWhenSavingToCosomos_LogsAndThrowsRetriableException()
         {
-            //Arrange
+            // Arrange
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
             {
                 new UpdatePublishedAllocationLineResultStatusProviderModel
@@ -546,10 +546,10 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository);
 
-            //Act
+            // Act
             Func<Task> test = async () => await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             test
                 .Should()
                 .ThrowExactly<RetriableException>()
@@ -564,9 +564,9 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocationLineResultStatus_GivenUpdateModelAndFeatureToggleNoSet_ThenProfilingMessageSent()
+        public async Task UpdateAllocationLineResultStatus_GivenUpdateModel_ThenNoProfilingMessageSent()
         {
-            //Arrange
+            // Arrange
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
             {
                 new UpdatePublishedAllocationLineResultStatusProviderModel
@@ -642,131 +642,18 @@ namespace CalculateFunding.Services.Results.Services
 
             IMessengerService messengerService = CreateMessengerService();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(false);
-
             PublishedResultsService publishedResultsService = CreateResultsService(
                 logger,
                 jobsApiClient: jobsApiClient,
                 publishedProviderResultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsVersionRepository: versionRepository,
-                messengerService: messengerService,
-                featureToggle: featureToggle);
+                messengerService: messengerService);
 
-            //Act
+            // Act
             await publishedResultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
-            logger
-                .Received(1)
-                .Information(Arg.Is($"New job: '{JobConstants.DefinitionNames.FetchProviderProfileJob}' created with id: 'fpp-job'"));
-
-            await
-                jobsApiClient
-                    .Received(1)
-                    .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob && j.SpecificationId == specificationId && j.ParentJobId == parentJobId));
-        }
-
-        [TestMethod]
-        public async Task UpdateAllocationLineResultStatus_GivenUpdateModelAndFeatureToggleSet_ThenNoProfilingMessageSent()
-        {
-            //Arrange
-            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
-            {
-                new UpdatePublishedAllocationLineResultStatusProviderModel
-                {
-                    ProviderId = "1111",
-                    AllocationLineIds = new[] { "AAAAA" }
-                }
-            };
-
-            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
-            {
-                Providers = Providers,
-                Status = AllocationLineStatus.Approved
-            };
-
-            string json = JsonConvert.SerializeObject(model);
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message.UserProperties.Add("jobId", jobId);
-
-            ILogger logger = CreateLogger();
-
-            string parentJobId = "parent-job-id-1";
-            JobViewModel jobViewModel = new JobViewModel
-            {
-                Id = jobId,
-                SpecificationId = specificationId,
-                Properties = new Dictionary<string, string>(),
-                ParentJobId = parentJobId
-            };
-
-            ApiResponse<JobViewModel> jobResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, jobViewModel);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(Arg.Is(jobId))
-                .Returns(jobResponse);
-            jobsApiClient
-                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob))
-                .Returns(new Job { Id = "fpp-job" });
-
-            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
-            publishedProviderResults
-                .First()
-                .FundingStreamResult
-                .AllocationLineResult
-                .Current
-                .Status = AllocationLineStatus.Approved;
-
-            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
-            {
-                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
-            }
-
-            PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
-            newVersion.Version = 2;
-
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Is("1111"), Arg.Is(true))
-                .Returns(newVersion);
-
-            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(specification);
-
-            IPublishedProviderResultsRepository resultsRepository = CreatePublishedProviderResultsRepository();
-            resultsRepository
-                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
-                .Returns(publishedProviderResults);
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-
-            PublishedResultsService publishedResultsService = CreateResultsService(
-                logger,
-                jobsApiClient: jobsApiClient,
-                publishedProviderResultsRepository: resultsRepository,
-                specificationsRepository: specificationsRepository,
-                publishedProviderResultsVersionRepository: versionRepository,
-                messengerService: messengerService,
-                featureToggle: featureToggle);
-
-            //Act
-            await publishedResultsService.UpdateAllocationLineResultStatus(message);
-
-            //Assert
+            // Assert
             await
                 jobsApiClient
                     .DidNotReceive()
@@ -774,9 +661,9 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task UpdatePublishedAllocationLineResultsStatus_GivenAllResultsAreHeldAndAttemptToApproved_UpdatesSearchDoesNotUpdatePublishedField()
+        public async Task UpdateAllocationLineResultStatus_GivenAllResultsAreHeldAndAttemptToApproved_UpdatesSearchDoesNotUpdatePublishedField()
         {
-            //arrange
+            // Arrange
             string specificationId = "spec-1";
             string providerId = "1111";
 
@@ -851,10 +738,10 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResultsVersionRepository: versionRepository,
                 jobsApiClient: jobsApiClient);
 
-            //Act
+            // Act
             await resultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             await searchRepository
                     .Received(1)
                     .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
@@ -896,9 +783,9 @@ namespace CalculateFunding.Services.Results.Services
 
 
         [TestMethod]
-        public async Task UpdatePublishedAllocationLineResultsStatus_GivenAllResultsAreAprrovedAndAttemptToPublish_SetsPublishedField()
+        public async Task UpdateAllocationLineResultStatus_GivenAllResultsAreAprrovedAndAttemptToPublish_SetsPublishedField()
         {
-            //arrange
+            // Arrange
             string specificationId = "spec-1";
             string providerId = "1111";
 
@@ -975,10 +862,10 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResultsVersionRepository: versionRepository,
                 jobsApiClient: jobsApiClient);
 
-            //Act
+            // Act
             await resultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             await
                 versionRepository
                     .Received(1)
@@ -998,9 +885,9 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task UpdatePublishedAllocationLineResultsStatus_GivenPublishResultsReturnsButNoAllocationLinesSpecified_AddJobLog()
+        public async Task UpdateAllocationLineResultStatus_GivenPublishResultsReturnsButNoAllocationLinesSpecified_AddJobLog()
         {
-            //arrange
+            // Arrange
             IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
             {
                 new UpdatePublishedAllocationLineResultStatusProviderModel
@@ -1055,10 +942,10 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 jobsApiClient: jobsApiClient);
 
-            //Act
+            // Act
             await resultsService.UpdateAllocationLineResultStatus(message);
 
-            //Assert
+            // Assert
             await
                 jobsApiClient
                 .Received(1)
@@ -1068,5 +955,545 @@ namespace CalculateFunding.Services.Results.Services
                     ));
         }
 
+        [TestMethod]
+        public async Task UpdateAllocationLineResultStatus_GivenAllResultsAreHeldAndAttemptToApproved_ThenEnsureHistoryAdded()
+        {
+            // Arrange
+            string specificationId = "spec-1";
+            string providerId = "1111";
+
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = providerId,
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            
+            Message message = new Message(byteArray);
+            message.UserProperties["jobId"] = jobId;
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(publishedProviderResults);
+
+            PublishedAllocationLineResultVersion newVersion = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion.Version = 2;
+            newVersion.Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Is(providerId), Arg.Is(true))
+                .Returns(newVersion);
+
+            ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, SpecificationId = specificationId }));
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "newJobId" });
+
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository,
+                allocationNotificationFeedSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
+
+            // Act
+            await resultsService.UpdateAllocationLineResultStatus(message);
+
+            // Assert
+            await searchRepository
+                    .Received(1)
+                    .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
+                        m.First().ProviderId == providerId &&
+                        m.First().Title == "Allocation test allocation line 1 was Approved" &&
+                        m.First().Summary == "UKPRN: 1111, version 0.1" &&
+                        m.First().DatePublished.HasValue == false &&
+                        m.First().FundingStreamId == "fs-1" &&
+                        m.First().FundingStreamName == "funding stream 1" &&
+                        m.First().FundingPeriodId == "1819" &&
+                        m.First().ProviderUkPrn == "1111" &&
+                        m.First().ProviderUpin == "2222" &&
+                        m.First().ProviderOpenDate.HasValue &&
+                        m.First().AllocationLineId == "AAAAA" &&
+                        m.First().AllocationLineName == "test allocation line 1" &&
+                        m.First().AllocationVersionNumber == 2 &&
+                        m.First().AllocationStatus == "Approved" &&
+                        m.First().AllocationAmount == (double)50.0 &&
+                        m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
+                        m.First().ProviderName == "test provider name 1" &&
+                        m.First().LaCode == "77777" &&
+                        m.First().Authority == "London" &&
+                        m.First().ProviderType == "test type" &&
+                        m.First().SubProviderType == "test sub type" &&
+                        m.First().EstablishmentNumber == "es123"
+            ));
+
+            await
+                versionRepository
+                    .Received(1)
+                    .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.Count() == 1 && m.First().Key == newVersion.ProviderId && m.First().Value == newVersion));
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocationLineResultStatus_GivenThreeProvidersToPublish_ThenCreatesThreeHistoryItems()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-1",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-2",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+            Message message = new Message(byteArray);
+            message.UserProperties["jobId"] = jobId;
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(publishedProviderResults);
+
+            PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion1.Version = 2;
+            newVersion1.Status = AllocationLineStatus.Approved;
+
+            PublishedAllocationLineResultVersion newVersion2 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion2.Version = 2;
+            newVersion2.Status = AllocationLineStatus.Approved;
+
+            PublishedAllocationLineResultVersion newVersion3 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion3.Version = 2;
+            newVersion3.Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>(), Arg.Any<bool>())
+                .Returns(newVersion1, newVersion2, newVersion3);
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, SpecificationId = specificationId }));
+
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
+
+            // Act
+            await resultsService.UpdateAllocationLineResultStatus(message);
+
+            // Assert
+            await
+               versionRepository
+                   .Received(1)
+                   .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.Count() == 3));
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocationLineResultStatus_GivenThreeProvidersToApprove_ThenCreatesThreeHistoryItems()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-1",
+                    AllocationLineIds = new[] { "AAAAA" }
+                },
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111-2",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+            Message message = new Message(byteArray);
+            message.UserProperties["jobId"] = jobId;
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
+            PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion1.Version = 2;
+            newVersion1.Status = AllocationLineStatus.Approved;
+
+            PublishedAllocationLineResultVersion newVersion2 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion2.Version = 2;
+            newVersion2.Status = AllocationLineStatus.Approved;
+
+            PublishedAllocationLineResultVersion newVersion3 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion3.Version = 2;
+            newVersion3.Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>(), Arg.Any<bool>())
+                .Returns(newVersion1, newVersion2, newVersion3);
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(publishedProviderResults);
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, SpecificationId = specificationId }));
+
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
+
+            // Act
+            await resultsService.UpdateAllocationLineResultStatus(message);
+
+            // Assert
+            await
+               versionRepository
+                   .Received(1)
+                   .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.Count() == 3));
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocationLineResultStatus_GivenPublishResultsReturnsAllocationLinesSpecifiedOnlyOneStatusChanged_ThenCreatesHistoryItems()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+            Message message = new Message(byteArray);
+            message.UserProperties["jobId"] = jobId;
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
+            publishedProviderResults
+                .First()
+                .FundingStreamResult
+                .AllocationLineResult
+                .Current
+                .Status = AllocationLineStatus.Approved;
+
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
+            }
+
+            PublishedAllocationLineResultVersion newVersion = publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current as PublishedAllocationLineResultVersion;
+            newVersion.Version = 2;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Is("1111"), Arg.Is(true))
+                .Returns(newVersion);
+
+            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(publishedProviderResults);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, SpecificationId = specificationId }));
+
+            PublishedResultsService resultsService = CreateResultsService(
+                publishedProviderResultsRepository: resultsProviderRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsVersionRepository: versionRepository,
+                jobsApiClient: jobsApiClient);
+
+            // Act
+            await resultsService.UpdateAllocationLineResultStatus(message);
+
+            // Assert
+            await
+               versionRepository
+                   .Received(1)
+                   .SaveVersions(Arg.Is<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>(m => m.First().Key == newVersion.ProviderId && m.First().Value.Version == 2));
+        }
+
+        [TestMethod]
+        public void UpdateAllocationLineResultStatus_GivenPublishResultsReturnsButNoAllocationLinesSpecified_ThenCreatesNoItems()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                }
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+            Message message = new Message(byteArray);
+            message.UserProperties["jobId"] = jobId;
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(CreatePublishedProviderResults());
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, publishedProviderResultsVersionRepository: versionRepository);
+
+            // Act
+            Func<Task> action = async () => await resultsService.UpdateAllocationLineResultStatus(message);
+
+            // Assert
+            action.Should().NotThrow();
+
+            versionRepository
+                .DidNotReceive()
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Is("1111"), Arg.Any<bool>());
+        }
+
+        [TestMethod]
+        public void UpdateAllocationLineResultStatus_GivenPublishResultsReturnsButUpdatingThrowsException_LogsErrorAndThrowsRetriableException()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1111",
+                    AllocationLineIds = new[] { "AAAAA" }
+                }
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers,
+                Status = AllocationLineStatus.Approved
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+            Message message = new Message(byteArray);
+            message.UserProperties["jobId"] = jobId;
+
+            IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationIdAndProviderId(Arg.Is(specificationId), Arg.Any<IEnumerable<string>>())
+                .Returns(publishedProviderResults);
+            resultsProviderRepository
+                .When(x => x.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>()))
+                .Do(x => { throw new Exception(); });
+
+            PublishedAllocationLineResultVersion newVersion1 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion1.Version = 2;
+            newVersion1.Status = AllocationLineStatus.Approved;
+
+            PublishedAllocationLineResultVersion newVersion2 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion2.Version = 2;
+            newVersion2.Status = AllocationLineStatus.Approved;
+
+            PublishedAllocationLineResultVersion newVersion3 = publishedProviderResults.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.Clone() as PublishedAllocationLineResultVersion;
+            newVersion3.Version = 2;
+            newVersion3.Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> publishedProviderResultsVersionRepository = CreatePublishedProviderResultsVersionRepository();
+            publishedProviderResultsVersionRepository
+                .CreateVersion(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<string>(), Arg.Is(true))
+                .Returns(newVersion1, newVersion2, newVersion3);
+
+            ILogger logger = CreateLogger();
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, SpecificationId = specificationId }));
+
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: resultsProviderRepository, jobsApiClient: jobsApiClient, publishedProviderResultsVersionRepository: publishedProviderResultsVersionRepository);
+
+            // Act
+            Func<Task> action = async () => await resultsService.UpdateAllocationLineResultStatus(message);
+
+            // Assert
+            action
+                .Should()
+                .ThrowExactly<RetriableException>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is("Failed when updating allocation line results"));
+        }
+
+        [TestMethod]
+        public async Task UpdateAllocationLineResultStatus_GivenNoPublishResultsReturns_LogsError()
+        {
+            // Arrange
+            IEnumerable<UpdatePublishedAllocationLineResultStatusProviderModel> Providers = new[]
+            {
+                new UpdatePublishedAllocationLineResultStatusProviderModel
+                {
+                    ProviderId = "1234"
+                }
+            };
+
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel
+            {
+                Providers = Providers
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+            Message message = new Message(byteArray);
+            message.UserProperties["jobId"] = jobId;
+
+            IPublishedProviderResultsRepository resultsProviderRepository = CreatePublishedProviderResultsRepository();
+            resultsProviderRepository
+                .GetPublishedProviderResultsForSpecificationId(Arg.Is(specificationId))
+                .Returns((IEnumerable<PublishedProviderResult>)null);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, SpecificationId = specificationId }));
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "newJobId" });
+
+            ILogger logger = CreateLogger();
+
+            PublishedResultsService resultsService = CreateResultsService(publishedProviderResultsRepository: resultsProviderRepository, jobsApiClient: jobsApiClient, logger: logger);
+
+            // Act
+            await resultsService.UpdateAllocationLineResultStatus(message);
+
+            // Assert
+            logger
+                .Received(1)
+                .Error(Arg.Is($"No provider results to update for specification id: {specificationId}"));
+        }
     }
 }

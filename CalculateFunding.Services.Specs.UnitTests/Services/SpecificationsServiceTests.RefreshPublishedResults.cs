@@ -121,9 +121,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-            featureToggle
                 .IsProviderVariationsEnabled()
                 .Returns(true);
 
@@ -163,30 +160,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnException_ShouldReturnInternalServerError()
-        {
-            // Arrange
-            IMessengerService messengerService = Substitute.For<IMessengerService>();
-            messengerService.SendToQueue(Arg.Any<string>(), Arg.Any<string>(), new Dictionary<string, string>()).ThrowsForAnyArgs(new ArgumentException());
-
-            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
-            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
-
-            SpecificationsService specificationsService = CreateService(messengerService: messengerService, specificationsRepository: mockSpecificationsRepository);
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
-            {
-                { "specificationId", new StringValues("123") }
-            }));
-
-            // Act
-            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
-
-            // Assert
-            actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
-        }
-
-        [TestMethod]
         public async Task RefreshPublishResults_GivenASpecificationIdThatDoesNotExist_ShouldReturnBadRequestObjectResult()
         {
             // Arrange
@@ -209,41 +182,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             // Assert
             actionResultReturned.Should().BeOfType<BadRequestObjectResult>();
-        }
-
-        [TestMethod]
-        public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnException_ShouldReportOnCacheWithError()
-        {
-            // Arrange
-            const string specificationId = "123";
-
-            IMessengerService messengerService = Substitute.For<IMessengerService>();
-            messengerService.SendToQueue(Arg.Any<string>(), Arg.Any<string>(), new Dictionary<string, string>()).ThrowsForAnyArgs(new ArgumentException());
-
-            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 =
-                new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.Error)
-                {
-                    ErrorMessage = $"Failed to queue publishing of provider results for specification id: {specificationId}"
-                };
-
-            ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
-
-            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
-            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
-
-            SpecificationsService specificationsService = CreateService(messengerService: messengerService, specificationsRepository: mockSpecificationsRepository, cacheProvider: mockCacheProvider);
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
-            {
-                { "specificationId", new StringValues(specificationId) }
-            }));
-
-            // Act
-            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
-
-            // Assert
-            actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
-            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
         }
 
         [TestMethod]
@@ -287,35 +225,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnExceptionAndFeatureToggleIsFalse_ShouldReturnInternalServerError()
-        {
-            // Arrange
-            IMessengerService messengerService = Substitute.For<IMessengerService>();
-            messengerService.SendToQueue(Arg.Any<string>(), Arg.Any<string>(), new Dictionary<string, string>()).ThrowsForAnyArgs(new ArgumentException());
-
-            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
-            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
-            SpecificationsService specificationsService = CreateService(messengerService: messengerService, specificationsRepository: mockSpecificationsRepository, featureToggle: featureToggle);
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
-            {
-                { "specificationIds", new StringValues("123, 333, 422, 122") }
-            }));
-
-            // Act
-            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
-
-            // Assert
-            actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
-        }
-
-        [TestMethod]
         public async Task RefreshPublishResults_GivenASpecificationIdThatDoesNotExistAndFeatureToggleIsFalse_ShouldReturnBadRequestObjectResult()
         {
             // Arrange
@@ -347,55 +256,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task RefreshPublishResults_WhenACallToCalculateResultThrowsAnExceptionAndFeatureToggleIsFalse_ShouldReportOnCacheWithError()
-        {
-            // Arrange
-            const string specificationId = "123";
-
-            IMessengerService messengerService = Substitute.For<IMessengerService>();
-            messengerService.SendToQueue(Arg.Any<string>(), Arg.Any<string>(), new Dictionary<string, string>()).ThrowsForAnyArgs(new ArgumentException());
-
-            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 =
-                new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.Error)
-                {
-                    ErrorMessage = $"Failed to queue publishing of provider results for specification id: {specificationId}"
-                };
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
-            ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
-
-            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
-            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
-
-            SpecificationsService specificationsService = CreateService(messengerService: messengerService, specificationsRepository: mockSpecificationsRepository, cacheProvider: mockCacheProvider, featureToggle: featureToggle);
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
-            {
-                { "specificationIds", new StringValues(specificationId) }
-            }));
-
-            // Act
-            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
-
-            // Assert
-            actionResultReturned.Should().BeOfType<InternalServerErrorResult>();
-            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
-        }
-
-        [TestMethod]
-        public async Task RefreshPublishResults_GivenSingleSpecificationIdAndUseJobServiceIsTrue_ShouldReturnNoContentResult()
+        public async Task RefreshPublishResults_GivenSingleSpecificationId_ShouldReturnNoContentResult()
         {
             // Arrange
             const string specificationId1 = "123";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
 
             HttpRequest httpRequest = Substitute.For<HttpRequest>();
 
@@ -409,7 +273,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             SpecificationsService specificationsService = CreateService(specificationsRepository: mockSpecificationsRepository,
-                cacheProvider: mockCacheProvider, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+                cacheProvider: mockCacheProvider, jobsApiClient: jobsApiClient);
 
             httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
             {
@@ -427,7 +291,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task RefreshPublishResults_GivenMultipleSpecificationIdsAndUseJobServiceIsTrue_ShouldReturnNoContentResult()
+        public async Task RefreshPublishResults_GivenMultipleSpecificationIds_ShouldReturnNoContentResult()
         {
             // Arrange
             const string specificationId1 = "123";
@@ -437,9 +301,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             featureToggle
                 .IsAllocationLineMajorMinorVersioningEnabled()
                 .Returns(false);
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
 
             HttpRequest httpRequest = Substitute.For<HttpRequest>();
 

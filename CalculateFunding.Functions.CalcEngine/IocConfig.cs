@@ -14,6 +14,7 @@ using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -139,30 +140,32 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddSearch(config);
 
-            builder.AddPolicySettings(config);
-
             builder.AddFeatureToggling(config);
 
-            builder.AddSingleton<ICalculatorResiliencePolicies>((ctx) =>
-            {
-                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+            PolicySettings policySettings = builder.GetPolicySettings(config);
+            CalculatorResiliencePolicies calcResiliencePolicies = CreateResiliencePolicies(policySettings);
 
-                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
-                CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
-                {
-                    ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
-                    Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
-                    CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
-                };
-
-                return resiliencePolicies;
-            });
+            builder.AddSingleton<ICalculatorResiliencePolicies>(calcResiliencePolicies);
+            builder.AddSingleton<IJobHelperResiliencePolicies>(calcResiliencePolicies);
 
             builder.AddSingleton<IValidator<ICalculatorResiliencePolicies>, CalculatorResiliencePoliciesValidator>();
+        }
+
+        private static CalculatorResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
+        {
+            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+            CalculatorResiliencePolicies resiliencePolicies = new CalculatorResiliencePolicies()
+            {
+                ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
+                Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
+                CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+            };
+
+            return resiliencePolicies;
         }
     }
 }

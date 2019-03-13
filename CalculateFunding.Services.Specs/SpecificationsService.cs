@@ -2179,45 +2179,33 @@ namespace CalculateFunding.Services.Specs
         {
             try
             {
-                if (_featureToggle.IsJobServiceForPublishProviderResultsEnabled())
+                Reference user = request.GetUser();
+
+                Trigger trigger = new Trigger
                 {
-                    Reference user = request.GetUser();
+                    EntityId = specificationId,
+                    EntityType = nameof(Specification),
+                    Message = triggerMessage
+                };
 
-                    Trigger trigger = new Trigger
-                    {
-                        EntityId = specificationId,
-                        EntityType = nameof(Specification),
-                        Message = triggerMessage
-                    };
+                string correlationId = request.GetCorrelationId();
 
-                    string correlationId = request.GetCorrelationId();
-
-                    JobCreateModel job = new JobCreateModel
-                    {
-                        InvokerUserDisplayName = user.Name,
-                        InvokerUserId = user.Id,
-                        JobDefinitionId = JobConstants.DefinitionNames.PublishProviderResultsJob,
-                        Properties = new Dictionary<string, string>
-                        {
-                            { "specification-id", specificationId }
-                        },
-                        SpecificationId = specificationId,
-                        Trigger = trigger,
-                        CorrelationId = correlationId
-                    };
-
-                    UpdateCacheWithCalculationStarted(specificationId);
-                    await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
-                }
-                else
+                JobCreateModel job = new JobCreateModel
                 {
-                    IDictionary<string, string> properties = request.BuildMessageProperties();
-                    properties.Add("specification-id", specificationId);
-                    UpdateCacheWithCalculationStarted(specificationId);
-                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.PublishProviderResults,
-                        null,
-                        properties);
-                }
+                    InvokerUserDisplayName = user.Name,
+                    InvokerUserId = user.Id,
+                    JobDefinitionId = JobConstants.DefinitionNames.PublishProviderResultsJob,
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "specification-id", specificationId }
+                    },
+                    SpecificationId = specificationId,
+                    Trigger = trigger,
+                    CorrelationId = correlationId
+                };
+
+                UpdateCacheWithCalculationStarted(specificationId);
+                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
             }
             catch (Exception)
             {

@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ISearchRepository<ScenarioIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .When(x => x.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
-                .Do(x => { throw new FailedToQuerySearchException(Arg.Any<string>(), Arg.Any<Exception>()); });
+                .Do(x => { throw new FailedToQuerySearchException("main", new Exception("inner")); });
 
             ILogger logger = CreateLogger();
 
@@ -141,11 +141,10 @@ namespace CalculateFunding.Services.Scenarios.Services
             IActionResult result = await service.SearchScenarios(request);
 
             //Assert
-            result
+            StatusCodeResult statusCodeResult = result
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = result as StatusCodeResult;
+                .BeOfType<StatusCodeResult>()
+                .Subject;
 
             statusCodeResult
                 .StatusCode

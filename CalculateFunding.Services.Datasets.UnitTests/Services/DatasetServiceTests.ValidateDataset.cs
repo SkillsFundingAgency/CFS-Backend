@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -17,8 +17,6 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -63,214 +61,6 @@ namespace CalculateFunding.Services.Datasets.Services
             logger
                 .Received(1)
                 .Error(Arg.Is("Null model name was provided to ValidateDataset"));
-        }
-
-        [TestMethod]
-        public async Task ValidateDataset_GivenValidModelForCreate_ThenDatasetValidationIsQueued()
-        {
-            // Arrange
-            const string blobPath = "dataset-id/v1/ds.xlsx";
-
-            GetDatasetBlobModel model = new GetDatasetBlobModel
-            {
-                DatasetId = "dataset-id",
-                Version = 1,
-                Filename = "ds.xlsx"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            IDictionary<string, string> metaData = new Dictionary<string, string>
-            {
-                { "dataDefinitionId", DataDefintionId }
-            };
-
-            ICloudBlob blob = Substitute.For<ICloudBlob>();
-            blob
-                .Metadata
-                .Returns(metaData);
-
-            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
-
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
-                .Returns(blob);
-            blobClient
-               .DownloadToStreamAsync(Arg.Is(blob))
-               .Returns(memoryStream);
-
-            DatasetDefinition datasetDefinition = new DatasetDefinition()
-            {
-                Id = DataDefintionId,
-            };
-
-            IEnumerable<DatasetDefinition> datasetDefinitions = new List<DatasetDefinition>() { datasetDefinition };
-
-            IDatasetRepository datasetRepository = CreateDatasetsRepository();
-            datasetRepository
-                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
-                .Returns(datasetDefinitions);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            DatasetService service = CreateDatasetService(
-                logger: logger,
-                blobClient: blobClient,
-                datasetRepository: datasetRepository,
-                cacheProvider: cacheProvider,
-                messengerService: messengerService);
-
-            // Act
-            IActionResult result = await service.ValidateDataset(request);
-
-            // Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .BeOfType<DatasetValidationStatusModel>()
-                .Should()
-                .NotBeNull();
-
-            await cacheProvider
-                .Received(1)
-                .SetAsync<DatasetValidationStatusModel>(Arg.Is<string>(c => c.StartsWith(CacheKeys.DatasetValidationStatus) && c.Length > 40),
-                Arg.Is<DatasetValidationStatusModel>(s => !string.IsNullOrWhiteSpace(s.OperationId) && s.CurrentOperation == DatasetValidationStatus.Queued));
-
-            await messengerService
-                .Received(1)
-                .SendToQueue<GetDatasetBlobModel>(
-                Arg.Is(ServiceBusConstants.QueueNames.ValidateDataset),
-                Arg.Is<GetDatasetBlobModel>(m => m.Comment == null &&
-                    m.DatasetId == model.DatasetId &&
-                    m.Version == model.Version &&
-                   m.Filename == model.Filename
-                ),
-                Arg.Is<IDictionary<string, string>>(p => p.Count == 3
-                    && p.ContainsKey("operation-id")
-                    && p.ContainsKey("user-id")
-                    && p.ContainsKey("user-name")));
-
-        }
-
-        [TestMethod]
-        public async Task ValidateDataset_GivenValidModelForUpdate_ThenDatasetValidationIsQueued()
-        {
-            // Arrange
-            const string blobPath = "dataset-id/v1/ds.xlsx";
-
-            GetDatasetBlobModel model = new GetDatasetBlobModel
-            {
-                DatasetId = "dataset-id",
-                Version = 1,
-                Filename = "ds.xlsx",
-                Comment = "Change comment",
-                DefinitionId = DataDefintionId,
-                Description = "My change description",
-            };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            IDictionary<string, string> metaData = new Dictionary<string, string>
-            {
-                { "dataDefinitionId", DataDefintionId }
-            };
-
-            ICloudBlob blob = Substitute.For<ICloudBlob>();
-            blob
-                .Metadata
-                .Returns(metaData);
-
-            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
-
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
-                .Returns(blob);
-            blobClient
-               .DownloadToStreamAsync(Arg.Is(blob))
-               .Returns(memoryStream);
-
-            DatasetDefinition datasetDefinition = new DatasetDefinition()
-            {
-                Id = DataDefintionId,
-            };
-
-            IEnumerable<DatasetDefinition> datasetDefinitions = new List<DatasetDefinition>() { datasetDefinition };
-
-            IDatasetRepository datasetRepository = CreateDatasetsRepository();
-            datasetRepository
-                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
-                .Returns(datasetDefinitions);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            DatasetService service = CreateDatasetService(
-                logger: logger,
-                blobClient: blobClient,
-                datasetRepository: datasetRepository,
-                cacheProvider: cacheProvider,
-                messengerService: messengerService);
-
-            // Act
-            IActionResult result = await service.ValidateDataset(request);
-
-            // Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .BeOfType<DatasetValidationStatusModel>()
-                .Should()
-                .NotBeNull();
-
-            await cacheProvider
-                .Received(1)
-                .SetAsync<DatasetValidationStatusModel>(Arg.Is<string>(c => c.StartsWith(CacheKeys.DatasetValidationStatus) && c.Length > 40),
-                Arg.Is<DatasetValidationStatusModel>(s => !string.IsNullOrWhiteSpace(s.OperationId) && s.CurrentOperation == DatasetValidationStatus.Queued));
-
-            await messengerService
-                .Received(1)
-                .SendToQueue<GetDatasetBlobModel>(
-                Arg.Is(ServiceBusConstants.QueueNames.ValidateDataset),
-                Arg.Is<GetDatasetBlobModel>(m =>
-                    m.DatasetId == model.DatasetId &&
-                    m.Version == model.Version &&
-                    m.Filename == model.Filename &&
-                    m.Comment == model.Comment &&
-                    m.DefinitionId == DataDefintionId &&
-                    m.Description == model.Description
-                ),
-                Arg.Is<IDictionary<string, string>>(p => p.Count == 3
-                    && p.ContainsKey("operation-id")
-                    && p.ContainsKey("user-id")
-                    && p.ContainsKey("user-name")));
         }
 
         [TestMethod]
@@ -503,7 +293,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Error(Arg.Is($"Unable to find a data definition for id: {DataDefintionId}, for blob: {blobPath}"));
         }
 
-
         [TestMethod]
         public async Task OnValidateDataset_GivenTableResultsContainsOneError_ReturnsOKResultWithMessage()
         {
@@ -519,8 +308,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -600,7 +390,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task ValidateDataset_GivenJobServiceFeatureToggleEnabled_CallsJobServiceToQueueJob()
+        public async Task ValidateDataset_GivenDatasetBlobModel_CallsJobServiceToQueueJob()
         {
             // Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -660,13 +450,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            IMessengerService messengerService = CreateMessengerService();
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForMainActionsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             DatasetService service = CreateDatasetService(
@@ -674,8 +457,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 cacheProvider: cacheProvider,
-                messengerService: messengerService,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             // Act
@@ -700,10 +481,6 @@ namespace CalculateFunding.Services.Datasets.Services
             await jobsApiClient
                 .Received(1)
                 .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob));
-
-            await messengerService
-                .DidNotReceive()
-                .SendToQueue(Arg.Any<string>(), Arg.Any<GetDatasetBlobModel>(), Arg.Any<IDictionary<string, string>>());
         }
 
         [TestMethod]
@@ -721,8 +498,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -841,8 +619,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -940,8 +719,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -1047,8 +827,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -1200,8 +981,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
             message.UserProperties.Add("user-id", authorId);
             message.UserProperties.Add("user-name", authorName);
@@ -1386,8 +1168,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -1523,8 +1306,10 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties.Add("operation-id", operationId);
+            message.UserProperties.Add("jobId", "job1");
 
             ILogger logger = CreateLogger();
 
@@ -1648,8 +1433,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -1777,8 +1563,9 @@ namespace CalculateFunding.Services.Datasets.Services
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -1969,8 +1756,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -2020,8 +1808,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -2080,8 +1869,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -2154,8 +1944,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -2228,8 +2019,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -2310,8 +2102,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -2418,8 +2211,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -2513,8 +2307,9 @@ namespace CalculateFunding.Services.Datasets.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            Message message = new Message(byteArray);
 
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
 
             ILogger logger = CreateLogger();
@@ -2621,7 +2416,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task OnValidateDataset_GivenJobServiceFeatureToggleEnabled_ThenUpdatesJobServiceWithProgress()
+        public async Task OnValidateDataset_GivenValidDatasetBlobModel_ThenUpdatesJobServiceWithProgress()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -2703,11 +2498,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForMainActionsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             DatasetService service = CreateDatasetService(logger: logger,
@@ -2715,7 +2505,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             // Act

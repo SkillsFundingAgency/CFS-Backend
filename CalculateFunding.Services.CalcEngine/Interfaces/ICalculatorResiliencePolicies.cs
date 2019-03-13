@@ -1,7 +1,4 @@
 ﻿using Polly;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Services.Calculator.Interfaces
 {
@@ -17,6 +14,6 @@ namespace CalculateFunding.Services.Calculator.Interfaces
 
         Policy CalculationsRepository { get; set; }
 
-        Policy JobsRepository { get; set; }
+        Policy JobsApiClient { get; set; }
     }
 }

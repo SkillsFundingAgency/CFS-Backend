@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Exceptions;
@@ -21,9 +21,6 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -42,11 +39,9 @@ namespace CalculateFunding.Services.Scenarios
         private readonly IValidator<CreateNewTestScenarioVersion> _createNewTestScenarioVersionValidator;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
-        private readonly IMessengerService _messengerService;
         private readonly IBuildProjectRepository _buildProjectRepository;
         private readonly IVersionRepository<TestScenarioVersion> _versionRepository;
         private readonly IJobsApiClient _jobsApiClient;
-        private readonly IFeatureToggle _featureToggle;
         private readonly ICalcsRepository _calcsRepository;
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly Polly.Policy _calcsRepositoryPolicy;
@@ -58,11 +53,9 @@ namespace CalculateFunding.Services.Scenarios
             IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator,
             ISearchRepository<ScenarioIndex> searchRepository,
             ICacheProvider cacheProvider,
-            IMessengerService messengerService,
             IBuildProjectRepository buildProjectRepository,
             IVersionRepository<TestScenarioVersion> versionRepository,
             IJobsApiClient jobsApiClient,
-            IFeatureToggle featureToggle,
             ICalcsRepository calcsRepository,
             IScenariosResiliencePolicies scenariosResiliencePolicies)
         {
@@ -72,11 +65,9 @@ namespace CalculateFunding.Services.Scenarios
             Guard.ArgumentNotNull(createNewTestScenarioVersionValidator, nameof(createNewTestScenarioVersionValidator));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
-            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(scenariosResiliencePolicies, nameof(scenariosResiliencePolicies));
 
@@ -86,12 +77,10 @@ namespace CalculateFunding.Services.Scenarios
             _createNewTestScenarioVersionValidator = createNewTestScenarioVersionValidator;
             _searchRepository = searchRepository;
             _cacheProvider = cacheProvider;
-            _messengerService = messengerService;
             _buildProjectRepository = buildProjectRepository;
             _cacheProvider = cacheProvider;
             _versionRepository = versionRepository;
             _jobsApiClient = jobsApiClient;
-            _featureToggle = featureToggle;
             _calcsRepository = calcsRepository;
             _jobsApiClientPolicy = scenariosResiliencePolicies.JobsApiClient;
             _calcsRepositoryPolicy = scenariosResiliencePolicies.CalcsRepository;
@@ -100,10 +89,8 @@ namespace CalculateFunding.Services.Scenarios
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth scenariosRepoHealth = await ((IHealthChecker)_scenariosRepository).IsHealthOk();
-            var searchRepoHealth = await _searchRepository.IsHealthOk();
-            var cacheRepoHealth = await _cacheProvider.IsHealthOk();
-            string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
-            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -112,12 +99,11 @@ namespace CalculateFunding.Services.Scenarios
             health.Dependencies.AddRange(scenariosRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = _messengerService.GetType().GetFriendlyName(), Message = messengerServiceHealth.Message });
 
             return health;
         }
 
-        async public Task<IActionResult> SaveVersion(HttpRequest request)
+        public async Task<IActionResult> SaveVersion(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
@@ -130,7 +116,7 @@ namespace CalculateFunding.Services.Scenarios
                 return new BadRequestObjectResult("Null or empty calculation Id provided");
             }
 
-            var validationResult = (await _createNewTestScenarioVersionValidator.ValidateAsync(scenarioVersion)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _createNewTestScenarioVersionValidator.ValidateAsync(scenarioVersion)).PopulateModelState();
 
             if (validationResult != null)
             {
@@ -222,44 +208,37 @@ namespace CalculateFunding.Services.Scenarios
 
             await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
 
-            if (_featureToggle.IsJobServiceEnabled())
+            IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = await _calcsRepositoryPolicy.ExecuteAsync(() => _calcsRepository.GetCurrentCalculationsBySpecificationId(specification.Id));
+
+            if (calculations.IsNullOrEmpty())
             {
-                IEnumerable<Models.Calcs.CalculationCurrentVersion> calculations = await _calcsRepositoryPolicy.ExecuteAsync(() => _calcsRepository.GetCurrentCalculationsBySpecificationId(specification.Id));
-
-                if (calculations.IsNullOrEmpty())
-                {
-                    _logger.Information($"No calculations found to test for specification id: '{specification.Id}'");
-                }
-                else
-                {
-                    string correlationId = request.GetCorrelationId();
-
-                    try
-                    {
-                        Trigger trigger = new Trigger
-                        {
-                            EntityId = testScenario.Id,
-                            EntityType = nameof(TestScenario),
-                            Message = $"Saving test scenario: '{testScenario.Id}'"
-                        };
-
-                        bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(calculations.Select(m => m.SourceCode));
-
-                        Job job = await SendInstructAllocationsToJobService(specification.Id, user, trigger, correlationId, generateCalculationAggregations);
-
-                        _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specification.Id}'");
-
-                        return new InternalServerErrorResult($"An error occurred attempting to execute calculations prior to running tests on specification '{specification.Id}'");
-                    }
-                }
+                _logger.Information($"No calculations found to test for specification id: '{specification.Id}'");
             }
             else
             {
-                await SendGenerateAllocationsMessage(specification.Id, request);
+                string correlationId = request.GetCorrelationId();
+
+                try
+                {
+                    Trigger trigger = new Trigger
+                    {
+                        EntityId = testScenario.Id,
+                        EntityType = nameof(TestScenario),
+                        Message = $"Saving test scenario: '{testScenario.Id}'"
+                    };
+
+                    bool generateCalculationAggregations = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(calculations.Select(m => m.SourceCode));
+
+                    Job job = await SendInstructAllocationsToJobService(specification.Id, user, trigger, correlationId, generateCalculationAggregations);
+
+                    _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specification.Id}'");
+
+                    return new InternalServerErrorResult($"An error occurred attempting to execute calculations prior to running tests on specification '{specification.Id}'");
+                }
             }
 
             CurrentTestScenario testScenarioResult = await _scenariosRepository.GetCurrentTestScenarioById(testScenario.Id);
@@ -267,11 +246,11 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenarioResult);
         }
 
-        async public Task<IActionResult> GetTestScenariosBySpecificationId(HttpRequest request)
+        public async Task<IActionResult> GetTestScenariosBySpecificationId(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -285,11 +264,11 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenarios.IsNullOrEmpty() ? Enumerable.Empty<TestScenario>() : testScenarios);
         }
 
-        async public Task<IActionResult> GetTestScenarioById(HttpRequest request)
+        public async Task<IActionResult> GetTestScenarioById(HttpRequest request)
         {
-            request.Query.TryGetValue("scenarioId", out var testId);
+            request.Query.TryGetValue("scenarioId", out Microsoft.Extensions.Primitives.StringValues testId);
 
-            var scenarioId = testId.FirstOrDefault();
+            string scenarioId = testId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(scenarioId))
             {
@@ -308,11 +287,11 @@ namespace CalculateFunding.Services.Scenarios
             return new OkObjectResult(testScenario);
         }
 
-        async public Task<IActionResult> GetCurrentTestScenarioById(HttpRequest request)
+        public async Task<IActionResult> GetCurrentTestScenarioById(HttpRequest request)
         {
-            request.Query.TryGetValue("scenarioId", out var testId);
+            request.Query.TryGetValue("scenarioId", out Microsoft.Extensions.Primitives.StringValues testId);
 
-            var scenarioId = testId.FirstOrDefault();
+            string scenarioId = testId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(scenarioId))
             {
@@ -474,38 +453,6 @@ namespace CalculateFunding.Services.Scenarios
             return updateCount;
         }
 
-        IDictionary<string, string> CreateMessageProperties(HttpRequest request)
-        {
-            Reference user = request.GetUser();
-
-            IDictionary<string, string> properties = new Dictionary<string, string>
-            {
-                { "sfa-correlationId", request.GetCorrelationId() }
-            };
-
-            if (user != null)
-            {
-                properties.Add("user-id", user.Id);
-                properties.Add("user-name", user.Name);
-            }
-
-            return properties;
-        }
-
-        private async Task SendGenerateAllocationsMessage(string specificationId, HttpRequest request)
-        {
-            IDictionary<string, string> properties = request.BuildMessageProperties();
-
-            properties.Add("specification-id", specificationId);
-
-            properties.Add("ignore-save-provider-results", "true");
-
-            await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                null,
-                properties);
-            
-        }
-
         private async Task<Job> SendInstructAllocationsToJobService(string specificationId, Reference user, Trigger trigger, string correlationId, bool generateAggregations = false)
         {
             JobCreateModel job = new JobCreateModel
@@ -526,7 +473,7 @@ namespace CalculateFunding.Services.Scenarios
             return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
         }
 
-        ScenarioIndex CreateScenarioIndexFromScenario(TestScenario testScenario, SpecificationSummary specification)
+        private ScenarioIndex CreateScenarioIndexFromScenario(TestScenario testScenario, SpecificationSummary specification)
         {
             return new ScenarioIndex
             {

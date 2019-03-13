@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Calculator
             MockCalculatorResiliencePoliciesValidator
                 .Validate(Arg.Any<ICalculatorResiliencePolicies>())
                 .Returns(new ValidationResult());
-            MockCalculatorResiliencePolicies.JobsRepository.Returns(MockJobsApiClientPolicy);
+            MockCalculatorResiliencePolicies.JobsApiClient.Returns(MockJobsApiClientPolicy);
         }
 
         public CalculationEngineService CreateCalculationEngineService()

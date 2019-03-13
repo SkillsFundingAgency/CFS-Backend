@@ -244,83 +244,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task SelectSpecificationForFunding_GivenPublishingResultsfails_ReturnsInternalServerError()
-        {
-            //Arrange
-            const string authorId = "author-id";
-            const string authorName = "author-name";
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Sid, authorId),
-                new Claim(ClaimTypes.Name, authorName)
-            };
-
-            request
-                .HttpContext.User.Claims
-                .Returns(claims.AsEnumerable());
-
-            Specification specification = CreateSpecification();
-
-            ILogger logger = CreateLogger();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Is(specification))
-                .Returns(HttpStatusCode.OK);
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-                .Returns(Enumerable.Empty<IndexError>());
-
-            IMessengerService messengerService = CreateMessengerService();
-            messengerService
-                .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.PublishProviderResults), Arg.Is((string)null), Arg.Any<IDictionary<string, string>>())
-                .Returns(ex => { throw new Exception(); });
-
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
-                searchRepository: searchRepository, messengerService: messengerService);
-
-            //Act
-            IActionResult result = await service.SelectSpecificationForFunding(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"Failed to queue publishing of provider results for specification id: {SpecificationId}");
-
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Failed to queue publishing of provider results for specification id: {SpecificationId}"));
-
-
-            logger
-                .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to queue publishing of provider results for specification id: {SpecificationId}"));
-        }
-
-        [TestMethod]
-        public async Task SelectSpecificationForFunding_GivenValidSpecificationAndUseJobServiceToggleIsTrue_ReturnsNoContentResult()
+        public async Task SelectSpecificationForFunding_GivenValidSpecification_ReturnsNoContentResult()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -347,14 +271,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .UpdateSpecification(Arg.Is(specification))
                 .Returns(HttpStatusCode.OK);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceForPublishProviderResultsEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, jobsApiClient: jobsApiClient);
 
             //Act
             IActionResult result = await service.SelectSpecificationForFunding(request);

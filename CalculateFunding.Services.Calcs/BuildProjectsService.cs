@@ -20,7 +20,6 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +32,6 @@ namespace CalculateFunding.Services.Calcs
     public class BuildProjectsService : IBuildProjectsService, IHealthChecker
     {
         private readonly IBuildProjectsRepository _buildProjectsRepository;
-        private readonly IMessengerService _messengerService;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
@@ -49,7 +47,6 @@ namespace CalculateFunding.Services.Calcs
 
         public BuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository,
-            IMessengerService messengerService,
             ILogger logger,
             ITelemetry telemetry,
             IProviderResultsRepository providerResultsRepository,
@@ -64,7 +61,6 @@ namespace CalculateFunding.Services.Calcs
             ISourceCodeService sourceCodeService)
         {
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
-            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
@@ -79,7 +75,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
 
             _buildProjectsRepository = buildProjectsRepository;
-            _messengerService = messengerService;
             _logger = logger;
             _telemetry = telemetry;
             _providerResultsRepository = providerResultsRepository;
@@ -97,9 +92,7 @@ namespace CalculateFunding.Services.Calcs
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth calcsRepoHealth = await ((IHealthChecker)_calculationsRepository).IsHealthOk();
-            var cacheRepoHealth = await _cacheProvider.IsHealthOk();
-            string queueName = ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults;
-            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
+            (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -107,7 +100,6 @@ namespace CalculateFunding.Services.Calcs
             };
             health.Dependencies.AddRange(calcsRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
 
             return health;
         }
@@ -118,37 +110,34 @@ namespace CalculateFunding.Services.Calcs
 
             JobViewModel job = null;
 
-            if (_featureToggle.IsJobServiceEnabled() && !message.UserProperties.ContainsKey("jobId"))
+            if (!message.UserProperties.ContainsKey("jobId"))
             {
                 _logger.Error("Missing parent job id to instruct generating allocations");
 
                 return;
             }
 
-            if (_featureToggle.IsJobServiceEnabled())
+            string jobId = message.UserProperties["jobId"].ToString();
+
+            ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
+
+            if (response == null || response.Content == null)
             {
-                string jobId = message.UserProperties["jobId"].ToString();
+                _logger.Error($"Could not find the parent job with job id: '{jobId}'");
 
-                ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
-
-                if (response == null || response.Content == null)
-                {
-                    _logger.Error($"Could not find the parent job with job id: '{jobId}'");
-
-                    throw new Exception($"Could not find the parent job with job id: '{jobId}'");
-                }
-
-                job = response.Content;
-
-                if (job.CompletionStatus.HasValue)
-                {
-                    _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
-
-                    return;
-                }
-
-                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new Common.ApiClient.Jobs.Models.JobLogUpdateModel()));
+                throw new Exception($"Could not find the parent job with job id: '{jobId}'");
             }
+
+            job = response.Content;
+
+            if (job.CompletionStatus.HasValue)
+            {
+                _logger.Information($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}");
+
+                return;
+            }
+
+            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new Common.ApiClient.Jobs.Models.JobLogUpdateModel()));
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
@@ -230,22 +219,14 @@ namespace CalculateFunding.Services.Calcs
                     properties.Add(providerSummariesPartitionIndex, partitionIndex.ToString());
                 }
 
+                IDictionary<string, string> jobProperties = new Dictionary<string, string>();
 
-                if (!_featureToggle.IsJobServiceEnabled())
+                foreach (KeyValuePair<string, string> item in properties)
                 {
-                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, null, properties);
-                }
-                else
-                {
-                    IDictionary<string, string> jobProperties = new Dictionary<string, string>();
+                    jobProperties.Add(item.Key, item.Value);
 
-                    foreach (KeyValuePair<string, string> item in properties)
-                    {
-                        jobProperties.Add(item.Key, item.Value);
-
-                    }
-                    allJobProperties.Add(jobProperties);
                 }
+                allJobProperties.Add(jobProperties);
             }
 
             if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
@@ -253,52 +234,49 @@ namespace CalculateFunding.Services.Calcs
                 await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
             }
 
-            if (_featureToggle.IsJobServiceEnabled())
+            try
             {
-                try
+                if (!allJobProperties.Any())
                 {
-                    if (!allJobProperties.Any())
+                    _logger.Information($"No scoped providers set for specification '{specificationId}'");
+
+                    JobLogUpdateModel jobCompletedLog = new JobLogUpdateModel
                     {
-                        _logger.Information($"No scoped providers set for specification '{specificationId}'");
+                        CompletedSuccessfully = true,
+                        Outcome = "Calculations not run as no scoped providers set for specification"
+                    };
+                    await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(job.Id, jobCompletedLog));
 
-                        JobLogUpdateModel jobCompletedLog = new JobLogUpdateModel
-                        {
-                            CompletedSuccessfully = true,
-                            Outcome = "Calculations not run as no scoped providers set for specification"
-                        };
-                        await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(job.Id, jobCompletedLog));
-
-                        return;
-                    }
-
-                    IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(job, allJobProperties);
-
-                    int newJobsCount = newJobs.Count();
-                    int batchCount = allJobProperties.Count();
-
-                    if (newJobsCount != batchCount)
-                    {
-                        throw new Exception($"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{job.Id}'");
-                    }
-                    else
-                    {
-                        _logger.Information($"{newJobsCount} child jobs were created for parent id: '{job.Id}'");
-                    }
+                    return;
                 }
-                catch (Exception ex)
+
+                IEnumerable<Job> newJobs = await CreateGenerateAllocationJobs(job, allJobProperties);
+
+                int newJobsCount = newJobs.Count();
+                int batchCount = allJobProperties.Count();
+
+                if (newJobsCount != batchCount)
                 {
-                    _logger.Error(ex.Message);
-
-                    throw new Exception($"Failed to create child jobs for parent job: '{job.Id}'");
+                    throw new Exception($"Only {newJobsCount} child jobs from {batchCount} were created with parent id: '{job.Id}'");
                 }
+                else
+                {
+                    _logger.Information($"{newJobsCount} child jobs were created for parent id: '{job.Id}'");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex.Message);
+
+                throw new Exception($"Failed to create child jobs for parent job: '{job.Id}'");
             }
         }
 
         public async Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -407,9 +385,9 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> GetBuildProjectBySpecificationId(HttpRequest request)
         {
-            request.Query.TryGetValue("specificationId", out var specId);
+            request.Query.TryGetValue("specificationId", out Microsoft.Extensions.Primitives.StringValues specId);
 
-            var specificationId = specId.FirstOrDefault();
+            string specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -470,10 +448,10 @@ namespace CalculateFunding.Services.Calcs
 
             if (buildProject == null)
             {
-                 buildProject = await _calculationService.CreateBuildProject(specificationId, Enumerable.Empty<Models.Calcs.Calculation>());
+                buildProject = await _calculationService.CreateBuildProject(specificationId, Enumerable.Empty<Models.Calcs.Calculation>());
             }
 
-           
+
             byte[] assembly = await _sourceCodeService.GetAssembly(buildProject);
 
             if (assembly.IsNullOrEmpty())

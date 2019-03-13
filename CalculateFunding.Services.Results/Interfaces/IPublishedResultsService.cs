@@ -44,8 +44,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task UpdateAllocationLineResultStatus(Message message);
 
-        Task UpdateDeadLetteredJobLog(Message message);
-
         Task<IActionResult> MigratePublishedCalculationResults(HttpRequest request);
 
         Task MigratePublishedCalculationResults(Message message);

@@ -1,9 +1,10 @@
 ﻿using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Interfaces;
 using Polly;
 
 namespace CalculateFunding.Services.Calculator
 {
-    public class CalculatorResiliencePolicies : ICalculatorResiliencePolicies
+    public class CalculatorResiliencePolicies : ICalculatorResiliencePolicies, IJobHelperResiliencePolicies
     {
         public Policy CacheProvider { get; set; }
 
@@ -15,6 +16,6 @@ namespace CalculateFunding.Services.Calculator
 
         public Policy CalculationsRepository { get; set; }
 
-        public Policy JobsRepository { get; set; }
+        public Policy JobsApiClient { get; set; }
     }
 }

@@ -28,7 +28,6 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -43,7 +42,6 @@ namespace CalculateFunding.Services.Datasets
     public class ProcessDatasetService : IProcessDatasetService, IHealthChecker
     {
         private readonly IDatasetRepository _datasetRepository;
-        private readonly IMessengerService _messengerService;
         private readonly IExcelDatasetReader _excelDatasetReader;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalcsRepository _calcsRepository;
@@ -62,7 +60,6 @@ namespace CalculateFunding.Services.Datasets
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
-            IMessengerService messengerService,
             IExcelDatasetReader excelDatasetReader,
             ICacheProvider cacheProvider,
             ICalcsRepository calcsRepository,
@@ -79,7 +76,6 @@ namespace CalculateFunding.Services.Datasets
             IJobsApiClient jobsApiClient)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
-            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
@@ -93,7 +89,6 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
 
             _datasetRepository = datasetRepository;
-            _messengerService = messengerService;
             _excelDatasetReader = excelDatasetReader;
             _cacheProvider = cacheProvider;
             _calcsRepository = calcsRepository;
@@ -113,11 +108,9 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var blobHealth = await _blobClient.IsHealthOk();
+            (bool Ok, string Message) blobHealth = await _blobClient.IsHealthOk();
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
-            string queueName = ServiceBusConstants.QueueNames.CalculationJobInitialiser;
-            var messengerServiceHealth = await _messengerService.IsHealthOk(queueName);
-            var cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
             ServiceHealth providersResultsRepoHealth = await ((IHealthChecker)_providersResultsRepository).IsHealthOk();
             ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerRepository).IsHealthOk();
             ServiceHealth datasetsAggregationsRepoHealth = await ((IHealthChecker)_datasetsAggregationsRepository).IsHealthOk();
@@ -128,7 +121,6 @@ namespace CalculateFunding.Services.Datasets
             };
             health.Dependencies.Add(new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message });
             health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = messengerServiceHealth.Ok, DependencyName = $"{_messengerService.GetType().GetFriendlyName()} for queue: {queueName}", Message = messengerServiceHealth.Message });
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
             health.Dependencies.AddRange(providersResultsRepoHealth.Dependencies);
             health.Dependencies.AddRange(providerRepoHealth.Dependencies);
@@ -144,13 +136,9 @@ namespace CalculateFunding.Services.Datasets
 
             Dataset dataset = message.GetPayloadAsInstanceOf<Dataset>();
 
-            string jobId = null;
-            if (_featureToggle.IsJobServiceForMainActionsEnabled())
-            {
-                jobId = message.UserProperties["jobId"].ToString();
+            string jobId = message.UserProperties["jobId"].ToString();
 
-                await UpdateJobStatus(jobId, null, 0);
-            }
+            await UpdateJobStatus(jobId, null, 0);
 
             if (dataset == null)
             {
@@ -225,42 +213,30 @@ namespace CalculateFunding.Services.Datasets
 
             if (buildProject != null && !buildProject.DatasetRelationships.IsNullOrEmpty() && buildProject.DatasetRelationships.Any(m => m.DefinesScope))
             {
-                if (_featureToggle.IsJobServiceEnabled())
+                string userId = user != null ? user.Id : "";
+                string userName = user != null ? user.Name : "";
+
+                try
                 {
-                    string userId = user != null ? user.Id : "";
-                    string userName = user != null ? user.Name : "";
-
-                    try
+                    Trigger trigger = new Trigger
                     {
-                        Trigger trigger = new Trigger
-                        {
-                            EntityId = relationshipId,
-                            EntityType = nameof(DefinitionSpecificationRelationship),
-                            Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
-                        };
-                        string correlationId = message.GetCorrelationId();
+                        EntityId = relationshipId,
+                        EntityType = nameof(DefinitionSpecificationRelationship),
+                        Message = $"Processed dataset relationship: '{relationshipId}' for specification: '{specificationId}'"
+                    };
+                    string correlationId = message.GetCorrelationId();
 
-                        IEnumerable<CalculationCurrentVersion> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
+                    IEnumerable<CalculationCurrentVersion> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
 
-                        bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
+                    bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
 
-                        await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
-
-                        throw new Exception($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
-                    }
+                    await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
                 }
-                else
+                catch (Exception ex)
                 {
-                    IDictionary<string, string> messageProperties = message.BuildMessageProperties();
-                    messageProperties.Add("specification-id", specificationId);
-                    messageProperties.Add("provider-cache-key", $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}");
+                    _logger.Error(ex, $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
 
-                    await _messengerService.SendToQueue<string>(ServiceBusConstants.QueueNames.CalculationJobInitialiser,
-                            null, messageProperties);
+                    throw new Exception($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
                 }
 
                 _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
@@ -744,21 +720,18 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task UpdateJobStatus(string jobId, bool? completedSuccessfully, int percentComplete, string outcome = null)
         {
-            if (_featureToggle.IsJobServiceForMainActionsEnabled())
+            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
             {
-                JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-                {
-                    CompletedSuccessfully = completedSuccessfully,
-                    ItemsProcessed = percentComplete,
-                    Outcome = outcome
-                };
+                CompletedSuccessfully = completedSuccessfully,
+                ItemsProcessed = percentComplete,
+                Outcome = outcome
+            };
 
-                ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
+            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
 
-                if (jobLogResponse == null || jobLogResponse.Content == null)
-                {
-                    _logger.Error($"Failed to add a job log for job id '{jobId}'");
-                }
+            if (jobLogResponse == null || jobLogResponse.Content == null)
+            {
+                _logger.Error($"Failed to add a job log for job id '{jobId}'");
             }
         }
     }

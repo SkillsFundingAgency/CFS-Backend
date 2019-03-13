@@ -5,7 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
@@ -19,7 +19,6 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
@@ -41,7 +40,6 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICalcsRepository _calcsRepository;
         private readonly IDefinitionsService _definitionService;
         private readonly ICacheProvider _cacheProvider;
-        private readonly IFeatureToggle _featureToggle;
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
 
@@ -55,7 +53,6 @@ namespace CalculateFunding.Services.Datasets
             IDefinitionsService definitionService,
             ICacheProvider cacheProvider,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
-            IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
@@ -68,7 +65,6 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(definitionService, nameof(definitionService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
-            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
 
             _datasetRepository = datasetRepository;
@@ -80,7 +76,6 @@ namespace CalculateFunding.Services.Datasets
             _calcsRepository = calcsRepository;
             _definitionService = definitionService;
             _cacheProvider = cacheProvider;
-            _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
         }
@@ -308,45 +303,34 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult((int)statusCode);
             }
 
-            if (_featureToggle.IsJobServiceForMainActionsEnabled())
+            Reference user = request.GetUser();
+
+            Trigger trigger = new Trigger
             {
-                Reference user = request.GetUser();
+                EntityId = dataset.Id,
+                EntityType = nameof(Dataset),
+                Message = $"Mapping dataset: '{dataset.Id}'"
+            };
 
-                Trigger trigger = new Trigger
-                {
-                    EntityId = dataset.Id,
-                    EntityType = nameof(Dataset),
-                    Message = $"Mapping dataset: '{dataset.Id}'"
-                };
+            string correlationId = request.GetCorrelationId();
 
-                string correlationId = request.GetCorrelationId();
-
-                JobCreateModel job = new JobCreateModel
-                {
-                    InvokerUserDisplayName = user.Name,
-                    InvokerUserId = user.Id,
-                    JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
-                    MessageBody = JsonConvert.SerializeObject(dataset),
-                    Properties = new Dictionary<string, string>
-                        {
-                            { "specification-id", relationship.Specification.Id },
-                            { "relationship-id", relationship.Id }
-                        },
-                    SpecificationId = relationship.Specification.Id,
-                    Trigger = trigger,
-                    CorrelationId = correlationId
-                };
-
-                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
-            }
-            else
+            JobCreateModel job = new JobCreateModel
             {
-                IDictionary<string, string> properties = request.BuildMessageProperties();
-                properties.Add("specification-id", relationship.Specification.Id);
-                properties.Add("relationship-id", relationship.Id);
+                InvokerUserDisplayName = user.Name,
+                InvokerUserId = user.Id,
+                JobDefinitionId = JobConstants.DefinitionNames.MapDatasetJob,
+                MessageBody = JsonConvert.SerializeObject(dataset),
+                Properties = new Dictionary<string, string>
+                    {
+                        { "specification-id", relationship.Specification.Id },
+                        { "relationship-id", relationship.Id }
+                    },
+                SpecificationId = relationship.Specification.Id,
+                Trigger = trigger,
+                CorrelationId = correlationId
+            };
 
-                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ProcessDataset, dataset, properties);
-            }
+            await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
 
             return new NoContentResult();
         }
@@ -528,24 +512,5 @@ namespace CalculateFunding.Services.Datasets
 
             return relationshipViewModel;
         }
-
-        private IDictionary<string, string> CreateMessageProperties(HttpRequest request)
-        {
-            Reference user = request.GetUser();
-
-            IDictionary<string, string> properties = new Dictionary<string, string>
-            {
-                { "sfa-correlationId", request.GetCorrelationId() }
-            };
-
-            if (user != null)
-            {
-                properties.Add("user-id", user.Id);
-                properties.Add("user-name", user.Name);
-            }
-
-            return properties;
-        }
-
     }
 }

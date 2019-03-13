@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateBuildProjectRelationships_GivenSpecificationIdKeyyNotFoundOnMessage_ThrowsKeyNotFoundExceptionn()
+        public void UpdateBuildProjectRelationships_GivenSpecificationIdKeyyNotFoundOnMessage_ThrowsKeyNotFoundException()
         {
             //Arrange
             DatasetRelationshipSummary payload = new DatasetRelationshipSummary();
@@ -730,7 +730,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task GetAssemblyBySpecificationId_GivenBuildProjectFoundAndGetsAssembly_ReturnsPKObjectResult()
+        public async Task GetAssemblyBySpecificationId_GivenBuildProjectFoundAndGetsAssembly_ReturnsOKObjectResult()
         {
             //Arrange
             const string specificationId = "spec-id-1";
@@ -765,9 +765,11 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             string specificationId = "test-spec1";
+            string parentJobId = "job-id-1";
+            string jobId = "job-id-2";
 
             Message message = new Message(Encoding.UTF8.GetBytes(""));
-
+            message.UserProperties.Add("jobId", jobId);
             message.UserProperties.Add("specification-id", specificationId);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
@@ -777,7 +779,39 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, logger: logger);
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            JobViewModel childJob = new JobViewModel
+            {
+                Id = jobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, childJob);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJobViewModelResponse);
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModelResponse);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, logger: logger, jobsApiClient: jobsApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -793,6 +827,8 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             string specificationId = "test-spec1";
+            string parentJobId = "job-id-1";
+            string jobId = "job-id-2";
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -804,7 +840,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Message message = new Message(Encoding.UTF8.GetBytes(""));
-
+            message.UserProperties.Add("jobId", jobId);
             message.UserProperties.Add("specification-id", specificationId);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
@@ -821,7 +857,39 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            JobViewModel childJob = new JobViewModel
+            {
+                Id = jobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJobViewModelResponse);
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModelResponse);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, jobsApiClient: jobsApiClient,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
 
             //Act
@@ -834,9 +902,8 @@ namespace CalculateFunding.Services.Calcs.Services
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
 
-
         [TestMethod]
-        public async Task UpdateAllocations_GivenJobServiceEnabledIsOnAndMessageDoesNotHaveAJobId_DoesntAddAJobLog()
+        public async Task UpdateAllocations_GivenMessageDoesNotHaveAJobId_DoesntAddAJobLog()
         {
             //Arrange
             Message message = new Message(Encoding.UTF8.GetBytes(""));
@@ -845,12 +912,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobsApiClient: jobsApiClient, featureToggle: featureToggle);
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, jobsApiClient: jobsApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -940,169 +1002,6 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfFiveProviders_AddsFiveMessagesToQueue()
-        {
-            //Arrange
-            EngineSettings engineSettings = CreateEngineSettings();
-            engineSettings.MaxPartitionSize = 1;
-
-            IEnumerable<ProviderSummary> providerSummaries = new[]
-            {
-                new ProviderSummary{ Id = "1" },
-                new ProviderSummary{ Id = "2" },
-                new ProviderSummary{ Id = "3" },
-                new ProviderSummary{ Id = "4" },
-                new ProviderSummary{ Id = "5" },
-                new ProviderSummary{ Id = "6" },
-                new ProviderSummary{ Id = "7" },
-                new ProviderSummary{ Id = "8" },
-                new ProviderSummary{ Id = "9" },
-                new ProviderSummary{ Id = "10" }
-            };
-
-            string specificationId = "test-spec1";
-
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            Message message = new Message(Encoding.UTF8.GetBytes(""));
-
-            message.UserProperties.Add("specification-id", specificationId);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
-                .Returns(buildProject);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
-                .Returns(true);
-
-            cacheProvider
-                .ListLengthAsync<ProviderSummary>(cacheKey)
-                .Returns(10);
-
-            IEnumerable<string> providerIds = providerSummaries.Select(m => m.Id);
-
-            cacheProvider
-                .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
-                .Returns(providerSummaries);
-
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
-                .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            ILogger logger = CreateLogger();
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, engineSettings: engineSettings);
-
-            //Act
-            await buildProjectsService.UpdateAllocations(message);
-
-            //Assert
-            await
-                providerResultsRepository
-                    .DidNotReceive()
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
-
-            await
-                messengerService
-                    .Received(10)
-                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
-        }
-
-        [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfFiveProviders_AddsFivenMessagesToQueue1()
-        {
-            //Arrange
-            EngineSettings engineSettings = CreateEngineSettings();
-            engineSettings.MaxPartitionSize = 1;
-
-            IEnumerable<ProviderSummary> providerSummaries = new[]
-            {
-                new ProviderSummary{ Id = "1" },
-                new ProviderSummary{ Id = "2" },
-                new ProviderSummary{ Id = "3" },
-                new ProviderSummary{ Id = "4" },
-                new ProviderSummary{ Id = "5" },
-            };
-
-            string specificationId = "test-spec1";
-
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            Message message = new Message(Encoding.UTF8.GetBytes(""));
-
-            message.UserProperties.Add("specification-id", specificationId);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
-                .Returns(buildProject);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
-                .Returns(true);
-
-            cacheProvider
-                .ListLengthAsync<ProviderSummary>(cacheKey)
-                .Returns(5);
-
-            IEnumerable<string> providerIds = providerSummaries.Select(m => m.Id);
-
-            cacheProvider
-                .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(5))
-                .Returns(providerSummaries);
-
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
-                .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            ILogger logger = CreateLogger();
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, engineSettings: engineSettings);
-
-            //Act
-            await buildProjectsService.UpdateAllocations(message);
-
-            //Assert
-            await
-                providerResultsRepository
-                    .DidNotReceive()
-                    .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
-
-            await
-                messengerService
-                    .Received(5)
-                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
-        }
-
-        [TestMethod]
         public async Task UpdateAllocations_GivenBuildProjectAndFeatureToggleIsOn_CallsUpdateCalculationLastupdatedDate()
         {
             //Arrange
@@ -1118,7 +1017,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Message message = new Message(Encoding.UTF8.GetBytes(""));
-
+            message.UserProperties.Add("jobId", "job-id-1");
             message.UserProperties.Add("specification-id", specificationId);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
@@ -1144,7 +1043,26 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+            string parentJobId = "job-id-1";
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(jobViewModelResponse);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, jobsApiClient: jobsApiClient,
                 logger: logger, cacheProvider: cacheProvider, featureToggle: featureToggle, specificationsRepository: specificationRepository);
 
             //Act
@@ -1213,7 +1131,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProvidersAndIsJobServiceEnabledOn_CreatesTenJobs()
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenThousandProviders_CreatesTenJobs()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -1236,11 +1154,6 @@ namespace CalculateFunding.Services.Calcs.Services
             string parentJobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             JobViewModel parentJob = new JobViewModel
             {
@@ -1291,8 +1204,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(providerIds);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
@@ -1306,7 +1217,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -1331,10 +1242,6 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.Count(p => p.Trigger.EntityType == nameof(Job)) == 10 &&
                             m.Count(p => p.Trigger.Message == $"Triggered by parent job with id: '{parentJob.Id}") == 10
                         ));
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
 
             logger
                 .Received(1)
@@ -1347,7 +1254,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSizeAndIsJobServiceIsEnabled_CreatesJobsWithCorrectBatches()
+        public async Task UpdateAllocations_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSize_CreatesJobsWithCorrectBatches()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -1370,11 +1277,6 @@ namespace CalculateFunding.Services.Calcs.Services
             string parentJobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             JobViewModel parentJob = new JobViewModel
             {
@@ -1425,8 +1327,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(providerIds);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             jobsApiClient
@@ -1441,7 +1341,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
@@ -1467,7 +1367,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSizeAndIsJobServiceIsEnabledAndMaxPartitionSizeIs1_CreatesJobsWithCorrectBatches()
+        public async Task UpdateAllocations_GivenBuildProjectAndProviderListIsNotAMultipleOfTheBatchSizeAndMaxPartitionSizeIs1_CreatesJobsWithCorrectBatches()
         {
             //Arrange
             IEnumerable<ProviderSummary> providerSummaries = new[]
@@ -1487,11 +1387,6 @@ namespace CalculateFunding.Services.Calcs.Services
             string parentJobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             JobViewModel parentJob = new JobViewModel
             {
@@ -1541,8 +1436,6 @@ namespace CalculateFunding.Services.Calcs.Services
             providerResultsRepository
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(providerIds);
-
-            IMessengerService messengerService = CreateMessengerService();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
@@ -1560,7 +1453,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
 
@@ -1586,7 +1479,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersAndIsJobServiceEnabledOnButOnlyCreatedFiveJobs_ThrowsExceptionLogsAnError()
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersButOnlyCreatedFiveJobs_ThrowsExceptionLogsAnError()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -1609,11 +1502,6 @@ namespace CalculateFunding.Services.Calcs.Services
             string parentJobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             JobViewModel parentJob = new JobViewModel
             {
@@ -1663,8 +1551,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(providerIds);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
@@ -1678,7 +1564,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -1725,11 +1611,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string specificationId = "test-spec1";
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             JobViewModel parentJob = new JobViewModel
             {
                 Id = parentJobId,
@@ -1767,8 +1648,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(10000);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
@@ -1780,7 +1659,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient);
 
             //Act
             Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
@@ -1811,11 +1690,6 @@ namespace CalculateFunding.Services.Calcs.Services
             string jobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             JobViewModel job = new JobViewModel
             {
@@ -1851,8 +1725,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(true);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
@@ -1864,7 +1736,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -1881,7 +1753,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersAndIsJobServiceEnabledOnAndIsAggregationJobAndOneAggregatedCalcsFound_CreatesTenJobs()
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersAndIsAggregationJobAndOneAggregatedCalcsFound_CreatesTenJobs()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -1904,11 +1776,6 @@ namespace CalculateFunding.Services.Calcs.Services
             string parentJobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             JobViewModel parentJob = new JobViewModel
             {
@@ -1959,8 +1826,6 @@ namespace CalculateFunding.Services.Calcs.Services
             providerResultsRepository
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(providerIds);
-
-            IMessengerService messengerService = CreateMessengerService();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1998,8 +1863,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, 
-                calculationsRepository: calculationsRepository, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, engineSettings: engineSettings);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2035,10 +1899,6 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.ElementAt(8).Properties["batch-number"] == "9" &&
                             m.ElementAt(9).Properties["batch-number"] == "10"
                         ));
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
 
             logger
                 .Received(1)
@@ -2056,7 +1916,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersAndIsJobServiceEnabledOnAndIsAggregationJobAndTwoAggregatedCalcsFound_CreatesTenJobs()
+        public async Task UpdateAllocations_GivenBuildProjectAndListLengthOfTenProvidersAndIsAggregationJobAndTwoAggregatedCalcsFound_CreatesTenJobs()
         {
             //Arrange
             EngineSettings engineSettings = CreateEngineSettings();
@@ -2079,11 +1939,6 @@ namespace CalculateFunding.Services.Calcs.Services
             string parentJobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             JobViewModel parentJob = new JobViewModel
             {
@@ -2134,8 +1989,6 @@ namespace CalculateFunding.Services.Calcs.Services
             providerResultsRepository
                 .GetScopedProviderIds(Arg.Is(specificationId))
                 .Returns(providerIds);
-
-            IMessengerService messengerService = CreateMessengerService();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -2189,8 +2042,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, 
-                calculationsRepository: calculationsRepository, engineSettings: engineSettings);
+                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, engineSettings: engineSettings);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2226,10 +2078,6 @@ namespace CalculateFunding.Services.Calcs.Services
                             m.ElementAt(8).Properties["batch-number"] == "9" &&
                             m.ElementAt(9).Properties["batch-number"] == "10"
                         ));
-            await
-                messengerService
-                    .DidNotReceive()
-                    .SendToQueue<string>(Arg.Is(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults), Arg.Any<string>(), Arg.Any<IDictionary<string, string>>());
 
             logger
                 .Received(1)
@@ -2247,17 +2095,12 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectButNoScopedProvidersAndIsJobServiceEnabledOn_DoesNotCreateChildJobs()
+        public async Task UpdateAllocations_GivenBuildProjectButNoScopedProviders_DoesNotCreateChildJobs()
         {
             //Arrange
             string parentJobId = "job-id-1";
 
             string specificationId = "test-spec1";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
 
             JobViewModel parentJob = new JobViewModel
             {
@@ -2298,8 +2141,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(0);
 
-            IMessengerService messengerService = CreateMessengerService();
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
@@ -2354,7 +2195,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                messengerService: messengerService, featureToggle: featureToggle, jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository);
+                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -2396,6 +2237,8 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             string specificationId = "test-spec1";
+            string parentJobId = "job-id-1";
+            string jobId = "job2";
 
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
@@ -2407,7 +2250,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Message message = new Message(Encoding.UTF8.GetBytes(""));
-
+            message.UserProperties.Add("jobId", jobId);
             message.UserProperties.Add("specification-id", specificationId);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
@@ -2437,7 +2280,39 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository,
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> parentJobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            JobViewModel childJob = new JobViewModel
+            {
+                Id = jobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1",
+                JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, childJob);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(parentJobViewModelResponse);
+            jobsApiClient
+                .GetJobById(Arg.Is(jobId))
+                .Returns(jobViewModelResponse);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(buildProjectsRepository, jobsApiClient: jobsApiClient,
                 logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
 
             //Act
@@ -2449,7 +2324,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     .Received(1)
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
-
 
         private IEnumerable<Job> CreateJobs(int count = 10)
         {
@@ -2479,7 +2353,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
         private static BuildProjectsService CreateBuildProjectsService(
             IBuildProjectsRepository buildProjectsRepository = null,
-            IMessengerService messengerService = null,
             ILogger logger = null,
             ITelemetry telemetry = null,
             IProviderResultsRepository providerResultsRepository = null,
@@ -2494,7 +2367,6 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             return new BuildProjectsService(
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
-                messengerService ?? CreateMessengerService(),
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
                 providerResultsRepository ?? CreateProviderResultsRepository(),
@@ -2564,11 +2436,6 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
-        }
-
-        private static IMessengerService CreateMessengerService()
-        {
-            return Substitute.For<IMessengerService>();
         }
 
         private static IBuildProjectsRepository CreateBuildProjectsRepository()

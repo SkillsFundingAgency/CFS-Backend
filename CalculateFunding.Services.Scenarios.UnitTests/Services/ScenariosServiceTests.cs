@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
@@ -19,8 +19,6 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using FluentAssertions;
 using FluentValidation;
@@ -647,7 +645,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersion_GivenIsJobServiceFeatureToggleEnabledButNoCalculationsFound_DoesNotCreateAllocationsJob()
+        async public Task SaveVersion_GivenNoCalculationsFound_DoesNotCreateAllocationsJob()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -710,11 +708,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
                 .Returns(testScenarioVersion);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             ICalcsRepository calcsRepository = CreateCalcsRepository();
             calcsRepository
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -727,7 +720,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 searchRepository: searchrepository,
                 specificationsRepository: specificationsRepository,
                 versionRepository: versionRepository,
-                featureToggle: featureToggle,
                 calcsRepository: calcsRepository,
                 jobsApiClient: jobsApiClient);
 
@@ -746,11 +738,11 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             logger
                 .Received(1)
-                .Information($"No calculations found to test for specification id: '{specificationId}'");  
+                .Information($"No calculations found to test for specification id: '{specificationId}'");
         }
 
         [TestMethod]
-        async public Task SaveVersion_GivenIsJobServiceFeatureToggleEnabledButCreatingJobThrowsException_ReturnsIntrenalServerError()
+        async public Task SaveVersion_GivenCreatingJobThrowsException_ReturnsInternalServerError()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -821,11 +813,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
                 .Returns(testScenarioVersion);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             ICalcsRepository calcsRepository = CreateCalcsRepository();
             calcsRepository
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -841,7 +828,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 searchRepository: searchrepository,
                 specificationsRepository: specificationsRepository,
                 versionRepository: versionRepository,
-                featureToggle: featureToggle,
                 calcsRepository: calcsRepository,
                 jobsApiClient: jobsApiClient);
 
@@ -863,7 +849,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersion_GivenIsJobServiceFeatureToggleEnabledAndJobCreatedForNonAggregatedCalculation_ReturnsOKResult()
+        async public Task SaveVersion_GivenJobCreatedForNonAggregatedCalculation_ReturnsOKResult()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -940,11 +926,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
                 .Returns(testScenarioVersion);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             ICalcsRepository calcsRepository = CreateCalcsRepository();
             calcsRepository
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -960,7 +941,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 searchRepository: searchrepository,
                 specificationsRepository: specificationsRepository,
                 versionRepository: versionRepository,
-                featureToggle: featureToggle,
                 calcsRepository: calcsRepository,
                 jobsApiClient: jobsApiClient);
 
@@ -971,7 +951,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
-               
+
             logger
                 .Received(1)
                 .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'"));
@@ -979,8 +959,8 @@ namespace CalculateFunding.Services.Scenarios.Services
             await
                 jobsApiClient
                     .Received(1)
-                    .CreateJob(Arg.Is<JobCreateModel>(m => 
-                        m.SpecificationId == specificationId && 
+                    .CreateJob(Arg.Is<JobCreateModel>(m =>
+                        m.SpecificationId == specificationId &&
                         m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
                         !string.IsNullOrWhiteSpace(m.CorrelationId) &&
                         m.Properties["specification-id"] == specificationId &&
@@ -991,7 +971,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         [TestMethod]
-        async public Task SaveVersion_GivenIsJobServiceFeatureToggleEnabledAndJobCreatedForAggregatedCalculation_ReturnsOKResult()
+        async public Task SaveVersion_GivenJobCreatedForAggregatedCalculation_ReturnsOKResult()
         {
             //Arrange
             CreateNewTestScenarioVersion model = CreateModel();
@@ -1068,11 +1048,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 .CreateVersion(Arg.Any<TestScenarioVersion>(), Arg.Any<TestScenarioVersion>())
                 .Returns(testScenarioVersion);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsJobServiceEnabled()
-                .Returns(true);
-
             ICalcsRepository calcsRepository = CreateCalcsRepository();
             calcsRepository
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -1088,7 +1063,6 @@ namespace CalculateFunding.Services.Scenarios.Services
                 searchRepository: searchrepository,
                 specificationsRepository: specificationsRepository,
                 versionRepository: versionRepository,
-                featureToggle: featureToggle,
                 calcsRepository: calcsRepository,
                 jobsApiClient: jobsApiClient);
 
@@ -1311,7 +1285,8 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             //Assert
             test
-              .ShouldThrowExactly<InvalidModelException>();
+              .Should()
+              .ThrowExactly<InvalidModelException>();
         }
 
         [TestMethod]
@@ -1987,7 +1962,8 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             // Assert
             action
-               .ShouldThrowExactly<InvalidModelException>()
+               .Should()
+               .ThrowExactly<InvalidModelException>()
                .Which
                .Message
                .Should()
@@ -2024,7 +2000,8 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             // Assert
             action
-               .ShouldThrowExactly<InvalidModelException>()
+               .Should()
+               .ThrowExactly<InvalidModelException>()
                .Which
                .Message
                .Should()
@@ -2061,7 +2038,8 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             // Assert
             action
-               .ShouldThrowExactly<InvalidModelException>()
+               .Should()
+               .ThrowExactly<InvalidModelException>()
                .Which
                .Message
                .Should()
@@ -2073,32 +2051,28 @@ namespace CalculateFunding.Services.Scenarios.Services
         }
 
         static ScenariosService CreateScenariosService(
-            ILogger logger = null, 
+            ILogger logger = null,
             IScenariosRepository scenariosRepository = null,
-            ISpecificationsRepository specificationsRepository = null, 
+            ISpecificationsRepository specificationsRepository = null,
             IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
-            ISearchRepository<ScenarioIndex> searchRepository = null, 
-            ICacheProvider cacheProvider = null, 
-            IMessengerService messengerService = null,
-            IBuildProjectRepository buildProjectRepository = null, 
+            ISearchRepository<ScenarioIndex> searchRepository = null,
+            ICacheProvider cacheProvider = null,
+            IBuildProjectRepository buildProjectRepository = null,
             IVersionRepository<TestScenarioVersion> versionRepository = null,
             IJobsApiClient jobsApiClient = null,
-            IFeatureToggle featureToggle = null,
             ICalcsRepository calcsRepository = null,
             IScenariosResiliencePolicies scenariosResiliencePolicies = null)
         {
             return new ScenariosService(
-                logger ?? CreateLogger(), 
-                scenariosRepository ?? CreateScenariosRepository(), 
+                logger ?? CreateLogger(),
+                scenariosRepository ?? CreateScenariosRepository(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
-                createNewTestScenarioVersionValidator ?? CreateValidator(), 
+                createNewTestScenarioVersionValidator ?? CreateValidator(),
                 searchRepository ?? CreateSearchRepository(),
-                cacheProvider ?? CreateCacheProvider(), 
-                messengerService ?? CreateMessengerService(), 
+                cacheProvider ?? CreateCacheProvider(),
                 buildProjectRepository ?? CreateBuildProjectRepository(),
                 versionRepository ?? CreateVersionRepository(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                featureToggle ?? CreateFeatureToggle(),
                 calcsRepository ?? CreateCalcsRepository(),
                 scenariosResiliencePolicies ?? ScenariosResilienceTestHelper.GenerateTestPolicies());
         }
@@ -2111,11 +2085,6 @@ namespace CalculateFunding.Services.Scenarios.Services
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
-        }
-
-        static IMessengerService CreateMessengerService()
-        {
-            return Substitute.For<IMessengerService>();
         }
 
         static ICacheProvider CreateCacheProvider()
@@ -2167,11 +2136,6 @@ namespace CalculateFunding.Services.Scenarios.Services
         static IJobsApiClient CreateJobsApiClient()
         {
             return Substitute.For<IJobsApiClient>();
-        }
-
-        static IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
         }
 
         static CreateNewTestScenarioVersion CreateModel()
