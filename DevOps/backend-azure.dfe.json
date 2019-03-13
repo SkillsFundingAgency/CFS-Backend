@@ -360,34 +360,6 @@
         "description": "Feature toggle to enable dataset aggregations"
       }
     },
-    "EnableApprovalBatchingServerSide": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable approval server side batching"
-      }
-    },
-    "EnableJobService": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable the job service"
-      }
-    },
-    "EnableJobServiceForMainActions": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable the job service"
-      }
-    },
-    "EnableJobServiceForPublishProviderResults": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable the job service for publishing provider results"
-      }
-    },
     "EnableProviderVariations": {
       "defaultValue": false,
       "type": "bool",
@@ -1474,10 +1446,6 @@
             {
               "name": "features:aggregateSupportInCalculationsEnabled",
               "value": "[parameters('EnableDatasetAggregations')]"
-            },
-            {
-              "name": "features:jobServiceEnabled",
-              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
@@ -1635,14 +1603,6 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
             },
             {
-              "name": "features:jobServiceEnabled",
-              "value": "[parameters('EnableJobService')]"
-            },
-            {
-              "name": "features:jobServiceForMainActionsEnabled",
-              "value": "[parameters('EnableJobServiceForMainActions')]"
-            },
-            {
               "name": "engineSettings:MaxPartitionSize",
               "value": "[parameters('CalcEngineMaxPartitionSize')]"
             }
@@ -1796,10 +1756,6 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:jobServiceEnabled",
-              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
@@ -2096,16 +2052,8 @@
               "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
             },
             {
-              "name": "features:jobServiceForPublishProviderResultsEnabled",
-              "value": "[parameters('EnableJobServiceForPublishProviderResults')]"
-            },
-            {
               "name": "features:newProviderCalculationResultsIndexEnabled",
               "value": "[parameters('EnableNewProviderCalculationResultsIndex')]"
-            },
-            {
-              "name": "features:approvalBatchingServerSideEnabled",
-              "value": "[parameters('EnableApprovalBatchingServerSide')]"
             },
             {
               "name": "jobsClient:ApiKey",
@@ -2370,10 +2318,6 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:jobServiceEnabled",
-              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
@@ -2818,14 +2762,6 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:jobServiceEnabled",
-              "value": "[parameters('EnableJobService')]"
-            },
-            {
-              "name": "features:jobServiceForMainActionsEnabled",
-              "value": "[parameters('EnableJobServiceForMainActions')]"
             }
           ]
         }
@@ -2973,10 +2909,6 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:jobServiceEnabled",
-              "value": "[parameters('EnableJobService')]"
             },
             {
               "name": "features:aggregateOverCalculationsEnabled",
@@ -3384,10 +3316,6 @@
               "value": "[parameters('EnableAllAllocationVersionsInFeedIndex')]"
             },
             {
-              "name": "features:approvalBatchingServerSideEnabled",
-              "value": "[parameters('EnableApprovalBatchingServerSide')]"
-            },
-            {
               "name": "PublishedProviderResultsSettings:UpdateAllocationLineResultStatusBatchCount",
               "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
             },
@@ -3516,10 +3444,6 @@
             {
               "name": "features:allocationLineMajorMinorVersioningEnabled",
               "value": "[parameters('EnableMajorMinorVersioning')]"
-            },
-            {
-              "name": "features:jobServiceForPublishProviderResultsEnabled",
-              "value": "[parameters('EnableJobServiceForPublishProviderResults')]"
             },
             {
               "name": "jobsClient:ApiKey",
@@ -3658,10 +3582,6 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:jobServiceEnabled",
-              "value": "[parameters('EnableJobService')]"
             }
           ]
         }
