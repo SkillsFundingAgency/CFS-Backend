@@ -110,16 +110,17 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             builder.AppendLine();
             builder.AppendLine($"Public Function MainCalc As Dictionary(Of String, String())");
             builder.AppendLine();
-            builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
-            builder.AppendLine("If frameCount > 1000 Then");
-            builder.AppendLine("Throw New Exception(\"The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop\")");
-            builder.AppendLine("End If");
+         
             builder.AppendLine("Dim dictionary as new Dictionary(Of String, String())");
 
             foreach (var calc in calcs)
             {
                 builder.AppendLine($"{GenerateIdentifier(calc.Name)} = Function() As decimal?");
                 builder.AppendLine();
+                builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
+                builder.AppendLine("If frameCount > 1000 Then");
+                builder.AppendLine("Throw New Exception(\"The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop\")");
+                builder.AppendLine("End If");
                 builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
                 builder.AppendLine();
                 builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
@@ -127,7 +128,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine("#End ExternalSource");
                 builder.AppendLine();
                 builder.AppendLine("End Function");
-               
             }
 
             builder.AppendLine();
