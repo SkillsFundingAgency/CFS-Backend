@@ -1,4 +1,5 @@
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +27,7 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
                 scope.ServiceProvider.GetService<ICalculationEngine>().Should().NotBeNull(nameof(ICalculationEngine));
                 scope.ServiceProvider.GetService<IAllocationFactory>().Should().NotBeNull(nameof(IAllocationFactory));
+                scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
             }
         }
 

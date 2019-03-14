@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -31,6 +32,7 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
                 scope.ServiceProvider.GetService<IPublishedProviderResultsAssemblerService>().Should().NotBeNull(nameof(IPublishedProviderResultsAssemblerService));
                 scope.ServiceProvider.GetService<IPublishedResultsService>().Should().NotBeNull(nameof(IPublishedResultsService));
+                scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
             }
         }
 
