@@ -27,17 +27,17 @@ namespace CalculateFunding.Api.External.V2.Controllers
         ///  <summary>
         ///  Retrieves notifications of allocation events. These may be the creation, updating or publication of allocations.
         ///  </summary>
-        ///  <param name="ukprn"></param>
-        ///  <param name="laCode"></param>
+        ///  <param name="ukprn">Optional ukprns to filter by</param>
+        ///  <param name="laCode">Optional lacodes to filter by</param>
         ///  <param name="isAllocationLineContractRequired">Optional allocationLineContractRequired to filter by</param>
         ///  <param name="pageSize">Optional page size (number of items returning for each page</param>
         ///  <param name="startYear">Optional funding period start year to filter by</param>
         ///  <param name="endYear">Optional funding period end year to filter by</param>
-        ///  <param name="fundingStreamIds">Optional funding stream Ids to filter by</param>
-        ///  <param name="allocationLineIds">Optional allocation line ids to filter by</param>
-        ///  <param name="allocationStatuses">
+        ///  <param name="fundingStreamId">Optional funding stream Ids to filter by</param>
+        ///  <param name="allocationLineId">Optional allocation line ids to filter by</param>
+        ///  <param name="allocationStatus">
         ///  Optional filtering by statuses of notification results, by default this only returns **Published**. 
-        ///  Send multiple query string parameters to bring back records of multiple statuses eg allocationStatuses=Published&allocationStatuses=Approved
+        ///  Send multiple query string parameters to bring back records of multiple statuses eg allocationStatuses=Published&amp;allocationStatuses=Approved
         /// Please see the table in the atom feed for available statuses
         ///  ### Allocation Statuses available in the system
         ///   
@@ -63,33 +63,33 @@ namespace CalculateFunding.Api.External.V2.Controllers
         public async Task<IActionResult> GetNotifications(
             [FromQuery] int? startYear,
             [FromQuery] int? endYear,
-            [FromQuery] string[] allocationStatuses,
-            [FromQuery] string[] fundingStreamIds,
-            [FromQuery] string[] allocationLineIds,
-            [FromQuery] string ukprn,
-            [FromQuery] string laCode,
+            [FromQuery] string[] allocationStatus,
+            [FromQuery] string[] fundingStreamId,
+            [FromQuery] string[] allocationLineId,
+            [FromQuery] string[] ukprn,
+            [FromQuery] string[] laCode,
             [FromQuery] bool? isAllocationLineContractRequired,
             [FromQuery] int? pageSize)
         {
-            return await _allocationFeedsService.GetNotifications(Request, null, startYear, endYear, fundingStreamIds,
-                allocationLineIds, allocationStatuses, ukprn, laCode, isAllocationLineContractRequired, pageSize);
+            return await _allocationFeedsService.GetNotifications(Request, null, startYear, endYear, fundingStreamId,
+                allocationLineId, allocationStatus, ukprn, laCode, isAllocationLineContractRequired, pageSize);
         }
 
         ///  <summary>
         ///  Retrieves notifications of allocation events. These may be the creation, updating or publication of allocations.
         ///  </summary>
-        ///  <param name="ukprn"></param>
-        ///  <param name="laCode"></param>
+        ///  <param name="ukprn">Optional ukprns to filter by</param>
+        ///  <param name="laCode">Optional lacodes to filter by</param>
         ///  <param name="isAllocationLineContractRequired">Optional allocationLineContractRequired to filter by</param>
         ///  <param name="pageRef">Optional page number of notification results. Please see the links in the atom feed for available pages</param>
         ///  <param name="pageSize">Optional page size (number of items returning for each page</param>
         ///  <param name="startYear">Optional funding period start year to filter by</param>
         ///  <param name="endYear">Optional funding period end year to filter by</param>
-        ///  <param name="fundingStreamIds">Optional funding stream Ids to filter by</param>
-        ///  <param name="allocationLineIds">Optional allocation line ids to filter by</param>
-        ///  <param name="allocationStatuses">
+        ///  <param name="fundingStreamId">Optional funding stream Ids to filter by</param>
+        ///  <param name="allocationLineId">Optional allocation line ids to filter by</param>
+        ///  <param name="allocationStatus">
         ///  Optional filtering by statuses of notification results, by default this only returns **Published**. 
-        ///  Send multiple query string parameters to bring back records of multiple statuses eg allocationStatuses=Published&allocationStatuses=Approved
+        ///  Send multiple query string parameters to bring back records of multiple statuses eg allocationStatuses=Published&amp;allocationStatuses=Approved
         /// Please see the table in the atom feed for available statuses
         ///  ### Allocation Statuses available in the system
         ///   
@@ -115,17 +115,17 @@ namespace CalculateFunding.Api.External.V2.Controllers
         public async Task<IActionResult> GetNotificationsByPageRef(
             [FromQuery] int? startYear,
             [FromQuery] int? endYear,
-            [FromQuery] string[] allocationStatuses,
-            [FromQuery] string[] fundingStreamIds,
-            [FromQuery] string[] allocationLineIds,
-            [FromQuery] string ukprn,
-            [FromQuery] string laCode,
+            [FromQuery] string[] allocationStatus,
+            [FromQuery] string[] fundingStreamId,
+            [FromQuery] string[] allocationLineId,
+            [FromQuery] string[] ukprn,
+            [FromQuery] string[] laCode,
             [FromQuery] bool? isAllocationLineContractRequired,
             [FromRoute] int pageRef,
             [FromQuery] int? pageSize)
         {
-            return await _allocationFeedsService.GetNotifications(Request, pageRef, startYear, endYear, fundingStreamIds,
-                allocationLineIds, allocationStatuses, ukprn, laCode, isAllocationLineContractRequired, pageSize);
+            return await _allocationFeedsService.GetNotifications(Request, pageRef, startYear, endYear, fundingStreamId,
+                allocationLineId, allocationStatus, ukprn, laCode, isAllocationLineContractRequired, pageSize);
         }
     }
 }

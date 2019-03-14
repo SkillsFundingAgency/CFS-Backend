@@ -31,7 +31,7 @@ namespace CalculateFunding.Api.External.V2.Services
             _featureToggle = featureToggle;
         }
 
-        public async Task<IActionResult> GetNotifications(HttpRequest request, int? pageRef, int? startYear = null, int? endYear = null, string[] fundingStreamIds = null, string[] allocationLineIds = null, IEnumerable<string> allocationStatuses = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, int? pageSize = MaxRecords)
+        public async Task<IActionResult> GetNotifications(HttpRequest request, int? pageRef, int? startYear = null, int? endYear = null, IEnumerable<string> fundingStreamIds = null, IEnumerable<string> allocationLineIds = null, IEnumerable<string> allocationStatuses = null, IEnumerable<string> ukprns = null, IEnumerable<string> laCodes = null, bool? isAllocationLineContractRequired = null, int? pageSize = MaxRecords)
         {
             pageSize = pageSize ?? MaxRecords;
             IEnumerable<string> statusesArray = allocationStatuses.IsNullOrEmpty() ? new[] { "Published" } : allocationStatuses;
@@ -46,7 +46,7 @@ namespace CalculateFunding.Api.External.V2.Services
                 return new BadRequestObjectResult($"Page size should be more that zero and less than or equal to {MaxRecords}");
             }
 
-            SearchFeedV2<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeedsV2(pageRef, pageSize.Value, startYear, endYear, ukprn, laCode, isAllocationLineContractRequired, statusesArray, fundingStreamIds, allocationLineIds);
+            SearchFeedV2<AllocationNotificationFeedIndex> searchFeed = await _feedsService.GetFeedsV2(pageRef, pageSize.Value, startYear, endYear, ukprns, laCodes, isAllocationLineContractRequired, statusesArray, fundingStreamIds, allocationLineIds);
 
             if (searchFeed == null || searchFeed.TotalCount == 0 || searchFeed.Entries.IsNullOrEmpty())
             {
@@ -58,7 +58,7 @@ namespace CalculateFunding.Api.External.V2.Services
             return Formatter.ActionResult<AtomFeed<AllocationModel>>(request, atomFeed);
         }
 
-        AtomFeed<AllocationModel> CreateAtomFeed(SearchFeedV2<AllocationNotificationFeedIndex> searchFeed, HttpRequest request)
+        private AtomFeed<AllocationModel> CreateAtomFeed(SearchFeedV2<AllocationNotificationFeedIndex> searchFeed, HttpRequest request)
         {
             const string notificationsEndpointName = "notifications";
             string baseRequestPath = request.Path.Value.Substring(0, request.Path.Value.IndexOf(notificationsEndpointName, StringComparison.Ordinal) + notificationsEndpointName.Length);
@@ -163,7 +163,7 @@ namespace CalculateFunding.Api.External.V2.Services
                                 NavVendorNo = feedIndex.NavVendorNo,
                                 Status = feedIndex.ProviderStatus,
                                 ProviderId = feedIndex.ProviderId,
-								ProviderVariation = providerVariation
+                                ProviderVariation = providerVariation
                             },
                             AllocationLine = new AllocationLine
                             {

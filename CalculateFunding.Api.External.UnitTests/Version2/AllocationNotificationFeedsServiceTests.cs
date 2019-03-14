@@ -177,8 +177,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
 			IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
-                .GetFeedsV2(Arg.Is(2), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
+                .GetFeedsV2(Arg.Is(2), Arg.Is(2))
+                .ReturnsForAnyArgs(feeds);
 
             AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
@@ -375,8 +375,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
-                .GetFeedsV2(Arg.Is(2), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
+                .GetFeedsV2(Arg.Is(2), Arg.Is(2))
+                .ReturnsForAnyArgs(feeds);
 
             AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
@@ -427,8 +427,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
-                .GetFeedsV2(Arg.Is(3), Arg.Is(500), statuses: Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
+                .GetFeedsV2(Arg.Is(3), Arg.Is(500))
+                .ReturnsForAnyArgs(feeds);
 
             AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
@@ -461,8 +461,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
-                .GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
+                .GetFeedsV2(Arg.Is(3), Arg.Is(2))
+                .ReturnsForAnyArgs(feeds);
 
             IFeatureToggle features = CreateFeatureToggle();
             features
@@ -530,8 +530,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
-                .GetFeedsV2(Arg.Is(3), Arg.Is(2), statuses: Arg.Any<IEnumerable<string>>())
-                .Returns(feeds);
+                .GetFeedsV2(Arg.Is(3), Arg.Is(2))
+                .ReturnsForAnyArgs(feeds);
 
             IFeatureToggle features = CreateFeatureToggle();
             features
@@ -623,7 +623,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Assert
             await feedsSearchService
                 .Received(1)
-                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool?>(),
+                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>(), Arg.Any<bool?>(),
                 Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("Published")),
                 Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
         }
@@ -666,7 +666,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Assert
             await feedsSearchService
                 .Received(1)
-                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool?>(),
+                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>(), Arg.Any<bool?>(),
                 Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("Published")),
                 Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
         }
@@ -692,7 +692,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "pageRef", new StringValues("1") },
-                { "allocationStatuses", new StringValues("Approved") },
+                { "allocationStatus", new StringValues("Approved") },
                 { "pageSize", new StringValues("2") }
             });
 
@@ -700,7 +700,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             request.Scheme.Returns("https");
             request.Path.Returns(new PathString("/api/v2/test"));
             request.Host.Returns(new HostString("wherever.naf:12345"));
-            request.QueryString.Returns(new QueryString("?pageRef=1&pageSize=2&allocationStatuses=Approved"));
+            request.QueryString.Returns(new QueryString("?pageRef=1&pageSize=2&allocationStatus=Approved"));
             request.Headers.Returns(headerDictionary);
             request.Query.Returns(queryStringValues);
 
@@ -710,8 +710,102 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Assert
             await feedsSearchService
                 .Received(1)
-                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<bool?>(), 
+                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>(), Arg.Any<bool?>(), 
                 Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("Approved")), 
+                Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
+
+        }
+
+        [TestMethod]
+        public async Task GetNotifications_GivenUkprn_ThenOnlyUkprnRequested()
+        {
+            //Arrange
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("1") },
+                { "ukprn", new StringValues("10070703") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v2/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.QueryString.Returns(new QueryString("?pageRef=1&pageSize=2&ukprn=10070703"));
+            request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
+
+            //Act
+            IActionResult result = await service.GetNotifications(request, pageRef: 1, pageSize: 2, ukprns: new[] { "10070703" });
+
+            //Assert
+            await feedsSearchService
+                .Received(1)
+                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), 
+                Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("10070703")),
+                Arg.Any<IEnumerable<string>>(), Arg.Any<bool?>(),
+                Arg.Any<IEnumerable<string>>(),
+                Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
+
+        }
+
+        [TestMethod]
+        public async Task GetNotifications_GivenLaCode_ThenOnlyLaCodeRequested()
+        {
+            //Arrange
+            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
+
+            IFeatureToggle features = CreateFeatureToggle();
+            features
+                .IsAllocationLineMajorMinorVersioningEnabled()
+                .Returns(true);
+
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "pageRef", new StringValues("1") },
+                { "lacode", new StringValues("1015") },
+                { "pageSize", new StringValues("2") }
+            });
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request.Scheme.Returns("https");
+            request.Path.Returns(new PathString("/api/v2/test"));
+            request.Host.Returns(new HostString("wherever.naf:12345"));
+            request.QueryString.Returns(new QueryString("?pageRef=1&pageSize=2&lacode=1015"));
+            request.Headers.Returns(headerDictionary);
+            request.Query.Returns(queryStringValues);
+
+            //Act
+            IActionResult result = await service.GetNotifications(request, pageRef: 1, pageSize: 2, laCodes: new[] { "1015" });
+
+            //Assert
+            await feedsSearchService
+                .Received(1)
+                .GetFeedsV2(Arg.Is(1), Arg.Is(2), Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<IEnumerable<string>>(),
+                Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("1015")),
+                Arg.Any<bool?>(),
+                Arg.Any<IEnumerable<string>>(),
                 Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
 
         }

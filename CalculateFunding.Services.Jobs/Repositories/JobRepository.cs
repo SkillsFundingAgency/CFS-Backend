@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
                            "r.content.runningStatus as runningStatus, " +
                            "r.content.completionStatus as completionStatus, " +
                            "r.content.invokerUserId as invokeUserId, " +
-                           "r.content.invokerDisplayName as invokerDisplatName, " +
+                           "r.content.invokerDisplayName as invokerDisplayName, " +
                            "r.content.itemCount as itemCount, " +
                            "r.content.specificationId as specificationId, " +
                            "r.content.trigger.message as triggerMessage, " +
@@ -144,7 +144,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
             {
                 IList<string> jobDefinitionIdFilters = new List<string>();
 
-                foreach(string jobDefinitionId in jobDefinitionIds)
+                foreach (string jobDefinitionId in jobDefinitionIds)
                 {
                     jobDefinitionIdFilters.Add($"r.content.jobDefinitionId = '{jobDefinitionId}'");
                 }
@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
             dynamic existingResult = existingResults.FirstOrDefault();
 
-            if(existingResult == null)
+            if (existingResult == null)
             {
                 return null;
             }
@@ -168,9 +168,9 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 Id = existingResult.id,
                 JobDefinitionId = existingResult.jobDefinitionId,
                 RunningStatus = Enum.Parse(typeof(RunningStatus), existingResult.runningStatus),
-                CompletionStatus = Enum.Parse(typeof(CompletionStatus), existingResult.completionStatus),
+                CompletionStatus = string.IsNullOrWhiteSpace(existingResult.completionStatus) ? null : Enum.Parse(typeof(CompletionStatus), existingResult.completionStatus),
                 InvokerUserId = existingResult.invokeUserId,
-                InvokerUserDisplayName = existingResult.invokerDisplatName,
+                InvokerUserDisplayName = existingResult.invokerDisplayName,
                 ItemCount = existingResult.itemCount,
                 SpecificationId = existingResult.specificationId,
                 Trigger = new Trigger
@@ -182,7 +182,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 ParentJobId = existingResult.parentJobId,
                 SupersededByJobId = existingResult.supersededByJobId,
                 CorrelationId = existingResult.correlationId,
-                Properties = existingResult == null ? new Dictionary<string, string>() : ((JObject)existingResult.properties).ToObject<Dictionary<string, string>>(),
+                Properties = existingResult.properties == null ? new Dictionary<string, string>() : ((JObject)existingResult.properties).ToObject<Dictionary<string, string>>(),
                 MessageBody = existingResult.messageBody,
                 Created = (DateTimeOffset)existingResult.created,
                 Completed = (DateTimeOffset?)existingResult.completed,

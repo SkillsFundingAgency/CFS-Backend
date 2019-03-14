@@ -373,7 +373,7 @@ namespace CalculateFunding.Services.Results.Services
 
             //Act
             SearchFeedV2<AllocationNotificationFeedIndex> searchFeed =
-                await searchService.GetFeedsV2(pageRef, top, 2018, 2019, "12345678", "laCode", true, statuses, new[] { "PSG", "AAL" }, new[] { "PSG-001", "PSG-002" });
+                await searchService.GetFeedsV2(pageRef, top, 2018, 2019, new[] { "12345678" }, new[] { "laCode" }, true, statuses, new[] { "PSG", "AAL" }, new[] { "PSG-001", "PSG-002" });
 
             //Assert
             await

@@ -45,110 +45,110 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-		public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(int pageRef, int top = 500, IEnumerable<string> statuses = null)
-		{
-			if (pageRef < 1)
-			{
-				throw new ArgumentException("Page ref cannot be less than one", nameof(pageRef));
-			}
+        public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(int pageRef, int top = 500, IEnumerable<string> statuses = null)
+        {
+            if (pageRef < 1)
+            {
+                throw new ArgumentException("Page ref cannot be less than one", nameof(pageRef));
+            }
 
-			if (top < 1)
-			{
-				top = 500;
-			}
+            if (top < 1)
+            {
+                top = 500;
+            }
 
-			int skip = (pageRef - 1) * top;
+            int skip = (pageRef - 1) * top;
 
-			IList<string> filter = new List<string>();
+            IList<string> filter = new List<string>();
 
-			if (!statuses.IsNullOrEmpty())
-			{
-				if (!statuses.Contains("All"))
-				{
-					foreach (string status in statuses)
-					{
-						filter.Add($"allocationStatus eq '{status}'");
-					}
-				}
-			}
+            if (!statuses.IsNullOrEmpty())
+            {
+                if (!statuses.Contains("All"))
+                {
+                    foreach (string status in statuses)
+                    {
+                        filter.Add($"allocationStatus eq '{status}'");
+                    }
+                }
+            }
 
-			SearchResults<AllocationNotificationFeedIndex> searchResults = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
-				() => _allocationNotificationsSearchRepository.Search("", new SearchParameters
-				{
-					Skip = skip,
-					Top = top,
-					SearchMode = SearchMode.Any,
-					IncludeTotalResultCount = true,
-					Filter = filter.IsNullOrEmpty() ? "" : string.Join(" or ", filter),
-					OrderBy = DefaultOrderBy.ToList(),
-					QueryType = QueryType.Full
-				}));
+            SearchResults<AllocationNotificationFeedIndex> searchResults = await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
+                () => _allocationNotificationsSearchRepository.Search("", new SearchParameters
+                {
+                    Skip = skip,
+                    Top = top,
+                    SearchMode = SearchMode.Any,
+                    IncludeTotalResultCount = true,
+                    Filter = filter.IsNullOrEmpty() ? "" : string.Join(" or ", filter),
+                    OrderBy = DefaultOrderBy.ToList(),
+                    QueryType = QueryType.Full
+                }));
 
-			return new SearchFeed<AllocationNotificationFeedIndex>
-			{
-				PageRef = pageRef,
-				Top = top,
-				TotalCount = searchResults != null && searchResults.TotalCount.HasValue ? (int)searchResults?.TotalCount : 0,
-				Entries = searchResults?.Results.Select(m => m.Result)
-			};
-		}
+            return new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                PageRef = pageRef,
+                Top = top,
+                TotalCount = searchResults != null && searchResults.TotalCount.HasValue ? (int)searchResults?.TotalCount : 0,
+                Entries = searchResults?.Results.Select(m => m.Result)
+            };
+        }
 
-	    public async Task<SearchFeedV2<AllocationNotificationFeedIndex>> GetFeedsV2(int? pageRef, int top, int? startYear = null, int? endYear = null, string ukprn = null, string laCode = null, bool? isAllocationLineContractRequired = null, IEnumerable<string> statuses = null, IEnumerable<string> fundingStreamIds = null, IEnumerable<string> allocationLineIds = null)
-	    {
-		    if (pageRef < 1)
-		    {
-			    throw new ArgumentException("Page ref cannot be less than one", nameof(pageRef));
-		    }
+        public async Task<SearchFeedV2<AllocationNotificationFeedIndex>> GetFeedsV2(int? pageRef, int top, int? startYear = null, int? endYear = null, IEnumerable<string> ukprns = null, IEnumerable<string> laCodes = null, bool? isAllocationLineContractRequired = null, IEnumerable<string> statuses = null, IEnumerable<string> fundingStreamIds = null, IEnumerable<string> allocationLineIds = null)
+        {
+            if (pageRef < 1)
+            {
+                throw new ArgumentException("Page ref cannot be less than one", nameof(pageRef));
+            }
 
-		    if (top < 1)
-		    {
-			    top = 500;
-		    }
+            if (top < 1)
+            {
+                top = 500;
+            }
 
-		    FilterHelper filterHelper = new FilterHelper();
-			AddFiltersForNotification(startYear, endYear, ukprn, laCode, isAllocationLineContractRequired, statuses, fundingStreamIds, allocationLineIds, filterHelper);
+            FilterHelper filterHelper = new FilterHelper();
+            AddFiltersForNotification(startYear, endYear, ukprns, laCodes, isAllocationLineContractRequired, statuses, fundingStreamIds, allocationLineIds, filterHelper);
 
-			if (pageRef == null)
-			{
-				SearchResults<AllocationNotificationFeedIndex> countSearchResults = await SearchResults(0, null, filterHelper.BuildAndFilterQuery());
-				SearchFeedV2<AllocationNotificationFeedIndex> searchFeedCountResult = CreateSearchFeedResult(null, top, countSearchResults);
-				pageRef = searchFeedCountResult.Last;
-			}
-
-
-			int skip = (pageRef.Value - 1) * top;
-
-		    string filters = filterHelper.Filters.IsNullOrEmpty() ? "" : filterHelper.BuildAndFilterQuery();
-
-			SearchResults<AllocationNotificationFeedIndex> searchResults = await SearchResults(top, skip, filters);
-
-		    return CreateSearchFeedResult(pageRef, top, searchResults);
-	    }
-
-	    private static SearchFeedV2<AllocationNotificationFeedIndex> CreateSearchFeedResult(int? pageRef, int top, SearchResults<AllocationNotificationFeedIndex> searchResults)
-	    {
-		    SearchFeedV2<AllocationNotificationFeedIndex> searchFeedResult = new SearchFeedV2<AllocationNotificationFeedIndex>
-		    {
-			    Top = top,
-			    TotalCount = searchResults != null && searchResults.TotalCount.HasValue ? (int)searchResults?.TotalCount : 0,
-			    Entries = searchResults?.Results.Select(m => m.Result)
-		    };
-		    if (pageRef.HasValue)
-		    {
-			    searchFeedResult.PageRef = pageRef.Value;
-		    }
-		    return searchFeedResult;
-	    }
+            if (pageRef == null)
+            {
+                SearchResults<AllocationNotificationFeedIndex> countSearchResults = await SearchResults(0, null, filterHelper.BuildAndFilterQuery());
+                SearchFeedV2<AllocationNotificationFeedIndex> searchFeedCountResult = CreateSearchFeedResult(null, top, countSearchResults);
+                pageRef = searchFeedCountResult.Last;
+            }
 
 
-	    public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(string providerId, int startYear, int endYear, IEnumerable<string> customFilters)
+            int skip = (pageRef.Value - 1) * top;
+
+            string filters = filterHelper.Filters.IsNullOrEmpty() ? "" : filterHelper.BuildAndFilterQuery();
+
+            SearchResults<AllocationNotificationFeedIndex> searchResults = await SearchResults(top, skip, filters);
+
+            return CreateSearchFeedResult(pageRef, top, searchResults);
+        }
+
+        private static SearchFeedV2<AllocationNotificationFeedIndex> CreateSearchFeedResult(int? pageRef, int top, SearchResults<AllocationNotificationFeedIndex> searchResults)
+        {
+            SearchFeedV2<AllocationNotificationFeedIndex> searchFeedResult = new SearchFeedV2<AllocationNotificationFeedIndex>
+            {
+                Top = top,
+                TotalCount = searchResults != null && searchResults.TotalCount.HasValue ? (int)searchResults?.TotalCount : 0,
+                Entries = searchResults?.Results.Select(m => m.Result)
+            };
+            if (pageRef.HasValue)
+            {
+                searchFeedResult.PageRef = pageRef.Value;
+            }
+            return searchFeedResult;
+        }
+
+
+        public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(string providerId, int startYear, int endYear, IEnumerable<string> customFilters)
         {
             IList<string> filters = new List<string>();
 
             filters.Add($"fundingPeriodStartYear eq {startYear}");
             filters.Add($"fundingPeriodEndYear eq {endYear}");
             filters.Add($"providerId eq '{providerId}'");
-			filters.Add($"allocationStatus eq 'Published'");
+            filters.Add($"allocationStatus eq 'Published'");
 
             return await SearchFeeds(startYear, endYear, filters, customFilters);
         }
@@ -160,9 +160,9 @@ namespace CalculateFunding.Services.Results
             filters.Add($"fundingPeriodStartYear eq {startYear}");
             filters.Add($"fundingPeriodEndYear eq {endYear}");
             filters.Add($"laCode eq '{laCode}'");
-	        filters.Add("allocationStatus eq 'Published'");
+            filters.Add("allocationStatus eq 'Published'");
 
-			return await SearchFeeds(startYear, endYear, filters, customFilters);
+            return await SearchFeeds(startYear, endYear, filters, customFilters);
         }
 
         private async Task<SearchFeed<AllocationNotificationFeedIndex>> SearchFeeds(int startYear, int endYear, IEnumerable<string> filters, IEnumerable<string> customFilters, int top = 500)
@@ -184,85 +184,85 @@ namespace CalculateFunding.Services.Results
             };
         }
 
-	    private static void AddFiltersForNotification(int? startYear, int? endYear, string ukprn, string laCode, bool? isAllocationLineContractRequired, IEnumerable<string> statuses, IEnumerable<string> fundingStreamIds, IEnumerable<string> allocationLineIds,FilterHelper filterHelper)
-	    {
-		    if (!statuses.IsNullOrEmpty())
-		    {
-			    if (!statuses.Contains("All"))
-			    {
-				    filterHelper.Filters.Add(new Filter("allocationStatus", statuses, false, "eq"));
-			    }
-		    }
+        private static void AddFiltersForNotification(int? startYear, int? endYear, IEnumerable<string> ukprns, IEnumerable<string> laCodes, bool? isAllocationLineContractRequired, IEnumerable<string> statuses, IEnumerable<string> fundingStreamIds, IEnumerable<string> allocationLineIds, FilterHelper filterHelper)
+        {
+            if (!statuses.IsNullOrEmpty())
+            {
+                if (!statuses.Contains("All"))
+                {
+                    filterHelper.Filters.Add(new Filter("allocationStatus", statuses, false, "eq"));
+                }
+            }
 
-		    if (!fundingStreamIds.IsNullOrEmpty())
-		    {
-			    filterHelper.Filters.Add(new Filter("fundingStreamId", fundingStreamIds, false, "eq"));
-		    }
+            if (!fundingStreamIds.IsNullOrEmpty())
+            {
+                filterHelper.Filters.Add(new Filter("fundingStreamId", fundingStreamIds, false, "eq"));
+            }
 
-		    if (!allocationLineIds.IsNullOrEmpty())
-		    {
-				filterHelper.Filters.Add(new Filter("allocationLineId", allocationLineIds, false, "eq")
-				{
-					Filters = allocationLineIds,
-					Operator = "eq",
-					FilterName = "allocationLineId"
-				});
-		    }
+            if (!allocationLineIds.IsNullOrEmpty())
+            {
+                filterHelper.Filters.Add(new Filter("allocationLineId", allocationLineIds, false, "eq")
+                {
+                    Filters = allocationLineIds,
+                    Operator = "eq",
+                    FilterName = "allocationLineId"
+                });
+            }
 
-		    if (startYear.HasValue)
-		    {
-				filterHelper.Filters.Add(new Filter("fundingPeriodStartYear", new List<string>(){ startYear.Value.ToString()}, true, "eq")
-				{
-					Filters = new List<string>{startYear.Value.ToString()},
-					Operator = "eq",
-					FilterName = "fundingPeriodStartYear"
-				});
-		    }
+            if (startYear.HasValue)
+            {
+                filterHelper.Filters.Add(new Filter("fundingPeriodStartYear", new List<string>() { startYear.Value.ToString() }, true, "eq")
+                {
+                    Filters = new List<string> { startYear.Value.ToString() },
+                    Operator = "eq",
+                    FilterName = "fundingPeriodStartYear"
+                });
+            }
 
-		    if (endYear.HasValue)
-		    {
-				filterHelper.Filters.Add(new Filter("fundingPeriodEndYear", new List<string> { endYear.Value.ToString() }, true, "eq")
-				{
-					Filters = new List<string> { endYear.Value.ToString()},
-					Operator = "eq",
-					FilterName = "fundingPeriodEndYear"
-				});
-		    }
+            if (endYear.HasValue)
+            {
+                filterHelper.Filters.Add(new Filter("fundingPeriodEndYear", new List<string> { endYear.Value.ToString() }, true, "eq")
+                {
+                    Filters = new List<string> { endYear.Value.ToString() },
+                    Operator = "eq",
+                    FilterName = "fundingPeriodEndYear"
+                });
+            }
 
-		    if (ukprn != null)
-		    {
-				filterHelper.Filters.Add(new Filter("providerUkprn", new List<string>(){ukprn}, false, "eq"));
-		    }
+            if (!ukprns.IsNullOrEmpty())
+            {
+                filterHelper.Filters.Add(new Filter("providerUkprn", ukprns, false, "eq"));
+            }
 
-		    if (laCode != null)
-		    {
-			    filterHelper.Filters.Add(new Filter("laCode", new List<string>() { laCode }, false, "eq"));
-			}
+            if (!laCodes.IsNullOrEmpty())
+            {
+                filterHelper.Filters.Add(new Filter("laCode", laCodes, false, "eq"));
+            }
 
-		    if (isAllocationLineContractRequired.HasValue)
-		    {
-				filterHelper.Filters.Add(new Filter("allocationLineContractRequired", new List<string>(){ isAllocationLineContractRequired.ToString().ToLowerInvariant()}, true, "eq" ));
-		    }
-	    }
+            if (isAllocationLineContractRequired.HasValue)
+            {
+                filterHelper.Filters.Add(new Filter("allocationLineContractRequired", new List<string>() { isAllocationLineContractRequired.ToString().ToLowerInvariant() }, true, "eq"));
+            }
+        }
 
-	    private async Task<SearchResults<AllocationNotificationFeedIndex>> SearchResults(int top, int? skip, string filters)
-	    {
-		    SearchResults<AllocationNotificationFeedIndex> searchResults =
-			    await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
-				    () =>
-				    {
-					    return _allocationNotificationsSearchRepository.Search("", new SearchParameters
-					    {
-						    Skip = skip,
-						    Top = top,
-						    SearchMode = SearchMode.Any,
-						    IncludeTotalResultCount = true,
-						    Filter = filters,
-						    OrderBy = new[] { "dateUpdated asc" },
-						    QueryType = QueryType.Full
-					    });
-				    });
-		    return searchResults;
-	    }
-	}
+        private async Task<SearchResults<AllocationNotificationFeedIndex>> SearchResults(int top, int? skip, string filters)
+        {
+            SearchResults<AllocationNotificationFeedIndex> searchResults =
+                await _allocationNotificationsSearchRepositoryPolicy.ExecuteAsync(
+                    () =>
+                    {
+                        return _allocationNotificationsSearchRepository.Search("", new SearchParameters
+                        {
+                            Skip = skip,
+                            Top = top,
+                            SearchMode = SearchMode.Any,
+                            IncludeTotalResultCount = true,
+                            Filter = filters,
+                            OrderBy = new[] { "dateUpdated asc" },
+                            QueryType = QueryType.Full
+                        });
+                    });
+            return searchResults;
+        }
+    }
 }
