@@ -1,6 +1,7 @@
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Text.RegularExpressions;
 
 namespace CalculateFunding.Services.CodeMetadataGenerator.Vs.UnitTests
 {
@@ -281,6 +282,38 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vs.UnitTests
             //Arrange
             string sourceCode = "return    Max( calc1     ) + Sum(    calc1    )";
             string expected = "return    Max(\"calc1\") + Sum(\"calc1\")";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenNonAggregateCallWithSpacesInsideParentheses_QuotesParameterIgnoringWhitespace()
+        {
+            //Arrange
+            string sourceCode = "If(InpAdjPupilNumberGuaranteed= \"YES\" and InputAdjNOR > NOREstRtoY11) then";
+            string expected = "If(InpAdjPupilNumberGuaranteed= \"YES\" and InputAdjNOR > NOREstRtoY11) then";
+
+            //Act
+            string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);
+
+            //Assert
+            result
+                .Should()
+                .Be(expected);
+        }
+
+        [TestMethod]
+        public void QuoteAggregateFunctionCalls_GivenCalculationIsUsingMathLibrarytheses_EnsuresThatIsIgnoredAndDoesNotTreatAsAggregateFunctions()
+        {
+            //Arrange
+            string sourceCode = "FundingRate1 = -1 * (Math.Min(ThresholdZ, FundingRateZ) / FundingRateZ) * Condition1 + Sum(test1)";
+            string expected = "FundingRate1 = -1 * (Math.Min(ThresholdZ, FundingRateZ) / FundingRateZ) * Condition1 + Sum(\"test1\")";
 
             //Act
             string result = CalculationTypeGenerator.QuoteAggregateFunctionCalls(sourceCode);

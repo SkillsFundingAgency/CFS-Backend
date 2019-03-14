@@ -170,13 +170,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         public static string QuoteAggregateFunctionCalls(string sourceCode)
         {
-            sourceCode = Regex.Replace(sourceCode, @"\s+(?=[^(\]]*\))", "");
-
-            Regex x = new Regex(@"(\bMin\b|\bAvg\b|\bMax\b|\bSum\b)()(.*?\))");
+            Regex x = new Regex(@"(\b(?<!Math.)Min\b|\b(?<!Math.)Avg\b|\b(?<!Math.)Max\b|\b(?<!Math.)Sum\b)()(.*?\))");
 
             foreach (Match match in x.Matches(sourceCode))
             {
-                string result = match.Value
+                string strippedText = Regex.Replace(match.Value, @"\s+", "");
+
+                string result = strippedText
                     .Replace("Sum(", "Sum(\"")
                     .Replace("Max(", "Max(\"")
                     .Replace("Min(", "Min(\"")
