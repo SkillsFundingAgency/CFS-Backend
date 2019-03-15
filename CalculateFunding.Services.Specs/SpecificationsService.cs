@@ -1109,7 +1109,9 @@ namespace CalculateFunding.Services.Specs
 
             await ReindexSpecification(specification);
 
-            await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+            // INFO: Specification summary in cache does not need updating as it does not contain policies
+            // Remove Specification Current Version from cache
+            await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
 
             await SendSpecificationComparisonModelMessageToTopic(specification.Id, ServiceBusConstants.TopicNames.EditSpecification, specificationVersion, previousSpecificationVersion, request);
 
@@ -1310,12 +1312,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-            await ReindexSpecification(specification);
-
-            await TaskHelper.WhenAllAndThrow(
-                 ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
-                _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}")
-                );
+            await TaskHelper.WhenAllAndThrow(ReindexSpecification(specification), ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id));
 
             if (previousFundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
@@ -1481,6 +1478,9 @@ namespace CalculateFunding.Services.Specs
                 _logger.Error(error);
                 return new InternalServerErrorResult(error);
             }
+
+            await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+            await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
 
             SpecificationIndex specificationIndex = CreateSpecificationIndex(specification);
 
@@ -2154,6 +2154,9 @@ namespace CalculateFunding.Services.Specs
                     throw new Exception(error);
                 }
 
+                await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
+
                 await PublishProviderResults(request, specificationId, "Selecting specification for funding");
             }
             catch (Exception ex)
@@ -2166,6 +2169,9 @@ namespace CalculateFunding.Services.Specs
                     _specificationsRepository.UpdateSpecification(specification),
                     _searchRepository.Index(new[] { specificationIndex })
                 );
+
+                await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
 
                 _logger.Error(ex, ex.Message);
 
@@ -2261,6 +2267,7 @@ namespace CalculateFunding.Services.Specs
             {
                 await _specificationVersionRepository.SaveVersion(specificationVersion);
 
+                await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
                 await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
             }
 
@@ -2278,6 +2285,7 @@ namespace CalculateFunding.Services.Specs
             {
                 await _specificationVersionRepository.SaveVersion(specificationVersion);
 
+                await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
                 await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
             }
 

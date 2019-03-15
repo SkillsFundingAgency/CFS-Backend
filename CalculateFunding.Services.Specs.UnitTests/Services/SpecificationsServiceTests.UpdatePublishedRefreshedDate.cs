@@ -5,9 +5,11 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
@@ -272,7 +274,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ISearchRepository<SpecificationIndex> searchRepo = CreateSearchRepository();
             searchRepo.Index(Arg.Any<IEnumerable<SpecificationIndex>>()).Returns(Enumerable.Empty<IndexError>());
 
-            SpecificationsService specsService = CreateService(specificationsRepository: specsRepo, searchRepository: searchRepo);
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            SpecificationsService specsService = CreateService(specificationsRepository: specsRepo, searchRepository: searchRepo, cacheProvider: cacheProvider);
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request.Query.Returns(queryStringValues);
@@ -287,6 +291,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             await specsRepo.Received(1).UpdateSpecification(Arg.Is<Specification>(s => s.PublishedResultsRefreshedAt == updateModel.PublishedResultsRefreshedAt));
             await searchRepo.Received(1).Index(Arg.Is<IEnumerable<SpecificationIndex>>(l => l.Count() == 1 && l.First().PublishedResultsRefreshedAt == updateModel.PublishedResultsRefreshedAt));
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
         }
     }
 }

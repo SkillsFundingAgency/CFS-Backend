@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -185,7 +183,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task SelectSpecificationForFunding_GivenSpecificationButUpdatingSearchFails_ReturnsInternalServerError()
         {
-            //Arrange
+            // Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "specificationId", new StringValues(SpecificationId) }
@@ -220,12 +218,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
                 .Returns(errors);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository);
+            ICacheProvider cacheProvider = CreateCacheProvider();
 
-            //Act
+            SpecificationsService service = CreateService(
+                logs: logger,
+                specificationsRepository: specificationsRepository,
+                searchRepository: searchRepository,
+                cacheProvider: cacheProvider);
+
+            // Act
             IActionResult result = await service.SelectSpecificationForFunding(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<InternalServerErrorResult>()
@@ -241,12 +245,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             logger
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Failed to index search for specification {SpecificationId} with the following errors: failed"));
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
         }
 
         [TestMethod]
         public async Task SelectSpecificationForFunding_GivenValidSpecification_ReturnsNoContentResult()
         {
-            //Arrange
+            // Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "specificationId", new StringValues(SpecificationId) }
@@ -259,7 +271,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(queryStringValues);
 
             Specification specification = CreateSpecification();
-            
+
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -273,17 +285,33 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, jobsApiClient: jobsApiClient);
+            ICacheProvider cacheProvider = CreateCacheProvider();
 
-            //Act
+            SpecificationsService service = CreateService(
+                logs: logger,
+                specificationsRepository: specificationsRepository,
+                jobsApiClient: jobsApiClient,
+                cacheProvider: cacheProvider);
+
+            // Act
             IActionResult result = await service.SelectSpecificationForFunding(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<NoContentResult>();
 
-            await jobsApiClient.Received(1).CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.PublishProviderResultsJob && j.SpecificationId == SpecificationId && j.Trigger.Message == $"Selecting specification for funding"));
+            await jobsApiClient
+                .Received(1)
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.PublishProviderResultsJob && j.SpecificationId == SpecificationId && j.Trigger.Message == $"Selecting specification for funding"));
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
         }
     }
 }
