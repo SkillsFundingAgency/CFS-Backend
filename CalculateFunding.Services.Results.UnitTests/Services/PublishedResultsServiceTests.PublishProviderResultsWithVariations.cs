@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
@@ -17,6 +18,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -1234,6 +1236,55 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        public async Task PublishProviderResultsWithVariations_WhenPublishedResultsToSave_ThenVersionIncrementedForUpdatedResults()
+        {
+            // Arrange
+            List<ProviderResult> providerResults = CreateProviderResults(11);
+
+            ICalculationResultsRepository resultsRepository = InitialiseCalculationResultsRepository(providerResults);
+
+            ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(null);
+            
+            specificationsRepository.UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
+                .Returns(Task.FromResult(HttpStatusCode.OK));
+
+            IVersionRepository<PublishedAllocationLineResultVersion> publishedResultsVersionRepository = CreateRealPublishedProviderResultsVersionRepository();
+
+            IPublishedProviderResultsAssemblerService assembler = CreateRealResultsAssembler(specificationsRepository, publishedResultsVersionRepository);
+
+            ILogger logger = CreateLogger();
+
+            IJobsApiClient jobsApiClient = InitialiseJobsApiClient(true);
+
+            IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults(AllocationLineStatus.Updated);
+
+            PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsAssemblerService: assembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                logger: logger,
+                jobsApiClient: jobsApiClient);
+
+            Message message = new Message();
+            message.UserProperties["specification-id"] = specificationId;
+            message.UserProperties["jobId"] = jobId;
+
+            // Setup saving results being saved - makes asserting easier
+            IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
+
+            await publishedProviderResultsRepository
+                .SavePublishedResults(Arg.Do<IEnumerable<PublishedProviderResult>>(r => resultsBeingSaved = r));
+
+            // Act
+            await resultsService.PublishProviderResultsWithVariations(message);
+
+            // Assert
+            resultsBeingSaved.Should().HaveCount(1);
+
+            resultsBeingSaved.First().FundingStreamResult.AllocationLineResult.Current.Version.Should().Be(5);
+        }
+
+        [TestMethod]
         // Applies to provider variation scenario VAR03
         public async Task PublishProviderResultsWithVariations_WhenAllocationResultHasNotChangedFromExisting_AndProviderClosedWithSuccessor_ThenAmendProfilePeriodsForBothProviders()
         {
@@ -1296,9 +1347,9 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 0, 2, "Alloc 1", new[] { "prov1u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, 0, 2, "Alloc 1", new[] { "prov1u" });
         }
 
         [Ignore("Scenario not supported at the moment - needs clarification from BA")]
@@ -1364,9 +1415,9 @@ namespace CalculateFunding.Services.Results.Services
             // Should have a result for the provider and the successor
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "alloc1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "alloc1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 16, 15, AllocationLineStatus.Held, 0, 2, "alloc1", new[] { "prov1" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 16, 15, AllocationLineStatus.Held, 2, 0, 2, "alloc1", new[] { "prov1" });
         }
 
         [TestMethod]
@@ -1855,11 +1906,11 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(3);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 0, 2, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 0, 2, "Alloc 1", new[] { "prov1u", "prov2u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 21, 30, AllocationLineStatus.Held, 2, 0, 2, "Alloc 1", new[] { "prov1u", "prov2u" });
         }
 
         [TestMethod]
@@ -2123,9 +2174,9 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 0, 2, "Alloc 1", new[] { "prov1u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Held, 2, 0, 2, "Alloc 1", new[] { "prov1u" });
         }
 
         [TestMethod]
@@ -3267,11 +3318,11 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(3);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 0, 1, "Alloc 2", new[] { "prov1u", "prov2u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 1, 0, 1, "Alloc 2", new[] { "prov1u", "prov2u" });
         }
 
         [TestMethod]
@@ -3449,11 +3500,11 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(3);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 0, 1, "Alloc 1", new[] { "prov1u", "prov2u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 1, 0, 1, "Alloc 1", new[] { "prov1u", "prov2u" });
         }
 
         [TestMethod]
@@ -4077,9 +4128,9 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 0, 1, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 1, 0, 1, "Alloc 2");
         }
 
         [TestMethod]
@@ -4195,9 +4246,9 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 0, 2, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 0, 1, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 1, 0, 1, "Alloc 1");
         }
 
         [TestMethod]
@@ -4250,7 +4301,7 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "prov1",
                     Status = AllocationLineStatus.Published,
                     Value = 12,
-                    Version = 1,
+                    Version = 3,
                     ProfilePeriods = new List<ProfilingPeriod>
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
@@ -4313,9 +4364,9 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Updated, 1, 1, "Alloc 2");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Updated, 4, 1, 1, "Alloc 2");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 0, 1, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 1, 0, 1, "Alloc 1");
         }
 
         [TestMethod]
@@ -4381,9 +4432,9 @@ namespace CalculateFunding.Services.Results.Services
             // Should have results for both original and successor providers
             resultsBeingSaved.Should().HaveCount(2);
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Updated, 1, 1, "Alloc 1");
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Updated, 4, 1, 1, "Alloc 1");
 
-            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Updated, 1, 1, "Alloc 1", new[] { "prov1u" });
+            AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Updated, 4, 1, 1, "Alloc 1", new[] { "prov1u" });
         }
 
         [TestMethod]
@@ -4963,6 +5014,7 @@ namespace CalculateFunding.Services.Results.Services
             decimal expectedValueBeforeVariation,
             decimal expectedValueAfterVariation,
             AllocationLineStatus expectedStatus,
+            int expectedPhysicalVersion,
             int expectedMajorVersion,
             int expectedMinorVersion,
             string expectedAllocationLineName,
@@ -4992,6 +5044,10 @@ namespace CalculateFunding.Services.Results.Services
             provResult.FundingStreamResult.AllocationLineResult.Current.Status
                 .Should()
                 .Be(expectedStatus, "Allocation Status");
+
+            provResult.FundingStreamResult.AllocationLineResult.Current.Version
+                .Should()
+                .Be(expectedPhysicalVersion, "Physical version");
 
             provResult.FundingStreamResult.AllocationLineResult.Current.Major
                 .Should()
@@ -5047,7 +5103,7 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "prov1",
                     Status = status,
                     Value = 12,
-                    Version = 1,
+                    Version = (int)status + 1,
                     ProfilePeriods = new List<ProfilingPeriod>
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
@@ -5066,7 +5122,7 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "prov2",
                     Status = status,
                     Value = 24,
-                    Version = 1,
+                    Version = (int)status + 1,
                     ProfilePeriods = new List<ProfilingPeriod>
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
@@ -5284,14 +5340,19 @@ namespace CalculateFunding.Services.Results.Services
             return specificationsRepository;
         }
 
-        private IPublishedProviderResultsAssemblerService CreateRealResultsAssembler(ISpecificationsRepository specificationsRepository)
+        private IPublishedProviderResultsAssemblerService CreateRealResultsAssembler(ISpecificationsRepository specificationsRepository, IVersionRepository<PublishedAllocationLineResultVersion> publishedResultsVersionRepository = null)
         {
-            return new PublishedProviderResultsAssemblerService(specificationsRepository, CreateLogger(), CreatePublishedProviderResultsVersionRepository());
+            return new PublishedProviderResultsAssemblerService(specificationsRepository, CreateLogger(), publishedResultsVersionRepository ?? CreatePublishedProviderResultsVersionRepository());
         }
 
         private IPublishedAllocationLineLogicalResultVersionService CreateRealPublishedAllocationLineLogicalResultVersionService()
         {
             return new PublishedAllocationLineLogicalResultVersionService();
+        }
+
+        private IVersionRepository<PublishedAllocationLineResultVersion> CreateRealPublishedProviderResultsVersionRepository()
+        {
+            return new VersionRepository<PublishedAllocationLineResultVersion>(Substitute.For<ICosmosRepository>());
         }
 
         private static IFeatureToggle InitialiseFeatureToggle(bool enableProviderVariations = true)

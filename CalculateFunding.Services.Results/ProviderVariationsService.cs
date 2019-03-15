@@ -532,6 +532,8 @@ namespace CalculateFunding.Services.Results
 
         private void CopyPropertiesFromExisitngResult(PublishedProviderResult result, PublishedProviderResultExisting existingResult)
         {
+            result.FundingStreamResult.AllocationLineResult.Current.Version = existingResult.Version + 1;
+
             result.FundingStreamResult.AllocationLineResult.Current.Major = existingResult.Major;
             result.FundingStreamResult.AllocationLineResult.Current.Minor = existingResult.Minor;
 
@@ -590,7 +592,8 @@ namespace CalculateFunding.Services.Results
                             ProviderId = providerChangeItem.SuccessorProviderId,
                             SpecificationId = specification.Id,
                             Status = AllocationLineStatus.Held,
-                            Value = 0
+                            Value = 0,
+                            Version = 1
                         },
                         HasResultBeenVaried = true
                     },
