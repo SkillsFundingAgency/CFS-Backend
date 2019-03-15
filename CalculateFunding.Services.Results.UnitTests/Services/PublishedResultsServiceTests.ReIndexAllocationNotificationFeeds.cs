@@ -9,6 +9,7 @@ using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -64,13 +65,22 @@ namespace CalculateFunding.Services.Results.Services
                 .GetAllNonHeldPublishedProviderResults()
                 .Returns(results);
 
+            IEnumerable<PublishedAllocationLineResultVersion> history = CreatePublishedProviderResultsWithDifferentProviders().Select(m => m.FundingStreamResult.AllocationLineResult.Current);
+            history.ElementAt(1).Status = AllocationLineStatus.Approved;
+            history.ElementAt(1).Status = AllocationLineStatus.Published;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(history);
+
             ILogger logger = CreateLogger();
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
             searchRepository.When(x => x.Index(Arg.Any<IEnumerable<AllocationNotificationFeedIndex>>()))
                             .Do(x => { throw new Exception("Error indexing"); });
 
-            SpecificationCurrentVersion specification = CreateSpecification(specificationId);
+            SpecificationCurrentVersion specification = CreateSpecification("spec-1");
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -78,7 +88,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(specification);
 
             PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -140,7 +150,10 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFound_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            const string specificationId = "spec-1";
+
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
+
             foreach (PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
@@ -167,11 +180,25 @@ namespace CalculateFunding.Services.Results.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetCurrentSpecificationById(Arg.Is("spec-1"))
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
+            IEnumerable<PublishedAllocationLineResultVersion> history = results.Select(m => m.FundingStreamResult.AllocationLineResult.Current);
+            history.ElementAt(0).Status = AllocationLineStatus.Approved;
+            history.ElementAt(1).Status = AllocationLineStatus.Approved;
+            history.ElementAt(2).Status = AllocationLineStatus.Published;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(history);
+
+            IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
+            await searchRepository
+                .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
+
             PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -184,52 +211,51 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+                .Index(Arg.Is<List<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
 
-            await searchRepository
-                   .Received(1)
-                   .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
-                       m.First().ProviderId == "1111" &&
-                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
-                       m.First().Summary == "UKPRN: 1111, version 0.1" &&
-                       m.First().DatePublished.HasValue == false &&
-                       m.First().FundingStreamId == "fs-1" &&
-                       m.First().FundingStreamName == "funding stream 1" &&
-                       m.First().FundingPeriodId == "1819" &&
-                       m.First().ProviderUkPrn == "1111" &&
-                       m.First().ProviderUpin == "2222" &&
-                       m.First().ProviderOpenDate.HasValue &&
-                       m.First().AllocationLineId == "AAAAA" &&
-                       m.First().AllocationLineName == "test allocation line 1" &&
-                       m.First().AllocationVersionNumber == 1 &&
-                       m.First().AllocationAmount == (double)50.0 &&
-                       m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
-                       m.First().ProviderName == "test provider name 1" &&
-                       m.First().LaCode == "77777" &&
-                       m.First().Authority == "London" &&
-                       m.First().ProviderType == "test type" &&
-                       m.First().SubProviderType == "test sub type" &&
-                       m.First().EstablishmentNumber == "es123" &&
-                       m.First().FundingPeriodStartYear == DateTime.Now.Year &&
-                       m.First().FundingPeriodEndYear == DateTime.Now.Year + 1 &&
-                       m.First().FundingStreamStartDay == 1 &&
-                       m.First().FundingStreamStartMonth == 8 &&
-                       m.First().FundingStreamEndDay == 31 &&
-                       m.First().FundingStreamEndMonth == 7 &&
-                       m.First().FundingStreamPeriodName == "period-type 1" &&
-                       m.First().FundingStreamPeriodId == "pt1" &&
-                       m.First().AllocationLineContractRequired == true &&
-                       m.First().AllocationLineFundingRoute == "LA" &&
-                       m.First().AllocationLineShortName == "tal1" &&
-                       m.First().PolicySummaries == "[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]" &&
-                       m.First().Calculations == "[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]"
-           ));
+            AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111");
+
+            feedResult.ProviderId.Should().Be("1111");
+            feedResult.Title.Should().Be("Allocation test allocation line 1 was Approved");
+            feedResult.Summary.Should().Be("UKPRN: 1111, version 0.1");
+            feedResult.DatePublished.HasValue.Should().Be(false);
+            feedResult.FundingStreamId.Should().Be("fs-1");
+            feedResult.FundingStreamName.Should().Be("funding stream 1");
+            feedResult.FundingPeriodId.Should().Be("1819");
+            feedResult.ProviderUkPrn.Should().Be("1111");
+            feedResult.ProviderUpin.Should().Be("2222");
+            feedResult.AllocationLineId.Should().Be("AAAAA");
+            feedResult.AllocationLineName.Should().Be("test allocation line 1");
+            feedResult.AllocationVersionNumber.Should().Be(1);
+            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
+            feedResult.ProviderName.Should().Be("test provider name 1");
+            feedResult.LaCode.Should().Be("77777");
+            feedResult.Authority.Should().Be("London");
+            feedResult.ProviderType.Should().Be("test type");
+            feedResult.SubProviderType.Should().Be("test sub type");
+            feedResult.EstablishmentNumber.Should().Be("es123");
+            feedResult.FundingPeriodStartYear.Should().Be(DateTime.Now.Year);
+            feedResult.FundingPeriodEndYear.Should().Be(DateTime.Now.Year + 1);
+            feedResult.FundingStreamStartDay.Should().Be(1);
+            feedResult.FundingStreamStartMonth.Should().Be(8);
+            feedResult.FundingStreamEndDay.Should().Be(31);
+            feedResult.FundingStreamEndMonth.Should().Be(7);
+            feedResult.FundingStreamPeriodName.Should().Be("period-type 1");
+            feedResult.FundingStreamPeriodId.Should().Be("pt1");
+            feedResult.AllocationLineContractRequired.Should().Be(true);
+            feedResult.AllocationLineFundingRoute.Should().Be("LA");
+            feedResult.AllocationLineShortName.Should().Be("tal1");
+            feedResult.PolicySummaries.Should().Be("[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]");
+            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]");
         }
 
         [TestMethod]
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundAndMajorMinorFeatureToggleIsEnabled_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            const string specificationId = "spec-1";
+
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
             foreach (PublishedProviderResult result in results)
             {
@@ -252,16 +278,31 @@ namespace CalculateFunding.Services.Results.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetCurrentSpecificationById(Arg.Is("spec-1"))
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
+
+            IEnumerable<PublishedAllocationLineResultVersion> history = results.Select(m => m.FundingStreamResult.AllocationLineResult.Current);
+            history.ElementAt(0).Status = AllocationLineStatus.Approved;
+            history.ElementAt(1).Status = AllocationLineStatus.Approved;
+            history.ElementAt(2).Status = AllocationLineStatus.Published;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(history);
 
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
             featureToggle
                 .IsAllocationLineMajorMinorVersioningEnabled()
                 .Returns(true);
 
+            IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
+            await searchRepository
+                .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
+
             PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, featureToggle: featureToggle);
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, 
+                featureToggle: featureToggle, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -274,52 +315,49 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
 
-            await searchRepository
-                   .Received(1)
-                   .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
-                       m.First().ProviderId == "1111" &&
-                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
-                       m.First().Summary == "UKPRN: 1111, version 1.5" &&
-                       m.First().DatePublished.HasValue == false &&
-                       m.First().FundingStreamId == "fs-1" &&
-                       m.First().FundingStreamName == "funding stream 1" &&
-                       m.First().FundingPeriodId == "1819" &&
-                       m.First().ProviderUkPrn == "1111" &&
-                       m.First().ProviderUpin == "2222" &&
-                       m.First().ProviderOpenDate.HasValue &&
-                       m.First().AllocationLineId == "AAAAA" &&
-                       m.First().AllocationLineName == "test allocation line 1" &&
-                       m.First().AllocationVersionNumber == 1 &&
-                       m.First().AllocationAmount == (double)50.0 &&
-                       m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
-                       m.First().ProviderName == "test provider name 1" &&
-                       m.First().LaCode == "77777" &&
-                       m.First().Authority == "London" &&
-                       m.First().ProviderType == "test type" &&
-                       m.First().SubProviderType == "test sub type" &&
-                       m.First().EstablishmentNumber == "es123" &&
-                       m.First().FundingPeriodStartYear == DateTime.Now.Year &&
-                       m.First().FundingPeriodEndYear == DateTime.Now.Year + 1 &&
-                       m.First().FundingStreamStartDay == 1 &&
-                       m.First().FundingStreamStartMonth == 8 &&
-                       m.First().FundingStreamEndDay == 31 &&
-                       m.First().FundingStreamEndMonth == 7 &&
-                       m.First().FundingStreamPeriodName == "period-type 1" &&
-                       m.First().FundingStreamPeriodId == "pt1" &&
-                       m.First().AllocationLineContractRequired == true &&
-                       m.First().AllocationLineFundingRoute == "LA" &&
-                       m.First().AllocationLineShortName == "tal1" &&
-                       m.First().MajorVersion == 1 &&
-                       m.First().MinorVersion == 5
-           ));
+            AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111");
+
+            feedResult.ProviderId.Should().Be("1111");
+            feedResult.Title.Should().Be("Allocation test allocation line 1 was Approved");
+            feedResult.Summary.Should().Be("UKPRN: 1111, version 1.5");
+            feedResult.DatePublished.HasValue.Should().Be(false);
+            feedResult.FundingStreamId.Should().Be("fs-1");
+            feedResult.FundingStreamName.Should().Be("funding stream 1");
+            feedResult.FundingPeriodId.Should().Be("1819");
+            feedResult.ProviderUkPrn.Should().Be("1111");
+            feedResult.ProviderUpin.Should().Be("2222");
+            feedResult.AllocationLineId.Should().Be("AAAAA");
+            feedResult.AllocationLineName.Should().Be("test allocation line 1");
+            feedResult.AllocationVersionNumber.Should().Be(1);
+            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
+            feedResult.ProviderName.Should().Be("test provider name 1");
+            feedResult.LaCode.Should().Be("77777");
+            feedResult.Authority.Should().Be("London");
+            feedResult.ProviderType.Should().Be("test type");
+            feedResult.SubProviderType.Should().Be("test sub type");
+            feedResult.EstablishmentNumber.Should().Be("es123");
+            feedResult.FundingPeriodStartYear.Should().Be(DateTime.Now.Year);
+            feedResult.FundingPeriodEndYear.Should().Be(DateTime.Now.Year + 1);
+            feedResult.FundingStreamStartDay.Should().Be(1);
+            feedResult.FundingStreamStartMonth.Should().Be(8);
+            feedResult.FundingStreamEndDay.Should().Be(31);
+            feedResult.FundingStreamEndMonth.Should().Be(7);
+            feedResult.FundingStreamPeriodName.Should().Be("period-type 1");
+            feedResult.FundingStreamPeriodId.Should().Be("pt1");
+            feedResult.AllocationLineContractRequired.Should().Be(true);
+            feedResult.AllocationLineFundingRoute.Should().Be("LA");
+            feedResult.AllocationLineShortName.Should().Be("tal1");
         }
 
         [TestMethod]
         public async Task ReIndexAllocationNotificationFeeds_GivenResultHasBeenVaried_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            const string specificationId = "spec-1";
+
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
             string[] predecessors = { "prov1", "prov2" };
             const string reasonForOpening = "Fresh Start";
@@ -352,6 +390,17 @@ namespace CalculateFunding.Services.Results.Services
                 .GetAllNonHeldPublishedProviderResults()
                 .Returns(results);
 
+            IEnumerable<PublishedAllocationLineResultVersion> history = results.Select(m => m.FundingStreamResult.AllocationLineResult.Current);
+            history.ElementAt(0).Status = AllocationLineStatus.Approved;
+            history.ElementAt(1).Status = AllocationLineStatus.Approved;
+            history.ElementAt(2).Status = AllocationLineStatus.Published;
+
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(history);
+
             ILogger logger = CreateLogger();
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
@@ -360,7 +409,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetCurrentSpecificationById(Arg.Is("spec-1"))
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
@@ -369,7 +418,11 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(true);
 
             PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, featureToggle: featureToggle);
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, featureToggle: featureToggle, publishedProviderResultsVersionRepository: versionRepository);
+
+            IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
+            await searchRepository
+                .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -382,57 +435,56 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
 
-            await searchRepository
-                   .Received(1)
-                   .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
-                       m.First().ProviderId == "1111" &&
-                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
-                       m.First().Summary == "UKPRN: 1111, version 0.1" &&
-                       m.First().DatePublished.HasValue == false &&
-                       m.First().FundingStreamId == "fs-1" &&
-                       m.First().FundingStreamName == "funding stream 1" &&
-                       m.First().FundingPeriodId == "1819" &&
-                       m.First().ProviderUkPrn == "1111" &&
-                       m.First().ProviderUpin == "2222" &&
-                       m.First().ProviderOpenDate.HasValue &&
-                       m.First().AllocationLineId == "AAAAA" &&
-                       m.First().AllocationLineName == "test allocation line 1" &&
-                       m.First().AllocationVersionNumber == 1 &&
-                       m.First().AllocationAmount == (double)50.0 &&
-                       m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
-                       m.First().ProviderName == "test provider name 1" &&
-                       m.First().LaCode == "77777" &&
-                       m.First().Authority == "London" &&
-                       m.First().ProviderType == "test type" &&
-                       m.First().SubProviderType == "test sub type" &&
-                       m.First().EstablishmentNumber == "es123" &&
-                       m.First().FundingPeriodStartYear == DateTime.Now.Year &&
-                       m.First().FundingPeriodEndYear == DateTime.Now.Year + 1 &&
-                       m.First().FundingStreamStartDay == 1 &&
-                       m.First().FundingStreamStartMonth == 8 &&
-                       m.First().FundingStreamEndDay == 31 &&
-                       m.First().FundingStreamEndMonth == 7 &&
-                       m.First().FundingStreamPeriodName == "period-type 1" &&
-                       m.First().FundingStreamPeriodId == "pt1" &&
-                       m.First().AllocationLineContractRequired == true &&
-                       m.First().AllocationLineFundingRoute == "LA" &&
-                       m.First().AllocationLineShortName == "tal1" &&
-                       m.First().PolicySummaries == "[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]" &&
-                       m.First().Calculations == "[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]" &&
-                       m.First().OpenReason == reasonForOpening &&
-                       m.First().Predecessors.SequenceEqual(predecessors) &&
-                       m.First().VariationReasons.SequenceEqual(new[] { "LegalNameFieldUpdated", "LACodeFieldUpdated" }) &&
-                       m.First().Successors.SequenceEqual(new[] { providerSuccessor }) &&
-                       m.First().CloseReason == reasonForClosure
-           ));
+            AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111" && !string.IsNullOrWhiteSpace(m.CloseReason));
+
+            feedResult.ProviderId.Should().Be("1111");
+            feedResult.Title.Should().Be("Allocation test allocation line 1 was Approved");
+            feedResult.Summary.Should().Be("UKPRN: 1111, version 0.1");
+            feedResult.DatePublished.HasValue.Should().Be(false);
+            feedResult.FundingStreamId.Should().Be("fs-1");
+            feedResult.FundingStreamName.Should().Be("funding stream 1");
+            feedResult.FundingPeriodId.Should().Be("1819");
+            feedResult.ProviderUkPrn.Should().Be("1111");
+            feedResult.ProviderUpin.Should().Be("2222");
+            feedResult.AllocationLineId.Should().Be("AAAAA");
+            feedResult.AllocationLineName.Should().Be("test allocation line 1");
+            feedResult.AllocationVersionNumber.Should().Be(1);
+            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
+            feedResult.ProviderName.Should().Be("test provider name 1");
+            feedResult.LaCode.Should().Be("77777");
+            feedResult.Authority.Should().Be("London");
+            feedResult.ProviderType.Should().Be("test type");
+            feedResult.SubProviderType.Should().Be("test sub type");
+            feedResult.EstablishmentNumber.Should().Be("es123");
+            feedResult.FundingPeriodStartYear.Should().Be(DateTime.Now.Year);
+            feedResult.FundingPeriodEndYear.Should().Be(DateTime.Now.Year + 1);
+            feedResult.FundingStreamStartDay.Should().Be(1);
+            feedResult.FundingStreamStartMonth.Should().Be(8);
+            feedResult.FundingStreamEndDay.Should().Be(31);
+            feedResult.FundingStreamEndMonth.Should().Be(7);
+            feedResult.FundingStreamPeriodName.Should().Be("period-type 1");
+            feedResult.FundingStreamPeriodId.Should().Be("pt1");
+            feedResult.AllocationLineContractRequired.Should().Be(true);
+            feedResult.AllocationLineFundingRoute.Should().Be("LA");
+            feedResult.AllocationLineShortName.Should().Be("tal1");
+            feedResult.PolicySummaries.Should().Be("[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]");
+            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]");
+            feedResult.OpenReason.Should().Be(reasonForOpening);
+            feedResult.Predecessors.SequenceEqual(predecessors).Should().BeTrue();
+            feedResult.VariationReasons.SequenceEqual(new[] { "LegalNameFieldUpdated", "LACodeFieldUpdated" }).Should().BeTrue();
+            feedResult.Successors.SequenceEqual(new[] { providerSuccessor }).Should().BeTrue();
+            feedResult.CloseReason.Should().Be(reasonForClosure);
         }
 
         [TestMethod]
         public async Task ReIndexAllocationNotificationFeeds_GivenResultHasProviderDataChange_AndHasNotBeenVariedInAnyOtherWay_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            const string specificationId = "spec-1";
+
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
 
             foreach (PublishedProviderResult result in results)
@@ -457,6 +509,16 @@ namespace CalculateFunding.Services.Results.Services
                 .GetAllNonHeldPublishedProviderResults()
                 .Returns(results);
 
+            IEnumerable<PublishedAllocationLineResultVersion> history = results.Select(m => m.FundingStreamResult.AllocationLineResult.Current);
+            history.ElementAt(0).Status = AllocationLineStatus.Approved;
+            history.ElementAt(1).Status = AllocationLineStatus.Approved;
+            history.ElementAt(2).Status = AllocationLineStatus.Published;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(history);
+
             ILogger logger = CreateLogger();
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
@@ -465,7 +527,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetCurrentSpecificationById(Arg.Is("spec-1"))
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
@@ -473,8 +535,13 @@ namespace CalculateFunding.Services.Results.Services
                 .IsProviderVariationsEnabled()
                 .Returns(true);
 
+            IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
+            await searchRepository
+                .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
+
             PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, featureToggle: featureToggle);
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, 
+                featureToggle: featureToggle, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -487,58 +554,58 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
 
-            await searchRepository
-                   .Received(1)
-                   .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
-                       m.First().ProviderId == "1111" &&
-                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
-                       m.First().Summary == "UKPRN: 1111, version 0.1" &&
-                       m.First().DatePublished.HasValue == false &&
-                       m.First().FundingStreamId == "fs-1" &&
-                       m.First().FundingStreamName == "funding stream 1" &&
-                       m.First().FundingPeriodId == "1819" &&
-                       m.First().ProviderUkPrn == "1111" &&
-                       m.First().ProviderUpin == "2222" &&
-                       m.First().ProviderOpenDate.HasValue &&
-                       m.First().AllocationLineId == "AAAAA" &&
-                       m.First().AllocationLineName == "test allocation line 1" &&
-                       m.First().AllocationVersionNumber == 1 &&
-                       m.First().AllocationAmount == (double)50.0 &&
-                       m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
-                       m.First().ProviderName == "test provider name 1" &&
-                       m.First().LaCode == "77777" &&
-                       m.First().Authority == "London" &&
-                       m.First().ProviderType == "test type" &&
-                       m.First().SubProviderType == "test sub type" &&
-                       m.First().EstablishmentNumber == "es123" &&
-                       m.First().FundingPeriodStartYear == DateTime.Now.Year &&
-                       m.First().FundingPeriodEndYear == DateTime.Now.Year + 1 &&
-                       m.First().FundingStreamStartDay == 1 &&
-                       m.First().FundingStreamStartMonth == 8 &&
-                       m.First().FundingStreamEndDay == 31 &&
-                       m.First().FundingStreamEndMonth == 7 &&
-                       m.First().FundingStreamPeriodName == "period-type 1" &&
-                       m.First().FundingStreamPeriodId == "pt1" &&
-                       m.First().AllocationLineContractRequired == true &&
-                       m.First().AllocationLineFundingRoute == "LA" &&
-                       m.First().AllocationLineShortName == "tal1" &&
-                       m.First().PolicySummaries == "[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]" &&
-                       m.First().Calculations == "[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]" &&
-                       m.First().OpenReason == null &&
-                       m.First().Predecessors == null &&
-                       m.First().VariationReasons.SequenceEqual(new[] { "AuthorityFieldUpdated", "NameFieldUpdated" }) &&
-                       m.First().Successors == null &&
-                       m.First().CloseReason == null
-           ));
+            AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111");
+
+            feedResult.ProviderId.Should().Be("1111");
+            feedResult.Title.Should().Be("Allocation test allocation line 1 was Approved");
+            feedResult.Summary.Should().Be("UKPRN: 1111, version 0.1");
+            feedResult.DatePublished.HasValue.Should().Be(false);
+            feedResult.FundingStreamId.Should().Be("fs-1");
+            feedResult.FundingStreamName.Should().Be("funding stream 1");
+            feedResult.FundingPeriodId.Should().Be("1819");
+            feedResult.ProviderUkPrn.Should().Be("1111");
+            feedResult.ProviderUpin.Should().Be("2222");
+            feedResult.AllocationLineId.Should().Be("AAAAA");
+            feedResult.AllocationLineName.Should().Be("test allocation line 1");
+            feedResult.AllocationVersionNumber.Should().Be(1);
+            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
+            feedResult.ProviderName.Should().Be("test provider name 1");
+            feedResult.LaCode.Should().Be("77777");
+            feedResult.Authority.Should().Be("London");
+            feedResult.ProviderType.Should().Be("test type");
+            feedResult.SubProviderType.Should().Be("test sub type");
+            feedResult.EstablishmentNumber.Should().Be("es123");
+            feedResult.FundingPeriodStartYear.Should().Be(DateTime.Now.Year);
+            feedResult.FundingPeriodEndYear.Should().Be(DateTime.Now.Year + 1);
+            feedResult.FundingStreamStartDay.Should().Be(1);
+            feedResult.FundingStreamStartMonth.Should().Be(8);
+            feedResult.FundingStreamEndDay.Should().Be(31);
+            feedResult.FundingStreamEndMonth.Should().Be(7);
+            feedResult.FundingStreamPeriodName.Should().Be("period-type 1");
+            feedResult.FundingStreamPeriodId.Should().Be("pt1");
+            feedResult.AllocationLineContractRequired.Should().Be(true);
+            feedResult.AllocationLineFundingRoute.Should().Be("LA");
+            feedResult.AllocationLineShortName.Should().Be("tal1");
+            feedResult.PolicySummaries.Should().Be("[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]");
+            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]");
+            feedResult.OpenReason.Should().BeNull();
+            feedResult.CloseReason.Should().BeNull();
+            feedResult.Predecessors.Should().BeNull();
+            feedResult.Successors.Should().BeNull();
+
         }
 
         [TestMethod]
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundAndMajorMinorFeatureToggleIsEnabledAndIsAllAllocationResultsVersionsInFeedIndexEnabled_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            const string specificationId = "spec-1";
+
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
+
             foreach (PublishedProviderResult result in results)
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
@@ -554,6 +621,14 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(results);
 
             ILogger logger = CreateLogger();
+
+            IEnumerable<PublishedAllocationLineResultVersion> history = results.Select(m => m.FundingStreamResult.AllocationLineResult.Current);
+            history.ElementAt(0).Status = AllocationLineStatus.Approved;
+
+            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
+            versionRepository
+                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(history);
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
 
@@ -572,8 +647,13 @@ namespace CalculateFunding.Services.Results.Services
                 .IsAllAllocationResultsVersionsInFeedIndexEnabled()
                 .Returns(true);
 
+            IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
+            await searchRepository
+                .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
+
             PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, featureToggle: featureToggle);
+                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, 
+                featureToggle: featureToggle, publishedProviderResultsVersionRepository: versionRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -586,48 +666,42 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
 
-            await searchRepository
-                   .Received(1)
-                   .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
-                       m.First().Id == "feed-index-id" &&
-                       m.First().ProviderId == "1111" &&
-                       m.First().Title == "Allocation test allocation line 1 was Approved" &&
-                       m.First().Summary == "UKPRN: 1111, version 1.5" &&
-                       m.First().DatePublished.HasValue == false &&
-                       m.First().FundingStreamId == "fs-1" &&
-                       m.First().FundingStreamName == "funding stream 1" &&
-                       m.First().FundingPeriodId == "1819" &&
-                       m.First().ProviderUkPrn == "1111" &&
-                       m.First().ProviderUpin == "2222" &&
-                       m.First().ProviderOpenDate.HasValue &&
-                       m.First().AllocationLineId == "AAAAA" &&
-                       m.First().AllocationLineName == "test allocation line 1" &&
-                       m.First().AllocationVersionNumber == 1 &&
-                       m.First().AllocationAmount == (double)50.0 &&
-                       m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
-                       m.First().ProviderName == "test provider name 1" &&
-                       m.First().LaCode == "77777" &&
-                       m.First().Authority == "London" &&
-                       m.First().ProviderType == "test type" &&
-                       m.First().SubProviderType == "test sub type" &&
-                       m.First().EstablishmentNumber == "es123" &&
-                       m.First().FundingPeriodStartYear == DateTime.Now.Year &&
-                       m.First().FundingPeriodEndYear == DateTime.Now.Year + 1 &&
-                       m.First().FundingStreamStartDay == 1 &&
-                       m.First().FundingStreamStartMonth == 8 &&
-                       m.First().FundingStreamEndDay == 31 &&
-                       m.First().FundingStreamEndMonth == 7 &&
-                       m.First().FundingStreamPeriodName == "period-type 1" &&
-                       m.First().FundingStreamPeriodId == "pt1" &&
-                       m.First().AllocationLineContractRequired == true &&
-                       m.First().AllocationLineFundingRoute == "LA" &&
-                       m.First().AllocationLineShortName == "tal1" &&
-                       m.First().MajorVersion == 1 &&
-                       m.First().MinorVersion == 5 &&
-                       m.First().IsDeleted == false
-           ));
+            AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111");
+
+            feedResult.ProviderId.Should().Be("1111");
+            feedResult.Title.Should().Be("Allocation test allocation line 1 was Approved");
+            feedResult.Summary.Should().Be("UKPRN: 1111, version 1.5");
+            feedResult.DatePublished.HasValue.Should().Be(false);
+            feedResult.FundingStreamId.Should().Be("fs-1");
+            feedResult.FundingStreamName.Should().Be("funding stream 1");
+            feedResult.FundingPeriodId.Should().Be("1819");
+            feedResult.ProviderUkPrn.Should().Be("1111");
+            feedResult.ProviderUpin.Should().Be("2222");
+            feedResult.AllocationLineId.Should().Be("AAAAA");
+            feedResult.AllocationLineName.Should().Be("test allocation line 1");
+            feedResult.AllocationVersionNumber.Should().Be(1);
+            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
+            feedResult.ProviderName.Should().Be("test provider name 1");
+            feedResult.LaCode.Should().Be("77777");
+            feedResult.Authority.Should().Be("London");
+            feedResult.ProviderType.Should().Be("test type");
+            feedResult.SubProviderType.Should().Be("test sub type");
+            feedResult.EstablishmentNumber.Should().Be("es123");
+            feedResult.FundingPeriodStartYear.Should().Be(DateTime.Now.Year);
+            feedResult.FundingPeriodEndYear.Should().Be(DateTime.Now.Year + 1);
+            feedResult.FundingStreamStartDay.Should().Be(1);
+            feedResult.FundingStreamStartMonth.Should().Be(8);
+            feedResult.FundingStreamEndDay.Should().Be(31);
+            feedResult.FundingStreamEndMonth.Should().Be(7);
+            feedResult.FundingStreamPeriodName.Should().Be("period-type 1");
+            feedResult.FundingStreamPeriodId.Should().Be("pt1");
+            feedResult.AllocationLineContractRequired.Should().Be(true);
+            feedResult.AllocationLineFundingRoute.Should().Be("LA");
+            feedResult.MajorVersion.Should().Be(1);
+            feedResult.MinorVersion.Should().Be(5);
         }
     }
 }

@@ -305,5 +305,6 @@ AND r.content.specificationId = '" + specificationId + "'";
 
             return documentEntities.Select(m => m.Content);
         }
+
     }
 }

@@ -1311,6 +1311,8 @@ namespace CalculateFunding.Services.Results
             }
             else
             {
+                IEnumerable<PublishedProviderResult> publishedProviderResultsToIndex = await GetAllPublishedResultVersions(publishedProviderResults);
+
                 IEnumerable<string> specificationIds = publishedProviderResults.DistinctBy(m => m.SpecificationId).Select(m => m.SpecificationId);
 
                 foreach (string specificationId in specificationIds)
@@ -1319,7 +1321,9 @@ namespace CalculateFunding.Services.Results
 
                     try
                     {
-                        await UpdateAllocationNotificationsFeedIndex(publishedProviderResults, specification);
+                        IEnumerable<PublishedProviderResult> publishedProviderResultsForSpecification = publishedProviderResultsToIndex.Where(m => m.SpecificationId == specification.Id);
+
+                        await UpdateAllocationNotificationsFeedIndex(publishedProviderResultsForSpecification, specification);
                     }
                     catch (Exception ex)
                     {
@@ -1328,9 +1332,52 @@ namespace CalculateFunding.Services.Results
                         return new InternalServerErrorResult(ex.Message);
                     }
                 }
+               
             }
 
             return new NoContentResult();
+        }
+
+        private async Task<IEnumerable<PublishedProviderResult>> GetAllPublishedResultVersions(IEnumerable<PublishedProviderResult> publishedProviderResults)
+        {
+            ConcurrentBag<PublishedProviderResult> updatedResultsToIndex = new ConcurrentBag<PublishedProviderResult>();
+            List<Task> allTasks = new List<Task>(publishedProviderResults.Count());
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 5);
+            foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            IEnumerable<PublishedAllocationLineResultVersion> versions = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersions(publishedProviderResult.Id, publishedProviderResult.ProviderId));
+
+                            foreach (PublishedAllocationLineResultVersion version in versions)
+                            {
+                                if (version.Status != AllocationLineStatus.Held)
+                                {
+                                    updatedResultsToIndex.Add(GetPublishedProviderResultToIndex(publishedProviderResult, version));
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await Task.WhenAll(allTasks.ToArray());
+
+            foreach (Task task in allTasks)
+            {
+                if (task.Exception != null)
+                {
+                    throw task.Exception;
+                }
+            }
+
+             return updatedResultsToIndex;
         }
 
         private IEnumerable<PublishedProviderResultModel> MapPublishedProviderResultModels(IEnumerable<PublishedProviderResultByAllocationLineViewModel> publishedProviderResults)
