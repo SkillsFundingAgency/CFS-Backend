@@ -116,7 +116,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             foreach (var calc in calcs)
             {
                 builder.AppendLine($"{GenerateIdentifier(calc.Name)} = Function() As decimal?");
-                builder.AppendLine();
+                builder.AppendLine($"If dictionary.ContainsKey(\"{calc.Id}\") Then");
+                builder.AppendLine($"   dim resOut as Decimal");
+                builder.AppendLine($"   dim item as string = dictionary.Item(\"{calc.Id}\")(0)");
+                builder.AppendLine("    dim parsed as boolean = [Decimal].TryParse(item, resOut)");
+                builder.AppendLine("    if parsed = False then");
+                builder.AppendLine("        return Nothing");
+                builder.AppendLine("    else");
+                builder.AppendLine("        return resOut");
+                builder.AppendLine("    end if");
+                builder.AppendLine("end if");
                 builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
                 builder.AppendLine("If frameCount > 1000 Then");
                 builder.AppendLine("Throw New Exception(\"The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop\")");

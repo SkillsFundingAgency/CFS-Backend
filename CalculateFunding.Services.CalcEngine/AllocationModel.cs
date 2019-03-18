@@ -191,9 +191,7 @@ namespace CalculateFunding.Services.Calculator
 
             IList<CalculationResult> calculationResults = new List<CalculationResult>();
 
-           
             Dictionary<string, string[]> results = (Dictionary<string, string[]>)_mainMethod.Invoke(_instance, null);
-          
 
             foreach(KeyValuePair<string, string[]> calcResult in results)
             {
