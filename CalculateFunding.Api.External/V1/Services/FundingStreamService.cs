@@ -11,22 +11,20 @@ namespace CalculateFunding.Api.External.V1.Services
 {
     public class FundingStreamService : IFundingStreamService
     {
-
-        private readonly ISpecificationsService _specService;
-
+        private readonly IFundingService _fundingService;
         private readonly IMapper _mapper;
 
-        public FundingStreamService(ISpecificationsService specService, IMapper mapper)
+        public FundingStreamService(IFundingService fundingService, IMapper mapper)
         {
-            Guard.ArgumentNotNull(specService, nameof(specService));
+            Guard.ArgumentNotNull(fundingService, nameof(fundingService));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
-            _specService = specService;
+            _fundingService = fundingService;
             _mapper = mapper;
         }
 
         public async Task<IActionResult> GetFundingStreams()
         {
-            IActionResult result = await _specService.GetFundingStreams();
+            IActionResult result = await _fundingService.GetFundingStreams();
 
             if (result is OkObjectResult okObjectResult)
             {

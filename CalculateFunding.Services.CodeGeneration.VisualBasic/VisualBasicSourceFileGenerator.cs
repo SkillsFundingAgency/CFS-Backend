@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using Serilog;
 
@@ -6,14 +8,18 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class VisualBasicSourceFileGenerator : RoslynSourceFileGenerator
     {
+        private readonly IFeatureToggle _featureToggle;
 
-        public VisualBasicSourceFileGenerator(ILogger logger) : base(logger)
+        public VisualBasicSourceFileGenerator(ILogger logger, IFeatureToggle featureToggle) : base(logger)
         {
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+
+            _featureToggle = featureToggle;
         }
 
         protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
-            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator();
+            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(_featureToggle.IsDuplicateCalculationNameCheckEnabled());
             return calculationTypeGenerator.GenerateCalcs(buildProject, calculations);
         }
 

@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.22.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.23.0" />
   </ItemGroup>
 
   <ItemGroup>

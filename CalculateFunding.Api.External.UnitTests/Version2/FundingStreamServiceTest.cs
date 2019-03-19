@@ -60,10 +60,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 fundingStream
             });
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
-            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
+            mockFundingService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
-            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+            FundingStreamService fundingStreamService = new FundingStreamService(mockFundingService, mapper);
 
             // Act
             IActionResult result = await fundingStreamService.GetFundingStreams();
@@ -167,10 +167,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 fundingStreamFalse
             });
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
-            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
+            mockFundingService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
-            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+            FundingStreamService fundingStreamService = new FundingStreamService(mockFundingService, mapper);
 
             // Act
             IActionResult result = await fundingStreamService.GetFundingStreams();
@@ -205,11 +205,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Specs.FundingStream>());
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
 
-            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
+            mockFundingService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
-            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+            FundingStreamService fundingStreamService = new FundingStreamService(mockFundingService, mapper);
 
             // Act
             IActionResult result = await fundingStreamService.GetFundingStreams();
@@ -228,13 +228,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
 
             IMapper mapper = Substitute.For<IMapper>();
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
 
-            mockSpecificationsService
+            mockFundingService
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
                 .Returns(new NotFoundResult());
 
-            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+            FundingStreamService fundingStreamService = new FundingStreamService(mockFundingService, mapper);
 
             // Act
             IActionResult result = await fundingStreamService.GetFundingStream(fundingStreamId);
@@ -264,13 +264,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             Mapper.Initialize(mappings);
             IMapper mapper = Mapper.Instance;
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
 
-            mockSpecificationsService
+            mockFundingService
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
                 .Returns(new OkObjectResult(fundingStream));
 
-            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+            FundingStreamService fundingStreamService = new FundingStreamService(mockFundingService, mapper);
 
             // Act
             IActionResult result = await fundingStreamService.GetFundingStream(fundingStreamId);

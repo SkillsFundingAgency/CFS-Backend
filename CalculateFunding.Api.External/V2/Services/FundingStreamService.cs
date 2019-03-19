@@ -5,29 +5,26 @@ using AutoMapper;
 using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Specs.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.External.V2.Services
 {
     public class FundingStreamService : IFundingStreamService
     {
-
-        private readonly ISpecificationsService _specService;
-
+        private readonly IFundingService _fundingService;
         private readonly IMapper _mapper;
 
-        public FundingStreamService(ISpecificationsService specService, IMapper mapper)
+        public FundingStreamService(IFundingService fundingService, IMapper mapper)
         {
-            Guard.ArgumentNotNull(specService, nameof(specService));
+            Guard.ArgumentNotNull(fundingService, nameof(fundingService));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
-            _specService = specService;
+            _fundingService = fundingService;
             _mapper = mapper;
         }
 
         public async Task<IActionResult> GetFundingStreams()
         {
-            IActionResult result = await _specService.GetFundingStreams();
+            IActionResult result = await _fundingService.GetFundingStreams();
 
             if (result is OkObjectResult okObjectResult)
             {
@@ -47,7 +44,7 @@ namespace CalculateFunding.Api.External.V2.Services
 
         public async Task<IActionResult> GetFundingStream(string fundingStreamId)
         {
-            IActionResult result = await _specService.GetFundingStreamById(fundingStreamId);
+            IActionResult result = await _fundingService.GetFundingStreamById(fundingStreamId);
 
             if (result is OkObjectResult okObjectResult)
             {

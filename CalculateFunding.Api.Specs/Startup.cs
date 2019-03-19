@@ -83,6 +83,8 @@ namespace CalculateFunding.Api.Specs
                 .AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>()
                 .AddSingleton<IHealthChecker, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
+            builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
+            builder.AddSingleton<IFundingService, FundingService>();
 
             builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
             {
@@ -115,6 +117,7 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+            builder.AddCalcsInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 

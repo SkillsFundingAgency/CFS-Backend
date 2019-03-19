@@ -14,22 +14,22 @@ using Serilog;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
-    public partial class SpecificationsServiceTests
+    public partial class FundingServiceTests
     {
         [TestMethod]
         public async Task GetFundingStreamById_GivenFundingStreamIdDoesNotExist_ReturnsBadRequest()
         {
-            //Arrange
+            // Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(logs: logger);
+            IFundingService fundingService = CreateService(logger: logger);
 
-            //Act
-            IActionResult result = await service.GetFundingStreamById(request);
+            // Act
+            IActionResult result = await fundingService.GetFundingStreamById(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingStreamById_GivenFundingStreamnWasNotFound_ReturnsNotFound()
         {
-            //Arrange
+            // Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "fundingStreamId", new StringValues(FundingStreamId) }
@@ -61,12 +61,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetFundingStreamById(Arg.Is(FundingStreamId))
                 .Returns((FundingStream)null);
 
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
+            IFundingService fundingService = CreateService(specificationsRepository: specificationsRepository, logger: logger);
 
-            //Act
-            IActionResult result = await service.GetFundingStreamById(request);
+            // Act
+            IActionResult result = await fundingService.GetFundingStreamById(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<NotFoundResult>();
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingStreamById_GivenFundingStreamnWasFound_ReturnsSuccess()
         {
-            //Arrange
+            // Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "fundingStreamId", new StringValues(FundingStreamId) }
@@ -103,12 +103,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetFundingStreamById(Arg.Is(FundingStreamId))
                 .Returns(fundingStream);
 
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
+            IFundingService fundingService = CreateService(specificationsRepository: specificationsRepository, logger: logger);
 
-            //Act
-            IActionResult result = await service.GetFundingStreamById(request);
+            // Act
+            IActionResult result = await fundingService.GetFundingStreamById(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -117,17 +117,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingStreamById_StringParam_GivenFundingStreamIdDoesNotExist_ReturnsBadRequest()
         {
-            //Arrange
+            // Arrange
             string fundingStreamId = string.Empty;
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(logs: logger);
+            IFundingService fundingService = CreateService(logger: logger);
 
-            //Act
-            IActionResult result = await service.GetFundingStreamById(fundingStreamId);
+            // Act
+            IActionResult result = await fundingService.GetFundingStreamById(fundingStreamId);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingStreamById_StringParam_GivenFundingStreamnWasNotFound_ReturnsNotFound()
         {
-            //Arrange
+            // Arrange
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -148,12 +148,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetFundingStreamById(Arg.Is(FundingStreamId))
                 .Returns((FundingStream)null);
 
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
+            IFundingService fundingService = CreateService(specificationsRepository: specificationsRepository, logger: logger);
 
-            //Act
-            IActionResult result = await service.GetFundingStreamById(FundingStreamId);
+            // Act
+            IActionResult result = await fundingService.GetFundingStreamById(FundingStreamId);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<NotFoundResult>();
@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingStreamById_StringParam_GivenFundingStreamnWasFound_ReturnsSuccess()
         {
-            //Arrange
+            // Arrange
             ILogger logger = CreateLogger();
 
             FundingStream fundingStream = new FundingStream
@@ -179,12 +179,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetFundingStreamById(Arg.Is(FundingStreamId))
                 .Returns(fundingStream);
 
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, logs: logger);
+            IFundingService fundingService = CreateService(specificationsRepository: specificationsRepository, logger: logger);
 
-            //Act
-            IActionResult result = await service.GetFundingStreamById(FundingStreamId);
+            // Act
+            IActionResult result = await fundingService.GetFundingStreamById(FundingStreamId);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -193,7 +193,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingStreams_GivenNullOrEmptyFundingStreamsReturned_LogsAndReturnsOKWithEmptyList()
         {
-            //Arrange
+            // Arrange
             ILogger logger = CreateLogger();
 
             IEnumerable<FundingStream> fundingStreams = null;
@@ -203,12 +203,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            IFundingService fundingService = CreateService(logger: logger, specificationsRepository: specificationsRepository);
 
-            //Act
-            IActionResult result = await service.GetFundingStreams();
+            // Act
+            IActionResult result = await fundingService.GetFundingStreams();
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -229,7 +229,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingStreams_GivenFundingStreamsReturned_ReturnsOKWithResults()
         {
-            //Arrange
+            // Arrange
             ILogger logger = CreateLogger();
 
             IEnumerable<FundingStream> fundingStreams = new[]
@@ -243,12 +243,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            IFundingService fundingService = CreateService(logger: logger, specificationsRepository: specificationsRepository);
 
-            //Act
-            IActionResult result = await service.GetFundingStreams();
+            // Act
+            IActionResult result = await fundingService.GetFundingStreams();
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();

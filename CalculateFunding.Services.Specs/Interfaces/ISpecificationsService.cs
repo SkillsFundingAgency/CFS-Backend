@@ -24,6 +24,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> GetSpecificationById(HttpRequest request);
 
         Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request);
+
         Task<IActionResult> GetSpecificationByName(HttpRequest request);
 
         Task<IActionResult> GetSpecificationSummaryById(HttpRequest request);
@@ -32,15 +33,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetCurrentSpecificationById(HttpRequest request);
 
-        Task<IActionResult> GetFundingPeriods(HttpRequest request);
-
-        Task<IActionResult> GetFundingStreams();
-
         Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request);
-
-        Task<IActionResult> GetFundingStreamById(HttpRequest request);
-
-        Task<IActionResult> GetFundingStreamById(string fundingStreamId);
 
         Task<IActionResult> GetPolicyByName(HttpRequest request);
 
@@ -60,10 +53,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> ReIndex();
 
-        Task<IActionResult> SaveFundingStream(HttpRequest request);
-
-        Task<IActionResult> SaveFundingPeriods(HttpRequest request);
-
         Task<IActionResult> EditSpecification(HttpRequest request);
 
         Task<IActionResult> EditPolicy(HttpRequest request);
@@ -75,8 +64,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> SelectSpecificationForFunding(HttpRequest request);
 
         Task<IActionResult> RefreshPublishedResults(HttpRequest request);
-
-        Task<IActionResult> GetFundingPeriodById(HttpRequest request);
 
         Task<IActionResult> CheckPublishResultStatus(HttpRequest request);
 

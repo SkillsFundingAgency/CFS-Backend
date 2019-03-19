@@ -37,7 +37,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         const string UserId = "33d7a71b-f570-4425-801b-250b9129f3d3";
         const string SfaCorrelationId = "c625c3f9-6ce8-4f1f-a3a3-4611f1dc3881";
         const string RelationshipId = "cca8ccb3-eb8e-4658-8b3f-f1e4c3a8f419";
-        const string yamlFile = "12345.yaml";
 
         private SpecificationsService CreateService(
             IMapper mapper = null,
@@ -75,7 +74,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationVersionRepository ?? CreateVersionRepository(),
                 featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                SpecificationsResilienceTestHelper.GenerateTestPolicies());
+                SpecificationsResilienceTestHelper.GenerateTestPolicies()
+                );
         }
 
         protected IJobsApiClient CreateJobsApiClient()
@@ -128,6 +128,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
+        }
+
+        protected ICalculationsRepository CreateCalculationsRepository()
+        {
+            return Substitute.For<ICalculationsRepository>();
         }
 
         protected ILogger CreateLogger()
@@ -250,57 +255,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                .Returns(validationResult);
 
             return validator;
-        }
-
-        protected string CreateRawFundingStream()
-        {
-            var yaml = new StringBuilder();
-
-            yaml.AppendLine(@"id: YPLRE");
-            yaml.AppendLine(@"name: School Budget Share");
-            yaml.AppendLine(@"allocationLines:");
-            yaml.AppendLine(@"- id: YPE01");
-            yaml.AppendLine(@"  name: School Budget Share");
-            yaml.AppendLine(@"- id: YPE02");
-            yaml.AppendLine(@"  name: Education Services Grant");
-            yaml.AppendLine(@"- id: YPE03");
-            yaml.AppendLine(@"  name: Insurance");
-            yaml.AppendLine(@"- id: YPE04");
-            yaml.AppendLine(@"  name: Teacher Threshold");
-            yaml.AppendLine(@"- id: YPE05");
-            yaml.AppendLine(@"  name: Mainstreamed Grants");
-            yaml.AppendLine(@"- id: YPE06");
-            yaml.AppendLine(@"  name: Start Up Grant Part a");
-            yaml.AppendLine(@"- id: YPE07");
-            yaml.AppendLine(@"  name: Start Up Grant Part b Formulaic");
-
-
-            return yaml.ToString();
-        }
-
-        protected string CreateRawFundingPeriods()
-        {
-            var yaml = new StringBuilder();
-
-            yaml.AppendLine(@"fundingPeriods:");
-            yaml.AppendLine(@"- id: AY2017181");
-            yaml.AppendLine(@"  name: Academic 2017/18");
-            yaml.AppendLine(@"  startDate: 09/01/2017 00:00:00");
-            yaml.AppendLine(@"  endDate: 08/31/2018 00:00:00");
-            yaml.AppendLine(@"- id: AY2018191");
-            yaml.AppendLine(@"  name: Academic 2018/19");
-            yaml.AppendLine(@"  startDate: 09/01/2018 00:00:00");
-            yaml.AppendLine(@"  endDate: 08/31/2019 00:00:00");
-            yaml.AppendLine(@"- id: FY2017181");
-            yaml.AppendLine(@"  name: Financial 2017/18");
-            yaml.AppendLine(@"  startDate: 04/01/2017 00:00:00");
-            yaml.AppendLine(@"  endDate: 03/31/2018 00:00:00");
-            yaml.AppendLine(@"- id: AY2018191");
-            yaml.AppendLine(@"  name: Financial 2018/19");
-            yaml.AppendLine(@"  startDate: 04/01/2018 00:00:00");
-            yaml.AppendLine(@"  endDate: 03/31/2019 00:00:00");
-
-            return yaml.ToString();
         }
 
         protected Specification CreateSpecification()

@@ -58,10 +58,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 fundingStream
             });
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
-            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
+            mockFundingService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
-            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+            FundingStreamService fundingStreamService = new FundingStreamService(mockFundingService, mapper);
 
             // Act
             IActionResult result = await fundingStreamService.GetFundingStreams();
@@ -102,11 +102,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
 
             OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Specs.FundingStream>());
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
 
-            mockSpecificationsService.GetFundingStreams().Returns(specServiceOkObjectResult);
+            mockFundingService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
-            FundingStreamService fundingStreamService = new FundingStreamService(mockSpecificationsService, mapper);
+            FundingStreamService fundingStreamService = new FundingStreamService(mockFundingService, mapper);
 
             // Act
             IActionResult result = await fundingStreamService.GetFundingStreams();

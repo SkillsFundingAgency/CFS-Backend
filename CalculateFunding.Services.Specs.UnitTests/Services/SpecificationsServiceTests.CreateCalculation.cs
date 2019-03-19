@@ -8,6 +8,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
@@ -189,7 +190,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidModelAndPolicyFoundButAddingCalcCausesBadRequest_AReturnsBadRequest()
+        public async Task CreateCalculation_GivenValidModelAndPolicyFoundButAddingCalcCausesBadRequest_ReturnsBadRequest()
         {
             //Arrange
             AllocationLine allocationLine = new AllocationLine
@@ -585,7 +586,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public void CreateCalculation_WhenSomethingGoesDuringIndexing_ShouldThrowException()
+        public void CreateCalculation_WhenSomethingGoesWrongDuringIndexing_ShouldThrowException()
         {
             //Arrange
             const string errorMessage = "Encountered 802 error code";
@@ -715,6 +716,66 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Message
                 .Should()
                 .Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
+        }
+
+        [TestMethod]
+        public async Task CreateCalculation_GivenDuplicateCalculationName_ReturnsBadRequest()
+        {
+            // Arrange
+            Specification specification = CreateSpecification();
+
+            CalculationCreateModel model = new CalculationCreateModel
+            {
+                SpecificationId = SpecificationId,
+                PolicyId = PolicyId,
+                Name = "calc1",
+                CalculationType = CalculationType.Number
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            ClaimsPrincipal principal = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principal);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            IValidator<CalculationCreateModel> validator = CreateCalculationValidator(new ValidationResult(new[] { new ValidationFailure("prop1", "any error") }));
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDuplicateCalculationNameCheckEnabled()
+                .Returns(true);
+
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, featureToggle: featureToggle, calculationCreateModelValidator: validator);
+
+            // Act
+            IActionResult result = await service.CreateCalculation(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
         }
     }
 }

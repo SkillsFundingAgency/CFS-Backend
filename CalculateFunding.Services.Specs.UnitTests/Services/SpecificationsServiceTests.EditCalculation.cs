@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
@@ -13,6 +14,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.Validators;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -655,6 +657,175 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Message
                 .Should()
                 .Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_WhenRenameCalculationToBrandNew_ReturnsOk()
+        {
+            // Arrange
+            CalculationEditModel policyEditModel = new CalculationEditModel
+            {
+                Name = "new calc name",
+                CalculationType = CalculationType.Funding,
+                Description = "test description",
+                PolicyId = "policy-id-2"
+            };
+
+            string json = JsonConvert.SerializeObject(policyEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpContext context = Substitute.For<HttpContext>();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+                { "calculationId", new StringValues(CalculationId) },
+            });
+
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            Specification specification = CreateSpecification();
+            specification
+                .Current
+                .Policies = new[] {
+                    new Policy { Id = PolicyId, Name = PolicyName, SubPolicies = new[] { new Policy { Id = "policy-id-2", Name = "sub-policy", Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } } }
+                } };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            specificationsRepository
+                .UpdateSpecification(Arg.Is(specification))
+                .Returns(HttpStatusCode.OK);
+
+            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecVersion.Policies.First().SubPolicies.First().Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
+
+            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
+            versionRepository
+                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(newSpecVersion);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .IsCalculationNameValid(Arg.Is(SpecificationId), Arg.Is("new calc name"), Arg.Is(CalculationId))
+                .Returns(true);
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
+                specificationVersionRepository: versionRepository);
+
+            // Act
+            IActionResult result = await specificationsService.EditCalculation(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            await
+              versionRepository
+               .Received(1)
+               .SaveVersion(Arg.Is(newSpecVersion));
+        }
+
+        [TestMethod]
+        public async Task EditCalculation_WhenRenameCalcToSameAsExisting_ReturnsBadRequest()
+        {
+            // Arrange
+            CalculationEditModel policyEditModel = new CalculationEditModel
+            {
+                Name = "Another name",
+                CalculationType = CalculationType.Funding,
+                Description = "test description",
+                PolicyId = "policy-id-2"
+            };
+
+            string json = JsonConvert.SerializeObject(policyEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpContext context = Substitute.For<HttpContext>();
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) },
+                { "calculationId", new StringValues(CalculationId) },
+            });
+
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
+
+            request
+                .HttpContext
+                .Returns(context);
+
+            Specification specification = CreateSpecification();
+            specification
+                .Current
+                .Policies = new[] {
+                    new Policy
+                    {
+                        Id = PolicyId,
+                        Name = PolicyName,
+                        Calculations = new[] 
+                        {
+                            new Calculation { Id = CalculationId, Name = "Old name" },
+                            new Calculation { Id = "calc2", Name = "Another name" }
+                        }
+                    }
+                };
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(specification);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .IsCalculationNameValid(Arg.Is(specification.Id), Arg.Is("Another name"), Arg.Is(CalculationId))
+                .Returns(false);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDuplicateCalculationNameCheckEnabled()
+                .Returns(true);
+
+            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(specificationsRepository, calculationsRepository, featureToggle);
+
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, featureToggle: featureToggle, calculationEditModelValidator: validator);
+
+            // Act
+            IActionResult result = await specificationsService.EditCalculation(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+        }
+
+        private IValidator<CalculationEditModel> CreateRealEditCalculationValidator(ISpecificationsRepository specificationsRepository, ICalculationsRepository calculationsRepository, IFeatureToggle featureToggle)
+        {
+            return new CalculationEditModelValidator(specificationsRepository, calculationsRepository, featureToggle);
         }
     }
 }

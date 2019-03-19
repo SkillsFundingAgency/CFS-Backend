@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
@@ -9,11 +11,19 @@ namespace CalculateFunding.Services.Specs.Validators
 {
     public class CalculationCreateModelValidator : AbstractValidator<CalculationCreateModel>
     {
-        readonly ISpecificationsRepository _specificationsRepository;
+        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly IFeatureToggle _featureToggle;
+        private readonly ICalculationsRepository _calculationsRepository;
 
-        public CalculationCreateModelValidator(ISpecificationsRepository specificationsRepository)
+        public CalculationCreateModelValidator(ISpecificationsRepository specificationsRepository, ICalculationsRepository calculationsRepository, IFeatureToggle featureToggle)
         {
+            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+
             _specificationsRepository = specificationsRepository;
+            _calculationsRepository = calculationsRepository;
+            _featureToggle = featureToggle;
 
             RuleFor(model => model.Description)
                .NotEmpty()
@@ -51,11 +61,21 @@ namespace CalculateFunding.Services.Specs.Validators
                {
                    CalculationCreateModel model = context.ParentContext.InstanceToValidate as CalculationCreateModel;
 
-                   Models.Specs.Calculation calculation = _specificationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name).Result;
-
-                   if (calculation != null)
+                   if (_featureToggle.IsDuplicateCalculationNameCheckEnabled())
                    {
-                       context.AddFailure($"You must give a unique calculation name");
+                       if (!_calculationsRepository.IsCalculationNameValid(model.SpecificationId, model.Name).Result)
+                       {
+                           context.AddFailure("Calculation with the same generated source code name already exists in this specification");
+                       }
+                   }
+                   else
+                   {
+                       Models.Specs.Calculation calculation = _specificationsRepository.GetCalculationBySpecificationIdAndCalculationName(model.SpecificationId, model.Name).Result;
+
+                       if (calculation != null)
+                       {
+                           context.AddFailure($"You must give a unique calculation name");
+                       }
                    }
                });
 

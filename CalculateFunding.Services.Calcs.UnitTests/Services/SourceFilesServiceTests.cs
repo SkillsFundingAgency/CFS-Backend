@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeGeneration;
@@ -725,6 +726,59 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Error($"Failed to compress source files for specificatgion id: '{specificationId}'");
         }
 
+        [TestMethod]
+        public void CompileBuildProject_WhenBuildingCalculation_AndUseSourceCodeNameToggle_ThenCompilationUsesSourceCodeName()
+        {
+            // Arrange
+            string specificationId = "test-spec1";
+            List<Calculation> calculations = new List<Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Id = "calcId1",
+                    Name = "calc 1",
+                    SourceCodeName = "differentCalcName",
+                    Description = "test calc",
+                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
+                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
+                    Policies = new List<Common.Models.Reference>
+                    {
+                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
+                    },
+                    Current = new CalculationVersion
+                    {
+                         SourceCode = "return 10"
+                    }
+                }
+            };
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDuplicateCalculationNameCheckEnabled()
+                .Returns(true);
+
+            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler(featureToggle);
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            // Act
+            Build build = sourceCodeService.Compile(buildProject, calculations);
+
+            // Assert
+            build.Success.Should().BeTrue();
+
+            string calcSourceCode = build.SourceFiles.First(s => s.FileName == "Calculations.vb").SourceCode;
+            calcSourceCode.Should().Contain($"Dim differentCalcName As Func(Of decimal?) = nothing");
+            calcSourceCode.Should().NotContain($"Dim calc1 As Func(Of decimal?) = nothing");
+            calcSourceCode.Should().Contain($"Dim calcResult As Nullable(Of Decimal) = differentCalcName()");
+            calcSourceCode.Should().NotContain($"Dim calcResult As Nullable(Of Decimal) = calc1()");
+        }
+
         private static SourceCodeService CreateSourceCodeService(
             ISourceFileRepository sourceFilesRepository = null,
             ILogger logger = null,
@@ -744,11 +798,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 resilliencePolicies ?? CreatePolicies());
         }
 
-        private SourceCodeService CreateServiceWithRealCompiler()
+        private SourceCodeService CreateServiceWithRealCompiler(IFeatureToggle featureToggle =  null)
         {
             ILogger logger = CreateLogger();
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
-            sourceFileGeneratorProvider.CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic)).Returns(new VisualBasicSourceFileGenerator(logger));
+            sourceFileGeneratorProvider
+                .CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic))
+                .Returns(new VisualBasicSourceFileGenerator(logger, featureToggle ?? CreateFeatureToggle()));
+
             VisualBasicCompiler vbCompiler = new VisualBasicCompiler(logger);
             CompilerFactory compilerFactory = new CompilerFactory(null, vbCompiler);
 
@@ -798,6 +855,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ICodeMetadataGeneratorService CreateCodeMetadataGeneratorService()
         {
             return Substitute.For<ICodeMetadataGeneratorService>();
+        }
+
+        private static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
     }
 }

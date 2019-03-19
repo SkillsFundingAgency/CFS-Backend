@@ -40,5 +40,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> GetCalculationStatusCounts(HttpRequest request);
 
 	    Task<IActionResult> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
+
+        Task<IActionResult> IsCalcuationNameValid(string specificationId, string calculationName, string existingCalculationId);
+
+        Task<IActionResult> DuplicateCalcNamesMigration();
     }
 }

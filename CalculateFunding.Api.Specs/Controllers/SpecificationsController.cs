@@ -9,16 +9,20 @@ namespace CalculateFunding.Api.Specs.Controllers
     {
         private readonly ISpecificationsService _specService;
         private readonly ISpecificationsSearchService _specSearchService;
+        private readonly IFundingService _fundingService;
 
         public SpecificationsController(
-                    ISpecificationsService specService,
-                    ISpecificationsSearchService specSearchService)
+            ISpecificationsService specService,
+            ISpecificationsSearchService specSearchService,
+            IFundingService fundingService)
         {
             Guard.ArgumentNotNull(specService, nameof(specService));
             Guard.ArgumentNotNull(specSearchService, nameof(specSearchService));
+            Guard.ArgumentNotNull(fundingService, nameof(fundingService));
 
             _specService = specService;
             _specSearchService = specSearchService;
+            _fundingService = fundingService;
         }
 
         [Route("api/specs/specification-by-id")]
@@ -123,7 +127,7 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpGet]
         public async Task<IActionResult> RunFundingStreams()
         {
-            return await _specService.GetFundingStreams();
+            return await _fundingService.GetFundingStreams();
         }
 
         [Route("api/specs/policy-by-name")]
@@ -193,14 +197,14 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpGet]
         public async Task<IActionResult> RunGetFundingStreams()
         {
-            return await _specService.GetFundingStreams();
+            return await _fundingService.GetFundingStreams();
         }
 
         [Route("api/specs/get-fundingstream-by-id")]
         [HttpGet]
         public async Task<IActionResult> RunGetFundingStreamById()
         {
-            return await _specService.GetFundingStreamById(ControllerContext.HttpContext.Request);
+            return await _fundingService.GetFundingStreamById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/get-fundingstreams-for-specification")]
@@ -235,28 +239,28 @@ namespace CalculateFunding.Api.Specs.Controllers
         [HttpPost]
         public async Task<IActionResult> RunSaveFundingStreamn()
         {
-            return await _specService.SaveFundingStream(ControllerContext.HttpContext.Request);
+            return await _fundingService.SaveFundingStream(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/get-fundingperiods")]
         [HttpGet]
         public async Task<IActionResult> RunGetFundingPeriods()
         {
-            return await _specService.GetFundingPeriods(ControllerContext.HttpContext.Request);
+            return await _fundingService.GetFundingPeriods(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/get-fundingperiod-by-id")]
         [HttpGet]
         public async Task<IActionResult> RunGetFundingPeriodById()
         {
-            return await _specService.GetFundingPeriodById(ControllerContext.HttpContext.Request);
+            return await _fundingService.GetFundingPeriodById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/save-fundingperiods")]
         [HttpPost]
         public async Task<IActionResult> RunSaveFundingPeriods()
         {
-            return await _specService.SaveFundingPeriods(ControllerContext.HttpContext.Request);
+            return await _fundingService.SaveFundingPeriods(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications-by-fundingperiod-and-fundingstream")]

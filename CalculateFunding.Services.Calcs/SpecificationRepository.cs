@@ -57,5 +57,12 @@ namespace CalculateFunding.Services.Calcs
 
             return await _apiClient.PostAsync(url);
         }
+
+        public async Task<IEnumerable<SpecificationSummary>> GetAllSpecificationSummaries()
+        {
+            string url = "specs/specification-summaries";
+
+            return await _apiClient.GetAsync<IEnumerable<SpecificationSummary>>(url);
+        }
     }
 }

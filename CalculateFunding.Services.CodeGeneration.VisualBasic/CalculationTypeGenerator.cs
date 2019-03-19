@@ -1,64 +1,71 @@
-﻿using CalculateFunding.Models.Calcs;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using CalculateFunding.Models.Calcs;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.VisualBasic;
+using Microsoft.CodeAnalysis.VisualBasic.Syntax;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class CalculationTypeGenerator : VisualBasicTypeGenerator
     {
-        public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject, IEnumerable<Calculation> calculations)
-        {
-            var syntaxTree = SyntaxFactory.CompilationUnit()
-                .WithImports(StandardImports())
-                
-                .WithMembers(SyntaxFactory.SingletonList<StatementSyntax>(
-            SyntaxFactory.ClassBlock(
-                SyntaxFactory.ClassStatement(
-                        GenerateIdentifier("Calculations")
-                    )
-                    
-                    .WithModifiers(
-                        SyntaxFactory.TokenList(
-                            SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("BaseCalculation"))),
-                new SyntaxList<ImplementsStatementSyntax>(),
-                SyntaxFactory.List(Methods(buildProject, calculations)),
-                SyntaxFactory.EndClassStatement()
-            )
-  
-                    ))
-                .NormalizeWhitespace();
+        private readonly bool _useSourceCodeNameForCalculations;
 
-            yield return new SourceFile {FileName = "Calculations.vb", SourceCode = syntaxTree.ToFullString()};
+        public CalculationTypeGenerator(bool useSourceCodeNameForCalculations)
+        {
+            _useSourceCodeNameForCalculations = useSourceCodeNameForCalculations;
         }
 
-        private static IEnumerable<StatementSyntax> Methods(BuildProject buildProject, IEnumerable<Calculation> calculations)
+        public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
+            CompilationUnitSyntax syntaxTree = SyntaxFactory.CompilationUnit()
+                .WithImports(StandardImports())
 
-            yield return GetDatasetProperties();
-            yield return GetProviderProperties();
+                .WithMembers(SyntaxFactory.SingletonList<StatementSyntax>(
+                    SyntaxFactory.ClassBlock(
+                        SyntaxFactory.ClassStatement(
+                            GenerateIdentifier("Calculations")
+                        )
+
+                        .WithModifiers(
+                            SyntaxFactory.TokenList(
+                                SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
+                        SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("BaseCalculation"))),
+                            new SyntaxList<ImplementsStatementSyntax>(),
+                            SyntaxFactory.List(CreateMethods(buildProject, calculations)),
+                            SyntaxFactory.EndClassStatement()
+                    )
+
+                ))
+                .NormalizeWhitespace();
+
+            yield return new SourceFile { FileName = "Calculations.vb", SourceCode = syntaxTree.ToFullString() };
+        }
+
+        private IEnumerable<StatementSyntax> CreateMethods(BuildProject buildProject, IEnumerable<Calculation> calculations)
+        {
+            yield return CreateDatasetProperties();
+            yield return CreateProviderProperties();
 
             if (calculations != null)
             {
-                foreach (var calc in calculations)
+                foreach (Calculation calc in calculations)
                 {
-                    yield return GetFunc(calc);
+                    yield return CreateCalculationVariables(calc);
                 }
 
-                yield return GetMainMethod(calculations);
+                yield return CreateMainMethod(calculations);
             }
         }
 
-        private static StatementSyntax GetFunc(Calculation calc)
+        private StatementSyntax CreateCalculationVariables(Calculation calc)
         {
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
 
+            // Add attributes to describe calculation and calculation specification
             builder.AppendLine($"<Calculation(Id := \"{calc.Id}\", Name := \"{calc.Name}\")>");
             if (calc.CalculationSpecification != null)
             {
@@ -67,17 +74,20 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             if (calc.AllocationLine != null)
             {
+                // Add attribute for allocation line
                 builder.AppendLine($"<AllocationLine(Id := \"{calc.AllocationLine.Id}\", Name := \"{calc.AllocationLine.Name}\")>");
             }
 
             if (calc.Policies != null)
             {
-                foreach (var policySpecification in calc.Policies)
+                // Add attributes for policies
+                foreach (Common.Models.Reference policySpecification in calc.Policies)
                 {
                     builder.AppendLine($"<PolicySpecification(Id := \"{policySpecification.Id}\", Name := \"{policySpecification.Name}\")>");
                 }
             }
 
+            // Add attribute for calculation description
             if (!string.IsNullOrWhiteSpace(calc.Description))
             {
                 builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"", "\"\"")}\")>");
@@ -88,13 +98,18 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 calc.Current.SourceCode = QuoteAggregateFunctionCalls(calc.Current.SourceCode);
             }
 
-            builder.AppendLine($"Dim {GenerateIdentifier(calc.Name)} As Func(Of decimal?) = nothing");
-            
-            builder.AppendLine();
+            if (_useSourceCodeNameForCalculations)
+            {
+                builder.AppendLine($"Dim {calc.SourceCodeName} As Func(Of decimal?) = nothing");
 
-            builder.AppendLine($"Dim {GenerateIdentifier(calc.Name)} As Func(Of decimal?) = nothing");
-            
-            builder.AppendLine();
+                builder.AppendLine();
+            }
+            else
+            {
+                builder.AppendLine($"Dim {GenerateIdentifier(calc.Name)} As Func(Of decimal?) = nothing");
+
+                builder.AppendLine();
+            }
 
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
 
@@ -103,9 +118,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 .FirstOrDefault();
         }
 
-        private static StatementSyntax GetMainMethod(IEnumerable<Calculation> calcs)
+        private StatementSyntax CreateMainMethod(IEnumerable<Calculation> calcs)
         {
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
 
             builder.AppendLine();
             builder.AppendLine($"Public Function MainCalc As Dictionary(Of String, String())");
@@ -113,9 +128,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
          
             builder.AppendLine("Dim dictionary as new Dictionary(Of String, String())");
 
-            foreach (var calc in calcs)
+            foreach (Calculation calc in calcs)
             {
-                builder.AppendLine($"{GenerateIdentifier(calc.Name)} = Function() As decimal?");
+                if (_useSourceCodeNameForCalculations)
+                {
+                    builder.AppendLine($"{calc.SourceCodeName} = Function() As decimal?");
+                }
+                else
+                {
+                    builder.AppendLine($"{GenerateIdentifier(calc.Name)} = Function() As decimal?");
+                }
                 builder.AppendLine($"If dictionary.ContainsKey(\"{calc.Id}\") Then");
                 builder.AppendLine($"   dim resOut as Decimal");
                 builder.AppendLine($"   dim item as string = dictionary.Item(\"{calc.Id}\")(0)");
@@ -141,16 +163,25 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             builder.AppendLine();
 
-            foreach (var calc in calcs)
+            foreach (Calculation calc in calcs)
             {
                 builder.AppendLine("Try");
-                builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {GenerateIdentifier(calc.Name)}()");
+
+                if (_useSourceCodeNameForCalculations)
+                {
+                    builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {calc.SourceCodeName}()");
+                }
+                else
+                {
+                    builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {GenerateIdentifier(calc.Name)}()");
+                }
+
                 builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\"),\"\", \"\"}})");
                 builder.AppendLine("Catch ex as System.Exception");
                 builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
                 builder.AppendLine("End Try");
             }
-            
+
             builder.AppendLine("return dictionary");
             builder.AppendLine("End Function");
             builder.AppendLine();
@@ -160,16 +191,15 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                .FirstOrDefault();
         }
 
-
-        private static StatementSyntax GetDatasetProperties()
+        private static StatementSyntax CreateDatasetProperties()
         {
             return SyntaxFactory.PropertyStatement(GenerateIdentifier("Datasets"))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-	            .WithAsClause(
-		            SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Datasets"))));
-		}
+                .WithAsClause(
+                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Datasets"))));
+        }
 
-        private static StatementSyntax GetProviderProperties()
+        private static StatementSyntax CreateProviderProperties()
         {
             return SyntaxFactory.PropertyStatement(GenerateIdentifier("Provider"))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))

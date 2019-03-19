@@ -6,6 +6,8 @@ namespace CalculateFunding.Services.Core.Interfaces.Proxies
 {
     public interface IApiClientProxy
     {
+        Task<HttpStatusCode> GetAsync(string url);
+
         Task<T> GetAsync<T>(string url);
 
         Task<HttpStatusCode> PostAsync<TRequest>(string url, TRequest request, UserProfile userProfile = null);

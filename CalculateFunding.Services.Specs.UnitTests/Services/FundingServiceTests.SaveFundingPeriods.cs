@@ -16,22 +16,22 @@ using Serilog;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
-    public partial class SpecificationsServiceTests
+    public partial class FundingServiceTests
     {
         [TestMethod]
         async public Task SaveFundingPeriods_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
         {
-            //Arrange
+            // Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(logs: logger);
+            IFundingService fundingService = CreateService(logger: logger);
 
-            //Act
-            IActionResult result = await service.SaveFundingPeriods(request);
+            // Act
+            IActionResult result = await fundingService.SaveFundingPeriods(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         async public Task SaveFundingPeriods_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
         {
-            //Arrange
+            // Arrange
             IHeaderDictionary headerDictionary = new HeaderDictionary();
             headerDictionary
                 .Add("yaml-file", new StringValues(yamlFile));
@@ -56,12 +56,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(logs: logger);
+            IFundingService fundingService = CreateService(logger: logger);
 
-            //Act
-            IActionResult result = await service.SaveFundingPeriods(request);
+            // Act
+            IActionResult result = await fundingService.SaveFundingPeriods(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         async public Task SaveFundingPeriods_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
         {
-            //Arrange
+            // Arrange
             string yaml = "invalid yaml";
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -94,12 +94,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(logs: logger);
+            IFundingService fundingService = CreateService(logger: logger);
 
-            //Act
-            IActionResult result = await service.SaveFundingPeriods(request);
+            // Act
+            IActionResult result = await fundingService.SaveFundingPeriods(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<BadRequestObjectResult>();
@@ -112,7 +112,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         async public Task SaveFundingPeriods_GivenValidYamlButSavingToDatabaseThrowsException_ReturnsInternalServerError()
         {
-            //Arrange
+            // Arrange
             string yaml = CreateRawFundingPeriods();
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -137,12 +137,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .When(x => x.SavePeriods(Arg.Any<Period[]>()))
                 .Do(x => { throw new Exception(); });
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            IFundingService fundingService = CreateService(logger: logger, specificationsRepository: specificationsRepository);
 
-            //Act
-            IActionResult result = await service.SaveFundingPeriods(request);
+            // Act
+            IActionResult result = await fundingService.SaveFundingPeriods(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<StatusCodeResult>();
@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         async public Task SaveFundingPeriods_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
         {
-            //Arrange
+            // Arrange
             string yaml = CreateRawFundingPeriods();
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
@@ -185,12 +185,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+            IFundingService fundingService = CreateService(logger: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
-            //Act
-            IActionResult result = await service.SaveFundingPeriods(request);
+            // Act
+            IActionResult result = await fundingService.SaveFundingPeriods(request);
 
-            //Assert
+            // Assert
             result
                 .Should()
                 .BeOfType<OkResult>();
@@ -203,6 +203,31 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 cacheProvider
                 .Received(1)
                 .SetAsync<Period[]>(Arg.Is(CacheKeys.FundingPeriods), Arg.Any<Period[]>(), Arg.Any<TimeSpan>(), Arg.Is(true));
+        }
+
+        protected string CreateRawFundingPeriods()
+        {
+            StringBuilder yaml = new StringBuilder();
+
+            yaml.AppendLine(@"fundingPeriods:");
+            yaml.AppendLine(@"- id: AY2017181");
+            yaml.AppendLine(@"  name: Academic 2017/18");
+            yaml.AppendLine(@"  startDate: 09/01/2017 00:00:00");
+            yaml.AppendLine(@"  endDate: 08/31/2018 00:00:00");
+            yaml.AppendLine(@"- id: AY2018191");
+            yaml.AppendLine(@"  name: Academic 2018/19");
+            yaml.AppendLine(@"  startDate: 09/01/2018 00:00:00");
+            yaml.AppendLine(@"  endDate: 08/31/2019 00:00:00");
+            yaml.AppendLine(@"- id: FY2017181");
+            yaml.AppendLine(@"  name: Financial 2017/18");
+            yaml.AppendLine(@"  startDate: 04/01/2017 00:00:00");
+            yaml.AppendLine(@"  endDate: 03/31/2018 00:00:00");
+            yaml.AppendLine(@"- id: AY2018191");
+            yaml.AppendLine(@"  name: Financial 2018/19");
+            yaml.AppendLine(@"  startDate: 04/01/2018 00:00:00");
+            yaml.AppendLine(@"  endDate: 03/31/2019 00:00:00");
+
+            return yaml.ToString();
         }
     }
 }

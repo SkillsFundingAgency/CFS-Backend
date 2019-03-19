@@ -13,13 +13,12 @@ using NSubstitute;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
-    public partial class SpecificationsServiceTests
+    public partial class FundingServiceTests
     {
-
         [TestMethod]
         public async Task GetFundingPeriods_GivenFundingPeriodsInCache_ReturnsFromCache()
         {
-            //Arrange
+            // Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
 
             Period[] fundingPeriods = {
@@ -34,11 +33,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+            IFundingService fundingService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
-            //Act
-            IActionResult result = await specificationsService.GetFundingPeriods(request);
+            // Act
+            IActionResult result = await fundingService.GetFundingPeriods(request);
 
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingPeriods_GivenFundingPeriodsNotInCacheAndFailedToGetFromCosomos_ReturnsInternalServerError()
         {
-            //Arrange
+            // Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -62,11 +62,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+            IFundingService fundingService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
-            //Act
-            IActionResult result = await specificationsService.GetFundingPeriods(request);
+            // Act
+            IActionResult result = await fundingService.GetFundingPeriods(request);
 
+            // Assert
             result
                 .Should()
                 .BeOfType<InternalServerErrorResult>();
@@ -80,7 +81,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         [TestMethod]
         public async Task GetFundingPeriods_GivenFundingPeriodsNotInCacheButGetsFromCosmos_ReturnsFundingPeriods()
         {
-            //Arrange
+            // Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
 
             Period[] fundingPeriods = {
@@ -98,11 +99,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetPeriods()
                 .Returns(fundingPeriods);
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+            IFundingService fundingService = CreateService(specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
-            //Act
-            IActionResult result = await specificationsService.GetFundingPeriods(request);
+            // Act
+            IActionResult result = await fundingService.GetFundingPeriods(request);
 
+            // Assert
             result
                 .Should()
                 .BeOfType<OkObjectResult>();

@@ -322,7 +322,7 @@ namespace CalculateFunding.Api.External
                 return settings;
             });
 
-            builder.AddSingleton<ISpecificationsService, SpecificationsService>();
+            builder.AddSingleton<IFundingService, FundingService>();
             builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();

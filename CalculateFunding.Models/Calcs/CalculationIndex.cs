@@ -78,5 +78,9 @@ namespace CalculateFunding.Models.Calcs
         [IsFilterable, IsFacetable, IsSearchable]
         [JsonProperty("calculationType")]
         public string CalculationType { get; set; }
+
+        [IsSearchable]
+        [JsonProperty("sourceCodeName")]
+        public string SourceCodeName { get; set; }
     }
 }

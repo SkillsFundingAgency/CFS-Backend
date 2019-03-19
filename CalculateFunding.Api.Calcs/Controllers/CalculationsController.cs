@@ -160,5 +160,19 @@ namespace CalculateFunding.Api.Calcs.Controllers
         {
             return _buildProjectsService.GetAssemblyBySpecificationId(specificationId);
         }
+
+        [Route("api/calcs/validate-calc-name/{specificationId}/{calculationName}/{existingCalculationId?}")]
+        [HttpGet]
+        public async Task<IActionResult> ValidationCalculationName(string specificationId, string calculationName, string existingCalculationId)
+        {
+            return await _calcsService.IsCalcuationNameValid(specificationId, calculationName, existingCalculationId);
+        }
+
+        [Route("api/calcs/duplicate-calc-names-migration")]
+        [HttpGet]
+        public async Task<IActionResult> DuplicateCalcNamesMigration()
+        {
+            return await _calcsService.DuplicateCalcNamesMigration();
+        }
     }
 }

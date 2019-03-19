@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -15,11 +16,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
     [TestClass]
     public class CalculationCreateModelValidatorTests
     {
-        static string specificationId = Guid.NewGuid().ToString();
-        static string allocationLineid = Guid.NewGuid().ToString();
-        static string policyId = Guid.NewGuid().ToString();
-        static string description = "A test description";
-        static string name = "A test name";
+        private static string specificationId = Guid.NewGuid().ToString();
+        private static string allocationLineid = Guid.NewGuid().ToString();
+        private static string policyId = Guid.NewGuid().ToString();
+        private const string description = "A test description";
+        private const string name = "A test name";
 
         [TestMethod]
         public void Validate_GivenEmptySpecificationId_ValidIsFalse()
@@ -237,6 +238,50 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             ValidationResult result = validator.Validate(model);
 
             //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenNameAlreadyExists_AndCheckDuplicateFeatureToggleSet_ValidIsFalse()
+        {
+            // Arrange
+            CalculationCreateModel model = CreateModel();
+
+            ISpecificationsRepository specsRepository = CreateSpecificationsRepository(true);
+            Specification specification = new Specification()
+            {
+                Current = new SpecificationVersion() { }
+            };
+
+            specsRepository
+                .GetSpecificationById(specificationId)
+                .Returns(specification);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .IsCalculationNameValid(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(false);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDuplicateCalculationNameCheckEnabled()
+                .Returns(true);
+
+            CalculationCreateModelValidator validator = CreateValidator(specsRepository, calculationsRepository, featureToggle);
+
+            // Act
+            ValidationResult result = validator.Validate(model);
+
+            // Assert
             result
                 .IsValid
                 .Should()
@@ -1009,9 +1054,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return repository;
         }
 
-        static CalculationCreateModelValidator CreateValidator(ISpecificationsRepository repository = null)
+        private static CalculationCreateModelValidator CreateValidator(ISpecificationsRepository specsRepository = null, ICalculationsRepository calculationsRepository = null, IFeatureToggle featureToggle = null)
         {
-            return new CalculationCreateModelValidator(repository ?? CreateSpecificationsRepository());
+            return new CalculationCreateModelValidator(specsRepository ?? CreateSpecificationsRepository(), calculationsRepository ?? CreateCalculationsRepository(), featureToggle ?? CreateFeatureToggle());
+        }
+
+        private static ICalculationsRepository CreateCalculationsRepository()
+        {
+            return Substitute.For<ICalculationsRepository>();
+        }
+
+        private static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
     }
 }

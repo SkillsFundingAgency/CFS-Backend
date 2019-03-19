@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
@@ -23,7 +25,7 @@ namespace CalculateFunding.Services.Calcs.Services
         const string CalculationId = "3abc2782-e8cb-4643-8803-951d715fci23";
         const string Username = "test-user";
 
-        static CalculationService CreateCalculationService(
+        private static CalculationService CreateCalculationService(
             ICalculationsRepository calculationsRepository = null,
             ILogger logger = null,
             ITelemetry telemetry = null,
@@ -35,7 +37,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalcsResilliencePolicies resilliencePolicies = null,
             IVersionRepository<CalculationVersion> calculationVersionRepository = null,
             IJobsApiClient jobsApiClient = null,
-            ISourceCodeService sourceCodeService = null)
+            ISourceCodeService sourceCodeService = null,
+            IFeatureToggle featureToggle = null)
         {
             return new CalculationService
                 (calculationsRepository ?? CreateCalculationsRepository(),
@@ -49,55 +52,61 @@ namespace CalculateFunding.Services.Calcs.Services
                 resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 calculationVersionRepository ?? CreateCalculationVersionRepository(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                sourceCodeService ?? CreateSourceCodeService());
+                sourceCodeService ?? CreateSourceCodeService(),
+                featureToggle ?? CreateFeatureToggle());
         }
 
-        static ISourceCodeService CreateSourceCodeService()
+        private static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
+        }
+
+        private static ISourceCodeService CreateSourceCodeService()
         {
             return Substitute.For<ISourceCodeService>();
         }
 
-        static IJobsApiClient CreateJobsApiClient()
+        private static IJobsApiClient CreateJobsApiClient()
         {
             return Substitute.For<IJobsApiClient>();
         }
 
-        static IVersionRepository<CalculationVersion> CreateCalculationVersionRepository()
+        private static IVersionRepository<CalculationVersion> CreateCalculationVersionRepository()
         {
             return Substitute.For<IVersionRepository<CalculationVersion>>();
         }
 
-        static ICalculationsRepository CreateCalculationsRepository()
+        private static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
         }
 
-        static IBuildProjectsRepository CreateBuildProjectsRepository()
+        private static IBuildProjectsRepository CreateBuildProjectsRepository()
         {
             return Substitute.For<IBuildProjectsRepository>();
         }
 
-        static ILogger CreateLogger()
+        private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
 
-        static ITelemetry CreateTelemetry()
+        private static ITelemetry CreateTelemetry()
         {
             return Substitute.For<ITelemetry>();
         }
 
-        static ISearchRepository<CalculationIndex> CreateSearchRepository()
+        private static ISearchRepository<CalculationIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<CalculationIndex>>();
         }
 
-        static ISpecificationRepository CreateSpecificationRepository()
+        private static ISpecificationRepository CreateSpecificationRepository()
         {
             return Substitute.For<ISpecificationRepository>();
         }
 
-        static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
+        private static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
             {
@@ -113,12 +122,12 @@ namespace CalculateFunding.Services.Calcs.Services
             return validator;
         }
 
-        static ICacheProvider CreateCacheProvider()
+        private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
         }
 
-        static Calculation CreateCalculation()
+        private static Calculation CreateCalculation()
         {
             return new Calculation
             {

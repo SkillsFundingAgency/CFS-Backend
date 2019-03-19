@@ -4,8 +4,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Users;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Core.Options;
@@ -59,12 +59,23 @@ namespace CalculateFunding.Services.Core.Proxies
             _logger = logger;
         }
 
+        public async Task<HttpStatusCode> GetAsync(string url)
+        {
+            Guard.IsNullOrWhiteSpace(url, nameof(url));
+
+            HttpResponseMessage response = await _httpClient.GetAsync(url);
+
+            if (response == null)
+            {
+                throw new HttpRequestException($"Unable to connect to server. Url={_httpClient.BaseAddress.AbsoluteUri}{url}");
+            }
+
+            return response.StatusCode;
+        }
+
         public async Task<T> GetAsync<T>(string url)
         {
-            if (string.IsNullOrWhiteSpace(url))
-            {
-                throw new ArgumentException(nameof(url));
-            }
+            Guard.IsNullOrWhiteSpace(url, nameof(url));
 
             HttpResponseMessage response = await _httpClient.GetAsync(url);
 
@@ -84,14 +95,11 @@ namespace CalculateFunding.Services.Core.Proxies
 
         public async Task<HttpStatusCode> PostAsync<TRequest>(string url, TRequest request, UserProfile userProfile = null)
         {
-            if (url == null)
-            {
-                throw new ArgumentNullException(nameof(url));
-            }
+            Guard.IsNullOrWhiteSpace(url, nameof(url));
 
             string json = JsonConvert.SerializeObject(request, _serializerSettings);
 
-            var postRequest = new HttpRequestMessage(HttpMethod.Post, url)
+            HttpRequestMessage postRequest = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
@@ -114,14 +122,11 @@ namespace CalculateFunding.Services.Core.Proxies
 
         public async Task<TResponse> PostAsync<TResponse, TRequest>(string url, TRequest request, UserProfile userProfile = null)
         {
-            if (url == null)
-            {
-                throw new ArgumentNullException(nameof(url));
-            }
+            Guard.IsNullOrWhiteSpace(url, nameof(url));
 
-            var json = JsonConvert.SerializeObject(request, _serializerSettings);
+            string json = JsonConvert.SerializeObject(request, _serializerSettings);
 
-            var postRequest = new HttpRequestMessage(HttpMethod.Post, url)
+            HttpRequestMessage postRequest = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = new StringContent(json, Encoding.UTF8, "application/json"),
             };
@@ -150,12 +155,9 @@ namespace CalculateFunding.Services.Core.Proxies
 
         public async Task<HttpStatusCode> PostAsync(string url, UserProfile userProfile = null)
         {
-            if (url == null)
-            {
-                throw new ArgumentNullException(nameof(url));
-            }
+            Guard.IsNullOrWhiteSpace(url, nameof(url));
 
-            var postRequest = new HttpRequestMessage(HttpMethod.Post, url);
+            HttpRequestMessage postRequest = new HttpRequestMessage(HttpMethod.Post, url);
 
             if (userProfile != null)
             {

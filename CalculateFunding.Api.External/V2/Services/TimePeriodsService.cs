@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Api.External.V2.Interfaces;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,19 +11,22 @@ namespace CalculateFunding.Api.External.V2.Services
 {
     public class TimePeriodsService : ITimePeriodsService
     {
-        private readonly ISpecificationsService _specificationsService;
+        private readonly IFundingService _fundingService;
         private readonly IMapper _mapper;
 
-        public TimePeriodsService(ISpecificationsService specificationsService, IMapper mapper)
+        public TimePeriodsService(IFundingService fundingService, IMapper mapper)
         {
-            _specificationsService = specificationsService;
+            Guard.ArgumentNotNull(fundingService, nameof(fundingService));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
+
+            _fundingService = fundingService;
             _mapper = mapper;
         }
 
 
         public async Task<IActionResult> GetFundingPeriods(HttpRequest request)
         {
-            IActionResult actionResult = await _specificationsService.GetFundingPeriods(request);
+            IActionResult actionResult = await _fundingService.GetFundingPeriods(request);
 
             if (actionResult is OkObjectResult okObjectResult)
             {

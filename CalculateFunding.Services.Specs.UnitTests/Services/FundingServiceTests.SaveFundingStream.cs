@@ -19,8 +19,10 @@ using Serilog;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
-    public partial class SpecificationsServiceTests
+    public partial class FundingServiceTests
     {
+        private const string yamlFile = "12345.yaml";
+
         [TestMethod]
         async public Task SaveFundingStream_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
         {
@@ -29,7 +31,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(logs: logger);
+            IFundingService service = CreateService(logger: logger);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -60,7 +62,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(logs: logger);
+            IFundingService service = CreateService(logger: logger);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -99,7 +101,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationsService service = CreateService(logs: logger);
+            IFundingService service = CreateService(logger: logger);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -145,7 +147,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .SaveFundingStream(Arg.Any<FundingStream>())
                 .Returns(failedCode);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            IFundingService service = CreateService(logger: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -195,7 +197,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .When(x => x.SaveFundingStream(Arg.Any<FundingStream>()))
                 .Do(x => { throw new Exception(); });
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            IFundingService service = CreateService(logger: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -247,7 +249,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .SaveFundingStream(Arg.Any<FundingStream>())
                 .Returns(statusCode);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            IFundingService service = CreateService(logger: logger, specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -323,7 +325,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .KeyExists<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
                 .Returns(true);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+            IFundingService service = CreateService(logger: logger, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await service.SaveFundingStream(request);
@@ -344,6 +346,31 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             await cacheProvider
                 .Received(1)
                 .KeyDeleteAsync<FundingStream[]>(CacheKeys.AllFundingStreams);
+        }
+
+        protected string CreateRawFundingStream()
+        {
+            StringBuilder yaml = new StringBuilder();
+
+            yaml.AppendLine(@"id: YPLRE");
+            yaml.AppendLine(@"name: School Budget Share");
+            yaml.AppendLine(@"allocationLines:");
+            yaml.AppendLine(@"- id: YPE01");
+            yaml.AppendLine(@"  name: School Budget Share");
+            yaml.AppendLine(@"- id: YPE02");
+            yaml.AppendLine(@"  name: Education Services Grant");
+            yaml.AppendLine(@"- id: YPE03");
+            yaml.AppendLine(@"  name: Insurance");
+            yaml.AppendLine(@"- id: YPE04");
+            yaml.AppendLine(@"  name: Teacher Threshold");
+            yaml.AppendLine(@"- id: YPE05");
+            yaml.AppendLine(@"  name: Mainstreamed Grants");
+            yaml.AppendLine(@"- id: YPE06");
+            yaml.AppendLine(@"  name: Start Up Grant Part a");
+            yaml.AppendLine(@"- id: YPE07");
+            yaml.AppendLine(@"  name: Start Up Grant Part b Formulaic");
+
+            return yaml.ToString();
         }
     }
 }

@@ -234,6 +234,19 @@
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null
+		},
+		{
+			"name": "sourceCodeName",
+			"type": "Edm.String",
+			"key": false,
+			"facetable": false,
+			"filterable": false,
+			"retrievable": true,
+			"searchable": true,
+			"sortable": false,
+			"analyzer": null,
+			"searchAnalyzer": null,
+			"indexAnalyzer": null
 		}
 	],
 	"scoringProfiles": [],

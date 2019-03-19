@@ -50,10 +50,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 fundingPeriod2
             });
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
-            mockSpecificationsService.GetFundingPeriods(Arg.Any<HttpRequest>()).Returns(specServiceOkObjectResult);
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
+            mockFundingService.GetFundingPeriods(Arg.Any<HttpRequest>()).Returns(specServiceOkObjectResult);
 
-            TimePeriodsService serviceUnderTest = new TimePeriodsService(mockSpecificationsService, mapper);
+            TimePeriodsService serviceUnderTest = new TimePeriodsService(mockFundingService, mapper);
 
             // Act
             IActionResult result = await serviceUnderTest.GetFundingPeriods(Substitute.For<HttpRequest>());
@@ -94,10 +94,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             // Arrange
             IMapper mockMapper = Substitute.For<IMapper>();
 
-            ISpecificationsService mockSpecificationsService = Substitute.For<ISpecificationsService>();
-            mockSpecificationsService.GetFundingPeriods(Arg.Any<HttpRequest>()).Returns(new InternalServerErrorResult("Doesn't matter message`"));
+            IFundingService mockFundingService = Substitute.For<IFundingService>();
+            mockFundingService.GetFundingPeriods(Arg.Any<HttpRequest>()).Returns(new InternalServerErrorResult("Doesn't matter message`"));
 
-            TimePeriodsService serviceUnderTest = new TimePeriodsService(mockSpecificationsService, mockMapper);
+            TimePeriodsService serviceUnderTest = new TimePeriodsService(mockFundingService, mockMapper);
 
             // Act
             IActionResult result = await serviceUnderTest.GetFundingPeriods(Substitute.For<HttpRequest>());

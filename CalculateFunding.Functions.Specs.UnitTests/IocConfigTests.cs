@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Functions.Specs.UnitTests
 {
@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.Specs.UnitTests
             IConfigurationRoot configuration = CreateTestConfiguration();
 
             // Act
-            using (var scope = IocConfig.Build(configuration).CreateScope())
+            using (IServiceScope scope = IocConfig.Build(configuration).CreateScope())
             {
                 // Assert
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
@@ -30,7 +30,7 @@ namespace CalculateFunding.Functions.Specs.UnitTests
 
         protected override Dictionary<string, string> AddToConfiguration()
         {
-            var configData = new Dictionary<string, string>
+            Dictionary<string, string> configData = new Dictionary<string, string>
             {
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
@@ -40,7 +40,9 @@ namespace CalculateFunding.Functions.Specs.UnitTests
                 { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
                 { "specificationsClient:ApiKey", "Local" },
                 { "resultsClient:ApiEndpoint", "https://localhost:7005/api/" },
-                { "resultsClient:ApiKey", "Local" }
+                { "resultsClient:ApiKey", "Local" },
+                { "calcsClient:ApiEndpoint", "https://localhost:7002/api" },
+                { "calcsClient:ApiKey", "Local" }
             };
 
             return configData;

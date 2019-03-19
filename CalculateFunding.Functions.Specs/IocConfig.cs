@@ -54,6 +54,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
+            builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
             {
@@ -88,6 +89,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddCaching(config);
 
             builder.AddResultsInterServiceClient(config);
+            builder.AddCalcsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

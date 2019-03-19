@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1033,7 +1037,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenASpecificationHasNoFundingStreamsButAnAllocationLineHasChanged_ShouldThrowException()
+        public void UpdateCalculationsForCalculationSpecificationChange_GivenASpecificationHasNoFundingStreamsButAnAllocationLineHasChanged_ShouldThrowException()
         {
             //Arrange
             const string specificationId = "spec-id";
@@ -1137,10 +1141,369 @@ namespace CalculateFunding.Services.Calcs.Services
                     searchRepository: mockSearchRepository);
 
             //Act
-            Func<Task> updateCalculationsFunction = () => service.UpdateCalculationsForCalculationSpecificationChange(message);
+            Func<Task> updateCalculationsFunction = async () => await service.UpdateCalculationsForCalculationSpecificationChange(message);
 
             //Assert
-            Assert.ThrowsExceptionAsync<InvalidOperationException>(updateCalculationsFunction);
+            updateCalculationsFunction
+                .Should()
+                .ThrowExactly<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChange_AndDuplicateCalcFeatureToggleIsSet_UpdatesCalcSourceCodeName()
+        {
+            // Arrange
+            const string specificationId = "spec-id";
+
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
+            {
+                Current = new Models.Specs.Calculation
+                {
+                    Name = "new name",
+                    CalculationType = Models.Specs.CalculationType.Number
+                },
+                Previous = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    CalculationType = Models.Specs.CalculationType.Number
+                },
+                CalculationId = CalculationId,
+                SpecificationId = specificationId,
+            };
+
+            Models.Calcs.Calculation specCalculation = new Models.Calcs.Calculation
+            {
+                Name = "name",
+                AllocationLine = new Reference { Id = "1" },
+                CalculationType = Models.Calcs.CalculationType.Number,
+                Id = CalculationId,
+                FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
+                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Approved
+                },
+                CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
+                SpecificationId = specificationId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                Name = "spec name"
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationByCalculationSpecificationId(Arg.Is(CalculationId))
+                .Returns(specCalculation);
+
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Returns(build);
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDuplicateCalculationNameCheckEnabled()
+                .Returns(true);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                specificationRepository: specificationRepository, 
+                calculationsRepository: calculationsRepository,
+                searchRepository: searchRepository, 
+                sourceCodeService: sourceCodeService,
+                featureToggle: featureToggle);
+
+            // Act
+            await service.UpdateCalculationsForCalculationSpecificationChange(message);
+
+            // Assert
+            await calculationsRepository
+                .Received(1)
+                .UpdateCalculations(Arg.Is<IEnumerable<Models.Calcs.Calculation>>(m => m.Count() == 1 && m.First().SourceCodeName == "NewName"));
+
+            await searchRepository
+                .Received(1)
+                .Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.Count() == 1 && m.First().SourceCodeName == "NewName"));
+        }
+
+        [TestMethod]
+        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChange_AndDuplicateCalcFeatureToggleIsSet_UpdatesReferencesInSourceCode()
+        {
+            // Arrange
+            const string specificationId = "spec-id";
+
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
+            {
+                Current = new Models.Specs.Calculation
+                {
+                    Name = "new test calc",
+                    CalculationType = Models.Specs.CalculationType.Number
+                },
+                Previous = new Models.Specs.Calculation
+                {
+                    Name = "test calc",
+                    CalculationType = Models.Specs.CalculationType.Number
+                },
+                CalculationId = CalculationId,
+                SpecificationId = specificationId,
+            };
+
+            Models.Calcs.Calculation specCalculation = new Models.Calcs.Calculation
+            {
+                Name = "name",
+                CalculationType = Models.Calcs.CalculationType.Number,
+                Id = CalculationId,
+                FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
+                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Approved
+                },
+                CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
+                SpecificationId = specificationId,
+                SourceCodeName = "TestCalc"
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                Name = "spec name"
+            };
+
+            IEnumerable<Models.Calcs.Calculation> allCalcSpecs = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Name = "noreference",
+                    SpecificationId = specificationId,
+                    CalculationSpecification = new Reference { Id = "calc1", Name = "noreference" },
+                    FundingPeriod = new Reference { Id = "fp1", Name = "FP One" },
+                    Policies = new List<Reference>(),
+                    Current = new CalculationVersion { SourceCode = "return 10" } // No match
+                },
+                new Models.Calcs.Calculation
+                {
+                    Name = "areference",
+                    SpecificationId = specificationId,
+                    CalculationSpecification = new Reference { Id = "calc2", Name = "areference" },
+                    FundingPeriod = new Reference { Id = "fp1", Name = "FP One" },
+                    Policies = new List<Reference>(),
+                    Current = new CalculationVersion { SourceCode = "dim result as Decimal? = TestCalc()" } // A match
+                },
+                specCalculation
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationByCalculationSpecificationId(Arg.Is(CalculationId))
+                .Returns(specCalculation);
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(allCalcSpecs);
+            calculationsRepository
+                .UpdateCalculation(Arg.Any<Models.Calcs.Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IVersionRepository<CalculationVersion> calcVersionRepository = CreateCalculationVersionRepository();
+            calcVersionRepository
+                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
+                .Returns(v => Task.FromResult<CalculationVersion>((CalculationVersion)v[0]));
+
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Returns(build);
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDuplicateCalculationNameCheckEnabled()
+                .Returns(true);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                specificationRepository: specificationRepository,
+                calculationsRepository: calculationsRepository,
+                searchRepository: searchRepository,
+                sourceCodeService: sourceCodeService,
+                featureToggle: featureToggle,
+                calculationVersionRepository: calcVersionRepository);
+
+
+            IEnumerable<Models.Calcs.Calculation> resultsBeingSaved = null;
+            await calculationsRepository
+                .UpdateCalculations(Arg.Do<IEnumerable<Models.Calcs.Calculation>>(r => resultsBeingSaved = r));
+
+            // Act
+            await service.UpdateCalculationsForCalculationSpecificationChange(message);
+
+            // Assert
+            resultsBeingSaved
+                .Should()
+                .HaveCount(2);
+
+            resultsBeingSaved
+                .Should()
+                .Contain(r => r.Name == model.Current.Name);
+
+            resultsBeingSaved
+                .Should()
+                .NotContain(r => r.Name == "noreference");
+
+            resultsBeingSaved
+                .Should()
+                .Contain(r => r.Name == "areference")
+                .Which
+                .Current.SourceCode
+                .Should()
+                .Be("dim result as Decimal? = NewTestCalc()");
+        }
+
+        [TestMethod]
+        public void UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChange_AndDuplicateCalcFeatureToggleIsSet_AndNameIsDuplicate_ThrowsNonRetriableException()
+        {
+            // Arrange
+            const string specificationId = "spec-id";
+
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
+            {
+                Current = new Models.Specs.Calculation
+                {
+                    Name = "already exists",
+                    CalculationType = Models.Specs.CalculationType.Number
+                },
+                Previous = new Models.Specs.Calculation
+                {
+                    Name = "test calc",
+                    CalculationType = Models.Specs.CalculationType.Number
+                },
+                CalculationId = CalculationId,
+                SpecificationId = specificationId,
+            };
+
+            Models.Calcs.Calculation specCalculation = new Models.Calcs.Calculation
+            {
+                Name = "name",
+                CalculationType = Models.Calcs.CalculationType.Number,
+                Id = CalculationId,
+                FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
+                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Approved
+                },
+                CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
+                SpecificationId = specificationId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+
+            ILogger logger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Id = specificationId,
+                Name = "spec name"
+            };
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            IEnumerable<Models.Calcs.Calculation> allCalcSpecs = new List<Models.Calcs.Calculation>
+            {
+                new Models.Calcs.Calculation
+                {
+                    Name = "calc1",
+                    SourceCodeName = "AlreadyExists",
+                    CalculationSpecification = new Reference { Id = "calc-spec-1" }
+                }
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationByCalculationSpecificationId(Arg.Is(CalculationId))
+                .Returns(specCalculation);
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+                .Returns(allCalcSpecs);
+
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Returns(build);
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDuplicateCalculationNameCheckEnabled()
+                .Returns(true);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                specificationRepository: specificationRepository,
+                calculationsRepository: calculationsRepository,
+                searchRepository: searchRepository,
+                sourceCodeService: sourceCodeService,
+                featureToggle: featureToggle);
+
+            // Act
+            Func<Task> action = async () => await service.UpdateCalculationsForCalculationSpecificationChange(message);
+
+            // Assert
+            action
+                .Should()
+                .ThrowExactly<NonRetriableException>();
         }
     }
 }

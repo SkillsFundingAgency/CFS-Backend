@@ -238,20 +238,6 @@ namespace CalculateFunding.Services.Datasets
 
                     throw new Exception($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'", ex);
                 }
-
-                _telemetry.TrackEvent("InstructCalculationAllocationEventRun",
-                      new Dictionary<string, string>()
-                      {
-                            { "specificationId" , buildProject.SpecificationId },
-                            { "buildProjectId" , buildProject.Id },
-                            { "datasetId", dataset.Id }
-                      },
-                      new Dictionary<string, double>()
-                      {
-                            { "InstructCalculationAllocationEventRunDataset" , 1 },
-                            { "InstructCalculationAllocationEventRun" , 1 }
-                      }
-                );
             }
         }
 

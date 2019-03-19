@@ -43,5 +43,8 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("current")]
         public CalculationVersion Current { get; set; }
+
+        [JsonProperty("sourceCodeName")]
+        public string SourceCodeName { get; set; }
     }
 }

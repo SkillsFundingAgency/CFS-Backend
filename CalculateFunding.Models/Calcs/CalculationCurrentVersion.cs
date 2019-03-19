@@ -25,5 +25,7 @@ namespace CalculateFunding.Models.Calcs
         public string CalculationType { get; set; }
 
         public PublishStatus PublishStatus { get; set; }
+
+        public string SourceCodeName { get; set; }
     }
 }
