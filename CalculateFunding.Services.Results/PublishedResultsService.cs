@@ -1332,7 +1332,7 @@ namespace CalculateFunding.Services.Results
                         return new InternalServerErrorResult(ex.Message);
                     }
                 }
-               
+
             }
 
             return new NoContentResult();
@@ -1377,7 +1377,7 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-             return updatedResultsToIndex;
+            return updatedResultsToIndex;
         }
 
         private IEnumerable<PublishedProviderResultModel> MapPublishedProviderResultModels(IEnumerable<PublishedProviderResultByAllocationLineViewModel> publishedProviderResults)
@@ -2441,7 +2441,7 @@ namespace CalculateFunding.Services.Results
                     PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
                     ProviderSummary currentProvider = publishedAllocationLineResultVersion.Provider;
 
-                    feedIndex.Successors = currentProvider.Successor != null ? new[] { currentProvider.Successor } : null;
+                    feedIndex.Successors = !string.IsNullOrWhiteSpace(currentProvider.Successor) ? new[] { currentProvider.Successor } : null;
                     feedIndex.OpenReason = currentProvider.ReasonEstablishmentOpened;
                     feedIndex.CloseReason = currentProvider.ReasonEstablishmentClosed;
                     feedIndex.Predecessors = publishedAllocationLineResultVersion.Predecessors?.ToArray();
