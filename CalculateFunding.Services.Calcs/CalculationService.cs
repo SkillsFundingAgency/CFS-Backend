@@ -1205,6 +1205,7 @@ namespace CalculateFunding.Services.Calcs
                 foreach (Calculation calculation in allCalcs)
                 {
                     calculation.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculation.Name);
+                    await _calculationsRepository.UpdateCalculation(calculation);
 
                     SpecificationSummary specificationSummary = allSpecs.SingleOrDefault(s => s.Id == calculation.SpecificationId);
 
@@ -1220,9 +1221,6 @@ namespace CalculateFunding.Services.Calcs
                         _logger.Warning($"Could not find specification with id '{calculation.SpecificationId} for calculation '{calculation.Id} when performing migration for duplicate calc names.");
                     }
                 }
-
-                _logger.Information("Saving calcs for duplicate calc names migration");
-                await _calculationsRepository.UpdateCalculations(allCalcs);
 
                 return new OkResult();
             }
