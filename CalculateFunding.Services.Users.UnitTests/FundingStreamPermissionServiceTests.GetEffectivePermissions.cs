@@ -106,6 +106,7 @@ namespace CalculateFunding.Services.Users
                     CanCreateQaTests = false,
                     CanEditQaTests = false,
                     CanRefreshFunding = false,
+                    CanDeleteSpecification = false
                 });
 
             await cacheProvider
@@ -215,6 +216,7 @@ namespace CalculateFunding.Services.Users
                 CanCreateQaTests = false,
                 CanEditQaTests = false,
                 CanRefreshFunding = false,
+                CanDeleteSpecification = true
             };
 
             userRepository
@@ -250,6 +252,7 @@ namespace CalculateFunding.Services.Users
                     CanCreateQaTests = false,
                     CanEditQaTests = false,
                     CanRefreshFunding = false,
+                    CanDeleteSpecification = true
                 });
 
             await cacheProvider
@@ -274,6 +277,7 @@ namespace CalculateFunding.Services.Users
                         !p.CanCreateQaTests &&
                         !p.CanEditQaTests &&
                         !p.CanRefreshFunding &&
+                        p.CanDeleteSpecification &&
                         p.SpecificationId == SpecificationId &&
                         p.UserId == UserId
                         ));

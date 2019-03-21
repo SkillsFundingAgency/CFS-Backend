@@ -32,8 +32,14 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canApproveSpecification")]
         public bool CanApproveSpecification { get; set; }
 
+        [JsonProperty("canDeleteSpecification")]
+        public bool CanDeleteSpecification { get; set; }
+
         [JsonProperty("canEditCalculations")]
         public bool CanEditCalculations { get; set; }
+
+        [JsonProperty("canDeleteCalculations")]
+        public bool CanDeleteCalculations { get; set; }
 
         [JsonProperty("canMapDatasets")]
         public bool CanMapDatasets { get; set; }
@@ -56,6 +62,9 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canEditQaTests")]
         public bool CanEditQaTests { get; set; }
 
+        [JsonProperty("canDeleteQaTests")]
+        public bool CanDeleteQaTests { get; set; }
+
         public bool HasSamePermissions(FundingStreamPermission fundingStreamPermission)
         {
             return fundingStreamPermission.CanCreateSpecification == CanCreateSpecification &&
@@ -69,7 +78,9 @@ namespace CalculateFunding.Models.Users
                 fundingStreamPermission.CanAdministerFundingStream == CanAdministerFundingStream &&
                 fundingStreamPermission.CanCreateQaTests == CanCreateQaTests &&
                 fundingStreamPermission.CanEditQaTests == CanEditQaTests &&
-                fundingStreamPermission.CanApproveSpecification == CanApproveSpecification;
+                fundingStreamPermission.CanApproveSpecification == CanApproveSpecification &&
+                fundingStreamPermission.CanDeleteCalculations == CanDeleteCalculations &&
+                fundingStreamPermission.CanDeleteQaTests == CanDeleteQaTests;
         }
     }
 }
