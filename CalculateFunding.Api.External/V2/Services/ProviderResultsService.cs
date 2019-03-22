@@ -82,7 +82,7 @@ namespace CalculateFunding.Api.External.V2.Services
                 return new NotFoundResult();
             }
 
-            ProviderResultSummary providerResultSummary = CreateProviderResultSummary(entries, request);
+            ProviderResultSummary providerResultSummary = CreateProviderResultSummary(entries.OrderByDescending(o => o.AllocationVersionNumber).DistinctBy(m => m.AllocationLineId), request);
 
             return Formatter.ActionResult(request, providerResultSummary);
         }
@@ -137,7 +137,7 @@ namespace CalculateFunding.Api.External.V2.Services
                 return new NotFoundResult();
             }
 
-            ProviderResultSummary providerResultSummary = CreateProviderResultSummary(entries, request);
+            ProviderResultSummary providerResultSummary = CreateProviderResultSummary(entries.OrderByDescending(o => o.AllocationVersionNumber).DistinctBy(m => m.AllocationLineId), request);
 
             return Formatter.ActionResult(request, providerResultSummary);
         }
@@ -192,6 +192,8 @@ namespace CalculateFunding.Api.External.V2.Services
                 return new NotFoundResult();
             }
 
+            entries = entries.OrderByDescending(o => o.AllocationVersionNumber).DistinctBy(m => m.ProviderId);
+
             LocalAuthorityResultsSummary localAuthorityResultsSummary = CreateLocalAuthorityResultsSummary(entries, request);
 
             return Formatter.ActionResult(request, localAuthorityResultsSummary);
@@ -208,7 +210,7 @@ namespace CalculateFunding.Api.External.V2.Services
                 FundingPeriod = $"{firstEntry.FundingPeriodStartYear}-{firstEntry.FundingPeriodEndYear}"
             };
 
-            foreach (IGrouping<string, AllocationNotificationFeedIndex> localAuthorityResultSummaryGroup in localAuthorityResultSummaryGroups)
+            foreach (IGrouping<string, AllocationNotificationFeedIndex> localAuthorityResultSummaryGroup in localAuthorityResultSummaryGroups.ToList())
             {
                 AllocationNotificationFeedIndex firstFeedIndex = localAuthorityResultSummaryGroup.First();
 

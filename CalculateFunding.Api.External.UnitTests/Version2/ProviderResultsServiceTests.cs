@@ -1219,6 +1219,48 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
+        public async Task GetProviderResultsForFundingStreams_GivenValidResultsFoundFromSearchButOneProviderHasTwoVersions_EnsuresOneAllocationIsReturned()
+        {
+            //Arrange
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Headers.Returns(headerDictionary);
+
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                Entries = CreateFeedIndexesWithDuplicates()
+            };
+
+            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
+            searchService
+                .GetFeeds(Arg.Is(providerId), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            ProviderResultsService providerResultsService = CreateService(searchService);
+
+            //Act
+            IActionResult result = await providerResultsService.GetProviderResultsForFundingStreams(providerId, startYear, endYear, fundingStreamIds, httpRequest);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>()
+                .Which
+                .StatusCode
+                .Should()
+                .Be(200);
+
+            ContentResult contentResult = result as ContentResult;
+
+            ProviderResultSummary providerResultSummary = JsonConvert.DeserializeObject<ProviderResultSummary>(contentResult.Content);
+
+            providerResultSummary.FundingStreamTotalAmount.Should().Be(100);
+            providerResultSummary.FundingPeriodResults.First().FundingStreamResults.First().Allocations.Should().HaveCount(1);
+        }
+
+        [TestMethod]
         public async Task GetProviderResultsForFundingStreams_GivenValidResultsFoundWithVariationInformation_ReturnsResults()
         {
             //Arrange
@@ -1850,6 +1892,107 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         }
 
         [TestMethod]
+        public async Task GetLocalAuthorityProvidersResultsForAllocations_GivenValidResultsFoundFromSearchButIncludesDuplicates_ReturnsResultsAndEnsuresNoDuplicates()
+        {
+            //Arrange
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Headers.Returns(headerDictionary);
+
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                Entries = CreateFeedIndexesWithDuplicates()
+            };
+            AllocationNotificationFeedIndex firstEntry = feeds.Entries.First();
+            firstEntry.VariationReasons = new[] { "LegalNameFieldUpdated", "LACodeFieldUpdated" };
+            firstEntry.Successors = new[] { "provider4" };
+            firstEntry.Predecessors = new[] { "provider1", "provider2" };
+            firstEntry.OpenReason = "Fresh Start";
+            firstEntry.CloseReason = "Closure";
+
+
+            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
+            searchService
+                .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            ProviderResultsService providerResultsService = CreateService(searchService);
+
+            //Act
+            IActionResult result = await providerResultsService.GetLocalAuthorityProvidersResultsForAllocations(laCode, startYear, endYear, allocationLineIds, httpRequest);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>()
+                .Which
+                .StatusCode
+                .Should()
+                .Be(200);
+
+            ContentResult contentResult = result as ContentResult;
+
+            LocalAuthorityResultsSummary localAuthorityResultSummary = JsonConvert.DeserializeObject<LocalAuthorityResultsSummary>(contentResult.Content);
+
+            localAuthorityResultSummary.TotalAllocation.Should().Be(100);
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.First().FundingPeriods.First().Allocations.Should().HaveCount(1);
+        }
+
+        [TestMethod]
+        public async Task GetLocalAuthorityWithMultipleProvidersResultsForAllocations_GivenValidResultsFoundFromSearchButIncludesDuplicates_ReturnsResultsAndEnsuresNoDuplicates()
+        {
+            //Arrange
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary.Add("Accept", new StringValues("application/json"));
+
+            HttpRequest httpRequest = Substitute.For<HttpRequest>();
+            httpRequest.Headers.Returns(headerDictionary);
+
+            SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
+            {
+                Entries = CreateMulriProviderFeedIndexesWithDuplicates()
+            };
+            AllocationNotificationFeedIndex firstEntry = feeds.Entries.First();
+            firstEntry.VariationReasons = new[] { "LegalNameFieldUpdated", "LACodeFieldUpdated" };
+            firstEntry.Successors = new[] { "provider4" };
+            firstEntry.Predecessors = new[] { "provider1", "provider2" };
+            firstEntry.OpenReason = "Fresh Start";
+            firstEntry.CloseReason = "Closure";
+
+
+            IAllocationNotificationsFeedsSearchService searchService = CreateSearchService();
+            searchService
+                .GetLocalAuthorityFeeds(Arg.Is(laCode), Arg.Is(startYear), Arg.Is(endYear), Arg.Any<IEnumerable<string>>())
+                .Returns(feeds);
+
+            ProviderResultsService providerResultsService = CreateService(searchService);
+
+            //Act
+            IActionResult result = await providerResultsService.GetLocalAuthorityProvidersResultsForAllocations(laCode, startYear, endYear, allocationLineIds, httpRequest);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>()
+                .Which
+                .StatusCode
+                .Should()
+                .Be(200);
+
+            ContentResult contentResult = result as ContentResult;
+
+            LocalAuthorityResultsSummary localAuthorityResultSummary = JsonConvert.DeserializeObject<LocalAuthorityResultsSummary>(contentResult.Content);
+
+            localAuthorityResultSummary.TotalAllocation.Should().Be(300);
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.First().FundingPeriods.First().Allocations.Should().HaveCount(1);
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.First().AllocationValue.Should().Be(100);
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).FundingPeriods.First().Allocations.Should().HaveCount(1);
+            localAuthorityResultSummary.LocalAuthorities.First().Providers.ElementAt(1).AllocationValue.Should().Be(200);
+        }
+
+        [TestMethod]
         public async Task GetLocalAuthorityProvidersResultsForAllocations_GivenValidResultsFoundFromSearchAndfeatureToggleIsDisabled_ReturnsResults()
         {
             //Arrange
@@ -2121,6 +2264,443 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                          ProviderOpenDate = DateTimeOffset.Now,
                          ProviderStatus = "Active",
                          ProviderUrn = "03",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    }
+                };
+        }
+
+        static IEnumerable<AllocationNotificationFeedIndex> CreateFeedIndexesWithDuplicates()
+        {
+            return new[]
+                {
+                    new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 10,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 2,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "1111",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    },
+                     new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 100,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 3,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "1111",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    },
+                      new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 1000,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 1,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "1111",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    }
+                };
+        }
+
+        static IEnumerable<AllocationNotificationFeedIndex> CreateMulriProviderFeedIndexesWithDuplicates()
+        {
+            return new[]
+                {
+                    new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 10,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 2,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "1111",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    },
+                    new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 100,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 3,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "1111",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    },
+                    new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 1000,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 1,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "1111",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    },
+                    new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 20,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 2,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "2222",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    },
+                    new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 200,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 3,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "2222",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
+                         ProviderProfiling = CreateProfiles(),
+                         PolicySummaries = CreatePolicySummaries()
+                    },
+                    new AllocationNotificationFeedIndex
+                    {
+                         AllocationAmount = 000,
+                         AllocationLearnerCount = 0,
+                         AllocationLineId = "al-1",
+                         AllocationLineName = "al 1",
+                         AllocationStatus = "Published",
+                         AllocationVersionNumber = 1,
+                         DateUpdated = DateTimeOffset.Now,
+                         FundingPeriodEndYear = DateTimeOffset.Now.AddYears(1).Year,
+                         FundingPeriodId = "fp-1",
+                         FundingPeriodStartYear = DateTimeOffset.Now.Year,
+                         FundingStreamId = "fs-1",
+                         FundingStreamName = "fs 1",
+                         Id = "id-1",
+                         ProviderId = "2222",
+                         ProviderUkPrn = "1111",
+                         ProviderUpin = "0001",
+                         ProviderName = "Provider 1",
+                         ProviderType = "Provider Type 1",
+                         SubProviderType = "Sub Provider Type 1",
+                         LaCode = "123",
+                         Authority = "LA 1",
+                         Summary = "test summary 1",
+                         Title = "test title 1",
+                         AllocationLineContractRequired = true,
+                         AllocationLineFundingRoute = "LA",
+                         AllocationLineShortName = "short-al1",
+                         CrmAccountId = "crm-1",
+                         DfeEstablishmentNumber = "dfe-1",
+                         EstablishmentNumber = "e-1",
+                         FundingStreamEndDay = 31,
+                         FundingStreamEndMonth = 7,
+                         FundingStreamPeriodId = "fspi-1",
+                         FundingStreamPeriodName = "fspi1",
+                         FundingStreamShortName = "fs-short-1",
+                         FundingStreamStartDay = 1,
+                         FundingStreamStartMonth = 8,
+                         NavVendorNo = "nv-1",
+                         ProviderClosedDate = DateTimeOffset.Now,
+                         ProviderLegalName = "legal 1",
+                         ProviderOpenDate = DateTimeOffset.Now,
+                         ProviderStatus = "Active",
+                         ProviderUrn = "01",
                          ProviderProfiling = CreateProfiles(),
                          PolicySummaries = CreatePolicySummaries()
                     }
