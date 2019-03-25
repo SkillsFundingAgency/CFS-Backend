@@ -126,7 +126,7 @@ namespace CalculateFunding.Services.TestRunner
 
             if (gherkinParseResult == null)
             {
-                gherkinParseResult = await _parser.Parse(testScenario.Current.Gherkin, buildProject);
+                gherkinParseResult = await _parser.Parse(testScenario.SpecificationId, testScenario.Current.Gherkin, buildProject);
 
                 if (gherkinParseResult != null && !gherkinParseResult.StepActions.IsNullOrEmpty())
                 {

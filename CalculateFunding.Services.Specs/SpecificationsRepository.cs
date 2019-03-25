@@ -200,7 +200,7 @@ namespace CalculateFunding.Services.Specs
 
         public Task SavePeriods(IEnumerable<Period> periods)
         {
-            return _repository.BulkCreateAsync<Period>(periods.ToList());
+            return _repository.BulkUpsertAsync<Period>(periods.ToList());
         }
 
         public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)

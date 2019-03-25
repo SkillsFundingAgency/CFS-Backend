@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.ServiceBus;
@@ -42,6 +43,32 @@ namespace CalculateFunding.Functions.DebugQueue
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error while executing Users OnEditSpecificationEvent");
+            }
+
+            logger.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-edit-calculation")]
+        public static async Task OnEditCalculation([QueueTrigger(ServiceBusConstants.TopicNames.EditCalculation, Connection = "AzureConnectionString")] string item, ILogger logger)
+        {
+            Message message = Helpers.ConvertToMessage<CalculationVersionComparisonModel>(item);
+
+            try
+            {
+                await Functions.Calcs.ServiceBus.OnEditCalculationSpecificationEvent.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while executing Calcs OnEditCalculationSpecificationEvent");
+            }
+
+            try
+            {
+                await Functions.Scenarios.ServiceBus.OnEditCaluclationEvent.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while executing Scenarios OnEditCaluclationEvent");
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");

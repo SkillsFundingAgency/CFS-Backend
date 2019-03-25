@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Calcs
 
         public Task UpdateCalculations(IEnumerable<Calculation> calculations)
         {
-            return _cosmosRepository.BulkCreateAsync(calculations.ToList());
+            return _cosmosRepository.BulkUpsertAsync(calculations.ToList());
         }
 
         public async Task<StatusCounts> GetStatusCounts(string specificationId)

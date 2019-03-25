@@ -10,6 +10,8 @@ else {
     Write-Host "Definitions Url: $url";
 }
 
+Start-Sleep -s 30
+
 $correlationId = [guid]::NewGuid().ToString()
 
 # Enable TLS 1.2 for powershell

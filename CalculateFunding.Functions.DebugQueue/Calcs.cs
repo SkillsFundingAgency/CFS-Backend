@@ -48,15 +48,5 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
-
-        [FunctionName("on-edit-calculation-for-calcs")]
-        public static async Task RunOnEditCalculationSpecificationEvent([QueueTrigger(ServiceBusConstants.TopicNames.EditCalculation, Connection = "AzureConnectionString")] string item, ILogger log)
-        {
-            Message message = Helpers.ConvertToMessage<Models.Specs.CalculationVersionComparisonModel>(item);
-
-            await Functions.Calcs.ServiceBus.OnEditCalculationSpecificationEvent.Run(message);
-
-            log.LogInformation($"C# Queue trigger function processed: {item}");
-        }
     }
 }

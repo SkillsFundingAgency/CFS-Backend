@@ -95,7 +95,7 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results);
 
             // Assert
-            await cosmosRepository.Received().BulkCreateAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1));
+            await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1));
         }
 
         [TestMethod]
@@ -236,7 +236,7 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results);
 
             // Assert
-            await cosmosRepository.Received().BulkCreateAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1));
+            await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1));
         }
 
         [TestMethod]
@@ -467,7 +467,7 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results);
 
             // Assert
-            await cosmosRepository.Received().BulkCreateAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1));
+            await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1));
 
             await searchRepository.Received(1).Index(Arg.Is<IList<ProviderCalculationResultsIndex>>(r =>
                r.First().SpecificationId == results.First().SpecificationId &&

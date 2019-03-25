@@ -117,51 +117,6 @@ namespace CalculateFunding.Services.Results
             return health;
         }
 
-        public async Task UpdateProviderData(Message message)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            ProviderResult result = message.GetPayloadAsInstanceOf<ProviderResult>();
-
-            if (result == null)
-            {
-                _logger.Error("Null results provided to UpdateProviderData");
-                throw new ArgumentNullException(nameof(result), "Null results provided to UpdateProviderData");
-            }
-
-            IEnumerable<ProviderResult> results = new[] { result };
-
-            if (results.Any())
-            {
-                HttpStatusCode statusCode = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.UpdateProviderResults(results.ToList()));
-                stopwatch.Stop();
-
-                if (!statusCode.IsSuccess())
-                {
-                    _logger.Error($"Failed to bulk update provider data with status code: {statusCode.ToString()}");
-                }
-                else
-                {
-                    _telemetry.TrackEvent("UpdateProviderData",
-                        new Dictionary<string, string>() {
-                            { "CorrelationId", message.GetCorrelationId() }
-                        },
-                        new Dictionary<string, double>()
-                        {
-                            { "update-provider-data-elapsedMilliseconds", stopwatch.ElapsedMilliseconds },
-                            { "update-provider-data-recordsUpdated", results.Count() },
-                        }
-                    );
-                }
-
-            }
-            else
-            {
-                _logger.Warning("An empty list of results were provided to update");
-            }
-        }
-
         public async Task<IActionResult> GetProviderById(HttpRequest request)
         {
             string providerId = GetParameter(request, "providerId");

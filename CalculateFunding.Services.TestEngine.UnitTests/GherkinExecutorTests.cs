@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             await
                 gherkinParser
                     .DidNotReceive()
-                    .Parse(Arg.Any<string>(), Arg.Any<BuildProject>());
+                    .Parse(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<BuildProject>());
         }
 
 
@@ -117,7 +117,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             await
                 gherkinParser
                     .DidNotReceive()
-                    .Parse(Arg.Any<string>(), Arg.Any<BuildProject>());
+                    .Parse(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<BuildProject>());
 
             scenarioResults
                 .Count()
@@ -186,7 +186,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             await
                 gherkinParser
                     .DidNotReceive()
-                    .Parse(Arg.Any<string>(), Arg.Any<BuildProject>());
+                    .Parse(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<BuildProject>());
 
             scenarioResults
                 .Count()
@@ -275,7 +275,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             await
                 gherkinParser
                     .DidNotReceive()
-                    .Parse(Arg.Any<string>(), Arg.Any<BuildProject>());
+                    .Parse(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<BuildProject>());
 
             scenarioResults
                 .Count()
@@ -368,7 +368,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             await
                 gherkinParser
                     .DidNotReceive()
-                    .Parse(Arg.Any<string>(), Arg.Any<BuildProject>());
+                    .Parse(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<BuildProject>());
 
             scenarioResults
                 .Count()
@@ -414,7 +414,8 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                     Current = new TestScenarioVersion
                     {
                         Gherkin = "gherkin"
-                    }
+                    },
+                    SpecificationId = "spec1"
                 }
             };
 
@@ -448,7 +449,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IGherkinParser gherkinParser = CreateGherkinParser();
             gherkinParser
-                .Parse(Arg.Is("gherkin"), Arg.Is(buildProject))
+                .Parse(Arg.Is("spec1"), Arg.Is("gherkin"), Arg.Is(buildProject))
                 .Returns(gherkinParseResult);
 
             string cacheKey = $"{CacheKeys.GherkinParseResult}scenario-1";

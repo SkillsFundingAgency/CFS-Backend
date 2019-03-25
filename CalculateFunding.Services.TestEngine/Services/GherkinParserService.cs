@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new StatusCodeResult(412);
             }
 
-            GherkinParseResult parseResult = await _gherkinParser.Parse(model.Gherkin, buildProject);
+            GherkinParseResult parseResult = await _gherkinParser.Parse(model.SpecificationId, model.Gherkin, buildProject);
 
             if (parseResult.HasErrors)
             {

@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.TestRunner
 {
     public interface IGherkinParser
     {
-        Task<GherkinParseResult> Parse(string gherkin, BuildProject buildProject);
+        Task<GherkinParseResult> Parse(string specificationId, string gherkin, BuildProject buildProject);
     }
 }

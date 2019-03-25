@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Results.Repositories
         {
             Guard.ArgumentNotNull(publishedResults, nameof(publishedResults));
 
-            return _cosmosRepository.BulkCreateAsync<PublishedProviderResult>(publishedResults.Select(m => new KeyValuePair<string, PublishedProviderResult>(m.ProviderId, m)), degreeOfParallelism: 25);
+            return _cosmosRepository.BulkUpsertAsync<PublishedProviderResult>(publishedResults.Select(m => new KeyValuePair<string, PublishedProviderResult>(m.ProviderId, m)), degreeOfParallelism: 25);
         }
 
         public Task<IEnumerable<PublishedProviderResult>> GetPublishedProviderResultsForSpecificationId(string specificationId)

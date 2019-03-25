@@ -543,23 +543,6 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void UpdateProviderData_GivenNullResults_ThrowsArgumentNullException()
-        {
-            //Arrange
-            Message message = new Message(new byte[0]);
-
-            ResultsService service = CreateResultsService();
-
-            //Act
-            Func<Task> test = () => service.UpdateProviderData(message);
-
-            //Assert
-            test
-                .Should()
-                .ThrowExactly<ArgumentNullException>();
-        }
-
-        [TestMethod]
         async public Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
         {
             //Arrange

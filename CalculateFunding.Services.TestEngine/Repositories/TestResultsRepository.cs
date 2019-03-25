@@ -105,7 +105,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             if (resultItems.Any())
             {
-                await _cosmosRepository.BulkCreateAsync<TestScenarioResult>(resultItems, degreeOfParallelism: _engineSettings.SaveTestProviderResultsDegreeOfParallelism);
+                await _cosmosRepository.BulkUpsertAsync<TestScenarioResult>(resultItems, degreeOfParallelism: _engineSettings.SaveTestProviderResultsDegreeOfParallelism);
             }
             else
             {
