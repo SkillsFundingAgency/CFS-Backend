@@ -34,7 +34,7 @@ namespace CalculateFunding.Repositories.Common.Search
                 {
                     Skip = skip,
                     Top = searchModel.Top,
-                    SearchMode = SearchMode.Any,
+                    SearchMode = (SearchMode)searchModel.SearchMode,
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", searchModel.Filters.Where(m => !string.IsNullOrWhiteSpace(m.Value.FirstOrDefault())).Select(m => $"({m.Key} eq '{m.Value.First()}')")),
                     OrderBy = searchModel.OrderBy.ToList(),
@@ -72,7 +72,7 @@ namespace CalculateFunding.Repositories.Common.Search
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
                                 Facets = new[]{ filterPair.Key },
-                                SearchMode = SearchMode.Any,
+                                SearchMode = (SearchMode)searchModel.SearchMode,
                                 SearchFields = new List<string>{ "name" },
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
@@ -126,7 +126,7 @@ namespace CalculateFunding.Repositories.Common.Search
                 {
                     Skip = skip,
                     Top = searchModel.Top,
-                    SearchMode = SearchMode.Any,
+                    SearchMode = (SearchMode)searchModel.SearchMode,
                     SearchFields = new List<string> { "name" },
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),

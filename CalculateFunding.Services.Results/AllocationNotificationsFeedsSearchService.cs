@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Results
                 {
                     Skip = skip,
                     Top = top,
-                    SearchMode = SearchMode.Any,
+                    SearchMode = Microsoft.Azure.Search.Models.SearchMode.Any,
                     IncludeTotalResultCount = true,
                     Filter = filter.IsNullOrEmpty() ? "" : string.Join(" or ", filter),
                     OrderBy = DefaultOrderBy.ToList(),
@@ -171,7 +171,7 @@ namespace CalculateFunding.Services.Results
                 () => _allocationNotificationsSearchRepository.Search("", new SearchParameters
                 {
                     Top = top,
-                    SearchMode = SearchMode.Any,
+                    SearchMode = Microsoft.Azure.Search.Models.SearchMode.Any,
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", filters) + (customFilters.IsNullOrEmpty() ? "" : " and (" + string.Join(" or ", customFilters) + ")"),
                     OrderBy = DefaultOrderBy.ToList(),
@@ -255,7 +255,7 @@ namespace CalculateFunding.Services.Results
                         {
                             Skip = skip,
                             Top = top,
-                            SearchMode = SearchMode.Any,
+                            SearchMode = Microsoft.Azure.Search.Models.SearchMode.Any,
                             IncludeTotalResultCount = true,
                             Filter = filters,
                             OrderBy = new[] { "dateUpdated asc" },

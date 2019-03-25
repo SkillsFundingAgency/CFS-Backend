@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Calcs
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
                                 Facets = new[]{ $"{filterPair.Key},count:{searchModel.FacetCount}" },
-                                SearchMode = SearchMode.Any,
+                                SearchMode = (SearchMode)searchModel.SearchMode,
                                 SearchFields = new List<string>{ "name" },
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Calcs
 				{
 					Skip = skip,
 					Top = searchModel.Top,
-					SearchMode = SearchMode.Any,
+					SearchMode = (SearchMode)searchModel.SearchMode,
 					SearchFields = new List<string> { "name" },
 					IncludeTotalResultCount = true,
 					Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),

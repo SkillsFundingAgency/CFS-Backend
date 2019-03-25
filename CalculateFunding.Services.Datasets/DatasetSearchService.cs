@@ -200,7 +200,7 @@ namespace CalculateFunding.Services.Datasets
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
                                 Facets = new[]{ filterPair.Key },
-                                SearchMode = SearchMode.Any,
+                                SearchMode = (SearchMode)searchModel.SearchMode,
                                 IncludeTotalResultCount = true,
                                 Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
                                 QueryType = QueryType.Full
@@ -227,7 +227,7 @@ namespace CalculateFunding.Services.Datasets
                 {
                     Skip = skip,
                     Top = searchModel.Top,
-                    SearchMode = SearchMode.Any,
+                    SearchMode = (SearchMode)searchModel.SearchMode,
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
