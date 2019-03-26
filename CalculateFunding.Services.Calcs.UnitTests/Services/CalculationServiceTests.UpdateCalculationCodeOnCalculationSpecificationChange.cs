@@ -21,10 +21,10 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
-                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, buildProjectsRepository: buildProjectsRepository);
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, buildProjectsService: buildProjectsService);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -156,9 +156,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .Be("referenceCalc");
 
-            await buildProjectsRepository
+            await buildProjectsService
                 .DidNotReceive()
-                .GetBuildProjectBySpecificationId(Arg.Any<string>());
+                .GetBuildProjectForSpecificationId(Arg.Any<string>());
         }
 
         [TestMethod]
@@ -168,10 +168,10 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
-                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, buildProjectsRepository: buildProjectsRepository);
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, buildProjectsService: buildProjectsService);
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
@@ -295,9 +295,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .Be("referenceCalc");
 
-            await buildProjectsRepository
+            await buildProjectsService
                 .DidNotReceive()
-                .GetBuildProjectBySpecificationId(Arg.Any<string>());
+                .GetBuildProjectForSpecificationId(Arg.Any<string>());
         }
 
         [TestMethod]

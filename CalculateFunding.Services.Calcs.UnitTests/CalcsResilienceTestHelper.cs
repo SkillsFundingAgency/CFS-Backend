@@ -13,11 +13,12 @@ namespace CalculateFunding.Services.Calcs
                 CalculationsSearchRepository = Policy.NoOpAsync(),
                 CacheProviderPolicy = Policy.NoOpAsync(),
                 CalculationsVersionsRepositoryPolicy = Policy.NoOpAsync(),
-                BuildProjectRepositoryPolicy = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
                 MessagePolicy = Policy.NoOpAsync(),
                 JobsApiClient = Policy.NoOpAsync(),
-                SourceFilesRepository = Policy.NoOpAsync()
+                SourceFilesRepository = Policy.NoOpAsync(),
+                DatasetsRepository = Policy.NoOpAsync(),
+                BuildProjectRepositoryPolicy = Policy.NoOpAsync()
             };
         }
     }

@@ -388,6 +388,13 @@
         "description": "Feature toggle to enable new check for duplicate calculation names"
       }
     },
+    "EnableDynamicBuildProject": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable new check for duplicate calculation names"
+      }
+    },
     "storageFirewallEnabled": {
       "type": "bool",
       "metadata": {
@@ -1616,6 +1623,10 @@
             {
               "name": "features:duplicateCalculationNameCheckEnabled",
               "value": "[parameters('EnableDuplicateCalculationNameCheck')]"
+            },
+            {
+              "name": "features:dynamicBuildProjectEnabled",
+              "value": "[parameters('EnableDynamicBuildProject')]"
             }
           ]
         }
@@ -2944,6 +2955,10 @@
             {
               "name": "engineSettings:MaxPartitionSize",
               "value": "[parameters('CalcEngineMaxPartitionSize')]"
+            },
+            {
+              "name": "features:dynamicBuildProjectEnabled",
+              "value": "[parameters('EnableDynamicBuildProject')]"
             }
           ]
         }

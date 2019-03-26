@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calcs
     public class PreviewService : IPreviewService, IHealthChecker
     {
         private readonly ILogger _logger;
-        private readonly IBuildProjectsRepository _buildProjectsRepository;
+        private readonly IBuildProjectsService _buildProjectsService;
         private readonly IValidator<PreviewRequest> _previewRequestValidator;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IDatasetRepository _datasetRepository;
@@ -32,8 +32,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISourceCodeService _sourceCodeService;
 
         public PreviewService(
-            ILogger logger, 
-            IBuildProjectsRepository buildProjectsRepository,
+            ILogger logger,
+            IBuildProjectsService buildProjectsService,
             IValidator<PreviewRequest> previewRequestValidator, 
             ICalculationsRepository calculationsRepository,
             IDatasetRepository datasetRepository, 
@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Calcs
             ISourceCodeService sourceCodeService)
         {
             _logger = logger;
-            _buildProjectsRepository = buildProjectsRepository;
+            _buildProjectsService = buildProjectsService;
             _previewRequestValidator = previewRequestValidator;
             _calculationsRepository = calculationsRepository;
             _datasetRepository = datasetRepository;
@@ -89,7 +89,8 @@ namespace CalculateFunding.Services.Calcs
             }
 
             Task<IEnumerable<Calculation>> calculationsTask = _calculationsRepository.GetCalculationsBySpecificationId(previewRequest.SpecificationId);
-            Task<BuildProject> buildProjectTask = _buildProjectsRepository.GetBuildProjectBySpecificationId(previewRequest.SpecificationId);
+
+            Task<BuildProject> buildProjectTask = _buildProjectsService.GetBuildProjectForSpecificationId(previewRequest.SpecificationId);
 
             await TaskHelper.WhenAllAndThrow(calculationsTask, buildProjectTask);
 

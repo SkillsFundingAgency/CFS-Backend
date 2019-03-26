@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly IValidator<Calculation> _calculationValidator;
-        private readonly IBuildProjectsRepository _buildProjectsRepository;
+        private readonly IBuildProjectsService _buildProjectsService;
         private readonly ISpecificationRepository _specsRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly ITelemetry _telemetry;
@@ -56,13 +56,14 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.Policy _cachePolicy;
         private readonly Polly.Policy _calculationVersionsRepositoryPolicy;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
-        private readonly Polly.Policy _buildProjectRepositoryPolicy;
         private readonly Polly.Policy _messagePolicy;
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IBuildProjectsRepository _buildProjectsRepository;
+        private readonly Polly.Policy _buildProjectRepositoryPolicy;
 
         public CalculationService(
             ICalculationsRepository calculationsRepository,
@@ -70,14 +71,15 @@ namespace CalculateFunding.Services.Calcs
             ITelemetry telemetry,
             ISearchRepository<CalculationIndex> searchRepository,
             IValidator<Calculation> calculationValidator,
-            IBuildProjectsRepository buildProjectsRepository,
+            IBuildProjectsService buildProjectsService,
             ISpecificationRepository specificationRepository,
             ICacheProvider cacheProvider,
             ICalcsResilliencePolicies resilliencePolicies,
             IVersionRepository<CalculationVersion> calculationVersionRepository,
             IJobsApiClient jobsApiClient,
             ISourceCodeService sourceCodeService,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IBuildProjectsRepository buildProjectsRepository)
         {
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
@@ -89,13 +91,14 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
+            Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _telemetry = telemetry;
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
-            _buildProjectsRepository = buildProjectsRepository;
             _specsRepository = specificationRepository;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resilliencePolicies.CalculationsRepository;
@@ -103,13 +106,15 @@ namespace CalculateFunding.Services.Calcs
             _calculationSearchRepositoryPolicy = resilliencePolicies.CalculationsSearchRepository;
             _cachePolicy = resilliencePolicies.CacheProviderPolicy;
             _specificationsRepositoryPolicy = resilliencePolicies.SpecificationsRepositoryPolicy;
-            _buildProjectRepositoryPolicy = resilliencePolicies.BuildProjectRepositoryPolicy;
             _messagePolicy = resilliencePolicies.MessagePolicy;
             _calculationVersionsRepositoryPolicy = resilliencePolicies.CalculationsVersionsRepositoryPolicy;
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
             _sourceCodeService = sourceCodeService;
             _featureToggle = featureToggle;
+            _buildProjectsService = buildProjectsService;
+            _buildProjectsRepository = buildProjectsRepository;
+            _buildProjectRepositoryPolicy = resilliencePolicies.BuildProjectRepositoryPolicy;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -417,8 +422,6 @@ namespace CalculateFunding.Services.Calcs
                     await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.SaveVersion(calculationVersion));
 
                     await UpdateSearch(calculation, specificationSummary.Name);
-
-                    await UpdateBuildProject(calculation.SpecificationId);
                 }
                 else
                 {
@@ -481,19 +484,11 @@ namespace CalculateFunding.Services.Calcs
                 calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersionComparison.Current.Name));
             }
 
-            BuildProject buildProject = await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId));
-
-            if (buildProject == null)
-            {
-                _logger.Warning($"A build project could not be found for specification id: {specificationId}");
-
-                buildProject = await CreateBuildProject(specificationId, calculations);
-            }
+            BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
 
             await TaskHelper.WhenAllAndThrow(
                 _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.UpdateCalculations(calculations)),
-                _calculationSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(calcIndexes)),
-                _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject))
+                _calculationSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(calcIndexes))
             );
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
@@ -952,33 +947,20 @@ namespace CalculateFunding.Services.Calcs
 
             _logger.Information("Generating code context for {specificationId}", specificationId);
 
-            BuildProject project = await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId));
-            if (project == null)
+            BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
+
+            IEnumerable<Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Calculation>());
+
+            if (buildProject.Build == null)
             {
-                Models.Specs.SpecificationSummary specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetSpecificationSummaryById(specificationId));
-                if (specificationSummary == null)
-                {
-                    return new PreconditionFailedResult("Specification not found");
-                }
-
-                project = await CreateBuildProject(specificationId, Enumerable.Empty<Calculation>());
-
-                if (project == null)
-                {
-                    _logger.Error($"Build Project was unable to be created and returned null for Specification ID of '{specificationId}'");
-
-                    return new StatusCodeResult(500);
-                }
-            }
-
-            if (project.Build == null)
-            {
-                _logger.Error($"Build was null for Specification {specificationId} with Build Project ID {project.Id}");
+                _logger.Error($"Build was null for Specification {specificationId} with Build Project ID {buildProject.Id}");
 
                 return new StatusCodeResult(500);
             }
 
-            IEnumerable<TypeInformation> result = await _sourceCodeService.GetTypeInformation(project);
+            IEnumerable<TypeInformation> result = await _sourceCodeService.GetTypeInformation(buildProject);
 
             return new OkObjectResult(result);
         }
@@ -1131,22 +1113,6 @@ namespace CalculateFunding.Services.Calcs
             };
         }
 
-        public async Task<BuildProject> CreateBuildProject(string specificationId, IEnumerable<Calculation> calculations)
-        {
-            BuildProject buildproject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            buildproject.Build = _sourceCodeService.Compile(buildproject, calculations);
-
-            await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.CreateBuildProject(buildproject));
-
-            return buildproject;
-        }
-
         public static string UpdateCalculationReferences(string sourceCode, string previousCalculationName, string newCalculationName)
         {
             string existingFunctionName = VisualBasicTypeGenerator.GenerateIdentifier(previousCalculationName);
@@ -1234,7 +1200,7 @@ namespace CalculateFunding.Services.Calcs
         private async Task<BuildProject> UpdateBuildProject(string specificationId)
         {
             Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-            Task<BuildProject> buildProjectRequest = _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId));
+            Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
             Task<IEnumerable<Models.Specs.Calculation>> calculationSpecificationsRequest = _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetCalculationSpecificationsForSpecification(specificationId));
 
             await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest, calculationSpecificationsRequest);
@@ -1261,20 +1227,19 @@ namespace CalculateFunding.Services.Calcs
         {
             if (buildProject == null)
             {
-                _logger.Warning($"Build project for specification {specificationId} could not be found, creating a new one");
-
-                buildProject = await CreateBuildProject(specificationId, calculations);
+                buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
             }
-            else
-            {
-                buildProject.Build = _sourceCodeService.Compile(buildProject, calculations);
 
-                await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
-            }
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations);
 
             await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId);
 
             await _sourceCodeService.SaveAssembly(buildProject);
+
+            if (_featureToggle.IsDynamicBuildProjectEnabled())
+            {
+                await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
+            }
 
             return buildProject;
         }

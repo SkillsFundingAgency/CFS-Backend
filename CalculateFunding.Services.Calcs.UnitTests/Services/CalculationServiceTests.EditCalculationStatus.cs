@@ -519,6 +519,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = new List<SourceFile> { new SourceFile() }
             };
 
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
@@ -526,7 +533,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, 
-                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, sourceCodeService: sourceCodeService);
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, 
+                sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
 
             //Act
             IActionResult result = await service.UpdateCalculationStatus(request);
@@ -711,6 +719,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = new List<SourceFile> { new SourceFile() }
             };
 
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
@@ -718,7 +733,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, 
-                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, sourceCodeService: sourceCodeService);
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, 
+                sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
 
             //Act
             IActionResult result = await service.UpdateCalculationStatus(request);

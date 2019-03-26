@@ -288,6 +288,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationByCalculationSpecificationId(Arg.Is(CalculationId))
                 .Returns(specCalculation);
 
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
             Build build = new Build
             {
                 SourceFiles = new List<SourceFile> { new SourceFile() }
@@ -302,7 +309,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger, 
                 specificationRepository: specificationRepository, 
                 calculationsRepository: calculationsRepository,
-                sourceCodeService: sourceCodeService);
+                sourceCodeService: sourceCodeService,
+                buildProjectsService: buildProjectsService);
 
             //Act
             await service.UpdateCalculationsForCalculationSpecificationChange(message);
@@ -387,6 +395,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = new List<SourceFile> { new SourceFile() }
             };
 
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
@@ -396,7 +411,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(logger: logger,
                 specificationRepository: specificationRepository, calculationsRepository: calculationsRepository, 
-                searchRepository: searchRepository, sourceCodeService: sourceCodeService);
+                searchRepository: searchRepository, sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
 
             //Act
             await service.UpdateCalculationsForCalculationSpecificationChange(message);
@@ -543,7 +558,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> mockSearchRepository = CreateSearchRepository();
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
 
             Build build = new Build
             {
@@ -560,7 +580,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     specificationRepository: mockSpecificationRepository,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
-                    buildProjectsRepository: buildProjectsRepository,
+                    buildProjectsService: buildProjectsService,
                     sourceCodeService: sourceCodeService);
 
             //Act
@@ -586,11 +606,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 mockSearchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.Count() == 1));
-
-            await
-                buildProjectsRepository
-                .Received(1)
-                .CreateBuildProject(Arg.Any<BuildProject>());
         }
 
         [TestMethod]
@@ -707,9 +722,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> mockSearchRepository = CreateSearchRepository();
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             Build build = new Build
@@ -727,7 +742,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     specificationRepository: mockSpecificationRepository,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
-                    buildProjectsRepository: buildProjectsRepository,
+                    buildProjectsService: buildProjectsService,
                     sourceCodeService: sourceCodeService);
 
             //Act
@@ -753,11 +768,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 mockSearchRepository
                 .Received(1)
                 .Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.Count() == 1));
-
-            await
-                buildProjectsRepository
-                .Received(1)
-                .UpdateBuildProject(Arg.Is(buildProject));
 
             await
                 sourceCodeService
@@ -888,6 +898,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = new List<SourceFile> { new SourceFile(), new SourceFile() }
             };
 
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
@@ -898,7 +915,8 @@ namespace CalculateFunding.Services.Calcs.Services
                     specificationRepository: mockSpecificationRepository,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
-                    sourceCodeService: sourceCodeService);
+                    sourceCodeService: sourceCodeService,
+                    buildProjectsService: buildProjectsService);
 
             //Act
             await service.UpdateCalculationsForCalculationSpecificationChange(message);
@@ -1227,13 +1245,21 @@ namespace CalculateFunding.Services.Calcs.Services
                 .IsDuplicateCalculationNameCheckEnabled()
                 .Returns(true);
 
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 specificationRepository: specificationRepository, 
                 calculationsRepository: calculationsRepository,
                 searchRepository: searchRepository, 
                 sourceCodeService: sourceCodeService,
-                featureToggle: featureToggle);
+                featureToggle: featureToggle,
+                buildProjectsService: buildProjectsService);
 
             // Act
             await service.UpdateCalculationsForCalculationSpecificationChange(message);
@@ -1338,6 +1364,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .UpdateCalculation(Arg.Any<Models.Calcs.Calculation>())
                 .Returns(HttpStatusCode.OK);
 
+            BuildProject buildProject = new BuildProject();
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
             IVersionRepository<CalculationVersion> calcVersionRepository = CreateCalculationVersionRepository();
             calcVersionRepository
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
@@ -1367,8 +1400,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository,
                 sourceCodeService: sourceCodeService,
                 featureToggle: featureToggle,
-                calculationVersionRepository: calcVersionRepository);
-
+                calculationVersionRepository: calcVersionRepository,
+                buildProjectsService: buildProjectsService);
 
             IEnumerable<Models.Calcs.Calculation> resultsBeingSaved = null;
             await calculationsRepository

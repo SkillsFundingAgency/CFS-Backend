@@ -30,14 +30,13 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
                     await buildProjectsService.UpdateBuildProjectRelationships(message);
-                           
+
                 }
                 catch (Exception exception)
                 {
                     logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships}");
                     throw;
                 }
-                
             }
         }
     }

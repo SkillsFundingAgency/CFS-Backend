@@ -171,6 +171,7 @@ namespace CalculateFunding.Services.Datasets
                 Id = Guid.NewGuid().ToString(),
                 Relationship = new Reference(relationship.Id, relationship.Name),
                 DatasetDefinition = definition,
+                DatasetDefinitionId = definition.Id,
                 DataGranularity = relationship.UsedInDataAggregations ? DataGranularity.MultipleRowsPerProvider : DataGranularity.SingleRowPerProvider,
                 DefinesScope = relationship.IsSetAsProviderData
             };

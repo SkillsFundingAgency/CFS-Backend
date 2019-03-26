@@ -88,7 +88,6 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ICalculationService, CalculationService>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
             builder.AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
-            builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
             builder.AddSingleton<IPreviewService, PreviewService>();
             builder.AddSingleton<ICompilerFactory, CompilerFactory>();
             builder.AddSingleton<IDatasetRepository, DatasetRepository>();
@@ -102,6 +101,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>();
             builder.AddSingleton<ISpecificationRepository, SpecificationRepository>();
             builder.AddSingleton<IBuildProjectsService, BuildProjectsService>();
+            builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
             builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
@@ -180,7 +180,8 @@ namespace CalculateFunding.Functions.Calcs
                 BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                DatasetsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
         }
     }

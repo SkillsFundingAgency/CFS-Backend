@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using CalculateFunding.Common.CosmosDb;
+﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {

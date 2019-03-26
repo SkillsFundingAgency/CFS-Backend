@@ -106,80 +106,6 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalulationsForSpecification_GivenModelHasChangedFundingPeriodsButBuildProjectNotFound_EnsuresCreatesBuildProject()
-        {
-            //Arrange
-            const string specificationId = "spec-id";
-
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
-            {
-                Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion
-                {
-                    FundingPeriod = new Reference { Id = "fp2" },
-                    Name = "any-name"
-                },
-                Previous = new Models.Specs.SpecificationVersion { FundingPeriod = new Reference { Id = "fp1" } }
-            };
-
-            string json = JsonConvert.SerializeObject(specificationVersionComparison);
-
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-
-            ILogger logger = CreateLogger();
-
-            IEnumerable<Calculation> calcs = new[]
-            {
-                new Calculation
-                {
-                    SpecificationId =  "spec-id",
-                    Name = "any name",
-                    Id = "any-id",
-                    CalculationSpecification = new Reference("any name", "any-id"),
-                    FundingPeriod = new Reference("18/19", "2018/2019"),
-                    CalculationType = CalculationType.Number,
-                    FundingStream = new Reference("fs1","fs1-111"),
-                    Current = new CalculationVersion
-                    {
-                        Author = new Reference(UserId, Username),
-                        Date = DateTimeOffset.Now,
-                        PublishStatus = PublishStatus.Draft,
-                        SourceCode = "source code",
-                        Version = 1
-                    },
-                    Policies = new List<Reference>()
-                }
-            };
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
-                .Returns(calcs);
-
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
-                .Returns(new Job { Id = "job-id-1" });
-
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, jobsApiClient: jobsApiClient);
-
-            //Act
-            await service.UpdateCalculationsForSpecification(message);
-
-            //Assert
-            await
-                buildProjectsRepository
-                    .Received(1)
-                    .CreateBuildProject(Arg.Any<BuildProject>());
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"A build project could not be found for specification id: {specificationId}"));
-        }
-
-        [TestMethod]
         public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyName_SavesChanges()
         {
             // Arrange
@@ -237,9 +163,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(calcs);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -249,7 +175,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsService: buildProjectsService, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
 
             // Act
             await service.UpdateCalculationsForSpecification(message);
@@ -327,9 +253,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(calcs);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -339,7 +265,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsRepository: buildProjectsRepository, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
+            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsService: buildProjectsService, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
 
             //Act
             await service.UpdateCalculationsForSpecification(message);
@@ -429,9 +355,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(calcs);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -444,7 +370,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(
                 calculationsRepository,
                 logger,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 searchRepository: searchRepository,
                 jobsApiClient: jobsApiClient);
 
@@ -535,9 +461,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(calcs);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -550,7 +476,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(
                 calculationsRepository,
                 logger,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 searchRepository: searchRepository,
                 jobsApiClient: jobsApiClient);
 
@@ -649,9 +575,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(calcs);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(specificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
                 .Returns(buildProject);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -664,7 +590,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(
                 calculationsRepository,
                 logger,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 searchRepository: searchRepository,
                 jobsApiClient: jobsApiClient);
 

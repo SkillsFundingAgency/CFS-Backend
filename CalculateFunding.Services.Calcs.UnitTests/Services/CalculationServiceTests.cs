@@ -31,14 +31,15 @@ namespace CalculateFunding.Services.Calcs.Services
             ITelemetry telemetry = null,
             ISearchRepository<CalculationIndex> searchRepository = null,
             IValidator<Calculation> calcValidator = null,
-            IBuildProjectsRepository buildProjectsRepository = null,
+            IBuildProjectsService buildProjectsService = null,
             ISpecificationRepository specificationRepository = null,
             ICacheProvider cacheProvider = null,
             ICalcsResilliencePolicies resilliencePolicies = null,
             IVersionRepository<CalculationVersion> calculationVersionRepository = null,
             IJobsApiClient jobsApiClient = null,
             ISourceCodeService sourceCodeService = null,
-            IFeatureToggle featureToggle = null)
+            IFeatureToggle featureToggle = null,
+            IBuildProjectsRepository buildProjectsRepository = null)
         {
             return new CalculationService
                 (calculationsRepository ?? CreateCalculationsRepository(),
@@ -46,14 +47,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 telemetry ?? CreateTelemetry(),
                 searchRepository ?? CreateSearchRepository(),
                 calcValidator ?? CreateCalculationValidator(),
-                buildProjectsRepository ?? CreateBuildProjectsRepository(),
+                buildProjectsService ?? CreateBuildProjectsService(),
                 specificationRepository ?? CreateSpecificationRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 calculationVersionRepository ?? CreateCalculationVersionRepository(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 sourceCodeService ?? CreateSourceCodeService(),
-                featureToggle ?? CreateFeatureToggle());
+                featureToggle ?? CreateFeatureToggle(),
+                buildProjectsRepository ?? CreateBuildProjectsRepository());
         }
 
         private static IFeatureToggle CreateFeatureToggle()
@@ -81,9 +83,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ICalculationsRepository>();
         }
 
-        private static IBuildProjectsRepository CreateBuildProjectsRepository()
+        private static IBuildProjectsService CreateBuildProjectsService()
         {
-            return Substitute.For<IBuildProjectsRepository>();
+            return Substitute.For<IBuildProjectsService>();
         }
 
         private static ILogger CreateLogger()
@@ -104,6 +106,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ISpecificationRepository CreateSpecificationRepository()
         {
             return Substitute.For<ISpecificationRepository>();
+        }
+
+        private static IBuildProjectsRepository CreateBuildProjectsRepository()
+        {
+            return Substitute.For<IBuildProjectsRepository>();
         }
 
         private static IValidator<Calculation> CreateCalculationValidator(ValidationResult validationResult = null)

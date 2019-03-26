@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -10,6 +11,9 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -31,62 +35,66 @@ namespace CalculateFunding.Services.Calcs
 {
     public class BuildProjectsService : IBuildProjectsService, IHealthChecker
     {
-        private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly IProviderResultsRepository _providerResultsRepository;
         private readonly ISpecificationRepository _specificationsRepository;
         private readonly ICacheProvider _cacheProvider;
-        private readonly ICalculationService _calculationService;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IFeatureToggle _featureToggle;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly EngineSettings _engineSettings;
         private readonly ISourceCodeService _sourceCodeService;
+        private readonly IDatasetRepository _datasetRepository;
+        private readonly Polly.Policy _datasetRepositoryPolicy;
+        private readonly IBuildProjectsRepository _buildProjectsRepository;
+        private readonly Polly.Policy _buildProjectsRepositoryPolicy;
 
         public BuildProjectsService(
-            IBuildProjectsRepository buildProjectsRepository,
             ILogger logger,
             ITelemetry telemetry,
             IProviderResultsRepository providerResultsRepository,
             ISpecificationRepository specificationsRepository,
             ICacheProvider cacheProvider,
-            ICalculationService calculationService,
             ICalculationsRepository calculationsRepository,
             IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
             ICalcsResilliencePolicies resilliencePolicies,
             EngineSettings engineSettings,
-            ISourceCodeService sourceCodeService)
+            ISourceCodeService sourceCodeService,
+            IDatasetRepository datasetRepository,
+            IBuildProjectsRepository buildProjectsRepository)
         {
-            Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
+            Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
+            Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
 
-            _buildProjectsRepository = buildProjectsRepository;
             _logger = logger;
             _telemetry = telemetry;
             _providerResultsRepository = providerResultsRepository;
             _specificationsRepository = specificationsRepository;
             _cacheProvider = cacheProvider;
-            _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
             _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
             _engineSettings = engineSettings;
             _sourceCodeService = sourceCodeService;
+            _datasetRepository = datasetRepository;
+            _datasetRepositoryPolicy = resilliencePolicies.DatasetsRepository;
+            _buildProjectsRepository = buildProjectsRepository;
+            _buildProjectsRepositoryPolicy = resilliencePolicies.BuildProjectRepositoryPolicy;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -143,14 +151,7 @@ namespace CalculateFunding.Services.Calcs
 
             string specificationId = message.UserProperties["specification-id"].ToString();
 
-            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
-
-            if (buildProject == null)
-            {
-                _logger.Error("A null build project was provided to UpdateAllocations");
-
-                throw new ArgumentNullException(nameof(buildProject), $"A null build project was provided to UpdateAllocations for specification Id {specificationId}");
-            }
+            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             if (message.UserProperties.ContainsKey("ignore-save-provider-results"))
             {
@@ -298,24 +299,16 @@ namespace CalculateFunding.Services.Calcs
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
-            if (buildProject == null)
+            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>());
+
+            if (!_featureToggle.IsDynamicBuildProjectEnabled())
             {
-                return new StatusCodeResult(412);
+                await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
             }
 
-            if (buildProject.DatasetRelationships == null)
-            {
-                buildProject.DatasetRelationships = new List<DatasetRelationshipSummary>();
-            }
-
-            if (!buildProject.DatasetRelationships.Any(m => m.Name == relationship.Name))
-            {
-                buildProject.DatasetRelationships.Add(relationship);
-
-                await CompileBuildProject(buildProject);
-
-                await _sourceCodeService.SaveAssembly(buildProject);
-            }
+            await _sourceCodeService.SaveAssembly(buildProject);
 
             return new OkObjectResult(buildProject);
         }
@@ -345,28 +338,11 @@ namespace CalculateFunding.Services.Calcs
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error($"Message does not contain a specification id");
-
+                 
                 throw new ArgumentNullException(nameof(specificationId));
             }
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
-
-            if (buildProject == null)
-            {
-                SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
-
-                if (specification == null)
-                {
-                    throw new Exception($"Unable to find specification for specification id: {specificationId}");
-                }
-
-                buildProject = await _calculationService.CreateBuildProject(specificationId, Enumerable.Empty<Models.Calcs.Calculation>());
-
-                if (buildProject == null)
-                {
-                    throw new Exception($"Unable to find create build project for specification id: {specificationId}");
-                }
-            }
 
             if (buildProject.DatasetRelationships == null)
             {
@@ -377,7 +353,14 @@ namespace CalculateFunding.Services.Calcs
             {
                 buildProject.DatasetRelationships.Add(relationship);
 
-                await CompileBuildProject(buildProject);
+                IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+
+                buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>());
+
+                if (!_featureToggle.IsDynamicBuildProjectEnabled())
+                {
+                    await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
+                }
 
                 await _sourceCodeService.SaveAssembly(buildProject);
             }
@@ -398,38 +381,27 @@ namespace CalculateFunding.Services.Calcs
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
-            if (buildProject == null)
-            {
-                return new NotFoundResult();
-            }
-
             return new OkObjectResult(buildProject);
         }
 
-        async Task<BuildProject> GetBuildProjectForSpecificationId(string specificationId)
+        public async Task<BuildProject> GetBuildProjectForSpecificationId(string specificationId)
         {
-            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
+            BuildProject buildProject = null;
 
-            if (buildProject == null)
+            if (_featureToggle.IsDynamicBuildProjectEnabled())
             {
-                SpecificationSummary specificationSummary = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
-                if (specificationSummary == null)
-                {
-                    _logger.Error($"Failed to find build project for specification id: {specificationId}");
-
-                    return null;
-                }
-                else
-                {
-                    buildProject = await _calculationService.CreateBuildProject(specificationSummary.Id, Enumerable.Empty<Models.Calcs.Calculation>());
-                }
+                buildProject = await GenerateBuildProject(specificationId);
             }
-
-            if (buildProject.Build == null)
+            else
             {
-                _logger.Error($"Failed to find build project assembly for build project id: {buildProject.Id}");
+                buildProject = await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId));
 
-                return null;
+                if(buildProject == null)
+                {
+                    buildProject = await GenerateBuildProject(specificationId);
+
+                    await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.CreateBuildProject(buildProject));
+                }
             }
 
             return buildProject;
@@ -444,13 +416,7 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Null or empty specificationId provided");
             }
 
-            BuildProject buildProject = await _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId);
-
-            if (buildProject == null)
-            {
-                buildProject = await _calculationService.CreateBuildProject(specificationId, Enumerable.Empty<Models.Calcs.Calculation>());
-            }
-
+            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             byte[] assembly = await _sourceCodeService.GetAssembly(buildProject);
 
@@ -462,20 +428,6 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return new OkObjectResult(assembly);
-        }
-
-        public async Task CompileBuildProject(BuildProject buildProject)
-        {
-            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(buildProject.SpecificationId);
-
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations);
-
-            HttpStatusCode statusCode = await _buildProjectsRepository.UpdateBuildProject(buildProject);
-
-            if (!statusCode.IsSuccess())
-            {
-                throw new Exception($"Failed to update build project for id: {buildProject.Id} with status code {statusCode.ToString()}");
-            }
         }
 
         private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string, string>> jobProperties)
@@ -548,6 +500,61 @@ namespace CalculateFunding.Services.Calcs
 
             return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJobs(jobCreateModels));
         }
-    }
 
+        private async Task<BuildProject> GenerateBuildProject(string specificationId)
+        {
+            BuildProject buildproject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId,
+                DatasetRelationships = new List<DatasetRelationshipSummary>(),
+                Build = new Build()
+            };
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel>  datasetRelationshipModels =   await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetCurrentRelationshipsBySpecificationId(specificationId));
+
+            if (!datasetRelationshipModels.IsNullOrEmpty())
+            {
+                ConcurrentBag<DatasetDefinition> datasetDefinitions = new ConcurrentBag<DatasetDefinition>();
+
+                IList<Task> definitionTasks = new List<Task>();
+
+                IEnumerable<string> definitionIds = datasetRelationshipModels.Select(m => m.Definition?.Id);
+
+                foreach(string definitionId in definitionIds)
+                {
+                    Task task = Task.Run(async () =>
+                    {
+                            DatasetDefinition datasetDefinition = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetDatasetDefinitionById(definitionId));
+
+                            if (datasetDefinition != null)
+                            {
+                                datasetDefinitions.Add(datasetDefinition);
+                            }
+                    });
+
+                    definitionTasks.Add(task);
+                }
+
+                await TaskHelper.WhenAllAndThrow(definitionTasks.ToArray());
+
+                foreach (DatasetSpecificationRelationshipViewModel datasetRelationshipModel in datasetRelationshipModels)
+                {
+                    buildproject.DatasetRelationships.Add(new DatasetRelationshipSummary
+                    {
+                        DatasetDefinitionId = datasetRelationshipModel.Definition.Id,
+                        DatasetId = datasetRelationshipModel.DatasetId,
+                        Relationship = new Common.Models.Reference(datasetRelationshipModel.Id, datasetRelationshipModel.Name),
+                        DefinesScope = datasetRelationshipModel.IsProviderData,
+                        Id = datasetRelationshipModel.Id,
+                        Name = datasetRelationshipModel.Name,
+                        DatasetDefinition = datasetDefinitions.FirstOrDefault(m => m.Id == datasetRelationshipModel.Definition.Id)
+                    });
+                }
+            }
+
+            return buildproject;
+        }
+    }
 }

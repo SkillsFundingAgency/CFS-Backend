@@ -1,9 +1,11 @@
 using System.Threading.Tasks;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Functions.DebugQueue
 {
@@ -14,7 +16,7 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             Message message = Helpers.ConvertToMessage<AssignDefinitionRelationshipMessage>(item);
 
-            await Functions.Specs.EventHub.OnAddRelatioshipEvent.Run(message);
+            await Functions.Specs.ServiceBus.OnAddRelatioshipEvent.Run(message);
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }

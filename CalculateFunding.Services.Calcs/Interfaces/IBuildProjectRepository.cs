@@ -1,6 +1,6 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System.Threading.Tasks;
 using System.Net;
-using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
@@ -10,7 +10,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<HttpStatusCode> UpdateBuildProject(BuildProject buildProject);
 
-	    Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId);
-
+        Task<BuildProject> GetBuildProjectBySpecificationId(string specificiationId);
     }
 }

@@ -91,10 +91,6 @@ namespace CalculateFunding.Api.Calcs
                 .AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
 
             builder
-               .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>()
-               .AddSingleton<IHealthChecker, BuildProjectsRepository>();
-
-            builder
                 .AddSingleton<IPreviewService, PreviewService>()
                 .AddSingleton<IHealthChecker, PreviewService>();
 
@@ -122,6 +118,10 @@ namespace CalculateFunding.Api.Calcs
             builder
                 .AddSingleton<IBuildProjectsService, BuildProjectsService>()
                 .AddSingleton<IHealthChecker, BuildProjectsService>();
+
+            builder
+                  .AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>()
+                  .AddSingleton<IHealthChecker, BuildProjectsRepository>();
 
             builder
                 .AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
@@ -200,7 +200,8 @@ namespace CalculateFunding.Api.Calcs
                     BuildProjectRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    SourceFilesRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    DatasetsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

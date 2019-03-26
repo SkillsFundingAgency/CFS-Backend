@@ -10,12 +10,14 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     {
         Task UpdateAllocations(Message message);
 
-        Task UpdateBuildProjectRelationships(Message message);
-
         Task<IActionResult> GetBuildProjectBySpecificationId(HttpRequest request);
 
         Task<IActionResult> UpdateBuildProjectRelationships(HttpRequest request);
 
+        Task UpdateBuildProjectRelationships(Message message);
+
         Task<IActionResult> GetAssemblyBySpecificationId(string specificationId);
+
+        Task<BuildProject> GetBuildProjectForSpecificationId(string specificationId);
     }
 }

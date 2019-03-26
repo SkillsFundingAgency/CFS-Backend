@@ -122,15 +122,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns((Calculation)null);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
 
             BuildProject buildProject = new BuildProject();
 
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsService: buildProjectsService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -186,12 +186,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             BuildProject buildProject = null;
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsService: buildProjectsService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -305,12 +305,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns((BuildProject)null);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsService: buildProjectsService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -366,12 +366,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(CalculationId))
                 .Returns(calculation);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsRepository: buildProjectsRepository);
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsService: buildProjectsService);
 
             // Act
             IActionResult result = await service.Compile(request);
@@ -438,9 +438,9 @@ namespace CalculateFunding.Services.Calcs.Services
                            .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                            .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -470,7 +470,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceCodeService: sourceCodeService);
+                buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -553,9 +553,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -585,7 +585,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(sourceCodes); ;
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceCodeService: sourceCodeService);
+                buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -670,9 +670,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -704,7 +704,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, sourceCodeService: sourceCodeService);
+                buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -783,9 +783,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -827,7 +827,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, 
+                buildProjectsService: buildProjectsService, 
                 datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
@@ -911,9 +911,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -948,7 +948,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
@@ -1020,9 +1020,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -1055,7 +1055,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(relationshipModels);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle);
 
             //Act
@@ -1143,9 +1143,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -1177,7 +1177,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(relationshipModels);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle);
 
             //Act
@@ -1272,9 +1272,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -1308,7 +1308,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
 
             //Act
@@ -1416,9 +1416,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -1452,7 +1452,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = CreateDatasetRepository();
            
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
 
             //Act
@@ -1550,9 +1550,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -1592,7 +1592,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository, datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
+                buildProjectsService: buildProjectsService, datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1667,9 +1667,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -1710,7 +1710,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
@@ -1795,9 +1795,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
-            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectsRepository();
-            buildProjectsRepository
-                .GetBuildProjectBySpecificationId(Arg.Is(calculation.SpecificationId))
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
             List<SourceFile> sourceFiles = new List<SourceFile>
@@ -1838,7 +1838,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsRepository: buildProjectsRepository,
+                buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
@@ -1878,8 +1878,8 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         static PreviewService CreateService(
-            ILogger logger = null, 
-            IBuildProjectsRepository buildProjectsRepository = null, 
+            ILogger logger = null,
+            IBuildProjectsService buildProjectsService = null, 
             IValidator<PreviewRequest> previewRequestValidator = null, 
             ICalculationsRepository calculationsRepository = null, 
             IDatasetRepository datasetRepository = null, 
@@ -1889,7 +1889,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             return new PreviewService(
                 logger ?? CreateLogger(),
-                buildProjectsRepository ?? CreateBuildProjectsRepository(), 
+                buildProjectsService ?? CreateBuildProjectsService(), 
                 previewRequestValidator ?? CreatePreviewRequestValidator(),
                 calculationsRepository ?? CreateCalculationsRepository(), 
                 datasetRepository ?? CreateDatasetRepository(), 
@@ -1928,9 +1928,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ILogger>();
         }
 
-        static IBuildProjectsRepository CreateBuildProjectsRepository()
+        static IBuildProjectsService CreateBuildProjectsService()
         {
-            return Substitute.For<IBuildProjectsRepository>();
+            return Substitute.For<IBuildProjectsService>();
         }
 
         static ICompilerFactory CreateCompilerFactory()

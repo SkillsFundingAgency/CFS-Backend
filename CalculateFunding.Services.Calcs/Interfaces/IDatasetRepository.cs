@@ -1,4 +1,6 @@
 ﻿using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,5 +11,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     public interface IDatasetRepository
     {
         Task<IEnumerable<DatasetSchemaRelationshipModel>> GetDatasetSchemaRelationshipModelsForSpecificationId(string specificationId);
+
+        Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetCurrentRelationshipsBySpecificationId(string specificationId);
+
+        Task<DatasetDefinition> GetDatasetDefinitionById(string datasetDefinitionId);
     }
 }

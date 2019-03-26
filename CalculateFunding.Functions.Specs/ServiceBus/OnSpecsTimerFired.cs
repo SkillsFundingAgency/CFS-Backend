@@ -8,7 +8,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CalculateFunding.Functions.Specs.EventHub
+namespace CalculateFunding.Functions.Specs.ServiceBus
 {
     public static class OnAddRelatioshipEvent
     {

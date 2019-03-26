@@ -12,6 +12,9 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("datasetDefinition")]
         public DatasetDefinition DatasetDefinition { get; set; }
 
+        [JsonProperty("datasetDefinitionId")]
+        public string DatasetDefinitionId { get; set; }
+
         [JsonProperty("dataGranularity")]
         public DataGranularity DataGranularity { get; set; }
 

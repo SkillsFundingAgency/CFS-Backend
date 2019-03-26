@@ -14,14 +14,16 @@ namespace CalculateFunding.Services.Calcs
 
         public Policy CalculationsVersionsRepositoryPolicy { get; set; }
 
-        public Policy SpecificationsRepositoryPolicy { get; set; }
-
         public Policy BuildProjectRepositoryPolicy { get; set; }
+
+        public Policy SpecificationsRepositoryPolicy { get; set; }
 
         public Policy MessagePolicy { get; set; }
 
         public Policy JobsApiClient { get; set; }
 
         public Policy SourceFilesRepository { get; set; }
+
+        public Policy DatasetsRepository { get; set; }
     }
 }
