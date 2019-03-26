@@ -1155,6 +1155,71 @@ namespace CalculateFunding.Services.Results.Services
             results.Should().BeEmpty("Excluded results should not cause an open variation to be produced");
         }
 
+        [TestMethod]
+        public async Task GivenProviderHasExistingResultsForMultipleAllocationsLines_ThenOnlyOneVariationIsReturned()
+        {
+            // Arrange
+            string providerId = "prov1";
+            string specificationId = "spec123";
+
+            List<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = providerId },
+                    SpecificationId = specificationId,
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "Allocation 1" }
+                        }
+                    }
+                },
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = providerId },
+                    SpecificationId = specificationId,
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Common.Models.Reference { Id = "alloc2", Name = "Allocation 2" }
+                        }
+                    }
+                }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
+            {
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } },
+                new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc2", Provider = new ProviderSummary { Id = providerId} }
+            };
+
+            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            {
+                new ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Status = "Closed" }
+            };
+
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
+                .Returns(coreProviderData);
+
+            IProviderVariationAssemblerService service = CreateService(providerService);
+
+            // Act
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
+
+            // Assert
+            results.Should().HaveCount(1);
+            results.First().HasProviderClosed.Should().BeTrue();
+            results.First().ProviderReasonCode.Should().Be("Test closed reason");
+            results.First().UpdatedProvider.Should().NotBeNull();
+            results.First().UpdatedProvider.Id.Should().Be(providerId);
+            results.First().DoesProviderHaveSuccessor.Should().BeFalse();
+        }
+
         private IProviderVariationAssemblerService CreateService(IProviderService providerService = null)
         {
             return new ProviderVariationAssemblerService(providerService ?? CreateProviderService());

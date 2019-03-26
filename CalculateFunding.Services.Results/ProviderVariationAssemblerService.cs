@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Results
 
             foreach (ProviderResult providerResult in providerResults)
             {
-                PublishedProviderResultExisting existingResult = existingPublishedProviderResults.SingleOrDefault(r => r.ProviderId == providerResult.Provider.Id);
+                PublishedProviderResultExisting existingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerResult.Provider.Id);
 
                 ProviderSummary coreProvider = coreProviderData.FirstOrDefault(p => p.Id == providerResult.Provider.Id);
 
