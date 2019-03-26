@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -12,16 +13,27 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class CalculationTypeGenerator : VisualBasicTypeGenerator
     {
+        private CompilerOptions _compilerOptions;
         private readonly bool _useSourceCodeNameForCalculations;
 
-        public CalculationTypeGenerator(bool useSourceCodeNameForCalculations)
+        public CalculationTypeGenerator(CompilerOptions compilerOptions, bool useSourceCodeNameForCalculations)
         {
+            Guard.ArgumentNotNull(compilerOptions, nameof(compilerOptions));
+
+            _compilerOptions = compilerOptions;
             _useSourceCodeNameForCalculations = useSourceCodeNameForCalculations;
         }
 
         public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
+            SyntaxList<OptionStatementSyntax> optionsList = new SyntaxList<OptionStatementSyntax>(new OptionStatementSyntax[] { 
+                SyntaxFactory.OptionStatement(SyntaxFactory.Token(SyntaxKind.StrictKeyword), SyntaxFactory.Token(_compilerOptions.OptionStrictEnabled ? SyntaxKind.OnKeyword : SyntaxKind.OffKeyword)),
+                SyntaxFactory.OptionStatement(SyntaxFactory.Token(SyntaxKind.ExplicitKeyword), SyntaxFactory.Token(_compilerOptions.OptionExplicitEnabled ? SyntaxKind.OnKeyword : SyntaxKind.OffKeyword))
+            });
+
             CompilationUnitSyntax syntaxTree = SyntaxFactory.CompilationUnit()
+                .WithOptions(optionsList)
+
                 .WithImports(StandardImports())
 
                 .WithMembers(SyntaxFactory.SingletonList<StatementSyntax>(

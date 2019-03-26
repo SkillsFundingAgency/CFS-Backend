@@ -949,9 +949,11 @@ namespace CalculateFunding.Services.Calcs
 
             BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
 
-            IEnumerable<Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+            IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Calculation>());
+            CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Calculation>(), compilerOptions);
 
             if (buildProject.Build == null)
             {
@@ -960,7 +962,7 @@ namespace CalculateFunding.Services.Calcs
                 return new StatusCodeResult(500);
             }
 
-            IEnumerable<TypeInformation> result = await _sourceCodeService.GetTypeInformation(buildProject);
+            IEnumerable<TypeInformation> result = await _sourceCodeService.GetTypeInformation(buildProject, compilerOptions);
 
             return new OkObjectResult(result);
         }
@@ -1202,12 +1204,14 @@ namespace CalculateFunding.Services.Calcs
             Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
             Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
             Task<IEnumerable<Models.Specs.Calculation>> calculationSpecificationsRequest = _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetCalculationSpecificationsForSpecification(specificationId));
+            Task<CompilerOptions> compilerOptionsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
 
-            await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest, calculationSpecificationsRequest);
+            await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest, calculationSpecificationsRequest, compilerOptionsRequest);
 
             List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
             BuildProject buildProject = buildProjectRequest.Result;
             IEnumerable<Models.Specs.Calculation> calculationSpecifications = calculationSpecificationsRequest.Result;
+            CompilerOptions compilerOptions = compilerOptionsRequest.Result;
 
             // Adds the Calculation Description retrieved from the Calculation Specification.
             // Other descriptions are included as part of the denormalised data storage in CosmosDB
@@ -1220,17 +1224,17 @@ namespace CalculateFunding.Services.Calcs
                 }
             }
 
-            return await UpdateBuildProject(specificationId, calculations, buildProject);
+            return await UpdateBuildProject(specificationId, calculations, compilerOptions, buildProject);
         }
 
-        private async Task<BuildProject> UpdateBuildProject(string specificationId, IEnumerable<Calculation> calculations, BuildProject buildProject = null)
+        private async Task<BuildProject> UpdateBuildProject(string specificationId, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions, BuildProject buildProject = null)
         {
             if (buildProject == null)
             {
                 buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
             }
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations);
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId);
 

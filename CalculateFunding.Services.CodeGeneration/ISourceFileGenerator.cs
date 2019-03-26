@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.CodeGeneration
 {
     public interface ISourceFileGenerator
     {
-        List<SourceFile> GenerateCode(BuildProject buildProject, IEnumerable<Calculation> calculations);
+        List<SourceFile> GenerateCode(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions);
     }
 }

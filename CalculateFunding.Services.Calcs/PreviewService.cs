@@ -91,8 +91,9 @@ namespace CalculateFunding.Services.Calcs
             Task<IEnumerable<Calculation>> calculationsTask = _calculationsRepository.GetCalculationsBySpecificationId(previewRequest.SpecificationId);
 
             Task<BuildProject> buildProjectTask = _buildProjectsService.GetBuildProjectForSpecificationId(previewRequest.SpecificationId);
+            Task<CompilerOptions> compilerOptionsTask = _calculationsRepository.GetCompilerOptions(previewRequest.SpecificationId);
 
-            await TaskHelper.WhenAllAndThrow(calculationsTask, buildProjectTask);
+            await TaskHelper.WhenAllAndThrow(calculationsTask, buildProjectTask, compilerOptionsTask);
 
             BuildProject buildProject = buildProjectTask.Result;
             if (buildProject == null)
@@ -130,19 +131,21 @@ namespace CalculateFunding.Services.Calcs
 
             }
 
+            CompilerOptions compilerOptions = compilerOptionsTask.Result;
+
             if (_featureToggle.IsAggregateOverCalculationsEnabled())
             {
-                return await GenerateAndCompile(buildProject, calculation, calculations, previewRequest);
+                return await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions, previewRequest);
             }
             else
             {
-                return await GenerateAndCompile(buildProject, calculation, calculations);
+                return await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions);
             }
         }
 
-        private async Task<IActionResult> GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations, PreviewRequest previewRequest = null)
+        private async Task<IActionResult> GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions, PreviewRequest previewRequest = null)
         {
-            Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations);
+            Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             if (compilerOutput.Success)
             {

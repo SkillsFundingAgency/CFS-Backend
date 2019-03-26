@@ -1,7 +1,22 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.CodeGeneration;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -11,25 +26,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.CodeGeneration;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Common.FeatureToggles;
-using System.Security.Claims;
-using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Compiler.Interfaces;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -197,7 +193,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(specificationSummary);
 
             CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
-            
+
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             versionRepository
                 .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
@@ -207,7 +203,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -370,7 +366,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -485,7 +481,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -609,7 +605,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -733,7 +729,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -781,7 +777,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
-            BuildProject buildProject = new BuildProject ();
+            BuildProject buildProject = new BuildProject();
 
             string specificationId = "789";
 
@@ -891,7 +887,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -1068,7 +1064,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -1183,7 +1179,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -1308,7 +1304,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -1432,7 +1428,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -1568,7 +1564,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -1724,7 +1720,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(
@@ -1760,7 +1756,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(
-                        m => 
+                        m =>
                             m.InvokerUserDisplayName == Username &&
                             m.InvokerUserId == UserId &&
                             m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
@@ -1879,7 +1875,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(
@@ -2038,7 +2034,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(
@@ -2303,7 +2299,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(

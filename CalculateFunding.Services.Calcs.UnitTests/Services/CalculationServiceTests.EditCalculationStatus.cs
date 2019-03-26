@@ -1,4 +1,10 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -13,13 +19,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -528,12 +527,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(
-                logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, 
-                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, 
+                logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository,
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
 
             //Act
@@ -728,12 +727,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(
-                logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository, 
-                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository, 
+                logger: logger, calculationsRepository: CalculationsRepository, searchRepository: searchRepository,
+                specificationRepository: specificationRepository, calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
 
             //Act

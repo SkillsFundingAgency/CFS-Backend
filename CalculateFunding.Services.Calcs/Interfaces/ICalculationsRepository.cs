@@ -23,5 +23,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<Calculation> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
 
         Task<StatusCounts> GetStatusCounts(string specificationId);
+
+        Task<CompilerOptions> GetCompilerOptions(string specificationId);
     }
 }

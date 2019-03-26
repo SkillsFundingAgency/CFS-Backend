@@ -346,7 +346,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(
@@ -460,7 +460,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(

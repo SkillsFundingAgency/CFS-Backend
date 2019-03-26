@@ -17,9 +17,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _featureToggle = featureToggle;
         }
 
-        protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations)
+        protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions)
         {
-            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(_featureToggle.IsDuplicateCalculationNameCheckEnabled());
+            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, _featureToggle.IsDuplicateCalculationNameCheckEnabled());
             return calculationTypeGenerator.GenerateCalcs(buildProject, calculations);
         }
 

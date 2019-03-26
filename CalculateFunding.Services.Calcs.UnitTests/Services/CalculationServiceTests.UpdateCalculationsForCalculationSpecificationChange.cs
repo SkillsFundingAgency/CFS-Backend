@@ -302,12 +302,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service = CreateCalculationService(
-                logger: logger, 
-                specificationRepository: specificationRepository, 
+                logger: logger,
+                specificationRepository: specificationRepository,
                 calculationsRepository: calculationsRepository,
                 sourceCodeService: sourceCodeService,
                 buildProjectsService: buildProjectsService);
@@ -404,13 +404,13 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
             CalculationService service = CreateCalculationService(logger: logger,
-                specificationRepository: specificationRepository, calculationsRepository: calculationsRepository, 
+                specificationRepository: specificationRepository, calculationsRepository: calculationsRepository,
                 searchRepository: searchRepository, sourceCodeService: sourceCodeService, buildProjectsService: buildProjectsService);
 
             //Act
@@ -572,7 +572,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service =
@@ -729,12 +729,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Build build = new Build
             {
-                SourceFiles = new List<SourceFile> { new SourceFile(), new SourceFile()}
+                SourceFiles = new List<SourceFile> { new SourceFile(), new SourceFile() }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service =
@@ -907,7 +907,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             CalculationService service =
@@ -1235,7 +1235,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -1254,9 +1254,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 logger: logger,
-                specificationRepository: specificationRepository, 
+                specificationRepository: specificationRepository,
                 calculationsRepository: calculationsRepository,
-                searchRepository: searchRepository, 
+                searchRepository: searchRepository,
                 sourceCodeService: sourceCodeService,
                 featureToggle: featureToggle,
                 buildProjectsService: buildProjectsService);
@@ -1383,7 +1383,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
@@ -1512,7 +1512,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();

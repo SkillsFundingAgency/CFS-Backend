@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Calcs
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(CalculationsRepository);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
@@ -32,14 +32,14 @@ namespace CalculateFunding.Services.Calcs
             return health;
         }
 
-        public Task<HttpStatusCode> CreateDraftCalculation(Calculation calculation)
+        public async Task<HttpStatusCode> CreateDraftCalculation(Calculation calculation)
         {
-            return _cosmosRepository.CreateAsync(calculation);
+            return await _cosmosRepository.CreateAsync(calculation);
         }
 
-        async public Task<Calculation> GetCalculationById(string calculationId)
+        public async Task<Calculation> GetCalculationById(string calculationId)
         {
-            var calculation = await _cosmosRepository.ReadAsync<Calculation>(calculationId);
+            Common.Models.DocumentEntity<Calculation> calculation = await _cosmosRepository.ReadAsync<Calculation>(calculationId);
 
             if (calculation == null)
             {
@@ -63,21 +63,21 @@ namespace CalculateFunding.Services.Calcs
             return Task.FromResult(calculations.AsEnumerable().FirstOrDefault());
         }
 
-        public Task<HttpStatusCode> UpdateCalculation(Calculation calculation)
+        public async Task<HttpStatusCode> UpdateCalculation(Calculation calculation)
         {
-            return _cosmosRepository.UpdateAsync(calculation);
+            return await _cosmosRepository.UpdateAsync(calculation);
         }
 
         public Task<IEnumerable<Calculation>> GetAllCalculations()
         {
-            var calculations = _cosmosRepository.Query<Calculation>();
+            IQueryable<Calculation> calculations = _cosmosRepository.Query<Calculation>();
 
             return Task.FromResult(calculations.AsEnumerable());
         }
 
-        public Task UpdateCalculations(IEnumerable<Calculation> calculations)
+        public async Task UpdateCalculations(IEnumerable<Calculation> calculations)
         {
-            return _cosmosRepository.BulkUpsertAsync(calculations.ToList());
+            await _cosmosRepository.BulkUpsertAsync(calculations.ToList());
         }
 
         public async Task<StatusCounts> GetStatusCounts(string specificationId)
@@ -108,6 +108,19 @@ namespace CalculateFunding.Services.Calcs
             await TaskHelper.WhenAllAndThrow(approvedCountTask, updatedCountTask, draftCountTask);
 
             return statusCounts;
+        }
+
+        public async Task<CompilerOptions> GetCompilerOptions(string specificationId)
+        {
+            Common.Models.DocumentEntity<CompilerOptions> options = await _cosmosRepository.ReadAsync<CompilerOptions>(specificationId);
+
+            if (options == null)
+            {
+                // Couldn't find any compiler options so create the default
+                return new CompilerOptions();
+            }
+
+            return options.Content;
         }
     }
 }

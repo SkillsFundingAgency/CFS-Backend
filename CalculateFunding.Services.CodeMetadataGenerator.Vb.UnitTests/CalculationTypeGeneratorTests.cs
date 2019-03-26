@@ -1,9 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Text.RegularExpressions;
 
-namespace CalculateFunding.Services.CodeMetadataGenerator.Vs.UnitTests
+namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
 {
     [TestClass]
     public class CalculationTypeGeneratorTests
@@ -324,5 +326,79 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vs.UnitTests
                 .Be(expected);
         }
 
+        [TestMethod]
+        public void GenerateCalcs_GivenCalculationsAndCompilerOptionsExplicitOn_ThenOptionExplicitGenerated()
+        {
+            // Assert
+            BuildProject buildProject = new BuildProject();
+
+            List<Calculation> calculations = new List<Calculation>();
+
+            CompilerOptions compilerOptions = new CompilerOptions
+            {
+                OptionExplicitEnabled = true,
+                OptionStrictEnabled = false
+            };
+
+            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, true);
+
+            // Act
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(buildProject, calculations);
+
+            // Assert
+            results.Should().HaveCount(1);
+            results.First().SourceCode.Should().StartWith("Option Strict Off");
+            results.First().SourceCode.Should().Contain("Option Explicit On");
+        }
+
+        [TestMethod]
+        public void GenerateCalcs_GivenCalculationsAndCompilerOptionsStrictOn_ThenOptionStrictGenerated()
+        {
+            // Assert
+            BuildProject buildProject = new BuildProject();
+
+            List<Calculation> calculations = new List<Calculation>();
+
+            CompilerOptions compilerOptions = new CompilerOptions
+            {
+                OptionExplicitEnabled = false,
+                OptionStrictEnabled = true
+            };
+
+            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, true);
+
+            // Act
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(buildProject, calculations);
+
+            // Assert
+            results.Should().HaveCount(1);
+            results.First().SourceCode.Should().StartWith("Option Strict On");
+            results.First().SourceCode.Should().Contain("Option Explicit Off");
+        }
+
+        [TestMethod]
+        public void GenerateCalcs_GivenCalculationsAndCompilerOptionsOff_ThenOptionsGenerated()
+        {
+            // Assert
+            BuildProject buildProject = new BuildProject();
+
+            List<Calculation> calculations = new List<Calculation>();
+
+            CompilerOptions compilerOptions = new CompilerOptions
+            {
+                OptionExplicitEnabled = false,
+                OptionStrictEnabled = false
+            };
+
+            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, true);
+
+            // Act
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(buildProject, calculations);
+
+            // Assert
+            results.Should().HaveCount(1);
+            results.First().SourceCode.Should().StartWith("Option Strict Off");
+            results.First().SourceCode.Should().Contain("Option Explicit Off");
+        }
     }
 }

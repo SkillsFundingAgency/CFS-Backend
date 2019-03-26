@@ -1,9 +1,7 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Code;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Code;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
@@ -11,11 +9,11 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     {
         Task SaveAssembly(BuildProject buildProject);
 
-        Task<byte[]> GetAssembly(BuildProject buildProject);
+        Task<byte[]> GetAssembly(BuildProject buildProject, CompilerOptions compilerOptions);
 
-        Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations);
+        Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions);
 
-        Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject);
+        Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject, CompilerOptions compilerOptions);
 
         IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles);
 

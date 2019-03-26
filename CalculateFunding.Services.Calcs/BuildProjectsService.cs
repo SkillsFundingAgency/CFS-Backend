@@ -300,8 +300,9 @@ namespace CalculateFunding.Services.Calcs
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+            CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>());
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), compilerOptions);
 
             if (!_featureToggle.IsDynamicBuildProjectEnabled())
             {
@@ -354,8 +355,9 @@ namespace CalculateFunding.Services.Calcs
                 buildProject.DatasetRelationships.Add(relationship);
 
                 IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+                CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
 
-                buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>());
+                buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), compilerOptions);
 
                 if (!_featureToggle.IsDynamicBuildProjectEnabled())
                 {
@@ -417,8 +419,9 @@ namespace CalculateFunding.Services.Calcs
             }
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
+            CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
 
-            byte[] assembly = await _sourceCodeService.GetAssembly(buildProject);
+            byte[] assembly = await _sourceCodeService.GetAssembly(buildProject, compilerOptions);
 
             if (assembly.IsNullOrEmpty())
             {

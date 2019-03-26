@@ -88,9 +88,10 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        public async Task<byte[]> GetAssembly(BuildProject buildProject)
+        public async Task<byte[]> GetAssembly(BuildProject buildProject, CompilerOptions compilerOptions)
         {
             Guard.ArgumentNotNull(buildProject, nameof(buildProject));
+            Guard.ArgumentNotNull(compilerOptions, nameof(compilerOptions));
 
             byte[] rawAssembly = null;
 
@@ -102,7 +103,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     IEnumerable<Calculation> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(buildProject.SpecificationId));
 
-                    buildProject.Build = Compile(buildProject, calculations);
+                    buildProject.Build = Compile(buildProject, calculations, compilerOptions);
                 }
 
                 rawAssembly = buildProject.Build.Assembly;
@@ -125,18 +126,18 @@ namespace CalculateFunding.Services.Calcs
             return rawAssembly;
         }
 
-        public Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations)
+        public Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions)
         {
-            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations);
+            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations, compilerOptions);
 
             ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 
             return compiler.GenerateCode(sourceFiles?.ToList());
         }
 
-        public async Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject)
+        public async Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject, CompilerOptions compilerOptions)
         {
-            byte[] rawAssembly = await GetAssembly(buildProject);
+            byte[] rawAssembly = await GetAssembly(buildProject, compilerOptions);
 
             return _codeMetadataGenerator.GetTypeInformation(rawAssembly);
         }

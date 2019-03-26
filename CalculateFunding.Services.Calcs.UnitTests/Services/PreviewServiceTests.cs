@@ -1,28 +1,27 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.Compiler.Interfaces;
-using FluentValidation;
-using Serilog;
-using NSubstitute;
-using FluentValidation.Results;
 using CalculateFunding.Services.CodeGeneration;
-using System.Threading.Tasks;
+using CalculateFunding.Services.Compiler.Interfaces;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
+using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using System.Text;
-using System.IO;
-using System.Collections.Generic;
-using CalculateFunding.Services.Compiler;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.FeatureToggles;
-using System.Linq;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Caching;
+using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -462,7 +461,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -577,7 +576,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -696,7 +695,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -808,7 +807,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(compilerOutput);
 
             sourceCodeService
@@ -827,7 +826,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsService: buildProjectsService, 
+                buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
 
             //Act
@@ -940,7 +939,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(compilerOutput);
 
             sourceCodeService
@@ -1032,7 +1031,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
 
-           
+
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsAggregateSupportInCalculationsEnabled()
@@ -1450,7 +1449,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(relationshipModels.ToList());
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
-           
+
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
                 datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
@@ -1568,7 +1567,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = sourceFiles,
                 CompilerMessages = new List<CompilerMessage>()
             };
-       
+
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
                 { "TestFunction", model.SourceCode },
@@ -1584,7 +1583,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -1695,7 +1694,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -1813,7 +1812,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = sourceFiles,
                 CompilerMessages = new List<CompilerMessage>()
             };
-  
+
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
                 { "TestFunction", "return 1" },
@@ -1823,7 +1822,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>())
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
 
             sourceCodeService
@@ -1879,22 +1878,22 @@ namespace CalculateFunding.Services.Calcs.Services
 
         static PreviewService CreateService(
             ILogger logger = null,
-            IBuildProjectsService buildProjectsService = null, 
-            IValidator<PreviewRequest> previewRequestValidator = null, 
-            ICalculationsRepository calculationsRepository = null, 
-            IDatasetRepository datasetRepository = null, 
-            IFeatureToggle featureToggle = null, 
-            ICacheProvider cacheProvider = null, 
+            IBuildProjectsService buildProjectsService = null,
+            IValidator<PreviewRequest> previewRequestValidator = null,
+            ICalculationsRepository calculationsRepository = null,
+            IDatasetRepository datasetRepository = null,
+            IFeatureToggle featureToggle = null,
+            ICacheProvider cacheProvider = null,
             ISourceCodeService sourceCodeService = null)
         {
             return new PreviewService(
                 logger ?? CreateLogger(),
-                buildProjectsService ?? CreateBuildProjectsService(), 
+                buildProjectsService ?? CreateBuildProjectsService(),
                 previewRequestValidator ?? CreatePreviewRequestValidator(),
-                calculationsRepository ?? CreateCalculationsRepository(), 
-                datasetRepository ?? CreateDatasetRepository(), 
-                featureToggle ?? CreateFeatureToggle(), 
-                cacheProvider ?? CreateCacheProvider(), 
+                calculationsRepository ?? CreateCalculationsRepository(),
+                datasetRepository ?? CreateDatasetRepository(),
+                featureToggle ?? CreateFeatureToggle(),
+                cacheProvider ?? CreateCacheProvider(),
                 sourceCodeService ?? CreateSourceCodeService());
         }
 
@@ -1946,7 +1945,9 @@ namespace CalculateFunding.Services.Calcs.Services
         static IValidator<PreviewRequest> CreatePreviewRequestValidator(ValidationResult validationResult = null)
         {
             if (validationResult == null)
+            {
                 validationResult = new ValidationResult();
+            }
 
             IValidator<PreviewRequest> validator = Substitute.For<IValidator<PreviewRequest>>();
 

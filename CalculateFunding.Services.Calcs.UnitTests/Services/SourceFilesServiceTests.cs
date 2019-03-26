@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Common.FeatureToggles;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
@@ -12,12 +17,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -71,9 +70,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 { "Calc1", "return 1" }
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations))
+                .GenerateCode(Arg.Is(buildProject), Arg.Is(calculations), compilerOptions)
                 .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
@@ -88,7 +89,7 @@ namespace CalculateFunding.Services.Calcs.Services
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
 
             //Act
-            Build buildResult = sourceCodeService.Compile(buildProject, calculations);
+            Build buildResult = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             //Assert
             compiler
@@ -130,8 +131,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = specificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations);
+            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
             build.Success.Should().BeTrue();
@@ -171,8 +174,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = specificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations);
+            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
             build
@@ -216,8 +221,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = specificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations);
+            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
             build
@@ -261,8 +268,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = specificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations);
+            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
             build
@@ -306,8 +315,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = specificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations);
+            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
             build
@@ -351,8 +362,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = specificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations);
+            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
             build
@@ -396,8 +409,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = specificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations);
+            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
             build
@@ -452,7 +467,7 @@ namespace CalculateFunding.Services.Calcs.Services
             SourceCodeService sourceFileService = CreateSourceCodeService(sourceFileRepository, logger);
 
             //Act
-            Func<Task> test = async() => await sourceFileService.SaveAssembly(buildProject);
+            Func<Task> test = async () => await sourceFileService.SaveAssembly(buildProject);
 
             //Assert
             test
@@ -571,7 +586,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
             sourceFileGenerator
-                .GenerateCode(Arg.Is(buildProject), Arg.Any< IEnumerable<Calculation>>())
+                .GenerateCode(Arg.Is(buildProject), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(sourceFiles);
 
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
@@ -588,8 +603,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             //Act
-            byte[] assembly = await sourceCodeService.GetAssembly(buildProject);
+            byte[] assembly = await sourceCodeService.GetAssembly(buildProject, compilerOptions);
 
             //Assert
             assembly
@@ -624,8 +641,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileRepository, logger);
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             //Act
-            Func<Task> test = async () => await sourceCodeService.GetAssembly(buildProject);
+            Func<Task> test = async () => await sourceCodeService.GetAssembly(buildProject, compilerOptions);
 
             //Assert
             test
@@ -661,8 +680,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileRepository, logger);
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             //Act
-            byte[] assembly = await sourceCodeService.GetAssembly(buildProject);
+            byte[] assembly = await sourceCodeService.GetAssembly(buildProject, compilerOptions);
 
             //Assert
             assembly
@@ -679,7 +700,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task SaveSourceFiles_GivenSourceFiles_CompressesAndSaves()
         {
             //Arrange
-            IEnumerable<SourceFile> sourceFiles = new []
+            IEnumerable<SourceFile> sourceFiles = new[]
             {
                 new SourceFile { FileName = "project.vbproj", SourceCode = "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup><TargetFramework>netcoreapp2.0</TargetFramework></PropertyGroup></Project>" },
                 new SourceFile { FileName = "ExampleClass.vb", SourceCode = "Public Class ExampleClass\nPublic Property ProviderType() As String\nEnd Class" },
@@ -697,7 +718,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 sourceFileRepository
                     .Received(1)
-                    .SaveSourceFiles(Arg.Any<byte[]>(), Arg.Is(specificationId));   
+                    .SaveSourceFiles(Arg.Any<byte[]>(), Arg.Is(specificationId));
         }
 
         [TestMethod]
@@ -766,8 +787,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 Name = specificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions();
+
             // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations);
+            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
             build.Success.Should().BeTrue();
@@ -798,7 +821,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 resilliencePolicies ?? CreatePolicies());
         }
 
-        private SourceCodeService CreateServiceWithRealCompiler(IFeatureToggle featureToggle =  null)
+        private SourceCodeService CreateServiceWithRealCompiler(IFeatureToggle featureToggle = null)
         {
             ILogger logger = CreateLogger();
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();

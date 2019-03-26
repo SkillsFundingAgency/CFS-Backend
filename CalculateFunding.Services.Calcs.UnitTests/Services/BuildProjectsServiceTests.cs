@@ -1,4 +1,10 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
@@ -25,12 +31,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.Calcs.Services
@@ -191,7 +191,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             sourceCodeService
                 .DidNotReceive()
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>());
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>());
         }
 
         [TestMethod]
@@ -254,7 +254,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             sourceCodeService
                 .Received(1)
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>());
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>());
         }
 
         [TestMethod]
@@ -313,7 +313,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(false);
 
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectRepository();
-           
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(datasetRepository: datasetRepository, buildProjectsRepository: buildProjectsRepository, featureToggle: featureToggle);
 
             //Act
@@ -577,7 +577,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectRepository();
             buildProjectsRepository
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
-                .Returns((BuildProject) null);
+                .Returns((BuildProject)null);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(featureToggle: featureToggle, buildProjectsRepository: buildProjectsRepository);
 
@@ -627,7 +627,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .GetAssembly(Arg.Any<BuildProject>())
+                .GetAssembly(Arg.Any<BuildProject>(), Arg.Any<CompilerOptions>())
                 .Returns(new byte[0]);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, sourceCodeService: sourceCodeService);
@@ -659,7 +659,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .GetAssembly(Arg.Any<BuildProject>())
+                .GetAssembly(Arg.Any<BuildProject>(), Arg.Any<CompilerOptions>())
                 .Returns(new byte[100]);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, sourceCodeService: sourceCodeService);

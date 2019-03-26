@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
