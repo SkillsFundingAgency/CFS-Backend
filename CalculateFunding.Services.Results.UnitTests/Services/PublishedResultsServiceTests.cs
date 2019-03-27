@@ -49,7 +49,6 @@ namespace CalculateFunding.Services.Results.Services
             IJobsApiClient jobsApiClient = null,
             IPublishedProviderResultsSettings publishedProviderResultsSettings = null,
             IProviderChangesRepository providerChangesRepository = null,
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = null,
             IProviderVariationsService providerVariationsService = null,
             IProviderVariationsStorageRepository providerVariationsStorageRepository = null)
         {
@@ -74,7 +73,6 @@ namespace CalculateFunding.Services.Results.Services
                 jobsApiClient ?? CreateJobsApiClient(),
                 publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings(),
                 providerChangesRepository ?? CreateProviderChangesRepository(),
-                publishedProviderCalculationResultsRepository ?? CreatePublishedProviderCalculationResultsRepository(),
                 providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService(), specsRepo),
                 providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository()
                 );
@@ -162,11 +160,6 @@ namespace CalculateFunding.Services.Results.Services
         static IPublishedProviderResultsRepository CreatePublishedProviderResultsRepository()
         {
             return Substitute.For<IPublishedProviderResultsRepository>();
-        }
-
-        static IPublishedProviderCalculationResultsRepository CreatePublishedProviderCalculationResultsRepository()
-        {
-            return Substitute.For<IPublishedProviderCalculationResultsRepository>();
         }
 
         static ILogger CreateLogger()

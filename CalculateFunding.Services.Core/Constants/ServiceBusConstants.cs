@@ -46,10 +46,6 @@
 
             public const string MigrateFeedIndexId = "migrate-feed-index-id";
 
-            public const string MigratePublishedCalculationResults = "migrate-published-calculation-results";
-
-            public const string MigrateInstructPublishedCalculationResults = "migrate-instruct-published-calculation-results";
-
             public const string AllocationLineResultStatusUpdates = "allocationline-result-status-updates";
 
             public const string AllocationLineResultStatusUpdatesPoisoned = "allocationline-result-status-updates/$DeadLetterQueue";

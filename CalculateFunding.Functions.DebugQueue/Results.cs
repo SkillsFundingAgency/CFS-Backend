@@ -110,25 +110,5 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
-
-        [FunctionName("on-migrate-published-calculation-results")]
-        public static async Task RunMigratePublishedCalculationResults([QueueTrigger(ServiceBusConstants.QueueNames.MigratePublishedCalculationResults, Connection = "AzureConnectionString")] string item, ILogger log)
-        {
-            Message message = Helpers.ConvertToMessage<string>(item);
-
-            await Functions.Results.ServiceBus.OnMigratePublishedCalculationResultsEvent.Run(message);
-
-            log.LogInformation($"C# Queue trigger function processed: {item}");
-        }
-
-        [FunctionName("on-migrate-instruct-published-calculation-results")]
-        public static async Task RunMigrateInstructPublishedCalculationResults([QueueTrigger(ServiceBusConstants.QueueNames.MigrateInstructPublishedCalculationResults, Connection = "AzureConnectionString")] string item, ILogger log)
-        {
-            Message message = Helpers.ConvertToMessage<string>(item);
-
-            await Functions.Results.ServiceBus.OnMigrateInstructPublishedCalculationResultsEvent.Run(message);
-
-            log.LogInformation($"C# Queue trigger function processed: {item}");
-        }
     }
 }

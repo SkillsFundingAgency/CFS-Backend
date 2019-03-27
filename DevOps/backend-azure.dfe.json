@@ -1233,50 +1233,6 @@
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
           ]
-        },
-        {
-          "type": "queues",
-          "name": "migrate-published-calculation-results",
-          "apiVersion": "2017-04-01",
-          "location": "[resourceGroup().location]",
-          "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 1024,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 10,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
-        },
-        {
-          "type": "queues",
-          "name": "migrate-instruct-published-calculation-results",
-          "apiVersion": "2017-04-01",
-          "location": "[resourceGroup().location]",
-          "properties": {
-            "lockDuration": "PT5M",
-            "maxSizeInMegabytes": 1024,
-            "requiresDuplicateDetection": false,
-            "requiresSession": false,
-            "defaultMessageTimeToLive": "P1D",
-            "deadLetteringOnMessageExpiration": false,
-            "enableBatchedOperations": true,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "maxDeliveryCount": 10,
-            "enablePartitioning": true,
-            "enableExpress": false
-          },
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
         }
       ]
     },

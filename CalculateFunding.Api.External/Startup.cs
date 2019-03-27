@@ -236,19 +236,6 @@ namespace CalculateFunding.Api.External
                 return new PublishedProviderResultsRepository(resultsRepostory);
             });
 
-            builder.AddSingleton<IPublishedProviderCalculationResultsRepository, PublishedProviderCalculationResultsRepository>((ctx) =>
-            {
-                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
-
-                Configuration.Bind("CosmosDbSettings", resultsDbSettings);
-
-                resultsDbSettings.CollectionName = "publishedprovidercalcresults";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
-
-                return new PublishedProviderCalculationResultsRepository(resultsRepostory);
-            });
-
             builder.AddSingleton<IProviderChangesRepository, ProviderChangesRepository>((ctx) =>
             {
                 CosmosDbSettings repoSettings = new CosmosDbSettings();

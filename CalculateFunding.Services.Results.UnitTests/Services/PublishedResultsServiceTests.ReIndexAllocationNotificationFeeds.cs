@@ -111,12 +111,10 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundButAllHeld_DoesNotIndexReturnsContentResult()
         {
             //Arrange
-            IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
-
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
             repository
                 .GetAllNonHeldPublishedProviderResults()
-                .Returns(results);
+                .Returns(Enumerable.Empty<PublishedProviderResult>());
 
             ILogger logger = CreateLogger();
 
@@ -144,6 +142,10 @@ namespace CalculateFunding.Services.Results.Services
                 searchRepository
                 .DidNotReceive()
                 .Index(Arg.Any<IEnumerable<AllocationNotificationFeedIndex>>());
+
+            logger
+                .Received(1)
+                .Warning(Arg.Is("No published provider results were found to index."));
         }
 
         [TestMethod]

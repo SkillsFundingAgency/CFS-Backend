@@ -2834,8 +2834,6 @@ namespace CalculateFunding.Services.Results.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
-
             IProviderChangesRepository providerChangesRepository = CreateProviderChangesRepository();
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService();
@@ -2865,7 +2863,6 @@ namespace CalculateFunding.Services.Results.Services
                 resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
-                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 providerChangesRepository: providerChangesRepository,
                 providerVariationsService: providerVariationsService,
@@ -2923,8 +2920,6 @@ namespace CalculateFunding.Services.Results.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository = CreatePublishedProviderCalculationResultsRepository();
-
             IProviderChangesRepository providerChangesRepository = CreateProviderChangesRepository();
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService();
@@ -2955,7 +2950,6 @@ namespace CalculateFunding.Services.Results.Services
                 resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
-                publishedProviderCalculationResultsRepository: publishedProviderCalculationResultsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 providerChangesRepository: providerChangesRepository,
                 providerVariationsService: providerVariationsService,

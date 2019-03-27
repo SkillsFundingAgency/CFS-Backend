@@ -70,7 +70,6 @@ namespace CalculateFunding.Services.Results
         private readonly IPublishedProviderResultsSettings _publishedProviderResultsSettings;
         private readonly IProviderChangesRepository _providerChangesRepository;
         private readonly Polly.Policy _providerChangesRepositoryPolicy;
-        private readonly IPublishedProviderCalculationResultsRepository _publishedProviderCalculationResultsRepository;
         private readonly IProviderVariationsService _providerVariationsService;
         private readonly IProviderVariationsStorageRepository _providerVariationsStorageRepository;
 
@@ -92,7 +91,6 @@ namespace CalculateFunding.Services.Results
           IFeatureToggle featureToggle,
           IJobsApiClient jobsApiClient,
           IPublishedProviderResultsSettings publishedProviderResultsSettings,
-          IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
           IProviderChangesRepository providerChangesRepository)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -110,7 +108,6 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(publishedProviderResultsSettings, nameof(publishedProviderResultsSettings));
-            Guard.ArgumentNotNull(publishedProviderCalculationResultsRepository, nameof(publishedProviderCalculationResultsRepository));
             Guard.ArgumentNotNull(providerChangesRepository, nameof(providerChangesRepository));
 
             _logger = logger;
@@ -134,7 +131,6 @@ namespace CalculateFunding.Services.Results
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
             _publishedProviderResultsSettings = publishedProviderResultsSettings;
-            _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
             _providerChangesRepository = providerChangesRepository;
             _providerChangesRepositoryPolicy = resiliencePolicies.ProviderChangesRepository;
         }
@@ -159,7 +155,6 @@ namespace CalculateFunding.Services.Results
             IJobsApiClient jobsApiClient,
             IPublishedProviderResultsSettings publishedProviderResultsSettings,
             IProviderChangesRepository providerChangesRepository,
-            IPublishedProviderCalculationResultsRepository publishedProviderCalculationResultsRepository,
             IProviderVariationsService providerVariationsService,
             IProviderVariationsStorageRepository providerVariationsStorageRepository)
         {
@@ -179,7 +174,6 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(publishedProviderResultsSettings, nameof(publishedProviderResultsSettings));
-            Guard.ArgumentNotNull(publishedProviderCalculationResultsRepository, nameof(publishedProviderCalculationResultsRepository));
             Guard.ArgumentNotNull(providerVariationsService, nameof(providerVariationsService));
             Guard.ArgumentNotNull(providerVariationsStorageRepository, nameof(providerVariationsStorageRepository));
             Guard.ArgumentNotNull(providerChangesRepository, nameof(providerChangesRepository));
@@ -209,7 +203,6 @@ namespace CalculateFunding.Services.Results
             _publishedProviderResultsSettings = publishedProviderResultsSettings;
             _providerChangesRepository = providerChangesRepository;
             _providerChangesRepositoryPolicy = resiliencePolicies.ProviderChangesRepository;
-            _publishedProviderCalculationResultsRepository = publishedProviderCalculationResultsRepository;
             _providerVariationsService = providerVariationsService;
             _providerVariationsStorageRepository = providerVariationsStorageRepository;
         }
@@ -2002,230 +1995,6 @@ namespace CalculateFunding.Services.Results
             }
 
             return new NoContentResult();
-        }
-
-        public async Task<IActionResult> MigratePublishedCalculationResults(HttpRequest request)
-        {
-            string specificationId = GetParameter(request, "specificationId");
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specification Id was provided to MigratePublishedCalculationResults");
-                return new BadRequestObjectResult("Null or empty specification Id provided");
-            }
-
-            IDictionary<string, string> properties = request.BuildMessageProperties();
-            properties["specification-id"] = specificationId;
-
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.MigrateInstructPublishedCalculationResults, "", properties);
-
-            return new NoContentResult();
-        }
-
-        public async Task MigrateInstructPublishedCalculationResults(Message message)
-        {
-            if (!message.UserProperties.ContainsKey("specification-id"))
-            {
-                _logger.Error("No specification id was present on the message");
-                throw new ArgumentException("Message must contain a specification id in user properties");
-            }
-
-            string specificationId = message.UserProperties["specification-id"].ToString();
-
-            IEnumerable<PublishedProviderResultExisting> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetExistingPublishedProviderResultsForSpecificationId(specificationId));
-
-            foreach (PublishedProviderResultExisting publishedProviderResult in publishedProviderResults)
-            {
-                IDictionary<string, string> properties = message.BuildMessageProperties();
-                properties["specification-id"] = specificationId;
-                properties["provider-id"] = publishedProviderResult.ProviderId;
-
-                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.MigratePublishedCalculationResults, "", properties);
-            }
-        }
-
-        public async Task MigratePublishedCalculationResults(Message message)
-        {
-            if (!message.UserProperties.ContainsKey("specification-id"))
-            {
-                _logger.Error("No specification id was present on the message");
-                throw new ArgumentException("Message must contain a specification id in user properties");
-            }
-
-            string specificationId = message.UserProperties["specification-id"].ToString();
-
-            if (!message.UserProperties.ContainsKey("provider-id"))
-            {
-                _logger.Error("No provider id was present on the message");
-                throw new ArgumentException("Message must contain a provider id in user properties");
-            }
-
-            string providerId = message.UserProperties["provider-id"].ToString();
-
-            SpecificationCurrentVersion specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetCurrentSpecificationById(specificationId));
-
-            if (specification == null)
-            {
-                _logger.Error($"Unable to locate a specification with id {specificationId}");
-                return;
-            }
-
-            IEnumerable<Migration.PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetPublishedProviderResultsForSpecificationIdAndProviderIdMigrationOnly(specificationId, new[] { providerId }));
-
-            if (publishedProviderResults.IsNullOrEmpty())
-            {
-                _logger.Warning($"No published provider results found for specification id {specificationId}");
-                return;
-            }
-
-            IEnumerable<Migration.PublishedProviderCalculationResult> publishedProviderCalculationResults = await _publishedProviderCalculationResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderCalculationResultsRepository.GetFundingOrPublicPublishedProviderCalculationResultsBySpecificationIdAndProviderId(specificationId, new[] { providerId }));
-
-            if (publishedProviderCalculationResults.IsNullOrEmpty())
-            {
-                _logger.Warning($"No published provider results found for specification id {specificationId}");
-                return;
-            }
-
-
-            IList<PublishedAllocationLineResultVersion> updatedVersions = new List<PublishedAllocationLineResultVersion>();
-            IList<PublishedProviderResult> updatedResults = new List<PublishedProviderResult>();
-
-            IList<PublishedProviderResult> updatedResultsToIndex = new List<PublishedProviderResult>();
-
-            foreach (Migration.PublishedProviderResult publishedProviderResult in publishedProviderResults)
-            {
-                string allocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id;
-
-                publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.ProviderLookups = null;
-
-                IEnumerable<Migration.PublishedProviderCalculationResult> relatedPublishedProviderCalculationResults = publishedProviderCalculationResults.Where(m => m.AllocationLine?.Id == allocationLineId || m.IsPublic).ToArraySafe();
-
-                if (relatedPublishedProviderCalculationResults.IsNullOrEmpty())
-                {
-                    continue;
-                }
-
-                IEnumerable<PublishedAllocationLineResultVersion> versions = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersions(publishedProviderResult.Id, publishedProviderResult.ProviderId));
-
-                if (versions.IsNullOrEmpty())
-                {
-                    continue;
-                }
-
-                versions = versions.OrderByDescending(m => m.Version);
-
-                foreach (PublishedAllocationLineResultVersion version in versions)
-                {
-                    version.Calculations = relatedPublishedProviderCalculationResults.Select(m =>
-                        new PublishedProviderCalculationResult
-                        {
-                            CalculationSpecification = m.CalculationSpecification,
-                            Policy = m.Policy,
-                            AllocationLine = m.AllocationLine,
-                            ParentPolicy = m.ParentPolicy,
-                            IsPublic = m.IsPublic,
-                            Status = m.Current.PublishStatus,
-                            Value = m.Current.Value,
-                            CalculationVersion = m.Current.CalculationVersion,
-                            CalculationType = m.Current.CalculationType
-                        }
-                    ).ToList();
-
-                    if (!publishedProviderResult.ProfilingPeriods.IsNullOrEmpty())
-                    {
-                        version.ProfilingPeriods = publishedProviderResult.ProfilingPeriods;
-
-                        foreach (Models.Results.ProfilingPeriod profilingPeriod in version.ProfilingPeriods)
-                        {
-                            if (profilingPeriod.Period.Equals("Oct", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                profilingPeriod.Period = "October";
-                            }
-
-                            if (profilingPeriod.Period.Equals("Apr", StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                profilingPeriod.Period = "April";
-                            }
-                        }
-                    }
-
-                    if (!publishedProviderResult.FinancialEnvelopes.IsNullOrEmpty())
-                    {
-                        version.FinancialEnvelopes = publishedProviderResult.FinancialEnvelopes;
-                    }
-
-                    updatedVersions.Add(version);
-                }
-
-                PublishedProviderResult updatedPublishedProviderResult = new PublishedProviderResult
-                {
-                    FundingPeriod = publishedProviderResult.FundingPeriod,
-                    FundingStreamResult = publishedProviderResult.FundingStreamResult,
-                    ProviderId = publishedProviderResult.ProviderId,
-                    SpecificationId = publishedProviderResult.SpecificationId,
-                };
-
-                //Ensure very latest is added to published
-                foreach (PublishedAllocationLineResultVersion version in versions)
-                {
-                    if (version.Status == AllocationLineStatus.Published)
-                    {
-                        updatedPublishedProviderResult.FundingStreamResult.AllocationLineResult.Published = version;
-                        break;
-                    }
-                }
-
-                foreach (PublishedAllocationLineResultVersion version in versions)
-                {
-                    if (version.Status != AllocationLineStatus.Held)
-                    {
-                        updatedResultsToIndex.Add(GetPublishedProviderResultToIndex(updatedPublishedProviderResult, version));
-                    }
-                }
-
-                foreach (AllocationLine allocationLine in updatedPublishedProviderResult.FundingStreamResult.FundingStream.AllocationLines)
-                {
-                    allocationLine.ProviderLookups = null;
-                }
-
-                updatedPublishedProviderResult.FundingStreamResult.AllocationLineResult.Current = versions.First();
-
-                updatedResults.Add(updatedPublishedProviderResult);
-            }
-
-            try
-            {
-                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.SaveVersions(updatedVersions));
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "MigrationError: Failed to index save updated versions");
-
-                throw new Exception(ex.Message);
-            }
-
-            try
-            {
-                await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.SavePublishedResults(updatedResults));
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "MigrationError: Failed to save updated published results");
-
-                throw new Exception(ex.Message);
-            }
-
-            try
-            {
-                await UpdateAllocationNotificationsFeedIndex(updatedResultsToIndex, specification);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "MigrationError: Failed to index allocation feeds with updated results");
-
-                throw new Exception(ex.Message);
-            }
-
         }
 
         private PublishedProviderResult GetPublishedProviderResultToIndex(PublishedProviderResult publishedProviderResult, PublishedAllocationLineResultVersion version)
