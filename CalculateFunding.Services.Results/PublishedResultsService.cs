@@ -653,6 +653,7 @@ namespace CalculateFunding.Services.Results
             ProcessProviderVariationsResult providerChanges = await _providerVariationsService.ProcessProviderVariations(triggeringJob, specification, providerResults, existingPublishedProviderResults, publishedProviderResults, publishedProviderResultsToSave, author);
             processVariationsStopwatch.Stop();
 
+            // This is a good place to put a breakpoint for checking variation status and then diverting into failure code to avoid saving incorrect results
             if (providerChanges == null)
             {
                 _logger.Error("Provider changes returned null for specification '{specificationId}'", specificationId);

@@ -1803,10 +1803,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -1822,10 +1818,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -1841,10 +1833,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 21, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 15, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 }
             };
@@ -2054,10 +2042,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -2073,10 +2057,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 }
             };
@@ -2097,10 +2077,6 @@ namespace CalculateFunding.Services.Results.Services
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
                     },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
-                    },
                     HasResultBeenVaried = true
                 },
                 new PublishedProviderResultExisting
@@ -2116,10 +2092,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 }
             };
@@ -2212,10 +2184,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -2231,10 +2199,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 }
             };
@@ -2255,10 +2219,6 @@ namespace CalculateFunding.Services.Results.Services
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
                     },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
-                    },
                     HasResultBeenVaried = true
                 },
                 new PublishedProviderResultExisting
@@ -2274,10 +2234,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 }
             };
@@ -2529,10 +2485,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 }
             };
@@ -2613,10 +2565,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 }
             };
@@ -3212,10 +3160,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -3231,10 +3175,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 }
             };
@@ -3394,10 +3334,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -3413,10 +3349,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 }
             };
@@ -3729,10 +3661,6 @@ namespace CalculateFunding.Services.Results.Services
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
                     },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
-                    },
                     HasResultBeenVaried = true
                 },
                 new PublishedProviderResultExisting
@@ -3748,10 +3676,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     },
                     HasResultBeenVaried = true
                 }
@@ -3907,10 +3831,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -3926,10 +3846,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 }
             };
@@ -4064,10 +3980,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 }
             };
@@ -4182,10 +4094,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 }
             };
@@ -4300,10 +4208,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 }
             };
@@ -4487,10 +4391,6 @@ namespace CalculateFunding.Services.Results.Services
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 0, Year = 2019 }
                     },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
-                    },
                     HasResultBeenVaried = true
                 },
                 new PublishedProviderResultExisting
@@ -4506,10 +4406,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 0, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     },
                     HasResultBeenVaried = true
                 }
@@ -4786,10 +4682,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -4805,10 +4697,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Free schools", ProviderSubType = "Free schools special" }
                     }
                 }
             };
@@ -5102,10 +4990,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 7, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 5, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 },
                 new PublishedProviderResultExisting
@@ -5121,10 +5005,6 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         new ProfilingPeriod { Period = "Apr", Type = "CalendarMonth", Value = 14, Year = 2018 },
                         new ProfilingPeriod { Period = "Jan", Type = "CalendarMonth", Value = 10, Year = 2019 }
-                    },
-                    ProviderLookups = new List<ProviderLookup>
-                    {
-                        new ProviderLookup { ProviderType = "Academies", ProviderSubType = "Academy sponsor led" }
                     }
                 }
             };

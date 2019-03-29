@@ -52,6 +52,12 @@ namespace CalculateFunding.Services.Results
 
                 if (existingResult != null)
                 {
+                    if (existingResult.HasResultBeenVaried)
+                    {
+                        // Don't replay an already processed variation
+                        continue;
+                    }
+
                     List<VariationReason> variationReasons = new List<VariationReason>();
 
                     if (coreProvider.Status == ProviderStatusClosed)

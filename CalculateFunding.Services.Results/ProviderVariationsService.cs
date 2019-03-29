@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Results
                 {
                     providerVariations = await _providerVariationAssemblerService.AssembleProviderVariationItems(providerResults, existingPublishedProviderResults, specification.Id);
 
-                    if (providerVariations.AnyWithNullCheck() && !specification.VariationDate.HasValue)
+                    if (providerVariations.AnyWithNullCheck(v => v.HasProviderClosed) && !specification.VariationDate.HasValue)
                     {
                         errors.Add(new ProviderVariationError { Error = "Variations have been found for the scoped providers, but the specification has no variation date set" });
                         result.Errors = errors;
@@ -80,9 +80,12 @@ namespace CalculateFunding.Services.Results
                             if (providerChange.HasProviderClosed && providerChange.DoesProviderHaveSuccessor)
                             {
                                 // If successor has a previous result
-                                PublishedProviderResultExisting successorExistingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.SuccessorProviderId
-                                    && (r.ProviderLookups != null
-                                    && r.ProviderLookups.Any(p => p.ProviderType == providerChange.UpdatedProvider.ProviderType && p.ProviderSubType == providerChange.UpdatedProvider.ProviderSubType)));
+                                PublishedProviderResultExisting successorExistingResult = null;
+
+                                if (allocationLine.ProviderLookups.Any(p => p.ProviderType == providerChange.UpdatedProvider.ProviderType && p.ProviderSubType == providerChange.UpdatedProvider.ProviderSubType))
+                                {
+                                    successorExistingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.SuccessorProviderId);
+                                }
 
                                 if (successorExistingResult != null)
                                 {

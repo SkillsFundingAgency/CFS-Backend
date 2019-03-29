@@ -132,7 +132,6 @@ namespace CalculateFunding.Services.Results.Repositories
                 "r.content.fundingStreamResult.allocationLineResult.published as published, " +
                 "r.content.fundingStreamResult.allocationLineResult.current.profilePeriods, " +
                 "r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes, " +
-                "r.content.fundingStreamResult.allocationLineResult.allocationLine.providerLookups, " +
                 "r.content.fundingStreamResult.allocationLineResult.hasResultBeenVaried, " +
                 "r.content.fundingStreamResult.allocationLineResult.current.provider " +
                 "FROM Root r where r.documentType = 'PublishedProviderResult' " +
@@ -162,7 +161,6 @@ namespace CalculateFunding.Services.Results.Repositories
                 result.Status = Enum.Parse(typeof(AllocationLineStatus), existingResult.status);
 
                 result.ProfilePeriods = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "profilePeriods") ? ((JArray)existingResult.profilePeriods).ToObject<List<ProfilingPeriod>>() : Enumerable.Empty<ProfilingPeriod>();
-                result.ProviderLookups = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "providerLookups") ? ((JArray)existingResult.providerLookups).ToObject<List<ProviderLookup>>() : Enumerable.Empty<ProviderLookup>();
                 result.FinancialEnvelopes = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "financialEnvelopes") ? ((JArray)existingResult.financialEnvelopes).ToObject<List<FinancialEnvelope>>() : Enumerable.Empty<FinancialEnvelope>();
                 
                 results.Add(result);
