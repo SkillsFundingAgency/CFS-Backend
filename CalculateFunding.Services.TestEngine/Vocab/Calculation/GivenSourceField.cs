@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
                 object expectedValue = null;
                 try
                 {
-                    actualValue  = Convert.ChangeType(Value, actualValue.GetType());
+                    expectedValue = Convert.ChangeType(Value, actualValue.GetType());
                 }
                 catch (FormatException)
                 {
@@ -38,8 +38,8 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
                         Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }
                     };
                 }
-                
-                var logicResult = TestLogic(expectedValue, actualValue, Operator);
+
+                bool logicResult = TestLogic(expectedValue, actualValue, Operator);
                 if (!logicResult)
                 {
                     return new GherkinParseResult(

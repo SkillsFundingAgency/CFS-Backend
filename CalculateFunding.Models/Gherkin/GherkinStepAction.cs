@@ -6,7 +6,6 @@ using CalculateFunding.Models.Scenarios;
 
 namespace CalculateFunding.Models.Gherkin
 {
-
     public interface IStepAction
     {
         GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets);
@@ -15,20 +14,24 @@ namespace CalculateFunding.Models.Gherkin
     public abstract class GherkinStepAction : IStepAction
     {
         public abstract GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets);
+
         protected bool TestLogic(object expectedValue, object actualValue, ComparisonOperator logic)
         {
-            var expected = expectedValue as IComparable;
-            var actual = actualValue as IComparable;
+            IComparable expected = expectedValue as IComparable;
+            IComparable actual = actualValue as IComparable;
 
-            if (expected != null && actual == null) return false;
+            if (expected != null && actual == null)
+            {
+                return false;
+            }
 
             switch (logic)
             {
                 case ComparisonOperator.EqualTo:
-                    return actual.CompareTo(expected)  == 0;
+                    return actual.CompareTo(expected) == 0;
                 case ComparisonOperator.NotEqualTo:
                     return actual.CompareTo(expected) != 0;
-                case ComparisonOperator.GreaterThan:                 
+                case ComparisonOperator.GreaterThan:
                     return actual.CompareTo(expectedValue) > 0;
                 case ComparisonOperator.GreaterThanOrEqualTo:
                     return actual.CompareTo(expectedValue) >= 0;
@@ -44,14 +47,14 @@ namespace CalculateFunding.Models.Gherkin
         {
             object actualValue = null;
 
-            ProviderSourceDataset providerSourceDataset = datasets.Where(d => d.DataRelationship.Name == datasetRelationshipName).FirstOrDefault();
+            ProviderSourceDataset providerSourceDataset = datasets.Where(d => d.DataRelationship.Name.Equals(datasetRelationshipName, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
             if (providerSourceDataset != null)
             {
-                var rows = providerSourceDataset.Current.Rows;
+                List<Dictionary<string, object>> rows = providerSourceDataset.Current.Rows;
 
                 if (rows.Count > 0)
                 {
-                    actualValue = rows.First()[fieldName];
+                    actualValue = rows.First().First(r => r.Key.ToUpperInvariant() == fieldName.ToUpperInvariant()).Value;
                 }
             }
 

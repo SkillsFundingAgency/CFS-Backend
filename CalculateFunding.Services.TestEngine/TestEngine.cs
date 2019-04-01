@@ -9,7 +9,6 @@ using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Serilog;
 
@@ -22,6 +21,9 @@ namespace CalculateFunding.Services.TestRunner
 
         public TestEngine(IGherkinExecutor gherkinExecutor, ILogger logger)
         {
+            Guard.ArgumentNotNull(gherkinExecutor, nameof(gherkinExecutor));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+
             _gherkinExecutor = gherkinExecutor;
             _logger = logger;
         }
@@ -61,23 +63,23 @@ namespace CalculateFunding.Services.TestRunner
             }
             else
             {
-                foreach (var providerResult in providerResults)
+                foreach (ProviderResult providerResult in providerResults)
                 {
-                    var providerSourceDatasets = sourceDatasets.Where(m => m.ProviderId == providerResult.Provider.Id);
+                    IEnumerable<ProviderSourceDataset> providerSourceDatasets = sourceDatasets.Where(m => m.ProviderId == providerResult.Provider.Id);
 
-                    var testResults = await RunTests(testScenarios, providerResult, providerSourceDatasets, buildProject);
+                    IEnumerable<ScenarioResult> testResults = await RunTests(testScenarios, providerResult, providerSourceDatasets, buildProject);
 
                     if (!testResults.IsNullOrEmpty())
                     {
-                        foreach (var testResult in testResults)
+                        foreach (ScenarioResult testResult in testResults)
                         {
-                            var status = (testResult.StepsExecuted == 0 || testResult.StepsExecuted < testResult.TotalSteps)
+                            TestResult status = (testResult.StepsExecuted == 0 || testResult.StepsExecuted < testResult.TotalSteps)
                                         ? TestResult.Ignored
                                         : testResult.HasErrors
                                             ? TestResult.Failed
                                             : TestResult.Passed;
 
-                            var filteredCurrentResults = currentResults.FirstOrDefault(m => m.Provider.Id == providerResult.Provider.Id && m.TestScenario.Id == testResult.Scenario.Id && m.TestResult == status);
+                            TestScenarioResult filteredCurrentResults = currentResults.FirstOrDefault(m => m.Provider.Id == providerResult.Provider.Id && m.TestScenario.Id == testResult.Scenario.Id && m.TestResult == status);
 
                             if (filteredCurrentResults == null)
                             {
@@ -101,14 +103,14 @@ namespace CalculateFunding.Services.TestRunner
             return scenarioResults;
         }
 
-        async Task<IEnumerable<ScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult,
+        private async Task<IEnumerable<ScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, ProviderResult providerResult,
             IEnumerable<ProviderSourceDataset> providerSourceDatasets, BuildProject buildProject)
         {
             List<ScenarioResult> scenarioResults = new List<ScenarioResult>();
 
             if (testScenarios != null)
             {
-                var gherkinScenarioResults =
+                IEnumerable<ScenarioResult> gherkinScenarioResults =
                     await _gherkinExecutor.Execute(providerResult, providerSourceDatasets, testScenarios, buildProject);
 
                 if (!gherkinScenarioResults.IsNullOrEmpty())

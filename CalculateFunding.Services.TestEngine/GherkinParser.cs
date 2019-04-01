@@ -44,6 +44,7 @@ namespace CalculateFunding.Services.TestRunner
 
         public async Task<GherkinParseResult> Parse(string specificationId, string gherkin, BuildProject buildProject)
         {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(gherkin, nameof(gherkin));
             Guard.ArgumentNotNull(buildProject, nameof(buildProject));
 

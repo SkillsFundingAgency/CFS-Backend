@@ -16,11 +16,8 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 {
     public class DatsetsStepParser : CalcStepParser, IStepParser
     {
-        private readonly ICodeMetadataGeneratorService _codeMetadataGeneratorService;
-
-        public DatsetsStepParser(ICodeMetadataGeneratorService codeMetadataGeneratorService)
+        public DatsetsStepParser(ICodeMetadataGeneratorService codeMetadataGeneratorService) : base(codeMetadataGeneratorService)
         {
-            _codeMetadataGeneratorService = codeMetadataGeneratorService;
         }
 
         public Task Parse(Step step, string stepExpression, GherkinParseResult parseResult, BuildProject buildProject)
@@ -39,8 +36,6 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                 }
                 else
                 {
-                    IEnumerable<TypeInformation> typeInformation = _codeMetadataGeneratorService.GetTypeInformation(assembly);
-
                     string[] matches = Regex.Split(step.Text, stepExpression, RegexOptions.IgnoreCase);
 
                     string datasetName = matches[5];
@@ -58,7 +53,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                     }
                     else
                     {
-                        PropertyInformation dataset = typeInformation.FirstOrDefault(m => m.Type == "Datasets")?.Properties.FirstOrDefault(m => m.FriendlyName == datasetName.Replace("'", ""));
+                        PropertyInformation dataset = FindCalculationProperty(assembly, datasetName, "Datasets");
 
                         if (dataset == null)
                         {
@@ -66,43 +61,43 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                         }
                         else
                         {
-                            string type = dataset.Type;
-
-                            PropertyInformation fieldInfo = typeInformation.FirstOrDefault(m => m.Type == type)?.Properties.FirstOrDefault(m => m.FriendlyName == fieldName.Replace("'", ""));
+                            PropertyInformation fieldInfo = FindCalculationProperty(assembly, fieldName, dataset.Type);
 
                             if (fieldInfo == null)
                             {
                                 parseResult.AddError($"'{fieldName}' does not exist in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
                             }
-
-                            try
+                            else
                             {
-                                Type destinationType = null;
-                                switch (fieldInfo.Type)
+                                try
                                 {
-                                    case "String":
-                                        destinationType = typeof(string);
-                                        break;
-                                    case "Decimal":
-                                        destinationType = typeof(decimal);
-                                        break;
-                                    case "Integer":
-                                        destinationType = typeof(int);
-                                        break;
-                                    default:
-                                        parseResult.AddError($"Unknown input datatype of '{fieldInfo.Type}' for field '{fieldName}' in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
-                                        break;
-                                }
+                                    Type destinationType = null;
+                                    switch (fieldInfo.Type)
+                                    {
+                                        case "String":
+                                            destinationType = typeof(string);
+                                            break;
+                                        case "Decimal":
+                                            destinationType = typeof(decimal);
+                                            break;
+                                        case "Integer":
+                                            destinationType = typeof(int);
+                                            break;
+                                        default:
+                                            parseResult.AddError($"Unknown input datatype of '{fieldInfo.Type}' for field '{fieldName}' in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
+                                            break;
+                                    }
 
-                                if (destinationType != null)
+                                    if (destinationType != null)
+                                    {
+                                        object actualValue = Convert.ChangeType(value, destinationType);
+                                    }
+
+                                }
+                                catch (FormatException)
                                 {
-                                    object actualValue = Convert.ChangeType(value, destinationType);
+                                    parseResult.AddError($"Data type mismatch for '{fieldName}' in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
                                 }
-
-                            }
-                            catch (FormatException)
-                            {
-                                parseResult.AddError($"Data type mismatch for '{fieldName}' in the dataset '{datasetName}'", step.Location.Line, step.Location.Column);
                             }
                         }
 

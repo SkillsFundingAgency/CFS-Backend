@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
@@ -10,8 +11,6 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Newtonsoft.Json;
 using Polly;
@@ -38,12 +37,11 @@ namespace CalculateFunding.Services.TestRunner
             _cacheProviderPolicy = resiliencePolicies.CacheProviderRepository;
         }
 
-
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
             health.Name = nameof(GherkinExecutor);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = this.GetType().Name, Message = cacheHealth.Message });
@@ -54,7 +52,6 @@ namespace CalculateFunding.Services.TestRunner
         public async Task<IEnumerable<ScenarioResult>> Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets,
             IEnumerable<TestScenario> testScenarios, BuildProject buildProject)
         {
-
             Guard.ArgumentNotNull(providerResult, nameof(providerResult));
             Guard.ArgumentNotNull(datasets, nameof(datasets));
             Guard.ArgumentNotNull(testScenarios, nameof(testScenarios));
@@ -62,9 +59,9 @@ namespace CalculateFunding.Services.TestRunner
 
             IList<ScenarioResult> scenarioResults = new List<ScenarioResult>();
 
-            foreach (var scenario in testScenarios)
+            foreach (TestScenario scenario in testScenarios)
             {
-                var scenarioResult = new ScenarioResult
+                ScenarioResult scenarioResult = new ScenarioResult
                 {
                     Scenario = new Reference(scenario.Id, scenario.Name)
                 };
@@ -77,7 +74,7 @@ namespace CalculateFunding.Services.TestRunner
 
                     scenarioResult.StepsExecuted = 0;
 
-                    foreach (var action in parseResult.StepActions)
+                    foreach (IStepAction action in parseResult.StepActions)
                     {
                         GherkinParseResult result = action.Execute(providerResult, datasets);
 
@@ -88,7 +85,7 @@ namespace CalculateFunding.Services.TestRunner
 
                         if (!result.Dependencies.IsNullOrEmpty())
                         {
-                            foreach (var resultDependency in result.Dependencies)
+                            foreach (Dependency resultDependency in result.Dependencies)
                             {
                                 if (!scenarioResult.Dependencies.Contains(resultDependency))
                                 {
@@ -110,9 +107,9 @@ namespace CalculateFunding.Services.TestRunner
             return scenarioResults;
         }
 
-        async Task<GherkinParseResult> GetGherkinParseResult(TestScenario testScenario, BuildProject buildProject)
+        private async Task<GherkinParseResult> GetGherkinParseResult(TestScenario testScenario, BuildProject buildProject)
         {
-            Guard.ArgumentNotNull(testScenario, nameof(buildProject));
+            Guard.ArgumentNotNull(testScenario, nameof(testScenario));
             Guard.ArgumentNotNull(buildProject, nameof(buildProject));
 
             string cacheKey = $"{CacheKeys.GherkinParseResult}{testScenario.Id}";

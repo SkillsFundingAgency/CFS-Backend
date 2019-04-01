@@ -15,11 +15,8 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 {
     public class AssertCalcStepParser : CalcStepParser, IStepParser
     {
-        private readonly ICodeMetadataGeneratorService _codeMetadataGeneratorService;
-
-        public AssertCalcStepParser(ICodeMetadataGeneratorService codeMetadataGeneratorService)
+        public AssertCalcStepParser(ICodeMetadataGeneratorService codeMetadataGeneratorService) : base(codeMetadataGeneratorService)
         {
-            _codeMetadataGeneratorService = codeMetadataGeneratorService;
         }
 
         public Task Parse(Step step, string stepExpression, GherkinParseResult parseResult, BuildProject buildProject)
@@ -46,9 +43,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
                     string value = matches[11];
 
-                    IEnumerable<TypeInformation> typeInformation = _codeMetadataGeneratorService.GetTypeInformation(assembly);
-
-                    MethodInformation calculation = typeInformation.FirstOrDefault(m => m.Type == "Calculations")?.Methods.FirstOrDefault(m => m.FriendlyName == calcName.Replace("'",""));
+                    MethodInformation calculation = FindCalculationMethod(assembly, calcName);
 
                     if (calculation == null)
                     {

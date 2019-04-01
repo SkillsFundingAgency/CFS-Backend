@@ -22,20 +22,20 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 
         public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
         {
-            var calculationResult = providerResult.CalculationResults.SingleOrDefault(x => x.Calculation.Name == CalculationName);
+            CalculationResult calculationResult = providerResult.CalculationResults.SingleOrDefault(x => x.Calculation.Name.Equals(CalculationName, StringComparison.InvariantCultureIgnoreCase));
 
-            var actualValue = GetActualValue(datasets, DatasetName, FieldName);
+            object actualValue = GetActualValue(datasets, DatasetName, FieldName);
 
             if (actualValue != null)
             {
-                var expectedValue = Convert.ChangeType(calculationResult.Value, actualValue.GetType());
-                var logicResult = TestLogic(actualValue, expectedValue, Operator);
+                object expectedValue = Convert.ChangeType(calculationResult.Value, actualValue.GetType());
+                bool logicResult = TestLogic(actualValue, expectedValue, Operator);
                 if (!logicResult)
                 {
                     return new GherkinParseResult(
                         $"{FieldName} in {DatasetName} - {actualValue} is not {Operator} {expectedValue}")
                     {
-                        Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }                      
+                        Dependencies = { new Dependency(DatasetName, FieldName, actualValue?.ToString()) }
                     };
                 }
                 return new GherkinParseResult()

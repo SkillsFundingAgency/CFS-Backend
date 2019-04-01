@@ -14,6 +14,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Services.TestRunner.Services;
+using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.TestEngine.Interfaces;
+using Serilog;
+using CalculateFunding.Models.Code;
 
 namespace CalculateFunding.Services.TestRunner.UnitTests
 {
@@ -21,7 +26,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
     public class GherkinExecutorTests
     {
         [TestMethod]
-        public async Task Execute_WhenGherkinParseResultIsInCacheButNoStepActions_DoesnNotCallParser()
+        public async Task Execute_WhenGherkinParseResultIsInCacheButNoStepActions_DoesNotCallParser()
         {
             //Arrange
             ProviderResult providerResult = new ProviderResult();
@@ -64,9 +69,8 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                     .Parse(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<BuildProject>());
         }
 
-
         [TestMethod]
-        public async Task Execute_WhenGherkinParseResultIsInCacheWithStepActionButAborted_DoesnNotCallParserDoesNotAddDependencies()
+        public async Task Execute_WhenGherkinParseResultIsInCacheWithStepActionButAborted_DoesNotCallParserDoesNotAddDependencies()
         {
             //Arrange
             ProviderResult providerResult = new ProviderResult();
@@ -132,7 +136,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         }
 
         [TestMethod]
-        public async Task Execute_WhenGherkinParseResultIsInCacheWithStepActionAndResultHasDependencies_DoesnNotCallParserCreatesResult()
+        public async Task Execute_WhenGherkinParseResultIsInCacheWithStepActionAndResultHasDependencies_DoesNotCallParserCreatesResult()
         {
             //Arrange
             ProviderResult providerResult = new ProviderResult();
@@ -221,7 +225,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         }
 
         [TestMethod]
-        public async Task Execute_WhenGherkinParseResultIsInCacheWithStepActionAndResultHasErrorsDoesnNotCallParserCreatesResultWithErrors()
+        public async Task Execute_WhenGherkinParseResultIsInCacheWithStepActionAndResultHasErrors_DoesNotCallParserCreatesResultWithErrors()
         {
             //Arrange
             ProviderResult providerResult = new ProviderResult();
@@ -304,7 +308,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         }
 
         [TestMethod]
-        public async Task Execute_WhenGherkinParseResultIsInCacheWithTeoStepActionAndResultHasErrorsDoesnNotCallParserCreatesResultWithErrors()
+        public async Task Execute_WhenGherkinParseResultIsInCacheWithTeoStepActionAndResultHasErrors_DoesNotCallParserCreatesResultWithErrors()
         {
             //Arrange
             ProviderResult providerResult = new ProviderResult();
@@ -396,7 +400,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         }
 
         [TestMethod]
-        public async Task Execute_WhenGherkinParseResultIsNotInCacheWithTeoStepActionAndResultHasErrorrCreatesResultWithErrors()
+        public async Task Execute_WhenGherkinParseResultIsNotInCacheWithTeoStepActionAndResultHasError_CreatesResultWithErrors()
         {
             //Arrange
             ProviderResult providerResult = new ProviderResult();
@@ -490,27 +494,387 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 .Be(2);
         }
 
-        public static GherkinExecutor CreateGherkinExecutor(IGherkinParser gherkinParser = null, ICacheProvider cacheProvider = null)
+        [TestMethod]
+        public async Task Execute_WhenCalculationNameDatasetAndFieldNameCaseAreAllPerfectMatches_ThenTestIsSuccessfullyExecuted()
+        {
+            // Arrange
+            string dataSetName = "Test Dataset";
+            string fieldName = "URN";
+            string calcName = "Test Calc";
+            string gherkin = $"Given the dataset '{dataSetName}' field '{fieldName}' is equal to '100050'\n\nThen the result for '{calcName}' is greater than '12' ";
+
+            ICodeMetadataGeneratorService codeMetadataGeneratorService = CreateCodeMetadataGeneratorService();
+            codeMetadataGeneratorService
+                .GetTypeInformation(Arg.Any<byte[]>())
+                .Returns(new List<TypeInformation>
+                {
+                    new TypeInformation { Type = "Calculations", Methods = new List<MethodInformation> { new MethodInformation { FriendlyName = calcName } } },
+                    new TypeInformation { Type = "Datasets", Properties = new List<PropertyInformation> { new PropertyInformation { FriendlyName = dataSetName, Type = "DSType" } }},
+                    new TypeInformation { Type = "DSType", Properties = new List<PropertyInformation> { new PropertyInformation { FriendlyName = fieldName, Type = "String" } }}
+                });
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ITestRunnerResiliencePolicies resiliencePolicies = CreateResilliencePolicies();
+
+            IStepParserFactory stepParserFactory = new StepParserFactory(codeMetadataGeneratorService, providerResultsRepository, resiliencePolicies);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetAssemblyBySpecificationId(Arg.Is("spec1"))
+                .Returns(new byte[1]);
+
+            ILogger logger = CreateLogger();
+
+            GherkinParser gherkinParser = new GherkinParser(stepParserFactory, calculationsRepository, logger);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            
+            GherkinExecutor gherkinExecutor = CreateGherkinExecutor(gherkinParser, cacheProvider);
+
+            ProviderResult providerResult = new ProviderResult
+            {
+                Provider = new ProviderSummary { Id = "prov1" },
+                CalculationResults = new List<CalculationResult>
+                {
+                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = 14 }
+                }
+            };
+            IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>
+            {
+                new ProviderSourceDataset
+                {
+                    DataRelationship = new Common.Models.Reference { Name = dataSetName },
+                    Current = new ProviderSourceDatasetVersion
+                    {
+                        Rows = new List<Dictionary<string, object>>
+                        {
+                            new Dictionary<string, object> { { fieldName, 100050 } }
+                        }
+                    }
+                }
+            };
+            IEnumerable<TestScenario> testScenarios = new List<TestScenario>
+            {
+                new TestScenario { Id = "ts1", Name = "Test Scenario 1", SpecificationId = "spec1", Current = new TestScenarioVersion { Gherkin = gherkin } }
+            };
+            BuildProject buildProject = new BuildProject { Build = new Build() };
+
+            // Act
+            IEnumerable<ScenarioResult> scenarioResults = await gherkinExecutor.Execute(providerResult, datasets, testScenarios, buildProject);
+
+            // Assert
+            scenarioResults
+                .Should()
+                .HaveCount(1);
+
+            scenarioResults
+                .First().HasErrors
+                .Should()
+                .BeFalse("there should be no errors");
+
+            scenarioResults
+                .First().StepsExecuted
+                .Should()
+                .Be(scenarioResults.First().TotalSteps, "all steps should be executed");
+        }
+
+        [TestMethod]
+        public async Task Execute_WhenCalculationNameCaseIsDifferent_ThenTestIsSuccessfullyExecuted()
+        {
+            // Arrange
+            string dataSetName = "Test Dataset";
+            string fieldName = "URN";
+            string calcName = "Test Calc";
+            string gherkin = $"Given the dataset '{dataSetName}' field '{fieldName}' is equal to '100050'\n\nThen the result for '{calcName.ToLower()}' is greater than '12' ";
+
+            ICodeMetadataGeneratorService codeMetadataGeneratorService = CreateCodeMetadataGeneratorService();
+            codeMetadataGeneratorService
+                .GetTypeInformation(Arg.Any<byte[]>())
+                .Returns(new List<TypeInformation>
+                {
+                    new TypeInformation { Type = "Calculations", Methods = new List<MethodInformation> { new MethodInformation { FriendlyName = calcName } } },
+                    new TypeInformation { Type = "Datasets", Properties = new List<PropertyInformation> { new PropertyInformation { FriendlyName = dataSetName, Type = "DSType" } }},
+                    new TypeInformation { Type = "DSType", Properties = new List<PropertyInformation> { new PropertyInformation { FriendlyName = fieldName, Type = "String" } }}
+                });
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ITestRunnerResiliencePolicies resiliencePolicies = CreateResilliencePolicies();
+
+            IStepParserFactory stepParserFactory = new StepParserFactory(codeMetadataGeneratorService, providerResultsRepository, resiliencePolicies);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetAssemblyBySpecificationId(Arg.Is("spec1"))
+                .Returns(new byte[1]);
+
+            ILogger logger = CreateLogger();
+
+            GherkinParser gherkinParser = new GherkinParser(stepParserFactory, calculationsRepository, logger);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            GherkinExecutor gherkinExecutor = CreateGherkinExecutor(gherkinParser, cacheProvider);
+
+            ProviderResult providerResult = new ProviderResult
+            {
+                Provider = new ProviderSummary { Id = "prov1" },
+                CalculationResults = new List<CalculationResult>
+                {
+                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = 14 }
+                }
+            };
+            IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>
+            {
+                new ProviderSourceDataset
+                {
+                    DataRelationship = new Common.Models.Reference { Name = dataSetName },
+                    Current = new ProviderSourceDatasetVersion
+                    {
+                        Rows = new List<Dictionary<string, object>>
+                        {
+                            new Dictionary<string, object> { { fieldName, 100050 } }
+                        }
+                    }
+                }
+            };
+            IEnumerable<TestScenario> testScenarios = new List<TestScenario>
+            {
+                new TestScenario { Id = "ts1", Name = "Test Scenario 1", SpecificationId = "spec1", Current = new TestScenarioVersion { Gherkin = gherkin } }
+            };
+            BuildProject buildProject = new BuildProject { Build = new Build() };
+
+            // Act
+            IEnumerable<ScenarioResult> scenarioResults = await gherkinExecutor.Execute(providerResult, datasets, testScenarios, buildProject);
+
+            // Assert
+            scenarioResults
+                .Should()
+                .HaveCount(1);
+
+            scenarioResults
+                .First().HasErrors
+                .Should()
+                .BeFalse("there should be no errors");
+
+            scenarioResults
+                .First().StepsExecuted
+                .Should()
+                .Be(scenarioResults.First().TotalSteps, "all steps should be executed");
+        }
+
+        [TestMethod]
+        public async Task Execute_WhenDatasetNameCaseIsDifferent_ThenTestIsSuccessfullyExecuted()
+        {
+            // Arrange
+            string dataSetName = "Test Dataset";
+            string fieldName = "URN";
+            string calcName = "Test Calc";
+            string gherkin = $"Given the dataset '{dataSetName.ToLower()}' field '{fieldName}' is equal to '100050'\n\nThen the result for '{calcName}' is greater than '12' ";
+
+            ICodeMetadataGeneratorService codeMetadataGeneratorService = CreateCodeMetadataGeneratorService();
+            codeMetadataGeneratorService
+                .GetTypeInformation(Arg.Any<byte[]>())
+                .Returns(new List<TypeInformation>
+                {
+                    new TypeInformation { Type = "Calculations", Methods = new List<MethodInformation> { new MethodInformation { FriendlyName = calcName } } },
+                    new TypeInformation { Type = "Datasets", Properties = new List<PropertyInformation> { new PropertyInformation { FriendlyName = dataSetName, Type = "DSType" } }},
+                    new TypeInformation { Type = "DSType", Properties = new List<PropertyInformation> { new PropertyInformation { FriendlyName = fieldName, Type = "String" } }}
+                });
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ITestRunnerResiliencePolicies resiliencePolicies = CreateResilliencePolicies();
+
+            IStepParserFactory stepParserFactory = new StepParserFactory(codeMetadataGeneratorService, providerResultsRepository, resiliencePolicies);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetAssemblyBySpecificationId(Arg.Is("spec1"))
+                .Returns(new byte[1]);
+
+            ILogger logger = CreateLogger();
+
+            GherkinParser gherkinParser = new GherkinParser(stepParserFactory, calculationsRepository, logger);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            GherkinExecutor gherkinExecutor = CreateGherkinExecutor(gherkinParser, cacheProvider);
+
+            ProviderResult providerResult = new ProviderResult
+            {
+                Provider = new ProviderSummary { Id = "prov1" },
+                CalculationResults = new List<CalculationResult>
+                {
+                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = 14 }
+                }
+            };
+            IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>
+            {
+                new ProviderSourceDataset
+                {
+                    DataRelationship = new Common.Models.Reference { Name = dataSetName },
+                    Current = new ProviderSourceDatasetVersion
+                    {
+                        Rows = new List<Dictionary<string, object>>
+                        {
+                            new Dictionary<string, object> { { fieldName, 100050 } }
+                        }
+                    }
+                }
+            };
+            IEnumerable<TestScenario> testScenarios = new List<TestScenario>
+            {
+                new TestScenario { Id = "ts1", Name = "Test Scenario 1", SpecificationId = "spec1", Current = new TestScenarioVersion { Gherkin = gherkin } }
+            };
+            BuildProject buildProject = new BuildProject { Build = new Build() };
+
+            // Act
+            IEnumerable<ScenarioResult> scenarioResults = await gherkinExecutor.Execute(providerResult, datasets, testScenarios, buildProject);
+
+            // Assert
+            scenarioResults
+                .Should()
+                .HaveCount(1);
+
+            scenarioResults
+                .First().HasErrors
+                .Should()
+                .BeFalse("there should be no errors");
+
+            scenarioResults
+                .First().StepsExecuted
+                .Should()
+                .Be(scenarioResults.First().TotalSteps, "all steps should be executed");
+        }
+
+        [TestMethod]
+        public async Task Execute_WhenFieldNameCaseIsDifferent_ThenTestIsSuccessfullyExecuted()
+        {
+            // Arrange
+            string dataSetName = "Test Dataset";
+            string fieldName = "URN";
+            string calcName = "Test Calc";
+            string gherkin = $"Given the dataset '{dataSetName}' field '{fieldName.ToLower()}' is equal to '100050'\n\nThen the result for '{calcName}' is greater than '12' ";
+
+            ICodeMetadataGeneratorService codeMetadataGeneratorService = CreateCodeMetadataGeneratorService();
+            codeMetadataGeneratorService
+                .GetTypeInformation(Arg.Any<byte[]>())
+                .Returns(new List<TypeInformation>
+                {
+                    new TypeInformation { Type = "Calculations", Methods = new List<MethodInformation> { new MethodInformation { FriendlyName = calcName } } },
+                    new TypeInformation { Type = "Datasets", Properties = new List<PropertyInformation> { new PropertyInformation { FriendlyName = dataSetName, Type = "DSType" } }},
+                    new TypeInformation { Type = "DSType", Properties = new List<PropertyInformation> { new PropertyInformation { FriendlyName = fieldName, Type = "String" } }}
+                });
+
+            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            ITestRunnerResiliencePolicies resiliencePolicies = CreateResilliencePolicies();
+
+            IStepParserFactory stepParserFactory = new StepParserFactory(codeMetadataGeneratorService, providerResultsRepository, resiliencePolicies);
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetAssemblyBySpecificationId(Arg.Is("spec1"))
+                .Returns(new byte[1]);
+
+            ILogger logger = CreateLogger();
+
+            GherkinParser gherkinParser = new GherkinParser(stepParserFactory, calculationsRepository, logger);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            GherkinExecutor gherkinExecutor = CreateGherkinExecutor(gherkinParser, cacheProvider);
+
+            ProviderResult providerResult = new ProviderResult
+            {
+                Provider = new ProviderSummary { Id = "prov1" },
+                CalculationResults = new List<CalculationResult>
+                {
+                    new CalculationResult { Calculation = new Common.Models.Reference { Name = calcName }, Value = 14 }
+                }
+            };
+            IEnumerable<ProviderSourceDataset> datasets = new List<ProviderSourceDataset>
+            {
+                new ProviderSourceDataset
+                {
+                    DataRelationship = new Common.Models.Reference { Name = dataSetName },
+                    Current = new ProviderSourceDatasetVersion
+                    {
+                        Rows = new List<Dictionary<string, object>>
+                        {
+                            new Dictionary<string, object> { { fieldName, 100050 } }
+                        }
+                    }
+                }
+            };
+            IEnumerable<TestScenario> testScenarios = new List<TestScenario>
+            {
+                new TestScenario { Id = "ts1", Name = "Test Scenario 1", SpecificationId = "spec1", Current = new TestScenarioVersion { Gherkin = gherkin } }
+            };
+            BuildProject buildProject = new BuildProject { Build = new Build() };
+
+            // Act
+            IEnumerable<ScenarioResult> scenarioResults = await gherkinExecutor.Execute(providerResult, datasets, testScenarios, buildProject);
+
+            // Assert
+            scenarioResults
+                .Should()
+                .HaveCount(1);
+
+            scenarioResults
+                .First().HasErrors
+                .Should()
+                .BeFalse("there should be no errors");
+
+            scenarioResults
+                .First().StepsExecuted
+                .Should()
+                .Be(scenarioResults.First().TotalSteps, "all steps should be executed");
+        }
+
+        private static GherkinExecutor CreateGherkinExecutor(IGherkinParser gherkinParser = null, ICacheProvider cacheProvider = null, ITestRunnerResiliencePolicies resiliencePolicies = null)
         {
             return new GherkinExecutor(
                 gherkinParser ?? CreateGherkinParser(),
                 cacheProvider ?? CreateCacheProvider(),
-                CreateResilliencePolicies());
+                resiliencePolicies ?? CreateResilliencePolicies());
         }
 
-        public static IGherkinParser CreateGherkinParser()
+        private static IGherkinParser CreateGherkinParser()
         {
             return Substitute.For<IGherkinParser>();
         }
 
-        public static ICacheProvider CreateCacheProvider()
+        private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
         }
 
-        public static ITestRunnerResiliencePolicies CreateResilliencePolicies()
+        private static ITestRunnerResiliencePolicies CreateResilliencePolicies()
         {
             return TestRunnerResilienceTestHelper.GenerateTestPolicies();
+        }
+
+        private static ICodeMetadataGeneratorService CreateCodeMetadataGeneratorService()
+        {
+            return Substitute.For<ICodeMetadataGeneratorService>();
+        }
+
+        private static IProviderResultsRepository CreateProviderResultsRepository()
+        {
+            return Substitute.For<IProviderResultsRepository>();
+        }
+
+        private static ICalculationsRepository CreateCalculationsRepository()
+        {
+            return Substitute.For<ICalculationsRepository>();
+        }
+
+        private static ILogger CreateLogger()
+        {
+            return Substitute.For<ILogger>();
         }
     }
 }

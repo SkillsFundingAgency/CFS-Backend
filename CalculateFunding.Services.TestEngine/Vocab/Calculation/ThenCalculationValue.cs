@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Gherkin;
@@ -14,11 +15,11 @@ namespace CalculateFunding.Services.TestRunner.Vocab.Calculation
 
         public override GherkinParseResult Execute(ProviderResult providerResult, IEnumerable<ProviderSourceDataset> datasets)
         {
-            var calculationResult = providerResult.CalculationResults.SingleOrDefault(x => x.Calculation.Name == CalculationName);
-            var actualValue = calculationResult.Value;
-            if (decimal.TryParse(Value, out var expectedValue))
+            CalculationResult calculationResult = providerResult.CalculationResults.SingleOrDefault(x => x.Calculation.Name.Equals(CalculationName, StringComparison.InvariantCultureIgnoreCase));
+            decimal? actualValue = calculationResult.Value;
+            if (decimal.TryParse(Value, out decimal expectedValue))
             {
-                var logicResult = TestLogic(expectedValue, actualValue, Operator);
+                bool logicResult = TestLogic(expectedValue, actualValue, Operator);
                 if (logicResult)
                 {
                     return new GherkinParseResult();

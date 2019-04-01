@@ -1,25 +1,20 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Vocab.Calculation;
 using Gherkin.Ast;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestRunner.StepParsers
 {
     public class AssertDatasetCalcStepParser : CalcStepParser, IStepParser
     {
-        private readonly ICodeMetadataGeneratorService _codeMetadataGeneratorService;
-
-        public AssertDatasetCalcStepParser(ICodeMetadataGeneratorService codeMetadataGeneratorService)
+        public AssertDatasetCalcStepParser(ICodeMetadataGeneratorService codeMetadataGeneratorService) : base(codeMetadataGeneratorService)
         {
-            _codeMetadataGeneratorService = codeMetadataGeneratorService;
         }
 
         public Task Parse(Step step, string stepExpression, GherkinParseResult parseResult, BuildProject buildProject)
@@ -48,16 +43,14 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
                     string datasetName = matches[15];
 
-                    IEnumerable<TypeInformation> typeInformation = _codeMetadataGeneratorService.GetTypeInformation(assembly);
-
-                    MethodInformation calculation = typeInformation.FirstOrDefault(m => m.Type == "Calculations")?.Methods.FirstOrDefault(m => m.FriendlyName == calcName.Replace("'", ""));
+                    MethodInformation calculation = FindCalculationMethod(assembly, calcName);
 
                     if (calculation == null)
                     {
                         parseResult.AddError($"Calculation: '{calcName}' was not found to test", step.Location.Line, step.Location.Column);
                     }
 
-                    PropertyInformation dataset = typeInformation.FirstOrDefault(m => m.Type == "Datasets")?.Properties.FirstOrDefault(m => m.FriendlyName == datasetName.Replace("'", ""));
+                    PropertyInformation dataset = FindCalculationProperty(assembly, datasetName, "Datasets");
 
                     if (dataset == null)
                     {
@@ -65,9 +58,7 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
                     }
                     else
                     {
-                        string type = dataset.Type;
-
-                        PropertyInformation fieldInfo = typeInformation.FirstOrDefault(m => m.Type == type)?.Properties.FirstOrDefault(m => m.FriendlyName == fieldName.Replace("'", ""));
+                        PropertyInformation fieldInfo = FindCalculationProperty(assembly, fieldName, dataset.Type);
 
                         if (fieldInfo == null)
                         {

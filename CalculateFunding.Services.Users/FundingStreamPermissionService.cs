@@ -267,7 +267,9 @@ namespace CalculateFunding.Services.Users
                             CanAdministerFundingStream = false,
                             CanApproveSpecification = false,
                             CanCreateQaTests = false,
+                            CanDeleteCalculations = false,
                             CanDeleteSpecification = false,
+                            CanDeleteQaTests = false,
                             CanEditQaTests = false,
                             CanRefreshFunding = false,
                         });
@@ -315,7 +317,9 @@ namespace CalculateFunding.Services.Users
                     CanCreateQaTests = false,
                     CanApproveSpecification = false,
                     CanAdministerFundingStream = false,
-                    CanDeleteSpecification = false
+                    CanDeleteSpecification = false,
+                    CanDeleteCalculations = false,
+                    CanDeleteQaTests = false
                 };
             }
 
@@ -336,7 +340,9 @@ namespace CalculateFunding.Services.Users
                 CanCreateQaTests = permissionsForUser.All(p => p.CanCreateQaTests),
                 CanEditQaTests = permissionsForUser.All(p => p.CanEditQaTests),
                 CanRefreshFunding = permissionsForUser.All(p => p.CanRefreshFunding),
-                CanDeleteSpecification = permissionsForUser.All(p => p.CanDeleteSpecification)
+                CanDeleteSpecification = permissionsForUser.All(p => p.CanDeleteSpecification),
+                CanDeleteCalculations = permissionsForUser.All(p => p.CanDeleteCalculations),
+                CanDeleteQaTests = permissionsForUser.All(p => p.CanDeleteQaTests)
             };
         }
 
