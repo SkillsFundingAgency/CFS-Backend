@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             string json = JsonConvert.SerializeObject(data);
 
-            await SendToQueueAsJson(queueName, json, properties);
+            await SendToQueueAsJson(queueName, json, properties,compressData);
         }
 
         public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false)
@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             string json = JsonConvert.SerializeObject(data);
 
-            await SendToTopicAsJson(topicName, json, properties);
+            await SendToTopicAsJson(topicName, json, properties, compressData);
         }
 
         public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false)
