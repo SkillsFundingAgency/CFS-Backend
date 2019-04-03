@@ -51,13 +51,13 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             string json = JsonConvert.SerializeObject(data);
 
-            await SendToQueueAsJson(queueName, json, properties,compressData);
+            await SendToQueueAsJson(queueName, json, properties, compressData);
         }
 
         public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false)
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
-            Message message = ConstructMessage(data);
+            Message message = ConstructMessage(data, compressData);
 
             foreach (KeyValuePair<string, string> property in properties)
             {
@@ -88,7 +88,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
         {
             Guard.IsNullOrWhiteSpace(topicName, nameof(topicName));
 
-            Message message = ConstructMessage(data);
+            Message message = ConstructMessage(data, compressData);
 
             foreach (KeyValuePair<string, string> property in properties)
             {
@@ -100,20 +100,24 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await topicClient.SendAsync(message);
         }
 
-        private static Message ConstructMessage(string data, bool compressData = false)
+        private static Message ConstructMessage(string data, bool compressData)
         {
             Message message = null;
 
             if (!string.IsNullOrWhiteSpace(data))
             {
-                byte[]  bytes = compressData ? data.Compress() : Encoding.UTF8.GetBytes(data);
-             
+                byte[] bytes = compressData ? data.Compress() : Encoding.UTF8.GetBytes(data);
+
                 message = new Message(bytes)
                 {
                     PartitionKey = Guid.NewGuid().ToString()
                 };
 
-                message.UserProperties.Add("compressed", true);
+                if (compressData)
+                {
+                    message.UserProperties.Add("compressed", true);
+                }
+
             }
             else
             {
