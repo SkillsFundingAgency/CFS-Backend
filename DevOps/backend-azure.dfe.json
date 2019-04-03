@@ -558,7 +558,7 @@
     "externalApiAppName": "[concat('app-', parameters('environmentKey'), '-external')]",
     "hostingPlanName": "[concat('asp-', parameters('environmentKey'), '-cfsapi')]",
     "engineHostingPlanName": "[concat('asp-', parameters('environmentKey'), '-engine')]",
-     "storageAccountName": "[concat('strg', parameters('environmentKey'), 'functions')]",
+    "storageAccountName": "[concat('strg', parameters('environmentKey'), 'functions')]",
     "cfsStorageAccountId": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('cfsStorageAccountName'))]",
     "cfsStorageAccountName": "[concat('strg', parameters('environmentKey'), 'cfs')]",
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
@@ -3014,7 +3014,7 @@
             },
             {
               "name": "AzureStorageSettings:ConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables(cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountid'),'2015-05-01-preview').key1)]"
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
               "name": "apiKeyMiddleware:apiKey",
@@ -3425,7 +3425,7 @@
             },
             {
               "name": "AzureStorageSettings:ConnectionString",
-              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountName'),'2015-05-01-preview').key1)]"
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
               "name": "apiKeyMiddleware:apiKey",
