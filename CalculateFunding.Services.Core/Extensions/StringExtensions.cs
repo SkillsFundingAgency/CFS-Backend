@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
 using System.IO;
+using System.IO.Compression;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace System
@@ -29,7 +31,7 @@ namespace System
                 return string.Empty;
             }
 
-            return text.Trim().Replace(" ", "");
+            return text.Trim().Replace(" ", string.Empty);
         }
 
         public static Stream ToStream(this string text)
@@ -44,6 +46,48 @@ namespace System
                     return stream;
                 }
             }
+        }
+
+        public static bool IsBase64(this string base64String)
+        {
+            if (string.IsNullOrWhiteSpace(base64String) || base64String.Length % 4 != 0
+               || base64String.Contains(" ") || base64String.Contains("\t") || base64String.Contains("\r") || base64String.Contains("\n"))
+                    return false;
+            try
+            {
+                byte[] data =Convert.FromBase64String(base64String);
+                return true;
+            }
+            catch
+            {}
+            return false;
+        }
+
+        public static byte[] Compress(this string body)
+        {
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                return new byte[0];
+            }
+
+            byte[] data = Encoding.UTF8.GetBytes(body);
+
+            byte[] zippedBytes;
+
+            using (MemoryStream outputStream = new MemoryStream())
+            {
+                using (GZipStream gZipStream = new GZipStream(outputStream, CompressionMode.Compress, false))
+                {
+                    gZipStream.Write(data, 0, data.Length);
+
+                    gZipStream.Flush();
+
+                    outputStream.Flush();
+                    zippedBytes = outputStream.ToArray();
+                }
+            }
+
+            return zippedBytes;
         }
     }
 }

@@ -442,7 +442,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
                                 Arg.Is<SpecificationVersionComparisonModel>(
                                     m => m.Id == SpecificationId
-                                    ), Arg.Any<IDictionary<string, string>>());
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
 
             await
                 mockSearchRepository
@@ -555,7 +555,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
                                 Arg.Is<SpecificationVersionComparisonModel>(
                                     m => m.Id == SpecificationId
-                                    ), Arg.Any<IDictionary<string, string>>());
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
 
             await
                 mockSearchRepository

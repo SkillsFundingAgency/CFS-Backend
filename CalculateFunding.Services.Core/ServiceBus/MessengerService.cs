@@ -47,14 +47,14 @@ namespace CalculateFunding.Services.Core.ServiceBus
             });
         }
 
-        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties) where T : class
+        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false) where T : class
         {
             string json = JsonConvert.SerializeObject(data);
 
             await SendToQueueAsJson(queueName, json, properties);
         }
 
-        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties)
+        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false)
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
             Message message = ConstructMessage(data);
@@ -77,14 +77,14 @@ namespace CalculateFunding.Services.Core.ServiceBus
             });
         }
 
-        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties) where T : class
+        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false) where T : class
         {
             string json = JsonConvert.SerializeObject(data);
 
             await SendToTopicAsJson(topicName, json, properties);
         }
 
-        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties)
+        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false)
         {
             Guard.IsNullOrWhiteSpace(topicName, nameof(topicName));
 
@@ -100,18 +100,20 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await topicClient.SendAsync(message);
         }
 
-        private static Message ConstructMessage(string data)
+        private static Message ConstructMessage(string data, bool compressData = false)
         {
             Message message = null;
 
             if (!string.IsNullOrWhiteSpace(data))
             {
-                byte[] bytes = Encoding.UTF8.GetBytes(data);
-
+                byte[]  bytes = compressData ? data.Compress() : Encoding.UTF8.GetBytes(data);
+             
                 message = new Message(bytes)
                 {
                     PartitionKey = Guid.NewGuid().ToString()
                 };
+
+                message.UserProperties.Add("compressed", true);
             }
             else
             {

@@ -1416,7 +1416,7 @@ namespace CalculateFunding.Services.Specs
                 Previous = previous
             };
 
-            await _messengerService.SendToTopic(topicName, comparisonModel, properties);
+            await _messengerService.SendToTopic(topicName, comparisonModel, properties, true);
         }
 
         private async Task SendCalculationComparisonModelMessageToTopic(string specificationId, string calculationId, string topicName, Calculation current, Calculation previous, HttpRequest request)

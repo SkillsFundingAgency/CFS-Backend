@@ -525,7 +525,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                                     m => m.Id == SpecificationId &&
                                     m.Current.Name == "new spec name" &&
                                     m.Previous.Name == "Spec name"
-                                    ), Arg.Any<IDictionary<string, string>>());
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
 
             await
               versionRepository
@@ -653,7 +653,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                                     m => m.Id == SpecificationId &&
                                     m.Current.Name == "new spec name" &&
                                     m.Previous.Name == "Spec name"
-                                    ), Arg.Any<IDictionary<string, string>>());
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
 
             await
               versionRepository
@@ -793,7 +793,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                                     m => m.Id == SpecificationId &&
                                     m.Current.Name == "new spec name" &&
                                     m.Previous.Name == "Spec name"
-                                    ), Arg.Any<IDictionary<string, string>>());
+                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
 
             await
                versionRepository

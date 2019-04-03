@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Text;
 using CalculateFunding.Common.Models;
 using Microsoft.AspNetCore.Http;
@@ -35,7 +37,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 return default(T);
             }
 
-            var json = Encoding.UTF8.GetString(message.Body);
+            string json = GetMessageBodyStringFromMessage(message);
 
             if (string.IsNullOrWhiteSpace(json))
             {
@@ -89,6 +91,31 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             return properties;
+        }
+
+        public static string GetMessageBodyStringFromMessage(Message message)
+        {
+            string json = "";
+
+            if (message.UserProperties.ContainsKey("compressed"))
+            {
+                using (MemoryStream inputStream = new MemoryStream(message.Body))
+                {
+                    using (GZipStream gZipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+                    {
+                        using (StreamReader streamReader = new StreamReader(gZipStream))
+                        {
+                            json = streamReader.ReadToEnd();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                json = Encoding.UTF8.GetString(message.Body);
+            }
+
+            return json;
         }
     }
 }

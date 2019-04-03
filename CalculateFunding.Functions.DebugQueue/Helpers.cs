@@ -3,6 +3,8 @@ using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Text;
 
 namespace CalculateFunding.Functions.DebugQueue
@@ -11,7 +13,29 @@ namespace CalculateFunding.Functions.DebugQueue
     {
         public static Message ConvertToMessage<T>(string body) where T: class
         {
-            QueueMessage<T> queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(body);
+            QueueMessage<T> queueMessage = null;
+
+            if (body.IsBase64())
+            {
+                byte[] zippedBytes = Convert.FromBase64String(body);
+
+                using (MemoryStream inputStream = new MemoryStream(zippedBytes))
+                {
+                    using (GZipStream gZipStream = new GZipStream(inputStream, CompressionMode.Decompress))
+                    {
+                        using (StreamReader streamReader = new StreamReader(gZipStream))
+                        {
+                            string decompressed = streamReader.ReadToEnd();
+
+                            queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(decompressed);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                queueMessage = JsonConvert.DeserializeObject<QueueMessage<T>>(body);
+            }
 
             string data = JsonConvert.SerializeObject(queueMessage.Data);
 
