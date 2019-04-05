@@ -437,5 +437,97 @@ namespace CalculateFunding.Services.Compiler.UnitTests
                 .Should()
                 .BeFalse();
         }
+
+        [TestMethod]
+        public void HasCalculationAggregateFunctionParameters_GivenSourceDoesNotContainAggregateParameterButCalcNameContainsAggregateFunction_ReturnsFalse()
+        {
+            //Arrange
+            IEnumerable<string> sourceCodes = new[]
+            {
+                "Return TestSum()"
+            };
+
+            //Act
+            bool result = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(sourceCodes);
+
+            //Assert
+            result
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public void HasCalculationAggregateFunctionParameters_GivenSourceDoesNotContainAggregateParameterButCalcNameStartsWithAggregateFunction_ReturnsFalse()
+        {
+            //Arrange
+            IEnumerable<string> sourceCodes = new[]
+            {
+                "Return SumTest()"
+            };
+
+            //Act
+            bool result = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(sourceCodes);
+
+            //Assert
+            result
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public void HasCalculationAggregateFunctionParameters_GivenSourceDoesNotContainAggregateParameterButCalcNameContainsAggregateFunctionCaseInsensitive_ReturnsFalse()
+        {
+            //Arrange
+            IEnumerable<string> sourceCodes = new[]
+            {
+                "Return TESTSUM()"
+            };
+
+            //Act
+            bool result = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(sourceCodes);
+
+            //Assert
+            result
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public void HasCalculationAggregateFunctionParameters_GivenSourceContainsAggregateParameterCaseInsensitive_ReturnsTrue()
+        {
+            //Arrange
+            IEnumerable<string> sourceCodes = new[]
+            {
+                "Return SuM(Datasets.Testing1",
+                "Return sUm(Datasets.Testing1) + AVG(Calc1) + SUm(Calc2)"
+            };
+
+            //Act
+            bool result = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(sourceCodes);
+
+            //Assert
+            result
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
+        public void HasCalculationAggregateFunctionParameters_GivenSourceContainsAggregateParameterCaseInsensitiveAndSpaces_ReturnsTrue()
+        {
+            //Arrange
+            IEnumerable<string> sourceCodes = new[]
+            {
+                //"Return SuM    (Datasets.Testing1)",
+                "Return mIn(Datasets.Testing1) + AVG(Calc1) + SuM   (Calc2)"
+            };
+
+            //Act
+            bool result = SourceCodeHelpers.HasCalculationAggregateFunctionParameters(sourceCodes);
+
+            //Assert
+            result
+                .Should()
+                .BeTrue();
+        }
     }
 }
