@@ -1811,6 +1811,14 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
             {
+              "name": "resultsClient:ApiKey",
+              "value": "[parameters('ApiKeyResults')]"
+            },
+            {
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
+            },
+            {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
               "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
             },
@@ -3122,6 +3130,14 @@
             {
               "name": "specificationsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "resultsClient:ApiKey",
+              "value": "[parameters('ApiKeyResults')]"
+            },
+            {
+              "name": "resultsClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-results.azurewebsites.net/api/')]"
             },
             {
               "name": "APPINSIGHTS_INSTRUMENTATIONKEY",

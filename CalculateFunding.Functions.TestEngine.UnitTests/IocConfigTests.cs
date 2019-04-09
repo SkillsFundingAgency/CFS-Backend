@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Tests.Common;
@@ -6,7 +8,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Functions.TestEngine.UnitTests
 {
@@ -39,6 +40,7 @@ namespace CalculateFunding.Functions.TestEngine.UnitTests
                 scope.ServiceProvider.GetService<ITestResultsSearchService>().Should().NotBeNull(nameof(ITestResultsSearchService));
                 scope.ServiceProvider.GetService<ITestResultsCountsService>().Should().NotBeNull(nameof(ITestResultsCountsService));
                 scope.ServiceProvider.GetService<ITestResultsService>().Should().NotBeNull(nameof(ITestResultsService));
+                scope.ServiceProvider.GetService<IProviderService>().Should().NotBeNull(nameof(IProviderService));
             }
         }
 
@@ -56,7 +58,9 @@ namespace CalculateFunding.Functions.TestEngine.UnitTests
                 { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
                 { "calcsClient:ApiKey", "Local" },
                 { "scenariosClient:ApiEndpoint", "https://localhost:7006/api/" },
-                { "scenariosClient:ApiKey", "Local" }
+                { "scenariosClient:ApiKey", "Local" },
+                { "resultsClient:ApiEndpoint", "https://localhost:7005/api/" },
+                { "resultsClient:ApiKey", "Local" },
             };
 
             return configData;

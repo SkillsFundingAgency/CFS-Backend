@@ -11,8 +11,8 @@ using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Services;
 using FluentAssertions;
@@ -417,7 +417,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             ILogger logger = null,
             ITelemetry telemetry = null,
             ResiliencePolicies policies = null,
-            ICacheProvider cacheProvider = null)
+            IProviderService providerService = null)
         {
             return new TestResultsService(
                 testResultsRepository ?? CreateTestResultsRepository(),
@@ -426,7 +426,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
                 policies ?? TestRunnerResilienceTestHelper.GenerateTestPolicies(),
-                cacheProvider ?? CreateCacheProvider()
+                providerService ?? CreateProviderService()
                 );
         }
 
@@ -460,9 +460,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             return Substitute.For<ITelemetry>();
         }
 
-        static ICacheProvider CreateCacheProvider()
+        static IProviderService CreateProviderService()
         {
-            return Substitute.For<ICacheProvider>();
+            return Substitute.For<IProviderService>();
         }
 
         private TestScenarioResult CreateTestScenarioResult()

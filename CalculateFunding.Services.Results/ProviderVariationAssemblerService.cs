@@ -38,6 +38,12 @@ namespace CalculateFunding.Services.Results
             {
                 PublishedProviderResultExisting existingResult = existingPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerResult.Provider.Id);
 
+                // Ignore calculation results with no funding and no existing result
+                if (existingResult == null && providerResult != null && providerResult.AllocationLineResults.All(r => !r.Value.HasValue))
+                {
+                    continue;
+                }
+
                 ProviderSummary coreProvider = coreProviderData.FirstOrDefault(p => p.Id == providerResult.Provider.Id);
 
                 if (coreProvider == null)

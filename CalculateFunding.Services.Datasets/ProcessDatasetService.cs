@@ -30,6 +30,7 @@ using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -48,7 +49,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IBlobClient _blobClient;
         private readonly IProvidersResultsRepository _providersResultsRepository;
         private readonly IResultsRepository _resultsRepository;
-        private readonly IProviderRepository _providerRepository;
+        private readonly IProviderService _providerService;
         private readonly IVersionRepository<ProviderSourceDatasetVersion> _sourceDatasetsVersionRepository;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
@@ -66,7 +67,7 @@ namespace CalculateFunding.Services.Datasets
             IBlobClient blobClient,
             IProvidersResultsRepository providersResultsRepository,
             IResultsRepository resultsRepository,
-            IProviderRepository providerRepository,
+            IProviderService providerService,
             IVersionRepository<ProviderSourceDatasetVersion> sourceDatasetsVersionRepository,
             ILogger logger,
             ITelemetry telemetry,
@@ -81,7 +82,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(providersResultsRepository, nameof(providersResultsRepository));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
-            Guard.ArgumentNotNull(providerRepository, nameof(providerRepository));
+            Guard.ArgumentNotNull(providerService, nameof(providerService));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(datasetsAggregationsRepository, nameof(datasetsAggregationsRepository));
@@ -95,7 +96,7 @@ namespace CalculateFunding.Services.Datasets
             _blobClient = blobClient;
             _providersResultsRepository = providersResultsRepository;
             _resultsRepository = resultsRepository;
-            _providerRepository = providerRepository;
+            _providerService = providerService;
             _sourceDatasetsVersionRepository = sourceDatasetsVersionRepository;
             _logger = logger;
             _telemetry = telemetry;
@@ -112,7 +113,7 @@ namespace CalculateFunding.Services.Datasets
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
             ServiceHealth providersResultsRepoHealth = await ((IHealthChecker)_providersResultsRepository).IsHealthOk();
-            ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerRepository).IsHealthOk();
+            ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerService).IsHealthOk();
             ServiceHealth datasetsAggregationsRepoHealth = await ((IHealthChecker)_datasetsAggregationsRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
@@ -408,7 +409,7 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version, Reference user)
         {
-            IEnumerable<ProviderSummary> providerSummaries = await _providerRepository.GetAllProviderSummaries();
+            IEnumerable<ProviderSummary> providerSummaries = await _providerService.FetchCoreProviderData();
 
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 

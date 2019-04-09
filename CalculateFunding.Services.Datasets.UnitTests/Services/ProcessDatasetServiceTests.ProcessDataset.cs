@@ -22,6 +22,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Providers.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1188,9 +1189,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -1232,7 +1233,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader);
 
@@ -1359,9 +1360,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456", LACode = "111" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -1403,7 +1404,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader);
 
@@ -1532,9 +1533,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -1578,7 +1579,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 datasetsAggregationsRepository: datasetsAggregationsRepository,
@@ -1724,9 +1725,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -1770,7 +1771,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 datasetsAggregationsRepository: datasetsAggregationsRepository,
@@ -1925,9 +1926,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -1971,7 +1972,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 datasetsAggregationsRepository: datasetsAggregationsRepository,
@@ -2109,9 +2110,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "456", UPIN = "222333" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -2153,7 +2154,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader);
 
@@ -2267,9 +2268,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -2313,7 +2314,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 versionRepository: versionRepository);
@@ -2456,9 +2457,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -2525,7 +2526,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 versionRepository: versionRepository);
@@ -2647,9 +2648,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -2731,7 +2732,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 versionRepository: versionRepository);
@@ -2863,9 +2864,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -2912,7 +2913,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 jobsApiClient: jobsApiClient);
@@ -3058,9 +3059,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -3107,7 +3108,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 jobsApiClient: jobsApiClient);
@@ -3241,9 +3242,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -3290,7 +3291,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 jobsApiClient: jobsApiClient);
@@ -3433,9 +3434,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderRepository resultsRepository = CreateProviderRepository();
-            resultsRepository
-                .GetAllProviderSummaries()
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
                 .Returns(summaries);
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
@@ -3482,7 +3483,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerRepository: resultsRepository,
+                providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 jobsApiClient: jobsApiClient);

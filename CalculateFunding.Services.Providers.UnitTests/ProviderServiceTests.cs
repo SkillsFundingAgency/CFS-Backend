@@ -4,8 +4,6 @@ using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
@@ -39,9 +37,14 @@ namespace CalculateFunding.Services.Providers.UnitTests
             cacheProvider
                 .GetAsync<string>(Arg.Is(CacheKeys.AllProviderSummaryCount))
                 .Returns("3");
+
             cacheProvider
                 .ListRangeAsync<ProviderSummary>(Arg.Is(CacheKeys.AllProviderSummaries), Arg.Is(0), Arg.Is(3))
                 .Returns(cachedProviderSummaries);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(Arg.Is(CacheKeys.AllProviderSummaries))
+                .Returns(3);
 
             IProviderService providerService = CreateProviderService(cacheProvider: cacheProvider, resultsApiClient: resultsApiClient);
 
@@ -121,7 +124,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Assert
             await cacheProvider
                 .Received(1)
-                .KeyDeleteAsync<List<ProviderSummary>>(Arg.Is(CacheKeys.AllProviderSummaries));
+                .KeyDeleteAsync<ProviderSummary>(Arg.Is(CacheKeys.AllProviderSummaries));
 
             await cacheProvider
                 .Received(1)

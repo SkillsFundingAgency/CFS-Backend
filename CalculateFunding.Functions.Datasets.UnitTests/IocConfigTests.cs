@@ -1,11 +1,12 @@
+using System.Collections.Generic;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Functions.Datasets.UnitTests
 {
@@ -29,7 +30,7 @@ namespace CalculateFunding.Functions.Datasets.UnitTests
                 scope.ServiceProvider.GetService<IDefinitionSpecificationRelationshipService>().Should().NotBeNull(nameof(IDefinitionSpecificationRelationshipService));
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
                 scope.ServiceProvider.GetService<IExcelDatasetReader>().Should().NotBeNull(nameof(IExcelDatasetReader));
-                scope.ServiceProvider.GetService<IProviderRepository>().Should().NotBeNull(nameof(IProviderRepository));
+                scope.ServiceProvider.GetService<IProviderService>().Should().NotBeNull(nameof(IProviderService));
                 scope.ServiceProvider.GetService<ICalcsRepository>().Should().NotBeNull(nameof(ICalcsRepository));
             }
         }
@@ -50,7 +51,7 @@ namespace CalculateFunding.Functions.Datasets.UnitTests
                 { "calcsClient:ApiEndpoint", "https://localhost:7002/api/" },
                 { "calcsClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
-                { "jobsClient:ApiKey", "Local" }
+                { "jobsClient:ApiKey", "Local" },
             };
 
             return configData;

@@ -10,6 +10,8 @@ using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.TestEngine.Interfaces;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
@@ -83,6 +85,8 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
+            builder.AddSingleton<IProviderService, ProviderService>();
+
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();
@@ -137,6 +141,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddScenariosInterServiceClient(config);
             builder.AddCalcsInterServiceClient(config);
+            builder.AddResultsInterServiceClient(config);
 
             builder.AddCaching(config);
 

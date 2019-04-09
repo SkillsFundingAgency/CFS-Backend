@@ -12,6 +12,8 @@ using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.TestEngine.Interfaces;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
@@ -154,6 +156,8 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton<ITestResultsService, TestResultsService>()
                 .AddSingleton<IHealthChecker, TestResultsService>();
 
+            builder.AddSingleton<IProviderService, ProviderService>();
+
             builder.AddUserProviderFromRequest();
 
             builder.AddCosmosDb(Configuration);
@@ -163,6 +167,7 @@ namespace CalculateFunding.Api.TestRunner
             builder.AddCalcsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddScenariosInterServiceClient(Configuration);
+            builder.AddResultsInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
 

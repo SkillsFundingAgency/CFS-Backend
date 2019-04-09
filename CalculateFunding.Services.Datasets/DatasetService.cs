@@ -25,6 +25,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
@@ -52,7 +53,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ISearchRepository<DatasetVersionIndex> _datasetVersionIndexRepository;
         private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
         private readonly ICacheProvider _cacheProvider;
-        private readonly IProviderRepository _providerRepository;
+        private readonly IProviderService _providerService;
         private readonly IValidator<ExcelPackage> _dataWorksheetValidator;
         private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
         private readonly Policy _jobsApiClientPolicy;
@@ -70,7 +71,7 @@ namespace CalculateFunding.Services.Datasets
             ISearchRepository<DatasetIndex> datasetIndexSearchRepository,
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
             ICacheProvider cacheProvider,
-            IProviderRepository providerRepository,
+            IProviderService providerService,
             IValidator<ExcelPackage> dataWorksheetValidator,
             IValidator<DatasetUploadValidationModel> datasetUploadValidator,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
@@ -87,7 +88,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetIndexSearchRepository, nameof(datasetIndexSearchRepository));
             Guard.ArgumentNotNull(getDatasetBlobModelValidator, nameof(getDatasetBlobModelValidator));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(providerRepository, nameof(providerRepository));
+            Guard.ArgumentNotNull(providerService, nameof(providerService));
             Guard.ArgumentNotNull(dataWorksheetValidator, nameof(dataWorksheetValidator));
             Guard.ArgumentNotNull(datasetUploadValidator, nameof(datasetUploadValidator));
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
@@ -103,7 +104,7 @@ namespace CalculateFunding.Services.Datasets
             _datasetIndexSearchRepository = datasetIndexSearchRepository;
             _getDatasetBlobModelValidator = getDatasetBlobModelValidator;
             _cacheProvider = cacheProvider;
-            _providerRepository = providerRepository;
+            _providerService = providerService;
             _dataWorksheetValidator = dataWorksheetValidator;
             _datasetUploadValidator = datasetUploadValidator;
             _jobsApiClient = jobsApiClient;
@@ -118,7 +119,7 @@ namespace CalculateFunding.Services.Datasets
             (bool Ok, string Message) searchRepoHealth = await _datasetIndexSearchRepository.IsHealthOk();
             (bool Ok, string Message) searchIndexVersionHealth = await _datasetVersionIndexRepository.IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
-            ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerRepository).IsHealthOk();
+            ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerService).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -1034,7 +1035,7 @@ namespace CalculateFunding.Services.Datasets
             int rowCount = 0;
             if (_providerSummaries.IsNullOrEmpty())
             {
-                _providerSummaries = await _providerRepository.GetAllProviderSummaries();
+                _providerSummaries = await _providerService.FetchCoreProviderData();
             }
 
             Dictionary<string, IEnumerable<string>> validationFailures = new Dictionary<string, IEnumerable<string>>();

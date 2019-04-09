@@ -8,10 +8,10 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using NSubstitute;
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null,
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
-            IProviderRepository providerRepository = null,
+            IProviderService providerService = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
             IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
             IJobsApiClient jobsApiClient = null)
@@ -59,7 +59,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 searchRepository ?? CreateSearchRepository(),
                 getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
                 cacheProvider ?? CreateCacheProvider(),
-                providerRepository ?? CreateProviderRepository(),
+                providerService ?? CreateProviderService(),
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
                 datasetUploadValidator ?? CreateDatasetUploadValidator(),
                 DatasetsResilienceTestHelper.GenerateTestPolicies(),
@@ -83,9 +83,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ITelemetry>();
         }
 
-        protected IProviderRepository CreateProviderRepository()
+        protected IProviderService CreateProviderService()
         {
-            return Substitute.For<IProviderRepository>();
+            return Substitute.For<IProviderService>();
         }
 
         protected IProvidersResultsRepository CreateProviderResultsRepository()

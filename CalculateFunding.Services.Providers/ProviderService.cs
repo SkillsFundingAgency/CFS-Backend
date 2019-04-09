@@ -40,12 +40,13 @@ namespace CalculateFunding.Services.Providers
             int totalCount = await DetermineTotalCountFromSearch();
 
             string currentProviderCount = await _cacheProvider.GetAsync<string>(CacheKeys.AllProviderSummaryCount);
+            long totalProviderListCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(CacheKeys.AllProviderSummaries);
 
-            if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != totalCount)
+            if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != totalCount || totalProviderListCount != totalCount)
             {
                 int pageCount = HowManyPagesForTotalCount(totalCount);
 
-                await _cacheProvider.KeyDeleteAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
+                await _cacheProvider.KeyDeleteAsync<ProviderSummary>(CacheKeys.AllProviderSummaries);
 
                 Dictionary<string, ProviderSummary> providersFromSearch = new Dictionary<string, ProviderSummary>();
 
@@ -56,7 +57,7 @@ namespace CalculateFunding.Services.Providers
                     {
                         if (providersFromSearch.ContainsKey(providerSummary.Id))
                         {
-                            await _cacheProvider.KeyDeleteAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
+                            await _cacheProvider.KeyDeleteAsync<ProviderSummary>(CacheKeys.AllProviderSummaries);
 
                             throw new NonRetriableException($"Duplicate provider from search with ID '{providerSummary.Id}'");
                         }

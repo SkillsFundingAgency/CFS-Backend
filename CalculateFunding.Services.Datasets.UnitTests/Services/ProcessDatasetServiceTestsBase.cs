@@ -5,9 +5,9 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Providers.Interfaces;
 using NSubstitute;
 using Serilog;
 
@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Datasets.Services
             IExcelDatasetReader excelDatasetReader = null,
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
-            IProviderRepository providerRepository = null,
+            IProviderService providerService = null,
             IResultsRepository resultsRepository = null,
             IProvidersResultsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient ?? CreateBlobClient(),
                 providerResultsRepository ?? CreateProviderResultsRepository(),
                 resultsRepository ?? CreateResultsRepository(),
-                providerRepository ?? CreateProviderRepository(),
+                providerService ?? CreateProviderService(),
                 versionRepository ?? CreateVersionRepository(),
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
@@ -94,9 +94,9 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ITelemetry>();
         }
 
-        protected static IProviderRepository CreateProviderRepository()
+        protected static IProviderService CreateProviderService()
         {
-            return Substitute.For<IProviderRepository>();
+            return Substitute.For<IProviderService>();
         }
 
         protected static IProvidersResultsRepository CreateProviderResultsRepository()

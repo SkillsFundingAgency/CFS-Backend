@@ -11,12 +11,10 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +33,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ITelemetry _telemetry;
         private readonly Polly.Policy _testResultsPolicy;
         private readonly Polly.Policy _testResultsSearchPolicy;
-        private readonly ICacheProvider _cacheProvider;
+        private readonly IProviderService _providerService;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,
             ISearchRepository<TestScenarioResultIndex> searchRepository,
@@ -43,7 +41,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             ILogger logger,
             ITelemetry telemetry,
             ITestRunnerResiliencePolicies policies,
-            ICacheProvider cacheProvider)
+            IProviderService providerService)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
@@ -51,7 +49,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(policies, nameof(policies));
-            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(providerService, nameof(providerService));
 
             _testResultsRepository = testResultsRepository;
             _searchRepository = searchRepository;
@@ -60,14 +58,13 @@ namespace CalculateFunding.Services.TestRunner.Services
             _telemetry = telemetry;
             _testResultsPolicy = policies.TestResultsRepository;
             _testResultsSearchPolicy = policies.TestResultsSearchRepository;
-            _cacheProvider = cacheProvider;
+            _providerService = providerService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth testResultsRepoHealth = await ((IHealthChecker)_testResultsRepository).IsHealthOk();
             (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
-            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -75,7 +72,6 @@ namespace CalculateFunding.Services.TestRunner.Services
             };
             health.Dependencies.AddRange(testResultsRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
 
             return health;
         }
@@ -159,9 +155,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         {
             IEnumerable<DocumentEntity<TestScenarioResult>> testScenarioResults = await _testResultsRepository.GetAllTestResults();
 
-            long summariesCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(CacheKeys.AllProviderSummaryCount);
-
-            IEnumerable<ProviderSummary> summaries = await _cacheProvider.ListRangeAsync<ProviderSummary>(CacheKeys.AllProviderSummaries, 0, (int)summariesCount - 1);
+            IEnumerable<ProviderSummary> summaries = await _providerService.FetchCoreProviderData();
 
             IList<TestScenarioResultIndex> searchItems = new List<TestScenarioResultIndex>();
 

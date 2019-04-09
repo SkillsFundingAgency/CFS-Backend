@@ -22,6 +22,8 @@ using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
@@ -154,8 +156,7 @@ namespace CalculateFunding.Functions.Datasets
             builder
                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
-            builder
-                .AddSingleton<IProviderRepository, ProviderRepository>();
+            builder.AddSingleton<IProviderService, ProviderService>();
 
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();

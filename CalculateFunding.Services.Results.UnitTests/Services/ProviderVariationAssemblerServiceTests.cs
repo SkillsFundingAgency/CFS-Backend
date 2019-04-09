@@ -860,6 +860,143 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
+        public async Task GivenCalculationWithNoFundingAndExistingResult_ThenCalculationIsIgnoredButVariationsAreReturnedSuccessfully()
+        {
+            // Arrange
+            string specificationId = "spec123";
+
+            List<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = "prov1" },
+                    SpecificationId = specificationId,
+                    AllocationLineResults = new List<AllocationLineResult>()
+                    {
+                        new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("a1", "Allocation Line 1"),
+                            Value = null,
+                        },
+                         new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("a1", "Allocation Line 2"),
+                            Value = null,
+                        },
+                          new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("a1", "Allocation Line 3"),
+                            Value = null,
+                        },
+                    },
+                },
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = "prov2" },
+                    SpecificationId = specificationId,
+                    AllocationLineResults = new List<AllocationLineResult>()
+                    {
+                        new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("alloc1", "Allocation Line 1"),
+                            Value = 1,
+                        },
+                        new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("alloc2", "Allocation Line 2"),
+                            Value = null,
+                        },
+                        new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("alloc3", "Allocation Line 3"),
+                            Value = null,
+                        },
+                    },
+                },
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { Id = "prov3" },
+                    SpecificationId = specificationId,
+                    AllocationLineResults = new List<AllocationLineResult>()
+                    {
+                        new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("alloc1", "Allocation Line 1"),
+                            Value = null,
+                        },
+                        new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("alloc2", "Allocation Line 2"),
+                            Value = null,
+                        },
+                        new AllocationLineResult()
+                        {
+                            AllocationLine = new Common.Models.Reference("alloc3", "Allocation Line 3"),
+                            Value = null,
+                        },
+                    },
+                }
+            };
+
+            List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>
+            {
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = "prov2",
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary
+                    {
+                        Id = "prov2",
+                        Authority = "authority",
+                        DfeEstablishmentNumber = "den",
+                        EstablishmentNumber = "en",
+                        LACode = "lac",
+                        LegalName = "ln",
+                        Name = "name",
+                        Status = "Open"
+                    }
+                },
+                new PublishedProviderResultExisting
+                {
+                    ProviderId = "prov3",
+                    AllocationLineId = "alloc1",
+                    Provider = new ProviderSummary
+                    {
+                        Id = "prov3",
+                        Authority = "authority2",
+                        DfeEstablishmentNumber = "den",
+                        EstablishmentNumber = "en",
+                        LACode = "lac",
+                        LegalName = "ln",
+                        Name = "name",
+                        Status = "Open"
+                    }
+                },
+            };
+
+            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            {
+                new ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
+            };
+
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
+                .Returns(coreProviderData);
+
+            IProviderVariationAssemblerService service = CreateService(providerService);
+
+            // Act
+            IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
+
+            // Assert
+            results.Should().HaveCount(1);
+            results.First().UpdatedProvider.Id.Should().Be("prov3");
+        }
+
+        [TestMethod]
         public async Task GivenMultipleResultsAllWithVariations_ThenMultipleVariationReturned()
         {
             // Arrange
