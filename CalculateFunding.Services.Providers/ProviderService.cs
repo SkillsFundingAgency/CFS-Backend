@@ -8,6 +8,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search.Results;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Providers.Interfaces;
@@ -46,17 +47,29 @@ namespace CalculateFunding.Services.Providers
 
                 await _cacheProvider.KeyDeleteAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
 
-                List<ProviderSummary> providersFromSearch = new List<ProviderSummary>();
+                Dictionary<string, ProviderSummary> providersFromSearch = new Dictionary<string, ProviderSummary>();
 
                 for (int pageNumber = 1; pageNumber <= pageCount; pageNumber++)
                 {
                     IEnumerable<ProviderSummary> summaries = await FetchProviderSummariesFromSearch(pageNumber, MaxResultsCount);
-                    providersFromSearch.AddRange(summaries);
+                    foreach (ProviderSummary providerSummary in summaries)
+                    {
+                        if (providersFromSearch.ContainsKey(providerSummary.Id))
+                        {
+                            await _cacheProvider.KeyDeleteAsync<List<ProviderSummary>>(CacheKeys.AllProviderSummaries);
+
+                            throw new NonRetriableException($"Duplicate provider from search with ID '{providerSummary.Id}'");
+                        }
+                        else
+                        {
+                            providersFromSearch.Add(providerSummary.Id, providerSummary);
+                        }
+                    }
                     await _cacheProvider.CreateListAsync(summaries.ToList(), CacheKeys.AllProviderSummaries);
                 }
 
                 await _cacheProvider.SetAsync(CacheKeys.AllProviderSummaryCount, totalCount.ToString(), TimeSpan.FromDays(365), true);
-                return providersFromSearch;
+                return providersFromSearch.Values;
             }
             else
             {
@@ -75,7 +88,8 @@ namespace CalculateFunding.Services.Providers
             {
                 PageNumber = pageNumber,
                 Top = top,
-                IncludeFacets = false
+                IncludeFacets = false,
+                OrderBy = new string[] { "name", "authority" },
             });
 
             return _mapper.Map<IEnumerable<ProviderSummary>>(providers.Results);
