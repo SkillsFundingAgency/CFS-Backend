@@ -502,6 +502,12 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Build did not compile succesfully for calculation id {calculation.Id}"));
+
+            sourceCodeService
+                .DidNotReceive()
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
+                        m => m.OptionStrictEnabled == false
+                    ));
         }
 
         [TestMethod]
@@ -617,6 +623,12 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+
+            sourceCodeService
+                 .Received(1)
+                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
+                         m => m.OptionStrictEnabled == false
+                     ));
         }
 
         [TestMethod]
@@ -702,6 +714,17 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
+            Build nonPreviewBuild = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles
+            };
+
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
+                        m => m.OptionStrictEnabled == false
+                    )).Returns(nonPreviewBuild);
+
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
@@ -729,6 +752,11 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+
+            await
+                sourceCodeService
+                    .Received(1)
+                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Release));
         }
 
         [TestMethod]
@@ -857,7 +885,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 sourceCodeService
                     .Received(1)
-                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId));
+                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Preview));
         }
 
         [TestMethod]
@@ -1873,7 +1901,250 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                sourceCodeService
                    .Received(1)
-                   .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId));
+                   .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Preview));
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenSourceFileGeneratorCreatedFilesAndCodeFailedButWithFilterableErrorMessages_ReturnsOKWithoutErrors()
+        {
+            //Arrange
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = SourceCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "test.vb", SourceCode = "any content"}
+            };
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>
+                {
+                    new CompilerMessage{ Severity = Models.Calcs.Severity.Error, Message = PreviewService.DoubleToNullableDecimalErrorMessage },
+                    new CompilerMessage{ Severity = Models.Calcs.Severity.Error, Message = PreviewService.NullableDoubleToDecimalErrorMessage }
+                }
+            };
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes); ;
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = (OkObjectResult)result;
+            okResult
+                .Value
+                .Should()
+                .BeOfType<PreviewResponse>();
+
+            PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(SourceCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeTrue();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+        }
+
+        [TestMethod]
+        public async Task Compile_GivenSourceFileGeneratorCreatedFilesAndCodeFailedButWithNonAndFilterableErrorMessage_ReturnsOKWithErrors()
+        {
+            //Arrange
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = SourceCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "test.vb", SourceCode = "any content"}
+            };
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>
+                {
+                    new CompilerMessage{ Severity = Models.Calcs.Severity.Error, Message = PreviewService.DoubleToNullableDecimalErrorMessage },
+                    new CompilerMessage{ Severity = Models.Calcs.Severity.Error, Message = PreviewService.NullableDoubleToDecimalErrorMessage },
+                    new CompilerMessage{ Severity = Models.Calcs.Severity.Error, Message = "Failed" },
+                }
+            };
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            sourceCodeService
+                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes); ;
+
+            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = (OkObjectResult)result;
+            okResult
+                .Value
+                .Should()
+                .BeOfType<PreviewResponse>();
+
+            PreviewResponse previewResponse = (PreviewResponse)okResult.Value;
+            previewResponse
+                .Calculation
+                .Current
+                .SourceCode
+                .Should()
+                .Be(SourceCode);
+
+            previewResponse
+                .CompilerOutput
+                .Success
+                .Should()
+                .BeFalse();
+
+            previewResponse
+               .CompilerOutput
+               .CompilerMessages
+               .Should()
+               .HaveCount(1);
         }
 
         static PreviewService CreateService(

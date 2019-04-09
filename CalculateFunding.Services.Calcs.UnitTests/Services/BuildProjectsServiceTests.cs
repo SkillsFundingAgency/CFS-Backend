@@ -627,7 +627,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .GetAssembly(Arg.Any<BuildProject>(), Arg.Any<CompilerOptions>())
+                .GetAssembly(Arg.Any<BuildProject>())
                 .Returns(new byte[0]);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, sourceCodeService: sourceCodeService);
@@ -659,7 +659,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
-                .GetAssembly(Arg.Any<BuildProject>(), Arg.Any<CompilerOptions>())
+                .GetAssembly(Arg.Any<BuildProject>())
                 .Returns(new byte[100]);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(logger: logger, sourceCodeService: sourceCodeService);

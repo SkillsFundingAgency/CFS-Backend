@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.Storage;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.IO;
@@ -33,9 +34,9 @@ namespace CalculateFunding.Services.Calcs
             return await DownloadToStreamAsync(blockBlob);
         }
 
-        public async Task SaveSourceFiles(byte[] zippedContent, string specificationId)
+        public async Task SaveSourceFiles(byte[] zippedContent, string specificationId, string sourceType)
         {
-            ICloudBlob blockBlob = GetBlockBlobReference($"{specificationId}/source-{specificationId}.zip");
+            ICloudBlob blockBlob = GetBlockBlobReference($"{specificationId}/{specificationId}-{sourceType}.zip");
 
             using (MemoryStream memoryStream = new MemoryStream(zippedContent))
             {

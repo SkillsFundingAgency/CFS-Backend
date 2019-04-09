@@ -300,9 +300,8 @@ namespace CalculateFunding.Services.Calcs
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
             IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
-            CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), compilerOptions);
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>());
 
             if (!_featureToggle.IsDynamicBuildProjectEnabled())
             {
@@ -419,9 +418,8 @@ namespace CalculateFunding.Services.Calcs
             }
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
-            CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
-
-            byte[] assembly = await _sourceCodeService.GetAssembly(buildProject, compilerOptions);
+           
+            byte[] assembly = await _sourceCodeService.GetAssembly(buildProject);
 
             if (assembly.IsNullOrEmpty())
             {

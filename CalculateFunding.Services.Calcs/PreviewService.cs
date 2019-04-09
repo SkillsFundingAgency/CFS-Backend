@@ -22,6 +22,10 @@ namespace CalculateFunding.Services.Calcs
 {
     public class PreviewService : IPreviewService, IHealthChecker
     {
+        public const string DoubleToNullableDecimalErrorMessage = "Option Strict On disallows implicit conversions from 'Double' to 'Decimal?'.";
+        public const string NullableDoubleToDecimalErrorMessage = "Option Strict On disallows implicit conversions from 'Double?' to 'Decimal?'.";
+        public const string DoubleToDecimalErrorMessage = "Option Strict On disallows implicit conversions from 'Double' to 'Decimal'.";
+
         private readonly ILogger _logger;
         private readonly IBuildProjectsService _buildProjectsService;
         private readonly IValidator<PreviewRequest> _previewRequestValidator;
@@ -147,6 +151,8 @@ namespace CalculateFunding.Services.Calcs
         {
             Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
+            compilerOutput = FilterDoubleToDecimalErrors(compilerOutput);
+
             if (compilerOutput.Success)
             {
                 _logger.Information($"Build compiled succesfully for calculation id {calculationToPreview.Id}");
@@ -213,7 +219,17 @@ namespace CalculateFunding.Services.Calcs
                 CompilerOutput = compilerOutput
             };
 
-            await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId);
+            await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Preview);
+
+            if (compilerOutput.Success)
+            {
+                Build nonPreviewCompilerOutput = _sourceCodeService.Compile(buildProject, calculations, new CompilerOptions { SpecificationId = buildProject.SpecificationId, OptionStrictEnabled = false });
+
+                if (nonPreviewCompilerOutput.Success)
+                {
+                    await _sourceCodeService.SaveSourceFiles(nonPreviewCompilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Release);
+                }
+            }
 
             return new OkObjectResult(response);
         }
@@ -264,6 +280,23 @@ namespace CalculateFunding.Services.Calcs
             }
   
             return build;
+        }
+
+        private Build FilterDoubleToDecimalErrors(Build compilerOutput)
+        {
+            if (compilerOutput.CompilerMessages.IsNullOrEmpty())
+            {
+                return compilerOutput;
+            }
+
+            compilerOutput.CompilerMessages = compilerOutput.CompilerMessages.Where(m => 
+            m.Message != DoubleToNullableDecimalErrorMessage &&
+            m.Message != NullableDoubleToDecimalErrorMessage &&
+            m.Message != DoubleToDecimalErrorMessage).ToList();
+
+            compilerOutput.Success  = !compilerOutput.CompilerMessages.AnyWithNullCheck(m => m.Severity == Models.Calcs.Severity.Error);
+
+            return compilerOutput;
         }
     }
 }

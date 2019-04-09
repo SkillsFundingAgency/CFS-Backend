@@ -16,8 +16,5 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("optionStrictEnabled")]
         public bool OptionStrictEnabled { get; set; } = true;
-
-        [JsonProperty("optionExplicitEnabled")]
-        public bool OptionExplicitEnabled { get; set; } = true;
     }
 }

@@ -603,10 +603,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileGeneratorProvider: sourceFileGeneratorProvider, compilerFactory: compilerFactory);
 
-            CompilerOptions compilerOptions = new CompilerOptions();
-
             //Act
-            byte[] assembly = await sourceCodeService.GetAssembly(buildProject, compilerOptions);
+            byte[] assembly = await sourceCodeService.GetAssembly(buildProject);
 
             //Assert
             assembly
@@ -641,10 +639,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileRepository, logger);
 
-            CompilerOptions compilerOptions = new CompilerOptions();
-
             //Act
-            Func<Task> test = async () => await sourceCodeService.GetAssembly(buildProject, compilerOptions);
+            Func<Task> test = async () => await sourceCodeService.GetAssembly(buildProject);
 
             //Assert
             test
@@ -680,10 +676,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileRepository, logger);
 
-            CompilerOptions compilerOptions = new CompilerOptions();
-
             //Act
-            byte[] assembly = await sourceCodeService.GetAssembly(buildProject, compilerOptions);
+            byte[] assembly = await sourceCodeService.GetAssembly(buildProject);
 
             //Assert
             assembly
@@ -712,13 +706,13 @@ namespace CalculateFunding.Services.Calcs.Services
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileRepository);
 
             //Act
-            await sourceCodeService.SaveSourceFiles(sourceFiles, specificationId);
+            await sourceCodeService.SaveSourceFiles(sourceFiles, specificationId, SourceCodeType.Release);
 
             //Assert
             await
                 sourceFileRepository
                     .Received(1)
-                    .SaveSourceFiles(Arg.Any<byte[]>(), Arg.Is(specificationId));
+                    .SaveSourceFiles(Arg.Any<byte[]>(), Arg.Is(specificationId), Arg.Is("release"));
         }
 
         [TestMethod]
@@ -734,13 +728,13 @@ namespace CalculateFunding.Services.Calcs.Services
             SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileRepository, logger);
 
             //Act
-            await sourceCodeService.SaveSourceFiles(sourceFiles, specificationId);
+            await sourceCodeService.SaveSourceFiles(sourceFiles, specificationId, SourceCodeType.Preview);
 
             //Assert
             await
                 sourceFileRepository
                     .DidNotReceive()
-                    .SaveSourceFiles(Arg.Any<byte[]>(), Arg.Is(specificationId));
+                    .SaveSourceFiles(Arg.Any<byte[]>(), Arg.Is(specificationId), Arg.Is("preview"));
 
             logger
                 .Received(1)

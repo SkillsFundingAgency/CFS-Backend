@@ -443,7 +443,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 sourceCodeService
                     .Received(1)
-                    .SaveSourceFiles(Arg.Is<IEnumerable<SourceFile>>(m => m.Count() == 1), Arg.Is(specificationId));
+                    .SaveSourceFiles(Arg.Is<IEnumerable<SourceFile>>(m => m.Count() == 1), Arg.Is(specificationId), Arg.Is(SourceCodeType.Release));
         }
 
         [TestMethod]
@@ -777,7 +777,7 @@ namespace CalculateFunding.Services.Calcs.Services
             await
                 sourceCodeService
                     .Received(1)
-                    .SaveSourceFiles(Arg.Is<IEnumerable<SourceFile>>(m => m.Count() == 2), Arg.Is(specificationId));
+                    .SaveSourceFiles(Arg.Is<IEnumerable<SourceFile>>(m => m.Count() == 2), Arg.Is(specificationId), Arg.Is(SourceCodeType.Release));
         }
 
         [TestMethod]

@@ -88,10 +88,9 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        public async Task<byte[]> GetAssembly(BuildProject buildProject, CompilerOptions compilerOptions)
+        public async Task<byte[]> GetAssembly(BuildProject buildProject)
         {
             Guard.ArgumentNotNull(buildProject, nameof(buildProject));
-            Guard.ArgumentNotNull(compilerOptions, nameof(compilerOptions));
 
             byte[] rawAssembly = null;
 
@@ -103,7 +102,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     IEnumerable<Calculation> calculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(buildProject.SpecificationId));
 
-                    buildProject.Build = Compile(buildProject, calculations, compilerOptions);
+                    buildProject.Build = Compile(buildProject, calculations);
                 }
 
                 rawAssembly = buildProject.Build.Assembly;
@@ -126,8 +125,13 @@ namespace CalculateFunding.Services.Calcs
             return rawAssembly;
         }
 
-        public Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions)
+        public Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions = null)
         {
+            if(compilerOptions == null)
+            {
+                compilerOptions = new CompilerOptions { SpecificationId = buildProject.SpecificationId, OptionStrictEnabled = false };
+            }
+
             IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations, compilerOptions);
 
             ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
@@ -135,9 +139,9 @@ namespace CalculateFunding.Services.Calcs
             return compiler.GenerateCode(sourceFiles?.ToList());
         }
 
-        public async Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject, CompilerOptions compilerOptions)
+        public async Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject)
         {
-            byte[] rawAssembly = await GetAssembly(buildProject, compilerOptions);
+            byte[] rawAssembly = await GetAssembly(buildProject);
 
             return _codeMetadataGenerator.GetTypeInformation(rawAssembly);
         }
@@ -149,10 +153,12 @@ namespace CalculateFunding.Services.Calcs
             return compiler.GetCalulationFunctions(sourceFiles);
         }
 
-        public async Task SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string specificationId)
+        public async Task SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string specificationId, SourceCodeType sourceCodeType)
         {
             Guard.ArgumentNotNull(sourceFiles, nameof(sourceFiles));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            string sourceType = sourceCodeType == SourceCodeType.Preview ? "preview" : "release";
 
             IEnumerable<(string filename, string content)> files = sourceFiles.Select(m => (m.FileName, m.SourceCode));
 
@@ -164,7 +170,7 @@ namespace CalculateFunding.Services.Calcs
             }
             else
             {
-                await _sourceFilesRepositoryPolicy.ExecuteAsync(() => _sourceFilesRepository.SaveSourceFiles(compressedFiles, specificationId));
+                await _sourceFilesRepositoryPolicy.ExecuteAsync(() => _sourceFilesRepository.SaveSourceFiles(compressedFiles, specificationId, sourceType));
             }
         }
     }

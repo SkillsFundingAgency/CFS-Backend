@@ -9,14 +9,14 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     {
         Task SaveAssembly(BuildProject buildProject);
 
-        Task<byte[]> GetAssembly(BuildProject buildProject, CompilerOptions compilerOptions);
+        Task<byte[]> GetAssembly(BuildProject buildProject);
 
-        Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions);
+        Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions = null);
 
-        Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject, CompilerOptions compilerOptions);
+        Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject);
 
         IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles);
 
-        Task SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string specificationId);
+        Task SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string specificationId, SourceCodeType sourceCodeType);
     }
 }

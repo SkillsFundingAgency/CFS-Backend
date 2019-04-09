@@ -951,9 +951,7 @@ namespace CalculateFunding.Services.Calcs
 
             IEnumerable<Calculation> calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 
-            CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
-
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Calculation>(), compilerOptions);
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Calculation>());
 
             if (buildProject.Build == null)
             {
@@ -962,7 +960,7 @@ namespace CalculateFunding.Services.Calcs
                 return new StatusCodeResult(500);
             }
 
-            IEnumerable<TypeInformation> result = await _sourceCodeService.GetTypeInformation(buildProject, compilerOptions);
+            IEnumerable<TypeInformation> result = await _sourceCodeService.GetTypeInformation(buildProject);
 
             return new OkObjectResult(result);
         }
@@ -1204,14 +1202,11 @@ namespace CalculateFunding.Services.Calcs
             Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
             Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
             Task<IEnumerable<Models.Specs.Calculation>> calculationSpecificationsRequest = _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetCalculationSpecificationsForSpecification(specificationId));
-            Task<CompilerOptions> compilerOptionsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
-
-            await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest, calculationSpecificationsRequest, compilerOptionsRequest);
+            await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest, calculationSpecificationsRequest);
 
             List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
             BuildProject buildProject = buildProjectRequest.Result;
             IEnumerable<Models.Specs.Calculation> calculationSpecifications = calculationSpecificationsRequest.Result;
-            CompilerOptions compilerOptions = compilerOptionsRequest.Result;
 
             // Adds the Calculation Description retrieved from the Calculation Specification.
             // Other descriptions are included as part of the denormalised data storage in CosmosDB
@@ -1224,23 +1219,23 @@ namespace CalculateFunding.Services.Calcs
                 }
             }
 
-            return await UpdateBuildProject(specificationId, calculations, compilerOptions, buildProject);
+            return await UpdateBuildProject(specificationId, calculations, buildProject);
         }
 
-        private async Task<BuildProject> UpdateBuildProject(string specificationId, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions, BuildProject buildProject = null)
+        private async Task<BuildProject> UpdateBuildProject(string specificationId, IEnumerable<Calculation> calculations, BuildProject buildProject = null)
         {
             if (buildProject == null)
             {
                 buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
             }
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, new CompilerOptions { OptionStrictEnabled = false });
 
-            await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId);
+            await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId, SourceCodeType.Release);
 
             await _sourceCodeService.SaveAssembly(buildProject);
 
-            if (_featureToggle.IsDynamicBuildProjectEnabled())
+            if (!_featureToggle.IsDynamicBuildProjectEnabled())
             {
                 await _buildProjectRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
             }

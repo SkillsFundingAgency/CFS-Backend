@@ -27,8 +27,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject, IEnumerable<Calculation> calculations)
         {
             SyntaxList<OptionStatementSyntax> optionsList = new SyntaxList<OptionStatementSyntax>(new OptionStatementSyntax[] { 
-                SyntaxFactory.OptionStatement(SyntaxFactory.Token(SyntaxKind.StrictKeyword), SyntaxFactory.Token(_compilerOptions.OptionStrictEnabled ? SyntaxKind.OnKeyword : SyntaxKind.OffKeyword)),
-                SyntaxFactory.OptionStatement(SyntaxFactory.Token(SyntaxKind.ExplicitKeyword), SyntaxFactory.Token(_compilerOptions.OptionExplicitEnabled ? SyntaxKind.OnKeyword : SyntaxKind.OffKeyword))
+                SyntaxFactory.OptionStatement(SyntaxFactory.Token(SyntaxKind.StrictKeyword), SyntaxFactory.Token(_compilerOptions.OptionStrictEnabled ? SyntaxKind.OnKeyword : SyntaxKind.OffKeyword))
             });
 
             CompilationUnitSyntax syntaxTree = SyntaxFactory.CompilationUnit()

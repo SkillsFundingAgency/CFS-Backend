@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface ISourceFileRepository
     {
-        Task SaveSourceFiles(byte[] zippedContent, string specificationId);
+        Task SaveSourceFiles(byte[] zippedContent, string specificationId, string sourceType);
 
         Task SaveAssembly(byte[] assemblyBytes, string specificationId);
 
