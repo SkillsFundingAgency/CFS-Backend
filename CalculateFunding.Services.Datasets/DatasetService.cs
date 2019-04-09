@@ -119,7 +119,6 @@ namespace CalculateFunding.Services.Datasets
             (bool Ok, string Message) searchRepoHealth = await _datasetIndexSearchRepository.IsHealthOk();
             (bool Ok, string Message) searchIndexVersionHealth = await _datasetVersionIndexRepository.IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
-            ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerService).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
@@ -130,7 +129,6 @@ namespace CalculateFunding.Services.Datasets
             health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _datasetIndexSearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
             health.Dependencies.Add(new DependencyHealth { HealthOk = searchIndexVersionHealth.Ok, DependencyName = _datasetVersionIndexRepository.GetType().GetFriendlyName(), Message = searchIndexVersionHealth.Message });
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
-            health.Dependencies.AddRange(providerRepoHealth.Dependencies);
 
             return health;
         }

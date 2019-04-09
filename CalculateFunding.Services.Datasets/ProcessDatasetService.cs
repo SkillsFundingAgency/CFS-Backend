@@ -113,7 +113,6 @@ namespace CalculateFunding.Services.Datasets
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_datasetRepository).IsHealthOk();
             (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
             ServiceHealth providersResultsRepoHealth = await ((IHealthChecker)_providersResultsRepository).IsHealthOk();
-            ServiceHealth providerRepoHealth = await ((IHealthChecker)_providerService).IsHealthOk();
             ServiceHealth datasetsAggregationsRepoHealth = await ((IHealthChecker)_datasetsAggregationsRepository).IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
@@ -124,7 +123,6 @@ namespace CalculateFunding.Services.Datasets
             health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
             health.Dependencies.AddRange(providersResultsRepoHealth.Dependencies);
-            health.Dependencies.AddRange(providerRepoHealth.Dependencies);
             health.Dependencies.AddRange(datasetsAggregationsRepoHealth.Dependencies);
             return health;
         }
