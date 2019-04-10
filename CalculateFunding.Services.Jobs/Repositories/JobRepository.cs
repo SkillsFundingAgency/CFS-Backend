@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
             job.Id = Guid.NewGuid().ToString();
             job.LastUpdated = DateTimeOffset.UtcNow;
 
-            HttpStatusCode result = await _cosmosRepository.CreateAsync(job);
+            HttpStatusCode result = await _cosmosRepository.CreateAsync(job, job.JobId);
 
             if (!result.IsSuccess())
             {
@@ -54,61 +54,60 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
         public async Task<HttpStatusCode> CreateJobLog(JobLog jobLog)
         {
-            return await _cosmosRepository.CreateAsync(jobLog);
+            return await _cosmosRepository.CreateAsync(jobLog, jobLog.JobId);
         }
 
         public IQueryable<Job> GetJobs()
         {
-            return _cosmosRepository.Query<Job>();
+            return _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true);
         }
 
         public async Task<Job> GetJobById(string jobId)
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            DocumentEntity<Job> job = await _cosmosRepository.ReadAsync<Job>(jobId);
+            string query = $"select top 1 * from Jobs as j where j.documentType = \"Job\" and j.deleted = false and j.content.jobId = \"{jobId}\"";
 
-            if (job == null)
-            {
-                return null;
-            }
+            IEnumerable<Job> jobs = await _cosmosRepository.QueryPartitionedEntity<Job>(query, partitionEntityId: jobId);
 
-            return job.Content;
+            return jobs.FirstOrDefault();
         }
 
         public IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId)
         {
-            IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => m.SpecificationId == specificationId && m.JobDefinitionId == jobDefinitionId && m.RunningStatus != RunningStatus.Completed);
+            IQueryable<Job> query = _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId && m.JobDefinitionId == jobDefinitionId && m.RunningStatus != RunningStatus.Completed);
 
             return query.AsEnumerable();
         }
 
-        public IEnumerable<JobLog> GetJobLogsByJobId(string jobId)
+        public async Task<IEnumerable<JobLog>> GetJobLogsByJobId(string jobId)
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            IQueryable<JobLog> jobLogs = _cosmosRepository.Query<JobLog>().Where(m => m.JobId == jobId);
+            string query = $"select j from Jobs where j.documentType = \"JobLog\" and j.deleted = false and j.content.JobId = \"{jobId}\"";
 
-            return jobLogs.AsEnumerable();
+            IEnumerable<JobLog> jobLogs = await _cosmosRepository.QueryPartitionedEntity<JobLog>(query, partitionEntityId: jobId);
+
+            return jobLogs;
         }
 
         public async Task<HttpStatusCode> UpdateJob(Job job)
         {
             job.LastUpdated = DateTimeOffset.UtcNow;
 
-            return await _cosmosRepository.UpsertAsync<Job>(job);
+            return await _cosmosRepository.UpsertAsync<Job>(job, job.JobId);
         }
 
         public IEnumerable<Job> GetChildJobsForParent(string jobId)
         {
-            IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => m.ParentJobId == jobId);
+            IQueryable<Job> query = _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true).Where(m => m.ParentJobId == jobId);
 
             return query.AsEnumerable();
         }
 
         public IEnumerable<Job> GetNonCompletedJobs()
         {
-            IQueryable<Job> query = _cosmosRepository.Query<Job>().Where(m => !m.CompletionStatus.HasValue);
+            IQueryable<Job> query = _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true).Where(m => !m.CompletionStatus.HasValue);
 
             return query.AsEnumerable();
         }

@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Jobs
                 return new NotFoundResult();
             }
 
-            IEnumerable<JobLog> logs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetJobLogsByJobId(jobId));
+            IEnumerable<JobLog> logs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetJobLogsByJobId(jobId));
             return new OkObjectResult(logs);
         }
 

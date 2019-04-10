@@ -16,6 +16,15 @@ namespace CalculateFunding.Models.Jobs
         [JsonProperty("id")]
         public string Id { get; set; }
 
+        [JsonProperty("jobId")]
+        public string JobId
+        {
+            get
+            {
+                return Id;
+            }
+        }
+
         /// <summary>
         /// Required Job Definition (from list of known jobs)
         /// </summary>

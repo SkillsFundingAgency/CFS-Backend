@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
 
         IEnumerable<Job> GetChildJobsForParent(string jobId);
 
-        IEnumerable<JobLog> GetJobLogsByJobId(string jobId);
+        Task<IEnumerable<JobLog>> GetJobLogsByJobId(string jobId);
 
         IEnumerable<Job> GetNonCompletedJobs();
 
