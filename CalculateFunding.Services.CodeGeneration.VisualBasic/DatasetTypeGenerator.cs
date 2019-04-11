@@ -52,21 +52,23 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 						wrapperSyntaxTree.WithMembers(SyntaxFactory.List(buildProject.DatasetRelationships.Select(GetDatasetProperties)));
 				}
 			}
-
-
-
             yield return new SourceFile { FileName = $"Datasets/Datasets.vb", SourceCode = wrapperSyntaxTree.NormalizeWhitespace().ToFullString() };
-
-
         }
 
         private static IEnumerable<StatementSyntax> GetMembers(DatasetDefinition datasetDefinition)
         {
-            yield return CreateStaticDefinitionName(datasetDefinition);
+            IList<StatementSyntax> members = new List<StatementSyntax>
+            {
+                CreateStaticDefinitionName(datasetDefinition),
+                CreateStaticDefinitionId(datasetDefinition)
+            };
+
             foreach (var member in datasetDefinition.TableDefinitions.First().FieldDefinitions.Select(GetMember))
             {
-                yield return member;
+                members.Add(member);
             }
+
+            return members;
         }
 
         private static StatementSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
@@ -74,6 +76,25 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             var token = SyntaxFactory.Literal(datasetDefinition.Name);
             var variable = SyntaxFactory.VariableDeclarator(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier("DatasetDefinitionName")));
+            variable = variable.WithAsClause(
+                SyntaxFactory.SimpleAsClause(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))));
+
+            variable = variable.WithInitializer(
+                SyntaxFactory.EqualsValue(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression,
+                    token)));
+
+            return SyntaxFactory.FieldDeclaration(
+                SyntaxFactory.List<AttributeListSyntax>(),
+                SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword),
+                    SyntaxFactory.Token(SyntaxKind.SharedKeyword)),
+                SyntaxFactory.SingletonSeparatedList(variable));
+        }
+
+        private static StatementSyntax CreateStaticDefinitionId(DatasetDefinition datasetDefinition)
+        {
+            var token = SyntaxFactory.Literal(datasetDefinition.Id);
+            var variable = SyntaxFactory.VariableDeclarator(
+                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier("DatasetDefinitionId")));
             variable = variable.WithAsClause(
                 SyntaxFactory.SimpleAsClause(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))));
 
@@ -105,7 +126,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             var builder = new StringBuilder();
             builder.AppendLine($"<DatasetRelationship(Id := \"{datasetRelationship.Id}\", Name := \"{datasetRelationship.Name}\")>");
-
+            builder.AppendLine($"<Field(Id := \"{datasetRelationship.DatasetDefinition.Id}\", Name := \"{datasetRelationship.DatasetDefinition.Name}\")>");
             if (!string.IsNullOrWhiteSpace(datasetRelationship?.DatasetDefinition?.Description))
             {
                 builder.AppendLine($"<Description(Description := \"{datasetRelationship.DatasetDefinition.Description?.Replace("\"", "\"\"")}\")>");

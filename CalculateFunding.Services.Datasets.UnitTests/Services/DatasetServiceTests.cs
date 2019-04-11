@@ -10,6 +10,8 @@ using AutoMapper;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -19,6 +21,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -1387,6 +1390,167 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDocumentByDatasetId(Arg.Is(datasetId));
         }
 
+        [TestMethod]
+        public void UpdateDatasetAndVersionDefinitionName_GivenANullDefinitionRefrenceSupplied_LogsAndThrowsException()
+        {
+            //Arrange
+            Reference reference = null;
 
+            ILogger logger = CreateLogger();
+
+            DatasetService datasetService = CreateDatasetService(logger: logger);
+
+            //Act
+            Func<Task> test = () => datasetService.UpdateDatasetAndVersionDefinitionName(reference);
+
+            //Assert
+            test
+               .Should()
+               .ThrowExactly<NonRetriableException>();
+
+            logger
+                .Received(1)
+                .Error("Null dataset definition reference supplied");
+        }
+
+        [TestMethod]
+        public async Task UpdateDatasetAndVersionDefinitionName_GivenDatasetFound_LogsAndDoesNotProcess()
+        {
+            //Arrange
+            const string definitionId = "id-1";
+            const string defintionName = "name-1";
+
+            Reference reference = new Reference(definitionId, defintionName);
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .Returns(Enumerable.Empty<Dataset>());
+
+            DatasetService datasetService = CreateDatasetService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            await datasetService.UpdateDatasetAndVersionDefinitionName(reference);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"No datasets found to update for definition id: {definitionId}"));
+        }
+
+        [TestMethod]
+        public void UpdateDatasetAndVersionDefinitionName_GivenUpdatingCosmosCausesException_LogsAndThrowsException()
+        {
+            //Arrange
+            const string definitionId = "id-1";
+            const string defintionName = "name-1";
+
+            Reference reference = new Reference(definitionId, defintionName);
+
+            IEnumerable<Dataset> datasets = new[]
+            {
+                new Dataset{ Definition = new Reference() }
+            };
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .Returns(datasets);
+
+            datasetRepository
+                .When(x => x.SaveDatasets(Arg.Any<IEnumerable<Dataset>>()))
+                .Do(x => { throw new Exception(); });
+
+            DatasetService datasetService = CreateDatasetService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            Func<Task> test = () => datasetService.UpdateDatasetAndVersionDefinitionName(reference);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to save datasets to cosmos for definition id: {definitionId}");
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to save datasets to cosmos for definition id: {definitionId}"));
+        }
+
+        [TestMethod]
+        public void UpdateDatasetAndVersionDefinitionName_GivenUpdatingDatasetInSearchCausesErrors_LogsAndThrowsException()
+        {
+            //Arrange
+            const string definitionId = "id-1";
+            const string defintionName = "name-1";
+
+            Reference reference = new Reference(definitionId, defintionName);
+
+            IEnumerable<Dataset> datasets = new[]
+            {
+                new Dataset{
+                    Definition = new Reference(definitionId, defintionName),
+                    History = new List<DatasetVersion>
+                    {
+
+                    },
+                    Current = new DatasetVersion
+                    {
+                        PublishStatus = Models.Versioning.PublishStatus.Approved
+                    }
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetsByQuery(Arg.Any<Expression<Func<Dataset, bool>>>())
+                .Returns(datasets);
+
+            ISearchRepository<DatasetIndex> datasetSearchRepository = CreateSearchRepository();
+
+            IEnumerable<IndexError> indexErrors = new List<IndexError>()
+            {
+                new IndexError()
+                {
+                      Key = "datasetId",
+                      ErrorMessage = "Error in dataset ID for search",
+                }
+            };
+
+            datasetSearchRepository
+                .Index(Arg.Any<List<DatasetIndex>>())
+                .Returns(indexErrors);
+
+            DatasetService datasetService = CreateDatasetService(
+                logger: logger, 
+                datasetRepository: datasetRepository,
+                searchRepository: datasetSearchRepository
+                );
+
+            //Act
+            Func<Task> test = () => datasetService.UpdateDatasetAndVersionDefinitionName(reference);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to save dataset to search for definition id: {definitionId} in search with errors: Error in dataset ID for search");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to save dataset to search for definition id: {definitionId} in search with errors: Error in dataset ID for search"));
+        }
     }
 }

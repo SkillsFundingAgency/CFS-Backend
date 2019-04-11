@@ -131,6 +131,9 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
 
+            builder
+                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
+
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();

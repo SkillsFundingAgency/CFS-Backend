@@ -106,6 +106,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
             builder.AddSingleton<ISourceCodeService, SourceCodeService>();
             builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder
+               .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
             {

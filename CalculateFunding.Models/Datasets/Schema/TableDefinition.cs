@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Datasets.Schema
@@ -17,7 +18,5 @@ namespace CalculateFunding.Models.Datasets.Schema
         
         [JsonProperty("fieldDefinitions")]
         public List<FieldDefinition> FieldDefinitions { get; set; }
-
     }
-
 }

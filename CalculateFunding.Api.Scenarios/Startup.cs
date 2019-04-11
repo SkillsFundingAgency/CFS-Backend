@@ -82,6 +82,9 @@ namespace CalculateFunding.Api.Scenarios
             builder
                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
+            builder
+               .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
+
             builder.AddSingleton<IVersionRepository<TestScenarioVersion>, VersionRepository<TestScenarioVersion>>((ctx) =>
             {
                 CosmosDbSettings scenariosVersioningDbSettings = new CosmosDbSettings();

@@ -2106,6 +2106,112 @@ namespace CalculateFunding.Services.Calcs.Services
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
 
+        [TestMethod]
+        public async Task CompileAndSaveAssembly_GivenFeatureToggleIsDynamicBuildProjectEnabledIsOff_EnsuresUpdatesCosmos()
+        {
+            //Arrange
+            Build build = new Build();
+
+            IEnumerable<Calculation> calculations = new[]
+            {
+                new Calculation()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDynamicBuildProjectEnabled()
+                .Returns(false);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectRepository();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+               calculationsRepository: calculationsRepository,
+               sourceCodeService: sourceCodeService,
+               buildProjectsRepository: buildProjectsRepository,
+               featureToggle: featureToggle);
+
+            //Act
+            IActionResult actionResult = await buildProjectsService.CompileAndSaveAssembly(SpecificationId);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<NoContentResult>();
+
+            await
+                buildProjectsRepository
+                    .Received(1)
+                    .UpdateBuildProject(Arg.Any<BuildProject>());
+
+            await
+                sourceCodeService
+                    .Received(1)
+                    .SaveAssembly(Arg.Any<BuildProject>());
+        }
+
+        [TestMethod]
+        public async Task CompileAndSaveAssembly_GivenFeatureToggleIsDynamicBuildProjectEnabledIson_DoesNotUpdateCosmos()
+        {
+            //Arrange
+            Build build = new Build();
+
+            IEnumerable<Calculation> calculations = new[]
+            {
+                new Calculation()
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Is(calculations), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsDynamicBuildProjectEnabled()
+                .Returns(true);
+
+            IBuildProjectsRepository buildProjectsRepository = CreateBuildProjectRepository();
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+               calculationsRepository: calculationsRepository,
+               sourceCodeService: sourceCodeService,
+               buildProjectsRepository: buildProjectsRepository,
+               featureToggle: featureToggle);
+
+            //Act
+            IActionResult actionResult = await buildProjectsService.CompileAndSaveAssembly(SpecificationId);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<NoContentResult>();
+
+            await
+                buildProjectsRepository
+                    .DidNotReceive()
+                    .UpdateBuildProject(Arg.Any<BuildProject>());
+
+            await
+                sourceCodeService
+                    .Received(1)
+                    .SaveAssembly(Arg.Any<BuildProject>());
+        }
+
         private IEnumerable<Job> CreateJobs(int count = 10)
         {
             IList<Job> jobs = new List<Job>();

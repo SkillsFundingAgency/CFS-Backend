@@ -10,9 +10,11 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -36,25 +38,37 @@ namespace CalculateFunding.Services.Datasets
         private readonly IExcelWriter<DatasetDefinition> _excelWriter;
         private readonly IBlobClient _blobClient;
         private readonly Policy _blobClientPolicy;
+        private readonly IDefinitionChangesDetectionService _definitionChangesDetectionService;
+        private readonly IMessengerService _messengerService;
 
-        public DefinitionsService(ILogger logger, IDatasetRepository dataSetsRepository,
-            ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository, IDatasetsResiliencePolicies datasetsResiliencePolicies, IExcelWriter<DatasetDefinition> excelWriter, IBlobClient blobClient)
+        public DefinitionsService(
+            ILogger logger,
+            IDatasetRepository dataSetsRepository,
+            ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository, 
+            IDatasetsResiliencePolicies datasetsResiliencePolicies, 
+            IExcelWriter<DatasetDefinition> excelWriter,
+            IBlobClient blobClient,
+            IDefinitionChangesDetectionService definitionChangesDetectionService,
+            IMessengerService messengerService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(dataSetsRepository, nameof(dataSetsRepository));
             Guard.ArgumentNotNull(datasetDefinitionSearchRepository, nameof(datasetDefinitionSearchRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
             Guard.ArgumentNotNull(excelWriter, nameof(excelWriter));
+            Guard.ArgumentNotNull(definitionChangesDetectionService, nameof(definitionChangesDetectionService));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
 
             _logger = logger;
             _datasetsRepository = dataSetsRepository;
             _datasetDefinitionSearchRepository = datasetDefinitionSearchRepository;
-
             _datasetDefinitionSearchRepositoryPolicy = datasetsResiliencePolicies.DatasetDefinitionSearchRepository;
             _datasetsRepositoryPolicy = datasetsResiliencePolicies.DatasetRepository;
             _excelWriter = excelWriter;
             _blobClient = blobClient;
             _blobClientPolicy = datasetsResiliencePolicies.BlobClient;
+            _definitionChangesDetectionService = definitionChangesDetectionService;
+            _messengerService = messengerService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -100,6 +114,8 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
             }
 
+            DatasetDefinition existingDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(definition.Id));
+
             try
             {
                 HttpStatusCode result = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.SaveDefinition(definition));
@@ -140,6 +156,11 @@ namespace CalculateFunding.Services.Datasets
             }
 
             _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
+
+            if (existingDefinition != null)
+            {
+                await CheckForChanges(definition, existingDefinition, request);
+            }
 
             return new OkResult();
         }
@@ -220,6 +241,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             DatasetDefinition defintion = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(datasetDefinitionId));
+
             if (defintion == null)
             {
                 return new NotFoundResult();
@@ -294,6 +316,20 @@ namespace CalculateFunding.Services.Datasets
             string blobUrl = _blobClient.GetBlobSasUrl(fileName, DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read);
 
             return new OkObjectResult(new DatasetSchemaSasUrlResponseModel { SchemaUrl = blobUrl });
+        }
+
+        private async Task CheckForChanges(DatasetDefinition newDatasetDefinition, DatasetDefinition existingDatasetDefinition, HttpRequest httpRequest)
+        {
+            DatasetDefinitionChanges datasetDefinitionChanges = _definitionChangesDetectionService.DetectChanges(newDatasetDefinition, existingDatasetDefinition);
+
+            if (!datasetDefinitionChanges.HasChanges)
+            {
+                return;
+            }
+
+            IDictionary<string, string> properties = httpRequest.BuildMessageProperties();
+
+            await _messengerService.SendToTopic(ServiceBusConstants.TopicNames.DataDefinitionChanges, datasetDefinitionChanges, properties);
         }
     }
 }

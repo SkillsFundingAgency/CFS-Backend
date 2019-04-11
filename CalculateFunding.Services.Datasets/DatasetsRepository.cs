@@ -48,6 +48,11 @@ namespace CalculateFunding.Services.Datasets
             return _cosmosRepository.UpsertAsync(dataset);
         }
 
+        public async Task SaveDatasets(IEnumerable<Dataset> datasets)
+        {
+            await _cosmosRepository.BulkUpsertAsync(datasets.ToList());
+        }
+
         public async Task<DatasetDefinition> GetDatasetDefinition(string definitionId)
         {
             IEnumerable<DatasetDefinition> definitions = await GetDatasetDefinitionsByQuery(m => m.Id == definitionId);
@@ -93,6 +98,11 @@ namespace CalculateFunding.Services.Datasets
             return _cosmosRepository.UpdateAsync(relationship);
         }
 
+        public async Task UpdateDefinitionSpecificationRelationships(IEnumerable<DefinitionSpecificationRelationship> relationships)
+        {
+            await _cosmosRepository.BulkUpsertAsync(relationships.ToList());
+        }
+
         public Task<IEnumerable<DefinitionSpecificationRelationship>> GetDefinitionSpecificationRelationshipsByQuery(Expression<Func<DefinitionSpecificationRelationship, bool>> query)
         {
             IQueryable<DefinitionSpecificationRelationship> relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>().Where(query);
@@ -136,6 +146,22 @@ namespace CalculateFunding.Services.Datasets
             IQueryable<DefinitionSpecificationRelationship> relationships = _cosmosRepository.Query<DefinitionSpecificationRelationship>();
 
             return Task.FromResult(relationships.AsEnumerable());
+        }
+
+        public async Task<IEnumerable<string>> GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(string datasetDefinitionId)
+        {
+            string query = $"SELECT d.content.Specification.id as specificationId FROM datasets d where d.deleted = false and d.documentType = \"DefinitionSpecificationRelationship\" and d.content.DatasetDefinition.id = \"{datasetDefinitionId}\"";
+
+            HashSet<string> specificationIds = new HashSet<string>();
+
+            IEnumerable<dynamic> results = await _cosmosRepository.QueryDynamic<dynamic>(query, true, 1000);
+
+            foreach (dynamic result in results)
+            {
+                specificationIds.Add(result.specificationId);
+            }
+
+            return specificationIds;
         }
     }
 }

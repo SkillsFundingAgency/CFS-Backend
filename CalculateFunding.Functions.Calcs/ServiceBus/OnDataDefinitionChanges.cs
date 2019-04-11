@@ -8,33 +8,35 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public static class OnEditSpecificationEvent
+    public static class OnDataDefinitionChanges
     {
-        [FunctionName("on-edit-specification")]
+        [FunctionName("on-data-definition-changes")]
         public static async Task Run([ServiceBusTrigger(
-            ServiceBusConstants.TopicNames.EditSpecification,
-            ServiceBusConstants.TopicSubscribers.UpdateCalculationsForEditSpecification,
+            ServiceBusConstants.TopicNames.DataDefinitionChanges,
+            ServiceBusConstants.TopicSubscribers.UpdateCalculationFieldDefinitionProperties,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
             using (var scope = IocConfig.Build(config).CreateScope())
             {
-                var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                var calculationService = scope.ServiceProvider.GetService<ICalculationService>();
-                var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
+                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
+                IDatasetDefinitionFieldChangesProcessor datasetDefinitionFieldChangesProcessor = scope.ServiceProvider.GetService<IDatasetDefinitionFieldChangesProcessor>();
+
+                ILogger logger = scope.ServiceProvider.GetService<ILogger>();
+                correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
 
                 try
                 {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await calculationService.UpdateCalculationsForSpecification(message);
+                    await datasetDefinitionFieldChangesProcessor.ProcessChanges(message);
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditSpecification}");
+                    logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.DataDefinitionChanges}");
                     throw;
                 }
             }

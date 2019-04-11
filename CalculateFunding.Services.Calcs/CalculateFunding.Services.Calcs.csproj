@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common" Version="1.27.0" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.1" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.0" />
     <PackageReference Include="FluentValidation" Version="7.6.104" />

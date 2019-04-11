@@ -21,6 +21,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Task<HttpStatusCode> SaveDataset(Dataset dataset);
 
+        Task SaveDatasets(IEnumerable<Dataset> datasets);
+
         Task<HttpStatusCode> SaveDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship);
 
         Task<DatasetDefinition> GetDatasetDefinition(string definitionId);
@@ -40,5 +42,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<DefinitionSpecificationRelationship> GetDefinitionSpecificationRelationshipById(string relationshipId);
 
         Task<HttpStatusCode> UpdateDefinitionSpecificationRelationship(DefinitionSpecificationRelationship relationship);
+
+        Task<IEnumerable<string>> GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(string datasetDefinitionId);
+
+        Task UpdateDefinitionSpecificationRelationships(IEnumerable<DefinitionSpecificationRelationship> relationships);
     }
 }

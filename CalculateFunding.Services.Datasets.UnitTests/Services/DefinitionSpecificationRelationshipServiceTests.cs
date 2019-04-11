@@ -13,6 +13,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -22,6 +23,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -1637,6 +1639,186 @@ namespace CalculateFunding.Services.Datasets.Services
             await messengerService
                 .DidNotReceive()
                 .SendToQueue(Arg.Any<string>(), Arg.Any<Dataset>(), Arg.Any<IDictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public async Task GetSpecificationIdsForRelationshipDefinitionId_GivenRelationshipsExist_ReturnsListOfSpecificationIds()
+        {
+            //Arrange
+            const string datasetDefinitionId = "defid-1";
+
+            IEnumerable<string> specIds = Enumerable.Empty<string>();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Is(datasetDefinitionId))
+                .Returns(specIds);
+
+            DefinitionSpecificationRelationshipService service = CreateService(datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult actionResult = await service.GetSpecificationIdsForRelationshipDefinitionId(datasetDefinitionId);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<OkObjectResult>();
+
+            IEnumerable<string> specificationIds = (actionResult as OkObjectResult).Value as IEnumerable<string>;
+
+            specificationIds
+                .Should()
+                .BeEmpty();
+        }
+
+        [TestMethod]
+        public void UpdateRelationshipDatasetDefinitionName_GivenANullDefinitionRefrenceSupplied_LogsAndThrowsException()
+        {
+            //Arrange
+            Reference reference = null;
+
+            ILogger logger = CreateLogger();
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger);
+
+            //Act
+            Func<Task> test = () => service.UpdateRelationshipDatasetDefinitionName(reference);
+
+            //Assert
+            test
+               .Should()
+               .ThrowExactly<NonRetriableException>();
+
+            logger
+                .Received(1)
+                .Error("Null dataset definition reference supplied");
+        }
+
+        [TestMethod]
+        public async Task UpdateRelationshipDatasetDefinitionName_GivenNoRelationshipsFound_LogsAndDoesNotProcess()
+        {
+            //Arrange
+            const string definitionId = "id-1";
+            const string defintionName = "name-1";
+
+            Reference reference = new Reference(definitionId, defintionName);
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(Enumerable.Empty<DefinitionSpecificationRelationship>());
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            await service.UpdateRelationshipDatasetDefinitionName(reference);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is("No relationships found to update"));
+        }
+
+        [TestMethod]
+        public void UpdateRelationshipDatasetDefinitionName_GivenRelationshipsButExceptionRaisedWhenUpdating_LogsAndThrowsRetriableException()
+        {
+            //Arrange
+            const string definitionId = "id-1";
+            const string defintionName = "name-1";
+
+            Reference reference = new Reference(definitionId, defintionName);
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
+            {
+                new DefinitionSpecificationRelationship(),
+                new DefinitionSpecificationRelationship()
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+
+            datasetRepository
+                .When(x => x.UpdateDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>()))
+                .Do(x => { throw new Exception("Failed to update relationship"); });
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            Func<Task> test = () => service.UpdateRelationshipDatasetDefinitionName(reference);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to update relationships with new definition name: {defintionName}");
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Any<string>());
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Updating 2 relationships with new definition name: {defintionName}"));
+
+            logger
+                .DidNotReceive()
+                .Information($"Updated 2 relationships with new definition name: {defintionName}");
+        }
+
+        [TestMethod]
+        public async Task UpdateRelationshipDatasetDefinitionName_GivenRelationshipsAndUpdated_LogsSuccess()
+        {
+            //Arrange
+            const string definitionId = "id-1";
+            const string defintionName = "name-1";
+
+            Reference reference = new Reference(definitionId, defintionName);
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships = new[]
+            {
+                new DefinitionSpecificationRelationship
+                {
+                    DatasetDefinition = new Reference(definitionId, "old-name"),
+                },
+                new DefinitionSpecificationRelationship
+                {
+                    DatasetDefinition = new Reference(definitionId, "old-name"),
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            await service.UpdateRelationshipDatasetDefinitionName(reference);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information($"Updated 2 relationships with new definition name: {defintionName}");
+
+            await
+                datasetRepository
+                    .Received(1)
+                    .UpdateDefinitionSpecificationRelationships(Arg.Is<IEnumerable<DefinitionSpecificationRelationship>>(
+                            m => m.Count() == 2 &&
+                            m.ElementAt(0).DatasetDefinition.Name == "name-1" && 
+                            m.ElementAt(1).DatasetDefinition.Name == "name-1"));
         }
 
         private static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,

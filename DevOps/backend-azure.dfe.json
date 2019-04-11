@@ -395,6 +395,27 @@
         "description": "Feature toggle to enable new check for duplicate calculation names"
       }
     },
+    "EnableUseFieldDefinitionIdsInSourceDatasets": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable mapping with field definition ids"
+      }
+    },
+    "EnableProcessDatasetDefinitionNameChanges": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable processing of dataset definition changes"
+      }
+    },
+    "EnableProcessDatasetDefinitionFieldChanges": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable processing of dataset definition field changes"
+      }
+    },
     "storageFirewallEnabled": {
       "type": "bool",
       "metadata": {
@@ -911,6 +932,88 @@
           ]
         },
         {
+          "type": "topics",
+          "name": "data-definition-changes",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "defaultMessageTimeToLive": "P14D",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "enableBatchedOperations": true,
+            "status": "Active",
+            "supportOrdering": true,
+            "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
+            "enablePartitioning": false,
+            "enableExpress": false,
+            "path": "data-definition-changes"
+          },
+          "resources": [
+            {
+              "apiVersion": "2017-04-01",
+              "name": "data-definition-name-update",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "data-definition-changes"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true
+              },
+              "resources": []
+            },
+            {
+              "apiVersion": "2017-04-01",
+              "name": "calculation-field-definition-properties-update",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "data-definition-changes"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true
+              },
+              "resources": []
+            },
+            {
+              "apiVersion": "2017-04-01",
+              "name": "scenario-field-definition-properties-update",
+              "type": "Subscriptions",
+              "dependsOn": [
+                "data-definition-changes"
+              ],
+              "properties": {
+                "lockDuration": "PT5M",
+                "requiresSession": false,
+                "defaultMessageTimeToLive": "P14D",
+                "deadLetteringOnMessageExpiration": false,
+                "deadLetteringOnFilterEvaluationExceptions": true,
+                "maxDeliveryCount": 10,
+                "status": "Active",
+                "enableBatchedOperations": true
+              },
+              "resources": []
+            }
+
+          ],
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
+        },
+        {
           "type": "queues",
           "name": "calc-events-instruct-generate-allocations",
           "apiVersion": "2017-04-01",
@@ -1400,6 +1503,14 @@
             {
               "name": "features:aggregateSupportInCalculationsEnabled",
               "value": "[parameters('EnableDatasetAggregations')]"
+            },
+            {
+              "name": "features:useFieldDefinitionIdsInSourceDatasetsEnabled",
+              "value": "[parameters('EnableUseFieldDefinitionIdsInSourceDatasets')]"
+            },
+            {
+              "name": "features:processDatasetDefinitionNameChangesEnabled",
+              "value": "[parameters('EnableProcessDatasetDefinitionNameChanges')]"
             }
           ]
         }
@@ -1567,6 +1678,10 @@
             {
               "name": "features:dynamicBuildProjectEnabled",
               "value": "[parameters('EnableDynamicBuildProject')]"
+            },
+            {
+              "name": "features:processDatasetDefinitionFieldChangesEnabled",
+              "value": "[parameters('EnableProcessDatasetDefinitionFieldChanges')]"
             }
           ]
         }
@@ -1722,6 +1837,10 @@
             {
               "name": "features:duplicateCalculationNameCheckEnabled",
               "value": "[parameters('EnableDuplicateCalculationNameCheck')]"
+            },
+            {
+              "name": "features:useFieldDefinitionIdsInSourceDatasetsEnabled",
+              "value": "[parameters('EnableUseFieldDefinitionIdsInSourceDatasets')]"
             }
           ]
         }
@@ -2304,6 +2423,10 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "features:processDatasetDefinitionFieldChangesEnabled",
+              "value": "[parameters('EnableProcessDatasetDefinitionFieldChanges')]"
             }
           ]
         }

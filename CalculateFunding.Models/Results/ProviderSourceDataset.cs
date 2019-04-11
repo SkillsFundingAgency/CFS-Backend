@@ -21,6 +21,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
+        [JsonProperty("dataDefinitionId")]
+        public string DataDefinitionId { get; set; }
+
         [JsonProperty("dataDefinition")]
         public Reference DataDefinition { get; set; }
 

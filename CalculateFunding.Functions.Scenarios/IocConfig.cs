@@ -62,6 +62,9 @@ namespace CalculateFunding.Functions.Scenarios
             builder
                 .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 
+            builder
+               .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
+
             builder.AddSingleton<IVersionRepository<TestScenarioVersion>, VersionRepository<TestScenarioVersion>>((ctx) =>
             {
                 CosmosDbSettings scenariosVersioningDbSettings = new CosmosDbSettings();

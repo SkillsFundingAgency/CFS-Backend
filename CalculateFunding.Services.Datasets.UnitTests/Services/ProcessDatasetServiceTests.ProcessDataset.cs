@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -2859,6 +2860,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
+            calcsRepository
+                .CompileAndSaveAssembly(Arg.Is(SpecificationId))
+                .Returns(HttpStatusCode.NoContent);
+
             IEnumerable<ProviderSummary> summaries = new[]
             {
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
@@ -3054,6 +3059,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetCurrentCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
 
+            calcsRepository
+                .CompileAndSaveAssembly(Arg.Is(SpecificationId))
+                .Returns(HttpStatusCode.NoContent);
+
             IEnumerable<ProviderSummary> summaries = new[]
             {
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
@@ -3236,6 +3245,10 @@ namespace CalculateFunding.Services.Datasets.Services
             calcsRepository
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
+
+            calcsRepository
+                .CompileAndSaveAssembly(Arg.Is(SpecificationId))
+                .Returns(HttpStatusCode.NoContent);
 
             IEnumerable<ProviderSummary> summaries = new[]
             {
@@ -3429,6 +3442,10 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
+            calcsRepository
+                .CompileAndSaveAssembly(Arg.Is(SpecificationId))
+                .Returns(HttpStatusCode.NoContent);
+
             IEnumerable<ProviderSummary> summaries = new[]
             {
                 new ProviderSummary { Id = "123",  UPIN = "123456" },
@@ -3501,6 +3518,186 @@ namespace CalculateFunding.Services.Datasets.Services
                  jobsApiClient
                      .Received(1)
                      .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == true && l.ItemsProcessed == 100 && l.Outcome == "Processed Dataset"));
+        }
+
+
+        [TestMethod]
+        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsUseFieldDefinitionIdsInSourceDatasetsEnabled_SavesDatasetUsingIds()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+
+            string dataset_cache_key = $"ds-table-rows:{blobPath}:{DataDefintionId}";
+
+            string dataset_aggregations_cache_key = $"{CacheKeys.DatasetAggregationsForSpecification}{SpecificationId}";
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult
+                {
+                    Rows = new List<RowLoadResult>
+                    {
+                        new RowLoadResult { Identifier = "123456", IdentifierFieldType = IdentifierFieldType.UPIN, Fields = new Dictionary<string, object>{ { "UPIN", "123456" } } }
+                    }
+                }
+            };
+
+            DatasetVersion datasetVersion = new DatasetVersion { BlobName = blobPath, Version = 1, };
+
+            Dataset dataset = new Dataset
+            {
+                Definition = new Reference { Id = DataDefintionId },
+                Current = datasetVersion,
+                History = new List<DatasetVersion>()
+                {
+                    datasetVersion,
+                }
+            };
+
+            string json = JsonConvert.SerializeObject(dataset);
+
+            string relationshipId = "relId";
+            string relationshipName = "Relationship Name";
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties.Add("specification-id", SpecificationId);
+            message.UserProperties.Add("relationship-id", relationshipId);
+            message.UserProperties.Add("jobId", "job1");
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                new DatasetDefinition
+                {
+                    Id = DataDefintionId,
+                    TableDefinitions = new List<TableDefinition>
+                    {
+                        new TableDefinition
+                        {
+                            Id = DataDefintionId,
+
+                            FieldDefinitions = new List<FieldDefinition>
+                            {
+                                new FieldDefinition
+                                {
+                                    IdentifierFieldType = IdentifierFieldType.UPIN,
+                                    Name = "UPIN",
+                                    Id = "12345"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            ILogger logger = CreateLogger();
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<TableLoadResult[]>(Arg.Is(dataset_cache_key))
+                .Returns(tableLoadResults.ToArraySafe());
+
+            BuildProject buildProject = new BuildProject
+            {
+                Id = BuildProjectId,
+                DatasetRelationships = new List<DatasetRelationshipSummary>
+                {
+                    new DatasetRelationshipSummary{
+                        DatasetDefinition = new DatasetDefinition { Id = DataDefintionId },
+                        Relationship = new Reference(relationshipId, relationshipName),
+                    }
+                },
+                SpecificationId = SpecificationId,
+            };
+
+            ICalcsRepository calcsRepository = CreateCalcsRepository();
+            calcsRepository
+                .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(buildProject);
+
+            IEnumerable<ProviderSummary> summaries = new[]
+            {
+                new ProviderSummary { Id = "123",  UPIN = "123456" },
+            };
+
+            IProviderService providerService = CreateProviderService();
+            providerService
+                .FetchCoreProviderData()
+                .Returns(summaries);
+
+            IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+
+            DefinitionSpecificationRelationship definitionSpecificationRelationship = new DefinitionSpecificationRelationship()
+            {
+                DatasetVersion = new DatasetRelationshipVersion()
+                {
+                    Version = 1,
+                },
+                DatasetDefinition = new Reference(datasetDefinitions.First().Id, "Name"),
+            };
+
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipById(Arg.Is(relationshipId))
+                .Returns(definitionSpecificationRelationship);
+
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobPath)
+                .Returns(Substitute.For<ICloudBlob>());
+
+            Stream mockedExcelStream = Substitute.For<Stream>();
+            mockedExcelStream
+                .Length
+                .Returns(1);
+
+            blobClient
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>())
+                .Returns(mockedExcelStream);
+
+            IExcelDatasetReader excelDatasetReader = CreateExcelDatasetReader();
+            excelDatasetReader
+                .Read(Arg.Any<Stream>(), Arg.Any<DatasetDefinition>())
+                .Returns(tableLoadResults.ToArraySafe());
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+            featureToggle
+                .IsUseFieldDefinitionIdsInSourceDatasetsEnabled()
+                .Returns(true);
+
+            ProcessDatasetService service = CreateProcessDatasetService(
+                datasetRepository: datasetRepository,
+                logger: logger,
+                calcsRepository: calcsRepository,
+                blobClient: blobClient,
+                cacheProvider: cacheProvider,
+                providerService: providerService,
+                providerResultsRepository: providerResultsRepository,
+                excelDatasetReader: excelDatasetReader,
+                featureToggle: featureToggle);
+
+            // Act
+            await service.ProcessDataset(message);
+
+            // Assert
+            await
+                providerResultsRepository
+                    .Received(1)
+                    .UpdateCurrentProviderSourceDatasets(Arg.Is<IEnumerable<ProviderSourceDataset>>(
+                        m => m.First().DataDefinitionId == DataDefintionId &&
+                             m.First().DataGranularity == DataGranularity.SingleRowPerProvider &&
+                             m.First().DefinesScope == false &&
+                             !string.IsNullOrWhiteSpace(m.First().Id) &&
+                             m.First().SpecificationId == SpecificationId &&
+                             m.First().ProviderId == "123" &&
+                             m.First().DataDefinition == null &&
+                             m.First().DataDefinitionId == DataDefintionId &&
+                             m.First().Current.Rows.First().ContainsKey("12345")
+                        ));
         }
     }
 }

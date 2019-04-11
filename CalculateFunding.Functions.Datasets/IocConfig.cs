@@ -117,6 +117,12 @@ namespace CalculateFunding.Functions.Datasets
                 .AddSingleton<IValidator<ExcelPackage>, DatasetWorksheetValidator>();
 
             builder
+                .AddSingleton<IDefinitionChangesDetectionService, DefinitionChangesDetectionService>();
+
+            builder
+                .AddSingleton<IDatasetDefinitionNameChangeProcessor, DatasetDefinitionNameChangeProcessor>();
+
+            builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
                     AzureStorageSettings storageSettings = new AzureStorageSettings();

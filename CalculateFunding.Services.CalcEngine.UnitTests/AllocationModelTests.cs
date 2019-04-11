@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Datasets.Schema;
@@ -24,9 +25,11 @@ namespace CalculateFunding.Services.Calculator
             //Arrange
             ILogger logger = CreateLogger();
 
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-assembly.dll");
 
-            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
 
@@ -47,9 +50,12 @@ namespace CalculateFunding.Services.Calculator
         {
             //Arrange
             ILogger logger = CreateLogger();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-with-aggregates.dll");
 
-            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
@@ -94,9 +100,11 @@ namespace CalculateFunding.Services.Calculator
             //Arrange
             ILogger logger = CreateLogger();
 
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-with-aggregates.dll");
 
-            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
@@ -139,9 +147,11 @@ namespace CalculateFunding.Services.Calculator
             //Arrange
             ILogger logger = CreateLogger();
 
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-with-datasets.dll");
 
-            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
@@ -181,9 +191,11 @@ namespace CalculateFunding.Services.Calculator
             //Arrange
             ILogger logger = CreateLogger();
 
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-with-datasets.dll");
 
-            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
@@ -221,9 +233,11 @@ namespace CalculateFunding.Services.Calculator
             //Arrange
             ILogger logger = CreateLogger();
 
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-with-datasets.dll");
 
-            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
@@ -276,9 +290,11 @@ namespace CalculateFunding.Services.Calculator
             //Arrange
             ILogger logger = CreateLogger();
 
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-with-datasets.dll");
 
-            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
 
@@ -361,9 +377,11 @@ namespace CalculateFunding.Services.Calculator
             //Arrange
             ILogger logger = CreateLogger();
 
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-with-datasets.dll");
 
-            AllocationModel allocationModel = new AllocationFactory(logger).CreateAllocationModel(assembly) as AllocationModel;
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
 
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
 
@@ -549,6 +567,11 @@ namespace CalculateFunding.Services.Calculator
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        private static IFeatureToggle CreateFeatureToggle()
+        {
+            return Substitute.For<IFeatureToggle>();
         }
     }
 }

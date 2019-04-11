@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -30,5 +31,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> RegenerateProviderSourceDatasets(HttpRequest httpRequest);
 
         Task<IActionResult> GetValidateDatasetStatus(HttpRequest httpRequest);
+
+        Task UpdateDatasetAndVersionDefinitionName(Reference datsetDefinitionReference);
     }
 }

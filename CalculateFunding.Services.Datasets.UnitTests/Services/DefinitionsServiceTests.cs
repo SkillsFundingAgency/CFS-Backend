@@ -8,8 +8,10 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentAssertions;
@@ -466,11 +468,6 @@ namespace CalculateFunding.Services.Datasets.Services
 
             HttpStatusCode statusCode = HttpStatusCode.Created;
 
-            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
-            datasetsRepository
-                .SaveDefinition(Arg.Any<DatasetDefinition>())
-                .Returns(statusCode);
-
             DatasetDefinitionIndex existingIndex = new DatasetDefinitionIndex()
             {
                 Description = "14/15 description",
@@ -480,6 +477,11 @@ namespace CalculateFunding.Services.Datasets.Services
                 Name = "14/15",
                 ProviderIdentifier = "None",
             };
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
 
             ISearchRepository<DatasetDefinitionIndex> searchRepository = CreateDatasetDefinitionSearchRepository();
             searchRepository
@@ -538,7 +540,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task SaveDefinition_GivenValidYamlAndSearchDoesContainsExistingItemWithNoUpdates_ThenDatasetDefinitionSavedInCosmosAndSearchNotUpdatedAndReturnsOK()
+        public async Task SaveDefinition_GivenValidYamlAndSearchDoesContainsExistingItemWithNoUpdates_ThenDatasetDefinitionSavedInCosmosAndSearchNotUpdatedAndReturnsOK()
         {
             //Arrange
             string yaml = CreateRawDefinition();
@@ -627,6 +629,186 @@ namespace CalculateFunding.Services.Datasets.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+        }
+
+        [TestMethod]
+        async public Task SaveDefinition_GivenValidYamlAndDoesContainsExistingItemWithModelUpdates_ThenAddsMessageToTopicAndReturnsOK()
+        {
+            //Arrange
+            string yaml = CreateRawDefinition();
+            string definitionId = "9183";
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            DatasetDefinition existingDatasetDefinition = new DatasetDefinition
+            {
+                Id = definitionId
+            };
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
+
+            datasetsRepository
+                .GetDatasetDefinition(Arg.Is(definitionId))
+                .Returns(existingDatasetDefinition);
+
+            byte[] excelAsBytes = new byte[100];
+
+            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(blob);
+
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+            
+            datasetDefinitionChanges.DefinitionChanges.Add(DefinitionChangeType.DefinitionName);
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Is(existingDatasetDefinition))
+                .Returns(datasetDefinitionChanges);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger, 
+                datasetsRepository,
+                excelWriter: excelWriter, 
+                blobClient: blobClient, 
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                messengerService: messengerService);
+
+            //Act
+            IActionResult result = await service.SaveDefinition(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendToTopic(
+                        Arg.Is(ServiceBusConstants.TopicNames.DataDefinitionChanges), 
+                        Arg.Is(datasetDefinitionChanges), 
+                        Arg.Any<IDictionary<string, string>>());
+        }
+
+        [TestMethod]
+        public async Task SaveDefinition_GivenValidYamlAndDoesContainsExistingItemWithNoModelUpdates_ThenDoesNotAddMessageToTopicAndReturnsOK()
+        {
+            //Arrange
+            string yaml = CreateRawDefinition();
+            string definitionId = "9183";
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            HttpStatusCode statusCode = HttpStatusCode.Created;
+
+            DatasetDefinition existingDatasetDefinition = new DatasetDefinition
+            {
+                Id = definitionId
+            };
+
+            IDatasetRepository datasetsRepository = CreateDataSetsRepository();
+            datasetsRepository
+                .SaveDefinition(Arg.Any<DatasetDefinition>())
+                .Returns(statusCode);
+
+            datasetsRepository
+                .GetDatasetDefinition(Arg.Is(definitionId))
+                .Returns(existingDatasetDefinition);
+
+            byte[] excelAsBytes = new byte[100];
+
+            IExcelWriter<DatasetDefinition> excelWriter = CreateExcelWriter();
+            excelWriter
+                .Write(Arg.Any<DatasetDefinition>())
+                .Returns(excelAsBytes);
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(blob);
+
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Is(existingDatasetDefinition))
+                .Returns(datasetDefinitionChanges);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            DefinitionsService service = CreateDefinitionsService(
+                logger,
+                datasetsRepository,
+                excelWriter: excelWriter,
+                blobClient: blobClient,
+                definitionChangesDetectionService: definitionChangesDetectionService,
+                messengerService: messengerService);
+
+            //Act
+            IActionResult result = await service.SaveDefinition(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            await
+                messengerService
+                    .DidNotReceive()
+                    .SendToTopic(
+                        Arg.Is(ServiceBusConstants.TopicNames.DataDefinitionChanges),
+                        Arg.Any< DatasetDefinitionChanges>(),
+                        Arg.Any<IDictionary<string, string>>());
         }
 
         [TestMethod]
@@ -876,15 +1058,18 @@ namespace CalculateFunding.Services.Datasets.Services
             ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
             IExcelWriter<DatasetDefinition> excelWriter = null,
-            IBlobClient blobClient = null)
+            IBlobClient blobClient = null,
+            IDefinitionChangesDetectionService definitionChangesDetectionService = null,
+            IMessengerService messengerService = null)
         {
             return new DefinitionsService(logger ?? CreateLogger(),
                 datasetsRepository ?? CreateDataSetsRepository(),
                  datasetDefinitionSearchRepository ?? CreateDatasetDefinitionSearchRepository(),
                  datasetsResiliencePolicies ?? CreateDatasetsResiliencePolicies(),
                  excelWriter ?? CreateExcelWriter(),
-                 blobClient ?? CreateBlobClient()
-                );
+                 blobClient ?? CreateBlobClient(),
+                 definitionChangesDetectionService ?? CreateChangesDetectionService(),
+                 messengerService ?? CreateMessengerService());
         }
 
         static IBlobClient CreateBlobClient()
@@ -917,6 +1102,15 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ISearchRepository<DatasetDefinitionIndex>>();
         }
 
+        private static IDefinitionChangesDetectionService CreateChangesDetectionService()
+        {
+            return Substitute.For<IDefinitionChangesDetectionService>();
+        }
+
+        private static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
+        }
 
         static string CreateRawDefinition()
         {

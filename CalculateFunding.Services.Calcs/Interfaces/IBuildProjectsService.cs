@@ -19,5 +19,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> GetAssemblyBySpecificationId(string specificationId);
 
         Task<BuildProject> GetBuildProjectForSpecificationId(string specificationId);
+
+        Task<IActionResult> CompileAndSaveAssembly(string specificationId);
     }
 }

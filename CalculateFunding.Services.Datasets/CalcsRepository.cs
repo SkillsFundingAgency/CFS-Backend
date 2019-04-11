@@ -5,6 +5,7 @@ using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Datasets.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets
@@ -56,6 +57,16 @@ namespace CalculateFunding.Services.Datasets
             string url = $"{calculationsUrl}{specificationId}";
 
             return await _apiClient.GetAsync<IEnumerable<CalculationCurrentVersion>>(url);
+        }
+
+        public async Task<HttpStatusCode> CompileAndSaveAssembly(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+                throw new ArgumentNullException(nameof(specificationId));
+
+            string url = $"calcs/{specificationId}/compileAndSaveAssembly";
+
+            return await _apiClient.GetAsync(url);
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -15,6 +16,7 @@ using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -24,6 +26,7 @@ using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -466,6 +469,58 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return new OkObjectResult(schemaRelationshipModels);
+        }
+
+        public async Task<IActionResult> GetSpecificationIdsForRelationshipDefinitionId(string datasetDefinitionId)
+        {
+            Guard.IsNullOrWhiteSpace(datasetDefinitionId, nameof(datasetDefinitionId));
+
+            IEnumerable<string> specificationIds = await _datasetRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinitionId);
+
+            return new OkObjectResult(specificationIds);
+        }
+
+        public async Task UpdateRelationshipDatasetDefinitionName(Reference datsetDefinitionReference)
+        {
+            if(datsetDefinitionReference == null)
+            {
+                _logger.Error("Null dataset definition reference supplied");
+                throw new NonRetriableException("A null dataset definition reference was supplied");
+            }
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships =
+              (await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.DatasetDefinition.Id == datsetDefinitionReference.Id)).ToList();
+
+            if (!relationships.IsNullOrEmpty())
+            {
+                int relationshipCount = relationships.Count();
+
+                _logger.Information($"Updating {relationshipCount} relationships with new definition name: {datsetDefinitionReference.Name}");
+
+                try
+                {
+
+                    foreach (DefinitionSpecificationRelationship definitionSpecificationRelationship in relationships)
+                    {
+                        definitionSpecificationRelationship.DatasetDefinition.Name = datsetDefinitionReference.Name; 
+                    }
+
+                    await _datasetRepository.UpdateDefinitionSpecificationRelationships(relationships);
+
+                    _logger.Information($"Updated {relationshipCount} relationships with new definition name: {datsetDefinitionReference.Name}");
+
+                }
+                catch(Exception ex)
+                {
+                    _logger.Error(ex, ex.Message);
+
+                    throw new RetriableException($"Failed to update relationships with new definition name: {datsetDefinitionReference.Name}", ex);
+                }
+            }
+            else
+            {
+                _logger.Information($"No relationships found to update");
+            }
         }
 
         private async Task<DatasetSpecificationRelationshipViewModel> CreateViewModel(DefinitionSpecificationRelationship relationship)

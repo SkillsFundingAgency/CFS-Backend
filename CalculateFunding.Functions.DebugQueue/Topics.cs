@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
@@ -69,6 +70,41 @@ namespace CalculateFunding.Functions.DebugQueue
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error while executing Scenarios OnEditCaluclationEvent");
+            }
+
+            logger.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
+        [FunctionName("on-data-definition-changes")]
+        public static async Task OnDataDefinitionChanges([QueueTrigger(ServiceBusConstants.TopicNames.DataDefinitionChanges, Connection = "AzureConnectionString")] string item, ILogger logger)
+        {
+            Message message = Helpers.ConvertToMessage<DatasetDefinitionChanges>(item);
+
+            try
+            {
+                await Functions.Datasets.ServiceBus.OnDataDefinitionChanges.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while executing Datasets OnDataDefinitionChanges");
+            }
+
+            try
+            {
+                await Functions.Calcs.ServiceBus.OnDataDefinitionChanges.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while executing Scenarios OnDataDefinitionChanges");
+            }
+
+            try
+            {
+                await Functions.Calcs.ServiceBus.OnDataDefinitionChanges.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while executing Calcs OnDataDefinitionChanges");
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");

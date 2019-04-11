@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Common.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Datasets.Interfaces
@@ -19,5 +21,9 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> AssignDatasourceVersionToRelationship(HttpRequest request);
 
         Task<IActionResult> GetCurrentDatasetRelationshipFieldsBySpecificationId(string specificationId);
+
+        Task<IActionResult> GetSpecificationIdsForRelationshipDefinitionId(string datasetDefinitionId);
+
+        Task UpdateRelationshipDatasetDefinitionName(Reference datsetDefinitionReference);
     }
 }

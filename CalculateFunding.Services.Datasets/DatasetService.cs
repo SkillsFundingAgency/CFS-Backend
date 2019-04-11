@@ -18,6 +18,7 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -842,6 +843,61 @@ namespace CalculateFunding.Services.Datasets
             }
 
             return new OkObjectResult(relationships);
+        }
+
+        public async Task UpdateDatasetAndVersionDefinitionName(Reference datsetDefinitionReference)
+        {
+            if (datsetDefinitionReference == null)
+            {
+                _logger.Error("Null dataset definition reference supplied");
+                throw new NonRetriableException("A null dataset definition reference was supplied");
+            }
+
+            IEnumerable<Dataset> datasets = (await _datasetRepository.GetDatasetsByQuery(m => m.Definition.Id == datsetDefinitionReference.Id)).ToList();
+
+            if (datasets.IsNullOrEmpty())
+            {
+                _logger.Information($"No datasets found to update for definition id: {datsetDefinitionReference.Id}");
+
+                return;
+            }
+
+            foreach(Dataset dataset in datasets)
+            {
+                dataset.Definition.Name = datsetDefinitionReference.Name;
+            }
+
+            try
+            {
+                await _datasetRepository.SaveDatasets(datasets);
+            }
+            catch(Exception ex)
+            {
+                _logger.Error(ex, $"Failed to save datasets to cosmos for definition id: {datsetDefinitionReference.Id}");
+
+                throw new RetriableException($"Failed to save datasets to cosmos for definition id: {datsetDefinitionReference.Id}", ex);
+            }
+
+            List<IndexError> indexErrors = new List<IndexError>();
+
+            foreach (Dataset dataset in datasets)
+            {
+                indexErrors.AddRange((await IndexDatasetInSearch(dataset)));
+
+                foreach(DatasetVersion datasetVersion in dataset.History)
+                {
+                    indexErrors.AddRange(await IndexDatasetVersionInSearch(dataset, datasetVersion));
+                }
+            }
+
+            if (indexErrors.Any())
+            {
+                string errors = string.Join(";", indexErrors.Select(m => m.ErrorMessage).ToArraySafe());
+
+                _logger.Error($"Failed to save dataset to search for definition id: {datsetDefinitionReference.Id} in search with errors: {errors}");
+
+                throw new RetriableException($"Failed to save dataset to search for definition id: {datsetDefinitionReference.Id} in search with errors: {errors}");
+            }
         }
 
         private async Task<Dataset> SaveNewDatasetAndVersion(ICloudBlob blob, DatasetDefinition datasetDefinition, int rowCount)

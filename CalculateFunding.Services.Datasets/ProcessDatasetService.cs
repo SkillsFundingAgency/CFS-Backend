@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -217,6 +218,17 @@ namespace CalculateFunding.Services.Datasets
 
                 try
                 {
+                    HttpStatusCode statusCode = await _calcsRepository.CompileAndSaveAssembly(specificationId);
+
+                    if (!statusCode.IsSuccess())
+                    {
+                        string errorMessage = $"Failed to compile and save assembly for specification id '{specificationId}' with status code '{statusCode}'";
+
+                        _logger.Error(errorMessage);
+
+                        throw new NonRetriableException(errorMessage);
+                    }
+
                     Trigger trigger = new Trigger
                     {
                         EntityId = relationshipId,
@@ -457,10 +469,9 @@ namespace CalculateFunding.Services.Datasets
                             DataGranularity = relationshipSummary.DataGranularity,
                             SpecificationId = specificationId,
                             DefinesScope = relationshipSummary.DefinesScope,
-                            DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name),
                             DataRelationship = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name),
                             DatasetRelationshipSummary = new Reference(relationshipSummary.Id, relationshipSummary.Name),
-                            ProviderId = providerId,
+                            ProviderId = providerId
                         };
 
                         sourceDataset.Current = new ProviderSourceDatasetVersion
@@ -480,7 +491,33 @@ namespace CalculateFunding.Services.Datasets
                             resultsByProviderId.TryGetValue(providerId, out sourceDataset);
                         }
                     }
-                    sourceDataset.Current.Rows.Add(row.Fields);
+
+                    if (_featureToggle.IsUseFieldDefinitionIdsInSourceDatasetsEnabled())
+                    {
+                        sourceDataset.DataDefinitionId = relationshipSummary.DatasetDefinition.Id;
+
+                        Dictionary<string, object> rows = new Dictionary<string, object>();
+
+                        foreach (KeyValuePair<string, object> rowField in row.Fields)
+                        {
+                            foreach (TableDefinition tableDefinition in datasetDefinition.TableDefinitions)
+                            {
+                                FieldDefinition fieldDefinition = tableDefinition.FieldDefinitions.FirstOrDefault(m => m.Name == rowField.Key);
+                                if (fieldDefinition != null)
+                                {
+                                    rows.Add(fieldDefinition.Id, rowField.Value);
+                                }
+                            }
+                        }
+
+                        sourceDataset.Current.Rows.Add(rows);
+                    }
+                    else
+                    {
+                        sourceDataset.DataDefinition = new Reference(relationshipSummary.DatasetDefinition.Id, relationshipSummary.DatasetDefinition.Name);
+
+                        sourceDataset.Current.Rows.Add(row.Fields);
+                    }
                 }
             });
 

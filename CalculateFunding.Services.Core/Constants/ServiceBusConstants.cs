@@ -66,6 +66,8 @@
             public const string EditCalculation = "edit-calculation";
 
             public const string JobNotifications = "job-notifications";
+
+            public const string DataDefinitionChanges = "data-definition-changes";
         }
 
         public static class TopicSubscribers
@@ -87,6 +89,12 @@
             public const string JobNotificationsToSignalR = "notifications-to-signalr";
 
             public const string CreateInstructAllocationsJob = "calculation-aggregations-job-completed";
+
+            public const string UpdateDataDefinitionName = "data-definition-name-update";
+
+            public const string UpdateCalculationFieldDefinitionProperties = "calculation-field-definition-properties-update";
+
+            public const string UpdateScenarioFieldDefinitionProperties = "scenario-field-definition-properties-update";
         }
     }
 }

@@ -313,6 +313,27 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(buildProject);
         }
 
+        public async Task<IActionResult> CompileAndSaveAssembly(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
+
+            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+            CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations ?? Enumerable.Empty<Models.Calcs.Calculation>(), compilerOptions);
+
+            if (!_featureToggle.IsDynamicBuildProjectEnabled())
+            {
+                await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.UpdateBuildProject(buildProject));
+            }
+
+            await _sourceCodeService.SaveAssembly(buildProject);
+
+            return new NoContentResult();
+        }
+
         public async Task UpdateBuildProjectRelationships(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
