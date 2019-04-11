@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,5 +44,10 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task CreateAllocationLineResultStatusUpdateJobs(Message message);
 
         Task UpdateAllocationLineResultStatus(Message message);
+
+        Task<IActionResult> GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(
+            string providerId,
+            string specificationId,
+            string fundingStreamId);
     }
 }

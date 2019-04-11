@@ -24,19 +24,13 @@ namespace CalculateFunding.Models.Results
         [JsonIgnore]
         public DateTime StartDate
         {
-            get
-            {
-                return DateTime.Parse($"1 {MonthStart} {YearStart}");
-            }
+            get => DateTime.Parse($"1 {MonthStart} {YearStart}");
         }
 
         [JsonIgnore]
         public DateTime EndDate
         {
-            get
-            {
-                return DateTime.Parse($"1 {MonthEnd} {YearEnd}");
-            }
+            get => DateTime.Parse($"1 {MonthEnd} {YearEnd}");
         }
     }
 }

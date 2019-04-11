@@ -1,15 +1,15 @@
-using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Results.Controllers
 {
     public class ResultsController : Controller
-	{
-		private readonly IResultsService _resultsService;
-		private readonly IResultsSearchService _resultsSearchService;
+    {
+        private readonly IResultsService _resultsService;
+        private readonly IResultsSearchService _resultsSearchService;
         private readonly ICalculationProviderResultsSearchService _calculationProviderResultsSearchService;
         private readonly IPublishedResultsService _publishedResultsService;
         private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
@@ -17,15 +17,15 @@ namespace CalculateFunding.Api.Results.Controllers
         private readonly IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
 
         public ResultsController(
-			 IResultsService resultsService,
+             IResultsService resultsService,
              IResultsSearchService resultsSearchService,
              ICalculationProviderResultsSearchService calculationProviderResultsSearchService,
              IPublishedResultsService publishedResultsService,
              IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
              IFeatureToggle featureToggle,
              IProviderCalculationResultsReIndexerService providerCalculationResultsReIndexerService)
-		{
-			Guard.ArgumentNotNull(resultsSearchService, nameof(resultsSearchService));
+        {
+            Guard.ArgumentNotNull(resultsSearchService, nameof(resultsSearchService));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
             Guard.ArgumentNotNull(calculationProviderResultsSearchService, nameof(calculationProviderResultsSearchService));
             Guard.ArgumentNotNull(publishedResultsService, nameof(publishedResultsService));
@@ -33,7 +33,7 @@ namespace CalculateFunding.Api.Results.Controllers
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providerCalculationResultsReIndexerService, nameof(providerCalculationResultsReIndexerService));
 
-            _resultsSearchService = resultsSearchService; 
+            _resultsSearchService = resultsSearchService;
             _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
             _publishedResultsService = publishedResultsService;
             _resultsService = resultsService;
@@ -42,26 +42,26 @@ namespace CalculateFunding.Api.Results.Controllers
             _providerCalculationResultsReIndexerService = providerCalculationResultsReIndexerService;
         }
 
-		[Route("api/results/providers-search")]
-		[HttpPost]
-		public async Task<IActionResult> RunProvidersSearch()
-		{
+        [Route("api/results/providers-search")]
+        [HttpPost]
+        public async Task<IActionResult> RunProvidersSearch()
+        {
             return await _resultsSearchService.SearchProviders(ControllerContext.HttpContext.Request);
-		}
+        }
 
-		[Route("api/results/get-provider-specs")]
-		[HttpGet]
-		public async Task<IActionResult> RunGetProviderSpecifications()
-		{
-			return await _resultsService.GetProviderSpecifications(ControllerContext.HttpContext.Request);
-		}
+        [Route("api/results/get-provider-specs")]
+        [HttpGet]
+        public async Task<IActionResult> RunGetProviderSpecifications()
+        {
+            return await _resultsService.GetProviderSpecifications(ControllerContext.HttpContext.Request);
+        }
 
-		[Route("api/results/get-provider-results")]
-		[HttpGet]
-		public async Task<IActionResult> RunGetProviderResults()
-		{
-			return await _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
-		}
+        [Route("api/results/get-provider-results")]
+        [HttpGet]
+        public async Task<IActionResult> RunGetProviderResults()
+        {
+            return await _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
+        }
 
         [Route("api/results/get-provider")]
         [HttpGet]
@@ -151,7 +151,7 @@ namespace CalculateFunding.Api.Results.Controllers
         [HttpPost]
         public async Task<IActionResult> RunImportProviders()
         {
-			return await _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
+            return await _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/remove-current-providers")]
@@ -194,6 +194,17 @@ namespace CalculateFunding.Api.Results.Controllers
         public async Task<IActionResult> ReIndexCalulationResults()
         {
             return await _providerCalculationResultsReIndexerService.ReIndex();
+        }
+
+        [Route("/api/results/published-provider-profile/providerId/{providerId}/specificationId/{specificationId}/fundingStreamId/{fundingStreamId}")]
+        [HttpGet]
+        public async Task<IActionResult> GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(
+            [FromRoute] string providerId,
+            [FromRoute] string specificationId,
+            [FromRoute] string fundingStreamId)
+        {
+            return await _publishedResultsService
+                .GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
         }
     }
 }

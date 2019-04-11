@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using CalculateFunding.Common.CosmosDb;
+﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using LinqKit;
 using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Repositories
 {
@@ -162,7 +161,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
                 result.ProfilePeriods = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "profilePeriods") ? ((JArray)existingResult.profilePeriods).ToObject<List<ProfilingPeriod>>() : Enumerable.Empty<ProfilingPeriod>();
                 result.FinancialEnvelopes = DynamicExtensions.PropertyExistsAndIsNotNull(existingResult, "financialEnvelopes") ? ((JArray)existingResult.financialEnvelopes).ToObject<List<FinancialEnvelope>>() : Enumerable.Empty<FinancialEnvelope>();
-                
+
                 results.Add(result);
             }
 
@@ -174,6 +173,25 @@ namespace CalculateFunding.Services.Results.Repositories
             IQueryable<PublishedProviderResult> results = _cosmosRepository.Query<PublishedProviderResult>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId && m.FundingPeriod.Id == fundingPeriod && m.FundingStreamResult.FundingStream.Id == fundingStreamId);
 
             return Task.FromResult(results.AsEnumerable());
+        }
+
+        public Task<IEnumerable<PublishedProviderProfileViewModel>> GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(string providerId, string specificationId, string fundingStreamId)
+        {
+            var query = $@"SELECT	r.content.fundingStreamResult.allocationLineResult.allocationLine.name,
+                                r.content.fundingStreamResult.allocationLineResult.current.profilePeriods,
+	                            r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes
+                        FROM 	Root r
+                        WHERE   r.documentType='PublishedProviderResult'
+                                AND r.content.specificationId = '{specificationId}' 
+	                            AND r.content.providerId = '{providerId}'
+                                AND r.content.fundingStreamResult.fundingStream.id = '{fundingStreamId}'";
+
+            var results = _cosmosRepository
+                .RawQuery<PublishedProviderProfileViewModel>(query, enableCrossPartitionQuery: true)
+                .ToList()
+                .AsEnumerable();
+
+            return Task.FromResult(results);
         }
 
         public Task<IEnumerable<PublishedProviderResultByAllocationLineViewModel>> GetPublishedProviderResultsSummaryByFundingPeriodIdAndSpecificationIdAndFundingStreamId(string fundingPeriodId, string specificationId, string fundingStreamId)

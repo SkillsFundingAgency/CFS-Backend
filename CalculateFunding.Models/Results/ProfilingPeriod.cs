@@ -26,10 +26,7 @@ namespace CalculateFunding.Models.Results
         [JsonIgnore]
         public DateTime PeriodDate
         {
-            get
-            {
-                return DateTime.Parse($"1 {Period} {Year}");
-            }
+            get => DateTime.Parse($"1 {Period} {Year}");
         }
     }
 }

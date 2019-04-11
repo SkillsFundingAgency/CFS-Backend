@@ -1998,6 +1998,23 @@ namespace CalculateFunding.Services.Results
             return new NoContentResult();
         }
 
+        public async Task<IActionResult> GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(
+            string providerId,
+            string specificationId,
+            string fundingStreamId)
+        {
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId), "No Provider ID provided", _logger);
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId), "No Specification ID provided", _logger);
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId), "No Funding Stream ID provided", _logger);
+
+            var result = await _publishedProviderResultsRepository
+                .GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
+
+            if(result.Any()) return new OkObjectResult(result);
+
+            return new NotFoundResult();
+        }
+
         private PublishedProviderResult GetPublishedProviderResultToIndex(PublishedProviderResult publishedProviderResult, PublishedAllocationLineResultVersion version)
         {
             string json = JsonConvert.SerializeObject(publishedProviderResult);

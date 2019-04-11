@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 
 namespace CalculateFunding.Services.Core.Helpers
 {
@@ -57,6 +58,15 @@ namespace CalculateFunding.Services.Core.Helpers
         {
             if (string.IsNullOrWhiteSpace(value))
             {
+                throw new ArgumentNullException(parameterName, message);
+            }
+        }
+
+        public static void IsNullOrWhiteSpace(string value, string parameterName, string message, ILogger logger)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                logger.Error(message);
                 throw new ArgumentNullException(parameterName, message);
             }
         }
