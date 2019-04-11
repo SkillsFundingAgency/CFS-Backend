@@ -9,7 +9,6 @@ using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -69,10 +68,23 @@ namespace CalculateFunding.Services.Results.Services
             history.ElementAt(1).Status = AllocationLineStatus.Approved;
             history.ElementAt(1).Status = AllocationLineStatus.Published;
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository
-                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(history);
+            foreach (var providerVersion in history.GroupBy(c => c.PublishedProviderResultId))
+            {
+                if (providerVersion.Any())
+                {
+                    IEnumerable<PublishedAllocationLineResultVersion> providerHistory = providerVersion.AsEnumerable();
+
+                    string providerId = providerHistory.First().ProviderId;
+
+                    providerId
+                        .Should()
+                        .NotBeNullOrWhiteSpace();
+
+                    repository
+                   .GetAllNonHeldPublishedProviderResultVersions(Arg.Is(providerVersion.Key), Arg.Is(providerId))
+                   .Returns(providerHistory);
+                }
+            }
 
             ILogger logger = CreateLogger();
 
@@ -87,8 +99,11 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is("spec-1"))
                 .Returns(specification);
 
-            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService resultsService = CreateResultsService(
+                logger,
+                publishedProviderResultsRepository: repository,
+                allocationNotificationFeedSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -105,6 +120,11 @@ namespace CalculateFunding.Services.Results.Services
             logger
                 .Received()
                 .Error(Arg.Any<Exception>(), Arg.Is("Failed to index allocation feeds"));
+
+            await
+                repository
+                .Received(3)
+                .GetAllNonHeldPublishedProviderResultVersions(Arg.Any<string>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -146,6 +166,11 @@ namespace CalculateFunding.Services.Results.Services
             logger
                 .Received(1)
                 .Warning(Arg.Is("No published provider results were found to index."));
+
+            await
+                repository
+                .Received(0)
+                .GetAllNonHeldPublishedProviderResultVersions(Arg.Any<string>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -190,17 +215,34 @@ namespace CalculateFunding.Services.Results.Services
             history.ElementAt(1).Status = AllocationLineStatus.Approved;
             history.ElementAt(2).Status = AllocationLineStatus.Published;
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository
-                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(history);
+            foreach (var providerVersion in history.GroupBy(c => c.PublishedProviderResultId))
+            {
+                if (providerVersion.Any())
+                {
+                    IEnumerable<PublishedAllocationLineResultVersion> providerHistory = providerVersion.AsEnumerable();
+
+                    string providerId = providerHistory.First().ProviderId;
+
+                    providerId
+                        .Should()
+                        .NotBeNullOrWhiteSpace();
+
+                    repository
+                   .GetAllNonHeldPublishedProviderResultVersions(Arg.Is(providerVersion.Key), Arg.Is(providerId))
+                   .Returns(providerHistory);
+                }
+            }
+
 
             IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
             await searchRepository
                 .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
 
-            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService resultsService = CreateResultsService(
+                logger,
+                publishedProviderResultsRepository: repository,
+                allocationNotificationFeedSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -213,7 +255,12 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<List<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
+                .Index(Arg.Is<List<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+
+            await
+                repository
+                .Received(3)
+                .GetAllNonHeldPublishedProviderResultVersions(Arg.Any<string>(), Arg.Any<string>());
 
             AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111");
 
@@ -288,10 +335,23 @@ namespace CalculateFunding.Services.Results.Services
             history.ElementAt(1).Status = AllocationLineStatus.Approved;
             history.ElementAt(2).Status = AllocationLineStatus.Published;
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository
-                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(history);
+            foreach (var providerVersion in history.GroupBy(c => c.PublishedProviderResultId))
+            {
+                if (providerVersion.Any())
+                {
+                    IEnumerable<PublishedAllocationLineResultVersion> providerHistory = providerVersion.AsEnumerable();
+
+                    string providerId = providerHistory.First().ProviderId;
+
+                    providerId
+                        .Should()
+                        .NotBeNullOrWhiteSpace();
+
+                    repository
+                   .GetAllNonHeldPublishedProviderResultVersions(Arg.Is(providerVersion.Key), Arg.Is(providerId))
+                   .Returns(providerHistory);
+                }
+            }
 
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
             featureToggle
@@ -302,9 +362,12 @@ namespace CalculateFunding.Services.Results.Services
             await searchRepository
                 .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
 
-            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, 
-                featureToggle: featureToggle, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService resultsService = CreateResultsService(
+                logger,
+                publishedProviderResultsRepository: repository,
+                allocationNotificationFeedSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository,
+                featureToggle: featureToggle);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -317,7 +380,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
 
             AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111");
 
@@ -398,10 +461,23 @@ namespace CalculateFunding.Services.Results.Services
             history.ElementAt(2).Status = AllocationLineStatus.Published;
 
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository
-                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(history);
+            foreach (var providerVersion in history.GroupBy(c => c.PublishedProviderResultId))
+            {
+                if (providerVersion.Any())
+                {
+                    IEnumerable<PublishedAllocationLineResultVersion> providerHistory = providerVersion.AsEnumerable();
+
+                    string providerId = providerHistory.First().ProviderId;
+
+                    providerId
+                        .Should()
+                        .NotBeNullOrWhiteSpace();
+
+                    repository
+                   .GetAllNonHeldPublishedProviderResultVersions(Arg.Is(providerVersion.Key), Arg.Is(providerId))
+                   .Returns(providerHistory);
+                }
+            }
 
             ILogger logger = CreateLogger();
 
@@ -419,8 +495,12 @@ namespace CalculateFunding.Services.Results.Services
                 .IsProviderVariationsEnabled()
                 .Returns(true);
 
-            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, featureToggle: featureToggle, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService resultsService = CreateResultsService(
+                logger,
+                publishedProviderResultsRepository: repository,
+                allocationNotificationFeedSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository,
+                featureToggle: featureToggle);
 
             IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
             await searchRepository
@@ -437,7 +517,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
 
             AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111" && !string.IsNullOrWhiteSpace(m.CloseReason));
 
@@ -516,10 +596,23 @@ namespace CalculateFunding.Services.Results.Services
             history.ElementAt(1).Status = AllocationLineStatus.Approved;
             history.ElementAt(2).Status = AllocationLineStatus.Published;
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository
-                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(history);
+            foreach (var providerVersion in history.GroupBy(c => c.PublishedProviderResultId))
+            {
+                if (providerVersion.Any())
+                {
+                    IEnumerable<PublishedAllocationLineResultVersion> providerHistory = providerVersion.AsEnumerable();
+
+                    string providerId = providerHistory.First().ProviderId;
+
+                    providerId
+                        .Should()
+                        .NotBeNullOrWhiteSpace();
+
+                    repository
+                   .GetAllNonHeldPublishedProviderResultVersions(Arg.Is(providerVersion.Key), Arg.Is(providerId))
+                   .Returns(providerHistory);
+                }
+            }
 
             ILogger logger = CreateLogger();
 
@@ -541,9 +634,12 @@ namespace CalculateFunding.Services.Results.Services
             await searchRepository
                 .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
 
-            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, 
-                featureToggle: featureToggle, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService resultsService = CreateResultsService(
+                logger,
+                publishedProviderResultsRepository: repository,
+                allocationNotificationFeedSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository,
+                featureToggle: featureToggle);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -556,7 +652,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
 
             AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111");
 
@@ -627,10 +723,23 @@ namespace CalculateFunding.Services.Results.Services
             IEnumerable<PublishedAllocationLineResultVersion> history = results.Select(m => m.FundingStreamResult.AllocationLineResult.Current);
             history.ElementAt(0).Status = AllocationLineStatus.Approved;
 
-            IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository
-                .GetVersions(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(history);
+            foreach (var providerVersion in history.GroupBy(c => c.PublishedProviderResultId))
+            {
+                if (providerVersion.Any())
+                {
+                    IEnumerable<PublishedAllocationLineResultVersion> providerHistory = providerVersion.AsEnumerable();
+
+                    string providerId = providerHistory.First().ProviderId;
+
+                    providerId
+                        .Should()
+                        .NotBeNullOrWhiteSpace();
+
+                    repository
+                   .GetAllNonHeldPublishedProviderResultVersions(Arg.Is(providerVersion.Key), Arg.Is(providerId))
+                   .Returns(providerHistory);
+                }
+            }
 
             ISearchRepository<AllocationNotificationFeedIndex> searchRepository = CreateAllocationNotificationFeedSearchRepository();
 
@@ -653,9 +762,12 @@ namespace CalculateFunding.Services.Results.Services
             await searchRepository
                 .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
 
-            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository,
-                allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository, 
-                featureToggle: featureToggle, publishedProviderResultsVersionRepository: versionRepository);
+            PublishedResultsService resultsService = CreateResultsService(
+                logger,
+                publishedProviderResultsRepository: repository,
+                allocationNotificationFeedSearchRepository: searchRepository,
+                specificationsRepository: specificationsRepository,
+                featureToggle: featureToggle);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
@@ -668,7 +780,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                 .Received(1)
-                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 9));
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
 
             AllocationNotificationFeedIndex feedResult = resultsBeingSaved.FirstOrDefault(m => m.ProviderId == "1111");
 

@@ -593,9 +593,10 @@ namespace CalculateFunding.Services.Results.Services
                                 Value = 50,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
-                                PublishedProviderResultId = "res1",
+                                PublishedProviderResultId = "c3BlYy0xMTExMUFBQUFB",
                                 Major = 0,
                                 Minor = 1,
+                                ProviderId = "1111",
                                 Provider = new ProviderSummary
                                 {
                                     URN = "12345",
@@ -655,11 +656,12 @@ namespace CalculateFunding.Services.Results.Services
                             },
                             Current = new PublishedAllocationLineResultVersion
                             {
+                                ProviderId ="1111-1",
                                 Status = AllocationLineStatus.Held,
                                 Value = 100,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
-                                PublishedProviderResultId = "res2",
+                                PublishedProviderResultId = "c3BlYy0xMTExMS0xQUFBQUE=",
                                 Major = 0,
                                 Minor = 1,
                                 Provider = new ProviderSummary
@@ -721,11 +723,12 @@ namespace CalculateFunding.Services.Results.Services
                             },
                             Current = new PublishedAllocationLineResultVersion
                             {
+                                ProviderId = "1111-2",
                                 Status = AllocationLineStatus.Held,
                                 Value = 100,
                                 Version = 1,
                                 Date = DateTimeOffset.Now,
-                                PublishedProviderResultId = "res3",
+                                PublishedProviderResultId = "c3BlYy0xMTExMS0yQUFBQUE=",
                                 Major = 0,
                                 Minor = 1,
                                 Provider = new ProviderSummary

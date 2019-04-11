@@ -1305,7 +1305,7 @@ namespace CalculateFunding.Services.Results
             }
             else
             {
-                IEnumerable<PublishedProviderResult> publishedProviderResultsToIndex = await GetAllPublishedResultVersions(publishedProviderResults);
+                IEnumerable<PublishedProviderResult> publishedProviderResultsToIndex = await GetAllPublishedResultVersionsExcludingHeld(publishedProviderResults);
 
                 IEnumerable<string> specificationIds = publishedProviderResults.DistinctBy(m => m.SpecificationId).Select(m => m.SpecificationId);
 
@@ -1332,11 +1332,11 @@ namespace CalculateFunding.Services.Results
             return new NoContentResult();
         }
 
-        private async Task<IEnumerable<PublishedProviderResult>> GetAllPublishedResultVersions(IEnumerable<PublishedProviderResult> publishedProviderResults)
+        private async Task<IEnumerable<PublishedProviderResult>> GetAllPublishedResultVersionsExcludingHeld(IEnumerable<PublishedProviderResult> publishedProviderResults)
         {
             ConcurrentBag<PublishedProviderResult> updatedResultsToIndex = new ConcurrentBag<PublishedProviderResult>();
             List<Task> allTasks = new List<Task>(publishedProviderResults.Count());
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 5);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 50);
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
                 await throttler.WaitAsync();
@@ -1345,14 +1345,11 @@ namespace CalculateFunding.Services.Results
                     {
                         try
                         {
-                            IEnumerable<PublishedAllocationLineResultVersion> versions = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsVersionRepository.GetVersions(publishedProviderResult.Id, publishedProviderResult.ProviderId));
+                            IEnumerable<PublishedAllocationLineResultVersion> versions = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetAllNonHeldPublishedProviderResultVersions(publishedProviderResult.Id, publishedProviderResult.ProviderId));
 
                             foreach (PublishedAllocationLineResultVersion version in versions)
                             {
-                                if (version.Status != AllocationLineStatus.Held)
-                                {
-                                    updatedResultsToIndex.Add(GetPublishedProviderResultToIndex(publishedProviderResult, version));
-                                }
+                                updatedResultsToIndex.Add(GetPublishedProviderResultToIndex(publishedProviderResult, version));
                             }
                         }
                         finally
@@ -2010,7 +2007,7 @@ namespace CalculateFunding.Services.Results
             var result = await _publishedProviderResultsRepository
                 .GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
 
-            if(result.Any()) return new OkObjectResult(result);
+            if (result.Any()) return new OkObjectResult(result);
 
             return new NotFoundResult();
         }
@@ -2312,8 +2309,6 @@ namespace CalculateFunding.Services.Results
 
                 if (publishedProviderCalculationResult == null)
                 {
-                    _logger.Error($"Failed to find published calculation result for calculation id {calculation.Id}");
-
                     continue;
                 }
 

@@ -35,5 +35,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         PublishedAllocationLineResultVersion GetPublishedProviderResultVersionForFeedIndexId(string feedIndexId);
 
         Task<IEnumerable<Migration.PublishedProviderResult>> GetPublishedProviderResultsForSpecificationIdAndProviderIdMigrationOnly(string specificationId, IEnumerable<string> providerIds);
+
+        Task<IEnumerable<PublishedAllocationLineResultVersion>> GetAllNonHeldPublishedProviderResultVersions(string publishedProviderResultId, string providerId);
     }
 }

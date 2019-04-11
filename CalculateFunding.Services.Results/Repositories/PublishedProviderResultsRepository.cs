@@ -2,6 +2,8 @@
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
@@ -320,6 +322,14 @@ AND r.content.specificationId = '" + specificationId + "'";
                 query: m => m.Content.FundingStreamResult.AllocationLineResult.Current.Status != AllocationLineStatus.Held, enableCrossPartitionQuery: true);
 
             return documentEntities.Select(m => m.Content);
+        }
+
+        public async Task<IEnumerable<PublishedAllocationLineResultVersion>> GetAllNonHeldPublishedProviderResultVersions(string publishedProviderResultId, string providerId)
+        {
+            Guard.IsNullOrWhiteSpace(publishedProviderResultId, nameof(publishedProviderResultId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+
+            return await _cosmosRepository.QueryPartitionedEntity<PublishedAllocationLineResultVersion>($"SELECT * FROM r WHERE r.content.entityId = '{publishedProviderResultId}' AND r.content.providerId = '{providerId}' AND r.content.status != '{nameof(AllocationLineStatus.Held)}' and r.documentType = '{nameof(PublishedAllocationLineResultVersion)}'", partitionEntityId : providerId);
         }
 
     }
