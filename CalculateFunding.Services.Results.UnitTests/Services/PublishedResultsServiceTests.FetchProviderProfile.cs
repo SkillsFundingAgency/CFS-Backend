@@ -180,7 +180,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     AllocationLineResult = new PublishedAllocationLineResult
                     {
-                        AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" },
+                        AllocationLine = new PublishedAllocationLineDefinition { Id = "al-1" },
                         Current = new PublishedAllocationLineResultVersion { Value = 100 }
                     },
                     FundingStreamPeriod = "fundingperiod",
@@ -256,7 +256,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     AllocationLineResult = new PublishedAllocationLineResult
                     {
-                        AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" },
+                        AllocationLine = new PublishedAllocationLineDefinition { Id = "al-1" },
                         Current = new PublishedAllocationLineResultVersion { Value = 100 }
                     },
                     FundingStreamPeriod = "fundingperiod",
@@ -332,7 +332,7 @@ namespace CalculateFunding.Services.Results.Services
                 {
                     AllocationLineResult = new PublishedAllocationLineResult
                     {
-                        AllocationLine = new Models.Specs.AllocationLine { Id = "al-1" },
+                        AllocationLine = new PublishedAllocationLineDefinition { Id = "al-1" },
                         Current = new PublishedAllocationLineResultVersion { Value = 100 }
                     },
                     FundingStreamPeriod = "fundingperiod",
@@ -454,7 +454,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
 
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
-                profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository, 
+                profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository,
                 featureToggle: featureToggler, jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);

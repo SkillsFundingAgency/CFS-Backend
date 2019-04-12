@@ -272,14 +272,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 SpecificationId = "spec-1",
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
-                    FundingStream = new Models.Specs.FundingStream
+                    FundingStream = new PublishedFundingStreamDefinition
                     {
                         Id = "fs-1",
                         Name = "funding stream 1"
                     },
                     AllocationLineResult = new PublishedAllocationLineResult
                     {
-                        AllocationLine = new Models.Specs.AllocationLine
+                        AllocationLine = new PublishedAllocationLineDefinition
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1"

@@ -83,12 +83,17 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<IProviderVariationsStorageRepository>();
         }
 
-        static IProviderVariationsService CreateProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ISpecificationsRepository specificationsRepository, ILogger logger = null)
+        static IProviderVariationsService CreateProviderVariationsService(
+            IProviderVariationAssemblerService providerVariationAssemblerService,
+            ISpecificationsRepository specificationsRepository,
+            ILogger logger = null,
+            IMapper mapper = null)
         {
             return new ProviderVariationsService(
                 providerVariationAssemblerService,
                 specificationsRepository,
-                logger ?? CreateLogger()
+                logger ?? CreateLogger(),
+                mapper ?? CreateRealMapper()
                 );
         }
 
@@ -191,6 +196,12 @@ namespace CalculateFunding.Services.Results.Services
         public static IProviderChangesRepository CreateProviderChangesRepository()
         {
             return Substitute.For<IProviderChangesRepository>();
+        }
+
+        static IMapper CreateRealMapper()
+        {
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<ResultServiceMappingProfile>());
+            return mapperConfiguration.CreateMapper();
         }
 
         static SpecificationCurrentVersion CreateSpecification(string specificationId)
@@ -337,19 +348,19 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new FundingStream
+                        FundingStream = new PublishedFundingStreamDefinition
                         {
                             Id = "fs-1",
                             Name = "funding stream 1"
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new AllocationLine
+                            AllocationLine = new PublishedAllocationLineDefinition
                             {
                                 Id = "AAAAA",
                                 Name = "test allocation line 1",
                                 ShortName = "tal1",
-                                FundingRoute = FundingRoute.LA,
+                                FundingRoute = PublishedFundingRoute.LA,
                                 IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
@@ -390,19 +401,19 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new FundingStream
+                        FundingStream = new PublishedFundingStreamDefinition
                         {
                             Id = "fs-1",
                             Name = "funding stream 1"
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new AllocationLine
+                            AllocationLine = new PublishedAllocationLineDefinition
                             {
                                 Id = "AAAAA",
                                 Name = "test allocation line 1",
                                 ShortName = "tal1",
-                                FundingRoute = FundingRoute.LA,
+                                FundingRoute = PublishedFundingRoute.LA,
                                 IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
@@ -443,19 +454,19 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new FundingStream
+                        FundingStream = new PublishedFundingStreamDefinition
                         {
                             Id = "fs-2",
                             Name = "funding stream 2"
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new AllocationLine
+                            AllocationLine = new PublishedAllocationLineDefinition
                             {
                                 Id = "AAAAA",
                                 Name = "test allocation line 1",
                                 ShortName = "tal1",
-                                FundingRoute = FundingRoute.LA,
+                                FundingRoute = PublishedFundingRoute.LA,
                                 IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
@@ -562,12 +573,12 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "1111",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new FundingStream
+                        FundingStream = new PublishedFundingStreamDefinition
                         {
                             Id = "fs-1",
                             Name = "funding stream 1",
                             ShortName = "fs1",
-                            PeriodType = new PeriodType
+                            PeriodType = new PublishedPeriodType
                             {
                                 Id = "pt1",
                                 Name = "period-type 1",
@@ -579,12 +590,12 @@ namespace CalculateFunding.Services.Results.Services
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new AllocationLine
+                            AllocationLine = new PublishedAllocationLineDefinition
                             {
                                 Id = "AAAAA",
                                 Name = "test allocation line 1",
                                 ShortName = "tal1",
-                                FundingRoute = FundingRoute.LA,
+                                FundingRoute = PublishedFundingRoute.LA,
                                 IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
@@ -629,12 +640,12 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "1111-1",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new FundingStream
+                        FundingStream = new PublishedFundingStreamDefinition
                         {
                             Id = "fs-1",
                             Name = "funding stream 1",
                             ShortName = "fs1",
-                            PeriodType = new PeriodType
+                            PeriodType = new PublishedPeriodType
                             {
                                 Id = "pt1",
                                 Name = "period-type 1",
@@ -646,12 +657,12 @@ namespace CalculateFunding.Services.Results.Services
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = new AllocationLine
+                            AllocationLine = new PublishedAllocationLineDefinition
                             {
                                 Id = "AAAAA",
                                 Name = "test allocation line 1",
                                 ShortName = "tal1",
-                                FundingRoute = FundingRoute.LA,
+                                FundingRoute = PublishedFundingRoute.LA,
                                 IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion
@@ -696,12 +707,12 @@ namespace CalculateFunding.Services.Results.Services
                     ProviderId = "1111-2",
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
-                        FundingStream = new FundingStream
+                        FundingStream = new PublishedFundingStreamDefinition
                         {
                             Id = "fs-1",
                             Name = "funding stream 1",
                             ShortName = "fs1",
-                            PeriodType = new PeriodType
+                            PeriodType = new PublishedPeriodType
                             {
                                 Id = "pt1",
                                 Name = "period-type 1",
@@ -713,12 +724,12 @@ namespace CalculateFunding.Services.Results.Services
                         },
                         AllocationLineResult = new PublishedAllocationLineResult
                         {
-                             AllocationLine = new AllocationLine
+                             AllocationLine = new PublishedAllocationLineDefinition
                             {
                                 Id = "AAAAA",
                                 Name = "test allocation line 1",
                                 ShortName = "tal1",
-                                FundingRoute = FundingRoute.LA,
+                                FundingRoute = PublishedFundingRoute.LA,
                                 IsContractRequired = true
                             },
                             Current = new PublishedAllocationLineResultVersion

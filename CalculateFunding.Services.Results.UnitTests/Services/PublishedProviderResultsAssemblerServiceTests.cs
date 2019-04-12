@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -324,7 +325,7 @@ namespace CalculateFunding.Services.Results.Services
             result.FundingStreamResult.AllocationLineResult.Current.Should().NotBeNull();
             result.FundingStreamResult.AllocationLineResult.Current.Author.Id.Should().Be("authorId");
             result.FundingStreamResult.AllocationLineResult.Current.Author.Name.Should().Be("authorName");
-            result.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.Should().Be(FundingRoute.LA);
+            result.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.Should().Be(PublishedFundingRoute.LA);
             result.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired.Should().BeTrue();
             result.FundingPeriod.Should().BeSameAs(fundingPeriod);
         }
@@ -1909,7 +1910,7 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         AllocationLineResult = new PublishedAllocationLineResult()
                         {
-                            AllocationLine = new AllocationLine()
+                            AllocationLine = new PublishedAllocationLineDefinition()
                             {
                                 Id = "AAAAA",
                                 Name = "Allocation Line 1"
@@ -1938,7 +1939,7 @@ namespace CalculateFunding.Services.Results.Services
                    {
                        AllocationLineResult = new PublishedAllocationLineResult()
                        {
-                           AllocationLine = new AllocationLine()
+                           AllocationLine = new PublishedAllocationLineDefinition()
                            {
                                Id = "AAAAA",
                                Name = "Allocation Line 1"
@@ -1987,7 +1988,7 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
 
-            AllocationLine allocationLine1 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine1 = new PublishedAllocationLineDefinition()
             {
                 Id = "AAAAA",
                 Name = "Allocation Line 1"
@@ -2095,7 +2096,7 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
 
-            AllocationLine allocationLine1 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine1 = new PublishedAllocationLineDefinition()
             {
                 Id = "AAAAA",
                 Name = "Allocation Line 1"
@@ -2230,19 +2231,19 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
 
-            AllocationLine allocationLine1 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine1 = new PublishedAllocationLineDefinition()
             {
                 Id = "AAAAA",
                 Name = "Allocation Line 1"
             };
 
-            AllocationLine allocationLine2 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine2 = new PublishedAllocationLineDefinition()
             {
                 Id = "BBBBB",
                 Name = "Allocation Line 2"
             };
 
-            AllocationLine allocationLine3 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine3 = new PublishedAllocationLineDefinition()
             {
                 Id = "CCCCC",
                 Name = "Allocation Line 3"
@@ -2403,7 +2404,7 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
 
-            AllocationLine allocationLine1 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine1 = new PublishedAllocationLineDefinition()
             {
                 Id = "AAAAA",
                 Name = "Allocation Line 1"
@@ -2530,7 +2531,7 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService(allocationResultsVersionRepository: allocationResultsVersionRepository);
 
-            AllocationLine allocationLine1 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine1 = new PublishedAllocationLineDefinition()
             {
                 Id = "AAAAA",
                 Name = "Allocation Line 1"
@@ -2651,12 +2652,14 @@ namespace CalculateFunding.Services.Results.Services
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
             ISpecificationsRepository specificationsRepository = null,
             ILogger logger = null,
-            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = null)
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = null,
+            IMapper mapper = null)
         {
             return new PublishedProviderResultsAssemblerService(
                 specificationsRepository ?? CreateSpecificationsRepository(),
                 logger ?? CreateLogger(),
-                allocationResultsVersionRepository ?? CreateAllocationResultsVersionRepository());
+                allocationResultsVersionRepository ?? CreateAllocationResultsVersionRepository(),
+                mapper ?? CreateRealMapper());
         }
 
         static IVersionRepository<PublishedAllocationLineResultVersion> CreateAllocationResultsVersionRepository()
@@ -2672,6 +2675,12 @@ namespace CalculateFunding.Services.Results.Services
         static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+
+        static IMapper CreateRealMapper()
+        {
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<ResultServiceMappingProfile>());
+            return mapperConfiguration.CreateMapper();
         }
 
         static IEnumerable<ProviderResult> CreateProviderResults()
@@ -2919,7 +2928,7 @@ namespace CalculateFunding.Services.Results.Services
                     },
                     new AllocationLineResult
                     {
-                        AllocationLine = new Reference
+                        AllocationLine = new PublishedAllocationLineDefinition
                         {
                             Id = "BBBBB",
                             Name = "test allocation line 2"

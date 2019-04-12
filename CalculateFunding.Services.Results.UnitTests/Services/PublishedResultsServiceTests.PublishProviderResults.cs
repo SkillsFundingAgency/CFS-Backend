@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         AllocationLineResult = new PublishedAllocationLineResult()
                         {
-                            AllocationLine = new AllocationLine()
+                            AllocationLine = new PublishedAllocationLineDefinition()
                             {
                                 Id = "AAAAA",
                                 Name = "Allocation line 1",
@@ -275,7 +275,7 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         AllocationLineResult = new PublishedAllocationLineResult()
                         {
-                            AllocationLine = new AllocationLine()
+                            AllocationLine = new PublishedAllocationLineDefinition()
                             {
                                 Id = "AAAAA",
                                 Name = "Allocation line 1",
@@ -454,13 +454,13 @@ namespace CalculateFunding.Services.Results.Services
                                 Major = 1,
                                 Minor = 2
                             },
-                            AllocationLine = new AllocationLine()
+                            AllocationLine = new PublishedAllocationLineDefinition()
                             {
                                 Id = "alId",
                                 Name = "Allocation Line",
                             }
                         },
-                        FundingStream = new FundingStream { Id = "fs1", Name = "fs one", PeriodType = new PeriodType { Id = "pt1", Name = "pt" } }
+                        FundingStream = new PublishedFundingStreamDefinition { Id = "fs1", Name = "fs one", PeriodType = new PublishedPeriodType { Id = "pt1", Name = "pt" } }
                     },
                     FundingPeriod = new Period { Id = "fp1" }
                 }
@@ -543,13 +543,13 @@ namespace CalculateFunding.Services.Results.Services
                                     Major = 1,
                                     Minor = 2
                                 },
-                                AllocationLine = new AllocationLine()
+                                AllocationLine = new PublishedAllocationLineDefinition()
                                 {
                                     Id = "alId",
                                     Name = "Allocation Line",
                                 }
                             },
-                            FundingStream = new FundingStream { Id = "fs1", Name = "fs one", PeriodType = new PeriodType { Id = "pt1", Name = "pt" } }
+                            FundingStream = new PublishedFundingStreamDefinition { Id = "fs1", Name = "fs one", PeriodType = new PublishedPeriodType { Id = "pt1", Name = "pt" } }
                         },
                         FundingPeriod = new Period { Id = "fp1" }
                     });
@@ -627,7 +627,7 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         AllocationLineResult = new PublishedAllocationLineResult()
                         {
-                            AllocationLine = new AllocationLine()
+                            AllocationLine = new PublishedAllocationLineDefinition()
                             {
                                 Id = "AAAAA",
                                 Name = "Allocation line 1",
@@ -747,7 +747,7 @@ namespace CalculateFunding.Services.Results.Services
                     {
                         AllocationLineResult = new PublishedAllocationLineResult()
                         {
-                            AllocationLine = new AllocationLine()
+                            AllocationLine = new PublishedAllocationLineDefinition()
                             {
                                 Id = "AAAAA",
                                 Name = "Allocation line 1",
@@ -856,7 +856,7 @@ namespace CalculateFunding.Services.Results.Services
                 Id = specificationId
             };
 
-            AllocationLine allocationLine1 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine1 = new PublishedAllocationLineDefinition()
             {
                 Id = "AAAAA",
                 Name = "Allocation Line 1",
@@ -974,7 +974,7 @@ namespace CalculateFunding.Services.Results.Services
                 Id = specificationId
             };
 
-            AllocationLine allocationLine1 = new AllocationLine()
+            PublishedAllocationLineDefinition allocationLine1 = new PublishedAllocationLineDefinition()
             {
                 Id = "AAAAA",
                 Name = "Allocation Line 1",
@@ -1014,11 +1014,11 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     },
-                    FundingStream = new FundingStream()
+                    FundingStream = new PublishedFundingStreamDefinition()
                     {
                         Id = "fsId",
                         Name = "Funding Stream Name",
-                        PeriodType = new PeriodType()
+                        PeriodType = new PublishedPeriodType()
                         {
                             Name = "Test Period Type",
                             Id = "tpt",
@@ -1210,13 +1210,13 @@ namespace CalculateFunding.Services.Results.Services
                                 Major = 1,
                                 Minor = 2
                             },
-                            AllocationLine = new AllocationLine()
+                            AllocationLine = new PublishedAllocationLineDefinition()
                             {
                                 Id = "alId",
                                 Name = "Allocation Line",
                             }
                         },
-                        FundingStream = new FundingStream { Id = "fs1", Name = "fs one", PeriodType = new PeriodType { Id = "pt1", Name = "pt" } }
+                        FundingStream = new PublishedFundingStreamDefinition { Id = "fs1", Name = "fs one", PeriodType = new PublishedPeriodType { Id = "pt1", Name = "pt" } }
                     },
                     FundingPeriod = new Period { Id = "fp1" }
                 }
@@ -1306,13 +1306,13 @@ namespace CalculateFunding.Services.Results.Services
                                     Major = 1,
                                     Minor = 2
                                 },
-                                AllocationLine = new AllocationLine()
+                                AllocationLine = new PublishedAllocationLineDefinition()
                                 {
                                     Id = "alId",
                                     Name = "Allocation Line",
                                 }
                             },
-                            FundingStream = new FundingStream { Id = "fs1", Name = "fs one", PeriodType = new PeriodType { Id = "pt1", Name = "pt" } }
+                            FundingStream = new PublishedFundingStreamDefinition { Id = "fs1", Name = "fs one", PeriodType = new PublishedPeriodType { Id = "pt1", Name = "pt" } }
                         },
                         FundingPeriod = new Period { Id = "fp1" }
                     });

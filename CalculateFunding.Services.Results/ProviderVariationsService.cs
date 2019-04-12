@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -20,16 +21,19 @@ namespace CalculateFunding.Services.Results
         private readonly IProviderVariationAssemblerService _providerVariationAssemblerService;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ILogger _logger;
+        private readonly IMapper _mapper;
 
-        public ProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ISpecificationsRepository specificationsRepository, ILogger logger)
+        public ProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ISpecificationsRepository specificationsRepository, ILogger logger, IMapper mapper)
         {
             Guard.ArgumentNotNull(providerVariationAssemblerService, nameof(providerVariationAssemblerService));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _providerVariationAssemblerService = providerVariationAssemblerService;
             _specificationsRepository = specificationsRepository;
             _logger = logger;
+            _mapper = mapper;
         }
 
         public async Task<ProcessProviderVariationsResult> ProcessProviderVariations(
@@ -193,14 +197,15 @@ namespace CalculateFunding.Services.Results
 
             // See if the successor has already had a result generated that needs to be saved
             PublishedProviderResult successorResult = resultsToSave.FirstOrDefault(r => r.ProviderId == providerChange.SuccessorProviderId
-                && (r.FundingStreamResult.AllocationLineResult.AllocationLine.ProviderLookups != null
-                && r.FundingStreamResult.AllocationLineResult.AllocationLine.ProviderLookups.Any(p => p.ProviderType == providerChange.UpdatedProvider.ProviderType && p.ProviderSubType == providerChange.UpdatedProvider.ProviderSubType)));
+                && (allocationLine.ProviderLookups != null
+                && allocationLine.ProviderLookups.Any(p => p.ProviderType == providerChange.UpdatedProvider.ProviderType && p.ProviderSubType == providerChange.UpdatedProvider.ProviderSubType)));
 
             if (successorResult == null)
             {
                 // If no new result for the successor so copy from the generated list as a base
                 successorResult = allPublishedProviderResults.FirstOrDefault(r => r.ProviderId == providerChange.SuccessorProviderId
-                    && r.FundingStreamResult.AllocationLineResult.AllocationLine.ProviderLookups.Any(p => p.ProviderType == providerChange.UpdatedProvider.ProviderType && p.ProviderSubType == providerChange.UpdatedProvider.ProviderSubType));
+                    && (allocationLine.ProviderLookups != null
+                    && allocationLine.ProviderLookups.Any(p => p.ProviderType == providerChange.UpdatedProvider.ProviderType && p.ProviderSubType == providerChange.UpdatedProvider.ProviderSubType)));
 
                 if (successorResult == null)
                 {
@@ -341,9 +346,41 @@ namespace CalculateFunding.Services.Results
             }
 
             // Check for an existing result for the successor
-            PublishedProviderResult successorResult = resultsToSave.FirstOrDefault(r => r.ProviderId == providerChange.SuccessorProviderId
-                && (r.FundingStreamResult.AllocationLineResult.AllocationLine.ProviderLookups != null
-                && r.FundingStreamResult.AllocationLineResult.AllocationLine.ProviderLookups.Any(p => p.ProviderType == providerChange.SuccessorProvider.ProviderType && p.ProviderSubType == providerChange.SuccessorProvider.ProviderSubType)));
+            IEnumerable<PublishedProviderResult> successorResults = resultsToSave.Where(r => r.ProviderId == providerChange.SuccessorProviderId);
+
+            PublishedProviderResult successorResult = null;
+
+            // Find existing result which is in the same funding stream as current allocation line (spec may have multiple) and which matches the provider type and subtype
+            if (successorResults.Any())
+            {
+                foreach (PublishedProviderResult existingResult in successorResults)
+                {
+                    foreach (FundingStream fundingStream in specification.FundingStreams)
+                    {
+                        if (fundingStream.AllocationLines.Any(a => a.Id == allocationLine.Id))
+                        {
+                            foreach (AllocationLine fsAllocationLine in fundingStream.AllocationLines)
+                            {
+                                if (fsAllocationLine.ProviderLookups.AnyWithNullCheck(p => p.ProviderType == providerChange.SuccessorProvider.ProviderType && p.ProviderSubType == providerChange.SuccessorProvider.ProviderSubType))
+                                {
+                                    successorResult = existingResult;
+                                    break;
+                                }
+                            }
+
+                            if (successorResult != null)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (successorResult != null)
+                    {
+                        break;
+                    }
+                }
+            }
 
             if (successorResult == null)
             {
@@ -575,8 +612,10 @@ namespace CalculateFunding.Services.Results
         private PublishedProviderResult CreateSuccessorResult(SpecificationCurrentVersion specification, ProviderChangeItem providerChangeItem, Reference author, Period fundingPeriod)
         {
             FundingStream fundingStream = GetFundingStream(specification, providerChangeItem);
+            PublishedFundingStreamDefinition fundingStreamDefinition = _mapper.Map<PublishedFundingStreamDefinition>(fundingStream);
 
             AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(a => a.ProviderLookups.Any(l => l.ProviderType == providerChangeItem.SuccessorProvider.ProviderType && l.ProviderSubType == providerChangeItem.SuccessorProvider.ProviderSubType));
+            PublishedAllocationLineDefinition publishedAllocationLine = _mapper.Map<PublishedAllocationLineDefinition>(allocationLine);
 
             PublishedProviderResult successorResult = new PublishedProviderResult
             {
@@ -585,7 +624,7 @@ namespace CalculateFunding.Services.Results
                 {
                     AllocationLineResult = new PublishedAllocationLineResult
                     {
-                        AllocationLine = allocationLine,
+                        AllocationLine = publishedAllocationLine,
                         Current = new PublishedAllocationLineResultVersion
                         {
                             Author = author,
@@ -601,7 +640,7 @@ namespace CalculateFunding.Services.Results
                         HasResultBeenVaried = true
                     },
                     DistributionPeriod = $"{fundingStream.PeriodType.Id}{specification.FundingPeriod.Id}",
-                    FundingStream = fundingStream,
+                    FundingStream = fundingStreamDefinition,
                     FundingStreamPeriod = $"{fundingStream.Id}{specification.FundingPeriod.Id}"
                 },
                 ProviderId = providerChangeItem.SuccessorProviderId,

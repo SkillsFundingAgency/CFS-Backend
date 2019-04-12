@@ -92,7 +92,7 @@ namespace CalculateFunding.Api.External
                 xFormatter?.SupportedMediaTypes.Add("application/atom+xml");
                 xFormatter?.SupportedMediaTypes.Add("application/xml");
             }).AddJsonOptions(options => { options.SerializerSettings.Formatting = Formatting.Indented; })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.AddApiVersioning(
                 o =>

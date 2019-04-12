@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Results
 {
@@ -6,9 +8,15 @@ namespace CalculateFunding.Services.Results
     {
         public ResultServiceMappingProfile()
         {
-            CreateMap<Common.ApiClient.Profiling.Models.FinancialEnvelope, Models.Results.FinancialEnvelope>();
-            CreateMap<Common.ApiClient.Profiling.Models.AllocationPeriodValue, Models.Results.AllocationPeriodValue>();
-            CreateMap<Common.ApiClient.Profiling.Models.ProfilingPeriod, Models.Results.ProfilingPeriod>();
+            CreateMap<Common.ApiClient.Profiling.Models.FinancialEnvelope, FinancialEnvelope>();
+            CreateMap<Common.ApiClient.Profiling.Models.AllocationPeriodValue, AllocationPeriodValue>();
+            CreateMap<Common.ApiClient.Profiling.Models.ProfilingPeriod, ProfilingPeriod>();
+
+            CreateMap<AllocationLine, PublishedAllocationLineDefinition>();
+            CreateMap<FundingRoute, PublishedFundingRoute>();
+
+            CreateMap<FundingStream, PublishedFundingStreamDefinition>();
+            CreateMap<PeriodType, PublishedPeriodType>();
         }
     }
 }

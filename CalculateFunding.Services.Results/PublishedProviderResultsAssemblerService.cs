@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -20,19 +21,23 @@ namespace CalculateFunding.Services.Results
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ILogger _logger;
         private readonly IVersionRepository<PublishedAllocationLineResultVersion> _allocationResultsVersionRepository;
+        private readonly IMapper _mapper;
 
         public PublishedProviderResultsAssemblerService(
             ISpecificationsRepository specificationsRepository,
             ILogger logger,
-            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository)
+            IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(allocationResultsVersionRepository, nameof(allocationResultsVersionRepository));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _specificationsRepository = specificationsRepository;
             _logger = logger;
             _allocationResultsVersionRepository = allocationResultsVersionRepository;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<PublishedProviderResult>> AssemblePublishedProviderResults(IEnumerable<ProviderResult> providerResults, Reference author, SpecificationCurrentVersion specificationCurrentVersion)
@@ -235,6 +240,8 @@ namespace CalculateFunding.Services.Results
         {
             IList<PublishedFundingStreamResult> publishedFundingStreamResults = new List<PublishedFundingStreamResult>();
 
+            Dictionary<string, PublishedAllocationLineDefinition> publishedAllocationLines = new Dictionary<string, PublishedAllocationLineDefinition>();
+
             foreach (Reference fundingStreamReference in specificationCurrentVersion.FundingStreams)
             {
                 FundingStream fundingStream = allFundingStreams.FirstOrDefault(m => m.Id == fundingStreamReference.Id);
@@ -243,6 +250,8 @@ namespace CalculateFunding.Services.Results
                 {
                     throw new NonRetriableException($"Failed to find a funding stream for id: {fundingStreamReference.Id}");
                 }
+
+                PublishedFundingStreamDefinition publishedFundingStreamDefinition = _mapper.Map<PublishedFundingStreamDefinition>(fundingStream);
 
                 List<PublishedProviderCalculationResult> publishedProviderCalculationResults = new List<PublishedProviderCalculationResult>(providerResult.CalculationResults.Count());
 
@@ -290,13 +299,22 @@ namespace CalculateFunding.Services.Results
 
                 foreach (IGrouping<string, CalculationResult> allocationLineResultGroup in allocationLineGroups)
                 {
-                    AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == allocationLineResultGroup.Key);
+                    PublishedAllocationLineDefinition publishedAllocationLine;
+                    if (!publishedAllocationLines.TryGetValue(allocationLineResultGroup.Key, out publishedAllocationLine))
+                    {
+                        AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == allocationLineResultGroup.Key);
+                        if (allocationLine != null)
+                        {
+                            publishedAllocationLine = _mapper.Map<PublishedAllocationLineDefinition>(allocationLine);
+                            publishedAllocationLines.Add(allocationLineResultGroup.Key, publishedAllocationLine);
+                        }
+                    }
 
-                    if (allocationLine != null)
+                    if (publishedAllocationLine != null)
                     {
                         PublishedFundingStreamResult publishedFundingStreamResult = new PublishedFundingStreamResult
                         {
-                            FundingStream = fundingStream,
+                            FundingStream = publishedFundingStreamDefinition,
 
                             FundingStreamPeriod = $"{fundingStream.Id}{specificationCurrentVersion.FundingPeriod.Id}",
 
@@ -312,12 +330,12 @@ namespace CalculateFunding.Services.Results
                             Provider = providerResult.Provider,
                             SpecificationId = specificationCurrentVersion.Id,
                             ProviderId = providerResult.Provider.Id,
-                            Calculations = publishedProviderCalculationResults.Where(c => c.AllocationLine == null || string.Equals(c.AllocationLine.Id, allocationLine.Id, StringComparison.InvariantCultureIgnoreCase)),
+                            Calculations = publishedProviderCalculationResults.Where(c => c.AllocationLine == null || string.Equals(c.AllocationLine.Id, publishedAllocationLine.Id, StringComparison.InvariantCultureIgnoreCase)),
                         };
 
                         publishedFundingStreamResult.AllocationLineResult = new PublishedAllocationLineResult
                         {
-                            AllocationLine = allocationLine,
+                            AllocationLine = publishedAllocationLine,
                             Current = publishedAllocationLineResultVersion
                         };
 

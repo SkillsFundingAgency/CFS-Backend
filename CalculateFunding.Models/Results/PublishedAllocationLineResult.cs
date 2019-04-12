@@ -1,12 +1,11 @@
-﻿using CalculateFunding.Models.Specs;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
     public class PublishedAllocationLineResult
     {
         [JsonProperty("allocationLine")]
-        public AllocationLine AllocationLine { get; set; }
+        public PublishedAllocationLineDefinition AllocationLine { get; set; }
 
         [JsonProperty("current")]
         public PublishedAllocationLineResultVersion Current { get; set; }
