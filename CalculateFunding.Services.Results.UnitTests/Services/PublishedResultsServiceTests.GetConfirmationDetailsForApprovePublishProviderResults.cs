@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
+﻿using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
 using FluentAssertions;
@@ -16,85 +10,119 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
     public partial class PublishedResultsServiceTests
     {
         [TestMethod]
-        [DataRow("", "", "", "providerId", "No Provider ID provided")]
-        [DataRow(" ", "", "", "providerId", "No Provider ID provided")]
-        [DataRow("p", "", "", "specificationId", "No Specification ID provided")]
-        [DataRow("p", " ", "", "specificationId", "No Specification ID provided")]
-        [DataRow("p", "s", "", "fundingStreamId", "No Funding Stream ID provided")]
-        [DataRow("p", "s", " ", "fundingStreamId", "No Funding Stream ID provided")]
-        public void GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId_MissingData_LogsAndThrowsException(
-            string providerId,
-            string specificationId,
-            string fundingStreamId,
-            string parameterName,
-            string message)
+        public async Task GetConfirmationDetailsForApprovePublishProviderResults_GivenNoSpecificationIdProvided_ReturnsBadRequest()
         {
             //Arrange
-            ILogger logger = Substitute.For<ILogger>();
-            PublishedResultsService service = CreateResultsService(logger);
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
             //Act
-            Func<Task> action = async () =>
-                await service.GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
+            IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
 
-            //Assert
-            action
-                .Should().Throw<ArgumentNullException>()
-                .WithMessage($"{message}{Environment.NewLine}Parameter name: {parameterName}");
+            //Arrange
+            actionResult
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Null or empty specification Id provided");
 
             logger
                 .Received(1)
-                .Error(message);
+                .Error("No specification Id was provided to GetConfirmationDetailsForApprovePublishProviderResults");
         }
 
         [TestMethod]
-        public async Task GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId_ValidData_ReturnsData()
+        public async Task GetConfirmationDetailsForApprovePublishProviderResults_GivenNoUpdateModelProvided_ReturnsBadRequest()
         {
-            string providerId = "123";
-            string specificationId = "456";
-            string fundingStreamId = "789";
+            //arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
 
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
-            IEnumerable<PublishedProviderProfileViewModel> returnData = new[] { new PublishedProviderProfileViewModel() };
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
 
-            publishedProviderResultsRepository
-                .GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId)
-                .Returns(returnData);
+            ILogger logger = CreateLogger();
 
-            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
-            IActionResult result = await service.GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
+            PublishedResultsService resultsService = CreateResultsService(logger);
 
-            await publishedProviderResultsRepository
+            //Act
+            IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
+
+            //Arrange
+            actionResult
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Null filterCriteria was provided");
+
+            logger
                 .Received(1)
-                .GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
-
-            result.Should().BeOfType<OkObjectResult>();
-            (result as OkObjectResult).Value.Should().Be(returnData);
+                .Error("Null filterCriteria was provided to GetConfirmationDetailsForApprovePublishProviderResults");
         }
 
         [TestMethod]
-        public async Task GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId_RepoReturnsEmpty_ReturnsNotFoundResult()
+        public async Task GetConfirmationDetailsForApprovePublishProviderResults_GivenUpdateModelWithNoProviders_ReturnsBadRequest()
         {
-            string providerId = "123";
-            string specificationId = "456";
-            string fundingStreamId = "789";
+            //arrange
+            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(specificationId) },
+            });
 
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
+            UpdatePublishedAllocationLineResultStatusModel model = new UpdatePublishedAllocationLineResultStatusModel();
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
 
-            PublishedResultsService service = CreateResultsService(publishedProviderResultsRepository: publishedProviderResultsRepository);
-            IActionResult result = await service.GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Query
+                .Returns(queryStringValues);
+            request
+                .Body
+                .Returns(stream);
 
-            await publishedProviderResultsRepository
+            ILogger logger = CreateLogger();
+
+            PublishedResultsService resultsService = CreateResultsService(logger);
+
+            //Act
+            IActionResult actionResult = await resultsService.GetConfirmationDetailsForApprovePublishProviderResults(request);
+
+            //Arrange
+            actionResult
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Null or empty providers was provided");
+
+            logger
                 .Received(1)
-                .GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
-
-            result.Should().BeOfType<NotFoundResult>();
+                .Error("Null or empty providers was provided to GetConfirmationDetailsForApprovePublishProviderResults");
         }
 
         [TestMethod]
