@@ -195,7 +195,7 @@ namespace CalculateFunding.Services.Specs
 
         public Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream)
         {
-            return _repository.CreateAsync<FundingStream>(fundingStream);
+            return _repository.UpsertAsync<FundingStream>(fundingStream);
         }
 
         public Task SavePeriods(IEnumerable<Period> periods)
