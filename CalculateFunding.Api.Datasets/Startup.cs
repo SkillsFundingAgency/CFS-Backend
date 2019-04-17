@@ -200,7 +200,12 @@ namespace CalculateFunding.Api.Datasets
                 .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
 
 
-            MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            MapperConfiguration dataSetsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<DatasetsMappingProfile>();
+                c.AddProfile<ProviderMappingProfile>();
+            });
+
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 

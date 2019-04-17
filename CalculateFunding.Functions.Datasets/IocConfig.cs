@@ -172,7 +172,12 @@ namespace CalculateFunding.Functions.Datasets
 
             builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
 
-            MapperConfiguration dataSetsConfig = new MapperConfiguration(c => c.AddProfile<DatasetsMappingProfile>());
+            MapperConfiguration dataSetsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<DatasetsMappingProfile>();
+                c.AddProfile<ProviderMappingProfile>();
+            });
+
             builder
                 .AddSingleton(dataSetsConfig.CreateMapper());
 

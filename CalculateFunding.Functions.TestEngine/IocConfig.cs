@@ -121,7 +121,12 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSingleton<ITestResultsCountsService, TestResultsCountsService>();
 
-            MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c => c.AddProfile<ResultsMappingProfile>());
+            MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ResultsMappingProfile>();
+                c.AddProfile<ProviderMappingProfile>();
+            });
+
             builder
                 .AddSingleton(resultsMappingConfiguration.CreateMapper());
 

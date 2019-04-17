@@ -148,9 +148,14 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton<ITestResultsCountsService, TestResultsCountsService>()
                 .AddSingleton<IHealthChecker, TestResultsCountsService>();
 
-            MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c => c.AddProfile<ResultsMappingProfile>());
+            MapperConfiguration mapperConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ResultsMappingProfile>();
+                c.AddProfile<ProviderMappingProfile>();
+            });
+
             builder
-                .AddSingleton(resultsMappingConfiguration.CreateMapper());
+                .AddSingleton(mapperConfig.CreateMapper());
 
             builder
                 .AddSingleton<ITestResultsService, TestResultsService>()
