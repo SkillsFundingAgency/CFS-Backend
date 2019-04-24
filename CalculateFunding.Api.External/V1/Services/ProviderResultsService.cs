@@ -349,7 +349,7 @@ namespace CalculateFunding.Api.External.V1.Services
         private ProviderResultSummary CreateProviderResultSummary(IEnumerable<AllocationNotificationFeedIndex> entries, HttpRequest request)
         {
             ///TODO: Require permanent fix
-            
+
             if (entries.First().ProviderUkPrn == "10080459")
             {
                 entries = entries.Where(m => m.ProviderStatus == "Closed");
@@ -479,9 +479,9 @@ namespace CalculateFunding.Api.External.V1.Services
                                     {
                                         Policy = new Policy
                                         {
-                                            PolicyId = publishedPolicySummaryResult.Policy.Id,
-                                            PolicyName = publishedPolicySummaryResult.Policy.Name,
-                                            PolicyDescription = publishedPolicySummaryResult.Policy.Description
+                                            PolicyId = subPolicy.Policy.Id,
+                                            PolicyName = subPolicy.Policy.Name,
+                                            PolicyDescription = subPolicy.Policy.Description
                                         }
                                     };
 
