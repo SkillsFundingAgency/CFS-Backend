@@ -1080,6 +1080,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Filename = "ds.xlsx",
                 Comment = updateComment,
                 Description = updatedDescription,
+                LastUpdatedById = authorId,
+                LastUpdatedByName = authorName
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -1087,8 +1089,6 @@ namespace CalculateFunding.Services.Datasets.Services
             Message message = new Message(byteArray);
             message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
-            message.UserProperties.Add("user-id", authorId);
-            message.UserProperties.Add("user-name", authorName);
 
             ILogger logger = CreateLogger();
 

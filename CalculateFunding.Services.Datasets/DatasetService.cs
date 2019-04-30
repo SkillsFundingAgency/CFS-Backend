@@ -541,7 +541,16 @@ namespace CalculateFunding.Services.Datasets
                         }
                         else
                         {
-                            Reference user = message.GetUserDetails();
+                            Reference user = new Reference();
+
+                            if (!string.IsNullOrWhiteSpace(model.LastUpdatedById) && !string.IsNullOrWhiteSpace(model.LastUpdatedByName))
+                            {
+                                user = new Reference(model.LastUpdatedById, model.LastUpdatedByName);
+                            }
+                            else
+                            {
+                                user = message.GetUserDetails();
+                            }
 
                             dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount);
                         }
