@@ -351,7 +351,17 @@ namespace CalculateFunding.Services.Datasets
                 model.DatasetId = blob.Metadata["datasetId"];
             }
 
-            Reference user = request.GetUser();
+            Reference user = new Reference();
+
+            if (blob.Metadata.ContainsKey("authorId") && blob.Metadata.ContainsKey("authorName"))
+            {
+                user.Id = blob.Metadata["authorId"];
+                user.Name = blob.Metadata["authorName"];
+            }
+            else
+            {
+                user = request.GetUserOrDefault();
+            }
 
             Trigger trigger = new Trigger
             {
