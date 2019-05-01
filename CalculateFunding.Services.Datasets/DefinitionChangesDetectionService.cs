@@ -111,6 +111,7 @@ namespace CalculateFunding.Services.Datasets
                 FieldDefinitionChanges fieldDefinitionChanges = new FieldDefinitionChanges
                 {
                     FieldDefinition = newFieldDefinition,
+                    ExistingFieldDefinition = existingFieldDefinition
                 };
 
                 if (existingFieldDefinition != null)

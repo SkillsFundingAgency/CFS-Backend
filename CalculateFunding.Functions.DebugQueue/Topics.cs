@@ -25,7 +25,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while executing Calcs OnEditSpecificationEvent");
+                logger.LogError(ex, $"Error while executing Calcs {nameof(RunOnEditSpecificationEvent)}");
             }
 
             try
@@ -34,7 +34,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while executing TestEngine OnEditSpecificationEvent");
+                logger.LogError(ex, $"Error while executing TestEngine {nameof(RunOnEditSpecificationEvent)}");
             }
 
             try
@@ -43,7 +43,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while executing Users OnEditSpecificationEvent");
+                logger.LogError(ex, $"Error while executing Users {nameof(RunOnEditSpecificationEvent)}");
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");
@@ -60,7 +60,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while executing Calcs OnEditCalculationSpecificationEvent");
+                logger.LogError(ex, $"Error while executing Calcs {nameof(OnEditCalculation)}");
             }
 
             try
@@ -69,7 +69,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while executing Scenarios OnEditCaluclationEvent");
+                logger.LogError(ex, $"Error while executing Scenarios {nameof(OnEditCalculation)}");
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");
@@ -86,7 +86,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while executing Datasets OnDataDefinitionChanges");
+                logger.LogError(ex, $"Error while executing Datasets {nameof(OnDataDefinitionChanges)}");
             }
 
             try
@@ -95,7 +95,7 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while executing Scenarios OnDataDefinitionChanges");
+                logger.LogError(ex, $"Error while executing Scenarios {nameof(OnDataDefinitionChanges)}");
             }
 
             try
@@ -104,7 +104,16 @@ namespace CalculateFunding.Functions.DebugQueue
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error while executing Calcs OnDataDefinitionChanges");
+                logger.LogError(ex, $"Error while executing Calcs {nameof(OnDataDefinitionChanges)}");
+            }
+
+            try
+            {
+                await Functions.Scenarios.ServiceBus.OnDataDefinitionChanges.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error while executing Scenarios {nameof(OnDataDefinitionChanges)}");
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");

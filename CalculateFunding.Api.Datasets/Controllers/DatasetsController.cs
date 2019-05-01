@@ -240,5 +240,22 @@ namespace CalculateFunding.Api.Datasets.Controllers
 
             return await _definitionSpecificationRelationshipService.GetSpecificationIdsForRelationshipDefinitionId(datasetDefinitionId);
         }
+
+        [Route("api/datasets/{specificationId}/{datasetDefinitionId}/relationships")]
+        [HttpGet]
+        public async Task<IActionResult> GetRelationshipsBySpecificationIdDasetDefinitionId(string specificationId, string datasetDefinitionId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                return new BadRequestObjectResult("Misssing specification id");
+            }
+
+            if (string.IsNullOrWhiteSpace(datasetDefinitionId))
+            {
+                return new BadRequestObjectResult("Misssing dataset definition id");
+            }
+
+            return await _definitionSpecificationRelationshipService.GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(specificationId, datasetDefinitionId);
+        }
     }
 }

@@ -13,6 +13,9 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
+using CalculateFunding.Models.Datasets;
+using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
@@ -43,6 +46,10 @@ namespace CalculateFunding.Services.Calcs
 {
     public class CalculationService : ICalculationService, IHealthChecker
     {
+        public const string reasonForCommenting = "The dataset definition referenced by this calc has been updated and subsequently the code has been commented out";
+        public const string exceptionMessge = "Code commented out for definition field updates";
+        public const string exceptionType = "DatasetReferenceChangeException";
+
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
@@ -1195,6 +1202,51 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Error(ex, $"Failed to perform migration for duplicate calc names. {ex.Message}");
                 return new InternalServerErrorResult(ex.Message);
             }
+        }
+
+        public async Task ResetCalculationForFieldDefinitionChanges(IEnumerable<DatasetSpecificationRelationshipViewModel> relationships, string specificationId, IEnumerable<string> currentFieldDefinitionNames)
+        {
+            Guard.ArgumentNotNull(relationships, nameof(relationships));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(currentFieldDefinitionNames, nameof(currentFieldDefinitionNames));
+
+            IEnumerable<Calculation> calculations = (await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId))).ToList();
+
+            if (calculations.IsNullOrEmpty())
+            {
+                _logger.Information($"No calculations found to reset for specification id '{specificationId}'");
+                return;
+            }
+
+            List<string> fieldIdentifiers = new List<string>();
+
+            foreach (DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel in relationships)
+            {
+                fieldIdentifiers.AddRange(currentFieldDefinitionNames.Select(m => $"Datasets.{VisualBasicTypeGenerator.GenerateIdentifier(datasetSpecificationRelationshipViewModel.Name)}.{VisualBasicTypeGenerator.GenerateIdentifier(m)}"));
+            }
+
+            await _cacheProvider.RemoveAsync<List<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specificationId}");
+
+            IEnumerable<Calculation> calcsToUpdate = calculations.Where(m => SourceCodeHelpers.CodeContainsFullyQualifiedDatasetFieldIdentifier(m.Current?.SourceCode, fieldIdentifiers));
+
+            if (calcsToUpdate.IsNullOrEmpty())
+            {
+                _logger.Information($"No calculations required resetting for specification id '{specificationId}'");
+                return;
+            }
+
+            foreach (Calculation calculation in calcsToUpdate)
+            {
+                string sourceCode = calculation.Current.SourceCode;
+
+                CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+                calculationVersion.SourceCode = SourceCodeHelpers.CommentOutCode(sourceCode, reasonForCommenting, exceptionMessge, exceptionType);
+                calculationVersion.Comment = reasonForCommenting;
+                await UpdateCalculation(calculation, calculationVersion, new Reference("System", "System"));
+            }
+
+            await _sourceCodeService.DeleteAssembly(specificationId);
         }
 
         private async Task<BuildProject> UpdateBuildProject(string specificationId)

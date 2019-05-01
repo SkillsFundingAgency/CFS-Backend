@@ -1148,6 +1148,177 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId_GivenNoRelationshipsFound_ReturnsOkAndEmptyList()
+        {
+            string specificationId = Guid.NewGuid().ToString();
+
+            string datasetDefinitionId = "12345";
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(specificationId, datasetDefinitionId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = result as OkObjectResult;
+
+            List<DatasetSpecificationRelationshipViewModel> content = okResult.Value as List<DatasetSpecificationRelationshipViewModel>;
+
+            content
+                 .Should()
+                 .NotBeNull();
+
+            content
+                .Any()
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public async Task GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId_GivenRelationships_ReturnsOkAndList()
+        {
+            string specificationId = Guid.NewGuid().ToString();
+            string relationshipId = Guid.NewGuid().ToString();
+            string definitionId = Guid.NewGuid().ToString();
+            string datasetId = Guid.NewGuid().ToString();
+            const string relationshipName = "rel name";
+            const string relationshipDescription = "dataset description";
+
+            ILogger logger = CreateLogger();
+
+            Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
+            {
+                Id = definitionId,
+                Name = "def name",
+                Description = "def desc"
+            };
+
+            IList<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
+            relationships.Add(new DefinitionSpecificationRelationship
+            {
+                Specification = new Reference { Id = specificationId },
+                Id = relationshipId,
+                Name = relationshipName,
+                Description = relationshipDescription,
+                DatasetDefinition = new Reference { Id = definitionId },
+                DatasetVersion = new DatasetRelationshipVersion
+                {
+                    Id = datasetId,
+                    Version = 1
+                },
+                IsSetAsProviderData = true
+            });
+
+            Dataset dataset = new Dataset
+            {
+                Id = datasetId,
+                Name = "ds name"
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetRepository();
+            datasetRepository
+                .GetDefinitionSpecificationRelationshipsByQuery(Arg.Any<Expression<Func<DefinitionSpecificationRelationship, bool>>>())
+                .Returns(relationships);
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is(definitionId))
+                .Returns(datasetDefinition);
+            datasetRepository
+                .GetDatasetByDatasetId(Arg.Is(datasetId))
+                .Returns(dataset);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, datasetRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(specificationId, definitionId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+
+            OkObjectResult okResult = result as OkObjectResult;
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> content = okResult.Value as IEnumerable<DatasetSpecificationRelationshipViewModel>;
+
+            content
+                 .Should()
+                 .NotBeNull();
+
+            content
+                .First()
+                .Definition.Name
+                .Should()
+                .Be("def name");
+
+            content
+                .First()
+                .Definition.Id
+                .Should()
+                .Be(definitionId);
+
+            content
+                .First()
+                .Definition.Description
+                .Should()
+                .Be("def desc");
+
+            content
+                .First()
+                .Id
+                .Should()
+                .Be(relationshipId);
+
+            content
+               .First()
+               .Name
+               .Should()
+               .Be(relationshipName);
+
+            content
+                .First()
+                .DatasetId
+                .Should()
+                .Be(datasetId);
+
+            content
+                .First()
+                .DatasetName
+                .Should()
+                .Be("ds name");
+
+            content
+                .First()
+                .Version
+                .Should()
+                .Be(1);
+
+            content
+                .First()
+                .IsProviderData
+                .Should()
+                .BeTrue();
+
+            content
+               .First()
+               .RelationshipDescription
+               .Should()
+               .Be(relationshipDescription);
+        }
+
+        [TestMethod]
         async public Task GetDataSourcesByRelationshipId_GivenNullRelationshipIdProvided_ReturnesBadRequest()
         {
             //Arrange

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using System.Collections.Generic;
 using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets.ViewModels;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
@@ -42,5 +43,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> IsCalcuationNameValid(string specificationId, string calculationName, string existingCalculationId);
 
         Task<IActionResult> DuplicateCalcNamesMigration();
+
+        Task ResetCalculationForFieldDefinitionChanges(IEnumerable<DatasetSpecificationRelationshipViewModel> relationships, string specificationId, IEnumerable<string> currentFieldDefinitionNames);
     }
 }

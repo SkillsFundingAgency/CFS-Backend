@@ -173,5 +173,12 @@ namespace CalculateFunding.Services.Calcs
                 await _sourceFilesRepositoryPolicy.ExecuteAsync(() => _sourceFilesRepository.SaveSourceFiles(compressedFiles, specificationId, sourceType));
             }
         }
+
+        public async Task DeleteAssembly(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            await _sourceFilesRepositoryPolicy.ExecuteAsync(() => _sourceFilesRepository.DeleteAssembly(specificationId));
+        }
     }
 }

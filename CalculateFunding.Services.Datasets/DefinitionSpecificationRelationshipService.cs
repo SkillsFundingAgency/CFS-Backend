@@ -429,6 +429,45 @@ namespace CalculateFunding.Services.Datasets
             return new OkObjectResult(tasks.Select(m => m.Result));
         }
 
+        public async Task<IActionResult> GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(string specificationId, string datasetDefinitionId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(datasetDefinitionId, nameof(datasetDefinitionId));
+
+            IEnumerable<DefinitionSpecificationRelationship> relationships =
+               await _datasetRepository.GetDefinitionSpecificationRelationshipsByQuery(m => m.Specification.Id == specificationId && m.DatasetDefinition.Id == datasetDefinitionId);
+
+            if (relationships.IsNullOrEmpty())
+            {
+                relationships = new DefinitionSpecificationRelationship[0];
+            }
+
+            IList<DatasetSpecificationRelationshipViewModel> relationshipViewModels = new List<DatasetSpecificationRelationshipViewModel>();
+
+            if (relationships.IsNullOrEmpty())
+            {
+                return new OkObjectResult(relationshipViewModels);
+            }
+
+            IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
+
+            foreach (DefinitionSpecificationRelationship relationship in relationships)
+            {
+                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship);
+
+                tasks.Add(task);
+            }
+
+            await Task.WhenAll(tasks);
+
+            foreach (Task<DatasetSpecificationRelationshipViewModel> task in tasks)
+            {
+                relationshipViewModels.Add(task.Result);
+            }
+
+            return new OkObjectResult(tasks.Select(m => m.Result));
+        }
+
         public async Task<IActionResult> GetCurrentDatasetRelationshipFieldsBySpecificationId(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));

@@ -1,15 +1,13 @@
 ﻿using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calcs
+namespace CalculateFunding.Services.Scenarios
 {
     public class DatasetRepository : IDatasetRepository
     {

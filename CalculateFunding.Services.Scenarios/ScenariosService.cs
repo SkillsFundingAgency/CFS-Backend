@@ -9,12 +9,14 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -45,6 +47,7 @@ namespace CalculateFunding.Services.Scenarios
         private readonly ICalcsRepository _calcsRepository;
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly Polly.Policy _calcsRepositoryPolicy;
+        private readonly Polly.Policy _scenariosRepositoryPolicy;
 
         public ScenariosService(
             ILogger logger,
@@ -84,6 +87,7 @@ namespace CalculateFunding.Services.Scenarios
             _calcsRepository = calcsRepository;
             _jobsApiClientPolicy = scenariosResiliencePolicies.JobsApiClient;
             _calcsRepositoryPolicy = scenariosResiliencePolicies.CalcsRepository;
+            _scenariosRepositoryPolicy = scenariosResiliencePolicies.ScenariosRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -428,18 +432,7 @@ namespace CalculateFunding.Services.Scenarios
                 string result = Regex.Replace(testScenario.Current.Gherkin, sourceString, replacementString, RegexOptions.IgnoreCase);
                 if (result != testScenario.Current.Gherkin)
                 {
-                    TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
-                    testScenarioVersion.Gherkin = result;
-
-                    testScenarioVersion = await _versionRepository.CreateVersion(testScenarioVersion, testScenario.Current);
-
-                    testScenario.Current = testScenarioVersion;
-
-                    await _scenariosRepository.SaveTestScenario(testScenario);
-
-                    await _versionRepository.SaveVersion(testScenarioVersion);
-
-                    await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
+                    await SaveVersion(testScenario, result);
 
                     updateCount++;
                 }
@@ -451,6 +444,63 @@ namespace CalculateFunding.Services.Scenarios
             }
 
             return updateCount;
+        }
+
+        public async Task ResetScenarioForFieldDefinitionChanges(IEnumerable<DatasetSpecificationRelationshipViewModel> relationships, string specificationId, IEnumerable<string> currentFieldDefinitionNames)
+        {
+            Guard.ArgumentNotNull(relationships, nameof(relationships));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(currentFieldDefinitionNames, nameof(currentFieldDefinitionNames));
+
+            IEnumerable<TestScenario> scenarios = await _scenariosRepositoryPolicy.ExecuteAsync(() => _scenariosRepository.GetTestScenariosBySpecificationId(specificationId));
+
+            if (scenarios.IsNullOrEmpty())
+            {
+                _logger.Information($"No scenarios found for specification id '{specificationId}'");
+                return;
+            }
+
+            List<string> fieldIdentifiers = new List<string>();
+
+            foreach (DatasetSpecificationRelationshipViewModel datasetSpecificationRelationshipViewModel in relationships)
+            {
+                fieldIdentifiers.AddRange(currentFieldDefinitionNames.Select(m => $"dataset {datasetSpecificationRelationshipViewModel.Name} field {VisualBasicTypeGenerator.GenerateIdentifier(m)}"));
+            }
+
+            IEnumerable<TestScenario> scenariosToUpdate = scenarios.Where(m => SourceCodeHelpers.CodeContainsFullyQualifiedDatasetFieldIdentifier(m.Current.Gherkin.RemoveAllQuotes(), fieldIdentifiers));
+
+            if (scenariosToUpdate.IsNullOrEmpty())
+            {
+                _logger.Information($"No test scenarios required resetting for specification id '{specificationId}'");
+                return;
+            }
+
+            const string reasonForCommenting = "The dataset definition referenced by this scenario/spec has been updated and subsequently the code has been commented out";
+           
+            foreach (TestScenario scenario in scenariosToUpdate)
+            {
+                string gherkin = scenario.Current.Gherkin;
+
+                string updatedGherkin = SourceCodeHelpers.CommentOutCode(gherkin, reasonForCommenting, commentSymbol: "#");
+
+                await SaveVersion(scenario, updatedGherkin);
+            }
+        }
+
+        private async Task SaveVersion(TestScenario testScenario, string gherkin)
+        {
+            TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
+            testScenarioVersion.Gherkin = gherkin;
+
+            testScenarioVersion = await _versionRepository.CreateVersion(testScenarioVersion, testScenario.Current);
+
+            testScenario.Current = testScenarioVersion;
+
+            await _scenariosRepositoryPolicy.ExecuteAsync(() => _scenariosRepository.SaveTestScenario(testScenario));
+
+            await _versionRepository.SaveVersion(testScenarioVersion);
+
+            await _cacheProvider.RemoveAsync<GherkinParseResult>($"{CacheKeys.GherkinParseResult}{testScenario.Id}");
         }
 
         private async Task<Job> SendInstructAllocationsToJobService(string specificationId, Reference user, Trigger trigger, string correlationId, bool generateAggregations = false)

@@ -116,6 +116,25 @@ namespace CalculateFunding.Services.Datasets
 
             DatasetDefinition existingDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(definition.Id));
 
+            DatasetDefinitionChanges datasetDefinitionChanges = _definitionChangesDetectionService.DetectChanges(definition, existingDefinition);
+
+            IEnumerable<string> relationships = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinitionChanges.Id));
+
+            IEnumerable<FieldDefinitionChanges> fieldDefinitionChanges = datasetDefinitionChanges.TableDefinitionChanges.SelectMany(m => m.FieldChanges);
+
+            if (!relationships.IsNullOrEmpty() && !fieldDefinitionChanges.IsNullOrEmpty())
+            {
+                if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.RemovedField)))
+                {
+                    return new BadRequestObjectResult("Unable to remove a field as there are currently relationships setup against this schema");
+                }
+
+                if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.IdentifierType)))
+                {
+                    return new BadRequestObjectResult("Unable to change provider identifier as there are currently relationships setup against this schema");
+                }
+            }
+
             try
             {
                 HttpStatusCode result = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.SaveDefinition(definition));
@@ -157,9 +176,11 @@ namespace CalculateFunding.Services.Datasets
 
             _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
 
-            if (existingDefinition != null)
+            if (existingDefinition != null && datasetDefinitionChanges.HasChanges)
             {
-                await CheckForChanges(definition, existingDefinition, request);
+                IDictionary<string, string> properties = request.BuildMessageProperties();
+
+                await _messengerService.SendToTopic(ServiceBusConstants.TopicNames.DataDefinitionChanges, datasetDefinitionChanges, properties);
             }
 
             return new OkResult();
@@ -316,20 +337,6 @@ namespace CalculateFunding.Services.Datasets
             string blobUrl = _blobClient.GetBlobSasUrl(fileName, DateTimeOffset.UtcNow.AddDays(1), SharedAccessBlobPermissions.Read);
 
             return new OkObjectResult(new DatasetSchemaSasUrlResponseModel { SchemaUrl = blobUrl });
-        }
-
-        private async Task CheckForChanges(DatasetDefinition newDatasetDefinition, DatasetDefinition existingDatasetDefinition, HttpRequest httpRequest)
-        {
-            DatasetDefinitionChanges datasetDefinitionChanges = _definitionChangesDetectionService.DetectChanges(newDatasetDefinition, existingDatasetDefinition);
-
-            if (!datasetDefinitionChanges.HasChanges)
-            {
-                return;
-            }
-
-            IDictionary<string, string> properties = httpRequest.BuildMessageProperties();
-
-            await _messengerService.SendToTopic(ServiceBusConstants.TopicNames.DataDefinitionChanges, datasetDefinitionChanges, properties);
         }
     }
 }

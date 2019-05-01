@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calcs.Services
         const string UserId = "8bcd2782-e8cb-4643-8803-951d715fc202";
         const string CalculationId = "3abc2782-e8cb-4643-8803-951d715fci23";
         const string Username = "test-user";
-
+       
         private static CalculationService CreateCalculationService(
             ICalculationsRepository calculationsRepository = null,
             ILogger logger = null,

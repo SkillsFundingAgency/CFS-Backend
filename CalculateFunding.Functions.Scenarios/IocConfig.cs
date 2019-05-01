@@ -63,7 +63,10 @@ namespace CalculateFunding.Functions.Scenarios
                 .AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 
             builder
-               .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
+                .AddSingleton<IDatasetRepository, DatasetRepository>();
+
+            builder
+                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
             builder.AddSingleton<IVersionRepository<TestScenarioVersion>, VersionRepository<TestScenarioVersion>>((ctx) =>
             {
@@ -80,6 +83,7 @@ namespace CalculateFunding.Functions.Scenarios
 
             builder.AddCalcsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
+            builder.AddDatasetsInterServiceClient(config);
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
@@ -120,7 +124,9 @@ namespace CalculateFunding.Functions.Scenarios
                 return new ScenariosResiliencePolicies()
                 {
                     CalcsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    DatasetRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ScenariosRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

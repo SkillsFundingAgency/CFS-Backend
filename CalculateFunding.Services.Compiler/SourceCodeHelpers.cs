@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.IO;
+using CalculateFunding.Services.Core.Helpers;
 
 namespace CalculateFunding.Services.Compiler
 {
@@ -135,6 +137,71 @@ namespace CalculateFunding.Services.Compiler
             }
 
             return containsAggregate;
+        }
+
+        public static string CommentOutCode(string sourceCode, string reasonForCommenting = "",  string exceptionMessage = "",  string exceptionType = "System.Exception", string commentSymbol = "'")
+        {
+            Guard.IsNullOrWhiteSpace(sourceCode, nameof(sourceCode));
+
+            string commentHeader = $"{commentSymbol}System Commented";
+
+            if (sourceCode.StartsWith(commentHeader))
+            {
+                return sourceCode;
+            }
+
+            StringBuilder stringBuilder = new StringBuilder();
+
+            stringBuilder.AppendLine(commentHeader);
+            stringBuilder.AppendLine();
+
+            if (!string.IsNullOrWhiteSpace(reasonForCommenting))
+            {
+                stringBuilder.AppendLine($"{commentSymbol}{reasonForCommenting}");
+                stringBuilder.AppendLine();
+                stringBuilder.AppendLine();
+            }
+
+            if (!string.IsNullOrWhiteSpace(exceptionMessage))
+            {
+                stringBuilder.AppendLine($"Throw New {exceptionType}(\"{exceptionMessage}\")");
+                stringBuilder.AppendLine();
+                stringBuilder.AppendLine();
+            }
+
+            using (StringReader reader = new StringReader(sourceCode))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (line.StartsWith($"{commentSymbol}"))
+                    {
+                        stringBuilder.AppendLine($"{line}");
+                    }
+                    else
+                    {
+                        stringBuilder.AppendLine($"{commentSymbol}{line}");
+                    }
+                }
+            }
+
+            return stringBuilder.ToString();
+        }
+
+        public static bool CodeContainsFullyQualifiedDatasetFieldIdentifier(string sourceCode, IEnumerable<string> datasetFieldIdentifiers)
+        {
+            //ensure equal spacing of 1
+            sourceCode = Regex.Replace(sourceCode, @"\s+", " ");
+
+            foreach (string datasetFieldIdentifier in datasetFieldIdentifiers)
+            {
+                if (Regex.IsMatch(sourceCode, $"\\b{datasetFieldIdentifier}\\b", RegexOptions.IgnoreCase | RegexOptions.Multiline))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static IEnumerable<string> GetAggregateFunctionParameter(string sourceCode)

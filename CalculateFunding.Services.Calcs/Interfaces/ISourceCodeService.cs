@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles);
 
         Task SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string specificationId, SourceCodeType sourceCodeType);
+
+        Task DeleteAssembly(string specificationId);
     }
 }

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models.Datasets.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Scenarios.Interfaces
@@ -18,5 +20,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Task UpdateScenarioForSpecification(Message message);
 
         Task UpdateScenarioForCalculation(Message message);
+
+        Task ResetScenarioForFieldDefinitionChanges(IEnumerable<DatasetSpecificationRelationshipViewModel> relationships, string specificationId, IEnumerable<string> currentFieldDefinitionNames);
     }
 }

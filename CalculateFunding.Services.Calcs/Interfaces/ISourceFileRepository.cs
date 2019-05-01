@@ -16,5 +16,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<Stream> GetAssembly(string specificationId);
 
         Task<bool> DoesAssemblyExist(string specificationId);
+
+        Task<bool> DeleteAssembly(string specificationId);
     }
 }

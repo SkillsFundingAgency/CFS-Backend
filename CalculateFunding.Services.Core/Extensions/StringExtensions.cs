@@ -34,6 +34,16 @@ namespace System
             return text.Trim().Replace(" ", string.Empty);
         }
 
+        public static string RemoveAllQuotes(this string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return string.Empty;
+            }
+
+            return text.Trim().Replace("'", string.Empty);
+        }
+
         public static Stream ToStream(this string text)
         {
             using (MemoryStream stream = new MemoryStream())

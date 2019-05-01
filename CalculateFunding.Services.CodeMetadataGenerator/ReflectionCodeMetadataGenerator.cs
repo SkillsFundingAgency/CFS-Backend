@@ -177,12 +177,12 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                             if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
                             {
-                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "Field", "Name");
+                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "DatasetRelationship", "Name");
                             }
 
                             if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))
                             {
-                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "DatasetRelationship", "Name");
+                                propertyInformation.FriendlyName = GetAttributeProperty(property.CustomAttributes, "Field", "Name");
                             }
 
                             if (string.IsNullOrWhiteSpace(propertyInformation.FriendlyName))

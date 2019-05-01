@@ -104,12 +104,16 @@ namespace CalculateFunding.Api.Scenarios
             builder
                .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
 
+            builder.AddSingleton<IDatasetRepository, DatasetRepository>();
+
+            builder
+                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
+
             builder.AddUserProviderFromRequest();
 
             builder.AddCalcsInterServiceClient(Configuration);
-            builder.AddCalcsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
-
+            builder.AddDatasetsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
 
             builder.AddCosmosDb(Configuration);
@@ -146,7 +150,8 @@ namespace CalculateFunding.Api.Scenarios
                 return new ScenariosResiliencePolicies()
                 {
                     CalcsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    DatasetRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }
