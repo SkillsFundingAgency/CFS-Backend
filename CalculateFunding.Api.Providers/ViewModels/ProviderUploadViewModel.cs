@@ -9,6 +9,9 @@ namespace CalculateFunding.Api.Providers.ViewModels
         public string Name { get; set; }
 
         [Required]
+        public ProviderVersionType VersionType { get; set; }
+
+        [Required]
         public IEnumerable<ProviderViewModel> Providers { get; set; }
     }
 }

@@ -8,6 +8,8 @@ namespace CalculateFunding.Api.Providers.ViewModels
 
         public string Name { get; set; }
 
+        public ProviderVersionType VersionType { get; set; }
+
         public DateTimeOffset Created { get; set; }
     }
 }
