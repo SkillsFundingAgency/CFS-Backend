@@ -498,7 +498,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Filename = "ds.xlsx",
                 Comment = "Change comment",
                 DefinitionId = DataDefintionId,
-                Description = "My change description",
+                Description = "My change description"
             };
 
             string json = JsonConvert.SerializeObject(model);

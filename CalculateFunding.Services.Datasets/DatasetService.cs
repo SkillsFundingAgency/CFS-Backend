@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Datasets
 
             responseModel.DatasetId = dataset.Id;
             responseModel.BlobUrl = blobUrl;
-            responseModel.Author = request.GetUser();
+            responseModel.Author = request.GetUserOrDefault();
             responseModel.DefinitionId = dataset.Definition.Id;
             responseModel.Name = dataset.Name;
             responseModel.Description = dataset.Description;
@@ -363,6 +363,9 @@ namespace CalculateFunding.Services.Datasets
                 user = request.GetUserOrDefault();
             }
 
+            model.LastUpdatedById = user.Id;
+            model.LastUpdatedByName = user.Name;
+
             Trigger trigger = new Trigger
             {
                 EntityId = model.DatasetId,
@@ -417,6 +420,7 @@ namespace CalculateFunding.Services.Datasets
             await UpdateJobStatus(jobId, null, 0);
 
             GetDatasetBlobModel model = message.GetPayloadAsInstanceOf<GetDatasetBlobModel>();
+
             if (model == null)
             {
                 _logger.Error("Null model was provided to ValidateDataset");
