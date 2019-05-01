@@ -320,6 +320,13 @@ namespace CalculateFunding.Services.Calculator
             object data = Activator.CreateInstance(type);
             foreach (PropertyInfo property in type.GetProperties().Where(x => x.CanWrite).ToArray())
             {
+                // the dataset relationship exists for the current provider so the dataset needs to return true for the HasValue implementation
+                if (property.Name == "HasValue")
+                {
+                    property.SetValue(data, true);
+                    continue;
+                }
+
                 CustomAttributeData fieldAttribute = property.GetCustomAttributesData()
                     .FirstOrDefault(x => x.AttributeType.Name == "FieldAttribute");
 

@@ -15,17 +15,17 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         public IEnumerable<SourceFile> GenerateDatasets(BuildProject buildProject)
         {
 
-	        var wrapperSyntaxTree = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("Datasets")
+            ClassBlockSyntax wrapperSyntaxTree = SyntaxFactory.ClassBlock(SyntaxFactory.ClassStatement("Datasets")
 				.WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword))));
 
 			if (buildProject.DatasetRelationships != null)
 	        {
-                var typesCreated = new HashSet<string>();
-				foreach (var dataset in buildProject.DatasetRelationships)
+                HashSet<string> typesCreated = new HashSet<string>();
+				foreach (DatasetRelationshipSummary dataset in buildProject.DatasetRelationships)
 				{
 				    if (!typesCreated.Contains(dataset.DatasetDefinition.Name))
 				    {
-				        var @class = SyntaxFactory.ClassBlock(
+                        ClassBlockSyntax @class = SyntaxFactory.ClassBlock(
 				            SyntaxFactory.ClassStatement(
 				                    $"{GenerateIdentifier(dataset.DatasetDefinition.Name)}Dataset"
 				                )
@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 				            SyntaxFactory.EndClassStatement()
 				        );
 
-				        var syntaxTree = SyntaxFactory.CompilationUnit()
+                        CompilationUnitSyntax syntaxTree = SyntaxFactory.CompilationUnit()
 				            .WithImports(StandardImports())
 				            .WithMembers(
 				                SyntaxFactory.SingletonList<StatementSyntax>(@class))
@@ -63,18 +63,20 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 CreateStaticDefinitionId(datasetDefinition)
             };
 
-            foreach (var member in datasetDefinition.TableDefinitions.First().FieldDefinitions.Select(GetMember))
+            foreach (StatementSyntax member in datasetDefinition.TableDefinitions.First().FieldDefinitions.Select(GetMember))
             {
                 members.Add(member);
             }
+
+            members.Add(GetHasValue());
 
             return members;
         }
 
         private static StatementSyntax CreateStaticDefinitionName(DatasetDefinition datasetDefinition)
         {
-            var token = SyntaxFactory.Literal(datasetDefinition.Name);
-            var variable = SyntaxFactory.VariableDeclarator(
+            SyntaxToken token = SyntaxFactory.Literal(datasetDefinition.Name);
+            VariableDeclaratorSyntax variable = SyntaxFactory.VariableDeclarator(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier("DatasetDefinitionName")));
             variable = variable.WithAsClause(
                 SyntaxFactory.SimpleAsClause(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))));
@@ -92,8 +94,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private static StatementSyntax CreateStaticDefinitionId(DatasetDefinition datasetDefinition)
         {
-            var token = SyntaxFactory.Literal(datasetDefinition.Id);
-            var variable = SyntaxFactory.VariableDeclarator(
+            SyntaxToken token = SyntaxFactory.Literal(datasetDefinition.Id);
+            VariableDeclaratorSyntax variable = SyntaxFactory.VariableDeclarator(
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier("DatasetDefinitionId")));
             variable = variable.WithAsClause(
                 SyntaxFactory.SimpleAsClause(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))));
@@ -111,20 +113,31 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private static StatementSyntax GetMember(FieldDefinition fieldDefinition)
         {
-            var propertyType = GetType(fieldDefinition.Type);
-            var builder = new StringBuilder();
+            TypeSyntax propertyType = GetType(fieldDefinition.Type);
+            StringBuilder builder = new StringBuilder();
             builder.AppendLine($"<Field(Id := \"{fieldDefinition.Id}\", Name := \"{fieldDefinition.Name}\")>");
             builder.AppendLine($"<IsAggregable(IsAggregable := \"{fieldDefinition.IsAggregable.ToString()}\")>");
             builder.AppendLine($"<Description(Description := \"{fieldDefinition.Description?.Replace("\"", "\"\"")}\")>");
             builder.AppendLine($"Public Property {GenerateIdentifier(fieldDefinition.Name)}() As {GenerateIdentifier($"{propertyType}")}");
-            var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
+            return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
+                .FirstOrDefault();
+        }
+
+        private static StatementSyntax GetHasValue()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine($"<Description(Description := \"Return whether the dataset exists for the current provider.\")>");
+            builder.AppendLine("Public Property HasValue As Boolean");
+
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();
         }
 
         private static StatementSyntax GetDatasetProperties(DatasetRelationshipSummary datasetRelationship)
         {
-            var builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
             builder.AppendLine($"<DatasetRelationship(Id := \"{datasetRelationship.Id}\", Name := \"{datasetRelationship.Name}\")>");
             builder.AppendLine($"<Field(Id := \"{datasetRelationship.DatasetDefinition.Id}\", Name := \"{datasetRelationship.DatasetDefinition.Name}\")>");
             if (!string.IsNullOrWhiteSpace(datasetRelationship?.DatasetDefinition?.Description))
@@ -136,7 +149,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 ? $"Public Property {GenerateIdentifier(datasetRelationship.Name)}() As {GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")}"
                 : $"Public Property {GenerateIdentifier(datasetRelationship.Name)}() As System.Collections.Generic.List(Of {GenerateIdentifier($"{datasetRelationship.DatasetDefinition.Name}Dataset")})");
 
-            var tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
             return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
                 .FirstOrDefault();
         }
