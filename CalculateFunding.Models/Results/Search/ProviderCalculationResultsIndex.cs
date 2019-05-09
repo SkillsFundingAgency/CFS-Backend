@@ -98,5 +98,14 @@ namespace CalculateFunding.Models.Results.Search
 
         [JsonProperty("calculationResult")]
         public string[] CalculationResult { get; set; }
+
+        [JsonProperty("calculationException")]
+        public string[] CalculationException { get; set; }
+
+        [JsonProperty("calculationExceptionType")]
+        public string[] CalculationExceptionType { get; set; }
+
+        [JsonProperty("calculationExceptionMessage")]
+        public string[] CalculationExceptionMessage { get; set; }
     }
 }

@@ -13,6 +13,8 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public int TotalCount { get; set; }
 
+        public int TotalErrorCount { get; set; }
+
         public IEnumerable<CalculationProviderResultSearchResult> Results { get; set; }
 
         public IEnumerable<Facet> Facets { get; set; }

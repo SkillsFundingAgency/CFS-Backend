@@ -9,6 +9,12 @@ namespace CalculateFunding.Repositories.Common.Search.Results
 
         public double? CalculationResult { get; set; }
 
+        public string CalculationException { get; set; }
+
+        public string CalculationExceptionType { get; set; }
+
+        public string CalculationExceptionMessage { get; set; }
+
         public string SpecificationId { get; set; }
 
         public string SpecificationName { get; set; }

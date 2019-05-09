@@ -221,6 +221,45 @@
       "analyzer": null,
       "searchAnalyzer": null,
       "indexAnalyzer": null
+    },
+    {
+      "name": "calculationException",
+      "type": "Collection(Edm.String)",
+      "key": false,
+      "facetable": true,
+      "filterable": true,
+      "retrievable": true,
+      "searchable": true,
+      "sortable": false,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
+    },
+    {
+      "name": "calculationExceptionType",
+      "type": "Collection(Edm.String)",
+      "key": false,
+      "facetable": true,
+      "filterable": true,
+      "retrievable": true,
+      "searchable": true,
+      "sortable": false,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
+    },
+    {
+      "name": "calculationExceptionMessage",
+      "type": "Collection(Edm.String)",
+      "key": false,
+      "facetable": true,
+      "filterable": true,
+      "retrievable": true,
+      "searchable": true,
+      "sortable": false,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
     }
   ],
   "scoringProfiles": [],

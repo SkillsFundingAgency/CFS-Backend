@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
@@ -128,6 +129,7 @@ namespace CalculateFunding.Services.Results.Services
                             m.First().CalculationId.SequenceEqual(new[] { "calc-id-1", "calc-id-2" }) &&
                             m.First().CalculationName.SequenceEqual(new[] { "calc name 1", "calc name 2" }) &&
                             m.First().CalculationResult.SequenceEqual(new[] { "123", "10" }) &&
+                            m.First().CalculationException.SequenceEqual(new[] { "true", "false" }) &&
                             m.First().ProviderId == "prov-id" &&
                             m.First().ProviderName == "prov name" &&
                             m.First().ProviderType == "prov type" &&
@@ -145,12 +147,15 @@ namespace CalculateFunding.Services.Results.Services
             ISpecificationsRepository specificationsRepository = null,
             ICalculationResultsRepository resultsRepository = null)
         {
+            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
+            featureToggle.IsExceptionMessagesEnabled().Returns(true);
             return new ProviderCalculationResultsReIndexerService(
                     logger ?? CreateLogger(),
                     providerCalculationResultsSearchRepository ?? CreateSearchRepository(),
                     specificationsRepository ?? CreateSpecificationsRepository(),
                     resultsRepository ?? CreateCalculationResultsRepository(),
-                    CreateResiliencxePolicies()
+                    CreateResiliencePolicies(),
+                    featureToggle
                 );
         }
 
@@ -173,7 +178,7 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ICalculationResultsRepository>();
         }
 
-        private static IResultsResilliencePolicies CreateResiliencxePolicies()
+        private static IResultsResilliencePolicies CreateResiliencePolicies()
         {
             return ResultsResilienceTestHelper.GenerateTestPolicies();
         }
@@ -193,7 +198,8 @@ namespace CalculateFunding.Services.Results.Services
                             CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            ExceptionType = "Exception"
                         },
                         new CalculationResult
                         {

@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
@@ -26,6 +27,7 @@ namespace CalculateFunding.Services.Results
         private readonly Polly.Policy _resultsRepositoryPolicy;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
         private readonly Polly.Policy _resultsSearchRepositoryPolicy;
+        private readonly IFeatureToggle _featureToggle;
 
         private const int batchSize = 200;
 
@@ -34,7 +36,8 @@ namespace CalculateFunding.Services.Results
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
             ISpecificationsRepository specificationsRepository,
             ICalculationResultsRepository resultsRepository,
-            IResultsResilliencePolicies resiliencePolicies)
+            IResultsResilliencePolicies resiliencePolicies,
+            IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
@@ -49,6 +52,7 @@ namespace CalculateFunding.Services.Results
             _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
             _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
+            _featureToggle = featureToggle;
         }
 
         public async Task<IActionResult> ReIndex()
@@ -76,7 +80,7 @@ namespace CalculateFunding.Services.Results
                 {
                     SpecificationSummary specification = specifications[providerResult.SpecificationId];
 
-                    results.Add(new ProviderCalculationResultsIndex
+                    ProviderCalculationResultsIndex calculationResult = new ProviderCalculationResultsIndex
                     {
                         SpecificationId = providerResult.SpecificationId,
                         SpecificationName = specification?.Name,
@@ -94,8 +98,24 @@ namespace CalculateFunding.Services.Results
                         CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
                         CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
                         CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
-                    });
+                    };
 
+                    if (_featureToggle.IsExceptionMessagesEnabled())
+                    {
+                        calculationResult.CalculationException = providerResult.CalculationResults
+                            .Select(m => !string.IsNullOrWhiteSpace(m.ExceptionType) ? "true" : "false")
+                            .ToArraySafe();
+
+                        calculationResult.CalculationExceptionType = providerResult.CalculationResults
+                            .Select(m => m.ExceptionType ?? string.Empty)
+                            .ToArraySafe();
+
+                        calculationResult.CalculationExceptionMessage = providerResult.CalculationResults
+                            .Select(m => m.ExceptionMessage ?? string.Empty)
+                            .ToArraySafe();
+                    }
+
+                    results.Add(calculationResult);
                 }
             }
 

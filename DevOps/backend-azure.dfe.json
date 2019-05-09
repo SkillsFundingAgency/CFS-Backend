@@ -416,6 +416,13 @@
         "description": "Feature toggle to enable processing of dataset definition field changes"
       }
     },
+    "EnableExceptionMessages": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable exception messages to be surfaced up to the user"
+      }
+    },
     "storageFirewallEnabled": {
       "type": "bool",
       "metadata": {
@@ -3451,6 +3458,10 @@
             {
               "name": "features:newProviderCalculationResultsIndexEnabled",
               "value": "[parameters('EnableNewProviderCalculationResultsIndex')]"
+            },
+            {
+              "name": "features:exceptionMessagesEnabled",
+              "value": "[parameters('EnableExceptionMessages')]"
             },
             {
               "name": "jobsClient:ApiKey",
