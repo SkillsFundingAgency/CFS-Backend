@@ -1,12 +1,29 @@
 ﻿Imports System.Collections.Generic
 
-Public Class BaseCalculation
+Public Class LegacyBaseCalculation
 
     Public Property Aggregations As Dictionary(Of String, Decimal)
 
     Public Property CalcResultsCache As Dictionary(Of String, System.Nullable(Of Decimal))
 
+#Region "Legacy Store Support"
+
     Public Property rid As String
+    Public Property currentscenario As Scenario
+
+    Public Sub Print(Of T)(value As T, name As String, rid As String)
+
+    End Sub
+
+    Public Function LAToProv(Of T)(value As T) As T
+        Return value
+    End Function
+
+    Public Function IIf(Of T)(value As T, one As Boolean, two As Boolean) As T
+        Return value
+    End Function
+
+#End Region
 
     Public Function Exclude() As System.Nullable(Of Decimal)
         Return Nothing

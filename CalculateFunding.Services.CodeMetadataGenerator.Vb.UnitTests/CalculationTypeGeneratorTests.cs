@@ -329,7 +329,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestMethod]
         public void GenerateCalcs_GivenCalculationsAndCompilerOptionsStrictOn_ThenOptionStrictGenerated()
         {
-            // Assert
+            // Arrange
             BuildProject buildProject = new BuildProject();
 
             List<Calculation> calculations = new List<Calculation>();
@@ -353,7 +353,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         [TestMethod]
         public void GenerateCalcs_GivenCalculationsAndCompilerOptionsOff_ThenOptionsGenerated()
         {
-            // Assert
+            // Arrange
             BuildProject buildProject = new BuildProject();
 
             List<Calculation> calculations = new List<Calculation>();
@@ -371,6 +371,28 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             // Assert
             results.Should().HaveCount(1);
             results.First().SourceCode.Should().StartWith("Option Strict Off");
+        }
+
+        [TestMethod]
+        [DataRow(false, "Inherits BaseCalculation")]
+        [DataRow(true, "Inherits LegacyBaseCalculation")]
+        public void GenerateCalcs_GivenCalculationsAndCompilerOptionsUseLegacyCodeIsSet_TheEnsuresCorrectInheritanceStatement(bool useLegacyCode, string expectedInheritsStatement)
+        {
+            // Arrange
+            CompilerOptions compilerOptions = new CompilerOptions
+            {
+                UseLegacyCode = useLegacyCode,
+            };
+         
+            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, true);
+
+            // Act
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new BuildProject(), new List<Calculation>());
+
+            // Assert
+            results.Should().HaveCount(1);
+
+            results.First().SourceCode.Should().Contain(expectedInheritsStatement);
         }
     }
 }
