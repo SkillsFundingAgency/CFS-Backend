@@ -137,6 +137,11 @@ namespace CalculateFunding.Services.Calcs
 
             CompilerOptions compilerOptions = compilerOptionsTask.Result;
 
+            if(compilerOptions == null)
+            {
+                compilerOptions = new CompilerOptions { SpecificationId = buildProject.SpecificationId };
+            }
+
             if (_featureToggle.IsAggregateOverCalculationsEnabled())
             {
                 return await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions, previewRequest);
@@ -222,7 +227,10 @@ namespace CalculateFunding.Services.Calcs
 
             if (compilerOutput.Success)
             {
-                Build nonPreviewCompilerOutput = _sourceCodeService.Compile(buildProject, calculations, new CompilerOptions { SpecificationId = buildProject.SpecificationId, OptionStrictEnabled = false });
+                //Forcing to compile for calc runs only
+                compilerOptions.OptionStrictEnabled = false;
+
+                Build nonPreviewCompilerOutput = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
                 if (nonPreviewCompilerOutput.Success)
                 {

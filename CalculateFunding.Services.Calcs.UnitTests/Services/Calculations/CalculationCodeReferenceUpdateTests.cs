@@ -15,6 +15,9 @@ namespace CalculateFunding.Services.Calcs.Services.Calculations
             public int Position;
         }
 
+#if NCRUNCH
+        [Ignore]
+#endif
         [TestMethod]
         [DynamicData(nameof(CodeTestCases), DynamicDataSourceType.Method)]
         public void ReplaceSourceCodeReferences_RunsAsExpected(string input,

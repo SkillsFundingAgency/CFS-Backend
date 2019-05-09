@@ -1273,7 +1273,17 @@ namespace CalculateFunding.Services.Calcs
                 buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
             }
 
-            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, new CompilerOptions { OptionStrictEnabled = false });
+            CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
+
+            if(compilerOptions == null)
+            {
+                compilerOptions = new CompilerOptions();
+            }
+
+            //forcing off for calc runs only
+            compilerOptions.OptionStrictEnabled = false;
+
+            buildProject.Build = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             await _sourceCodeService.SaveSourceFiles(buildProject.Build.SourceFiles, specificationId, SourceCodeType.Release);
 

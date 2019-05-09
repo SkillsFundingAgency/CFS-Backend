@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Calculator
                 datasetTypes.Add(definitionName, type);
             }
 
-            Type allocationType = assembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name == "BaseCalculation");
+            Type allocationType = assembly.GetTypes().FirstOrDefault(x => x.IsClass && x.BaseType.Name.Contains("BaseCalculation"));
 
             return new AllocationModel(allocationType, datasetTypes, _logger, _featureToggle);
         }

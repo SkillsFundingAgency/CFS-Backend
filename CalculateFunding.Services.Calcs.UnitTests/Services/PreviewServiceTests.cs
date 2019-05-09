@@ -529,6 +529,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = SpecificationId
             };
 
+            CompilerOptions compilerOptions = new CompilerOptions
+            {
+                UseLegacyCode = true
+            };
+
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
             BuildProject buildProject = new BuildProject
@@ -557,6 +562,10 @@ namespace CalculateFunding.Services.Calcs.Services
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(calculations);
+
+            calculationsRepository
+                .GetCompilerOptions(Arg.Is(SpecificationId))
+                .Returns(compilerOptions);
 
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
             buildProjectsService
@@ -625,9 +634,13 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Information(Arg.Is($"Build compiled successfully for calculation id {calculation.Id}"));
 
             sourceCodeService
-                 .Received(1)
-                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Is<CompilerOptions>(
-                         m => m.OptionStrictEnabled == false
+                 .Received(2)
+                 .Compile(
+                    Arg.Is(buildProject), 
+                    Arg.Is<IEnumerable<Calculation>>(m => m.Count() == 1 ), 
+                    Arg.Is<CompilerOptions>(
+                         m => m.OptionStrictEnabled == false && 
+                         m.UseLegacyCode == true
                      ));
         }
 

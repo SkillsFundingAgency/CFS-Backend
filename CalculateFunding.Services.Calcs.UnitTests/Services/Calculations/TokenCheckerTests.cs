@@ -8,6 +8,9 @@ namespace CalculateFunding.Services.Calcs.Services.Calculations
     [TestClass]
     public class TokenCheckerTests
     {
+#if NCRUNCH
+        [Ignore]
+#endif
         [TestMethod]
         [DynamicData(nameof(InvalidTokens), DynamicDataSourceType.Method)]
         public void CheckIsToken_TokenIsInvalid_ExceptionThrown(string token, string expectedError)
@@ -40,6 +43,9 @@ namespace CalculateFunding.Services.Calcs.Services.Calculations
             }
         }
 
+        #if NCRUNCH
+        [Ignore]
+        #endif
         [TestMethod]
         [DynamicData(nameof(InvalidTokenPositions), DynamicDataSourceType.Method)]
         public void CheckIsToken_TokenPositionIsInvalid_ExceptionThrown(string sourceCode, string token, int position, string expectedError)
@@ -63,6 +69,9 @@ namespace CalculateFunding.Services.Calcs.Services.Calculations
             yield return new object[] { "Source code", "abc", 9, badPlace };
         }
 
+#if NCRUNCH
+        [Ignore]
+#endif
         [TestMethod]
         [DynamicData(nameof(TestReplacements), DynamicDataSourceType.Method)]
         public void CheckToken_TestReplacement_ReturnsExpected(string sourceCode, string token, int position, bool isToken)
