@@ -1635,7 +1635,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task AssignDatasourceVersionToRelationship_GivenModelButSavingRetunsBadRequest_ReturnsBadRequest()
+        async public Task AssignDatasourceVersionToRelationship_GivenModelButSavingReturnsBadRequest_ReturnsBadRequest()
         {
             //Arrange
             string datasetId = Guid.NewGuid().ToString();

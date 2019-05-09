@@ -515,7 +515,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
-            ITestRunnerResiliencePolicies resiliencePolicies = CreateResilliencePolicies();
+            ITestRunnerResiliencePolicies resiliencePolicies = CreateResiliencePolicies();
 
             IStepParserFactory stepParserFactory = new StepParserFactory(codeMetadataGeneratorService, providerResultsRepository, resiliencePolicies);
 
@@ -600,7 +600,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
-            ITestRunnerResiliencePolicies resiliencePolicies = CreateResilliencePolicies();
+            ITestRunnerResiliencePolicies resiliencePolicies = CreateResiliencePolicies();
 
             IStepParserFactory stepParserFactory = new StepParserFactory(codeMetadataGeneratorService, providerResultsRepository, resiliencePolicies);
 
@@ -685,7 +685,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
-            ITestRunnerResiliencePolicies resiliencePolicies = CreateResilliencePolicies();
+            ITestRunnerResiliencePolicies resiliencePolicies = CreateResiliencePolicies();
 
             IStepParserFactory stepParserFactory = new StepParserFactory(codeMetadataGeneratorService, providerResultsRepository, resiliencePolicies);
 
@@ -770,7 +770,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
 
             IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
-            ITestRunnerResiliencePolicies resiliencePolicies = CreateResilliencePolicies();
+            ITestRunnerResiliencePolicies resiliencePolicies = CreateResiliencePolicies();
 
             IStepParserFactory stepParserFactory = new StepParserFactory(codeMetadataGeneratorService, providerResultsRepository, resiliencePolicies);
 
@@ -839,7 +839,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             return new GherkinExecutor(
                 gherkinParser ?? CreateGherkinParser(),
                 cacheProvider ?? CreateCacheProvider(),
-                resiliencePolicies ?? CreateResilliencePolicies());
+                resiliencePolicies ?? CreateResiliencePolicies());
         }
 
         private static IGherkinParser CreateGherkinParser()
@@ -852,7 +852,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             return Substitute.For<ICacheProvider>();
         }
 
-        private static ITestRunnerResiliencePolicies CreateResilliencePolicies()
+        private static ITestRunnerResiliencePolicies CreateResiliencePolicies()
         {
             return TestRunnerResilienceTestHelper.GenerateTestPolicies();
         }

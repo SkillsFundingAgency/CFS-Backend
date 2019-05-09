@@ -30,25 +30,25 @@ namespace CalculateFunding.Services.Calcs
         public DatasetDefinitionFieldChangesProcessor(
             IFeatureToggle featureToggle, 
             IDatasetRepository datasetRepository,
-            ICalcsResilliencePolicies resilliencePolicies,
+            ICalcsResiliencePolicies resiliencePolicies,
             ILogger logger,
             ICalculationService calculationService,
             ICalculationsRepository calculationsRepository)
         {
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
-            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
 
             _featureToggle = featureToggle;
             _datasetRepository = datasetRepository;
-            _datasetRepositoryPolicy = resilliencePolicies.DatasetsRepository;
+            _datasetRepositoryPolicy = resiliencePolicies.DatasetsRepository;
             _logger = logger;
             _calculationService = calculationService;
             _calculationsRepository = calculationsRepository;
-            _calculationsRepositoryPolicy = resilliencePolicies.CalculationsRepository;
+            _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
         }
 
         public async Task ProcessChanges(Message message)

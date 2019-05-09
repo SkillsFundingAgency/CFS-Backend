@@ -700,7 +700,7 @@ namespace CalculateFunding.Services.Results.Services
         static ResultsSearchService CreateResultsSearchService(
             ILogger logger = null,
             ISearchRepository<ProviderIndex> searchRepository = null,
-            IResultsResilliencePolicies resiliencePolicies = null)
+            IResultsResiliencePolicies resiliencePolicies = null)
         {
             return new ResultsSearchService(
                 logger ?? CreateLogger(),

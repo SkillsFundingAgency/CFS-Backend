@@ -80,13 +80,13 @@ namespace CalculateFunding.Functions.Notifications
 
             builder.AddPolicySettings(config);
 
-            builder.AddSingleton<INotificationsResilliencePolicies>((ctx) =>
+            builder.AddSingleton<INotificationsResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
-                return new NotificationsResilliencePolicies
+                return new NotificationsResiliencePolicies
                 {
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
                 };

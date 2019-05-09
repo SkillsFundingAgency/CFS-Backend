@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Jobs.Services
             IJobRepository jobRepository = null,
             INotificationService notificationService = null,
             IJobDefinitionsService jobDefinitionsService = null,
-            IJobsResiliencePolicies resilliencePolicies = null,
+            IJobsResiliencePolicies resiliencePolicies = null,
             ILogger logger = null,
             IValidator<CreateJobValidationModel> createJobValidator = null,
             IMessengerService messengerService = null)
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     jobRepository ?? CreateJobRepository(),
                     notificationService ?? CreateNotificationsService(),
                     jobDefinitionsService ?? CreateJobDefinitionsService(),
-                    resilliencePolicies ?? CreateResilliencePolicies(),
+                    resiliencePolicies ?? CreateResiliencePolicies(),
                     logger ?? CreateLogger(),
                     createJobValidator ?? CreateNewCreateJobValidator(),
                     messengerService ?? CreateMessengerService()
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Jobs.Services
             return Substitute.For<ILogger>();
         }
 
-        private IJobsResiliencePolicies CreateResilliencePolicies()
+        private IJobsResiliencePolicies CreateResiliencePolicies()
         {
             return JobsResilienceTestHelper.GenerateTestPolicies();
         }

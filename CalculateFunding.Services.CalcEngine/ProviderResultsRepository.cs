@@ -11,7 +11,6 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CalculateFunding.Services.Calculator
@@ -182,7 +181,7 @@ namespace CalculateFunding.Services.Calculator
                         CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
                         CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
                         CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
-                    };
+					};
 
                     if (_featureToggle.IsExceptionMessagesEnabled())
                     {

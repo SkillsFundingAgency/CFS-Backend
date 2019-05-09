@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Results
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
             ISpecificationsRepository specificationsRepository,
             ICalculationResultsRepository resultsRepository,
-            IResultsResilliencePolicies resiliencePolicies,
+            IResultsResiliencePolicies resiliencePolicies,
             IFeatureToggle featureToggle)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));

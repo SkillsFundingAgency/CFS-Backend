@@ -33,7 +33,7 @@ namespace CalculateFunding.Services.Compiler.Languages
             return compilation.Emit(ms);
         }
 
-        protected override IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles)
+        protected override IDictionary<string, string> GetCalculationFunctions(IEnumerable<SourceFile> sourceFiles)
         {
             SourceFile sourceFile = sourceFiles.FirstOrDefault(m => m.FileName == "Calculations.vb");
 

@@ -2043,7 +2043,7 @@ namespace CalculateFunding.Services.Results.Services
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = null,
             ISpecificationsRepository specificationsRepository = null,
-            IResultsResilliencePolicies resiliencePolicies = null,
+            IResultsResiliencePolicies resiliencePolicies = null,
             IProviderImportMappingService providerImportMappingService = null,
             ICacheProvider cacheProvider = null,
             IMessengerService messengerService = null,

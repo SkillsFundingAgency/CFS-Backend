@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Results
 
         public AllocationNotificationsFeedsSearchService(
             ISearchRepository<AllocationNotificationFeedIndex> allocationNotificationsSearchRepository,
-            IResultsResilliencePolicies resiliencePolicies)
+            IResultsResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(allocationNotificationsSearchRepository, nameof(allocationNotificationsSearchRepository));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));

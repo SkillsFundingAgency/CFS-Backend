@@ -362,7 +362,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             logger
                 .Received(1)
-                .Information($"Calculation with id: {calculation.Id} was succesfully saved to Cosmos Db");
+                .Information($"Calculation with id: {calculation.Id} was successfully saved to Cosmos Db");
 
             await
                repository
@@ -476,7 +476,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Assert
             logger
                 .Received(1)
-                .Information($"Calculation with id: {calculation.Id} was succesfully saved to Cosmos Db");
+                .Information($"Calculation with id: {calculation.Id} was successfully saved to Cosmos Db");
 
             await
                repository

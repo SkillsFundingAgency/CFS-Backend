@@ -343,7 +343,7 @@ namespace CalculateFunding.Api.External
 
             builder.AddJobsInterServiceClient(Configuration);
 
-            builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
+            builder.AddSingleton<IResultsResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 

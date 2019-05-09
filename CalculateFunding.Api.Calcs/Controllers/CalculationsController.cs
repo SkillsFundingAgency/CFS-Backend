@@ -165,7 +165,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
         [HttpGet]
         public async Task<IActionResult> ValidationCalculationName(string specificationId, string calculationName, string existingCalculationId)
         {
-            return await _calcsService.IsCalcuationNameValid(specificationId, calculationName, existingCalculationId);
+            return await _calcsService.IsCalculationNameValid(specificationId, calculationName, existingCalculationId);
         }
 
         [Route("api/calcs/duplicate-calc-names-migration")]

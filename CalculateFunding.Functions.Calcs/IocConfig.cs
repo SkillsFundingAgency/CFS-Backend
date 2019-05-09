@@ -87,6 +87,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<ICalculationService, CalculationService>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
+            builder.AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>();
+            builder.AddSingleton<ITokenChecker, TokenChecker>();
             builder.AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
             builder.AddSingleton<IPreviewService, PreviewService>();
             builder.AddSingleton<ICompilerFactory, CompilerFactory>();
@@ -109,7 +111,8 @@ namespace CalculateFunding.Functions.Calcs
             builder
                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
-            builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
+            builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((
+                ctx) =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
 
@@ -164,7 +167,7 @@ namespace CalculateFunding.Functions.Calcs
 
             PolicySettings policySettings = builder.GetPolicySettings(config);
             ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
-            builder.AddSingleton<ICalcsResilliencePolicies>(resiliencePolicies);
+            builder.AddSingleton<ICalcsResiliencePolicies>(resiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
         }
 

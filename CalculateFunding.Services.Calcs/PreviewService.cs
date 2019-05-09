@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Common.FeatureToggles;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -7,16 +12,11 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Common.Caching;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -38,11 +38,11 @@ namespace CalculateFunding.Services.Calcs
         public PreviewService(
             ILogger logger,
             IBuildProjectsService buildProjectsService,
-            IValidator<PreviewRequest> previewRequestValidator, 
+            IValidator<PreviewRequest> previewRequestValidator,
             ICalculationsRepository calculationsRepository,
-            IDatasetRepository datasetRepository, 
-            IFeatureToggle featureToggle, 
-            ICacheProvider cacheProvider, 
+            IDatasetRepository datasetRepository,
+            IFeatureToggle featureToggle,
+            ICacheProvider cacheProvider,
             ISourceCodeService sourceCodeService)
         {
             _logger = logger;
@@ -155,18 +155,18 @@ namespace CalculateFunding.Services.Calcs
 
             if (compilerOutput.Success)
             {
-                _logger.Information($"Build compiled succesfully for calculation id {calculationToPreview.Id}");
+                _logger.Information($"Build compiled successfully for calculation id {calculationToPreview.Id}");
 
                 if (_featureToggle.IsAggregateOverCalculationsEnabled())
                 {
                     string calculationIdentifier = VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name);
 
-                    IDictionary<string, string> functions = _sourceCodeService.GetCalulationFunctions(compilerOutput.SourceFiles);
+                    IDictionary<string, string> functions = _sourceCodeService.GetCalculationFunctions(compilerOutput.SourceFiles);
 
                     if (!functions.ContainsKey(calculationIdentifier))
                     {
                         compilerOutput.Success = false;
-                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is not an aggregatable field", Severity = Models.Calcs.Severity.Error });
+                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is not an aggregable field", Severity = Models.Calcs.Severity.Error });
                     }
                     else
                     {
@@ -178,12 +178,12 @@ namespace CalculateFunding.Services.Calcs
 
                             if (!aggregateParameters.IsNullOrEmpty())
                             {
-                                foreach(string aggregateParameter in aggregateParameters)
+                                foreach (string aggregateParameter in aggregateParameters)
                                 {
                                     if (!functions.ContainsKey(aggregateParameter))
                                     {
                                         compilerOutput.Success = false;
-                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{aggregateParameter} is not an aggregatable field", Severity = Models.Calcs.Severity.Error });
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{aggregateParameter} is not an aggregable field", Severity = Models.Calcs.Severity.Error });
                                         continueChecking = false;
                                         break;
                                     }
@@ -205,12 +205,11 @@ namespace CalculateFunding.Services.Calcs
                             }
                         }
                     }
-                   
                 }
             }
             else
             {
-                _logger.Information($"Build did not compile succesfully for calculation id {calculationToPreview.Id}");
+                _logger.Information($"Build did not compile successfully for calculation id {calculationToPreview.Id}");
             }
 
             PreviewResponse response = new PreviewResponse()
@@ -276,9 +275,8 @@ namespace CalculateFunding.Services.Calcs
                 {
                     CompilerMessages = compilerErrors.Select(m => new CompilerMessage { Message = m, Severity = Models.Calcs.Severity.Error }).ToList()
                 };
-
             }
-  
+
             return build;
         }
 
@@ -289,12 +287,12 @@ namespace CalculateFunding.Services.Calcs
                 return compilerOutput;
             }
 
-            compilerOutput.CompilerMessages = compilerOutput.CompilerMessages.Where(m => 
+            compilerOutput.CompilerMessages = compilerOutput.CompilerMessages.Where(m =>
             m.Message != DoubleToNullableDecimalErrorMessage &&
             m.Message != NullableDoubleToDecimalErrorMessage &&
             m.Message != DoubleToDecimalErrorMessage).ToList();
 
-            compilerOutput.Success  = !compilerOutput.CompilerMessages.AnyWithNullCheck(m => m.Severity == Models.Calcs.Severity.Error);
+            compilerOutput.Success = !compilerOutput.CompilerMessages.AnyWithNullCheck(m => m.Severity == Models.Calcs.Severity.Error);
 
             return compilerOutput;
         }

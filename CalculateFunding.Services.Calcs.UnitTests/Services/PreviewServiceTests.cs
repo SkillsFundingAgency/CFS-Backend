@@ -465,7 +465,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(build);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
@@ -501,7 +501,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Build did not compile succesfully for calculation id {calculation.Id}"));
+                .Information(Arg.Is($"Build did not compile successfully for calculation id {calculation.Id}"));
 
             sourceCodeService
                 .DidNotReceive()
@@ -586,7 +586,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(build);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes); ;
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
@@ -622,7 +622,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+                .Information(Arg.Is($"Build compiled successfully for calculation id {calculation.Id}"));
 
             sourceCodeService
                  .Received(1)
@@ -711,7 +711,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(build);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
             Build nonPreviewBuild = new Build
@@ -751,7 +751,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+                .Information(Arg.Is($"Build compiled successfully for calculation id {calculation.Id}"));
 
             await
                 sourceCodeService
@@ -839,7 +839,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(compilerOutput);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
@@ -880,7 +880,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+                .Information(Arg.Is($"Build compiled successfully for calculation id {calculation.Id}"));
 
             await
                 sourceCodeService
@@ -971,7 +971,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(compilerOutput);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
@@ -1615,7 +1615,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(build);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
@@ -1726,7 +1726,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(build);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
@@ -1854,7 +1854,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(build);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
@@ -1985,7 +1985,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(build);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes); ;
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
@@ -2021,7 +2021,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Build compiled succesfully for calculation id {calculation.Id}"));
+                .Information(Arg.Is($"Build compiled successfully for calculation id {calculation.Id}"));
         }
 
         [TestMethod]
@@ -2106,7 +2106,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(build);
 
             sourceCodeService
-                .GetCalulationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes); ;
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,

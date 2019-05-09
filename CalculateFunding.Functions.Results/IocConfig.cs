@@ -294,7 +294,7 @@ namespace CalculateFunding.Functions.Results
             PolicySettings policySettings = builder.GetPolicySettings(config);
             ResiliencePolicies resultsResiliencePolicies = CreateResiliencePolicies(policySettings);
 
-            builder.AddSingleton<IResultsResilliencePolicies>(resultsResiliencePolicies);
+            builder.AddSingleton<IResultsResiliencePolicies>(resultsResiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(resultsResiliencePolicies);
         }
 

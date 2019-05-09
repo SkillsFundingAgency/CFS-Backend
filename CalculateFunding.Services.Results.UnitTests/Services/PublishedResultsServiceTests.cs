@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Results.Services
             ITelemetry telemetry = null,
             ICalculationResultsRepository resultsRepository = null,
             ISpecificationsRepository specificationsRepository = null,
-            IResultsResilliencePolicies resiliencePolicies = null,
+            IResultsResiliencePolicies resiliencePolicies = null,
             IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService = null,
             IPublishedProviderResultsRepository publishedProviderResultsRepository = null,
             ICacheProvider cacheProvider = null,

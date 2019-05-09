@@ -295,7 +295,7 @@ namespace CalculateFunding.Services.Jobs.Services
                .GetJobDefinitions()
                .Returns(jobDefinitions);
 
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resilliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
+            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resiliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
 
             //Act
             IEnumerable<JobDefinition> definitions = await jobDefinitionsService.GetAllJobDefinitions();
@@ -330,7 +330,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 .GetJobDefinitions()
                 .Returns(jobDefinitions);
 
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resilliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
+            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resiliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
 
             //Act
             IEnumerable<JobDefinition> definitions = await jobDefinitionsService.GetAllJobDefinitions();
@@ -363,7 +363,7 @@ namespace CalculateFunding.Services.Jobs.Services
                .GetJobDefinitions()
                .Returns(jobDefinitions);
 
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resilliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
+            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(jobDefinitionsRepository, resiliencePolicies: GenerateTestPolicies(), cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await jobDefinitionsService.GetJobDefinitions();
@@ -441,7 +441,7 @@ namespace CalculateFunding.Services.Jobs.Services
                 .GetAsync<List<JobDefinition>>(Arg.Is(CacheKeys.JobDefinitions))
                 .Returns(jobDefinitions);
 
-            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(cacheProvider: cacheProvider, resilliencePolicies: GenerateTestPolicies());
+            JobDefinitionsService jobDefinitionsService = CreateJobDefinitionService(cacheProvider: cacheProvider, resiliencePolicies: GenerateTestPolicies());
 
             //Act
             IActionResult result = await jobDefinitionsService.GetJobDefinitionById(jobDefinitionId);
@@ -493,13 +493,13 @@ namespace CalculateFunding.Services.Jobs.Services
         public JobDefinitionsService CreateJobDefinitionService(
             IJobDefinitionsRepository jobDefinitionsRepository = null,
             ILogger logger = null,
-            IJobsResiliencePolicies resilliencePolicies = null,
+            IJobsResiliencePolicies resiliencePolicies = null,
             ICacheProvider cacheProvider = null)
         {
             return new JobDefinitionsService(
                     jobDefinitionsRepository ?? CreateJobDefinitionsRepository(),
                     logger ?? CreateLogger(),
-                    resilliencePolicies ?? JobsResilienceTestHelper.GenerateTestPolicies(),
+                    resiliencePolicies ?? JobsResilienceTestHelper.GenerateTestPolicies(),
                     cacheProvider ?? CreateCacheProvider()
                 );
         }

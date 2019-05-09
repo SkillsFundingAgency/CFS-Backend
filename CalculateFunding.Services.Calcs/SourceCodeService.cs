@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Calcs
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory,
             ICodeMetadataGeneratorService codeMetadataGenerator,
-            ICalcsResilliencePolicies resilliencePolicies)
+            ICalcsResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(sourceFilesRepository, nameof(sourceFilesRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(sourceFileGeneratorProvider, nameof(sourceFileGeneratorProvider));
             Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
             Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
-            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
 
             _sourceFilesRepository = sourceFilesRepository;
             _logger = logger;
@@ -54,8 +54,8 @@ namespace CalculateFunding.Services.Calcs
             _compilerFactory = compilerFactory;
             _sourceFileGenerator = sourceFileGeneratorProvider.CreateSourceFileGenerator(TargetLanguage.VisualBasic);
             _codeMetadataGenerator = codeMetadataGenerator;
-            _sourceFilesRepositoryPolicy = resilliencePolicies.SourceFilesRepository;
-            _calculationsRepositoryPolicy = resilliencePolicies.CalculationsRepository;
+            _sourceFilesRepositoryPolicy = resiliencePolicies.SourceFilesRepository;
+            _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
         }
 
         public async Task SaveAssembly(BuildProject buildProject)
@@ -146,11 +146,11 @@ namespace CalculateFunding.Services.Calcs
             return _codeMetadataGenerator.GetTypeInformation(rawAssembly);
         }
 
-        public IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles)
+        public IDictionary<string, string> GetCalculationFunctions(IEnumerable<SourceFile> sourceFiles)
         {
             ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 
-            return compiler.GetCalulationFunctions(sourceFiles);
+            return compiler.GetCalculationFunctions(sourceFiles);
         }
 
         public async Task SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string specificationId, SourceCodeType sourceCodeType)
@@ -166,7 +166,7 @@ namespace CalculateFunding.Services.Calcs
 
             if (compressedFiles.IsNullOrEmpty())
             {
-                _logger.Error($"Failed to compress source files for specificatgion id: '{specificationId}'");
+                _logger.Error($"Failed to compress source files for specification id: '{specificationId}'");
             }
             else
             {

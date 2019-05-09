@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models.Datasets.ViewModels;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using System.Collections.Generic;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Datasets.ViewModels;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
@@ -38,9 +37,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationStatusCounts(HttpRequest request);
 
-	    Task<IActionResult> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
+        Task<IActionResult> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
 
-        Task<IActionResult> IsCalcuationNameValid(string specificationId, string calculationName, string existingCalculationId);
+        Task<IActionResult> IsCalculationNameValid(string specificationId, string calculationName, string existingCalculationId);
 
         Task<IActionResult> DuplicateCalcNamesMigration();
 

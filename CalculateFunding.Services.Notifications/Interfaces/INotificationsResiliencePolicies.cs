@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Services.Notifications.Interfaces
 {
-    public interface INotificationsResilliencePolicies
+    public interface INotificationsResiliencePolicies
     {
         Policy MessagePolicy { get; set; }
     }

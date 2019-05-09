@@ -3,7 +3,7 @@ using Polly;
 
 namespace CalculateFunding.Services.Notifications
 {
-    public class NotificationsResilliencePolicies : INotificationsResilliencePolicies
+    public class NotificationsResiliencePolicies : INotificationsResiliencePolicies
     {
         public Policy MessagePolicy { get; set; }
     }

@@ -84,6 +84,10 @@ namespace CalculateFunding.Api.Calcs
                .AddSingleton<IHealthChecker, CalculationService>();
 
             builder
+                .AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>()
+                .AddSingleton<ITokenChecker, TokenChecker>();
+
+            builder
                .AddSingleton<ICalculationsSearchService, CalculationSearchService>()
                .AddSingleton<IHealthChecker, CalculationSearchService>();
 
@@ -187,7 +191,7 @@ namespace CalculateFunding.Api.Calcs
 
             builder.AddPolicySettings(Configuration);
 
-            builder.AddSingleton<ICalcsResilliencePolicies>((ctx) =>
+            builder.AddSingleton<ICalcsResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 

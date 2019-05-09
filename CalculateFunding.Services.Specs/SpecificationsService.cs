@@ -1804,7 +1804,7 @@ namespace CalculateFunding.Services.Specs
                 if (!specDocuments.IsNullOrEmpty())
                 {
                     await _searchRepository.Index(specDocuments);
-                    _logger.Information($"Succesfully re-indexed {specifications.Count()} documents");
+                    _logger.Information($"Successfully re-indexed {specifications.Count()} documents");
                 }
                 else
                 {

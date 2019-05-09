@@ -738,7 +738,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Error($"Failed to compress source files for specificatgion id: '{specificationId}'");
+                .Error($"Failed to compress source files for specification id: '{specificationId}'");
         }
 
         [TestMethod]
@@ -803,7 +803,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = null,
             ICompilerFactory compilerFactory = null,
             ICodeMetadataGeneratorService codeMetadataGenerator = null,
-            ICalcsResilliencePolicies resilliencePolicies = null)
+            ICalcsResiliencePolicies resiliencePolicies = null)
         {
             return new SourceCodeService(
                 sourceFilesRepository ?? CreateSourceFileRepository(),
@@ -812,7 +812,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceFileGeneratorProvider ?? CreateSourceFileGeneratorProvider(),
                 compilerFactory ?? CreateCompilerFactory(),
                 codeMetadataGenerator ?? CreateCodeMetadataGeneratorService(),
-                resilliencePolicies ?? CreatePolicies());
+                resiliencePolicies ?? CreatePolicies());
         }
 
         private SourceCodeService CreateServiceWithRealCompiler(IFeatureToggle featureToggle = null)
@@ -829,7 +829,7 @@ namespace CalculateFunding.Services.Calcs.Services
             return CreateSourceCodeService(sourceFileGeneratorProvider: sourceFileGeneratorProvider, calculationsRepository: Substitute.For<ICalculationsRepository>(), logger: logger, compilerFactory: compilerFactory);
         }
 
-        private static ICalcsResilliencePolicies CreatePolicies()
+        private static ICalcsResiliencePolicies CreatePolicies()
         {
             return CalcsResilienceTestHelper.GenerateTestPolicies();
         }

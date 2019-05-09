@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
-    public interface IResultsResilliencePolicies
+    public interface IResultsResiliencePolicies
     {
         Policy CalculationProviderResultsSearchRepository { get; set; }
 

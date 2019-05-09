@@ -1393,6 +1393,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 .IsDuplicateCalculationNameCheckEnabled()
                 .Returns(true);
 
+            ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = CreateCalculationCodeReferenceUpdate();
+            calculationCodeReferenceUpdate
+                .ReplaceSourceCodeReferences(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+                .Returns(x =>
+                {
+                    string source = x.ArgAt<string>(0);
+                    string oldName = x.ArgAt<string>(1);
+                    string newName = x.ArgAt<string>(2);
+
+                    return source.Replace(oldName, newName);
+                });
+
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 specificationRepository: specificationRepository,
@@ -1401,7 +1413,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService: sourceCodeService,
                 featureToggle: featureToggle,
                 calculationVersionRepository: calcVersionRepository,
-                buildProjectsService: buildProjectsService);
+                buildProjectsService: buildProjectsService,
+                calculationCodeReferenceUpdate: calculationCodeReferenceUpdate);
 
             IEnumerable<Models.Calcs.Calculation> resultsBeingSaved = null;
             await calculationsRepository

@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Calcs
             ICalculationsRepository calculationsRepository,
             IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
-            ICalcsResilliencePolicies resilliencePolicies,
+            ICalcsResiliencePolicies resiliencePolicies,
             EngineSettings engineSettings,
             ISourceCodeService sourceCodeService,
             IDatasetRepository datasetRepository,
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
-            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
@@ -88,13 +88,13 @@ namespace CalculateFunding.Services.Calcs
             _calculationsRepository = calculationsRepository;
             _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
-            _jobsApiClientPolicy = resilliencePolicies.JobsApiClient;
+            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
             _engineSettings = engineSettings;
             _sourceCodeService = sourceCodeService;
             _datasetRepository = datasetRepository;
-            _datasetRepositoryPolicy = resilliencePolicies.DatasetsRepository;
+            _datasetRepositoryPolicy = resiliencePolicies.DatasetsRepository;
             _buildProjectsRepository = buildProjectsRepository;
-            _buildProjectsRepositoryPolicy = resilliencePolicies.BuildProjectRepositoryPolicy;
+            _buildProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepositoryPolicy;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

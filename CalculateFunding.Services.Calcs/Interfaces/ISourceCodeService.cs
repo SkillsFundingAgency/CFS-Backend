@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject);
 
-        IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles);
+        IDictionary<string, string> GetCalculationFunctions(IEnumerable<SourceFile> sourceFiles);
 
         Task SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string specificationId, SourceCodeType sourceCodeType);
 

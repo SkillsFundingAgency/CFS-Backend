@@ -146,7 +146,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenSearchFeedRetunsNoResults_ReturnsNotFoundResult()
+        public async Task GetNotifications_GivenSearchFeedReturnsNoResults_ReturnsNotFoundResult()
         {
             //Arrange
             SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>();
@@ -170,7 +170,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenSearchFeedRetunsNoResults_ReturnsAtomFeed()
+        public async Task GetNotifications_GivenSearchFeedReturnsNoResults_ReturnsAtomFeed()
         {
             //Arrange
             SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
@@ -355,7 +355,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenSearchFeedRetunsResultsButTitleIsBlank_EnsuresTitleGenerated()
+        public async Task GetNotifications_GivenSearchFeedReturnsResultsButTitleIsBlank_EnsuresTitleGenerated()
         {
             //Arrange
 
@@ -414,7 +414,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenSearchFeedRetunsNoResultsWhenNoPageRefIsSpecified_EnsuresAtomLinksCorrect()
+        public async Task GetNotifications_GivenSearchFeedReturnsNoResultsWhenNoPageRefIsSpecified_EnsuresAtomLinksCorrect()
         {
             //Arrange
             SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
@@ -475,7 +475,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenSearchFeedRetunsNoResultsWhenNoQueryParameters_EnsuresAtomLinksCorrect()
+        public async Task GetNotifications_GivenSearchFeedReturnsNoResultsWhenNoQueryParameters_EnsuresAtomLinksCorrect()
         {
             //Arrange
             SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>
@@ -534,7 +534,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         }
 
         [TestMethod]
-        public async Task GetNotifications_GivenSearchFeedRetunsNoResultsWhenNoQueryParametersAndWithToTotalCountOf17848_EnsuresAtomLinksCorrectAndLastIs36()
+        public async Task GetNotifications_GivenSearchFeedReturnsNoResultsWhenNoQueryParametersAndWithToTotalCountOf17848_EnsuresAtomLinksCorrectAndLastIs36()
         {
             //Arrange
             SearchFeed<AllocationNotificationFeedIndex> feeds = new SearchFeed<AllocationNotificationFeedIndex>

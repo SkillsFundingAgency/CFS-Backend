@@ -191,7 +191,7 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/reindex/calculation-results")]
         [HttpGet]
-        public async Task<IActionResult> ReIndexCalulationResults()
+        public async Task<IActionResult> ReIndexCalculationResults()
         {
             return await _providerCalculationResultsReIndexerService.ReIndex();
         }

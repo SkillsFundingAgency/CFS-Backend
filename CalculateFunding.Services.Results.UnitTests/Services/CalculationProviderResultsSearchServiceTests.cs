@@ -414,7 +414,7 @@ namespace CalculateFunding.Services.Results.Services
         static CalculationProviderResultsSearchService CreateTestResultsSearchService(
           ILogger logger = null,
           ISearchRepository<CalculationProviderResultsIndex> serachRepository = null,
-          IResultsResilliencePolicies resiliencePolicies = null,
+          IResultsResiliencePolicies resiliencePolicies = null,
           ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
           IFeatureToggle featureToggle = null)
         {

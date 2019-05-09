@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
@@ -7,7 +8,6 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Functions.Calcs.UnitTests
 {
@@ -34,6 +34,8 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
                 scope.ServiceProvider.GetService<ISpecificationRepository>().Should().NotBeNull(nameof(ISpecificationRepository));
                 scope.ServiceProvider.GetService<IBuildProjectsService>().Should().NotBeNull(nameof(IBuildProjectsService));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
+                scope.ServiceProvider.GetService<ICalculationCodeReferenceUpdate>().Should().NotBeNull(nameof(ICalculationCodeReferenceUpdate));
+                scope.ServiceProvider.GetService<ITokenChecker>().Should().NotBeNull(nameof(ITokenChecker));
             }
         }
 

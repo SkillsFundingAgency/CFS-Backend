@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ICalculationResultsRepository>();
         }
 
-        private static IResultsResilliencePolicies CreateResiliencePolicies()
+        private static IResultsResiliencePolicies CreateResiliencePolicies()
         {
             return ResultsResilienceTestHelper.GenerateTestPolicies();
         }

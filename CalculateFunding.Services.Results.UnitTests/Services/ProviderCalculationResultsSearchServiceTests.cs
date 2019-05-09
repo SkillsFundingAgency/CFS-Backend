@@ -460,7 +460,7 @@ namespace CalculateFunding.Services.Results.Services
         static ProviderCalculationResultsSearchService CreateTestResultsSearchService(
           ILogger logger = null,
           ISearchRepository<ProviderCalculationResultsIndex> serachRepository = null,
-          IResultsResilliencePolicies resiliencePolicies = null)
+          IResultsResiliencePolicies resiliencePolicies = null)
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
             featureToggle.IsExceptionMessagesEnabled().Returns(true);

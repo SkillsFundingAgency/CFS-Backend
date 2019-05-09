@@ -4,7 +4,7 @@ using Polly;
 
 namespace CalculateFunding.Services.Calcs
 {
-    public class ResiliencePolicies : ICalcsResilliencePolicies, IJobHelperResiliencePolicies
+    public class ResiliencePolicies : ICalcsResiliencePolicies, IJobHelperResiliencePolicies
     {
         public Policy CalculationsRepository { get; set; }
 
