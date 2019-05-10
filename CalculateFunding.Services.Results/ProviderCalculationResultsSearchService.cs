@@ -287,9 +287,9 @@ namespace CalculateFunding.Services.Results
 
                         if(_featureToggle.IsExceptionMessagesEnabled())
                         {
-                            calculationResult.CalculationException = result.Result.CalculationException[calculationIdIndex];
-                            calculationResult.CalculationExceptionType = result.Result.CalculationExceptionType[calculationIdIndex];
-                            calculationResult.CalculationExceptionMessage = result.Result.CalculationExceptionMessage[calculationIdIndex];
+                            calculationResult.CalculationException = result.Result.CalculationException.Any() ? result.Result.CalculationException[calculationIdIndex] : string.Empty;
+                            calculationResult.CalculationExceptionType = result.Result.CalculationExceptionType.Any() ? result.Result.CalculationExceptionType[calculationIdIndex] : string.Empty;
+                            calculationResult.CalculationExceptionMessage = result.Result.CalculationExceptionMessage.Any() ? result.Result.CalculationExceptionMessage[calculationIdIndex] : string.Empty;
                         }
 
                         calculationResults.Add(calculationResult);
