@@ -398,7 +398,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task ValidateDataset(Message message)
         {
-            Guard.ArgumentNotNull(message, nameof(message));
+             Guard.ArgumentNotNull(message, nameof(message));
 
             string operationId = null;
             if (message.UserProperties.ContainsKey("operation-id"))

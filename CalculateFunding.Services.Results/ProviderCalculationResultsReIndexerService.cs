@@ -5,9 +5,14 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 using System;
@@ -30,6 +35,7 @@ namespace CalculateFunding.Services.Results
         private readonly IFeatureToggle _featureToggle;
 
         private const int batchSize = 200;
+        private readonly IMessengerService _messengerService;
 
         public ProviderCalculationResultsReIndexerService(
             ILogger logger, 
@@ -37,13 +43,16 @@ namespace CalculateFunding.Services.Results
             ISpecificationsRepository specificationsRepository,
             ICalculationResultsRepository resultsRepository,
             IResultsResiliencePolicies resiliencePolicies,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            IMessengerService messengerService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
 
             _logger = logger;
             _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
@@ -53,10 +62,28 @@ namespace CalculateFunding.Services.Results
             _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
             _featureToggle = featureToggle;
+            _messengerService = messengerService;
         }
 
-        public async Task<IActionResult> ReIndex()
+        public async Task<IActionResult> ReIndexCalculationResults(HttpRequest httpRequest)
         {
+            Guard.ArgumentNotNull(httpRequest, nameof(httpRequest));
+
+            IDictionary<string, string> properties = httpRequest.BuildMessageProperties();
+
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex, "", properties);
+
+            return new NoContentResult();
+        }
+
+        public async Task ReIndexCalculationResults(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            Reference user = message.GetUserDetails();
+
+            _logger.Information($"{nameof(ReIndexCalculationResults)} initiated by: '{user.Name}'");
+
             IEnumerable<DocumentEntity<ProviderResult>> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetAllProviderResults());
 
             Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
@@ -127,15 +154,13 @@ namespace CalculateFunding.Services.Results
 
                 if (errors.Any())
                 {
-                    string message = $"Failed to index calculation provider result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
+                    string errorMessage = $"Failed to index calculation provider result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
 
-                    _logger.Error(message);
+                    _logger.Error(errorMessage);
 
-                    return new InternalServerErrorResult(message);
+                    throw new RetriableException(errorMessage);
                 }
             }
-
-            return new NoContentResult();
         }
     }
 }

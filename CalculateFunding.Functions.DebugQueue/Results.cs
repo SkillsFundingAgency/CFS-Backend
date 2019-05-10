@@ -110,5 +110,25 @@ namespace CalculateFunding.Functions.DebugQueue
 
             log.LogInformation($"C# Queue trigger function processed: {item}");
         }
+
+        [FunctionName("on-reindex-allocation-notification-feeds")]
+        public static async Task RunReIndexAllocationNotificationFeeds([QueueTrigger(ServiceBusConstants.QueueNames.ReIndexAllocationNotificationFeedIndex, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            await Functions.Results.ServiceBus.OnReIndexAllocationNotificationFeeds.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed for {ServiceBusConstants.QueueNames.ReIndexAllocationNotificationFeedIndex}: {item}");
+        }
+
+        [FunctionName("on-reindex-calculation-results")]
+        public static async Task RunReIndexCalculationResults([QueueTrigger(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            Message message = Helpers.ConvertToMessage<string>(item);
+
+            await Functions.Results.ServiceBus.OnReIndexCalculationResults.Run(message);
+
+            log.LogInformation($"C# Queue trigger function processed {ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex}: {item}");
+        }
     }
 }
