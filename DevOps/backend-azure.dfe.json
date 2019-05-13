@@ -117,55 +117,42 @@
     },
     "engineSkuName": {
       "type": "string",
-      "defaultValue": "P2v2",
+      "defaultValue": "EP2",
       "allowedValues": [
-        "F1",
-        "D1",
-        "B1",
-        "B2",
-        "B3",
-        "S1",
-        "S2",
-        "S3",
-        "P1",
-        "P2",
-        "P3",
-        "P4",
-        "P3v2",
-        "P2v2",
-        "P1v2"
+        "EP1",
+        "EP2",
+        "EP3"
       ],
       "metadata": {
-        "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
-      }
-    },
-    "engineSkuCapacity": {
-      "type": "int",
-      "defaultValue": 1,
-      "minValue": 1,
-      "metadata": {
-        "description": "Describes Engine plan's instance count"
+        "description": "Name (SkuCode) for Engine hosting plan check details at https://docs.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code#premium"
       }
     },
     "engineSkuTier": {
       "type": "string",
-      "defaultValue": "PremiumV2",
+      "defaultValue": "ElasticPremium",
       "metadata": {
-        "description": "Tier for Engine hosting plan"
+        "description": "Tier (Sku) for Engine hosting plan check details at https://docs.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code#premium"
       }
     },
-    "engineSkuSize": {
+    "engineWorkerSize": {
       "type": "string",
-      "defaultValue": "P2v2",
+      "defaultValue": "4",
       "metadata": {
-        "description": "Size for Engine hosting plan"
+        "description": "For Engine hosting plan sets WorkerSize to 4."
       }
     },
-    "engineSkuFamily": {
-      "type": "string",
-      "defaultValue": "Pv2",
+    "engineNumberofWorkers": {
+      "type": "int",
+      "defaultValue": "2",
       "metadata": {
-        "description": "Family for Engine hosting plan"
+        "description": "For Hosting Plan sets minimum Number of Workers."
+      }
+    },
+    "engineMaximumElasticWorkerCount": {
+      "type": "int",
+      "defaultValue": "10",
+      "metadata": {
+        "description": "For Hosting Plan sets maximum number of Elastic Workers desired_max_scale_out."
       }
     },
     "searchSkuName": {
@@ -1394,7 +1381,7 @@
       }
     },
     {
-      "apiVersion": "2016-03-01",
+      "apiVersion": "2016-09-01",
       "name": "[variables('engineHostingPlanName')]",
       "type": "Microsoft.Web/serverfarms",
       "location": "[resourceGroup().location]",
@@ -1403,13 +1390,13 @@
       },
       "sku": {
         "name": "[parameters('engineSkuName')]",
-        "capacity": "[parameters('engineSkuCapacity')]",
-        "tier": "[parameters('engineSkuTier')]",
-        "size": "[parameters('engineSkuSize')]",
-        "family": "[parameters('engineSkuFamily')]"
+        "tier": "[parameters('engineSkuTier')]"
       },
       "properties": {
-        "name": "[variables('engineHostingPlanName')]"
+        "name": "[variables('engineHostingPlanName')]",
+
+        "numberOfWorkers": "[parameters('engineNumberofWorkers')]",
+        "maximumElasticWorkerCount": "[parameters('engineMaximumElasticWorkerCount')]"
       }
     },
     {
@@ -3244,7 +3231,7 @@
       "name": "[variables('testEngineApiAppName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('engineHostingPlanName'))]",
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
         "[variables('applicationInsightsName')]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('cfsStorageAccountName'))]",
