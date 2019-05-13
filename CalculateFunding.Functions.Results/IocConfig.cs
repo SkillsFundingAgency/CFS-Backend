@@ -107,6 +107,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IProviderVariationsService, ProviderVariationsService>();
             builder.AddSingleton<IProviderService, ProviderService>();
             builder.AddSingleton<IJobHelperService, JobHelperService>();
+            builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
 
             builder.AddSingleton<IProviderVariationsStorageRepository, ProviderVariationsStorageRepository>((ctx) =>
             {

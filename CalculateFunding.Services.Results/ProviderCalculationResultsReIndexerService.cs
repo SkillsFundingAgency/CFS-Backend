@@ -84,81 +84,68 @@ namespace CalculateFunding.Services.Results
 
             _logger.Information($"{nameof(ReIndexCalculationResults)} initiated by: '{user.Name}'");
 
-            IEnumerable<DocumentEntity<ProviderResult>> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetAllProviderResults());
+            IEnumerable<SpecificationSummary> specifications = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
 
-            Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
-
-            IEnumerable<string> specificationIds = providerResults.Select(m => m.Content.SpecificationId).Distinct();
-
-            foreach (string specificationId in specificationIds)
+            foreach (SpecificationSummary specification in specifications)
             {
-                SpecificationSummary specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaryById(specificationId));
+                IEnumerable<DocumentEntity<ProviderResult>> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetAllProviderResults(specification.Id));
 
-                specifications.Add(specificationId, specificationSummary);
-            }
+                IList<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
 
-            IList<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
-
-            foreach (DocumentEntity<ProviderResult> providerResultEntity in providerResults)
-            {
-                ProviderResult providerResult = providerResultEntity.Content;
-
-                if (!providerResult.CalculationResults.IsNullOrEmpty())
+                foreach (DocumentEntity<ProviderResult> providerResultEntity in providerResults)
                 {
-                    SpecificationSummary specification = specifications[providerResult.SpecificationId];
+                    ProviderResult providerResult = providerResultEntity.Content;
 
-                    ProviderCalculationResultsIndex calculationResult = new ProviderCalculationResultsIndex
+                    if (!providerResult.CalculationResults.IsNullOrEmpty())
                     {
-                        SpecificationId = providerResult.SpecificationId,
-                        SpecificationName = specification?.Name,
-                        ProviderId = providerResult.Provider?.Id,
-                        ProviderName = providerResult.Provider?.Name,
-                        ProviderType = providerResult.Provider?.ProviderType,
-                        ProviderSubType = providerResult.Provider?.ProviderSubType,
-                        LocalAuthority = providerResult.Provider?.Authority,
-                        LastUpdatedDate = providerResultEntity.CreatedAt,
-                        UKPRN = providerResult.Provider?.UKPRN,
-                        URN = providerResult.Provider?.URN,
-                        UPIN = providerResult.Provider?.UPIN,
-                        EstablishmentNumber = providerResult.Provider?.EstablishmentNumber,
-                        OpenDate = providerResult.Provider?.DateOpened,
-                        CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
-                        CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
-                        CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
-                    };
+                        ProviderCalculationResultsIndex calculationResult = new ProviderCalculationResultsIndex
+                        {
+                            SpecificationId = providerResult.SpecificationId,
+                            SpecificationName = specification?.Name,
+                            ProviderId = providerResult.Provider?.Id,
+                            ProviderName = providerResult.Provider?.Name,
+                            ProviderType = providerResult.Provider?.ProviderType,
+                            ProviderSubType = providerResult.Provider?.ProviderSubType,
+                            LocalAuthority = providerResult.Provider?.Authority,
+                            LastUpdatedDate = providerResultEntity.CreatedAt,
+                            UKPRN = providerResult.Provider?.UKPRN,
+                            URN = providerResult.Provider?.URN,
+                            UPIN = providerResult.Provider?.UPIN,
+                            EstablishmentNumber = providerResult.Provider?.EstablishmentNumber,
+                            OpenDate = providerResult.Provider?.DateOpened,
+                            CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
+                            CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
+                            CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
+                        };
 
-                    if (_featureToggle.IsExceptionMessagesEnabled())
-                    {
-                        calculationResult.CalculationException = providerResult.CalculationResults
-                            .Select(m => !string.IsNullOrWhiteSpace(m.ExceptionType) ? "true" : "false")
-                            .ToArraySafe();
+                        if (_featureToggle.IsExceptionMessagesEnabled())
+                        {
+                            calculationResult.CalculationException = providerResult.CalculationResults
+                                .Select(m => !string.IsNullOrWhiteSpace(m.ExceptionType) ? "true" : "false")
+                                .ToArraySafe();
 
-                        calculationResult.CalculationExceptionType = providerResult.CalculationResults
-                            .Select(m => m.ExceptionType ?? string.Empty)
-                            .ToArraySafe();
+                            calculationResult.CalculationExceptionType = providerResult.CalculationResults
+                                .Select(m => m.ExceptionType ?? string.Empty)
+                                .ToArraySafe();
 
-                        calculationResult.CalculationExceptionMessage = providerResult.CalculationResults
-                            .Select(m => m.ExceptionMessage ?? string.Empty)
-                            .ToArraySafe();
+                            calculationResult.CalculationExceptionMessage = providerResult.CalculationResults
+                                .Select(m => m.ExceptionMessage ?? string.Empty)
+                                .ToArraySafe();
+                        }
+
+                        results.Add(calculationResult);
                     }
 
-                    results.Add(calculationResult);
-                }
-            }
+                    IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _providerCalculationResultsSearchRepository.Index(results));
 
-            for (int i = 0; i < results.Count; i += batchSize)
-            {
-                IEnumerable<ProviderCalculationResultsIndex> partitionedResults = results.Skip(i).Take(batchSize);
+                    if (errors.Any())
+                    {
+                        string errorMessage = $"Failed to index calculation provider result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
 
-                IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _providerCalculationResultsSearchRepository.Index(partitionedResults));
+                        _logger.Error(errorMessage);
 
-                if (errors.Any())
-                {
-                    string errorMessage = $"Failed to index calculation provider result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
-
-                    _logger.Error(errorMessage);
-
-                    throw new RetriableException(errorMessage);
+                        throw new RetriableException(errorMessage);
+                    }
                 }
             }
         }

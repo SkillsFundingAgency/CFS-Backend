@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
             calculationResultsRepository
-                .GetAllProviderResults()
+                .GetAllProviderResults(Arg.Is(providerResult.Content.SpecificationId))
                 .Returns(new[] { providerResult });
 
             ILogger logger = CreateLogger();
@@ -82,8 +82,8 @@ namespace CalculateFunding.Services.Results.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
-                .Returns(specificationSummary);
+                .GetSpecificationSummaries()
+                .Returns(new List<SpecificationSummary> { specificationSummary });
 
             ProviderCalculationResultsReIndexerService service = CreateService(
                 resultsRepository: calculationResultsRepository,
@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
             calculationResultsRepository
-                .GetAllProviderResults()
+                .GetAllProviderResults(Arg.Is(providerResult.Content.SpecificationId))
                 .Returns(new[] { providerResult });
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
@@ -137,8 +137,8 @@ namespace CalculateFunding.Services.Results.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
-                .Returns(specificationSummary);
+                .GetSpecificationSummaries()
+                .Returns(new List<SpecificationSummary> { specificationSummary });
 
             IFeatureToggle featureToggle = CreateFeatureToggle(featureToggleEnabled);
 
