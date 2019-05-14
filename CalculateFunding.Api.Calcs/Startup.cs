@@ -97,7 +97,7 @@ namespace CalculateFunding.Api.Calcs
             builder
                 .AddSingleton<IPreviewService, PreviewService>()
                 .AddSingleton<IHealthChecker, PreviewService>();
-
+           
             builder
                .AddSingleton<ICompilerFactory, CompilerFactory>();
 

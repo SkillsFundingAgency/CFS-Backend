@@ -1428,7 +1428,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledButNoAggretableFields_SavesDataset()
+        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledButNoAggregableFields_SavesDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -1614,7 +1614,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledAnHasAggretableField_SavesDataset()
+        async public Task ProcessDataset_GivenPayloadAndTableResultsWithProviderIdsAndIsAggregatesFeatureToggleEnabledAnHasAggregableField_SavesDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -1804,7 +1804,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        async public Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleRowsWithProviderIdsAndIsAggregatesFeatureToggleEnabledAnHasAggretableField_SavesDataset()
+        async public Task ProcessDataset_GivenPayloadAndTableResultsWithMultipleRowsWithProviderIdsAndIsAggregatesFeatureToggleEnabledAnHasAggregableField_SavesDataset()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";

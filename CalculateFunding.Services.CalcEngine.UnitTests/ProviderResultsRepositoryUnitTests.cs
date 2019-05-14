@@ -9,6 +9,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Calculator.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -491,20 +492,20 @@ namespace CalculateFunding.Services.Calculator
         }
 
         private static ProviderResultsRepository CreateProviderResultsRepository(
-            ICosmosRepository cosmosRepository = null, 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = null, 
-            ISpecificationsRepository specificationsRepository = null, 
+            ICosmosRepository cosmosRepository = null,
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = null,
+            ISpecificationsRepository specificationsRepository = null,
             ILogger logger = null,
             IFeatureToggle featureToggle = null,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null)
         {
-           
+
             return new ProviderResultsRepository(
-                cosmosRepository ?? CreateCosmosRepository(), 
-                searchRepository ?? CreateCalculationProviderResultsSearchRepository(), 
-                specificationsRepository ?? CreateSpecificationsRepository(), 
-                logger ?? CreateLogger(), 
-                providerCalculationResultsSearchRepository ?? CreateProviderCalculationResultsSearchRepository(), 
+                cosmosRepository ?? CreateCosmosRepository(),
+                searchRepository ?? CreateCalculationProviderResultsSearchRepository(),
+                specificationsRepository ?? CreateSpecificationsRepository(),
+                logger ?? CreateLogger(),
+                providerCalculationResultsSearchRepository ?? CreateProviderCalculationResultsSearchRepository(),
                 featureToggle ?? CreateFeatureToggle());
         }
 

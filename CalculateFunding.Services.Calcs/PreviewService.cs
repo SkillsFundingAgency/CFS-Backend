@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
+using Severity = CalculateFunding.Models.Calcs.Severity;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -59,7 +60,7 @@ namespace CalculateFunding.Services.Calcs
         {
             ServiceHealth calcsRepoHealth = await ((IHealthChecker)_calculationsRepository).IsHealthOk();
 
-            ServiceHealth health = new ServiceHealth()
+            ServiceHealth health = new ServiceHealth
             {
                 Name = nameof(CalculationService)
             };
@@ -112,17 +113,18 @@ namespace CalculateFunding.Services.Calcs
             Calculation calculation = calculations.FirstOrDefault(m => m.Id == previewRequest.CalculationId);
             if (calculation == null)
             {
-                _logger.Warning($"Calculation ('{previewRequest.CalculationId}') could not be found for specification Id '{previewRequest.SpecificationId}'");
-                return new PreconditionFailedResult($"Calculation ('{previewRequest.CalculationId}') could not be found for specification Id '{previewRequest.SpecificationId}'");
+                string message = $"Calculation ('{previewRequest.CalculationId}') could not be found for specification Id '{previewRequest.SpecificationId}'";
+                _logger.Warning(message);
+                return new PreconditionFailedResult(message);
             }
 
             calculation.Current.SourceCode = previewRequest.SourceCode;
 
             if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
             {
-                Build build = await CheckDatasetValidAggregations(calculation, previewRequest);
+                Build build = await CheckDatasetValidAggregations(previewRequest);
 
-                if (build != null && build.CompilerMessages.Any(m => m.Severity == Models.Calcs.Severity.Error))
+                if (build != null && build.CompilerMessages.Any(m => m.Severity == Severity.Error))
                 {
                     PreviewResponse response = new PreviewResponse
                     {
@@ -132,27 +134,20 @@ namespace CalculateFunding.Services.Calcs
 
                     return new OkObjectResult(response);
                 }
-
             }
 
-            CompilerOptions compilerOptions = compilerOptionsTask.Result;
+            CompilerOptions compilerOptions = compilerOptionsTask.Result ?? new CompilerOptions { SpecificationId = buildProject.SpecificationId };
 
-            if(compilerOptions == null)
-            {
-                compilerOptions = new CompilerOptions { SpecificationId = buildProject.SpecificationId };
-            }
-
-            if (_featureToggle.IsAggregateOverCalculationsEnabled())
-            {
-                return await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions, previewRequest);
-            }
-            else
-            {
-                return await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions);
-            }
+            return _featureToggle.IsAggregateOverCalculationsEnabled()
+                ? await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions, previewRequest)
+                : await GenerateAndCompile(buildProject, calculation, calculations, compilerOptions);
         }
 
-        private async Task<IActionResult> GenerateAndCompile(BuildProject buildProject, Calculation calculationToPreview, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions, PreviewRequest previewRequest = null)
+        private async Task<IActionResult> GenerateAndCompile(BuildProject buildProject,
+            Calculation calculationToPreview,
+            IEnumerable<Calculation> calculations,
+            CompilerOptions compilerOptions,
+            PreviewRequest previewRequest = null)
         {
             Build compilerOutput = _sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
@@ -217,7 +212,7 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Information($"Build did not compile successfully for calculation id {calculationToPreview.Id}");
             }
 
-            PreviewResponse response = new PreviewResponse()
+            PreviewResponse response = new PreviewResponse
             {
                 Calculation = calculationToPreview,
                 CompilerOutput = compilerOutput
@@ -238,10 +233,56 @@ namespace CalculateFunding.Services.Calcs
                 }
             }
 
+            LogMessages(compilerOutput, buildProject, calculationToPreview);
+
             return new OkObjectResult(response);
         }
 
-        private async Task<Build> CheckDatasetValidAggregations(Calculation calculation, PreviewRequest previewRequest)
+        public void LogMessages(Build compilerOutput, BuildProject buildProject, Calculation calculation)
+        {
+            if (compilerOutput?.CompilerMessages?.Any() ?? false)
+            {
+                string specificationId = buildProject.SpecificationId;
+                string calculationId = calculation.Id;
+                string calculationName = calculation.Name;
+
+                foreach (var compilerMessage in compilerOutput.CompilerMessages)
+                {
+                    string logMessage = $@"Error while compiling code preview: {compilerMessage.Message}
+Line: {compilerMessage.Location?.StartLine + 1}
+
+Specification ID: {{specificationId}}
+Calculation ID: {{calculationId}}
+Calculation Name: {{calculationName}}";
+
+                    switch (compilerMessage.Severity)
+                    {
+                        case Severity.Info:
+                            _logger.Verbose(logMessage,
+                                specificationId,
+                                calculationId,
+                                calculationName);
+                            break;
+
+                        case Severity.Warning:
+                            _logger.Warning(logMessage,
+                                specificationId,
+                                calculationId,
+                                calculationName);
+                            break;
+
+                        case Severity.Error:
+                            _logger.Error(logMessage,
+                                specificationId,
+                                calculationId,
+                                calculationName);
+                            break;
+                    }
+                }
+            }
+        }
+
+        private async Task<Build> CheckDatasetValidAggregations(PreviewRequest previewRequest)
         {
             Build build = null;
 
@@ -273,7 +314,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 if (datasetAggregationFields.IsNullOrEmpty() || !datasetAggregationFields.Any(m => string.Equals(m.Trim(), aggregateParameter.Trim(), System.StringComparison.CurrentCultureIgnoreCase)))
                 {
-                    compilerErrors.Add($"{aggregateParameter} is not an aggretable field");
+                    compilerErrors.Add($"{aggregateParameter} is not an aggregable field");
                 }
             }
 
@@ -281,7 +322,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 build = new Build
                 {
-                    CompilerMessages = compilerErrors.Select(m => new CompilerMessage { Message = m, Severity = Models.Calcs.Severity.Error }).ToList()
+                    CompilerMessages = compilerErrors.Select(m => new CompilerMessage { Message = m, Severity = Severity.Error }).ToList()
                 };
             }
 
@@ -295,12 +336,13 @@ namespace CalculateFunding.Services.Calcs
                 return compilerOutput;
             }
 
-            compilerOutput.CompilerMessages = compilerOutput.CompilerMessages.Where(m =>
-            m.Message != DoubleToNullableDecimalErrorMessage &&
-            m.Message != NullableDoubleToDecimalErrorMessage &&
-            m.Message != DoubleToDecimalErrorMessage).ToList();
+            compilerOutput.CompilerMessages = compilerOutput.CompilerMessages
+                .Where(m => m.Message != DoubleToNullableDecimalErrorMessage &&
+                        m.Message != NullableDoubleToDecimalErrorMessage &&
+                        m.Message != DoubleToDecimalErrorMessage)
+                .ToList();
 
-            compilerOutput.Success = !compilerOutput.CompilerMessages.AnyWithNullCheck(m => m.Severity == Models.Calcs.Severity.Error);
+            compilerOutput.Success = !compilerOutput.CompilerMessages.AnyWithNullCheck(m => m.Severity == Severity.Error);
 
             return compilerOutput;
         }
