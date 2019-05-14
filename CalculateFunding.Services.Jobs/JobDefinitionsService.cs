@@ -27,19 +27,19 @@ namespace CalculateFunding.Services.Jobs
         private readonly Polly.Policy _cachePolicy;
 
         public JobDefinitionsService(IJobDefinitionsRepository jobDefinitionsRepository, 
-            ILogger logger, IJobsResiliencePolicies resilliencePolicies, ICacheProvider cacheProvider)
+            ILogger logger, IJobsResiliencePolicies resiliencePolicies, ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(jobDefinitionsRepository, nameof(jobDefinitionsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _jobDefinitionsRepository = jobDefinitionsRepository;
             _logger = logger;
-            _jobDefinitionsRepositoryPolicy = resilliencePolicies.JobDefinitionsRepository;
-            _jobDefinitionsRepositoryNonAsyncPolicy = resilliencePolicies.JobRepositoryNonAsync;
+            _jobDefinitionsRepositoryPolicy = resiliencePolicies.JobDefinitionsRepository;
+            _jobDefinitionsRepositoryNonAsyncPolicy = resiliencePolicies.JobRepositoryNonAsync;
             _cacheProvider = cacheProvider;
-            _cachePolicy = resilliencePolicies.CacheProviderPolicy;
+            _cachePolicy = resiliencePolicies.CacheProviderPolicy;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

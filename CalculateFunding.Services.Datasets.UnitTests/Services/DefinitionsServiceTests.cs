@@ -123,6 +123,132 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        async public Task SaveDefinition_GivenUpdatedYamlWithRemovedFieldButAlreadyUsedInRelationship_ReturnsBadRequest()
+        {
+            //Arrange
+            IEnumerable<string> specificationIds = new[] { "spec-1" };
+            string definitionId = "9183";
+            string yaml = CreateRawDefinition();
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDataSetsRepository();
+            datasetRepository
+                .GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Is(definitionId))
+                .Returns(specificationIds);
+
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges
+            {
+                Id = definitionId,
+            };
+
+            FieldDefinitionChanges fieldDefinitionChanges = new FieldDefinitionChanges();
+            fieldDefinitionChanges.ChangeTypes.Add(FieldDefinitionChangeType.RemovedField);
+
+            TableDefinitionChanges tableDefinitionChanges = new TableDefinitionChanges();
+            tableDefinitionChanges.FieldChanges.Add(fieldDefinitionChanges);
+
+            datasetDefinitionChanges.TableDefinitionChanges.Add(tableDefinitionChanges);
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, definitionChangesDetectionService: definitionChangesDetectionService, datasetsRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.SaveDefinition(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Unable to remove a field as there are currently relationships setup against this schema");
+        }
+
+        [TestMethod]
+        async public Task SaveDefinition_GivenUpdatedYamlWithChangedIdentifierTypeFieldButAlreadyUsedInRelationship_ReturnsBadRequest()
+        {
+            //Arrange
+            IEnumerable<string> specificationIds = new[] { "spec-1" };
+            string definitionId = "9183";
+            string yaml = CreateRawDefinition();
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary();
+            headerDictionary
+                .Add("yaml-file", new StringValues(yamlFile));
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            IDatasetRepository datasetRepository = CreateDataSetsRepository();
+            datasetRepository
+                .GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Is(definitionId))
+                .Returns(specificationIds);
+
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges
+            {
+                Id = definitionId,
+            };
+
+            FieldDefinitionChanges fieldDefinitionChanges = new FieldDefinitionChanges();
+            fieldDefinitionChanges.ChangeTypes.Add(FieldDefinitionChangeType.IdentifierType);
+
+            TableDefinitionChanges tableDefinitionChanges = new TableDefinitionChanges();
+            tableDefinitionChanges.FieldChanges.Add(fieldDefinitionChanges);
+
+            datasetDefinitionChanges.TableDefinitionChanges.Add(tableDefinitionChanges);
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, definitionChangesDetectionService: definitionChangesDetectionService, datasetsRepository: datasetRepository);
+
+            //Act
+            IActionResult result = await service.SaveDefinition(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Unable to change provider identifier as there are currently relationships setup against this schema");
+        }
+
+        [TestMethod]
         async public Task SaveDefinition_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
         {
             //Arrange
@@ -152,7 +278,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 .SaveDefinition(Arg.Any<DatasetDefinition>())
                 .Returns(failedCode);
 
-            DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository);
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -201,7 +334,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 .When(x => x.SaveDefinition(Arg.Any<DatasetDefinition>()))
                 .Do(x => { throw new Exception(); });
 
-            DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository);
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, dataSetsRepository, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -264,8 +404,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Write(Arg.Any<DatasetDefinition>())
                 .Returns(excelAsBytes);
 
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter);
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -338,7 +484,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlockBlobReference(Arg.Is("schemas/14_15.xlsx"))
                 .Returns(blob);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient);
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, 
+                excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -404,7 +558,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlockBlobReference(Arg.Any<string>())
                 .Returns(blob);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient);
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, 
+                excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -502,7 +664,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlockBlobReference(Arg.Any<string>())
                 .Returns(blob);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient);
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, 
+                excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);
@@ -600,7 +770,14 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBlockBlobReference(Arg.Any<string>())
                 .Returns(blob);
 
-            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient);
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
+            IDefinitionChangesDetectionService definitionChangesDetectionService = CreateChangesDetectionService();
+            definitionChangesDetectionService
+                .DetectChanges(Arg.Any<DatasetDefinition>(), Arg.Any<DatasetDefinition>())
+                .Returns(datasetDefinitionChanges);
+
+            DefinitionsService service = CreateDefinitionsService(logger, datasetsRepository, searchRepository, excelWriter: excelWriter, blobClient: blobClient, definitionChangesDetectionService: definitionChangesDetectionService);
 
             //Act
             IActionResult result = await service.SaveDefinition(request);

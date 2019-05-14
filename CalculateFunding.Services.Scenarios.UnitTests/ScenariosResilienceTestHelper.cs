@@ -11,7 +11,9 @@ namespace CalculateFunding.Services.Scenarios
             return new ScenariosResiliencePolicies()
             {
                 CalcsRepository = Policy.NoOpAsync(),
-                JobsApiClient = Policy.NoOpAsync()
+                JobsApiClient = Policy.NoOpAsync(),
+                DatasetRepository = Policy.NoOpAsync(),
+                ScenariosRepository = Policy.NoOpAsync()
             };
         }
     }

@@ -48,6 +48,11 @@ namespace CalculateFunding.Services.Results.Repositories
             return _cosmosRepository.GetAllDocumentsAsync<ProviderResult>();
         }
 
+        public Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults(string specificationId)
+        {
+            return _cosmosRepository.GetAllDocumentsAsync<ProviderResult>(query: m => m.Content.SpecificationId == specificationId);
+        }
+
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)
         {
             List<ProviderResult> results;

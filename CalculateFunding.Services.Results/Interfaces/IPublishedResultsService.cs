@@ -25,7 +25,9 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<PublishedProviderResultWithHistory> GetPublishedProviderResultWithHistoryByAllocationResultId(string allocationResultId);
 
-        Task<IActionResult> ReIndexAllocationNotificationFeeds();
+        Task<IActionResult> ReIndexAllocationNotificationFeeds(HttpRequest httpRequest);
+
+        Task ReIndexAllocationNotificationFeeds(Message message);
 
         Task FetchProviderProfile(Message message);
 

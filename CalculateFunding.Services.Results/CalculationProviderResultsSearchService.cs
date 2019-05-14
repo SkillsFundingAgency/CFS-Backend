@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Results
 
         public CalculationProviderResultsSearchService(ILogger logger,
             ISearchRepository<CalculationProviderResultsIndex> searchRepository,
-            IResultsResilliencePolicies resiliencePolicies)
+            IResultsResiliencePolicies resiliencePolicies)
         {
             _logger = logger;
             _searchRepository = searchRepository;

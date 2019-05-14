@@ -15,5 +15,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetCurrentRelationshipsBySpecificationId(string specificationId);
 
         Task<DatasetDefinition> GetDatasetDefinitionById(string datasetDefinitionId);
+
+        Task<IEnumerable<string>> GetRelationshipSpecificationIdsByDatasetDefinitionId(string datasetDefinitionId);
+
+        Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(string specificationId, string datasetDefinitionId);
     }
 }

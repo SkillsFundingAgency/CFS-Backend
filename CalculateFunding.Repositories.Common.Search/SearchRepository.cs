@@ -115,12 +115,11 @@ namespace CalculateFunding.Repositories.Common.Search
                     Facets = azureSearchResult.Facets?.Select(x => new Facet
                     {
                         Name = x.Key,
-                        FacetValues = x.Value.Select(m => new FacetValue
+                        FacetValues = x.Value.Where(f => !string.IsNullOrWhiteSpace(f.Value.ToString())).Select(m => new FacetValue
                         {
                             Name = m.Value.ToString(),
                             Count = (int)(m.Count ?? 0)
                         })
-
                     }).ToList(),
                     Results = azureSearchResult.Results.Select(x => new SearchResult<T>
                     {

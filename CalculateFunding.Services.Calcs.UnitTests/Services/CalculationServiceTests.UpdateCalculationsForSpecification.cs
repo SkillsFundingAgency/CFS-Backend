@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Calcs.Services
     public partial class CalculationServiceTests
     {
         [TestMethod]
-        public void UpdateCalulationsForSpecification_GivenInvalidModel_LogsDoesNotSave()
+        public void UpdateCalculationsForSpecification_GivenInvalidModel_LogsDoesNotSave()
         {
             //Arrange
             dynamic anyObject = new { something = 1 };
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalulationsForSpecification_GivenModelHasNoChanges_LogsAndReturns()
+        public async Task UpdateCalculationsForSpecification_GivenModelHasNoChanges_LogsAndReturns()
         {
             //Arrange
             Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
@@ -71,7 +71,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalulationsForSpecification_GivenModelHasChangedFundingPeriodsButCalcculationsCouldNotBeFound_LogsAndReturns()
+        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedFundingPeriodsButCalcculationsCouldNotBeFound_LogsAndReturns()
         {
             //Arrange
             const string specificationId = "spec-id";

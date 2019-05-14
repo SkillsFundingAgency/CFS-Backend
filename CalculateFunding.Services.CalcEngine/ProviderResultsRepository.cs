@@ -11,7 +11,6 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace CalculateFunding.Services.Calculator
@@ -164,7 +163,7 @@ namespace CalculateFunding.Services.Calculator
                 {
                     SpecificationSummary specification = specifications[providerResult.SpecificationId];
 
-                    results.Add(new ProviderCalculationResultsIndex
+                    ProviderCalculationResultsIndex providerCalculationResultsIndex = new ProviderCalculationResultsIndex
                     {
                         SpecificationId = providerResult.SpecificationId,
                         SpecificationName = specification?.Name,
@@ -182,8 +181,24 @@ namespace CalculateFunding.Services.Calculator
                         CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
                         CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
                         CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
-                    });
-                    
+					};
+
+                    if (_featureToggle.IsExceptionMessagesEnabled())
+                    {
+                        providerCalculationResultsIndex.CalculationException = providerResult.CalculationResults
+                            .Select(m => !string.IsNullOrWhiteSpace(m.ExceptionType) ? "true" : "false")
+                            .ToArraySafe();
+
+                        providerCalculationResultsIndex.CalculationExceptionType = providerResult.CalculationResults
+                            .Select(m => m.ExceptionType ?? string.Empty)
+                            .ToArraySafe();
+
+                        providerCalculationResultsIndex.CalculationExceptionMessage = providerResult.CalculationResults
+                            .Select(m => m.ExceptionMessage ?? string.Empty)
+                            .ToArraySafe();
+                    }
+
+                    results.Add(providerCalculationResultsIndex);
                 }
             }
 

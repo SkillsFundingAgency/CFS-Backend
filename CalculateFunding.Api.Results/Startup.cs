@@ -235,7 +235,7 @@ namespace CalculateFunding.Api.Results
                 }
             });
 
-            builder.AddSingleton<IResultsResilliencePolicies>((ctx) =>
+            builder.AddSingleton<IResultsResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 

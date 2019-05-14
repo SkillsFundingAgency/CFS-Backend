@@ -163,7 +163,7 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public async Task SearchTestScenarioResults_GivenValidModelAndIncludesGettingFacets_CallsSearchTenTimes()
+        public async Task SearchTestScenarioResults_GivenValidModelAndIncludesGettingFacets_CallsSearchCorrectNumberOfTimes()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -203,8 +203,53 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 searchRepository
-                    .Received(10)
-                    .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
+                    .Received(model.FacetCount)
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName")));
+        }
+
+        [TestMethod]
+        public async Task SearchTestScenarioResults_GivenValidModelAndIncludesGettingFacets_CallsSearchOnceForErrorCount()
+        {
+            //Arrange
+            SearchModel model = new SearchModel
+            {
+                PageNumber = 1,
+                Top = 50,
+                IncludeFacets = true
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            SearchResults<ProviderCalculationResultsIndex> searchResults = new SearchResults<ProviderCalculationResultsIndex>();
+
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
+            searchRepository
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Returns(searchResults);
+
+            ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
+
+            //Act
+            IActionResult result = await service.SearchCalculationProviderResults(request);
+
+            //Assert
+            result
+                 .Should()
+                 .BeOfType<OkObjectResult>();
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "calculationException")));
         }
 
         [TestMethod]
@@ -248,8 +293,8 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 searchRepository
-                    .Received(10)
-                    .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
+                    .Received(model.FacetCount)
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName")));
         }
 
         [TestMethod]
@@ -298,7 +343,7 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                searchRepository
-               .Received(9)
+               .Received(model.FacetCount - 1)
                    .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                        model.Filters.Keys.All(f => c.Filter.Contains(f))
                        && !string.IsNullOrWhiteSpace(c.Filter)
@@ -351,7 +396,7 @@ namespace CalculateFunding.Services.Results.Services
 
             await
                 searchRepository
-                .Received(9)
+                .Received(model.FacetCount - 1)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -415,12 +460,15 @@ namespace CalculateFunding.Services.Results.Services
         static ProviderCalculationResultsSearchService CreateTestResultsSearchService(
           ILogger logger = null,
           ISearchRepository<ProviderCalculationResultsIndex> serachRepository = null,
-          IResultsResilliencePolicies resiliencePolicies = null)
+          IResultsResiliencePolicies resiliencePolicies = null)
         {
+            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
+            featureToggle.IsExceptionMessagesEnabled().Returns(true);
             return new ProviderCalculationResultsSearchService(
                 logger ?? CreateLogger(),
                 serachRepository ?? CreateSearchRepository(),
-                resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies());
+                resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
+                featureToggle);
         }
 
         static ILogger CreateLogger()

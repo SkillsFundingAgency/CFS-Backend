@@ -8,7 +8,6 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Logging;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,34 +26,39 @@ namespace CalculateFunding.Services.Calcs.Services
         private static CalculationService CreateCalculationService(
             ICalculationsRepository calculationsRepository = null,
             ILogger logger = null,
-            ITelemetry telemetry = null,
             ISearchRepository<CalculationIndex> searchRepository = null,
             IValidator<Calculation> calcValidator = null,
             IBuildProjectsService buildProjectsService = null,
             ISpecificationRepository specificationRepository = null,
             ICacheProvider cacheProvider = null,
-            ICalcsResilliencePolicies resilliencePolicies = null,
+            ICalcsResiliencePolicies resiliencePolicies = null,
             IVersionRepository<CalculationVersion> calculationVersionRepository = null,
             IJobsApiClient jobsApiClient = null,
             ISourceCodeService sourceCodeService = null,
             IFeatureToggle featureToggle = null,
-            IBuildProjectsRepository buildProjectsRepository = null)
+            IBuildProjectsRepository buildProjectsRepository = null,
+            ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = null)
         {
             return new CalculationService
                 (calculationsRepository ?? CreateCalculationsRepository(),
                 logger ?? CreateLogger(),
-                telemetry ?? CreateTelemetry(),
                 searchRepository ?? CreateSearchRepository(),
                 calcValidator ?? CreateCalculationValidator(),
                 buildProjectsService ?? CreateBuildProjectsService(),
                 specificationRepository ?? CreateSpecificationRepository(),
                 cacheProvider ?? CreateCacheProvider(),
-                resilliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
+                resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 calculationVersionRepository ?? CreateCalculationVersionRepository(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 sourceCodeService ?? CreateSourceCodeService(),
                 featureToggle ?? CreateFeatureToggle(),
-                buildProjectsRepository ?? CreateBuildProjectsRepository());
+                buildProjectsRepository ?? CreateBuildProjectsRepository(),
+                calculationCodeReferenceUpdate ?? CreateCalculationCodeReferenceUpdate());
+        }
+
+        private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
+        {
+            return Substitute.For<ICalculationCodeReferenceUpdate>();
         }
 
         private static IFeatureToggle CreateFeatureToggle()
@@ -90,11 +94,6 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
-        }
-
-        private static ITelemetry CreateTelemetry()
-        {
-            return Substitute.For<ITelemetry>();
         }
 
         private static ISearchRepository<CalculationIndex> CreateSearchRepository()

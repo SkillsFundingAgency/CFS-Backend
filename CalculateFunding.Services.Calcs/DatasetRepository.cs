@@ -46,5 +46,24 @@ namespace CalculateFunding.Services.Calcs
 
             return await _datasetsApiClientProxy.GetAsync<DatasetDefinition>(url);
         }
+
+        public async Task<IEnumerable<string>> GetRelationshipSpecificationIdsByDatasetDefinitionId(string datasetDefinitionId)
+        {
+            Guard.IsNullOrWhiteSpace(datasetDefinitionId, nameof(datasetDefinitionId));
+
+            string url = $"datasets/{datasetDefinitionId}/relationshipSpecificationIds";
+
+            return await _datasetsApiClientProxy.GetAsync<IEnumerable<string>>(url);
+        }
+
+        public async Task<IEnumerable<DatasetSpecificationRelationshipViewModel>> GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(string specificationId, string datasetDefinitionId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(datasetDefinitionId, nameof(datasetDefinitionId));
+
+            string url = $"datasets/{specificationId}/{datasetDefinitionId}/relationships";
+
+            return await _datasetsApiClientProxy.GetAsync<IEnumerable<DatasetSpecificationRelationshipViewModel>>(url);
+        }
     }
 }

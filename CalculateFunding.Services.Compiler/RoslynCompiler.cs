@@ -114,13 +114,13 @@ namespace CalculateFunding.Services.Compiler
             };
         }
 
-        protected abstract IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles);
+        protected abstract IDictionary<string, string> GetCalculationFunctions(IEnumerable<SourceFile> sourceFiles);
 
         protected abstract EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles);
 
-        IDictionary<string, string> ICompiler.GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles)
+        IDictionary<string, string> ICompiler.GetCalculationFunctions(IEnumerable<SourceFile> sourceFiles)
         {
-            return GetCalulationFunctions(sourceFiles);
+            return GetCalculationFunctions(sourceFiles);
         }
     }
 }

@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Datasets
 
             responseModel.DatasetId = dataset.Id;
             responseModel.BlobUrl = blobUrl;
-            responseModel.Author = request.GetUser();
+            responseModel.Author = request.GetUserOrDefault();
             responseModel.DefinitionId = dataset.Definition.Id;
             responseModel.Name = dataset.Name;
             responseModel.Description = dataset.Description;
@@ -351,7 +351,20 @@ namespace CalculateFunding.Services.Datasets
                 model.DatasetId = blob.Metadata["datasetId"];
             }
 
-            Reference user = request.GetUser();
+            Reference user = new Reference();
+
+            if (blob.Metadata.ContainsKey("authorId") && blob.Metadata.ContainsKey("authorName"))
+            {
+                user.Id = blob.Metadata["authorId"];
+                user.Name = blob.Metadata["authorName"];
+            }
+            else
+            {
+                user = request.GetUserOrDefault();
+            }
+
+            model.LastUpdatedById = user.Id;
+            model.LastUpdatedByName = user.Name;
 
             Trigger trigger = new Trigger
             {
@@ -385,7 +398,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task ValidateDataset(Message message)
         {
-            Guard.ArgumentNotNull(message, nameof(message));
+             Guard.ArgumentNotNull(message, nameof(message));
 
             string operationId = null;
             if (message.UserProperties.ContainsKey("operation-id"))
@@ -407,6 +420,7 @@ namespace CalculateFunding.Services.Datasets
             await UpdateJobStatus(jobId, null, 0);
 
             GetDatasetBlobModel model = message.GetPayloadAsInstanceOf<GetDatasetBlobModel>();
+
             if (model == null)
             {
                 _logger.Error("Null model was provided to ValidateDataset");
@@ -531,7 +545,16 @@ namespace CalculateFunding.Services.Datasets
                         }
                         else
                         {
-                            Reference user = message.GetUserDetails();
+                            Reference user = new Reference();
+
+                            if (!string.IsNullOrWhiteSpace(model.LastUpdatedById) && !string.IsNullOrWhiteSpace(model.LastUpdatedByName))
+                            {
+                                user = new Reference(model.LastUpdatedById, model.LastUpdatedByName);
+                            }
+                            else
+                            {
+                                user = message.GetUserDetails();
+                            }
 
                             dataset = await UpdateExistingDatasetAndAddVersion(blob, model, user, rowCount);
                         }

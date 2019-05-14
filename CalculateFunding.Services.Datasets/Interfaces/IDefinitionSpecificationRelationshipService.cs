@@ -25,5 +25,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetSpecificationIdsForRelationshipDefinitionId(string datasetDefinitionId);
 
         Task UpdateRelationshipDatasetDefinitionName(Reference datsetDefinitionReference);
+
+        Task<IActionResult> GetCurrentRelationshipsBySpecificationIdAndDatasetDefinitionId(string specificationId, string datasetDefinitionId);
     }
 }

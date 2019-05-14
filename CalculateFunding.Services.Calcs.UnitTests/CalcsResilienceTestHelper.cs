@@ -5,7 +5,7 @@ namespace CalculateFunding.Services.Calcs
 {
     public static class CalcsResilienceTestHelper
     {
-        public static ICalcsResilliencePolicies GenerateTestPolicies()
+        public static ICalcsResiliencePolicies GenerateTestPolicies()
         {
             return new ResiliencePolicies()
             {

@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                         .WithModifiers(
                             SyntaxFactory.TokenList(
                                 SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                        SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(SyntaxFactory.ParseTypeName("BaseCalculation"))),
+                        SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(_compilerOptions.UseLegacyCode ? SyntaxFactory.ParseTypeName("LegacyBaseCalculation") :  SyntaxFactory.ParseTypeName("BaseCalculation"))),
                             new SyntaxList<ImplementsStatementSyntax>(),
                             SyntaxFactory.List(CreateMethods(buildProject, calculations)),
                             SyntaxFactory.EndClassStatement()

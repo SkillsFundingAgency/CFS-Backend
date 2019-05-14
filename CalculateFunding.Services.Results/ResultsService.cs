@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Results
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
             ISpecificationsRepository specificationsRepository,
-            IResultsResilliencePolicies resiliencePolicies,
+            IResultsResiliencePolicies resiliencePolicies,
             IProviderImportMappingService providerImportMappingService,
             ICacheProvider cacheProvider,
             IMessengerService messengerService,

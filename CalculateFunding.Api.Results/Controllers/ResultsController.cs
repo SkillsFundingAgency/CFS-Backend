@@ -165,7 +165,7 @@ namespace CalculateFunding.Api.Results.Controllers
         [HttpGet]
         public async Task<IActionResult> ReIndexAllocationFeeds()
         {
-            return await _publishedResultsService.ReIndexAllocationNotificationFeeds();
+            return await _publishedResultsService.ReIndexAllocationNotificationFeeds(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/hasCalculationResults/{calculationId}")]
@@ -191,9 +191,9 @@ namespace CalculateFunding.Api.Results.Controllers
 
         [Route("api/results/reindex/calculation-results")]
         [HttpGet]
-        public async Task<IActionResult> ReIndexCalulationResults()
+        public async Task<IActionResult> ReIndexCalculationResults()
         {
-            return await _providerCalculationResultsReIndexerService.ReIndex();
+            return await _providerCalculationResultsReIndexerService.ReIndexCalculationResults(ControllerContext.HttpContext.Request);
         }
 
         [Route("/api/results/published-provider-profile/providerId/{providerId}/specificationId/{specificationId}/fundingStreamId/{fundingStreamId}")]

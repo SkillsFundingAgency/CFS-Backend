@@ -9,6 +9,6 @@ namespace CalculateFunding.Services.Compiler
     {
         Build GenerateCode(List<SourceFile> sourcefiles);
 
-        IDictionary<string, string> GetCalulationFunctions(IEnumerable<SourceFile> sourceFiles);
+        IDictionary<string, string> GetCalculationFunctions(IEnumerable<SourceFile> sourceFiles);
     }
 }

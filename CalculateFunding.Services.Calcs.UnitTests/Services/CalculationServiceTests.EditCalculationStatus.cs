@@ -698,7 +698,8 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationsRepository
                 .UpdateCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.OK);
-
+            
+           
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary();

@@ -539,7 +539,7 @@ namespace CalculateFunding.Services.Calculator
             {
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<Dictionary<string, List<decimal>>>(messageProperties.CalculationsAggregationsBatchCacheKey, cachedCalculationAggregationsBatch));
 
-                outcome = $"{itemsSucceeded} provider result calulation aggregations were generated successfully from {itemsProcessed} providers";
+                outcome = $"{itemsSucceeded} provider result calculation aggregations were generated successfully from {itemsProcessed} providers";
             }
 
             await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(messageProperties.JobId, new JobLogUpdateModel

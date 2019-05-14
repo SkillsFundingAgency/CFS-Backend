@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Scenarios;
@@ -2048,6 +2049,138 @@ namespace CalculateFunding.Services.Scenarios.Services
             logger
                 .Received(1)
                 .Warning("Null or invalid SpecificationId provided to UpdateScenarioForCalculation");
+        }
+
+        [TestMethod]
+        public async Task ResetScenarioForFieldDefinitionChanges_GivenNoScenariosToProcess_LogsAndDoesNotContinue()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            IEnumerable<TestScenario> testScenarios = Enumerable.Empty<TestScenario>();
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> relationships = Enumerable.Empty<DatasetSpecificationRelationshipViewModel>();
+            IEnumerable<string> currentFieldDefinitionNames = Enumerable.Empty<string>();
+
+            ILogger logger = CreateLogger();
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(specificationId))
+                .Returns(testScenarios);
+
+            ScenariosService scenariosService = CreateScenariosService(logger, scenariosRepository);
+
+            //Act
+            await scenariosService.ResetScenarioForFieldDefinitionChanges(relationships, specificationId, currentFieldDefinitionNames);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"No scenarios found for specification id '{specificationId}'"));
+        }
+
+        [TestMethod]
+        public async Task ResetScenarioForFieldDefinitionChanges_GivenNoScenariosRequiredResetting_LogsAndDoesNotContinue()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> relationships = Enumerable.Empty<DatasetSpecificationRelationshipViewModel>();
+            IEnumerable<string> currentFieldDefinitionNames = Enumerable.Empty<string>();
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<TestScenario> scenarios = new[]
+            {
+                new TestScenario
+                {
+                     Current = new TestScenarioVersion
+                     {
+                         Gherkin = "gherkin"
+                     }
+                }
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(specificationId))
+                .Returns(scenarios);
+
+            ScenariosService scenariosService = CreateScenariosService(logger, scenariosRepository);
+
+            //Act
+            await scenariosService.ResetScenarioForFieldDefinitionChanges(relationships, specificationId, currentFieldDefinitionNames);
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"No test scenarios required resetting for specification id '{specificationId}'"));
+        }
+
+        [TestMethod]
+        public async Task ResetScenarioForFieldDefinitionChanges_GivenScenarioFoundForResetting_UpdatesSenarioAndSavesVersion()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+            const string scenarioId = "id-1";
+
+            IEnumerable<DatasetSpecificationRelationshipViewModel> relationships = new[]
+            {
+                new DatasetSpecificationRelationshipViewModel
+                {
+                     Name = "Test Name"
+                }
+            };
+
+            IEnumerable<string> currentFieldDefinitionNames = new[]
+            {
+                "Test Field"
+            };
+
+            ILogger logger = CreateLogger();
+
+            IEnumerable<TestScenario> scenarios = new[]
+            {
+                new TestScenario
+                {
+                     Current = new TestScenarioVersion
+                     {
+                         Gherkin = "dataset 'Test Name' field 'TestField'"
+                     },
+                     Id = scenarioId
+                }
+            };
+
+            IScenariosRepository scenariosRepository = CreateScenariosRepository();
+            scenariosRepository
+                .GetTestScenariosBySpecificationId(Arg.Is(specificationId))
+                .Returns(scenarios);
+
+            IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            ScenariosService scenariosService = CreateScenariosService(logger, scenariosRepository, versionRepository: versionRepository, cacheProvider: cacheProvider);
+
+            //Act
+            await scenariosService.ResetScenarioForFieldDefinitionChanges(relationships, specificationId, currentFieldDefinitionNames);
+
+            //Assert
+            await
+                scenariosRepository
+                    .Received(1)
+                    .SaveTestScenario(Arg.Any<TestScenario>());
+
+            await
+               versionRepository
+                   .Received(1)
+                   .SaveVersion(Arg.Any<TestScenarioVersion>());
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .RemoveAsync<GherkinParseResult>(Arg.Is($"{CacheKeys.GherkinParseResult}{scenarioId}"));
         }
 
         static ScenariosService CreateScenariosService(

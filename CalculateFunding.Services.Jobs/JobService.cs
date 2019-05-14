@@ -20,16 +20,16 @@ namespace CalculateFunding.Services.Jobs
         private readonly Polly.Policy _jobsRepositoryPolicy;
         private readonly Polly.Policy _jobsRepositoryNonAsyncPolicy;
 
-        public JobService(IJobRepository jobRepository, IMapper mapper, IJobsResiliencePolicies resilliencePolicies)
+        public JobService(IJobRepository jobRepository, IMapper mapper, IJobsResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(jobRepository, nameof(jobRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
-            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
 
             _jobRepository = jobRepository;
             _mapper = mapper;
-            _jobsRepositoryPolicy = resilliencePolicies.JobRepository;
-            _jobsRepositoryNonAsyncPolicy = resilliencePolicies.JobRepositoryNonAsync;
+            _jobsRepositoryPolicy = resiliencePolicies.JobRepository;
+            _jobsRepositoryNonAsyncPolicy = resiliencePolicies.JobRepositoryNonAsync;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

@@ -5,7 +5,7 @@ namespace CalculateFunding.Services.Results.UnitTests
 {
     public static class ResultsResilienceTestHelper
     {
-        public static IResultsResilliencePolicies GenerateTestPolicies()
+        public static IResultsResiliencePolicies GenerateTestPolicies()
         {
             return new ResiliencePolicies()
             {

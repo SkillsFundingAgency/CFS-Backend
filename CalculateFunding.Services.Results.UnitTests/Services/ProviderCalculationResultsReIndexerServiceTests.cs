@@ -1,19 +1,26 @@
-﻿using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.UnitTests;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,16 +29,42 @@ namespace CalculateFunding.Services.Results.Services
     [TestClass]
     public class ProviderCalculationResultsReIndexerServiceTests
     {
-
         [TestMethod]
-        public async Task ReIndex_GivenResultReturnedFromDatabaseWithTwoCalcResultsButSearchRetuensErrors_ReturnsInternalServerError500()
+        public async Task ReIndexCalculationResults_GivenMessageWithUserDetails_LogsInitiated()
         {
             //Arrange
+            Message message = new Message();
+            message.UserProperties["user-id"] = "123";
+            message.UserProperties["user-name"] = "Joe Bloggs";
+
+            ILogger logger = CreateLogger();
+
+            ProviderCalculationResultsReIndexerService service = CreateService(logger: logger);
+
+            //Act
+            await service.ReIndexCalculationResults(message);
+
+            //Assert
+            logger
+               .Received(1)
+               .Information($"{nameof(service.ReIndexCalculationResults)} initiated by: 'Joe Bloggs'");
+        }
+
+        [TestMethod]
+        public void ReIndexCalculationResults_GivenResultReturnedFromDatabaseWithTwoCalcResultsButSearchReturnsErrors_ThrowsRetriableException()
+        {
+            //Arrange
+            const string expectedErrorMessage = "Failed to index calculation provider result documents with errors: an error";
+
+            Message message = new Message();
+            message.UserProperties["user-id"] = "123";
+            message.UserProperties["user-name"] = "Joe Bloggs";
+
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
 
             ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
             calculationResultsRepository
-                .GetAllProviderResults()
+                .GetAllProviderResults(Arg.Is(providerResult.Content.SpecificationId))
                 .Returns(new[] { providerResult });
 
             ILogger logger = CreateLogger();
@@ -49,8 +82,8 @@ namespace CalculateFunding.Services.Results.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
-                .Returns(specificationSummary);
+                .GetSpecificationSummaries()
+                .Returns(new List<SpecificationSummary> { specificationSummary });
 
             ProviderCalculationResultsReIndexerService service = CreateService(
                 resultsRepository: calculationResultsRepository,
@@ -59,31 +92,39 @@ namespace CalculateFunding.Services.Results.Services
                 logger: logger);
 
             //Act
-            IActionResult actionResult = await service.ReIndex();
+           Func<Task> test = async () => await service.ReIndexCalculationResults(message);
 
             //Assert
-            actionResult
+            test
                 .Should()
-                .BeOfType<InternalServerErrorResult>()
+                .ThrowExactly<RetriableException>()
                 .Which
-                .Value
+                .Message
                 .Should()
-                .Be("Failed to index calculation provider result documents with errors: an error");
+                .Be(expectedErrorMessage);
 
             logger
                 .Received(1)
-                .Error(Arg.Is("Failed to index calculation provider result documents with errors: an error"));
+                .Error(Arg.Is(expectedErrorMessage));
+
+            logger
+               .Received(1)
+               .Information($"{nameof(service.ReIndexCalculationResults)} initiated by: 'Joe Bloggs'");
         }
 
         [TestMethod]
-        public async Task ReIndex_GivenResultReturnedFromDatabaseWithCalcResult_UpdatesSearchThenReturnsNoContent()
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task ReIndexCalculationResults_GivenResultReturnedFromDatabaseWithCalcResult_UpdatesSearch(bool featureToggleEnabled)
         {
             //Arrange
+            Message message = new Message();
+
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
 
             ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
             calculationResultsRepository
-                .GetAllProviderResults()
+                .GetAllProviderResults(Arg.Is(providerResult.Content.SpecificationId))
                 .Returns(new[] { providerResult });
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
@@ -96,22 +137,21 @@ namespace CalculateFunding.Services.Results.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
-                .Returns(specificationSummary);
+                .GetSpecificationSummaries()
+                .Returns(new List<SpecificationSummary> { specificationSummary });
+
+            IFeatureToggle featureToggle = CreateFeatureToggle(featureToggleEnabled);
 
             ProviderCalculationResultsReIndexerService service = CreateService(
                 resultsRepository: calculationResultsRepository,
                 providerCalculationResultsSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsRepository: specificationsRepository,
+                featureToggle: featureToggle);
 
             //Act
-            IActionResult actionResult = await service.ReIndex();
+            await service.ReIndexCalculationResults(message);
 
             //Assert
-            actionResult
-                .Should()
-                .BeOfType<NoContentResult>();
-
             await
                 searchRepository
                     .Received(1)
@@ -128,6 +168,7 @@ namespace CalculateFunding.Services.Results.Services
                             m.First().CalculationId.SequenceEqual(new[] { "calc-id-1", "calc-id-2" }) &&
                             m.First().CalculationName.SequenceEqual(new[] { "calc name 1", "calc name 2" }) &&
                             m.First().CalculationResult.SequenceEqual(new[] { "123", "10" }) &&
+                            featureToggleEnabled ? m.First().CalculationException.SequenceEqual(new[] { "true", "false" }) : m.First().CalculationException == null &&
                             m.First().ProviderId == "prov-id" &&
                             m.First().ProviderName == "prov name" &&
                             m.First().ProviderType == "prov type" &&
@@ -139,18 +180,62 @@ namespace CalculateFunding.Services.Results.Services
                     ));
         }
 
+        [TestMethod]
+        public async Task ReIndexCalculationResults_GivenRequest_AddsServiceBusMessage()
+        {
+            //Arrange
+             ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+            {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, "123"), new Claim(ClaimTypes.Name, "Joe Bloggs") })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .HttpContext
+                .Returns(context);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ProviderCalculationResultsReIndexerService service = CreateService(messengerService: messengerService);
+
+            //Act
+            IActionResult actionResult = await service.ReIndexCalculationResults(request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<NoContentResult>();
+
+            await
+            messengerService
+                .Received(1)
+                .SendToQueue(
+                    Arg.Is(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex),
+                    Arg.Is(string.Empty),
+                    Arg.Is<IDictionary<string, string>>(m => m["user-id"] == "123" && m["user-name"] == "Joe Bloggs"));
+        }
+
         public static ProviderCalculationResultsReIndexerService CreateService(
             ILogger logger = null,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
             ISpecificationsRepository specificationsRepository = null,
-            ICalculationResultsRepository resultsRepository = null)
+            ICalculationResultsRepository resultsRepository = null,
+            IFeatureToggle featureToggle = null,
+            IMessengerService messengerService = null)
         {
             return new ProviderCalculationResultsReIndexerService(
                     logger ?? CreateLogger(),
                     providerCalculationResultsSearchRepository ?? CreateSearchRepository(),
                     specificationsRepository ?? CreateSpecificationsRepository(),
                     resultsRepository ?? CreateCalculationResultsRepository(),
-                    CreateResiliencxePolicies()
+                    CreateResiliencePolicies(),
+                    featureToggle ?? CreateFeatureToggle(),
+                    messengerService ?? CreateMessengerService()
                 );
         }
 
@@ -173,9 +258,24 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ICalculationResultsRepository>();
         }
 
-        private static IResultsResilliencePolicies CreateResiliencxePolicies()
+        private static IResultsResiliencePolicies CreateResiliencePolicies()
         {
             return ResultsResilienceTestHelper.GenerateTestPolicies();
+        }
+
+        private static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
+        }
+
+        private static IFeatureToggle CreateFeatureToggle(bool featureToggleEnabled = true)
+        {
+            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
+            featureToggle
+                .IsExceptionMessagesEnabled()
+                .Returns(featureToggleEnabled);
+
+            return featureToggle;
         }
 
         static DocumentEntity<ProviderResult> CreateDocumentEntity()
@@ -193,7 +293,8 @@ namespace CalculateFunding.Services.Results.Services
                             CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding
+                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            ExceptionType = "Exception"
                         },
                         new CalculationResult
                         {

@@ -34,14 +34,14 @@ namespace CalculateFunding.Services.Results
 
         public ResultsSearchService(ILogger logger,
             ISearchRepository<ProviderIndex> searchRepository,
-            IResultsResilliencePolicies resilliencePolicies)
+            IResultsResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _logger = logger;
             _searchRepository = searchRepository;
-            _resultsSearchRepositoryPolicy = resilliencePolicies.ResultsSearchRepository;
+            _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

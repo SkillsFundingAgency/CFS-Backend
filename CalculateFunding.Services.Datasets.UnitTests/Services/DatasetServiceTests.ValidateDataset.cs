@@ -484,6 +484,108 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
+        public async Task ValidateDataset_GivenDatasetBlobModelWithAuthorMetadata_CallsJobServiceToQueueJobWithCorrectInvokerDetails()
+        {
+            // Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+            const string authorId = "user1";
+            const string authorName = "user 1";
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = "dataset-id",
+                Version = 1,
+                Filename = "ds.xlsx",
+                Comment = "Change comment",
+                DefinitionId = DataDefintionId,
+                Description = "My change description"
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId },
+                { "authorId", authorId },
+                { "authorName", authorName }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+               .DownloadToStreamAsync(Arg.Is(blob))
+               .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition()
+            {
+                Id = DataDefintionId,
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new List<DatasetDefinition>() { datasetDefinition };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient);
+
+            // Act
+            IActionResult result = await service.ValidateDataset(request);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeOfType<DatasetValidationStatusModel>()
+                .Should()
+                .NotBeNull();
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync<DatasetValidationStatusModel>(Arg.Is<string>(c => c.StartsWith(CacheKeys.DatasetValidationStatus) && c.Length > 40),
+                Arg.Is<DatasetValidationStatusModel>(s => !string.IsNullOrWhiteSpace(s.OperationId) && s.CurrentOperation == DatasetValidationStatus.Queued));
+
+            await jobsApiClient
+                .Received(1)
+                .CreateJob(Arg.Is<JobCreateModel>(
+                    j =>
+                    j.JobDefinitionId == JobConstants.DefinitionNames.ValidateDatasetJob &&
+                    j.InvokerUserId == authorId &&
+                    j.InvokerUserDisplayName == authorName));
+        }
+
+        [TestMethod]
         public async Task OnValidateDataset_GivenTableResultsContainsThreeErrors_ReturnsOKResultWithMessage()
         {
             //Arrange
@@ -978,6 +1080,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 Filename = "ds.xlsx",
                 Comment = updateComment,
                 Description = updatedDescription,
+                LastUpdatedById = authorId,
+                LastUpdatedByName = authorName
             };
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -985,8 +1089,6 @@ namespace CalculateFunding.Services.Datasets.Services
             Message message = new Message(byteArray);
             message.UserProperties.Add("jobId", "job1");
             message.UserProperties.Add("operation-id", operationId);
-            message.UserProperties.Add("user-id", authorId);
-            message.UserProperties.Add("user-name", authorName);
 
             ILogger logger = CreateLogger();
 

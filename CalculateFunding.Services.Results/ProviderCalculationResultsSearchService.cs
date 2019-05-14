@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results.Search;
@@ -24,6 +25,7 @@ namespace CalculateFunding.Services.Results
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _searchRepository;
         private readonly Policy _searchRepositoryPolicy;
+        private readonly IFeatureToggle _featureToggle;
 
         private FacetFilterType[] Facets = {
             new FacetFilterType("calculationId", true),
@@ -41,11 +43,13 @@ namespace CalculateFunding.Services.Results
 
         public ProviderCalculationResultsSearchService(ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository,
-            IResultsResilliencePolicies resiliencePolicies)
+            IResultsResiliencePolicies resiliencePolicies,
+            IFeatureToggle featureToggle)
         {
             _logger = logger;
             _searchRepository = searchRepository;
             _searchRepositoryPolicy = resiliencePolicies.ProviderCalculationResultsSearchRepository;
+            _featureToggle = featureToggle;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -89,11 +93,11 @@ namespace CalculateFunding.Services.Results
 
         public async Task<CalculationProviderResultSearchResults> SearchCalculationProviderResults(SearchModel searchModel)
         {
-            string calculationId = (searchModel.Filters != null && 
-                                        searchModel.Filters.ContainsKey("calculationId") && 
+            string calculationId = (searchModel.Filters != null &&
+                                        searchModel.Filters.ContainsKey("calculationId") &&
                                         searchModel.Filters["calculationId"].FirstOrDefault() != null) ? searchModel.Filters["calculationId"].FirstOrDefault() : "";
 
-            IEnumerable <Task<SearchResults<ProviderCalculationResultsIndex>>> searchTasks = BuildSearchTasks(searchModel);
+            IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> searchTasks = BuildSearchTasks(searchModel);
 
             await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
@@ -161,8 +165,6 @@ namespace CalculateFunding.Services.Results
                     {
                         Task.Run(() =>
                         {
-                            IEnumerable<string> s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
-
                             return _searchRepositoryPolicy.ExecuteAsync(()=> _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
                                 Facets = new[]{ filterPair.Key },
@@ -177,6 +179,14 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
+            if (_featureToggle.IsExceptionMessagesEnabled())
+            {
+                searchTasks = searchTasks.Concat(new[]
+                {
+                    BuildErrorsSearchTask(facetDictionary["calculationId"])
+                });
+            }
+
             searchTasks = searchTasks.Concat(new[]
             {
                 BuildItemsSearchTask(facetDictionary, searchModel)
@@ -185,9 +195,30 @@ namespace CalculateFunding.Services.Results
             return searchTasks;
         }
 
-        Task<SearchResults<ProviderCalculationResultsIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
+        Task<SearchResults<ProviderCalculationResultsIndex>> BuildErrorsSearchTask(string calculationIdFilter)
+        {
+            return Task.Run(() =>
+            {
+                return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search("true", new SearchParameters
+                {
+                    Facets = new[] { "calculationId", "calculationException" },
+                    SearchMode = SearchMode.All,
+                    IncludeTotalResultCount = false,
+                    SearchFields = new List<string> { "calculationException" },
+                    Filter = calculationIdFilter,
+                    QueryType = QueryType.Full
+                }));
+            });
+        }
+
+        Task<SearchResults<ProviderCalculationResultsIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel, bool excludePaging = false)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
+            List<string> errorToggleWhere = !searchModel.ErrorToggle.HasValue ? new List<string>() : (
+                searchModel.ErrorToggle.Value ? new List<string> { "calculationException/any(x: x eq 'true')" } :
+                new List<string> { "calculationException/all(x: x ne 'true')" }
+            );
+            IEnumerable<string> where = facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x)).Concat(errorToggleWhere);
             return Task.Run(() =>
             {
                 return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
@@ -197,7 +228,7 @@ namespace CalculateFunding.Services.Results
                     SearchMode = (SearchMode)searchModel.SearchMode,
                     SearchFields = new List<string> { "providerName" },
                     IncludeTotalResultCount = true,
-                    Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
+                    Filter = string.Join(" and ", where),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
                     QueryType = QueryType.Full
                 }));
@@ -206,10 +237,21 @@ namespace CalculateFunding.Services.Results
 
         private void ProcessSearchResults(SearchResults<ProviderCalculationResultsIndex> searchResult, CalculationProviderResultSearchResults results, string calculationId)
         {
-            
             if (!searchResult.Facets.IsNullOrEmpty())
             {
-                results.Facets = results.Facets.Concat(searchResult.Facets);
+                if (_featureToggle.IsExceptionMessagesEnabled() && searchResult.Facets.Any(f => f.Name == "calculationException"))
+                {
+                    results.TotalErrorCount = !searchResult.Results.IsNullOrEmpty() ? searchResult.Results
+                        .Where(x => {
+                            int calculationIdIndex = Array.IndexOf(x.Result.CalculationId, calculationId);
+                            return !x.Result.CalculationException.IsNullOrEmpty() ? x.Result.CalculationException[calculationIdIndex] == "true" : false;
+                        })
+                        .Count() : 0;
+                }
+                else
+                {
+                    results.Facets = results.Facets.Concat(searchResult.Facets);
+                }
             }
             else
             {
@@ -223,7 +265,7 @@ namespace CalculateFunding.Services.Results
                     {
                         int calculationIdIndex = Array.IndexOf(result.Result.CalculationId, calculationId);
 
-                        if(calculationIdIndex < 0)
+                        if (calculationIdIndex < 0)
                         {
                             throw new Exception();
                         }
@@ -248,6 +290,13 @@ namespace CalculateFunding.Services.Results
                             CalculationName = result.Result.CalculationName[calculationIdIndex],
                             CalculationResult = result.Result.CalculationResult[calculationIdIndex].GetValueOrNull<double>()
                         };
+
+                        if (_featureToggle.IsExceptionMessagesEnabled())
+                        {
+                            calculationResult.CalculationException = !result.Result.CalculationException.IsNullOrEmpty() ? result.Result.CalculationException[calculationIdIndex] : string.Empty;
+                            calculationResult.CalculationExceptionType = !result.Result.CalculationExceptionType.IsNullOrEmpty() ? result.Result.CalculationExceptionType[calculationIdIndex] : string.Empty;
+                            calculationResult.CalculationExceptionMessage = !result.Result.CalculationExceptionMessage.IsNullOrEmpty() ? result.Result.CalculationExceptionMessage[calculationIdIndex] : string.Empty;
+                        }
 
                         calculationResults.Add(calculationResult);
                     }

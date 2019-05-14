@@ -57,6 +57,10 @@
             public const string InstructAllocationLineResultStatusUpdatesPoisoned = "allocationline-instruct-result-status-updates/$DeadLetterQueue";
 
             public const string InstructAllocationLineResultStatusUpdatesPoisonedLocal = "allocationline-instruct-result-status-updates-poison";
+
+            public const string ReIndexAllocationNotificationFeedIndex = "reindex-allocation-notifcication-feed-index";
+
+            public const string ReIndexCalculationResultsIndex = "reindex-calculation-results-index";
         }
 
         public static class TopicNames

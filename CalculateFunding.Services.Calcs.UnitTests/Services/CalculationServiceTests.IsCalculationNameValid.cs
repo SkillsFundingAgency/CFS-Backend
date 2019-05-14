@@ -14,13 +14,13 @@ namespace CalculateFunding.Services.Calcs.Services
     public partial class CalculationServiceTests
     {
         [TestMethod]
-        public void IsCalcuationNameValid_WhenNoCalculationName_ThenThrowsArugmentNullException()
+        public void IsCalculationNameValid_WhenNoCalculationName_ThenThrowsArugmentNullException()
         {
             // Arrange
             CalculationService service = CreateCalculationService();
 
             // Act
-            Func<Task> action = async () => await service.IsCalcuationNameValid("spec1", null, null);
+            Func<Task> action = async () => await service.IsCalculationNameValid("spec1", null, null);
 
             // Assert
             action
@@ -33,13 +33,13 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void IsCalcuationNameValid_WhenNoSpecificationId_ThenThrowsArugmentNullException()
+        public void IsCalculationNameValid_WhenNoSpecificationId_ThenThrowsArugmentNullException()
         {
             // Arrange
             CalculationService service = CreateCalculationService();
 
             // Act
-            Func<Task> action = async () => await service.IsCalcuationNameValid(null, "calc1", null);
+            Func<Task> action = async () => await service.IsCalculationNameValid(null, "calc1", null);
 
             // Assert
             action
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task IsCalcuationNameValid_WhenSpecificationDoesNotExist_ThenReturnsNotFoundResult()
+        public async Task IsCalculationNameValid_WhenSpecificationDoesNotExist_ThenReturnsNotFoundResult()
         {
             // Arrange
             string specificationId = "spec1";
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(specificationRepository: specificationRepository);
 
             // Act
-            IActionResult result = await service.IsCalcuationNameValid(specificationId, "calc1", null);
+            IActionResult result = await service.IsCalculationNameValid(specificationId, "calc1", null);
 
             // Assert
             result
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task IsCalcuationNameValid_WhenCalculationDoesNotExist_ThenReturnsOkResult()
+        public async Task IsCalculationNameValid_WhenCalculationDoesNotExist_ThenReturnsOkResult()
         {
             // Arrange
             string specificationId = "spec1";
@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
 
             // Act
-            IActionResult result = await service.IsCalcuationNameValid(specificationId, "calc1", null);
+            IActionResult result = await service.IsCalculationNameValid(specificationId, "calc1", null);
 
             // Assert
             result
@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task IsCalcuationNameValid_WhenCalculationDoesExist_ThenReturnsConflictResult()
+        public async Task IsCalculationNameValid_WhenCalculationDoesExist_ThenReturnsConflictResult()
         {
             // Arrange
             string specificationId = "spec1";
@@ -131,7 +131,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
 
             // Act
-            IActionResult result = await service.IsCalcuationNameValid(specificationId, calcName, null);
+            IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, null);
 
             // Assert
             result
@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task IsCalcuationNameValid_WhenCalculationDiffersByCase_ThenReturnsConflictResult()
+        public async Task IsCalculationNameValid_WhenCalculationDiffersByCase_ThenReturnsConflictResult()
         {
             // Arrange
             string specificationId = "spec1";
@@ -170,7 +170,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
 
             // Act
-            IActionResult result = await service.IsCalcuationNameValid(specificationId, calcName, null);
+            IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, null);
 
             // Assert
             result
@@ -179,7 +179,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task IsCalcuationNameValid_WhenCalculationDiffersBySpecialCharacter_ThenReturnsConflictResult()
+        public async Task IsCalculationNameValid_WhenCalculationDiffersBySpecialCharacter_ThenReturnsConflictResult()
         {
             // Arrange
             string specificationId = "spec1";
@@ -209,7 +209,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
 
             // Act
-            IActionResult result = await service.IsCalcuationNameValid(specificationId, calcName, null);
+            IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, null);
 
             // Assert
             result
@@ -218,7 +218,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task IsCalcuationNameValid_WhenCalculationDiffersBySpace_ThenReturnsConflictResult()
+        public async Task IsCalculationNameValid_WhenCalculationDiffersBySpace_ThenReturnsConflictResult()
         {
             // Arrange
             string specificationId = "spec1";
@@ -248,7 +248,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
 
             // Act
-            IActionResult result = await service.IsCalcuationNameValid(specificationId, calcName, null);
+            IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, null);
 
             // Assert
             result
@@ -257,7 +257,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task IsCalcuationNameValid_WhenSameCalculation_ThenReturnsOkResult()
+        public async Task IsCalculationNameValid_WhenSameCalculation_ThenReturnsOkResult()
         {
             // Arrange
             string specificationId = "spec1";
@@ -288,7 +288,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
 
             // Act
-            IActionResult result = await service.IsCalcuationNameValid(specificationId, calcName, calcSpecId);
+            IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, calcSpecId);
 
             // Assert
             result

@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
-    public interface ICalcsResilliencePolicies
+    public interface ICalcsResiliencePolicies
     {
         Policy CalculationsRepository { get; set; }
 

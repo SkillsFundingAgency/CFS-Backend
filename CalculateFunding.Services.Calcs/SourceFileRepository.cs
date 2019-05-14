@@ -53,5 +53,13 @@ namespace CalculateFunding.Services.Calcs
             return await blockBlob.ExistsAsync();
         }
 
+        public async Task<bool> DeleteAssembly(string specificationId)
+        {
+            string blobName = $"{specificationId}/{dllFileName}";
+
+            ICloudBlob blockBlob = GetBlockBlobReference(blobName);
+
+            return await blockBlob.DeleteIfExistsAsync();
+        }
     }
 }

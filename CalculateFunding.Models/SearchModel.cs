@@ -20,6 +20,8 @@ namespace CalculateFunding.Models
 
         public string SearchTerm { get; set; } = "";
 
+        public bool? ErrorToggle { get; set; }
+
         public IEnumerable<string> OrderBy { get; set; }
 
         public IDictionary<string, string[]> Filters { get; set; }

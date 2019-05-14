@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
     public partial class SpecificationsServiceTests
     {
         [TestMethod]
-        public async Task ReIndex_GivenDeleteIndexThrowsException_RetunsInternalServerError()
+        public async Task ReIndex_GivenDeleteIndexThrowsException_ReturnsInternalServerError()
         {
             //Arrange
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ReIndex_GivenGetAllSpecificationDocumentsThrowsException_RetunsInternalServerError()
+        public async Task ReIndex_GivenGetAllSpecificationDocumentsThrowsException_ReturnsInternalServerError()
         {
             //Arrange
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ReIndex_GivenIndexingThrowsException_RetunsInternalServerError()
+        public async Task ReIndex_GivenIndexingThrowsException_ReturnsInternalServerError()
         {
             //Arrange
             IEnumerable<SpecificationSearchModel> specifications = new[]
@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ReIndex_GivenNoDocumentsReturnedFromCosmos_RetunsNoContent()
+        public async Task ReIndex_GivenNoDocumentsReturnedFromCosmos_ReturnsNoContent()
         {
             //Arrange
             IEnumerable<SpecificationSearchModel> specifications = new SpecificationSearchModel[0];
@@ -173,7 +173,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ReIndex_GivenDocumentsReturnedFromCosmos_RetunsNoContent()
+        public async Task ReIndex_GivenDocumentsReturnedFromCosmos_ReturnsNoContent()
         {
             //Arrange
             IEnumerable<SpecificationSearchModel> specifications = new[]
@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Assert
             logger
                 .Received(1)
-                .Information(Arg.Is($"Succesfully re-indexed 1 documents"));
+                .Information(Arg.Is($"Successfully re-indexed 1 documents"));
 
             result
                 .Should()

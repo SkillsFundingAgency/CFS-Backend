@@ -13,6 +13,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results);
         Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1);
         Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults();
+        Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults(string specificationId);
         Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId);
         Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId);
     }

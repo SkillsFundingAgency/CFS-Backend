@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Jobs
             IJobRepository jobRepository,
             INotificationService notificationService,
             IJobDefinitionsService jobDefinitionsService,
-            IJobsResiliencePolicies resilliencePolicies,
+            IJobsResiliencePolicies resiliencePolicies,
             ILogger logger,
             IValidator<CreateJobValidationModel> createJobValidator,
             IMessengerService messengerService)
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(jobRepository, nameof(jobRepository));
             Guard.ArgumentNotNull(notificationService, nameof(notificationService));
             Guard.ArgumentNotNull(jobDefinitionsService, nameof(jobDefinitionsService));
-            Guard.ArgumentNotNull(resilliencePolicies, nameof(resilliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(createJobValidator, nameof(createJobValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -55,13 +55,13 @@ namespace CalculateFunding.Services.Jobs
             _jobRepository = jobRepository;
             _notificationService = notificationService;
             _jobDefinitionsService = jobDefinitionsService;
-            _jobsRepositoryPolicy = resilliencePolicies.JobRepository;
-            _jobDefinitionsRepositoryPolicy = resilliencePolicies.JobDefinitionsRepository;
-            _jobsRepositoryNonAsyncPolicy = resilliencePolicies.JobRepositoryNonAsync;
+            _jobsRepositoryPolicy = resiliencePolicies.JobRepository;
+            _jobDefinitionsRepositoryPolicy = resiliencePolicies.JobDefinitionsRepository;
+            _jobsRepositoryNonAsyncPolicy = resiliencePolicies.JobRepositoryNonAsync;
             _logger = logger;
             _createJobValidator = createJobValidator;
             _messengerService = messengerService;
-            _messengerServicePolicy = resilliencePolicies.MessengerServicePolicy;
+            _messengerServicePolicy = resiliencePolicies.MessengerServicePolicy;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

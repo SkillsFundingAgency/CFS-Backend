@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Providers;
@@ -8,10 +9,15 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -21,9 +27,13 @@ namespace CalculateFunding.Services.Results.Services
     public partial class PublishedResultsServiceTests
     {
         [TestMethod]
-        public async Task ReIndexAllocationNotificationFeeds_GivenNoPublishedProviderResultsFound_LogsWarning()
+        public async Task ReIndexAllocationNotificationFeeds_GivenMessageWithUserDetails_LogsInitiated()
         {
             //Arrange
+            Message message = new Message();
+            message.UserProperties["user-id"] = "123";
+            message.UserProperties["user-name"] = "Joe Bloggs";
+
             IEnumerable<PublishedProviderResult> results = Enumerable.Empty<PublishedProviderResult>();
 
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
@@ -36,22 +46,50 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository);
 
             //Act
-            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
+            await resultsService.ReIndexAllocationNotificationFeeds(message);
 
             //Assert
-            actionResult
-                .Should()
-                .BeAssignableTo<NoContentResult>();
+            logger
+                .Received(1)
+                .Information($"{nameof(resultsService.ReIndexAllocationNotificationFeeds)} initiated by: 'Joe Bloggs'");
+        }
 
+        [TestMethod]
+        public async Task ReIndexAllocationNotificationFeeds_GivenNoPublishedProviderResultsFound_LogsWarning()
+        {
+            //Arrange
+            Message message = new Message();
+
+            IEnumerable<PublishedProviderResult> results = Enumerable.Empty<PublishedProviderResult>();
+
+            IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
+            repository
+                .GetAllNonHeldPublishedProviderResults()
+                .Returns(results);
+
+            ILogger logger = CreateLogger();
+
+            PublishedResultsService resultsService = CreateResultsService(logger, publishedProviderResultsRepository: repository);
+
+            //Act
+            await resultsService.ReIndexAllocationNotificationFeeds(message);
+
+            //Assert
             logger
                 .Received()
                 .Warning(Arg.Is("No published provider results were found to index."));
+
+            logger
+              .Received(1)
+              .Information($"{nameof(resultsService.ReIndexAllocationNotificationFeeds)} initiated by: 'system'");
         }
 
         [TestMethod]
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundButUpdatingIndexThrowsException_ReturnsInternalServerError()
         {
             //Arrange
+            Message message = new Message();
+
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
             foreach (PublishedProviderResult result in results)
             {
@@ -106,16 +144,12 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
+            Func<Task> test = async () => await resultsService.ReIndexAllocationNotificationFeeds(message);
 
             //Assert
-            actionResult
+            test
                 .Should()
-                .BeAssignableTo<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Error indexing");
+                .ThrowExactly<RetriableException>();
 
             logger
                 .Received()
@@ -131,6 +165,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundButAllHeld_DoesNotIndexReturnsContentResult()
         {
             //Arrange
+            Message message = new Message();
+
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
             repository
                 .GetAllNonHeldPublishedProviderResults()
@@ -151,13 +187,9 @@ namespace CalculateFunding.Services.Results.Services
                 allocationNotificationFeedSearchRepository: searchRepository, specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
+            await resultsService.ReIndexAllocationNotificationFeeds(message);
 
             //Assert
-            actionResult
-                .Should()
-                .BeAssignableTo<NoContentResult>();
-
             await
                 searchRepository
                 .DidNotReceive()
@@ -177,6 +209,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFound_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            Message message = new Message();
+
             const string specificationId = "spec-1";
 
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
@@ -245,13 +279,9 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository);
 
             //Act
-            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
+            await resultsService.ReIndexAllocationNotificationFeeds(message);
 
             //Assert
-            actionResult
-                .Should()
-                .BeAssignableTo<NoContentResult>();
-
             await
                 searchRepository
                 .Received(1)
@@ -303,6 +333,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundAndMajorMinorFeatureToggleIsEnabled_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            Message message = new Message();
+
             const string specificationId = "spec-1";
 
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
@@ -370,12 +402,7 @@ namespace CalculateFunding.Services.Results.Services
                 featureToggle: featureToggle);
 
             //Act
-            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
-
-            //Assert
-            actionResult
-                .Should()
-                .BeAssignableTo<NoContentResult>();
+            await resultsService.ReIndexAllocationNotificationFeeds(message);
 
             await
                 searchRepository
@@ -421,6 +448,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenResultHasBeenVaried_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            Message message = new Message();
+
             const string specificationId = "spec-1";
 
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
@@ -507,13 +536,9 @@ namespace CalculateFunding.Services.Results.Services
                 .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
 
             //Act
-            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
+            await resultsService.ReIndexAllocationNotificationFeeds(message);
 
             //Assert
-            actionResult
-                .Should()
-                .BeAssignableTo<NoContentResult>();
-
             await
                 searchRepository
                 .Received(1)
@@ -565,6 +590,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenResultHasProviderDataChange_AndHasNotBeenVariedInAnyOtherWay_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            Message message = new Message();
+
             const string specificationId = "spec-1";
 
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
@@ -642,13 +669,9 @@ namespace CalculateFunding.Services.Results.Services
                 featureToggle: featureToggle);
 
             //Act
-            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
+            await resultsService.ReIndexAllocationNotificationFeeds(message);
 
             //Assert
-            actionResult
-                .Should()
-                .BeAssignableTo<NoContentResult>();
-
             await
                 searchRepository
                 .Received(1)
@@ -700,6 +723,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundAndMajorMinorFeatureToggleIsEnabledAndIsAllAllocationResultsVersionsInFeedIndexEnabled_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            Message message = new Message();
+
             const string specificationId = "spec-1";
 
             IEnumerable<PublishedProviderResult> results = CreatePublishedProviderResultsWithDifferentProviders();
@@ -770,13 +795,9 @@ namespace CalculateFunding.Services.Results.Services
                 featureToggle: featureToggle);
 
             //Act
-            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds();
+            await resultsService.ReIndexAllocationNotificationFeeds(message);
 
             //Assert
-            actionResult
-                .Should()
-                .BeAssignableTo<NoContentResult>();
-
             await
                 searchRepository
                 .Received(1)
@@ -816,6 +837,46 @@ namespace CalculateFunding.Services.Results.Services
             feedResult.AllocationLineFundingRoute.Should().Be("LA");
             feedResult.MajorVersion.Should().Be(1);
             feedResult.MinorVersion.Should().Be(5);
+        }
+
+        [TestMethod]
+        public async Task ReIndexAllocationNotificationFeeds_GivenRequest_AddsServiceBusMessage()
+        {
+            //Arrange
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+           {
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, "123"), new Claim(ClaimTypes.Name, "Joe Bloggs") })
+            });
+
+            HttpContext context = Substitute.For<HttpContext>();
+            context
+                .User
+                .Returns(principle);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .HttpContext
+                .Returns(context);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            PublishedResultsService resultsService = CreateResultsService(messengerService: messengerService);
+
+            //Act
+            IActionResult actionResult = await resultsService.ReIndexAllocationNotificationFeeds(request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeAssignableTo<NoContentResult>();
+
+            await
+            messengerService
+                .Received(1)
+                .SendToQueue(
+                    Arg.Is(ServiceBusConstants.QueueNames.ReIndexAllocationNotificationFeedIndex),
+                    Arg.Is(string.Empty),
+                    Arg.Is<IDictionary<string, string>>(m => m["user-id"] == "123" && m["user-name"] == "Joe Bloggs"));
         }
     }
 }

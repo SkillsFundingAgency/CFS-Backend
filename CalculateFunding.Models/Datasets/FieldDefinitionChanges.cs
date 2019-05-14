@@ -20,6 +20,9 @@ namespace CalculateFunding.Models.Datasets
         [JsonProperty("fieldDefinition")]
         public FieldDefinition FieldDefinition { get; set; }
 
+        [JsonProperty("originalFieldDefinition")]
+        public FieldDefinition ExistingFieldDefinition { get; set; }
+
         [JsonProperty("changeTypes")]
         public List<FieldDefinitionChangeType> ChangeTypes { get;  }
 
@@ -29,6 +32,15 @@ namespace CalculateFunding.Models.Datasets
             get
             {
                 return ChangeTypes.Any();
+            }
+        }
+
+        [JsonIgnore]
+        public bool RequiresRemap
+        {
+            get
+            {
+                return ChangeTypes.Any(m => m == FieldDefinitionChangeType.IsAggregable || m == FieldDefinitionChangeType.IsNotAggregable || m == FieldDefinitionChangeType.FieldType);
             }
         }
     }

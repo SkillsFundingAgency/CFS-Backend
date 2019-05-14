@@ -8,6 +8,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -54,9 +55,7 @@ namespace CalculateFunding.Services.Calculator
             IFeatureToggle featureToggle = CreateFeatureToggle();
 
             Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.implementation-test-with-aggregates.dll");
-
             AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
-
             IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasets();
             sourceDatasets.First().DataDefinition.Name = "PE and Sport premium";
 
@@ -285,6 +284,34 @@ namespace CalculateFunding.Services.Calculator
         }
 
         [TestMethod]
+        public void Execute_GivenAssembly_EnsureDatasetHasValueSet()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+
+            IFeatureToggle featureToggle = CreateFeatureToggle();
+
+            Assembly assembly = CreateAssembly("CalculateFunding.Services.Calculator.Resources.Implementation-test-datasets-hasvalue.dll");
+
+            AllocationModel allocationModel = new AllocationFactory(logger, featureToggle).CreateAllocationModel(assembly) as AllocationModel;
+
+            IEnumerable<ProviderSourceDataset> sourceDatasets = CreateProviderSourceDatasetsWithHasValue();
+
+            ProviderSummary providerSummary = CreateProviderSummary();
+
+            //Act
+            IEnumerable<CalculationResult> calcResults = allocationModel.Execute(sourceDatasets.ToList(), providerSummary);
+
+            //Assert
+            calcResults.Any().Should().BeTrue();
+
+            dynamic instance = allocationModel.Instance as dynamic;
+
+            Assert.IsNotNull(instance.Datasets);
+            Assert.IsTrue(instance.Datasets.Providers.HasValue);
+        }
+
+        [TestMethod]
         public void Execute_GivenAssembly_EnsuresBindingOfDataset()
         {
             //Arrange
@@ -462,6 +489,44 @@ namespace CalculateFunding.Services.Calculator
                     {
                         Id = "9878dcc1-b292-4d99-981b-f7d3000a5d92",
                         Name = "AB PE 2109001"
+                    }
+                }
+            };
+
+            return providerSourceDatasets;
+        }
+
+        private static IEnumerable<ProviderSourceDataset> CreateProviderSourceDatasetsWithHasValue()
+        {
+            IEnumerable<ProviderSourceDataset> providerSourceDatasets = new[]
+            {
+                new ProviderSourceDataset
+                {
+                    SpecificationId = "7b948df0-8a6a-42ac-b73f-1f342907c69b",
+                    ProviderId = "10079319",
+                    DataDefinition = new Reference
+                    {
+                        Id = "9878dcc1-b292-4d99-981b-f7d3000a5d92",
+                        Name = "PE and Sport premium"
+                    },
+                    DataGranularity = DataGranularity.SingleRowPerProvider,
+                    DefinesScope = true,
+                    Current = new ProviderSourceDatasetVersion
+                    {
+                        ProviderSourceDatasetId = "7b948df0-8a6a-42ac-b73f-1f342907c69b_9878dcc1-b292-4d99-981b-f7d3000a5d92_10079319",
+                        Dataset = new Models.VersionReference("d7264c81-a00e-4322-b83e-f2224cd0ea1f", "AB PE DS 2109002", 2),
+                        ProviderId = "10079319",
+                        Rows = GetData()
+                    },
+                    DatasetRelationshipSummary = new Reference
+                    {
+                        Id = "9878dcc1-b292-4d99-981b-f7d3000a5d92",
+                        Name = "PEAndSportPremiumDataset"
+                    },
+                    DataRelationship = new Reference
+                    {
+                        Id = "9878dcc1-b292-4d99-981b-f7d3000a5d92",
+                        Name = "Providers"
                     }
                 }
             };

@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Results
           ITelemetry telemetry,
           ICalculationResultsRepository resultsRepository,
           ISpecificationsRepository specificationsRepository,
-          IResultsResilliencePolicies resiliencePolicies,
+          IResultsResiliencePolicies resiliencePolicies,
           IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService,
           IPublishedProviderResultsRepository publishedProviderResultsRepository,
           ICacheProvider cacheProvider,
@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Results
             ITelemetry telemetry,
             ICalculationResultsRepository resultsRepository,
             ISpecificationsRepository specificationsRepository,
-            IResultsResilliencePolicies resiliencePolicies,
+            IResultsResiliencePolicies resiliencePolicies,
             IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService,
             IPublishedProviderResultsRepository publishedProviderResultsRepository,
             ICacheProvider cacheProvider,
@@ -1295,8 +1295,25 @@ namespace CalculateFunding.Services.Results
             return _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId, maxResults));
         }
 
-        public async Task<IActionResult> ReIndexAllocationNotificationFeeds()
+        public async Task<IActionResult> ReIndexAllocationNotificationFeeds(HttpRequest httpRequest)
         {
+            Guard.ArgumentNotNull(httpRequest, nameof(httpRequest));
+
+            IDictionary<string, string> properties = httpRequest.BuildMessageProperties();
+
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ReIndexAllocationNotificationFeedIndex, "", properties);
+
+            return new NoContentResult();
+        }
+
+        public async Task ReIndexAllocationNotificationFeeds(Message message)
+        {
+            Guard.ArgumentNotNull(message, nameof(message));
+
+            Reference user = message.GetUserDetails();
+
+            _logger.Information($"{nameof(ReIndexAllocationNotificationFeeds)} initiated by: '{user.Name}'");
+
             IEnumerable<PublishedProviderResult> publishedProviderResults = await _publishedProviderResultsRepositoryPolicy.ExecuteAsync(() => _publishedProviderResultsRepository.GetAllNonHeldPublishedProviderResults());
 
             if (publishedProviderResults.IsNullOrEmpty())
@@ -1323,13 +1340,10 @@ namespace CalculateFunding.Services.Results
                     {
                         _logger.Error(ex, "Failed to index allocation feeds");
 
-                        return new InternalServerErrorResult(ex.Message);
+                        throw new RetriableException("Failed to index allocation feeds", ex);
                     }
                 }
-
             }
-
-            return new NoContentResult();
         }
 
         private async Task<IEnumerable<PublishedProviderResult>> GetAllPublishedResultVersionsExcludingHeld(IEnumerable<PublishedProviderResult> publishedProviderResults)

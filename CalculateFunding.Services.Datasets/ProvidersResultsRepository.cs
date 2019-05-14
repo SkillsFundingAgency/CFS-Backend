@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.Datasets
                     {
                         try
                         {
-                            await _cosmosRepository.CreateAsync(new KeyValuePair<string, ProviderSourceDataset>(dataset.ProviderId, dataset));
+                            await _cosmosRepository.UpsertAsync(dataset, dataset.ProviderId);
                         }
                         finally
                         {
