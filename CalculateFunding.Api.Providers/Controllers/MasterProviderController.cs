@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Api.Providers.ViewModels;
+using CalculateFunding.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Providers.Controllers
@@ -12,9 +13,45 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <returns></returns>
         [HttpGet("api/providers/master")]
         [ProducesResponseType(200, Type = typeof(MasterProviderDatasetResultViewModel))]
-        public IActionResult GetMasterProviders()
+        public IActionResult GetAllMasterProviders()
         {
+            // Lookup which provider version is set to be the master in cache, then fallback to cosmos
+
+            // Use the provider version service  _providerVersionService.GetAllProviders(providerVersionId);
+
             return Ok(new MasterProviderDatasetResultViewModel());
+        }
+
+        /// <summary>
+        /// Search provider versions
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("api/providers/master-search")]
+        [ProducesResponseType(200, Type = typeof(ProviderVersionSearchResults))]
+        public IActionResult SearchMasterProviders([FromBody]SearchModel searchModel)
+        {
+            // Lookup which provider version is set to be the master in cache, then fallback to cosmos
+
+            // Use the search service _providerVersionSearchService.SearchProviders(providerVersionId, searchModel);
+
+            return Ok(new ProviderVersionSearchResults());
+        }
+
+        /// <summary>
+        /// Gets a single provider within a provider version
+        /// </summary>
+        /// <param name="providerVersionId">Provider Version Id</param>
+        /// <param name="providerId">Provider Id</param>
+        /// <returns></returns>
+        [HttpGet("api/providers/master/{providerId}")]
+        [ProducesResponseType(200, Type = typeof(ProviderViewModel))]
+        public IActionResult GetProviderByIdFromMaster([FromRoute]string providerVersionId, [FromRoute]string providerId)
+        {
+            // Lookup which provider version is set to be the master in cache, then fallback to cosmos
+
+            // Use the provider version search service  _providerVersionSearchService.GetProviderById(providerVersionId, providerId);
+
+            return Ok(new ProviderViewModel());
         }
 
         /// <summary>
