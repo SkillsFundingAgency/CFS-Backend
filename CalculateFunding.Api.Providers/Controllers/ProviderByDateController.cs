@@ -47,7 +47,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <param name="day">Day</param>
         /// <param name="searchModel">Search model</param>
         /// <returns></returns>
-        [HttpGet("api/providers/date-search/{year}/{month}/{day}")]
+        [HttpPost("api/providers/date-search/{year}/{month}/{day}")]
         [ProducesResponseType(200, Type = typeof(ProviderSearchResults))]
         public IActionResult SearchProvidersInProviderVersionAssociatedWithDate([FromRoute]int year, [FromRoute]int month, [FromRoute] int day, [FromBody]SearchModel searchModel)
         {
