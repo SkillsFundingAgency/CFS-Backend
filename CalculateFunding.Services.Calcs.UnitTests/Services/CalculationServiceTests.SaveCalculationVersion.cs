@@ -2076,7 +2076,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'"));
+                .Error(Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'"));
         }
 
         [TestMethod]

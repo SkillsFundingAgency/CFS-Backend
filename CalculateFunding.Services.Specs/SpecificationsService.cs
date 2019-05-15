@@ -1565,6 +1565,8 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> EditCalculation(HttpRequest request)
         {
+            Guard.ArgumentNotNull(request, nameof(request));
+
             request.Query.TryGetValue("specificationId", out StringValues specId);
 
             string specificationId = specId.FirstOrDefault();

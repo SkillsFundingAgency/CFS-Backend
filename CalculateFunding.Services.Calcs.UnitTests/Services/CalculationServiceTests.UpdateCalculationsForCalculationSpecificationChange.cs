@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
@@ -12,6 +14,7 @@ using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -778,6 +781,369 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService
                     .Received(1)
                     .SaveSourceFiles(Arg.Is<IEnumerable<SourceFile>>(m => m.Count() == 2), Arg.Is(specificationId), Arg.Is(SourceCodeType.Release));
+        }
+
+        [TestMethod]
+        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenIsPublicHasChangedAndHasNoAggregates_EnsuresCreateInstructAllocationJobIsCreated()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+            const string jobId = "job-id";
+
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
+            {
+                Current = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    IsPublic = false
+                },
+                Previous = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    IsPublic = true
+                },
+                CalculationId = CalculationId,
+                SpecificationId = specificationId,
+            };
+
+            Models.Calcs.Calculation specCalculation = new Models.Calcs.Calculation
+            {
+                Name = "name",
+                AllocationLine = new Reference { Id = "1" },
+                CalculationType = Models.Calcs.CalculationType.Funding,
+                Id = CalculationId,
+                FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
+                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Approved
+                },
+                CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
+                SpecificationId = specificationId,
+            };
+
+
+            string json = JsonConvert.SerializeObject(model);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["user-id"] = "123";
+            message.UserProperties["user-name"] = "Joe Bloggs";
+
+            ILogger mockLogger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Name = "spec name",
+            };
+
+            BuildProject buildProject = new BuildProject();
+
+            ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
+
+            mockSpecificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ICalculationsRepository mockCalculationsRepository = CreateCalculationsRepository();
+            mockCalculationsRepository
+                .GetCalculationByCalculationSpecificationId(Arg.Is(CalculationId))
+                .Returns(specCalculation);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile(), new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = jobId, JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
+
+            CalculationService service =
+                CreateCalculationService(logger: mockLogger,
+                    specificationRepository: mockSpecificationRepository,
+                    calculationsRepository: mockCalculationsRepository,
+                    buildProjectsService: buildProjectsService,
+                    sourceCodeService: sourceCodeService,
+                    jobsApiClient: jobsApiClient);
+
+            //Act
+            await service.UpdateCalculationsForCalculationSpecificationChange(message);
+
+            //Assert
+            await
+                jobsApiClient
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(m =>
+                        m.InvokerUserDisplayName == "Joe Bloggs" &&
+                        m.InvokerUserId == "123" &&
+                        !string.IsNullOrWhiteSpace(m.CorrelationId) &&
+                        m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                        m.Properties.ContainsKey("specification-id") &&
+                        m.Properties["specification-id"] == specificationId &&
+                        m.Trigger.EntityType == nameof(Models.Calcs.Calculation) &&
+                        m.Trigger.EntityId == CalculationId &&
+                        m.Trigger.Message == $"Calculation IsPublic changed: '{CalculationId}' for specification: '{specificationId}'"
+                    ));
+
+            mockLogger
+                .Received(1)
+                .Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob }' created with id: '{jobId}'");
+        }
+
+        [TestMethod]
+        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenIsPublicHasChangedAndHasAggregates_EnsuresCreateInstructGenerateAggregationsAllocationJobIsCreated()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+            const string jobId = "job-id";
+
+            IEnumerable<Models.Calcs.Calculation> calculations = new[]
+           {
+                new Models.Calcs.Calculation
+                {
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = "return Sum(Calc1)"
+                    }
+                }
+            };
+
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
+            {
+                Current = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    IsPublic = false
+                },
+                Previous = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    IsPublic = true
+                },
+                CalculationId = CalculationId,
+                SpecificationId = specificationId,
+            };
+
+            Models.Calcs.Calculation specCalculation = new Models.Calcs.Calculation
+            {
+                Name = "name",
+                AllocationLine = new Reference { Id = "1" },
+                CalculationType = Models.Calcs.CalculationType.Funding,
+                Id = CalculationId,
+                FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
+                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Approved
+                },
+                CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
+                SpecificationId = specificationId,
+            };
+
+
+            string json = JsonConvert.SerializeObject(model);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+            message.UserProperties["user-id"] = "123";
+            message.UserProperties["user-name"] = "Joe Bloggs";
+
+            ILogger mockLogger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Name = "spec name",
+            };
+
+            BuildProject buildProject = new BuildProject();
+
+            ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
+
+            mockSpecificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ICalculationsRepository mockCalculationsRepository = CreateCalculationsRepository();
+            mockCalculationsRepository
+                .GetCalculationByCalculationSpecificationId(Arg.Is(CalculationId))
+                .Returns(specCalculation);
+
+            mockCalculationsRepository
+               .GetCalculationsBySpecificationId(Arg.Is(specificationId))
+               .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile(), new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = jobId, JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob });
+
+            CalculationService service =
+                CreateCalculationService(logger: mockLogger,
+                    specificationRepository: mockSpecificationRepository,
+                    calculationsRepository: mockCalculationsRepository,
+                    buildProjectsService: buildProjectsService,
+                    sourceCodeService: sourceCodeService,
+                    jobsApiClient: jobsApiClient);
+
+            //Act
+            await service.UpdateCalculationsForCalculationSpecificationChange(message);
+
+            //Assert
+            await
+                jobsApiClient
+                    .Received(1)
+                    .CreateJob(Arg.Is<JobCreateModel>(m =>
+                        m.InvokerUserDisplayName == "Joe Bloggs" &&
+                        m.InvokerUserId == "123" &&
+                        !string.IsNullOrWhiteSpace(m.CorrelationId) &&
+                        m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob &&
+                        m.Properties.ContainsKey("specification-id") &&
+                        m.Properties["specification-id"] == specificationId &&
+                        m.Trigger.EntityType == nameof(Models.Calcs.Calculation) &&
+                        m.Trigger.EntityId == CalculationId &&
+                        m.Trigger.Message == $"Calculation IsPublic changed: '{CalculationId}' for specification: '{specificationId}'"
+                    ));
+
+            mockLogger
+                .Received(1)
+                .Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob }' created with id: '{jobId}'");
+        }
+
+        [TestMethod]
+        public void UpdateCalculationsForCalculationSpecificationChange_GivenIsPublicHasChangedButJobNotCreated_ThrowwsRetriableException()
+        {
+            //Arrange
+            const string specificationId = "spec-id";
+            string expectedErrorMessage = $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'";
+
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
+            {
+                Current = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    IsPublic = false
+                },
+                Previous = new Models.Specs.Calculation
+                {
+                    Name = "name",
+                    IsPublic = true
+                },
+                CalculationId = CalculationId,
+                SpecificationId = specificationId,
+            };
+
+            Models.Calcs.Calculation specCalculation = new Models.Calcs.Calculation
+            {
+                Name = "name",
+                AllocationLine = new Reference { Id = "1" },
+                CalculationType = Models.Calcs.CalculationType.Funding,
+                Id = CalculationId,
+                FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
+                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
+                Current = new CalculationVersion
+                {
+                    SourceCode = "source code",
+                    PublishStatus = PublishStatus.Approved
+                },
+                CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
+                SpecificationId = specificationId,
+            };
+
+
+            string json = JsonConvert.SerializeObject(model);
+
+            Message message = new Message(Encoding.UTF8.GetBytes(json));
+           
+            ILogger mockLogger = CreateLogger();
+
+            SpecificationSummary specification = new SpecificationSummary
+            {
+                Name = "spec name",
+            };
+
+            BuildProject buildProject = new BuildProject();
+
+            ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
+
+            mockSpecificationRepository
+                .GetSpecificationSummaryById(Arg.Is(specificationId))
+                .Returns(specification);
+
+            ICalculationsRepository mockCalculationsRepository = CreateCalculationsRepository();
+            mockCalculationsRepository
+                .GetCalculationByCalculationSpecificationId(Arg.Is(CalculationId))
+                .Returns(specCalculation);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
+                .Returns(buildProject);
+
+            Build build = new Build
+            {
+                SourceFiles = new List<SourceFile> { new SourceFile(), new SourceFile() }
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Models.Calcs.Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns((Job)null);
+
+            CalculationService service =
+                CreateCalculationService(logger: mockLogger,
+                    specificationRepository: mockSpecificationRepository,
+                    calculationsRepository: mockCalculationsRepository,
+                    buildProjectsService: buildProjectsService,
+                    sourceCodeService: sourceCodeService,
+                    jobsApiClient: jobsApiClient);
+
+            //Act
+            Func<Task> test = async () =>await service.UpdateCalculationsForCalculationSpecificationChange(message);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be(expectedErrorMessage);
+
+            mockLogger
+                .Received(1)
+                .Error(expectedErrorMessage);
         }
 
         [TestMethod]

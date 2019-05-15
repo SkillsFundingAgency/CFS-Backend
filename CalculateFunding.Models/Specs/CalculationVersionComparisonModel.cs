@@ -13,6 +13,9 @@ namespace CalculateFunding.Models.Specs
         public Calculation Previous { get; set; }
 
         [JsonIgnore]
+        public bool RequiresCalculationRun => Current.IsPublic != Previous.IsPublic;
+
+        [JsonIgnore]
         public bool HasChanges
         {
             get

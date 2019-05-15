@@ -11,6 +11,7 @@ using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
@@ -486,11 +487,11 @@ namespace CalculateFunding.Services.Calcs.Services
             // Assert
             test
                 .Should()
-                .ThrowExactly<Exception>()
+                .ThrowExactly<RetriableException>()
                 .Which
                 .Message
                 .Should()
-                .Be($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'");
+                .Be($"Failed to create job: '{JobConstants.DefinitionNames.CreateInstructAllocationJob} for specification id '{specificationId}'");
 
             await
                  jobsApiClient
@@ -508,7 +509,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{specificationId}'"));
+                .Error(Arg.Is($"Failed to create job: '{JobConstants.DefinitionNames.CreateInstructAllocationJob} for specification id '{specificationId}'"));
         }
 
         [TestMethod]
