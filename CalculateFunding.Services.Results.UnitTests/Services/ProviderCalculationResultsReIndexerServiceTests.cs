@@ -51,136 +51,6 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         [TestMethod]
-        public void ReIndexCalculationResults_GivenResultReturnedFromDatabaseWithTwoCalcResultsButSearchReturnsErrors_ThrowsRetriableException()
-        {
-            //Arrange
-            const string expectedErrorMessage = "Failed to index calculation provider result documents with errors: an error";
-
-            Message message = new Message();
-            message.UserProperties["user-id"] = "123";
-            message.UserProperties["user-name"] = "Joe Bloggs";
-
-            DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
-
-            ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
-            calculationResultsRepository
-                .GetAllProviderResults(Arg.Is(providerResult.Content.SpecificationId))
-                .Returns(new[] { providerResult });
-
-            ILogger logger = CreateLogger();
-
-            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .Index(Arg.Any<IEnumerable<ProviderCalculationResultsIndex>>())
-                .Returns(new[] { new IndexError { ErrorMessage = "an error" } });
-
-            SpecificationSummary specificationSummary = new SpecificationSummary()
-            {
-                Id = providerResult.Content.SpecificationId,
-                Name = "spec name",
-            };
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationSummaries()
-                .Returns(new List<SpecificationSummary> { specificationSummary });
-
-            ProviderCalculationResultsReIndexerService service = CreateService(
-                resultsRepository: calculationResultsRepository,
-                providerCalculationResultsSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
-                logger: logger);
-
-            //Act
-           Func<Task> test = async () => await service.ReIndexCalculationResults(message);
-
-            //Assert
-            test
-                .Should()
-                .ThrowExactly<RetriableException>()
-                .Which
-                .Message
-                .Should()
-                .Be(expectedErrorMessage);
-
-            logger
-                .Received(1)
-                .Error(Arg.Is(expectedErrorMessage));
-
-            logger
-               .Received(1)
-               .Information($"{nameof(service.ReIndexCalculationResults)} initiated by: 'Joe Bloggs'");
-        }
-
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public async Task ReIndexCalculationResults_GivenResultReturnedFromDatabaseWithCalcResult_UpdatesSearch(bool featureToggleEnabled)
-        {
-            //Arrange
-            Message message = new Message();
-
-            DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
-
-            ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
-            calculationResultsRepository
-                .GetAllProviderResults(Arg.Is(providerResult.Content.SpecificationId))
-                .Returns(new[] { providerResult });
-
-            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
-
-            SpecificationSummary specificationSummary = new SpecificationSummary()
-            {
-                Id = providerResult.Content.SpecificationId,
-                Name = "spec name",
-            };
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationSummaries()
-                .Returns(new List<SpecificationSummary> { specificationSummary });
-
-            IFeatureToggle featureToggle = CreateFeatureToggle(featureToggleEnabled);
-
-            ProviderCalculationResultsReIndexerService service = CreateService(
-                resultsRepository: calculationResultsRepository,
-                providerCalculationResultsSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
-                featureToggle: featureToggle);
-
-            //Act
-            await service.ReIndexCalculationResults(message);
-
-            //Assert
-            await
-                searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(m => m.Count() == 1));
-
-            await
-                searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(
-                        m =>
-                            m.First().Id == "spec-id_prov-id" &&
-                            m.First().SpecificationId == "spec-id" &&
-                            m.First().SpecificationName == "spec name" &&
-                            m.First().CalculationId.SequenceEqual(new[] { "calc-id-1", "calc-id-2" }) &&
-                            m.First().CalculationName.SequenceEqual(new[] { "calc name 1", "calc name 2" }) &&
-                            m.First().CalculationResult.SequenceEqual(new[] { "123", "10" }) &&
-                            featureToggleEnabled ? m.First().CalculationException.SequenceEqual(new[] { "true", "false" }) : m.First().CalculationException == null &&
-                            m.First().ProviderId == "prov-id" &&
-                            m.First().ProviderName == "prov name" &&
-                            m.First().ProviderType == "prov type" &&
-                            m.First().ProviderSubType == "prov sub type" &&
-                            m.First().UKPRN == "ukprn" &&
-                            m.First().UPIN == "upin" &&
-                            m.First().URN == "urn" &&
-                            m.First().EstablishmentNumber == "12345"
-                    ));
-        }
-
-        [TestMethod]
         public async Task ReIndexCalculationResults_GivenRequest_AddsServiceBusMessage()
         {
             //Arrange
@@ -278,46 +148,43 @@ namespace CalculateFunding.Services.Results.Services
             return featureToggle;
         }
 
-        static DocumentEntity<ProviderResult> CreateDocumentEntity()
+        static ProviderResult CreateProviderResult()
         {
-            return new DocumentEntity<ProviderResult>
+            return new ProviderResult
             {
-                UpdatedAt = DateTime.Now,
-                Content = new ProviderResult
+                CreatedAt = DateTime.Now,
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
                 {
-                    SpecificationId = "spec-id",
-                    CalculationResults = new List<CalculationResult>
+                    new CalculationResult
                     {
-                        new CalculationResult
-                        {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
-                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
-                            Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
-                            ExceptionType = "Exception"
-                        },
-                        new CalculationResult
-                        {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
-                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
-                            Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
-                        }
+                        CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                        Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                        Value = 123,
+                        CalculationType = Models.Calcs.CalculationType.Funding,
+                        ExceptionType = "Exception"
                     },
-                    Provider = new ProviderSummary
+                    new CalculationResult
                     {
-                        Id = "prov-id",
-                        Name = "prov name",
-                        ProviderType = "prov type",
-                        ProviderSubType = "prov sub type",
-                        Authority = "authority",
-                        UKPRN = "ukprn",
-                        UPIN = "upin",
-                        URN = "urn",
-                        EstablishmentNumber = "12345",
-                        LACode = "la code",
-                        DateOpened = DateTime.Now.AddDays(-7)
+                        CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                        Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                        Value = 10,
+                        CalculationType = Models.Calcs.CalculationType.Number
                     }
+                },
+                Provider = new ProviderSummary
+                {
+                    Id = "prov-id",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    LACode = "la code",
+                    DateOpened = DateTime.Now.AddDays(-7)
                 }
             };
         }

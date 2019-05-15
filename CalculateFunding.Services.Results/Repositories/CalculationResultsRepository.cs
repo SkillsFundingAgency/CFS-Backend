@@ -48,9 +48,32 @@ namespace CalculateFunding.Services.Results.Repositories
             return _cosmosRepository.GetAllDocumentsAsync<ProviderResult>();
         }
 
-        public Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults(string specificationId)
+        public async Task ProviderResultsBatchProcessing(string specificationId, Func<List<ProviderResult>, Task> persistIndexBatch)
         {
-            return _cosmosRepository.GetAllDocumentsAsync<ProviderResult>(query: m => m.Content.SpecificationId == specificationId);
+            string query = $@"SELECT
+                                    c.id as id,
+                                    c.createdAt as createdAt,
+                                    c.content.specificationId as specificationId,
+                                    {{
+                                    ""urn"" : c.content.provider.urn,
+                                    ""ukPrn"" : c.content.provider.ukPrn,
+                                    ""upin"" : c.content.provider.upin,
+                                    ""Id"" : c.content.provider.id,
+                                    ""Name"" : c.content.provider.name,
+                                    ""providerType"" : c.content.provider.providerType,
+                                    ""providerSubType"" : c.content.provider.providerSubType,
+                                    ""authority"" : c.content.provider.authority,
+                                    ""establishmentNumber"" : c.content.provider.establishmentNumber,
+                                    ""dateOpened"" : c.content.provider.dateOpened }} AS provider,
+                                    ARRAY(
+    	                                SELECT calcResult.calculation as calculation, 
+    	                                calcResult[""value""],
+    	                                calcResult.exceptionType as exceptionType,
+    	                                calcResult.exceptionMessage as exceptionMessage
+    	                                FROM calcResult IN c.content.calcResults) AS calcResults
+                                FROM calculationresults c where c.content.specificationId = '{specificationId}' and c.documentType = 'ProviderResult' and c.deleted = false";
+
+            await _cosmosRepository.DocumentsBatchProcessingAsync<ProviderResult>(sql: query, persistBatchToIndex: persistIndexBatch);
         }
 
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)

@@ -181,7 +181,7 @@ namespace CalculateFunding.Repositories.Common.Search
             var client = await GetOrCreateIndex();
             var errors = new List<IndexError>();
 
-            foreach (var batch in documents.ToBatches(1000))
+            foreach (var batch in documents.ToBatches(100))
             {
                 try
                 {

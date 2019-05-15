@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
@@ -8,6 +9,9 @@ namespace CalculateFunding.Models.Results
     {
         [JsonProperty("id")]
         public string Id { get; set; }
+
+        [JsonProperty("createdAt")]
+        public DateTimeOffset CreatedAt { get; set; }
 
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
