@@ -25,8 +25,11 @@ namespace CalculateFunding.Services.DataImporter
 	        {
 	            foreach (var tableDefinition in datasetDefinition.TableDefinitions)
 	            {
-	                var workSheet = excel.Workbook.Worksheets.First(x => Regex.IsMatch(x.Name, WildCardToRegular(tableDefinition.Name)));
-	                yield return ConvertSheetToObjects(workSheet, tableDefinition).TableLoadResult;
+                    var workSheet = excel.Workbook.Worksheets.First(x => x.Name != "Errors");
+                    if (workSheet != null)
+                    {
+                        yield return ConvertSheetToObjects(workSheet, tableDefinition).TableLoadResult;
+                    }
 	            }
             }     
 	    }
