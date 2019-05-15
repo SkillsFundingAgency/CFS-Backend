@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -24,39 +25,56 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             _useSourceCodeNameForCalculations = useSourceCodeNameForCalculations;
         }
 
-        public IEnumerable<SourceFile> GenerateCalcs(BuildProject buildProject, IEnumerable<Calculation> calculations)
+        public IEnumerable<SourceFile> GenerateCalcs(IEnumerable<Calculation> calculations)
         {
-            SyntaxList<OptionStatementSyntax> optionsList = new SyntaxList<OptionStatementSyntax>(new OptionStatementSyntax[] { 
-                SyntaxFactory.OptionStatement(SyntaxFactory.Token(SyntaxKind.StrictKeyword), SyntaxFactory.Token(_compilerOptions.OptionStrictEnabled ? SyntaxKind.OnKeyword : SyntaxKind.OffKeyword))
+            SyntaxList<OptionStatementSyntax> optionsList = new SyntaxList<OptionStatementSyntax>(new[]
+            {
+                SyntaxFactory.OptionStatement(SyntaxFactory.Token(SyntaxKind.StrictKeyword),
+                    SyntaxFactory.Token(_compilerOptions.OptionStrictEnabled ? SyntaxKind.OnKeyword : SyntaxKind.OffKeyword))
             });
 
-            CompilationUnitSyntax syntaxTree = SyntaxFactory.CompilationUnit()
-                .WithOptions(optionsList)
+            SyntaxList<ImportsStatementSyntax> standardImports = StandardImports();
 
-                .WithImports(StandardImports())
+            string identifier = GenerateIdentifier("Calculations");
 
-                .WithMembers(SyntaxFactory.SingletonList<StatementSyntax>(
-                    SyntaxFactory.ClassBlock(
-                        SyntaxFactory.ClassStatement(
-                            GenerateIdentifier("Calculations")
-                        )
+            SyntaxTokenList modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
 
-                        .WithModifiers(
-                            SyntaxFactory.TokenList(
-                                SyntaxFactory.Token(SyntaxKind.PublicKeyword))),
-                        SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(_compilerOptions.UseLegacyCode ? SyntaxFactory.ParseTypeName("LegacyBaseCalculation") :  SyntaxFactory.ParseTypeName("BaseCalculation"))),
-                            new SyntaxList<ImplementsStatementSyntax>(),
-                            SyntaxFactory.List(CreateMethods(buildProject, calculations)),
-                            SyntaxFactory.EndClassStatement()
-                    )
+            ClassStatementSyntax classStatement = SyntaxFactory
+                .ClassStatement(identifier)
+                .WithModifiers(modifiers);
 
-                ))
-                .NormalizeWhitespace();
+            SyntaxList<InheritsStatementSyntax> inherits = SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(_compilerOptions.UseLegacyCode
+                ? SyntaxFactory.ParseTypeName("LegacyBaseCalculation")
+                : SyntaxFactory.ParseTypeName("BaseCalculation")));
 
-            yield return new SourceFile { FileName = "Calculations.vb", SourceCode = syntaxTree.ToFullString() };
+            IEnumerable<StatementSyntax> methods = CreateMethods(calculations);
+
+            ClassBlockSyntax classBlock = SyntaxFactory.ClassBlock(classStatement,
+                inherits,
+                new SyntaxList<ImplementsStatementSyntax>(),
+                SyntaxFactory.List(methods),
+                SyntaxFactory.EndClassStatement());
+
+            SyntaxList<StatementSyntax> members = SyntaxFactory.SingletonList<StatementSyntax>(classBlock);
+
+            CompilationUnitSyntax syntaxTree = SyntaxFactory.CompilationUnit().WithOptions(optionsList);
+            syntaxTree = syntaxTree.WithImports(standardImports);
+            syntaxTree = syntaxTree.WithMembers(members);
+            try
+            {
+                syntaxTree = syntaxTree.NormalizeWhitespace();
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Error compiling source code. Please check your code's structure is valid.  {e.Message}", e);
+            }
+
+            string sourceCode = syntaxTree.ToFullString();
+
+            yield return new SourceFile { FileName = "Calculations.vb", SourceCode = sourceCode };
         }
 
-        private IEnumerable<StatementSyntax> CreateMethods(BuildProject buildProject, IEnumerable<Calculation> calculations)
+        private IEnumerable<StatementSyntax> CreateMethods(IEnumerable<Calculation> calculations)
         {
             yield return CreateDatasetProperties();
             yield return CreateProviderProperties();
@@ -136,7 +154,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             builder.AppendLine();
             builder.AppendLine($"Public Function MainCalc As Dictionary(Of String, String())");
             builder.AppendLine();
-         
+
             builder.AppendLine("Dim dictionary as new Dictionary(Of String, String())");
 
             foreach (Calculation calc in calcs)

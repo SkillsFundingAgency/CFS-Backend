@@ -60,12 +60,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             return className.Replace(" ", String.Empty);
         }
 
-        public static string IdentifierCamelCase(string value)
-        {
-            var titleCase = GenerateIdentifier(value);
-            return Char.ToLowerInvariant(titleCase[0]) + titleCase.Substring(1);
-        }
-
         public static TypeSyntax GetType(FieldType type)
         {
             TypeSyntax propertyType;
@@ -104,7 +98,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System.Collections.Generic")))),
                 SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Microsoft.VisualBasic.CompilerServices"))))
             });
-            var str = imports.ToFullString();
             return imports;
         }
     }

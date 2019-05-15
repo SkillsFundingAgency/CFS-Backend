@@ -16,6 +16,7 @@ using CalculateFunding.Services.Compiler.Languages;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Serilog;
 
 namespace CalculateFunding.Services.Calcs.Services
@@ -98,13 +99,52 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public void Compile_ErrorThrown_ReturnsErrorAsCompilerMessage()
+        {
+            //Arrange
+            BuildProject buildProject = new BuildProject { SpecificationId = "3456" };
+            IEnumerable<Calculation> calculations = new List<Calculation>();
+
+            string errorMessage = "The sky is red, I don't understand";
+
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+            sourceFileGenerator
+                .GenerateCode(buildProject, calculations, Arg.Any<CompilerOptions>())
+                .Throws(new Exception(errorMessage));
+
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
+            sourceFileGeneratorProvider
+                .CreateSourceFileGenerator(TargetLanguage.VisualBasic)
+                .Returns(sourceFileGenerator);
+
+            SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileGeneratorProvider: sourceFileGeneratorProvider);
+
+            //Act
+            Build result = sourceCodeService.Compile(buildProject, calculations);
+
+            //Assert
+            result.CompilerMessages.Count
+                .Should()
+                .Be(1);
+            result.CompilerMessages.Count(x => x.Message == errorMessage && x.Severity == Severity.Error)
+                .Should()
+                .Be(1);
+
+            sourceFileGenerator
+                .Received(1)
+                .GenerateCode(buildProject,
+                    calculations,
+                    Arg.Is<CompilerOptions>(x => x.SpecificationId == buildProject.SpecificationId && !x.OptionStrictEnabled));
+        }
+
+        [TestMethod]
         public void CompileBuildProject_WhenBuildingBasicCalculation_ThenCompilesOk()
         {
             // Arrange
             string specificationId = "test-spec1";
             List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1",
@@ -145,9 +185,9 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1 <",
@@ -192,9 +232,9 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1 >",
@@ -239,9 +279,9 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1 £",
@@ -286,9 +326,9 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1 =",
@@ -333,9 +373,9 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1 %",
@@ -380,9 +420,9 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
+            List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1 +",
@@ -748,7 +788,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "test-spec1";
             List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1",

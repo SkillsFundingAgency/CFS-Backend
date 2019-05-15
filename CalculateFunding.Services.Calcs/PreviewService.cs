@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
@@ -206,22 +207,9 @@ namespace CalculateFunding.Services.Calcs
                         }
                     }
                 }
-            }
-            else
-            {
-                _logger.Information($"Build did not compile successfully for calculation id {calculationToPreview.Id}");
-            }
 
-            PreviewResponse response = new PreviewResponse
-            {
-                Calculation = calculationToPreview,
-                CompilerOutput = compilerOutput
-            };
+                await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Preview);
 
-            await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Preview);
-
-            if (compilerOutput.Success)
-            {
                 //Forcing to compile for calc runs only
                 compilerOptions.OptionStrictEnabled = false;
 
@@ -232,10 +220,18 @@ namespace CalculateFunding.Services.Calcs
                     await _sourceCodeService.SaveSourceFiles(nonPreviewCompilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Release);
                 }
             }
+            else
+            {
+                _logger.Information($"Build did not compile successfully for calculation id {calculationToPreview.Id}");
+            }
 
             LogMessages(compilerOutput, buildProject, calculationToPreview);
 
-            return new OkObjectResult(response);
+            return new OkObjectResult(new PreviewResponse
+            {
+                Calculation = calculationToPreview,
+                CompilerOutput = compilerOutput
+            });
         }
 
         public void LogMessages(Build compilerOutput, BuildProject buildProject, Calculation calculation)
@@ -312,7 +308,7 @@ Calculation Name: {{calculationName}}";
 
             foreach (string aggregateParameter in aggregateParameters)
             {
-                if (datasetAggregationFields.IsNullOrEmpty() || !datasetAggregationFields.Any(m => string.Equals(m.Trim(), aggregateParameter.Trim(), System.StringComparison.CurrentCultureIgnoreCase)))
+                if (datasetAggregationFields.IsNullOrEmpty() || !datasetAggregationFields.Any(m => string.Equals(m.Trim(), aggregateParameter.Trim(), StringComparison.CurrentCultureIgnoreCase)))
                 {
                     compilerErrors.Add($"{aggregateParameter} is not an aggregable field");
                 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Models.Calcs;
@@ -11,7 +12,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
     public class CalculationTypeGeneratorTests
     {
         [TestMethod]
-        public void WhenLessThanSymbolInName_ThenIdentifierIsSubsititued()
+        public void WhenLessThanSymbolInName_ThenIdentifierIsSubstituted()
         {
             // Arrange
             string inputName = "Range < 3";
@@ -26,7 +27,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
-        public void WhenGreaterThanSymbolInName_ThenIdentifierIsSubsititued()
+        public void WhenGreaterThanSymbolInName_ThenIdentifierIsSubstituted()
         {
             // Arrange
             string inputName = "Range > 3";
@@ -41,7 +42,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
-        public void WhenPoundSymbolInName_ThenIdentifierIsSubsititued()
+        public void WhenPoundSymbolInName_ThenIdentifierIsSubstituted()
         {
             // Arrange
             string inputName = "Range £ 3";
@@ -56,7 +57,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
-        public void WhenPercentSymbolInName_ThenIdentifierIsSubsititued()
+        public void WhenPercentSymbolInName_ThenIdentifierIsSubstituted()
         {
             // Arrange
             string inputName = "Range % 3";
@@ -71,7 +72,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
-        public void WhenEqualsSymbolInName_ThenIdentifierIsSubsititued()
+        public void WhenEqualsSymbolInName_ThenIdentifierIsSubstituted()
         {
             // Arrange
             string inputName = "Range = 3";
@@ -86,7 +87,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         }
 
         [TestMethod]
-        public void WhenPlusSymbolInName_ThenIdentifierIsSubsititued()
+        public void WhenPlusSymbolInName_ThenIdentifierIsSubstituted()
         {
             // Arrange
             string inputName = "Range + 3";
@@ -261,7 +262,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
                 .Be(expected);
         }
 
-
         [TestMethod]
         public void QuoteAggregateFunctionCalls_GivenAggregateSumAndMaxCall_QuotesParameterIgnoringWhitespace()
         {
@@ -330,8 +330,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         public void GenerateCalcs_GivenCalculationsAndCompilerOptionsStrictOn_ThenOptionStrictGenerated()
         {
             // Arrange
-            BuildProject buildProject = new BuildProject();
-
             List<Calculation> calculations = new List<Calculation>();
 
             CompilerOptions compilerOptions = new CompilerOptions
@@ -343,7 +341,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, true);
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(buildProject, calculations);
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations);
 
             // Assert
             results.Should().HaveCount(1);
@@ -354,8 +352,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
         public void GenerateCalcs_GivenCalculationsAndCompilerOptionsOff_ThenOptionsGenerated()
         {
             // Arrange
-            BuildProject buildProject = new BuildProject();
-
             List<Calculation> calculations = new List<Calculation>();
 
             CompilerOptions compilerOptions = new CompilerOptions
@@ -366,7 +362,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, true);
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(buildProject, calculations);
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(calculations);
 
             // Assert
             results.Should().HaveCount(1);
@@ -383,16 +379,65 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.Vb.UnitTests
             {
                 UseLegacyCode = useLegacyCode,
             };
-         
+
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, true);
 
             // Act
-            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new BuildProject(), new List<Calculation>());
+            IEnumerable<SourceFile> results = calculationTypeGenerator.GenerateCalcs(new List<Calculation>());
 
             // Assert
             results.Should().HaveCount(1);
 
             results.First().SourceCode.Should().Contain(expectedInheritsStatement);
+        }
+
+        [TestMethod]
+        public void GenerateCalcs_InvalidSourceCodeNormaliseWhitespaceFails_ReturnsError()
+        {
+            CompilerOptions compilerOptions = new CompilerOptions();
+            CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, true);
+
+            string badCode = @"Dim Filter as Decimal
+Dim APTPhase as String
+Dim CensusPhase as String
+Dim Result as Decimal
+
+Filter = FILTERSBSAcademiesFilter()
+APTPhase = Datasets.APTInputsAndAdjustments.Phase()
+CensusPhase = Datasets.CensusPupilCharacteristics.Phase()
+
+If Filter = 0 then
+
+Return Exclude()
+
+Else
+
+If string.isnullorempty(APTPhase) then Result = 0
+
+Else If CensusPhase = ""PRIMARY"" then Result = 1
+
+Else If CensusPhase = ""MIDDLE-DEEMED PRIMARY"" then Result = 2
+
+Else If CensusPhase = ""SECONDARY"" then Result = 3
+
+Else If CensusPhase = ""MIDDLE-DEEMED SECONDARY"" then Result = 4
+
+End If
+End If
+End If
+
+Return Result + 0";
+
+            IEnumerable<Calculation> calculations = new[] { new Calculation { Current = new CalculationVersion { SourceCode = badCode } } };
+
+            Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations).ToList();
+
+            generate
+                .Should()
+                .Throw<Exception>()
+                .And.Message
+                .Should()
+                .StartWith("Error compiling source code. Please check your code's structure is valid. ");
         }
     }
 }

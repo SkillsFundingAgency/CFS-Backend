@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         protected override IEnumerable<SourceFile> GenerateCalculationSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions)
         {
             CalculationTypeGenerator calculationTypeGenerator = new CalculationTypeGenerator(compilerOptions, _featureToggle.IsDuplicateCalculationNameCheckEnabled());
-            return calculationTypeGenerator.GenerateCalcs(buildProject, calculations);
+            return calculationTypeGenerator.GenerateCalcs(calculations);
         }
 
         protected override IEnumerable<SourceFile> GenerateDatasetSourceFiles(BuildProject buildProject)

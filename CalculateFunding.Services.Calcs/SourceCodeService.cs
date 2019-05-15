@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
@@ -10,11 +15,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using Polly;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -31,9 +31,9 @@ namespace CalculateFunding.Services.Calcs
         private readonly Policy _calculationsRepositoryPolicy;
 
         public SourceCodeService(
-            ISourceFileRepository sourceFilesRepository, 
-            ILogger logger, 
-            ICalculationsRepository calculationsRepository, 
+            ISourceFileRepository sourceFilesRepository,
+            ILogger logger,
+            ICalculationsRepository calculationsRepository,
             ISourceFileGeneratorProvider sourceFileGeneratorProvider,
             ICompilerFactory compilerFactory,
             ICodeMetadataGeneratorService codeMetadataGenerator,
@@ -111,7 +111,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 Stream stream = await _sourceFilesRepositoryPolicy.ExecuteAsync(() => _sourceFilesRepository.GetAssembly(buildProject.SpecificationId));
 
-                if(stream == null)
+                if (stream == null)
                 {
                     string message = $"Failed to get assembly for specification id: '{buildProject.SpecificationId}'";
                     _logger.Error(message);
@@ -127,16 +127,23 @@ namespace CalculateFunding.Services.Calcs
 
         public Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions = null)
         {
-            if(compilerOptions == null)
+            try
             {
-                compilerOptions = new CompilerOptions { SpecificationId = buildProject.SpecificationId, OptionStrictEnabled = false };
+                if (compilerOptions == null)
+                {
+                    compilerOptions = new CompilerOptions { SpecificationId = buildProject.SpecificationId, OptionStrictEnabled = false };
+                }
+
+                IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations, compilerOptions);
+
+                ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
+
+                return compiler.GenerateCode(sourceFiles?.ToList());
             }
-
-            IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations, compilerOptions);
-
-            ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
-
-            return compiler.GenerateCode(sourceFiles?.ToList());
+            catch (Exception e)
+            {
+                return new Build { CompilerMessages = new List<CompilerMessage> { new CompilerMessage { Message = e.Message, Severity = Severity.Error } } };
+            }
         }
 
         public async Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject)
