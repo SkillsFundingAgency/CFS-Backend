@@ -7,8 +7,14 @@ namespace CalculateFunding.Api.Providers.ViewModels
     {
         public string ProviderVersionId { get; set; }
 
+        public DateTimeOffset Created { get; set; }
+
+        public string Name { get; set; }
+
+        public string Description { get; set; }
+
+
         public IEnumerable<ProviderViewModel> Providers { get; set; }
 
-        public DateTimeOffset Created { get; set; }
     }
 }
