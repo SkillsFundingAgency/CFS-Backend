@@ -534,7 +534,28 @@
         "description": "Batch count for partitioning allocation line status update jobs"
       },
       "defaultValue": 100
-    }
+    },
+    "CalculateProviderResultsDegreeOfParallelism": {
+      "type": "int",
+      "metadata": {
+        "description": "Calculations to run in parallel"
+      },
+      "defaultvalue": 20
+    },
+    "GetProviderSourceDatasetsDegreeofParallelism": {
+      "type": "int",
+      "metadata": {
+        "description": "Provider Source datasets to get in parallel"
+      },
+      "defaultvalue": 30
+    },
+    "SaveProviderDegreeOfParallelism": {
+      "type": "int",
+      "metadata": {
+        "description": "Provider datasets to save in Parallel"
+      },
+      "defaultValue": 30
+    },
   },
   "variables": {
     "offerType": "Standard",
@@ -1876,6 +1897,21 @@
             {
               "name": "features:useFieldDefinitionIdsInSourceDatasetsEnabled",
               "value": "[parameters('EnableUseFieldDefinitionIdsInSourceDatasets')]"
+            },
+            {
+              "name": "EngineSettings:CalculateProviderResultsDegreeOfParallelism",
+              "value": [ "parameters('CalculateProviderResultsDegreeOfParallelism')" ],
+              "slotSetting": false
+            },
+            {
+              "name": "EngineSettings:GetProviderSourceDatasetsDegreeOfParallelism",
+              "value": [ "parameters('GetProviderSourceDatasetsDegreeOfParallelism')" ],
+              "slotSetting": false
+            },
+            {
+              "name": "EngineSettings:SaveProviderDegreeOfParallelism",
+              "value": [ "parameters('SaveProviderDegreeOfParallelism')" ],
+              "slotSetting": false
             }
           ]
         }
