@@ -555,7 +555,7 @@
         "description": "Provider datasets to save in Parallel"
       },
       "defaultValue": 30
-    },
+    }
   },
   "variables": {
     "offerType": "Standard",
