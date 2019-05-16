@@ -1900,17 +1900,17 @@
             },
             {
               "name": "EngineSettings:CalculateProviderResultsDegreeOfParallelism",
-              "value": [ "parameters('CalculateProviderResultsDegreeOfParallelism')" ],
+              "value": "[parameters('CalculateProviderResultsDegreeOfParallelism')]",
               "slotSetting": false
             },
             {
               "name": "EngineSettings:GetProviderSourceDatasetsDegreeOfParallelism",
-              "value": [ "parameters('GetProviderSourceDatasetsDegreeOfParallelism')" ],
+              "value": "[parameters('GetProviderSourceDatasetsDegreeOfParallelism')]",
               "slotSetting": false
             },
             {
               "name": "EngineSettings:SaveProviderDegreeOfParallelism",
-              "value": [ "parameters('SaveProviderDegreeOfParallelism')" ],
+              "value": "[parameters('SaveProviderDegreeOfParallelism')]",
               "slotSetting": false
             }
           ]
