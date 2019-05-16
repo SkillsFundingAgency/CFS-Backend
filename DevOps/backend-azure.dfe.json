@@ -134,13 +134,6 @@
         "description": "Tier (Sku) for Engine hosting plan check details at https://docs.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code#premium"
       }
     },
-    "engineWorkerSize": {
-      "type": "string",
-      "defaultValue": "4",
-      "metadata": {
-        "description": "For Engine hosting plan sets WorkerSize to 4."
-      }
-    },
     "engineNumberofWorkers": {
       "type": "int",
       "defaultValue": "2",
