@@ -69,15 +69,19 @@ namespace CalculateFunding.Models.Results.Search
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }
 
+        [IsSearchable]
         [JsonProperty("ukPrn")]
         public string UKPRN { get; set; }
 
+        [IsSearchable]
         [JsonProperty("urn")]
         public string URN { get; set; }
 
+        [IsSearchable]
         [JsonProperty("upin")]
         public string UPIN { get; set; }
 
+        [IsSearchable]
         [JsonProperty("establishmentNumber")]
         public string EstablishmentNumber { get; set; }
 
