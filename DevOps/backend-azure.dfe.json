@@ -2220,6 +2220,10 @@
               "value": "[parameters('EnableNewProviderCalculationResultsIndex')]"
             },
             {
+              "name": "features:exceptionMessagesEnabled",
+              "value": "[parameters('EnableExceptionMessages')]"
+            },
+            {
               "name": "jobsClient:ApiKey",
               "value": "[parameters('ApiKeyJobs')]"
             },
