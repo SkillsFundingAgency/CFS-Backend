@@ -538,21 +538,21 @@
     "CalculateProviderResultsDegreeOfParallelism": {
       "type": "int",
       "metadata": {
-        "description": "Calculations to run in parallel"
+        "description": "How many providers to calculate at once on a single server. This controls how many threads are started at once to run calculations. The more cores available, the higher the number can be. If too many run in parallel, it starts to slow down due to context switching of the threads."
       },
       "defaultvalue": 20
     },
     "GetProviderSourceDatasetsDegreeofParallelism": {
       "type": "int",
       "metadata": {
-        "description": "Provider Source datasets to get in parallel"
+        "description": "The number of source provider datasets to retrieve in parallel from cosmosdb. This is the balance of CPU and network IO wait. All provider sources need to be queried before calculations can start."
       },
       "defaultvalue": 30
     },
     "SaveProviderDegreeOfParallelism": {
       "type": "int",
       "metadata": {
-        "description": "Provider datasets to save in Parallel"
+        "description": "The number provider calculations results to write into cosmos in parallel. This is the balance of CPU and network IO wait. A single document is written to cosmos per provider."
       },
       "defaultValue": 30
     }
