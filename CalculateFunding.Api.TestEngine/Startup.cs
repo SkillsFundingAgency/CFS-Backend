@@ -110,6 +110,8 @@ namespace CalculateFunding.Api.TestRunner
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
+
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();

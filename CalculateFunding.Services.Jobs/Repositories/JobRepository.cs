@@ -10,15 +10,17 @@ using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Jobs.Interfaces;
+using Microsoft.Azure.Documents;
 using Newtonsoft.Json.Linq;
+using Trigger = CalculateFunding.Models.Jobs.Trigger;
 
 namespace CalculateFunding.Services.Jobs.Repositories
 {
     public class JobRepository : IJobRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepository;
+        private readonly ICosmosRepository _cosmosRepository;
 
-        public JobRepository(CosmosRepository cosmosRepository)
+        public JobRepository(ICosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
         }
@@ -66,9 +68,16 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            string query = $"select top 1 * from Jobs as j where j.documentType = \"Job\" and j.deleted = false and j.content.jobId = \"{jobId}\"";
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = "SELECT TOP 1 * FROM Jobs AS j WHERE j.documentType = \"Job\" AND j.deleted = false AND j.content.jobId = @JobId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@JobID", jobId)
+                }
+            };
 
-            IEnumerable<Job> jobs = await _cosmosRepository.QueryPartitionedEntity<Job>(query, partitionEntityId: jobId);
+            IEnumerable<Job> jobs = await _cosmosRepository.QueryPartitionedEntity<Job>(sqlQuerySpec, partitionEntityId: jobId);
 
             return jobs.FirstOrDefault();
         }
@@ -84,9 +93,16 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            string query = $"select j from Jobs where j.documentType = \"JobLog\" and j.deleted = false and j.content.JobId = \"{jobId}\"";
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = "SELECT j FROM Jobs WHERE j.documentType = \"JobLog\" AND j.deleted = false AND j.content.JobId = @JobId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@JobID", jobId)
+                }
+            };
 
-            IEnumerable<JobLog> jobLogs = await _cosmosRepository.QueryPartitionedEntity<JobLog>(query, partitionEntityId: jobId);
+            IEnumerable<JobLog> jobLogs = await _cosmosRepository.QueryPartitionedEntity<JobLog>(sqlQuerySpec, partitionEntityId: jobId);
 
             return jobLogs;
         }
@@ -112,48 +128,49 @@ namespace CalculateFunding.Services.Jobs.Repositories
             return query.AsEnumerable();
         }
 
-        public async Task<Job> GetLastestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null)
+        public async Task<Job> GetLatestJobBySpecificationId(string specificationId, IEnumerable<string> jobDefinitionIds = null)
         {
-            string query = $"select top 1 r.content.id as id, " +
-                           "r.content.jobDefinitionId as jobDefinitionId, " +
-                           "r.content.runningStatus as runningStatus, " +
-                           "r.content.completionStatus as completionStatus, " +
-                           "r.content.invokerUserId as invokeUserId, " +
-                           "r.content.invokerDisplayName as invokerDisplayName, " +
-                           "r.content.itemCount as itemCount, " +
-                           "r.content.specificationId as specificationId, " +
-                           "r.content.trigger.message as triggerMessage, " +
-                           "r.content.trigger.entityId as triggerEntityId, " +
-                           "r.content.trigger.entityType as triggerEntityType, " +
-                           "r.content.parentJobId as parentJobId, " +
-                           "r.content.supersededByJobId as supersededByJobId, " +
-                           "r.content.correlationId as correlationId, " +
-                           "r.content.properties as properties, " +
-                           "r.content.messageBody as messageBody, " +
-                           "r.content.created as created, " +
-                           "r.content.completed as completed, " +
-                           "r.content.outcome as outcome, " +
-                           "r.content.lastUpdated as lastUpdated " +
-                           "from r " +
-                           "where r.documentType = 'Job' " +
-                           "and r.deleted = false " +
-                           "and r.content.specificationId = '" + specificationId + "' ";
+            string query = @"SELECT TOP 1   r.content.id AS id, 
+                                    r.content.jobDefinitionId AS jobDefinitionId, 
+                                    r.content.runningStatus AS runningStatus, 
+                                    r.content.completionStatus AS completionStatus, 
+                                    r.content.invokerUserId AS invokeUserId, 
+                                    r.content.invokerDisplayName AS invokerDisplayName, 
+                                    r.content.itemCount AS itemCount, 
+                                    r.content.specificationId AS specificationId, 
+                                    r.content.trigger.message AS triggerMessage, 
+                                    r.content.trigger.entityId AS triggerEntityId, 
+                                    r.content.trigger.entityType AS triggerEntityType, 
+                                    r.content.parentJobId AS parentJobId, 
+                                    r.content.supersededByJobId AS supersededByJobId, 
+                                    r.content.correlationId AS correlationId, 
+                                    r.content.properties AS properties, 
+                                    r.content.messageBody AS messageBody, 
+                                    r.content.created AS created, 
+                                    r.content.completed AS completed, 
+                                    r.content.outcome AS outcome, 
+                                    r.content.lastUpdated AS lastUpdated 
+                            FROM    r 
+                            WHERE   r.documentType = 'Job' 
+                                    AND r.deleted = false 
+                                    AND r.content.specificationId = @SpecificationId";
+            List<SqlParameter> sqlParameters = new List<SqlParameter>();
 
             if (!jobDefinitionIds.IsNullOrEmpty())
             {
                 IList<string> jobDefinitionIdFilters = new List<string>();
 
-                foreach (string jobDefinitionId in jobDefinitionIds)
+                for (int cnt = 0; cnt < jobDefinitionIds.Count(); cnt++)
                 {
-                    jobDefinitionIdFilters.Add($"r.content.jobDefinitionId = '{jobDefinitionId}'");
+                    jobDefinitionIdFilters.Add($"r.content.jobDefinitionId = @JobDefinitionId{cnt}");
+                    sqlParameters.Add(new SqlParameter($"@JobDefinitionId{cnt}", jobDefinitionIdFilters[cnt]));
                 }
-
-                query += $" and ({string.Join(" or ", jobDefinitionIdFilters)})";
+                query += $" AND ({string.Join(" or ", jobDefinitionIdFilters)})";
             }
 
-            query += " order by r.content.created desc";
+            query += " ORDER BY r.content.created DESC";
 
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>(query, true, 1);
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic(new SqlQuerySpec(query, new SqlParameterCollection(sqlParameters)), true, 1);
 
             dynamic existingResult = existingResults.FirstOrDefault();
 
@@ -174,9 +191,9 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 SpecificationId = existingResult.specificationId,
                 Trigger = new Trigger
                 {
-                    Message = existingResult.triggerMessage != null ? existingResult.triggerMessage : "",
-                    EntityId = existingResult.triggerEntityId != null ? existingResult.triggerEntityId : "",
-                    EntityType = existingResult.triggerEntityType != null ? existingResult.triggerEntityType : ""
+                    Message = existingResult.triggerMessage ?? string.Empty,
+                    EntityId = existingResult.triggerEntityId ?? string.Empty,
+                    EntityType = existingResult.triggerEntityType ?? string.Empty
                 },
                 ParentJobId = existingResult.parentJobId,
                 SupersededByJobId = existingResult.supersededByJobId,

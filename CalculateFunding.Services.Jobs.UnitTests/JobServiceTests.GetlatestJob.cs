@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Jobs
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
-                .GetLastestJobBySpecificationId(Arg.Is(specificationId))
+                .GetLatestJobBySpecificationId(Arg.Is(specificationId))
                 .Returns(
                     new Job
                     {
@@ -102,7 +102,7 @@ namespace CalculateFunding.Services.Jobs
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
-                .GetLastestJobBySpecificationId(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(m => m.First() == "jobType1"))
+                .GetLatestJobBySpecificationId(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(m => m.First() == "jobType1"))
                 .Returns(
                     new Job
                     {
@@ -192,7 +192,7 @@ namespace CalculateFunding.Services.Jobs
 
             IJobRepository jobRepository = CreateJobRepository();
             jobRepository
-                .GetLastestJobBySpecificationId(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(m => m.ElementAt(0) == "jobType1" && m.ElementAt(1) == "jobType2"))
+                .GetLatestJobBySpecificationId(Arg.Is(specificationId), Arg.Is<IEnumerable<string>>(m => m.ElementAt(0) == "jobType1" && m.ElementAt(1) == "jobType2"))
                 .Returns(
                     new Job
                     {

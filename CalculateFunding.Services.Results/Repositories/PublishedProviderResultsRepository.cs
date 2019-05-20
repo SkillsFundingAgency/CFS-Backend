@@ -1,28 +1,27 @@
-﻿using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Versioning;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Results.Interfaces;
-using LinqKit;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Results.Interfaces;
+using LinqKit;
+using Microsoft.Azure.Documents;
+using Newtonsoft.Json.Linq;
 
 namespace CalculateFunding.Services.Results.Repositories
 {
     public class PublishedProviderResultsRepository : IPublishedProviderResultsRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepository;
+        private readonly ICosmosRepository _cosmosRepository;
 
-        public PublishedProviderResultsRepository(CosmosRepository cosmosRepository)
+        public PublishedProviderResultsRepository(ICosmosRepository cosmosRepository)
         {
             _cosmosRepository = cosmosRepository;
         }
@@ -69,9 +68,22 @@ namespace CalculateFunding.Services.Results.Repositories
                     {
                         try
                         {
-                            string sql = $"select * from root c where c.content.specificationId = \"{specificationId}\" and c.documentType = \"PublishedProviderResult\" and c.content.providerId = \"{providerId}\" and c.deleted = false";
+                            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                            {
+                                QueryText = @"SELECT   *
+                                                FROM    Root c
+                                                WHERE   c.content.specificationId = @SpecificationId
+                                                        AND c.documentType = 'PublishedProviderResult'
+                                                        AND c.content.providerId = @ProviderId
+                                                        AND c.deleted = false",
+                                Parameters = new SqlParameterCollection
+                                {
+                                    new SqlParameter("@SpecificationId", specificationId),
+                                    new SqlParameter("@PublishedProviderResult", providerId)
+                                }
+                            };
 
-                            IEnumerable<PublishedProviderResult> publishedProviderResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderResult>(sql, partitionEntityId: providerId);
+                            IEnumerable<PublishedProviderResult> publishedProviderResults = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderResult>(sqlQuerySpec, partitionEntityId: providerId);
                             foreach (PublishedProviderResult result in publishedProviderResults)
                             {
                                 results.Add(result);
@@ -102,9 +114,22 @@ namespace CalculateFunding.Services.Results.Repositories
                     {
                         try
                         {
-                            string sql = $"select * from root c where c.content.specificationId = \"{specificationId}\" and c.documentType = \"PublishedProviderResult\" and c.content.providerId = \"{providerId}\" and c.deleted = false";
+                            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                            {
+                                QueryText = @"SELECT    *
+                                            FROM    root c
+                                            WHERE   c.content.specificationId = @SpecificationId
+                                                    AND c.documentType = ""PublishedProviderResult"" 
+                                                    AND c.content.providerId = @ProviderId 
+                                                    AND c.deleted = false",
+                                Parameters = new SqlParameterCollection
+                                {
+                                    new SqlParameter("@SpecificationId", specificationId),
+                                    new SqlParameter("@ProviderId", providerId)
+                                }
+                            };
 
-                            IEnumerable<Migration.PublishedProviderResult> publishedProviderResults = await _cosmosRepository.QueryPartitionedEntity<Migration.PublishedProviderResult>(sql, partitionEntityId: providerId);
+                            IEnumerable<Migration.PublishedProviderResult> publishedProviderResults = await _cosmosRepository.QueryPartitionedEntity<Migration.PublishedProviderResult>(sqlQuerySpec, partitionEntityId: providerId);
                             foreach (Migration.PublishedProviderResult result in publishedProviderResults)
                             {
                                 results.Add(result);
@@ -123,23 +148,34 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public async Task<IEnumerable<PublishedProviderResultExisting>> GetExistingPublishedProviderResultsForSpecificationId(string specificationId)
         {
-            string query = "SELECT r.id, r.updatedAt, r.content.providerId," +
-                "r.content.fundingStreamResult.allocationLineResult.current[\"value\"], " +
-                "r.content.fundingStreamResult.allocationLineResult.allocationLine.id as allocationLineId, " +
-                "r.content.fundingStreamResult.allocationLineResult.current.major as major, " +
-                "r.content.fundingStreamResult.allocationLineResult.current.minor as minor, " +
-                "r.content.fundingStreamResult.allocationLineResult.current.version as version, " +
-                "r.content.fundingStreamResult.allocationLineResult.current.status as status, " +
-                "r.content.fundingStreamResult.allocationLineResult.published as published, " +
-                "r.content.fundingStreamResult.allocationLineResult.current.profilePeriods, " +
-                "r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes, " +
-                "r.content.fundingStreamResult.allocationLineResult.hasResultBeenVaried, " +
-                "r.content.fundingStreamResult.allocationLineResult.current.provider " +
-                "FROM Root r where r.documentType = 'PublishedProviderResult' " +
-                "and r.deleted = false " +
-                "and r.content.specificationId = '" + specificationId + "'";
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT
+                        r.id,
+                        r.updatedAt,
+                        r.content.providerId,
+                        r.content.fundingStreamResult.allocationLineResult.current[""value""], 
+                        r.content.fundingStreamResult.allocationLineResult.allocationLine.id AS allocationLineId, 
+                        r.content.fundingStreamResult.allocationLineResult.current.major AS major, 
+                        r.content.fundingStreamResult.allocationLineResult.current.minor AS minor, 
+                        r.content.fundingStreamResult.allocationLineResult.current.version AS version, 
+                        r.content.fundingStreamResult.allocationLineResult.current.status AS status, 
+                        r.content.fundingStreamResult.allocationLineResult.published AS published, 
+                        r.content.fundingStreamResult.allocationLineResult.current.profilePeriods, 
+                        r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes, 
+                        r.content.fundingStreamResult.allocationLineResult.hasResultBeenVaried, 
+                        r.content.fundingStreamResult.allocationLineResult.current.provider 
+                FROM    Root r
+                WHERE   r.documentType = 'PublishedProviderResult' 
+                        AND r.deleted = false 
+                        AND r.content.specificationId = @SpecificationId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationId", specificationId)
+                }
+            };
 
-            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic<dynamic>(query, true, 1000);
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic(sqlQuerySpec, true, 1000);
 
             List<PublishedProviderResultExisting> results = new List<PublishedProviderResultExisting>();
             foreach (dynamic existingResult in existingResults)
@@ -179,17 +215,26 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public Task<IEnumerable<PublishedProviderProfileViewModel>> GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(string providerId, string specificationId, string fundingStreamId)
         {
-            var query = $@"SELECT	r.content.fundingStreamResult.allocationLineResult.allocationLine.name,
-                                r.content.fundingStreamResult.allocationLineResult.current.profilePeriods,
-	                            r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes
-                        FROM 	Root r
-                        WHERE   r.documentType='PublishedProviderResult'
-                                AND r.content.specificationId = '{specificationId}' 
-	                            AND r.content.providerId = '{providerId}'
-                                AND r.content.fundingStreamResult.fundingStream.id = '{fundingStreamId}'";
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT	r.content.fundingStreamResult.allocationLineResult.allocationLine.name,
+                                    r.content.fundingStreamResult.allocationLineResult.current.profilePeriods,
+	                                r.content.fundingStreamResult.allocationLineResult.current.financialEnvelopes
+                            FROM 	Root r
+                            WHERE   r.documentType='PublishedProviderResult'
+                                    AND r.content.specificationId = @SpecificationId 
+	                                AND r.content.providerId = @ProviderId
+                                    AND r.content.fundingStreamResult.fundingStream.id = @FundingStreamId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationId", specificationId),
+                    new SqlParameter("@ProviderId", providerId),
+                    new SqlParameter("@FundingStreamId", fundingStreamId)
+                }
+            };
 
             var results = _cosmosRepository
-                .RawQuery<PublishedProviderProfileViewModel>(query, enableCrossPartitionQuery: true)
+                .RawQuery<PublishedProviderProfileViewModel>(sqlQuerySpec, enableCrossPartitionQuery: true)
                 .ToList()
                 .AsEnumerable();
 
@@ -202,24 +247,36 @@ namespace CalculateFunding.Services.Results.Repositories
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-            string query = @"SELECT r.content.specificationId,
-r.content.fundingStreamResult.allocationLineResult.current.provider.name AS providerName,
-r.content.providerId AS providerId,
-r.content.fundingStreamResult.allocationLineResult.current.provider.providerType AS providerType,
-r.content.fundingStreamResult.allocationLineResult.current.provider.ukPrn AS ukprn,
-r.content.fundingStreamResult.fundingStream.name AS fundingStreamName,
-r.content.fundingStreamResult.fundingStream.id AS fundingStreamId,
-r.content.fundingStreamResult.allocationLineResult.allocationLine.id AS allocationLineId,
-r.content.fundingStreamResult.allocationLineResult.allocationLine.name AS allocationLineName,
-r.content.fundingStreamResult.allocationLineResult.current[""value""] AS fundingAmount,
-r.content.fundingStreamResult.allocationLineResult.current.status AS status,
-r.content.fundingStreamResult.allocationLineResult.current.date AS lastUpdated,
-r.content.fundingStreamResult.allocationLineResult.current.provider.authority AS authority,
-r.content.fundingStreamResult.allocationLineResult.current.versionNumber AS versionNumber
-FROM Root r WHERE r.documentType = 'PublishedProviderResult'
-AND r.content.specificationId = '" + specificationId + "' AND r.content.fundingPeriod.id = '" + fundingPeriodId + "' AND r.content.fundingStreamResult.fundingStream.id = '" + fundingStreamId + "'";
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT r.content.specificationId,
+                                    r.content.fundingStreamResult.allocationLineResult.current.provider.name AS providerName,
+                                    r.content.providerId AS providerId,
+                                    r.content.fundingStreamResult.allocationLineResult.current.provider.providerType AS providerType,
+                                    r.content.fundingStreamResult.allocationLineResult.current.provider.ukPrn AS ukprn,
+                                    r.content.fundingStreamResult.fundingStream.name AS fundingStreamName,
+                                    r.content.fundingStreamResult.fundingStream.id AS fundingStreamId,
+                                    r.content.fundingStreamResult.allocationLineResult.allocationLine.id AS allocationLineId,
+                                    r.content.fundingStreamResult.allocationLineResult.allocationLine.name AS allocationLineName,
+                                    r.content.fundingStreamResult.allocationLineResult.current[""value""] AS fundingAmount,
+                                    r.content.fundingStreamResult.allocationLineResult.current.status AS status,
+                                    r.content.fundingStreamResult.allocationLineResult.current.date AS lastUpdated,
+                                    r.content.fundingStreamResult.allocationLineResult.current.provider.authority AS authority,
+                                    r.content.fundingStreamResult.allocationLineResult.current.versionNumber AS versionNumber
+                            FROM    Root r
+                            WHERE   r.documentType = 'PublishedProviderResult'
+                                    AND r.content.specificationId = @SpecificationId 
+                                    AND r.content.fundingPeriod.id = @FundingPeriodId 
+                                    AND r.content.fundingStreamResult.fundingStream.id = @FundingStreamId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationId", specificationId),
+                    new SqlParameter("@FundingPeriodId", fundingPeriodId),
+                    new SqlParameter("@FundingStreamId", fundingStreamId)
+                }
+            };
 
-            IQueryable<PublishedProviderResultByAllocationLineViewModel> cosmosQuery = _cosmosRepository.RawQuery<PublishedProviderResultByAllocationLineViewModel>(query, enableCrossPartitionQuery: true);
+            IQueryable<PublishedProviderResultByAllocationLineViewModel> cosmosQuery = _cosmosRepository.RawQuery<PublishedProviderResultByAllocationLineViewModel>(sqlQuerySpec, enableCrossPartitionQuery: true);
 
             List<PublishedProviderResultByAllocationLineViewModel> result = new List<PublishedProviderResultByAllocationLineViewModel>(cosmosQuery);
             return Task.FromResult(result.AsEnumerable());
@@ -229,24 +286,32 @@ AND r.content.specificationId = '" + specificationId + "' AND r.content.fundingP
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            string query = @"SELECT r.content.specificationId,
-r.content.fundingStreamResult.allocationLineResult.current.provider.name AS providerName,
-r.content.providerId AS providerId,
-r.content.fundingStreamResult.allocationLineResult.current.provider.providerType AS providerType,
-r.content.fundingStreamResult.allocationLineResult.current.provider.ukPrn AS ukprn,
-r.content.fundingStreamResult.fundingStream.name AS fundingStreamName,
-r.content.fundingStreamResult.fundingStream.id AS fundingStreamId,
-r.content.fundingStreamResult.allocationLineResult.allocationLine.id AS allocationLineId,
-r.content.fundingStreamResult.allocationLineResult.allocationLine.name AS allocationLineName,
-r.content.fundingStreamResult.allocationLineResult.current[""value""] AS fundingAmount,
-r.content.fundingStreamResult.allocationLineResult.current.status AS status,
-r.content.fundingStreamResult.allocationLineResult.current.date AS lastUpdated,
-r.content.fundingStreamResult.allocationLineResult.current.provider.authority AS authority,
-r.content.fundingStreamResult.allocationLineResult.current.versionNumber AS versionNumber
-FROM Root r WHERE r.documentType = 'PublishedProviderResult'
-AND r.content.specificationId = '" + specificationId + "'";
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT r.content.specificationId,
+                                    r.content.fundingStreamResult.allocationLineResult.current.provider.name AS providerName,
+                                    r.content.providerId AS providerId,
+                                    r.content.fundingStreamResult.allocationLineResult.current.provider.providerType AS providerType,
+                                    r.content.fundingStreamResult.allocationLineResult.current.provider.ukPrn AS ukprn,
+                                    r.content.fundingStreamResult.fundingStream.name AS fundingStreamName,
+                                    r.content.fundingStreamResult.fundingStream.id AS fundingStreamId,
+                                    r.content.fundingStreamResult.allocationLineResult.allocationLine.id AS allocationLineId,
+                                    r.content.fundingStreamResult.allocationLineResult.allocationLine.name AS allocationLineName,
+                                    r.content.fundingStreamResult.allocationLineResult.current[""value""] AS fundingAmount,
+                                    r.content.fundingStreamResult.allocationLineResult.current.status AS status,
+                                    r.content.fundingStreamResult.allocationLineResult.current.date AS lastUpdated,
+                                    r.content.fundingStreamResult.allocationLineResult.current.provider.authority AS authority,
+                                    r.content.fundingStreamResult.allocationLineResult.current.versionNumber AS versionNumber
+                            FROM    Root r
+                            WHERE   r.documentType = 'PublishedProviderResult'
+                                    AND r.content.specificationId = @SpecificationId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationId", specificationId)
+                }
+            };
 
-            IQueryable<PublishedProviderResultByAllocationLineViewModel> cosmosQuery = _cosmosRepository.RawQuery<PublishedProviderResultByAllocationLineViewModel>(query, enableCrossPartitionQuery: true);
+            IQueryable<PublishedProviderResultByAllocationLineViewModel> cosmosQuery = _cosmosRepository.RawQuery<PublishedProviderResultByAllocationLineViewModel>(sqlQuerySpec, enableCrossPartitionQuery: true);
             List<PublishedProviderResultByAllocationLineViewModel> result = new List<PublishedProviderResultByAllocationLineViewModel>(cosmosQuery);
             return Task.FromResult(result.AsEnumerable());
         }
@@ -291,7 +356,16 @@ AND r.content.specificationId = '" + specificationId + "'";
             Guard.IsNullOrWhiteSpace(publishedProviderResultId, nameof(publishedProviderResultId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            IEnumerable<PublishedProviderResult> results = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderResult>($"SELECT * FROM Root r WHERE r.id ='{publishedProviderResultId}'", 1, providerId);
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = "SELECT * FROM Root r WHERE r.id = @PublishedProviderResultId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@PublishedProviderResultId", publishedProviderResultId)
+                }
+            };
+
+            IEnumerable<PublishedProviderResult> results = await _cosmosRepository.QueryPartitionedEntity<PublishedProviderResult>(sqlQuerySpec, 1, providerId);
 
             return results.FirstOrDefault();
         }
@@ -318,8 +392,10 @@ AND r.content.specificationId = '" + specificationId + "'";
 
         public async Task<IEnumerable<PublishedProviderResult>> GetAllNonHeldPublishedProviderResults()
         {
-            IEnumerable<DocumentEntity<PublishedProviderResult>> documentEntities = await _cosmosRepository.GetAllDocumentsAsync<PublishedProviderResult>(
-                query: m => m.Content.FundingStreamResult.AllocationLineResult.Current.Status != AllocationLineStatus.Held, enableCrossPartitionQuery: true);
+            IEnumerable<DocumentEntity<PublishedProviderResult>> documentEntities = await _cosmosRepository
+                .GetAllDocumentsAsync<PublishedProviderResult>(query: m =>
+                    m.Content.FundingStreamResult.AllocationLineResult.Current.Status != AllocationLineStatus.Held,
+                    enableCrossPartitionQuery: true);
 
             return documentEntities.Select(m => m.Content);
         }
@@ -329,8 +405,24 @@ AND r.content.specificationId = '" + specificationId + "'";
             Guard.IsNullOrWhiteSpace(publishedProviderResultId, nameof(publishedProviderResultId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
 
-            return await _cosmosRepository.QueryPartitionedEntity<PublishedAllocationLineResultVersion>($"SELECT * FROM r WHERE r.content.entityId = '{publishedProviderResultId}' AND r.content.providerId = '{providerId}' AND r.content.status != '{nameof(AllocationLineStatus.Held)}' and r.documentType = '{nameof(PublishedAllocationLineResultVersion)}'", partitionEntityId : providerId);
-        }
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT   
+                            FROM    r
+                            WHERE   r.content.entityId = @PublishedProviderResultId
+                                    AND r.content.providerId = @ProviderId
+                                    AND r.content.status != @Status
+                                    and r.documentType = @DocumentType",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@PublishedProviderResultId", publishedProviderResultId),
+                    new SqlParameter("@ProviderId", providerId),
+                    new SqlParameter("@Status", nameof(AllocationLineStatus.Held)),
+                    new SqlParameter("@DocumentType", nameof(PublishedAllocationLineResultVersion))
+                }
+            };
 
+            return await _cosmosRepository.QueryPartitionedEntity<PublishedAllocationLineResultVersion>(sqlQuerySpec, partitionEntityId: providerId);
+        }
     }
 }

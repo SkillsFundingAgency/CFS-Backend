@@ -11,17 +11,18 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using Microsoft.Azure.Documents;
 using Serilog;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
     public class TestResultsRepository : ITestResultsRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepository;
+        private readonly ICosmosRepository _cosmosRepository;
         private readonly ILogger _logger;
         private readonly EngineSettings _engineSettings;
 
-        public TestResultsRepository(CosmosRepository cosmosRepository, ILogger logger, EngineSettings engineSettings)
+        public TestResultsRepository(ICosmosRepository cosmosRepository, ILogger logger, EngineSettings engineSettings)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -60,8 +61,23 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetCurrentProviderTestResultsDegreeOfParallelism }, async (providerId) =>
            {
-               string sql = $"SELECT * FROM Root r WHERE r.documentType = \"{nameof(TestScenarioResult)}\" AND r.content.specification.id = \"{specificationId}\" AND r.content.provider.id = '{providerId}' AND r.deleted = false";
-               IEnumerable<TestScenarioResult> testScenarioResults = await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sql, partitionEntityId: providerId);
+               SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+               {
+                   QueryText = @"SELECT * 
+                                FROM    Root r 
+                                WHERE   r.documentType = @DocumentType 
+                                        AND r.content.specification.id = @SpecificationId
+                                        AND r.content.provider.id = @ProviderId
+                                        AND r.deleted = false",
+                   Parameters = new SqlParameterCollection
+                   {
+                       new SqlParameter("@DocumentType", nameof(TestScenarioResult)),
+                       new SqlParameter("@SpecificationId", specificationId),
+                       new SqlParameter("@ProviderId", providerId)
+                   }
+               };
+
+               IEnumerable<TestScenarioResult> testScenarioResults = await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sqlQuerySpec, partitionEntityId: providerId);
                foreach (TestScenarioResult testScenarioResult in testScenarioResults)
                {
                    results.Add(testScenarioResult);

@@ -8,6 +8,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -41,12 +42,7 @@ namespace CalculateFunding.Services.Calcs
         {
             Common.Models.DocumentEntity<Calculation> calculation = await _cosmosRepository.ReadAsync<Calculation>(calculationId);
 
-            if (calculation == null)
-            {
-                return null;
-            }
-
-            return calculation.Content;
+            return calculation?.Content;
         }
 
         public Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
@@ -84,23 +80,44 @@ namespace CalculateFunding.Services.Calcs
         {
             StatusCounts statusCounts = new StatusCounts();
 
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT VALUE COUNT(1)
+                            FROM    c 
+                            WHERE   c.documentType = 'Calculation' 
+                                    AND c.content.current.publishStatus = @PublishStatus
+                                    AND c.content.specificationId = @SpecificationId"
+            };
+
+            SqlParameter[] sqlParameters = 
+            {
+                new SqlParameter("@PublishStatus"),
+                new SqlParameter("@SpecificationId", specificationId)
+            };
+
             Task approvedCountTask = Task.Run(() =>
             {
-                IQueryable<int> result = _cosmosRepository.RawQuery<int>($"SELECT VALUE COUNT(1) FROM c where c.documentType = 'Calculation' and c.content.current.publishStatus = 'Approved' and c.content.specificationId = '{specificationId}'", 1, true);
+                sqlParameters[0].Value = "Approved";
+                sqlQuerySpec.Parameters = new SqlParameterCollection(sqlParameters);
+                IQueryable<int> result = _cosmosRepository.RawQuery<int>(sqlQuerySpec, 1, true);
 
                 statusCounts.Approved = result.AsEnumerable().First();
             });
 
             Task updatedCountTask = Task.Run(() =>
             {
-                IQueryable<int> result = _cosmosRepository.RawQuery<int>($"SELECT VALUE COUNT(1) FROM c where c.documentType = 'Calculation' and c.content.current.publishStatus = 'Updated' and c.content.specificationId = '{specificationId}'", 1, true);
+                sqlParameters[0].Value = "Updated";
+                sqlQuerySpec.Parameters = new SqlParameterCollection(sqlParameters);
+                IQueryable<int> result = _cosmosRepository.RawQuery<int>(sqlQuerySpec, 1, true);
 
                 statusCounts.Updated = result.AsEnumerable().First();
             });
 
             Task draftCountTask = Task.Run(() =>
             {
-                IQueryable<int> result = _cosmosRepository.RawQuery<int>($"SELECT VALUE COUNT(1) FROM c where c.documentType = 'Calculation' and c.content.current.publishStatus = 'Draft'  and c.content.specificationId = '{specificationId}'", 1, true);
+                sqlParameters[0].Value = "Draft";
+                sqlQuerySpec.Parameters = new SqlParameterCollection(sqlParameters);
+                IQueryable<int> result = _cosmosRepository.RawQuery<int>(sqlQuerySpec, 1, true);
 
                 statusCounts.Draft = result.AsEnumerable().First();
             });

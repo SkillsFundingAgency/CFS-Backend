@@ -8,6 +8,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Calculator
 {
@@ -43,8 +44,25 @@ namespace CalculateFunding.Services.Calculator
                     {
                         try
                         {
-                            string sql = $"SELECT * FROM Root r where r.documentType = '{nameof(ProviderSourceDataset)}' and r.content.specificationId = '{specificationId}' and r.content.providerId ='{providerId}' AND r.deleted = false";
-                            IEnumerable<ProviderSourceDataset> providerSourceDatasetResults = await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(sql, partitionEntityId: providerId);
+                            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                            {
+                                QueryText= @"SELECT     *
+                                            FROM    Root r 
+                                            WHERE   r.documentType = @DocumentType
+                                                    AND r.content.specificationId = @SpecificationId 
+                                                    AND r.content.providerId ='{providerId}'
+                                                    AND r.deleted = false",
+                                Parameters = new SqlParameterCollection
+                                {
+                                    new SqlParameter("@DocumentType", nameof(ProviderSourceDataset)),
+                                    new SqlParameter("@SpecificationId", specificationId),
+                                    new SqlParameter("@ProviderId", providerId)
+                                }
+                            };
+                                
+                            IEnumerable<ProviderSourceDataset> providerSourceDatasetResults = 
+                                await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(sqlQuerySpec, partitionEntityId: providerId);
+
                             foreach (ProviderSourceDataset repoResult in providerSourceDatasetResults)
                             {
                                 results.Add(repoResult);

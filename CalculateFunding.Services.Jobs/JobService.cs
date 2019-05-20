@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Jobs
                 jobDefinitionIds = jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
             }
 
-            Job job = await _jobRepository.GetLastestJobBySpecificationId(specificationId, jobDefinitionIds);
+            Job job = await _jobRepository.GetLatestJobBySpecificationId(specificationId, jobDefinitionIds);
   
             if (job == null)
             {

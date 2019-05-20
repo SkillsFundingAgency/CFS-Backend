@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Calculator
             var stopwatch = new Stopwatch();
             stopwatch.Start();
           
-            IEnumerable<CalculationResult> calculationResults = calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregations).ToArray();
+            IEnumerable<CalculationResult> calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregations).ToArray();
 
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();

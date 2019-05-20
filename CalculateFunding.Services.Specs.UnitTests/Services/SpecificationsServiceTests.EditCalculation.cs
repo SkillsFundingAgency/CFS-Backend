@@ -645,7 +645,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
                 cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository, searchRepository: mockSearchRepository);
 
-            // Act
             //Act
             Func<Task<IActionResult>> editSpecification = async () => await specificationsService.EditCalculation(request);
 

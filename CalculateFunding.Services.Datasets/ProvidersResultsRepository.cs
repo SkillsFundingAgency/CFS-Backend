@@ -7,6 +7,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -34,13 +35,43 @@ namespace CalculateFunding.Services.Datasets
 
         public Task<IEnumerable<ProviderSourceDatasetHistory>> GetProviderSourceDatasetHistories(string specificationId, string relationshipId)
         {
-            return _cosmosRepository.QuerySql<ProviderSourceDatasetHistory>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDatasetHistory)}'", -1, enableCrossPartitionQuery: true);
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT *
+                            FROM    r 
+                            WHERE   r.content.specificationId = @SpecificationId
+                                    AND r.content.dataRelationship.id = @RelationshipId
+                                    AND r.deleted = false
+                                    AND r.documentType = @DocumentType",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationID", specificationId), 
+                    new SqlParameter("@RelationshipID", relationshipId),
+                    new SqlParameter("@DocumentType", nameof(ProviderSourceDatasetHistory))
+                }
+            };
 
+            return _cosmosRepository.QuerySql<ProviderSourceDatasetHistory>(sqlQuerySpec, -1, enableCrossPartitionQuery: true);
         }
 
         public async Task<IEnumerable<ProviderSourceDataset>> GetCurrentProviderSourceDatasets(string specificationId, string relationshipId)
         {
-            return await _cosmosRepository.QuerySql<ProviderSourceDataset>($"SELECT * FROM r WHERE r.content.specificationId = '{specificationId}' AND r.content.dataRelationship.id = '{relationshipId}' AND r.deleted = false AND r.documentType = '{nameof(ProviderSourceDataset)}'", enableCrossPartitionQuery: true, itemsPerPage: 1000);
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT *
+                            FROM    r
+                            WHERE   r.content.specificationId = @SpecificationId
+                                    AND r.content.dataRelationship.id = @RelationshipId
+                                    AND r.deleted = false
+                                    AND r.documentType = @DocumentType",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationID", specificationId),
+                    new SqlParameter("@RelationshipID", relationshipId),
+                    new SqlParameter("@DocumentType", nameof(ProviderSourceDataset))
+                }
+            };
+            return await _cosmosRepository.QuerySql<ProviderSourceDataset>(sqlQuerySpec, enableCrossPartitionQuery: true, itemsPerPage: 1000);
         }
 
         public async Task UpdateCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)

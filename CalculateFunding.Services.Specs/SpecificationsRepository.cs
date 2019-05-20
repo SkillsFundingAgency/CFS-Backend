@@ -11,14 +11,15 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Specs
 {
     public class SpecificationsRepository : ISpecificationsRepository, IHealthChecker
     {
-        readonly CosmosRepository _repository;
+        private readonly ICosmosRepository _repository;
 
-        public SpecificationsRepository(CosmosRepository cosmosRepository)
+        public SpecificationsRepository(ICosmosRepository cosmosRepository)
         {
             _repository = cosmosRepository;
         }
@@ -48,7 +49,7 @@ namespace CalculateFunding.Services.Specs
             return period.Content;
         }
 
-        async public Task<FundingStream> GetFundingStreamById(string fundingStreamId)
+        public async Task<FundingStream> GetFundingStreamById(string fundingStreamId)
         {
             IEnumerable<FundingStream> fundingStreams = await GetFundingStreams(m => m.Id == fundingStreamId);
 
@@ -57,7 +58,9 @@ namespace CalculateFunding.Services.Specs
 
         public Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null)
         {
-            var fundingStreams = query == null ? _repository.Query<FundingStream>() : _repository.Query<FundingStream>().Where(query);
+            var fundingStreams = query == null 
+                ? _repository.Query<FundingStream>() 
+                : _repository.Query<FundingStream>().Where(query);
 
             return Task.FromResult(fundingStreams.AsEnumerable());
         }
@@ -77,7 +80,7 @@ namespace CalculateFunding.Services.Specs
             return GetSpecificationByQuery(m => m.Id == specificationId);
         }
 
-        async public Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query)
+        public async Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query)
         {
             return (await GetSpecificationsByQuery(query)).FirstOrDefault();
         }
@@ -91,7 +94,9 @@ namespace CalculateFunding.Services.Specs
 
         public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null)
         {
-            var specifications = query == null ? _repository.Query<Specification>() : _repository.Query<Specification>().Where(query);
+            var specifications = query == null 
+                ? _repository.Query<Specification>() 
+                : _repository.Query<Specification>().Where(query);
 
             return Task.FromResult(specifications.AsEnumerable());
         }
@@ -102,7 +107,7 @@ namespace CalculateFunding.Services.Specs
                 _repository.Query<Specification>()
                     .Where(m => m.Current.FundingPeriod.Id == fundingPeriodId && (m.Current.PublishStatus == PublishStatus.Approved || m.Current.PublishStatus == PublishStatus.Updated));
 
-            //This needs fixing either after doc db client uypgrade or add some sql  as cant use Any() to check funding stream ids    
+            //This needs fixing either after doc db client upgrade or add some sql as can't use Any() to check funding stream ids    
 
             IEnumerable<Specification> specifications = specificationsQuery.AsEnumerable().ToList();
 
@@ -124,9 +129,17 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(specifications);
         }
 
+        [Obsolete]
         public Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql)
         {
             var specifications = _repository.RawQuery<T>(sql);
+
+            return Task.FromResult(specifications.AsEnumerable());
+        }
+
+        public Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec)
+        {
+            var specifications = _repository.RawQuery<T>(sqlQuerySpec);
 
             return Task.FromResult(specifications.AsEnumerable());
         }
@@ -138,59 +151,39 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(fundingPeriods.ToList().AsEnumerable());
         }
 
-        async public Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)
+        public async Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)
         {
             var specification = await GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                return null;
-            }
 
-            return specification.Current.GetCalculations().FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
+            return specification?.Current.GetCalculations().FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
         }
 
-        async public Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId)
+        public async Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId)
         {
             var specification = await GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                return null;
-            }
 
-            return specification.Current.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
+            return specification?.Current.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
         }
 
         public async Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
         {
             var specification = await GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                return null;
-            }
 
-            return specification.Current.GetCalculations();
+            return specification?.Current.GetCalculations();
         }
 
-        async public Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName)
+        public async Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName)
         {
             var specification = await GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                return null;
-            }
 
-            return specification.Current.GetPolicyByName(policyByName);
+            return specification?.Current.GetPolicyByName(policyByName);
         }
 
-        async public Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId)
+        public async Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId)
         {
             var specification = await GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                return null;
-            }
 
-            return specification.Current.GetPolicy(policyId);
+            return specification?.Current.GetPolicy(policyId);
         }
 
         public Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream)

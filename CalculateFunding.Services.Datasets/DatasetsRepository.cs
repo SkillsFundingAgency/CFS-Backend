@@ -12,6 +12,7 @@ using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -136,7 +137,7 @@ namespace CalculateFunding.Services.Datasets
 
         public Task<DocumentEntity<Dataset>> GetDatasetDocumentByDatasetId(string datasetId)
         {
-            DocumentEntity<Dataset> dataset = _cosmosRepository.QueryDocuments<Dataset>(null, 1).Where(c => c.Id == datasetId && !c.Deleted).AsEnumerable().FirstOrDefault();
+            DocumentEntity<Dataset> dataset = _cosmosRepository.QueryDocuments<Dataset>(1).Where(c => c.Id == datasetId && !c.Deleted).AsEnumerable().FirstOrDefault();
 
             return Task.FromResult(dataset);
         }
@@ -150,11 +151,22 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task<IEnumerable<string>> GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(string datasetDefinitionId)
         {
-            string query = $"SELECT d.content.Specification.id as specificationId FROM datasets d where d.deleted = false and d.documentType = \"DefinitionSpecificationRelationship\" and d.content.DatasetDefinition.id = \"{datasetDefinitionId}\"";
-
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT d.content.Specification.id AS specificationId
+                            FROM    datasets d
+                            WHERE   d.deleted = false 
+                                    AND d.documentType = ""DefinitionSpecificationRelationship"" 
+                                    AND d.content.DatasetDefinition.id = @DatasetDefinitionId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@DatasetDefinitionID", datasetDefinitionId)
+                }
+            };
+            
             HashSet<string> specificationIds = new HashSet<string>();
 
-            IEnumerable<dynamic> results = await _cosmosRepository.QueryDynamic<dynamic>(query, true, 1000);
+            IEnumerable<dynamic> results = await _cosmosRepository.QueryDynamic(sqlQuerySpec, true, 1000);
 
             foreach (dynamic result in results)
             {

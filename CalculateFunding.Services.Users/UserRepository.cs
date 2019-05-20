@@ -7,6 +7,8 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Users.Interfaces;
+using Microsoft.Azure.Documents;
+using User = CalculateFunding.Models.Users.User;
 
 namespace CalculateFunding.Services.Users
 {
@@ -36,13 +38,18 @@ namespace CalculateFunding.Services.Users
         {
             Guard.IsNullOrWhiteSpace(id, nameof(id));
 
-            IEnumerable<User> user = await _cosmosRepository.QueryPartitionedEntity<User>($"SELECT * FROM Root r WHERE r.content.userId = '{id}' AND r.documentType = '{nameof(User)}' and r.deleted = false", partitionEntityId: id);
-
-            if (!user.AnyWithNullCheck())
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
             {
-                return null;
-            }
+                QueryText = "SELECT * FROM Root r WHERE r.content.userId = @UserId AND r.documentType = @DocumentType AND r.deleted = false",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@UserId", id), 
+                    new SqlParameter("@DocumentType", nameof(User))
+                }
+            };
+            IEnumerable<User> user = await _cosmosRepository.QueryPartitionedEntity<User>(sqlQuerySpec, partitionEntityId: id);
 
+            if (!user.AnyWithNullCheck()) return null;
 
             return user.Single();
         }
@@ -59,7 +66,23 @@ namespace CalculateFunding.Services.Users
             Guard.IsNullOrWhiteSpace(userId, nameof(userId));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            IEnumerable<FundingStreamPermission> permission = await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>($"SELECT * FROM Root r WHERE r.content.userId = '{userId}' AND r.content.fundingStreamId = '{fundingStreamId}' AND r.documentType = '{nameof(FundingStreamPermission)}' and r.deleted = false", partitionEntityId: userId);
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT *
+                            FROM    Root r
+                            WHERE   r.content.userId = @UserId
+                                    AND r.content.fundingStreamId = @FundingStreamID
+                                    AND r.documentType = @DocumentType
+                                    AND r.deleted = false",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@UserID", userId),
+                    new SqlParameter("@FundingStreamId", fundingStreamId),
+                    new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
+                }
+            };
+            
+            IEnumerable<FundingStreamPermission> permission = await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>(sqlQuerySpec, partitionEntityId: userId);
 
             if (!permission.AnyWithNullCheck())
             {
@@ -80,12 +103,36 @@ namespace CalculateFunding.Services.Users
         {
             Guard.IsNullOrWhiteSpace(userId, nameof(userId));
 
-            return await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>($"SELECT * FROM Root r WHERE r.content.userId = '{userId}' AND r.documentType = '{nameof(FundingStreamPermission)}' and r.deleted = false", partitionEntityId: userId);
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT * FROM Root r WHERE r.content.userId = @UserId AND r.documentType = @DocumentType AND r.deleted = false",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@UserId", userId),
+                    new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
+                }
+
+            };
+            
+            return await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>(sqlQuerySpec, partitionEntityId: userId);
         }
 
         public async Task<IEnumerable<FundingStreamPermission>> GetUsersWithFundingStreamPermissions(string fundingStreamId)
         {
-            return await _cosmosRepository.QuerySql<FundingStreamPermission>($"SELECT * FROM Root r WHERE r.content.fundingStreamId = '{fundingStreamId}' AND r.documentType = '{nameof(FundingStreamPermission)}' and r.deleted = false", enableCrossPartitionQuery: true);
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT * 
+                            FROM    Root r 
+                            WHERE   r.content.fundingStreamId = @FundingStreamId 
+                                    AND r.documentType = @DocumentType
+                                    AND r.deleted = false",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@FundingStreamID", fundingStreamId),
+                    new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
+                }
+            };
+            return await _cosmosRepository.QuerySql<FundingStreamPermission>(sqlQuerySpec, enableCrossPartitionQuery: true);
         }
     }
 }

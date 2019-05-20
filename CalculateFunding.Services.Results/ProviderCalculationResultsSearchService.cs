@@ -214,10 +214,12 @@ namespace CalculateFunding.Services.Results
         Task<SearchResults<ProviderCalculationResultsIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel, bool excludePaging = false)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
-            List<string> errorToggleWhere = !searchModel.ErrorToggle.HasValue ? new List<string>() : (
-                searchModel.ErrorToggle.Value ? new List<string> { "calculationException/any(x: x eq 'true')" } :
-                new List<string> { "calculationException/all(x: x ne 'true')" }
-            );
+            List<string> errorToggleWhere = !searchModel.ErrorToggle.HasValue
+                ? new List<string>()
+                : searchModel.ErrorToggle.Value
+                    ? new List<string> { "calculationException/any(x: x eq 'true')" }
+                    : new List<string> { "calculationException/all(x: x ne 'true')" };
+
             IEnumerable<string> where = facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x)).Concat(errorToggleWhere);
             return Task.Run(() =>
             {

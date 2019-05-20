@@ -27,10 +27,12 @@ using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Serilog;
+using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -1768,40 +1770,57 @@ namespace CalculateFunding.Services.Specs
                     throw new FailedToIndexSearchException(errors);
                 }
 
-                _logger.Information($"Succeffuly assigned relationship id: {relationshipId} to specification with id: {specificationId}");
+                _logger.Information($"Successfully assigned relationship id: {relationshipId} to specification with id: {specificationId}");
             }
         }
 
         public async Task<IActionResult> ReIndex()
         {
             try
-            {
+            { 
                 await _searchRepository.DeleteIndex();
 
-                const string sql = "select s.id, s.content.current.name, s.content.current.fundingStreams, s.content.current.fundingPeriod, s.content.current.publishStatus, s.content.current.description, s.content.current.dataDefinitionRelationshipIds, s.content.publishedResultsRefreshedAt, s.updatedAt from specs s where s.documentType = 'Specification'";
+                SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                {
+                    QueryText = @"
+SELECT  s.id, 
+        s.content.current.name, 
+        s.content.current.fundingStreams,
+        s.content.current.fundingPeriod,
+        s.content.current.publishStatus, 
+        s.content.current.description, 
+        s.content.current.dataDefinitionRelationshipIds, 
+        s.content.publishedResultsRefreshedAt, 
+        s.updatedAt
+FROM    specs s 
+WHERE   s.documentType = @DocumentType",
+                    Parameters = new SqlParameterCollection
+                    {
+                        new SqlParameter("@DocumentType", "Specification")
+                    }
+                };
 
-                IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sql)).ToArraySafe();
+                IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sqlQuerySpec)).ToArraySafe();
 
                 List<SpecificationIndex> specDocuments = new List<SpecificationIndex>();
 
-                foreach (SpecificationSearchModel specification in specifications)
+                specDocuments = specifications.Select(specification => new SpecificationIndex
                 {
-                    specDocuments.Add(new SpecificationIndex
-                    {
-                        Id = specification.Id,
-                        Name = specification.Name,
-                        FundingStreamIds = specification.FundingStreams?.Select(s => s.Id).ToArray(),
-                        FundingStreamNames = specification.FundingStreams?.Select(s => s.Name).ToArray(),
-                        FundingPeriodId = specification.FundingPeriod.Id,
-                        FundingPeriodName = specification.FundingPeriod.Name,
-                        LastUpdatedDate = specification.UpdatedAt,
-                        Status = specification.PublishStatus,
-                        Description = specification.Description,
-                        IsSelectedForFunding = specification.IsSelectedForFunding,
-                        DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds,
-                        PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
-                    });
-                }
+                    Id = specification.Id,
+                    Name = specification.Name,
+                    FundingStreamIds = specification.FundingStreams?.Select(s => s.Id).ToArray(),
+                    FundingStreamNames = specification.FundingStreams?.Select(s => s.Name).ToArray(),
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                    FundingPeriodName = specification.FundingPeriod.Name,
+                    LastUpdatedDate = specification.UpdatedAt,
+                    Status = specification.PublishStatus,
+                    Description = specification.Description,
+                    IsSelectedForFunding = specification.IsSelectedForFunding,
+                    DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty()
+                        ? new string[0]
+                        : specification.DataDefinitionRelationshipIds,
+                    PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
+                }).ToList();
 
                 if (!specDocuments.IsNullOrEmpty())
                 {

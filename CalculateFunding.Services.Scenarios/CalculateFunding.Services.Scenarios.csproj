@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.27.0" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.30.0" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.1" />
   </ItemGroup>
 

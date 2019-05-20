@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Versioning;
 using FluentAssertions;
+using Microsoft.Azure.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
@@ -185,7 +186,7 @@ namespace CalculateFunding.Services.Core.Services
 
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             cosmosRepository
-                .DynamicQuery<dynamic>(Arg.Any<string>())
+                .DynamicQuery<dynamic>(Arg.Any<SqlQuerySpec>())
                 .Returns(maxNumber.AsQueryable());
 
             VersionRepository<TestVersionItem> versionRepository = new VersionRepository<TestVersionItem>(cosmosRepository);

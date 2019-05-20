@@ -6,6 +6,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Core.Services
 {
@@ -75,11 +76,7 @@ namespace CalculateFunding.Services.Core.Services
                             break;
 
                         case PublishStatus.Approved:
-                            if (newVersion.PublishStatus == PublishStatus.Draft)
-                            {
-                                break;
-                            }
-                            else
+                            if (newVersion.PublishStatus != PublishStatus.Draft)
                             {
                                 newVersion.PublishStatus = PublishStatus.Updated;
                             }
@@ -122,17 +119,29 @@ namespace CalculateFunding.Services.Core.Services
 
             string entityId = version.EntityId;
 
-            string query = $"SELECT VALUE Max(c.content.version) FROM c where c.content.entityId = \"{ entityId }\" and c.documentType = \"{ typeof(T).Name }\" and c.deleted = false";
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT VALUE Max(c.content.version) 
+                            FROM    c 
+                            WHERE   c.content.entityId = @EntityID
+                                    AND c.documentType = @DocumentType
+                                    AND c.deleted = false",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@EntityID", entityId),
+                    new SqlParameter("@DocumentType", typeof(T).Name)
+                }
+            };
 
             dynamic[] resultsArray = null;
 
             if (string.IsNullOrWhiteSpace(partitionKeyId))
             {
-                resultsArray = _cosmosRepository.DynamicQuery<dynamic>(query).ToArray();
+                resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sqlQuerySpec).ToArray();
             }
             else
             {
-                resultsArray = _cosmosRepository.DynamicQueryPartionedEntity<dynamic>(query, partitionKeyId).ToArray();
+                resultsArray = _cosmosRepository.DynamicQueryPartionedEntity<dynamic>(sqlQuerySpec, partitionKeyId).ToArray();
             }
 
             if (resultsArray.IsNullOrEmpty())
@@ -157,9 +166,17 @@ namespace CalculateFunding.Services.Core.Services
             }
             else
             {
-                string query = $"select * from Root c where c.documentType = '{typeof(T).Name}' and c.deleted = false and c.content.entityId = '{entityId}'";
+                SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                {
+                    QueryText = "SELECT * FROM Root c WHERE c.documentType = @DocumentType AND c.deleted = false AND c.content.entityId = @EntityID",
+                    Parameters = new SqlParameterCollection
+                    {
+                        new SqlParameter("@DocumentType", typeof(T).Name),
+                        new SqlParameter("@EntityID", entityId)
+                    }
+                };
 
-                versions = await _cosmosRepository.QueryPartitionedEntity<T>(query, partitionEntityId: partitionKeyId);
+                versions = await _cosmosRepository.QueryPartitionedEntity<T>(sqlQuerySpec, partitionEntityId: partitionKeyId);
             }
 
             return versions;
