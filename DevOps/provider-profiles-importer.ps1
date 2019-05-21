@@ -4,7 +4,9 @@ Start-Sleep -s 30
 
 $rootFolder = "$(System.DefaultWorkingDirectory)/CalculateFunding-Metadata/metadata/providers"
 
-$url = "$(ImportProvidersUrl)";
+$version = [guid]::NewGuid().ToString()
+
+$url = "$(ImportProvidersUrl)$version";
 
 if([string]::IsNullOrWhiteSpace($url))
 {
@@ -32,54 +34,65 @@ Get-ChildItem "$rootFolder" -Filter *.csv |
         
         $columns = 'UKPRN','URN','LA (code)','LA (name)','OpenDate', 'CloseDate','EstablishmentTypeGroup (name)','TypeOfEstablishment (name)','PhaseOfEducation (code)','EstablishmentStatus (name)','EstablishmentName','EstablishmentNumber'
 
-       $providers = @();
+        $providers = @();
 
-       $importedData = import-csv $_.FullName | Select $columns
+        $importedData = import-csv $_.FullName | Select $columns
 
-       foreach ($item in $importedData) {
+        foreach ($item in $importedData) {
+            $openDate = $null
+            $closedDate = $null
+
+            if([string]::IsNullOrWhiteSpace($item.'OpenDate') -eq $false)
+            {
+                $openDate = get-date($item.'OpenDate')
+            }
+
+            if([string]::IsNullOrWhiteSpace($item.'CloseDate') -eq $false)
+            {
+                $closedDate = get-date($item.'CloseDate')
+            }
 
             if([string]::IsNullOrWhiteSpace($item.UKPRN) -eq $false) { 
 
                 $provider = @{
-
-                    MasterCRMAccountId = ""
-                    MasterNavendorNo = ""
-                    MasterDateClosed = $item.'CloseDate'
-                    MasterDateOpened = $item.'OpenDate'
-                    MasterDfEEstabNo  = $item.'EstablishmentNumber'
-                    MasterDfELAEstabNo = $item.'LA (code)' + "" + $item.'EstablishmentNumber'
-                    MasterLocalAuthorityCode = $item.'LA (code)'
-                    MasterLocalAuthorityName = $item.'LA (name)'
-                    MasterProviderLegalName = ""
-                    MasterProviderName = $item.'EstablishmentName'
-                    MasterPhaseOfEducation = $item.'PhaseOfEducation (code)'
-                    MasterProviderStatusName = $item.'EstablishmentStatus (name)'
-                    MasterProviderTypeGroupName = $item.'EstablishmentTypeGroup (name)'
-                    MasterProviderTypeName = $item.'TypeOfEstablishment (name)'
-                    MasterUKPRN = $item.UKPRN
-                    MasterUPIN = ""
-                    MasterURN = $item.URN
+                    name = $item.'EstablishmentName'
+                    urn = $item.URN
+                    ukPrn = $item.UKPRN
+                    upin = ""
+                    establishmentNumber = $item.'EstablishmentNumber'
+                    dfeEstablishmentNumber = $item.'LA (code)' + "" + $item.'EstablishmentNumber'
+                    authority = $item.'LA (name)'
+                    providerType = $item.'TypeOfEstablishment (name)'
+                    providerSubType = $item.'EstablishmentTypeGroup (name)'
+                    dateOpened = $openDate
+                    dateClosed = $closedDate
+                    providerProfileIdType = ""
+                    laCode = $item.'LA (code)'
+                    navVendorNo = ""
+                    crmAccountId = ""
+                    legalName = ""
+                    status = $item.'EstablishmentStatus (name)'
+                    phaseOfEducation = $item.'PhaseOfEducation (code)'
+                    reasonEstablishmentOpened = ""
+                    reasonEstablishmentClosed = ""
+                    successor = ""
+                    trustStatus = $item.'TrustSchoolFlag (name)'
+                    trustName = $item.'Trusts (name)'
+                    trustCode = $item.'Trusts (code)'
                 }
 
                 $providers += $provider
             }
         }
+
+        $versionProviders = @{
+                       name = $version
+                       versionType = "SystemImported"
+                       description = "string"
+                       providers = $providers
+                    }
        
         $correlationId = [guid]::NewGuid().ToString()
-
-        $counter = [pscustomobject] @{ Value = 0 }
-        $groupSize = 1000
-
-        $groups =$providers | Group-Object -Property { [math]::Floor($counter.Value++ / $groupSize) }
-        
-       
-        foreach($group in $groups){
-
-        $partitionedProviders = @();
-
-        foreach($providerGroupItem in $group.Group){
-            $partitionedProviders += $providerGroupItem;
-        }
 
         if($headers.ContainsKey("sfa-correlationId") -eq $false) {
             $headers.Add("sfa-correlationId", $correlationId);
@@ -90,12 +103,14 @@ Get-ChildItem "$rootFolder" -Filter *.csv |
 
         Write-Host "Importing$_ with correlation id $correlationId" -ForegroundColor Yellow
         
-        $jsonProviders = $partitionedProviders | ConvertTo-Json
+        $jsonVersionProviders = $versionProviders | ConvertTo-Json
+
+        Write-Host $jsonVersionProviders
 
         do
         {
             try {
-                $responseData = Invoke-WebRequest -Uri $url -Method POST -Headers $headers -Body  $jsonProviders -ContentType "application/json; charset=utf-8" -DisableKeepAlive -UseBasicParsing;
+                $responseData = Invoke-WebRequest -Uri $url -Method POST -Headers $headers -Body  $jsonVersionProviders -ContentType "application/json; charset=utf-8" -DisableKeepAlive -UseBasicParsing;
                 Write-Host "$_ saved successfully" -ForegroundColor Green
                 $stopTrying = $true
             }
@@ -116,5 +131,4 @@ Get-ChildItem "$rootFolder" -Filter *.csv |
             }
         } 
         While ($stopTrying -eq $false)
-       }
     }

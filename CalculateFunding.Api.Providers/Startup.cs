@@ -1,6 +1,16 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AzureStorage;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -19,10 +29,14 @@ namespace CalculateFunding.Api.Providers
 
         public IConfiguration Configuration { get; }
 
+        public IServiceProvider ServiceProvider { get; private set; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            RegisterComponents(services);
 
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>
@@ -67,6 +81,34 @@ namespace CalculateFunding.Api.Providers
 
             app.UseHttpsRedirection();
             app.UseMvc();
+        }
+
+        public void RegisterComponents(IServiceCollection builder)
+        {
+            builder.AddCaching(Configuration);
+
+            builder.AddSingleton<IProviderVersionService, ProviderVersionService>();
+            builder.AddSingleton<IProviderVersionSearchService, ProviderVersionSearchService>();
+            builder.AddSingleton<IValidator<ProviderVersionViewModel>, UploadProviderVersionValidator>();
+
+            builder
+                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
+                {
+                    AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                    Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "providerversions";
+
+                    return new BlobClient(storageSettings);
+                });
+
+            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Providers");
+            builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
+            builder.AddLogging("CalculateFunding.Api.Providers");
+            builder.AddTelemetry();
+
+            ServiceProvider = builder.BuildServiceProvider();
         }
     }
 }

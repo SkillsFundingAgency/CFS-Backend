@@ -1,7 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Api.Providers.ViewModels;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Providers.Controllers
@@ -9,14 +13,30 @@ namespace CalculateFunding.Api.Providers.Controllers
     [ApiController]
     public class ProviderByDateController : ControllerBase
     {
+        private readonly IProviderVersionService _providerVersionService;
+        private readonly IProviderVersionSearchService _providerVersionSearchService;
+
+        public ProviderByDateController(IProviderVersionService providerVersionService,
+                     IProviderVersionSearchService providerVersionSearchService)
+        {
+            Guard.ArgumentNotNull(providerVersionService, nameof(providerVersionService));
+            Guard.ArgumentNotNull(providerVersionSearchService, nameof(providerVersionSearchService));
+
+            _providerVersionService = providerVersionService;
+            _providerVersionSearchService = providerVersionSearchService;
+        }
+
         /// <summary>
         /// Set provider version associated with specific date
         /// </summary>
+        /// <param name="year"></param>
+        /// <param name="day"></param>
+        /// <param name="month"></param>
         /// <param name="configuration">Provider Date Configuration</param>
         /// <returns></returns>
         [HttpPut("api/providers/date/{year}/{month}/{day}")]
         [ProducesResponseType(201)]
-        public IActionResult SetProviderDateProviderVersion(SetProviderVersionDateViewModel configuration)
+        public async Task<IActionResult> SetProviderDateProviderVersion([FromRoute]int year, [FromRoute]int month, [FromRoute] int day, SetProviderVersionDateViewModel configuration)
         {
             return NoContent();
         }
@@ -30,13 +50,11 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <returns></returns>
         [HttpGet("api/providers/date/{year}/{month}/{day}")]
         [ProducesResponseType(200, Type = typeof(ProviderDatasetResultViewModel))]
-        public IActionResult GetProvidersByVersion([FromRoute]int year, [FromRoute]int month, [FromRoute] int day)
+        public async Task<IActionResult> GetProvidersByVersion([FromRoute]int year, [FromRoute]int month, [FromRoute] int day)
         {
             // Lookup which provider version is set to this date in cache, then fallback to lookup in cosmos
 
-            // Use the provider version service  _providerVersionService.GetAllProviders(providerVersionId);
-
-            return Ok(new ProviderDatasetResultViewModel());
+            return await _providerVersionService.GetAllProviders(year, month, day);
         }
 
         /// <summary>
@@ -49,13 +67,11 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <returns></returns>
         [HttpPost("api/providers/date-search/{year}/{month}/{day}")]
         [ProducesResponseType(200, Type = typeof(ProviderSearchResults))]
-        public IActionResult SearchProvidersInProviderVersionAssociatedWithDate([FromRoute]int year, [FromRoute]int month, [FromRoute] int day, [FromBody]SearchModel searchModel)
+        public async Task<IActionResult> SearchProvidersInProviderVersionAssociatedWithDate([FromRoute]int year, [FromRoute]int month, [FromRoute] int day, [FromBody]SearchModel searchModel)
         {
             // Lookup which provider version is set to this date in cache, then fallback to lookup in cosmos
 
-            // Use the search service _providerVersionSearchService.SearchProviders(providerVersionId, searchModel);
-
-            return Ok(new ProviderSearchResults());
+            return await _providerVersionSearchService.SearchProviders(year, month, day, searchModel);
         }
 
         /// <summary>
@@ -68,13 +84,13 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <returns></returns>
         [HttpGet("api/providers/date/{year}/{month}/{day}/{providerId}")]
         [ProducesResponseType(200, Type = typeof(ProviderViewModel))]
-        public IActionResult GetProviderByIdFromProviderVersion([FromRoute]int year, [FromRoute]int month, [FromRoute] int day, [FromRoute]string providerId)
+        public async Task<IActionResult> GetProviderByIdFromProviderVersion([FromRoute]int year, [FromRoute]int month, [FromRoute] int day, [FromRoute]string providerId)
         {
             // Lookup which provider version is set to this date in cache, then fallback to lookup in cosmos
 
             // Use the provider version search service  _providerVersionSearchService.GetProviderById(providerVersionId, providerId);
 
-            return Ok(new ProviderViewModel());
+            return await _providerVersionSearchService.GetProviderById(year, month, day, providerId);
         }
 
         /// <summary>
@@ -85,7 +101,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <returns></returns>
         [HttpGet("api/providers/date/{year}/{month}")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<ProviderDateInformationViewModel>))]
-        public IActionResult GetAvailableProvidersByMonth([FromRoute]int year, [FromRoute]int month)
+        public async Task<IActionResult> GetAvailableProvidersByMonth([FromRoute]int year, [FromRoute]int month)
         {
             // Lookup from cosmos to find all dates within them month where there is an associated provider version ID
 

@@ -205,6 +205,11 @@ namespace CalculateFunding.Services.Results.Services
                 searchRepository
                     .Received(model.FacetCount)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName")));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName") && c.SearchFields.Any(f => f == "ukPrn") && c.SearchFields.Any(f => f == "urn") && c.SearchFields.Any(f => f == "establishmentNumber")));
         }
 
         [TestMethod]
@@ -295,6 +300,11 @@ namespace CalculateFunding.Services.Results.Services
                 searchRepository
                     .Received(model.FacetCount)
                     .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName")));
+
+            await
+                searchRepository
+                    .Received(1)
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "providerName") && c.SearchFields.Any(f => f == "ukPrn") && c.SearchFields.Any(f => f == "urn") && c.SearchFields.Any(f => f == "establishmentNumber")));
         }
 
         [TestMethod]

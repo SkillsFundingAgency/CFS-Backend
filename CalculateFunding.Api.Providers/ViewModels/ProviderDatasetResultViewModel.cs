@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CalculateFunding.Models.Providers.ViewModels;
+using System;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Api.Providers.ViewModels

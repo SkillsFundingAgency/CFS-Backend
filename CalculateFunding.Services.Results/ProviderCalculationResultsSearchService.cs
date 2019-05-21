@@ -226,7 +226,7 @@ namespace CalculateFunding.Services.Results
                     Skip = skip,
                     Top = searchModel.Top,
                     SearchMode = (SearchMode)searchModel.SearchMode,
-                    SearchFields = new List<string> { "providerName" },
+                    SearchFields = new List<string> { "providerName", "ukPrn", "urn", "upin", "establishmentNumber" },
                     IncludeTotalResultCount = true,
                     Filter = string.Join(" and ", where),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),

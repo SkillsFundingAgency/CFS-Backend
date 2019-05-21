@@ -1,10 +1,20 @@
 ﻿using System;
+using CalculateFunding.Api.Providers.ViewModels;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Api.Providers.ViewModels
+namespace CalculateFunding.Models.Providers.ViewModels
 {
     public class ProviderViewModel
     {
+        [JsonProperty("providerVersionId_providerId")]
+        public string ProviderVersionIdProviderId;
+
+        [JsonProperty("trustStatus")]
+        private string TrustStatusViewModelString;
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
         [JsonProperty("urn")]
         public string URN { get; set; }
 
@@ -65,8 +75,24 @@ namespace CalculateFunding.Api.Providers.ViewModels
         [JsonProperty("successor")]
         public string Successor { get; set; }
 
-        [JsonProperty("trustStatus")]
-        public TrustStatusViewModel TrustStatus { get; set; }
+        [JsonIgnore]
+
+        public TrustStatusViewModel TrustStatus
+        {
+            get
+            {
+                if (Enum.TryParse<TrustStatusViewModel>(TrustStatusViewModelString, true, out var result))
+                {
+                    return result;
+                }
+
+                return TrustStatusViewModel.NotApplicable;
+            }
+            set
+            {
+                TrustStatusViewModelString = value.ToString();
+            }
+        }
 
         [JsonProperty("trustName")]
         public string TrustName { get; set; }
