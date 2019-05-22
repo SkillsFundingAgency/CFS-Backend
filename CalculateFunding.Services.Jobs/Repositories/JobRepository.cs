@@ -140,7 +140,11 @@ namespace CalculateFunding.Services.Jobs.Repositories
                             WHERE   r.documentType = 'Job' 
                                     AND r.deleted = false 
                                     AND r.content.specificationId = @SpecificationId";
+
             List<SqlParameter> sqlParameters = new List<SqlParameter>();
+            sqlParameters.Add(new SqlParameter("@SpecificationId", specificationId));
+
+            string[] jobDefinitionIdsArray = jobDefinitionIds.ToArray();
 
             if (!jobDefinitionIds.IsNullOrEmpty())
             {
@@ -149,7 +153,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 for (int cnt = 0; cnt < jobDefinitionIds.Count(); cnt++)
                 {
                     jobDefinitionIdFilters.Add($"r.content.jobDefinitionId = @JobDefinitionId{cnt}");
-                    sqlParameters.Add(new SqlParameter($"@JobDefinitionId{cnt}", jobDefinitionIdFilters[cnt]));
+                    sqlParameters.Add(new SqlParameter($"@JobDefinitionId{cnt}", jobDefinitionIdsArray[cnt]));
                 }
                 query += $" AND ({string.Join(" or ", jobDefinitionIdFilters)})";
             }
