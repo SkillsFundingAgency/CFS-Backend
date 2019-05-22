@@ -67,13 +67,11 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                                 FROM    Root r 
                                 WHERE   r.documentType = @DocumentType 
                                         AND r.content.specification.id = @SpecificationId
-                                        AND r.content.provider.id = @ProviderId
                                         AND r.deleted = false",
                    Parameters = new SqlParameterCollection
                    {
                        new SqlParameter("@DocumentType", nameof(TestScenarioResult)),
-                       new SqlParameter("@SpecificationId", specificationId),
-                       new SqlParameter("@ProviderId", providerId)
+                       new SqlParameter("@SpecificationId", specificationId)
                    }
                };
 

@@ -68,14 +68,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
-            {
-                QueryText = "SELECT TOP 1 * FROM Jobs AS j WHERE j.documentType = \"Job\" AND j.deleted = false AND j.content.jobId = @JobId",
-                Parameters = new SqlParameterCollection
-                {
-                    new SqlParameter("@JobID", jobId)
-                }
-            };
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec("SELECT TOP 1 * FROM Jobs AS j WHERE j.documentType = \"Job\" AND j.deleted = false");
 
             IEnumerable<Job> jobs = await _cosmosRepository.QueryPartitionedEntity<Job>(sqlQuerySpec, partitionEntityId: jobId);
 
@@ -93,14 +86,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
         {
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
-            {
-                QueryText = "SELECT j FROM Jobs WHERE j.documentType = \"JobLog\" AND j.deleted = false AND j.content.JobId = @JobId",
-                Parameters = new SqlParameterCollection
-                {
-                    new SqlParameter("@JobID", jobId)
-                }
-            };
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec("SELECT j FROM Jobs j WHERE j.documentType = \"JobLog\" AND j.deleted = false");
 
             IEnumerable<JobLog> jobLogs = await _cosmosRepository.QueryPartitionedEntity<JobLog>(sqlQuerySpec, partitionEntityId: jobId);
 

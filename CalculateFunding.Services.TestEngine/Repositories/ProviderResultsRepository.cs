@@ -37,11 +37,9 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                 QueryText = @"SELECT *
                             FROM    c 
                             WHERE   c.documentType = 'ProviderResult'
-                                    AND c.content.provider.id = @ProviderId 
                                     AND c.content.specification.id = @SpecificationId",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@ProviderId", providerId),
                     new SqlParameter("@SpecificationId", specificationId)
                 }
             };

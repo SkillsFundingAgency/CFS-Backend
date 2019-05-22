@@ -70,13 +70,11 @@ namespace CalculateFunding.Services.Users
             {
                 QueryText = @"SELECT *
                             FROM    Root r
-                            WHERE   r.content.userId = @UserId
-                                    AND r.content.fundingStreamId = @FundingStreamID
+                            WHERE   r.content.fundingStreamId = @FundingStreamID
                                     AND r.documentType = @DocumentType
                                     AND r.deleted = false",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@UserID", userId),
                     new SqlParameter("@FundingStreamId", fundingStreamId),
                     new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
                 }
@@ -111,7 +109,6 @@ namespace CalculateFunding.Services.Users
                     new SqlParameter("@UserId", userId),
                     new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
                 }
-
             };
             
             return await _cosmosRepository.QueryPartitionedEntity<FundingStreamPermission>(sqlQuerySpec, partitionEntityId: userId);

@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
             IQueryable<decimal> result = _cosmosRepository.RawQuery<decimal>(sqlQuerySpec, 1, true);
 
-            return Task.FromResult<decimal>(result.AsEnumerable().First());
+            return Task.FromResult(result.AsEnumerable().First());
         }
 
         public async Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId)

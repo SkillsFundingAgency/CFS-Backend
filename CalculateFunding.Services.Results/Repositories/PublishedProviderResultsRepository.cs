@@ -74,7 +74,6 @@ namespace CalculateFunding.Services.Results.Repositories
                                                 FROM    Root c
                                                 WHERE   c.content.specificationId = @SpecificationId
                                                         AND c.documentType = 'PublishedProviderResult'
-                                                        AND c.content.providerId = @ProviderId
                                                         AND c.deleted = false",
                                 Parameters = new SqlParameterCollection
                                 {
@@ -120,12 +119,10 @@ namespace CalculateFunding.Services.Results.Repositories
                                             FROM    root c
                                             WHERE   c.content.specificationId = @SpecificationId
                                                     AND c.documentType = ""PublishedProviderResult"" 
-                                                    AND c.content.providerId = @ProviderId 
                                                     AND c.deleted = false",
                                 Parameters = new SqlParameterCollection
                                 {
-                                    new SqlParameter("@SpecificationId", specificationId),
-                                    new SqlParameter("@ProviderId", providerId)
+                                    new SqlParameter("@SpecificationId", specificationId)
                                 }
                             };
 
@@ -410,13 +407,11 @@ namespace CalculateFunding.Services.Results.Repositories
                 QueryText = @"SELECT   
                             FROM    r
                             WHERE   r.content.entityId = @PublishedProviderResultId
-                                    AND r.content.providerId = @ProviderId
                                     AND r.content.status != @Status
-                                    and r.documentType = @DocumentType",
+                                    AND r.documentType = @DocumentType",
                 Parameters = new SqlParameterCollection
                 {
                     new SqlParameter("@PublishedProviderResultId", publishedProviderResultId),
-                    new SqlParameter("@ProviderId", providerId),
                     new SqlParameter("@Status", nameof(AllocationLineStatus.Held)),
                     new SqlParameter("@DocumentType", nameof(PublishedAllocationLineResultVersion))
                 }
