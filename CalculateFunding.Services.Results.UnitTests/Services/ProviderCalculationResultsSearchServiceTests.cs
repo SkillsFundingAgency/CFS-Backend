@@ -188,7 +188,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(searchResults);
 
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
@@ -233,7 +233,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(searchResults);
 
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
@@ -249,7 +249,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                     .Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "calculationException")));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "calculationException")), Arg.Any<bool>());
         }
 
         [TestMethod]
@@ -278,7 +278,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(searchResults);
 
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
@@ -328,7 +328,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(searchResults);
 
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
@@ -381,7 +381,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(searchResults);
 
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);
@@ -435,7 +435,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
-                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
+                .Search(Arg.Any<string>(), Arg.Any<SearchParameters>(), Arg.Any<bool>())
                 .Returns(searchResults);
 
             ProviderCalculationResultsSearchService service = CreateTestResultsSearchService(logger, searchRepository);

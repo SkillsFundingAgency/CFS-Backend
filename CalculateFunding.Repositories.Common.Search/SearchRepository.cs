@@ -98,7 +98,7 @@ namespace CalculateFunding.Repositories.Common.Search
             await searchInitializer.Initialise<T>();
         }
 
-        public async Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null)
+        public async Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null, bool allResults = false)
         {
             var client = await GetOrCreateIndex();
 
@@ -106,7 +106,29 @@ namespace CalculateFunding.Repositories.Common.Search
             {
                 searchText = ParseSearchText(searchText);
 
-                var azureSearchResult = await client.Documents.SearchAsync<T>(searchText, searchParameters ?? DefaultParameters);
+                DocumentSearchResult<T> azureSearchResult = await client.Documents.SearchAsync<T>(searchText, searchParameters ?? DefaultParameters);
+
+                IEnumerable<SearchResult<T>> results = azureSearchResult.Results.Select(x => new SearchResult<T>
+                {
+                    HitHighLights = x.Highlights,
+                    Result = x.Document,
+                    Score = x.Score
+                });
+
+                SearchContinuationToken continuationToken = azureSearchResult.ContinuationToken;
+
+                // only keep querying to return all items if we want all results to be returned
+                while (allResults && continuationToken != null)
+                {
+                    DocumentSearchResult<T> continuationResult = await client.Documents.ContinueSearchAsync<T>(continuationToken);
+                    results = results.Concat(continuationResult.Results.Select(x => new SearchResult<T>
+                    {
+                        HitHighLights = x.Highlights,
+                        Result = x.Document,
+                        Score = x.Score
+                    }));
+                    continuationToken = continuationResult.ContinuationToken;
+                }
 
                 var response = new SearchResults<T>
                 {
@@ -121,12 +143,7 @@ namespace CalculateFunding.Repositories.Common.Search
                             Count = (int)(m.Count ?? 0)
                         })
                     }).ToList(),
-                    Results = azureSearchResult.Results.Select(x => new SearchResult<T>
-                    {
-                        HitHighLights = x.Highlights,
-                        Result = x.Document,
-                        Score = x.Score
-                    }).ToList()
+                    Results = results.ToList()
                 };
                 return response;
             }

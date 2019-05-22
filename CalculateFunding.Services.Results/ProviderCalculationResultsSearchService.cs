@@ -207,7 +207,8 @@ namespace CalculateFunding.Services.Results
                     SearchFields = new List<string> { "calculationException" },
                     Filter = calculationIdFilter,
                     QueryType = QueryType.Full
-                }));
+                },
+                true));
             });
         }
 

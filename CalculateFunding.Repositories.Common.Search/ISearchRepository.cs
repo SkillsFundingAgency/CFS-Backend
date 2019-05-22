@@ -16,7 +16,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
         Task Initialize();
 
-        Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null);
+        Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null, bool allResults = false);
 
         Task<T> SearchById(string id, SearchParameters searchParameters = null, string IdFieldOverride = "");
 
