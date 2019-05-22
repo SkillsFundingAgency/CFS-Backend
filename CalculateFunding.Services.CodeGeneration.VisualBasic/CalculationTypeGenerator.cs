@@ -155,10 +155,17 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             builder.AppendLine($"Public Function MainCalc As Dictionary(Of String, String())");
             builder.AppendLine();
 
+            if (_compilerOptions.UseDisgnosticsMode)
+            {
+                builder.AppendLine("Dim sw As New System.Diagnostics.Stopwatch()");
+            }
+
             builder.AppendLine("Dim dictionary as new Dictionary(Of String, String())");
 
             foreach (Calculation calc in calcs)
             {
+                builder.AppendLine();
+
                 if (_useSourceCodeNameForCalculations)
                 {
                     builder.AppendLine($"{calc.SourceCodeName} = Function() As decimal?");
@@ -172,14 +179,20 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine($"   dim item as string = dictionary.Item(\"{calc.Id}\")(0)");
                 builder.AppendLine("    dim parsed as boolean = [Decimal].TryParse(item, resOut)");
                 builder.AppendLine("    if parsed = False then");
-                builder.AppendLine("        return Nothing");
+                builder.AppendLine($"       dim exceptionType as string = dictionary.Item(\"{calc.Id}\")(1)");
+                builder.AppendLine("        if not String.IsNullOrEmpty(exceptionType) then");
+                builder.AppendLine($"           dim exceptionMessage as string = dictionary.Item(\"{calc.Id}\")(2)");
+                builder.AppendLine($"           Throw New ReferencedCalculationFailedException(\"{calc.Name} failed due to exception type:\" + exceptionType  + \" with message: \" + exceptionMessage)");
+                builder.AppendLine("        else");
+                builder.AppendLine("            return Nothing");
+                builder.AppendLine("        end if");
                 builder.AppendLine("    else");
                 builder.AppendLine("        return resOut");
                 builder.AppendLine("    end if");
                 builder.AppendLine("end if");
                 builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
-                builder.AppendLine("If frameCount > 1000 Then");
-                builder.AppendLine("Throw New Exception(\"The system detected a stackoverflow, this is probably due to recursive methods stuck in an infinite loop\")");
+                builder.AppendLine("If frameCount > 100 Then");
+                builder.AppendLine($"   Throw New CalculationStackOverflowException(\"The system detected a stackoverflow from {calc.Name}, this is probably due to recursive methods stuck in an infinite loop\")");
                 builder.AppendLine("End If");
                 builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
                 builder.AppendLine();
@@ -196,6 +209,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 builder.AppendLine("Try");
 
+                if (_compilerOptions.UseDisgnosticsMode)
+                {
+                    builder.AppendLine("sw.reset()");
+                    builder.AppendLine("sw.start()");
+                }
+
                 if (_useSourceCodeNameForCalculations)
                 {
                     builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {calc.SourceCodeName}()");
@@ -205,10 +224,22 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {GenerateIdentifier(calc.Name)}()");
                 }
 
-                builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\"),\"\", \"\"}})");
-                builder.AppendLine("Catch ex as System.Exception");
-                builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
-                builder.AppendLine("End Try");
+                if (_compilerOptions.UseDisgnosticsMode)
+                {
+                    builder.AppendLine("    sw.stop()");
+                    builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\"),\"\", \"\", sw.Elapsed.ToString()}})");
+                    builder.AppendLine("Catch ex as System.Exception");
+                    builder.AppendLine("    sw.stop()");
+                    builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message, sw.Elapsed.ToString() }})");
+                    builder.AppendLine("End Try");
+                }
+                else
+                {
+                    builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\")}})");
+                    builder.AppendLine("Catch ex as System.Exception");
+                    builder.AppendLine($"   dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
+                    builder.AppendLine("End Try");
+                }
             }
 
             builder.AppendLine("return dictionary");

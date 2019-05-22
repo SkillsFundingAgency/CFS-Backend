@@ -154,6 +154,8 @@ namespace CalculateFunding.Services.Calcs
 
             compilerOutput = FilterDoubleToDecimalErrors(compilerOutput);
 
+            await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Preview);
+
             if (compilerOutput.Success)
             {
                 _logger.Information($"Build compiled successfully for calculation id {calculationToPreview.Id}");
@@ -207,8 +209,6 @@ namespace CalculateFunding.Services.Calcs
                         }
                     }
                 }
-
-                await _sourceCodeService.SaveSourceFiles(compilerOutput.SourceFiles, buildProject.SpecificationId, SourceCodeType.Preview);
 
                 //Forcing to compile for calc runs only
                 compilerOptions.OptionStrictEnabled = false;

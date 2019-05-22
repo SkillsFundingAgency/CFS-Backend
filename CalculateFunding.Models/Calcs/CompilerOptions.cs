@@ -19,5 +19,8 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("useLegacyCode")]
         public bool UseLegacyCode { get; set; }
+
+        [JsonProperty("useDisgnosticsMode")]
+        public bool UseDisgnosticsMode { get; set; }
     }
 }
