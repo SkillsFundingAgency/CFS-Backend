@@ -40,12 +40,12 @@ namespace CalculateFunding.Services.Results.Repositories
                             FROM    Root r
                             WHERE   r.content.providerId = @ProviderId
                                     AND r.content.specificationId = @SpecificationId
-                                    AND r.documentType = @DocumentType '{nameof(ProviderSourceDataset)}' 
+                                    AND r.documentType = @DocumentType 
                                     AND r.deleted = false",
                 Parameters =  new SqlParameterCollection
                 {
                       new SqlParameter("@ProviderId", providerId),
-                      new SqlParameter("SpecificationId", specificationId), 
+                      new SqlParameter("@SpecificationId", specificationId), 
                       new SqlParameter("@DocumentType", nameof(ProviderSourceDataset))
                 }
             };
@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Results.Repositories
                 QueryText = @"SELECT    r.content.providerId
                             FROM        Root r 
                             WHERE       r.content.specificationId = @SpecificationId
-                                        AND r.documentType = @DocumentType' 
+                                        AND r.documentType = @DocumentType
                                         AND r.deleted = false 
                                         AND r.content.definesScope = true",
                 Parameters = new SqlParameterCollection

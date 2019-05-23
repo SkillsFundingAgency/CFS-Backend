@@ -220,18 +220,16 @@ namespace CalculateFunding.Services.Results.Repositories
                             FROM 	Root r
                             WHERE   r.documentType='PublishedProviderResult'
                                     AND r.content.specificationId = @SpecificationId 
-	                                AND r.content.providerId = @ProviderId
                                     AND r.content.fundingStreamResult.fundingStream.id = @FundingStreamId",
                 Parameters = new SqlParameterCollection
                 {
                     new SqlParameter("@SpecificationId", specificationId),
-                    new SqlParameter("@ProviderId", providerId),
                     new SqlParameter("@FundingStreamId", fundingStreamId)
                 }
             };
 
             var results = _cosmosRepository
-                .RawQuery<PublishedProviderProfileViewModel>(sqlQuerySpec, enableCrossPartitionQuery: true)
+                .DynamicQueryPartionedEntity<PublishedProviderProfileViewModel>(sqlQuerySpec, providerId)
                 .ToList()
                 .AsEnumerable();
 

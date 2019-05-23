@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Users
                                     AND r.deleted = false",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@FundingStreamId", fundingStreamId),
+                    new SqlParameter("@FundingStreamID", fundingStreamId),
                     new SqlParameter("@DocumentType", nameof(FundingStreamPermission))
                 }
             };
@@ -120,7 +120,7 @@ namespace CalculateFunding.Services.Users
             {
                 QueryText = @"SELECT * 
                             FROM    Root r 
-                            WHERE   r.content.fundingStreamId = @FundingStreamId 
+                            WHERE   r.content.fundingStreamId = @FundingStreamID 
                                     AND r.documentType = @DocumentType
                                     AND r.deleted = false",
                 Parameters = new SqlParameterCollection
