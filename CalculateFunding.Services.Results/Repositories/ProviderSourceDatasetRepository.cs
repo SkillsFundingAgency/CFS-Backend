@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Results.Repositories
                                     AND r.content.specificationId = @SpecificationId
                                     AND r.documentType = @DocumentType 
                                     AND r.deleted = false",
-                Parameters =  new SqlParameterCollection
+                Parameters = new SqlParameterCollection
                 {
                       new SqlParameter("@ProviderId", providerId),
                       new SqlParameter("@SpecificationId", specificationId), 
