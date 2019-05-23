@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Results.Services
                             m.First().CalculationId.SequenceEqual(new[] { "calc-id-1", "calc-id-2" }) &&
                             m.First().CalculationName.SequenceEqual(new[] { "calc name 1", "calc name 2" }) &&
                             m.First().CalculationResult.SequenceEqual(new[] { "123", "10" }) &&
-                            featureToggleEnabled ? m.First().CalculationException.SequenceEqual(new[] { "true", "false" }) : m.First().CalculationException == null &&
+                            featureToggleEnabled ? m.First().CalculationException.SequenceEqual(new[] { "calc-id-1" }) : m.First().CalculationException == null &&
                             m.First().ProviderId == "prov-id" &&
                             m.First().ProviderName == "prov name" &&
                             m.First().ProviderType == "prov type" &&

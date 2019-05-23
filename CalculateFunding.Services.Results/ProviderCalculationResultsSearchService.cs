@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Results
                                         searchModel.Filters.ContainsKey("calculationId") &&
                                         searchModel.Filters["calculationId"].FirstOrDefault() != null) ? searchModel.Filters["calculationId"].FirstOrDefault() : "";
 
-            IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> searchTasks = BuildSearchTasks(searchModel);
+            IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> searchTasks = BuildSearchTasks(searchModel, calculationId);
 
             await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
@@ -151,7 +151,7 @@ namespace CalculateFunding.Services.Results
             return facetDictionary;
         }
 
-        IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> BuildSearchTasks(SearchModel searchModel)
+        IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> BuildSearchTasks(SearchModel searchModel, string calculationId)
         {
             IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
 
@@ -183,43 +183,41 @@ namespace CalculateFunding.Services.Results
             {
                 searchTasks = searchTasks.Concat(new[]
                 {
-                    BuildErrorsSearchTask(facetDictionary["calculationId"])
+                    BuildErrorsSearchTask(facetDictionary["calculationId"], calculationId)
                 });
             }
 
             searchTasks = searchTasks.Concat(new[]
             {
-                BuildItemsSearchTask(facetDictionary, searchModel)
+                BuildItemsSearchTask(facetDictionary, searchModel, calculationId)
             });
 
             return searchTasks;
         }
 
-        Task<SearchResults<ProviderCalculationResultsIndex>> BuildErrorsSearchTask(string calculationIdFilter)
+        Task<SearchResults<ProviderCalculationResultsIndex>> BuildErrorsSearchTask(string calculationIdFilter, string calculationId)
         {
             return Task.Run(() =>
             {
-                return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search("true", new SearchParameters
+                return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(null, new SearchParameters
                 {
                     Facets = new[] { "calculationId", "calculationException" },
                     SearchMode = SearchMode.All,
-                    IncludeTotalResultCount = false,
-                    SearchFields = new List<string> { "calculationException" },
-                    Filter = calculationIdFilter,
+                    IncludeTotalResultCount = true,
+                    Filter = calculationIdFilter + $" and calculationException/any(x: x eq '{calculationId}')",
                     QueryType = QueryType.Full
-                },
-                true));
+                }));
             });
         }
 
-        Task<SearchResults<ProviderCalculationResultsIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel, bool excludePaging = false)
+        Task<SearchResults<ProviderCalculationResultsIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel, string calculationId, bool excludePaging = false)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
             List<string> errorToggleWhere = !searchModel.ErrorToggle.HasValue
                 ? new List<string>()
                 : searchModel.ErrorToggle.Value
-                    ? new List<string> { "calculationException/any(x: x eq 'true')" }
-                    : new List<string> { "calculationException/all(x: x ne 'true')" };
+                    ? new List<string> { $"calculationException/any(x: x eq '{calculationId}')" }
+                    : new List<string> { $"calculationException/all(x: x ne '{calculationId}')" };
 
             IEnumerable<string> where = facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x)).Concat(errorToggleWhere);
             return Task.Run(() =>
@@ -244,12 +242,7 @@ namespace CalculateFunding.Services.Results
             {
                 if (_featureToggle.IsExceptionMessagesEnabled() && searchResult.Facets.Any(f => f.Name == "calculationException"))
                 {
-                    results.TotalErrorCount = !searchResult.Results.IsNullOrEmpty() ? searchResult.Results
-                        .Where(x => {
-                            int calculationIdIndex = Array.IndexOf(x.Result.CalculationId, calculationId);
-                            return !x.Result.CalculationException.IsNullOrEmpty() ? x.Result.CalculationException[calculationIdIndex] == "true" : false;
-                        })
-                        .Count() : 0;
+                    results.TotalErrorCount = (int)(searchResult?.TotalCount ?? 0);
                 }
                 else
                 {
@@ -296,7 +289,6 @@ namespace CalculateFunding.Services.Results
 
                         if (_featureToggle.IsExceptionMessagesEnabled())
                         {
-                            calculationResult.CalculationException = !result.Result.CalculationException.IsNullOrEmpty() ? result.Result.CalculationException[calculationIdIndex] : string.Empty;
                             calculationResult.CalculationExceptionType = !result.Result.CalculationExceptionType.IsNullOrEmpty() ? result.Result.CalculationExceptionType[calculationIdIndex] : string.Empty;
                             calculationResult.CalculationExceptionMessage = !result.Result.CalculationExceptionMessage.IsNullOrEmpty() ? result.Result.CalculationExceptionMessage[calculationIdIndex] : string.Empty;
                         }

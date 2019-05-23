@@ -249,7 +249,7 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                     .Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.SearchFields.Any(f => f == "calculationException")), Arg.Any<bool>());
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "calculationException")), Arg.Any<bool>());
         }
 
         [TestMethod]

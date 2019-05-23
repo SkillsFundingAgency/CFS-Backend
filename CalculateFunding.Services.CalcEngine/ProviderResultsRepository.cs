@@ -186,7 +186,8 @@ namespace CalculateFunding.Services.CalcEngine
                     if (_featureToggle.IsExceptionMessagesEnabled())
                     {
                         providerCalculationResultsIndex.CalculationException = providerResult.CalculationResults
-                            .Select(m => !string.IsNullOrWhiteSpace(m.ExceptionType) ? "true" : "false")
+                            .Where(m => !string.IsNullOrWhiteSpace(m.ExceptionType))
+                            .Select(e => e.Calculation.Id)
                             .ToArraySafe();
 
                         providerCalculationResultsIndex.CalculationExceptionType = providerResult.CalculationResults

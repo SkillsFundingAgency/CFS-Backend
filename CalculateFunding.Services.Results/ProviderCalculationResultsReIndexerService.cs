@@ -120,7 +120,8 @@ namespace CalculateFunding.Services.Results
                             if (_featureToggle.IsExceptionMessagesEnabled())
                             {
                                 calculationResult.CalculationException = providerResult.CalculationResults
-                                    .Select(m => !string.IsNullOrWhiteSpace(m.ExceptionType) ? "true" : "false")
+                                    .Where(m => !string.IsNullOrWhiteSpace(m.ExceptionType))
+                                    .Select(e => e.Calculation.Id)
                                     .ToArraySafe();
 
                                 calculationResult.CalculationExceptionType = providerResult.CalculationResults
