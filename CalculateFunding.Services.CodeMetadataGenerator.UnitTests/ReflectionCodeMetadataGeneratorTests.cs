@@ -294,9 +294,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
 
             List<MethodInformation> methods = new List<MethodInformation>(datasetType.Methods);
 
-            methods.Should().HaveCount(9, "Calculations should contain expected number of methods");
+            methods.Should().HaveCount(5, "Calculations should contain expected number of methods");
 
-            MethodInformation firstCalculation = methods.Where(m=>m.Name== "ABHighNeedsCalc002").SingleOrDefault();
+            MethodInformation firstCalculation = methods.Where(m => m.Name == "ABHighNeedsCalc002").SingleOrDefault();
             firstCalculation.Should().NotBeNull("firstCalculation should not be null");
             firstCalculation.Name.Should().Be("ABHighNeedsCalc002");
             firstCalculation.FriendlyName.Should().Be("AB High Needs Calc 002");
@@ -332,7 +332,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
 
             List<MethodInformation> methods = new List<MethodInformation>(datasetType.Methods);
 
-            methods.Should().HaveCount(9, "Calculations should contain expected number of methods");
+            methods.Should().HaveCount(5, "Calculations should contain expected number of methods");
 
             MethodInformation firstCalculation = methods.Where(m => m.Name == "ABHighNeedsCalc002").SingleOrDefault();
             firstCalculation.Should().NotBeNull("firstCalculation should not be null");

@@ -52,12 +52,26 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                         Type = ConvertTypeName(typeInfo.FullName),
                     };
 
+                    List<string> filteredMethodNames = new List<string>()
+                    {
+                        "MainCalc",
+                        "ToString",
+                        "GetHashCode",
+                        "Equals",
+                        "GetType"
+                    };
+
+
                     List<MethodInformation> methods = new List<MethodInformation>();
                     foreach (MethodInfo methodInfo in typeInfo.GetMethods())
                     {
                         if (IsAggregateFunction(methodInfo.Name))
                         {
                             methods.Add(ConfigureAggregateFunctionMetadata(methodInfo));
+                        }
+                        else if (filteredMethodNames.Any(f => string.Equals(methodInfo.Name, f, StringComparison.InvariantCultureIgnoreCase)))
+                        {
+                            continue;
                         }
                         else
                         {
@@ -212,7 +226,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
             }
             IEnumerable<TypeInformation> dataTypes = GetDefaultTypes();
 
-            foreach(TypeInformation typeInformation in dataTypes)
+            foreach (TypeInformation typeInformation in dataTypes)
             {
                 results.Add(typeInformation);
             }

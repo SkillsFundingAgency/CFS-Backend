@@ -239,7 +239,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine("Try");
                 builder.AppendLine();
 
-                if (_useSourceCodeNameForCalculations)
+               if (_useSourceCodeNameForCalculations)
                 {
                     builder.AppendLine($"{calc.SourceCodeName}()");
                 }

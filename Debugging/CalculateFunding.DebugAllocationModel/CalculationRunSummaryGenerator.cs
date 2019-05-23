@@ -32,8 +32,8 @@ namespace CalculateFunding.DebugAllocationModel
 
 
             IEnumerable<CalculationResult> slowCalculations = calculationResults.OrderByDescending(c => c.ElapsedTime).Take(10);
-
-            if (slowCalculations.Any() && slowCalculations.First().ElapsedTime > 0)
+            bool outputCalculationTimings = slowCalculations.Any() && slowCalculations.First().ElapsedTime > 0;
+            if (outputCalculationTimings)
             {
                 Console.WriteLine("Slowest calculations:");
                 foreach (var calcs in slowCalculations)
@@ -87,7 +87,10 @@ namespace CalculateFunding.DebugAllocationModel
                     }
                 }
 
-                Console.WriteLine($"\t\tTime Taken: {calculation.ElapsedTime / 10000} milliseconds");
+                if (outputCalculationTimings)
+                {
+                    Console.WriteLine($"\t\tTime Taken: {calculation.ElapsedTime / 10000} milliseconds");
+                }
 
                 Console.WriteLine();
             }

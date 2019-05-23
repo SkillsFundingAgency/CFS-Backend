@@ -27,13 +27,13 @@ namespace CalculateFunding.DebugAllocationModel
 
             IFeatureToggle featureToggle = new FeatureToggles();
 
-            //string specificationId = "a1fe8998-406b-44b8-92c7-502a560e7b6e";
-            ////string providerId = "10027545";
-            //string providerId = "10004758";
-
-            string specificationId = "b1952bc1-4ed9-4ae1-b29d-c72d8d22e830";
+            string specificationId = "a1fe8998-406b-44b8-92c7-502a560e7b6e";
             //string providerId = "10027545";
-            string providerId = "10063088";
+            string providerId = "10004758";
+
+            //string specificationId = "b1952bc1-4ed9-4ae1-b29d-c72d8d22e830";
+            ////string providerId = "10027545";
+            //string providerId = "10063088";
 
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
