@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -39,6 +40,10 @@ namespace CalculateFunding.DebugAllocationModel
             IEnumerable<ProviderSummary> providers = await _providerService.FetchCoreProviderData();
 
             ProviderSummary provider = providers.FirstOrDefault(p => p.Id == providerId);
+            if (provider == null)
+            {
+                throw new InvalidOperationException("Provider not found");
+            }
 
             Stopwatch sw = Stopwatch.StartNew();
 

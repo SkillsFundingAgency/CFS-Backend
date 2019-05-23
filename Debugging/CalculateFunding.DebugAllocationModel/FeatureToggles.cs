@@ -34,6 +34,11 @@ namespace CalculateFunding.DebugAllocationModel
             return true;
         }
 
+        public bool IsCosmosDynamicScalingEnabled()
+        {
+            throw new System.NotImplementedException();
+        }
+
         public bool IsDuplicateCalculationNameCheckEnabled()
         {
             return true;

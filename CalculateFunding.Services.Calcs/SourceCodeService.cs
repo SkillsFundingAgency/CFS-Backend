@@ -134,7 +134,7 @@ namespace CalculateFunding.Services.Calcs
                     compilerOptions = new CompilerOptions { SpecificationId = buildProject.SpecificationId, OptionStrictEnabled = false };
                 }
 
-                IEnumerable<SourceFile> sourceFiles = _sourceFileGenerator.GenerateCode(buildProject, calculations, compilerOptions);
+                IEnumerable<SourceFile> sourceFiles = GenerateSourceFiles(buildProject, calculations, compilerOptions);
 
                 ICompiler compiler = _compilerFactory.GetCompiler(sourceFiles);
 
@@ -144,6 +144,15 @@ namespace CalculateFunding.Services.Calcs
             {
                 return new Build { CompilerMessages = new List<CompilerMessage> { new CompilerMessage { Message = e.Message, Severity = Severity.Error } } };
             }
+        }
+
+        public IEnumerable<SourceFile> GenerateSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions)
+        {
+            Guard.ArgumentNotNull(buildProject, nameof(buildProject));
+            Guard.ArgumentNotNull(calculations, nameof(calculations));
+            Guard.ArgumentNotNull(compilerOptions, nameof(compilerOptions));
+
+            return _sourceFileGenerator.GenerateCode(buildProject, calculations, compilerOptions);
         }
 
         public async Task<IEnumerable<TypeInformation>> GetTypeInformation(BuildProject buildProject)
@@ -165,7 +174,21 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(sourceFiles, nameof(sourceFiles));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            string sourceType = sourceCodeType == SourceCodeType.Preview ? "preview" : "release";
+            string sourceType;
+            switch (sourceCodeType)
+            {
+                case SourceCodeType.Release:
+                    sourceType = "release";
+                    break;
+                case SourceCodeType.Preview:
+                    sourceType = "preview";
+                    break;
+                case SourceCodeType.Diagnostics:
+                    sourceType = "diagnostics";
+                    break;
+                default:
+                    throw new InvalidOperationException("Unknown SourceCodeType");
+            }
 
             IEnumerable<(string filename, string content)> files = sourceFiles.Select(m => (m.FileName, m.SourceCode));
 

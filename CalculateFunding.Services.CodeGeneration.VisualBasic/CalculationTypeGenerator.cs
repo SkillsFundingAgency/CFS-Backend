@@ -155,12 +155,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             builder.AppendLine($"Public Function MainCalc As Dictionary(Of String, String())");
             builder.AppendLine();
 
-            if (_compilerOptions.UseDisgnosticsMode)
+            if (_compilerOptions.UseDiagnosticsMode)
             {
                 builder.AppendLine("Dim sw As New System.Diagnostics.Stopwatch()");
             }
 
-            builder.AppendLine("Dim dictionary as new Dictionary(Of String, String())");
+            builder.AppendLine($"Dim dictionary as new Dictionary(Of String, String())({calcs.Count()})");
+            builder.AppendLine($"Dim dictionaryValues as new Dictionary(Of String, Decimal?)({calcs.Count()})");
 
             foreach (Calculation calc in calcs)
             {
@@ -174,32 +175,53 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 {
                     builder.AppendLine($"{GenerateIdentifier(calc.Name)} = Function() As decimal?");
                 }
-                builder.AppendLine($"If dictionary.ContainsKey(\"{calc.Id}\") Then");
-                builder.AppendLine($"   dim resOut as Decimal");
-                builder.AppendLine($"   dim item as string = dictionary.Item(\"{calc.Id}\")(0)");
-                builder.AppendLine("    dim parsed as boolean = [Decimal].TryParse(item, resOut)");
-                builder.AppendLine("    if parsed = False then");
-                builder.AppendLine($"       dim exceptionType as string = dictionary.Item(\"{calc.Id}\")(1)");
-                builder.AppendLine("        if not String.IsNullOrEmpty(exceptionType) then");
-                builder.AppendLine($"           dim exceptionMessage as string = dictionary.Item(\"{calc.Id}\")(2)");
+
+                builder.AppendLine($"Dim existingCacheItem as String() = Nothing");
+                builder.AppendLine($"If dictionary.TryGetValue(\"{calc.Id}\", existingCacheItem) Then");
+                builder.AppendLine($"Dim existingCalculationResultDecimal As Decimal? = Nothing");
+                builder.AppendLine($"   If dictionaryValues.TryGetValue(\"{calc.Id}\", existingCalculationResultDecimal) Then");
+                builder.AppendLine($"        Return existingCalculationResultDecimal");
+                builder.AppendLine("    End If");
+
+                builder.AppendLine("    If existingCacheItem.Length > 2 Then");
+                builder.AppendLine($"       Dim exceptionType as String = existingCacheItem(1)");
+                builder.AppendLine("        If Not String.IsNullOrEmpty(exceptionType) then");
+                builder.AppendLine("            Dim exceptionMessage as String = existingCacheItem(2)");
                 builder.AppendLine($"           Throw New ReferencedCalculationFailedException(\"{calc.Name} failed due to exception type:\" + exceptionType  + \" with message: \" + exceptionMessage)");
-                builder.AppendLine("        else");
-                builder.AppendLine("            return Nothing");
-                builder.AppendLine("        end if");
-                builder.AppendLine("    else");
-                builder.AppendLine("        return resOut");
-                builder.AppendLine("    end if");
-                builder.AppendLine("end if");
+                builder.AppendLine("        End If");
+                builder.AppendLine("    End If");
+                builder.AppendLine("End If");
+
+                builder.AppendLine("Try");
+
+                builder.AppendLine("Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() as Decimal?");
+
                 builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
                 builder.AppendLine("If frameCount > 100 Then");
                 builder.AppendLine($"   Throw New CalculationStackOverflowException(\"The system detected a stackoverflow from {calc.Name}, this is probably due to recursive methods stuck in an infinite loop\")");
                 builder.AppendLine("End If");
+
                 builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
                 builder.AppendLine();
                 builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
                 builder.AppendLine();
                 builder.AppendLine("#End ExternalSource");
+
+                builder.AppendLine("End Function");
                 builder.AppendLine();
+
+                builder.AppendLine("Dim executedUserCodeCalculationResult As Nullable(Of Decimal) = userCalculationCodeImplementation()");
+                builder.AppendLine();
+                builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}})");
+                builder.AppendLine($"dictionaryValues.Add(\"{calc.Id}\", executedUserCodeCalculationResult)");
+                builder.AppendLine("Return executedUserCodeCalculationResult");
+                builder.AppendLine("Catch ex as System.Exception");
+                builder.AppendLine($"   dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
+                builder.AppendLine("    Throw");
+                builder.AppendLine("End Try");
+                builder.AppendLine();
+
+
                 builder.AppendLine("End Function");
             }
 
@@ -207,9 +229,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             foreach (Calculation calc in calcs)
             {
-                builder.AppendLine("Try");
 
-                if (_compilerOptions.UseDisgnosticsMode)
+
+                if (_compilerOptions.UseDiagnosticsMode)
                 {
                     builder.AppendLine("sw.reset()");
                     builder.AppendLine("sw.start()");
@@ -217,14 +239,21 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
                 if (_useSourceCodeNameForCalculations)
                 {
-                    builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {calc.SourceCodeName}()");
+                    builder.AppendLine("Try");
+                    builder.AppendLine($"{calc.SourceCodeName}()");
+                    builder.AppendLine();
+
+                    builder.AppendLine("Catch ex as Exception");
+                    builder.AppendLine("' Already added to dictionary in normal func, we should stop this from bubbling reference exception for main calc call");
+                    builder.AppendLine("End Try");
+
                 }
                 else
                 {
                     builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {GenerateIdentifier(calc.Name)}()");
                 }
 
-                if (_compilerOptions.UseDisgnosticsMode)
+                if (_compilerOptions.UseDiagnosticsMode)
                 {
                     builder.AppendLine("    sw.stop()");
                     builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\"),\"\", \"\", sw.Elapsed.ToString()}})");
@@ -235,11 +264,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 }
                 else
                 {
-                    builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\")}})");
-                    builder.AppendLine("Catch ex as System.Exception");
-                    builder.AppendLine($"   dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
-                    builder.AppendLine("End Try");
+
                 }
+
+                builder.AppendLine();
             }
 
             builder.AppendLine("return dictionary");

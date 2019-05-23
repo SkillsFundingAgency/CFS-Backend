@@ -27,8 +27,8 @@ namespace CalculateFunding.DebugAllocationModel
             Console.WriteLine();
 
 
-            Console.WriteLine($"Total of {calculationResults.Count()} calculations");
-            Console.WriteLine($"\t{calculationResults.Count(r => !string.IsNullOrWhiteSpace(r.ExceptionMessage))} calculations have exceptions thrown");
+            Console.WriteLine($"Total of {calculationResults.Count()} calculations in the specification");
+            Console.WriteLine($"\t{calculationResults.Count(r => !string.IsNullOrWhiteSpace(r.ExceptionMessage))} calculations throw exceptions");
 
 
             IEnumerable<CalculationResult> slowCalculations = calculationResults.OrderByDescending(c => c.ElapsedTime).Take(10);

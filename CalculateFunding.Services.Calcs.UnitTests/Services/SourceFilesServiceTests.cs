@@ -177,7 +177,15 @@ namespace CalculateFunding.Services.Calcs.Services
             Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
 
             // Assert
-            build.Success.Should().BeTrue();
+            build
+                .Success
+                .Should()
+                .BeTrue();
+
+            build
+                .CompilerMessages
+                .Should()
+                .BeEmpty();
         }
 
         [TestMethod]
@@ -832,8 +840,8 @@ namespace CalculateFunding.Services.Calcs.Services
             string calcSourceCode = build.SourceFiles.First(s => s.FileName == "Calculations.vb").SourceCode;
             calcSourceCode.Should().Contain($"Dim differentCalcName As Func(Of decimal?) = nothing");
             calcSourceCode.Should().NotContain($"Dim calc1 As Func(Of decimal?) = nothing");
-            calcSourceCode.Should().Contain($"Dim calcResult As Nullable(Of Decimal) = differentCalcName()");
-            calcSourceCode.Should().NotContain($"Dim calcResult As Nullable(Of Decimal) = calc1()");
+            calcSourceCode.Should().Contain($"differentCalcName()");
+            calcSourceCode.Should().NotContain($"calc1()");
         }
 
         private static SourceCodeService CreateSourceCodeService(
