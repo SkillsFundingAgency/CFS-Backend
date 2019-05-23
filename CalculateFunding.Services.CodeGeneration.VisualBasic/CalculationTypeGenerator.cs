@@ -221,7 +221,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine("End Try");
                 builder.AppendLine();
 
-
                 builder.AppendLine("End Function");
             }
 
@@ -229,29 +228,31 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             foreach (Calculation calc in calcs)
             {
-
-
                 if (_compilerOptions.UseDiagnosticsMode)
                 {
                     builder.AppendLine("sw.reset()");
                     builder.AppendLine("sw.start()");
                 }
 
+                builder.AppendLine();
+
+                builder.AppendLine("Try");
+                builder.AppendLine();
+
                 if (_useSourceCodeNameForCalculations)
                 {
-                    builder.AppendLine("Try");
                     builder.AppendLine($"{calc.SourceCodeName}()");
-                    builder.AppendLine();
-
-                    builder.AppendLine("Catch ex as Exception");
-                    builder.AppendLine("' Already added to dictionary in normal func, we should stop this from bubbling reference exception for main calc call");
-                    builder.AppendLine("End Try");
-
                 }
                 else
                 {
-                    builder.AppendLine($"Dim calcResult As Nullable(Of Decimal) = {GenerateIdentifier(calc.Name)}()");
+                    builder.AppendLine($"{GenerateIdentifier(calc.Name)}()");
                 }
+
+                builder.AppendLine();
+
+                builder.AppendLine("Catch ex as Exception");
+                builder.AppendLine("' Already added to dictionary in normal func, we should stop this from bubbling reference exception for main calc call");
+                builder.AppendLine("End Try");
 
                 if (_compilerOptions.UseDiagnosticsMode)
                 {

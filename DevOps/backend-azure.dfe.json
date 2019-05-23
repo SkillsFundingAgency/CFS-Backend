@@ -3095,6 +3095,10 @@
               "value": "[parameters('EnableDatasetAggregations')]"
             },
             {
+              "name": "features:duplicateCalculationNameCheckEnabled",
+              "value": "[parameters('EnableDuplicateCalculationNameCheck')]"
+            },
+            {
               "name": "jobsClient:ApiKey",
               "value": "[parameters('ApiKeyJobs')]"
             },
