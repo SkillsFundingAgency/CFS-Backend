@@ -154,6 +154,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             builder.AppendLine();
             builder.AppendLine($"Public Function MainCalc As Dictionary(Of String, String())");
             builder.AppendLine();
+            builder.AppendLine("Dim stackFrameStartingCount as integer = 0");
 
             if (_compilerOptions.UseDiagnosticsMode)
             {
@@ -192,12 +193,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine("    End If");
                 builder.AppendLine("End If");
 
-                builder.AppendLine("Try");
 
                 builder.AppendLine("Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() as Decimal?");
+                //builder.AppendLine("Throw New System.Exception(New System.Diagnostics.StackTrace().FrameCount.ToString() + \" started with\")");
 
                 builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
-                builder.AppendLine("If frameCount > 100 Then");
+                builder.AppendLine("If frameCount > stackFrameStartingCount + 200 Then");
                 builder.AppendLine($"   Throw New CalculationStackOverflowException(\"The system detected a stackoverflow from {calc.Name}, this is probably due to recursive methods stuck in an infinite loop\")");
                 builder.AppendLine("End If");
 
@@ -209,6 +210,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
                 builder.AppendLine("End Function");
                 builder.AppendLine();
+
+                builder.AppendLine("Try");
 
                 builder.AppendLine("Dim executedUserCodeCalculationResult As Nullable(Of Decimal) = userCalculationCodeImplementation()");
                 builder.AppendLine();
@@ -239,7 +242,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine("Try");
                 builder.AppendLine();
 
-               if (_useSourceCodeNameForCalculations)
+                // Reset baseline stack frame count before executing calc
+                builder.AppendLine("stackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
+
+                if (_useSourceCodeNameForCalculations)
                 {
                     builder.AppendLine($"{calc.SourceCodeName}()");
                 }
@@ -247,6 +253,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 {
                     builder.AppendLine($"{GenerateIdentifier(calc.Name)}()");
                 }
+
 
                 builder.AppendLine();
 
