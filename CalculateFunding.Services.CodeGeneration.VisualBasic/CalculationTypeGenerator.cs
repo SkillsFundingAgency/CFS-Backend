@@ -198,7 +198,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 //builder.AppendLine("Throw New System.Exception(New System.Diagnostics.StackTrace().FrameCount.ToString() + \" started with\")");
 
                 builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
-                builder.AppendLine("If frameCount > stackFrameStartingCount + 200 Then");
+                builder.AppendLine("If frameCount > stackFrameStartingCount + 40 Then");
                 builder.AppendLine($"   Throw New CalculationStackOverflowException(\"The system detected a stackoverflow from {calc.Name}, this is probably due to recursive methods stuck in an infinite loop\")");
                 builder.AppendLine("End If");
 

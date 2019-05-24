@@ -18,7 +18,7 @@
         public int SaveProviderDegreeOfParallelism { get; set; } = 5;
 
         /// <summary>
-        /// 
+        /// Number of calculations to run in parallel
         /// </summary>
         public int CalculateProviderResultsDegreeOfParallelism { get; set; } = 5;
 
@@ -27,5 +27,10 @@
         public int GetCurrentProviderTestResultsDegreeOfParallelism { get; set; } = 5;
 
         public int GetProviderSourceDatasetsDegreeOfParallelism { get; set; } = 5;
+
+        /// <summary>
+        /// Number of providers to index into search for calculation results in a single batch
+        /// </summary>
+        public int CalculationResultSearchIndexBatchSize { get; set; } = 100;
     }
 }

@@ -5,12 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Options;
 using Serilog;
 
 namespace CalculateFunding.Services.CalcEngine
@@ -23,6 +25,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
         private readonly IFeatureToggle _featureToggle;
+        private readonly EngineSettings _engineSettings;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
@@ -30,7 +33,8 @@ namespace CalculateFunding.Services.CalcEngine
             ISpecificationsRepository specificationsRepository,
             ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            EngineSettings engineSettings)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
@@ -38,6 +42,7 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
 
             _cosmosRepository = cosmosRepository;
             _searchRepository = searchRepository;
@@ -45,6 +50,7 @@ namespace CalculateFunding.Services.CalcEngine
             _logger = logger;
             _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
             _featureToggle = featureToggle;
+            _engineSettings = engineSettings;
         }
 
         public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs)> SaveProviderResults(IEnumerable<ProviderResult> providerResults, int degreeOfParallelism = 5)
@@ -136,17 +142,22 @@ namespace CalculateFunding.Services.CalcEngine
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            IEnumerable<IndexError> indexErrors = await _searchRepository.Index(results);
+            foreach (IEnumerable<CalculationProviderResultsIndex> resultsBatch in results.ToBatches(_engineSettings.CalculationResultSearchIndexBatchSize))
+            {
+                if (resultsBatch.AnyWithNullCheck())
+                {
+                    IEnumerable<IndexError> indexErrors = await _searchRepository.Index(resultsBatch);
+                    if (!indexErrors.IsNullOrEmpty())
+                    {
+                        _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
+
+                        // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
+                        throw new FailedToIndexSearchException(indexErrors);
+                    }
+                }
+            }
 
             stopwatch.Stop();
-
-            if (!indexErrors.IsNullOrEmpty())
-            {
-                _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
-
-                // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
-                throw new FailedToIndexSearchException(indexErrors);
-            }
 
             return stopwatch.ElapsedMilliseconds;
         }
@@ -155,7 +166,7 @@ namespace CalculateFunding.Services.CalcEngine
         {
             Stopwatch assembleStopwatch = Stopwatch.StartNew();
 
-            IList<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
+            List<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
 
             foreach (ProviderResult providerResult in providerResults)
             {
@@ -181,7 +192,7 @@ namespace CalculateFunding.Services.CalcEngine
                         CalculationId = providerResult.CalculationResults.Select(m => m.Calculation.Id).ToArraySafe(),
                         CalculationName = providerResult.CalculationResults.Select(m => m.Calculation.Name).ToArraySafe(),
                         CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
-					};
+                    };
 
                     if (_featureToggle.IsExceptionMessagesEnabled())
                     {
@@ -207,17 +218,19 @@ namespace CalculateFunding.Services.CalcEngine
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            IEnumerable<IndexError> indexErrors = await _providerCalculationResultsSearchRepository.Index(results);
+            foreach (IEnumerable<ProviderCalculationResultsIndex> resultsBatch in results.ToBatches(_engineSettings.CalculationResultSearchIndexBatchSize))
+            {
+                IEnumerable<IndexError> indexErrors = await _providerCalculationResultsSearchRepository.Index(resultsBatch);
+                if (!indexErrors.IsNullOrEmpty())
+                {
+                    _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
+
+                    // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
+                    throw new FailedToIndexSearchException(indexErrors);
+                }
+            }
 
             stopwatch.Stop();
-
-            if (!indexErrors.IsNullOrEmpty())
-            {
-                _logger.Error($"Failed to index provider results with the following errors: {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
-
-                // Throw exception so Service Bus message can be requeued and calc results can have a chance to get saved again
-                throw new FailedToIndexSearchException(indexErrors);
-            }
 
             return stopwatch.ElapsedMilliseconds;
         }

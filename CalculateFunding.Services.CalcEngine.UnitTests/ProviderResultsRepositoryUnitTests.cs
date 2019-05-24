@@ -11,6 +11,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -156,9 +157,9 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results);
 
             // Assert
-            await searchRepository.Received(1).Index(Arg.Is<IList<CalculationProviderResultsIndex>>(r => r.Count() == 1));
+            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r => r.Count() == 1));
 
-            await searchRepository.Received(1).Index(Arg.Is<IList<CalculationProviderResultsIndex>>(r =>
+            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r =>
                 r.First().SpecificationId == results.First().SpecificationId &&
                 r.First().SpecificationName == "Specification 1" &&
                 r.First().CalculationSpecificationId == results.First().CalculationResults.First().CalculationSpecification.Id &&
@@ -297,9 +298,9 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results);
 
             // Assert
-            await searchRepository.Received(1).Index(Arg.Is<IList<CalculationProviderResultsIndex>>(r => r.Count() == 1));
+            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r => r.Count() == 1));
 
-            await searchRepository.Received(1).Index(Arg.Is<IList<CalculationProviderResultsIndex>>(r =>
+            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r =>
                 r.First().SpecificationId == results.First().SpecificationId &&
                 r.First().SpecificationName == "Specification 1" &&
                 r.First().CalculationSpecificationId == results.First().CalculationResults.First().CalculationSpecification.Id &&
@@ -383,9 +384,9 @@ namespace CalculateFunding.Services.Calculator
             await repo.SaveProviderResults(results);
 
             // Assert
-            await searchRepository.Received(1).Index(Arg.Is<IList<ProviderCalculationResultsIndex>>(r => r.Count() == 1));
+            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r => r.Count() == 1));
 
-            await searchRepository.Received(1).Index(Arg.Is<IList<ProviderCalculationResultsIndex>>(r =>
+            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r =>
                 r.First().SpecificationId == results.First().SpecificationId &&
                 r.First().SpecificationName == "Specification 1" &&
                 r.First().CalculationId.Any() &&
@@ -470,7 +471,7 @@ namespace CalculateFunding.Services.Calculator
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1));
 
-            await searchRepository.Received(1).Index(Arg.Is<IList<ProviderCalculationResultsIndex>>(r =>
+            await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r =>
                r.First().SpecificationId == results.First().SpecificationId &&
                r.First().SpecificationName == "Specification 1" &&
                r.First().CalculationId.Any() &&
@@ -497,7 +498,8 @@ namespace CalculateFunding.Services.Calculator
             ISpecificationsRepository specificationsRepository = null,
             ILogger logger = null,
             IFeatureToggle featureToggle = null,
-            ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null)
+            ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
+            EngineSettings engineSettings = null)
         {
 
             return new ProviderResultsRepository(
@@ -506,7 +508,8 @@ namespace CalculateFunding.Services.Calculator
                 specificationsRepository ?? CreateSpecificationsRepository(),
                 logger ?? CreateLogger(),
                 providerCalculationResultsSearchRepository ?? CreateProviderCalculationResultsSearchRepository(),
-                featureToggle ?? CreateFeatureToggle());
+                featureToggle ?? CreateFeatureToggle(),
+                engineSettings ?? CreateEngineSettings());
         }
 
         private static ILogger CreateLogger()
@@ -527,6 +530,11 @@ namespace CalculateFunding.Services.Calculator
         private static ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
+        }
+
+        private static EngineSettings CreateEngineSettings()
+        {
+            return new EngineSettings();
         }
 
         private static IFeatureToggle CreateFeatureToggle()

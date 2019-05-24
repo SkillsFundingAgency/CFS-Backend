@@ -91,7 +91,9 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
 
-                return new Services.CalcEngine.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle);
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+
+                return new Services.CalcEngine.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle, engineSettings);
             });
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>

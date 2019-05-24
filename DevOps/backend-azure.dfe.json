@@ -535,6 +535,13 @@
       },
       "defaultValue": 100
     },
+    "CalcEngineSearchIndexBatchSize": {
+      "type": "int",
+      "metadata": {
+        "description": "Batch count for search indexing in calculation engine"
+      },
+      "defaultValue": 100
+    },
     "CalculateProviderResultsDegreeOfParallelism": {
       "type": "int",
       "metadata": {
@@ -1912,6 +1919,10 @@
               "name": "EngineSettings:SaveProviderDegreeOfParallelism",
               "value": "[parameters('SaveProviderDegreeOfParallelism')]",
               "slotSetting": false
+            },
+            {
+              "name": "engineSettings:CalculationResultSearchIndexBatchSize",
+              "value": "[parameters('CalcEngineSearchIndexBatchSize')]"
             }
           ]
         }
