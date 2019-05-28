@@ -1,9 +1,7 @@
-﻿using Microsoft.Azure.Search;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
+using Microsoft.Azure.Search;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results.Search
 {
@@ -103,9 +101,11 @@ namespace CalculateFunding.Models.Results.Search
         [JsonProperty("calculationResult")]
         public string[] CalculationResult { get; set; }
 
+        [IsFacetable]
         [JsonProperty("calculationException")]
         public string[] CalculationException { get; set; }
 
+        [IsFacetable]
         [JsonProperty("calculationExceptionType")]
         public string[] CalculationExceptionType { get; set; }
 
