@@ -202,6 +202,7 @@ namespace CalculateFunding.Services.Results
                 return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(null, new SearchParameters
                 {
                     Facets = new[] { "calculationId", "calculationException" },
+                    Top = 0,
                     SearchMode = SearchMode.All,
                     IncludeTotalResultCount = true,
                     Filter = calculationIdFilter + $" and calculationException/any(x: x eq '{calculationId}')",
