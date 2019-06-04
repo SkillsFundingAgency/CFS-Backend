@@ -1,14 +1,11 @@
 ﻿using CalculateFunding.Api.Providers.Controllers;
-using CalculateFunding.Api.Providers.ViewModels;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Providers.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Results.UnitTests.Controllers
@@ -30,7 +27,7 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
 
             await providerVersionService
                 .Received(1)
-                .GetAllProviders(null);
+                .GetAllMasterProviders();
         }
 
         [TestMethod]
@@ -49,7 +46,7 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
 
             await providerVersionSearchService
                 .Received(1)
-                .SearchProviders(null, searchModel);
+                .SearchMasterProviders(searchModel);
         }
 
         [TestMethod]
@@ -69,7 +66,7 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
 
             await providerVersionSearchService
                 .Received(1)
-                .GetProviderById(null, providerId);
+                .GetProviderByIdFromMaster(providerId);
         }
 
         [TestMethod]
@@ -78,17 +75,22 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
             IProviderVersionService providerVersionService = Substitute.For<IProviderVersionService>();
             IProviderVersionSearchService providerVersionSearchService = Substitute.For<IProviderVersionSearchService>();
 
+            providerVersionService
+                .GetAllProviders(Arg.Any<string>())
+                .Returns(new OkObjectResult(new Provider { ProviderVersionId = "providerVersionId" }));
+
+
             MasterProviderController controller = Substitute.For<MasterProviderController>(
                 providerVersionService,
                 providerVersionSearchService);
 
-            SetMasterProviderViewModel setMasterProviderViewModel = new SetMasterProviderViewModel();
+            MasterProviderVersionViewModel masterProviderVersionViewModel = new MasterProviderVersionViewModel();
 
-            await controller.SetMasterProviderVersion(setMasterProviderViewModel);
+            await controller.SetMasterProviderVersion(masterProviderVersionViewModel);
 
-            controller
+            await providerVersionService
                 .Received(1)
-                .NoContent();
+                .SetMasterProviderVersion(Arg.Any<MasterProviderVersionViewModel>());
         }
     }
 }

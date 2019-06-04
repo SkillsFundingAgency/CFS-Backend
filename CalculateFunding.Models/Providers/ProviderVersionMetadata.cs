@@ -1,19 +1,20 @@
-﻿using CalculateFunding.Models.Providers;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
-using System.ComponentModel.DataAnnotations;
 
-namespace CalculateFunding.Models.Providers.ViewModels
+namespace CalculateFunding.Models.Providers
 {
-    public class ProviderVersionHeaderViewModel
+    public class ProviderVersionMetadata
     {
+        [JsonProperty("providerVersionId")]
+        public string ProviderVersionId { get; set; }
+
         [JsonProperty("versionType")]
-        private string ProviderVersionTypeString;
+        public string ProviderVersionTypeString;
 
-        public string Id { get; set; }
-
+        [JsonProperty("name")]
         public string Name { get; set; }
 
+        [JsonProperty("description")]
         public string Description { get; set; }
 
         [JsonIgnore]
@@ -34,6 +35,7 @@ namespace CalculateFunding.Models.Providers.ViewModels
             }
         }
 
+        [JsonProperty("created")]
         public DateTimeOffset Created { get; set; }
     }
 }

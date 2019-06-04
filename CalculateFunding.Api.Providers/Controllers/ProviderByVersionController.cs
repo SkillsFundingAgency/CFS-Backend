@@ -1,13 +1,11 @@
-﻿using System.Linq;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
-using CalculateFunding.Api.Providers.ViewModels;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Api.Providers.Controllers
 {
@@ -45,8 +43,8 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <param name="providerVersionId">Provider Version Id</param>
         /// <param name="searchModel">Search model</param>
         /// <returns></returns>
-        [HttpGet("api/providers/versions-search/{providerVersionId}")]
-        [ProducesResponseType(200, Type = typeof(ProviderSearchResults))]
+        [HttpPost("api/providers/versions-search/{providerVersionId}")]
+        [ProducesResponseType(200, Type = typeof(ProviderVersionSearchResults))]
         public async Task<IActionResult> SearchProvidersInProviderVersion([FromRoute]string providerVersionId, [FromBody]SearchModel searchModel)
         {
             return await _providerVersionSearchService.SearchProviders(providerVersionId, searchModel);
@@ -58,11 +56,9 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <param name="providerVersionId">Provider Version Id</param>
         /// <returns></returns>
         [HttpGet("api/providers/versions/{providerVersionId}")]
-        [ProducesResponseType(200, Type = typeof(ProviderDatasetResultViewModel))]
+        [ProducesResponseType(200, Type = typeof(ProviderVersion))]
         public async Task<IActionResult> GetProvidersByVersion([FromRoute]string providerVersionId)
         {
-            // Use the provider version service  _providerVersionService.GetAllProviders(providerVersionId); This will lookup from blob storage
-
             return await _providerVersionService.GetAllProviders(providerVersionId);
         }
 
@@ -73,11 +69,9 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <param name="providerId">Provider Id</param>
         /// <returns></returns>
         [HttpGet("api/providers/versions/{providerVersionId}/{providerId}")]
-        [ProducesResponseType(200, Type = typeof(ProviderViewModel))]
+        [ProducesResponseType(200, Type = typeof(ProviderVersionSearchResult))]
         public async Task<IActionResult> GetProviderByIdFromProviderVersion([FromRoute]string providerVersionId, [FromRoute]string providerId)
         {
-            // Use the provider version search service  _providerVersionSearchService.GetProviderById(providerVersionId, providerId);
-
             return await _providerVersionSearchService.GetProviderById(providerVersionId, providerId);
         }
 

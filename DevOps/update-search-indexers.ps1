@@ -6,15 +6,15 @@
     [string]$environmentKey,
     
     [Parameter(Position = 2, mandatory = $true)]
-    [String[]] $indexes = @()
+    [String[]] $indexers = @()
 )
 $apiKeyObj = $apiKey | convertfrom-json
 
 $ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
-$rootFolder = "$ScriptDir\search-indexes"
+$rootFolder = "$ScriptDir\search-indexers"
 
-Write-Host "Updating indexes on: $searchServiceUrl";
+Write-Host "Updating indexers on: $searchServiceUrl";
 
 $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]";
 $headers.Add("api-key", $apiKeyObj.azureSearchKey.value);
@@ -23,11 +23,11 @@ $indexes | ForEach-Object {
     
     $schema = Get-Content -Raw -Path "$rootFolder\$_\$_.json" | ConvertFrom-Json
 
-    $indexName = $schema.name
+    $indexerName = $schema.name
 
     $schema = $schema | ConvertTo-Json
 
-    $searchServiceUrl = "https://ss-$environmentKey-cfs.search.windows.net/indexes/$($indexName)?api-version=2019-05-06"
+    $searchServiceUrl = "https://ss-$environmentKey-cfs.search.windows.net/indexers/$($indexerName)?api-version=2019-05-06"
 
     $stopTrying = $false
 

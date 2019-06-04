@@ -55,6 +55,8 @@ Get-ChildItem "$rootFolder" -Filter *.csv |
             if([string]::IsNullOrWhiteSpace($item.UKPRN) -eq $false) { 
 
                 $provider = @{
+                    providerVersionId_providerId = $version + "_" + $item.UKPRN
+                    providerVersionId = $version
                     name = $item.'EstablishmentName'
                     urn = $item.URN
                     ukPrn = $item.UKPRN
@@ -87,8 +89,10 @@ Get-ChildItem "$rootFolder" -Filter *.csv |
 
         $versionProviders = @{
                        name = $version
+                       providerVersionId = $version
                        versionType = "SystemImported"
                        description = "string"
+                       created = [System.DateTimeOffset]::Now
                        providers = $providers
                     }
        

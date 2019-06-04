@@ -54,5 +54,11 @@
         public static string JobDefinitions { get; set; } = "job-definitions";
 
         public static string CalculationAggregations { get; set; } = "calculation-aggregations:";
+
+        public static string MasterProviderVersion { get; set; } = "master-version-provider";
+
+        public static string ProviderVersion { get; set; } = "provider-version:";
+
+        public static string ProviderVersionByDate { get; set; } = "provider-version-by-date:";
     }
 }

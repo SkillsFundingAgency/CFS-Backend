@@ -319,12 +319,13 @@ namespace CalculateFunding.Services.Datasets
             }
 
             await blob.FetchAttributesAsync();
-            Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob);
-
-            if (datasetStream == null || datasetStream.Length == 0)
+            using (Stream datasetStream = await _blobClient.DownloadToStreamAsync(blob))
             {
-                _logger.Error($"Blob {blob.Name} contains no data");
-                return new PreconditionFailedResult($"Blob {blob.Name} contains no data");
+                if (datasetStream == null || datasetStream.Length == 0)
+                {
+                    _logger.Error($"Blob {blob.Name} contains no data");
+                    return new PreconditionFailedResult($"Blob {blob.Name} contains no data");
+                }
             }
 
             string dataDefinitionId = blob.Metadata["dataDefinitionId"];

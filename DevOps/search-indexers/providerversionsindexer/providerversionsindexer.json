@@ -1,0 +1,122 @@
+{
+  "name": "providerversionsindexer",
+  "dataSourceName": "providerversionsdatasource",
+  "targetIndexName": "providerversionsindex",
+  "schedule": { "interval": "PT2H" },
+  "fieldMappings": [
+    {
+      "sourceFieldName": "/providerVersionId_providerId",
+      "targetFieldName": "id"
+    },
+    {
+      "sourceFieldName": "/providerVersionId",
+      "targetFieldName": "providerVersionId"
+    },
+    {
+      "sourceFieldName": "/providerId",
+      "targetFieldName": "providerId"
+    },
+    {
+      "sourceFieldName": "/name",
+      "targetFieldName": "name"
+    },
+    {
+      "sourceFieldName": "/urn",
+      "targetFieldName": "urn"
+    },
+    {
+      "sourceFieldName": "/ukPrn",
+      "targetFieldName": "ukPrn"
+    },
+    {
+      "sourceFieldName": "/upin",
+      "targetFieldName": "upin"
+    },
+    {
+      "sourceFieldName": "/establishmentNumber",
+      "targetFieldName": "establishmentNumber"
+    },
+    {
+      "sourceFieldName": "/dfeEstablishmentNumber",
+      "targetFieldName": "dfeEstablishmentNumber"
+    },
+    {
+      "sourceFieldName": "/authority",
+      "targetFieldName": "authority"
+    },
+    {
+      "sourceFieldName": "/providerType",
+      "targetFieldName": "providerType"
+    },
+    {
+      "sourceFieldName": "/providerSubType",
+      "targetFieldName": "providerSubType"
+    },
+    {
+      "sourceFieldName": "/dateOpened",
+      "targetFieldName": "dateOpened"
+    },
+    {
+      "sourceFieldName": "/dateClosed",
+      "targetFieldName": "dateClosed"
+    },
+    {
+      "sourceFieldName": "/providerProfileIdType",
+      "targetFieldName": "providerProfileIdType"
+    },
+    {
+      "sourceFieldName": "/laCode",
+      "targetFieldName": "laCode"
+    },
+    {
+      "sourceFieldName": "/navVendorNo",
+      "targetFieldName": "navVendorNo"
+    },
+    {
+      "sourceFieldName": "/crmAccountId",
+      "targetFieldName": "crmAccountId"
+    },
+    {
+      "sourceFieldName": "/legalName",
+      "targetFieldName": "legalName"
+    },
+    {
+      "sourceFieldName": "/status",
+      "targetFieldName": "status"
+    },
+    {
+      "sourceFieldName": "/phaseOfEducation",
+      "targetFieldName": "phaseOfEducation"
+    },
+    {
+      "sourceFieldName": "/reasonEstablishmentOpened",
+      "targetFieldName": "reasonEstablishmentOpened"
+    },
+    {
+      "sourceFieldName": "/reasonEstablishmentClosed",
+      "targetFieldName": "reasonEstablishmentClosed"
+    },
+    {
+      "sourceFieldName": "/successor",
+      "targetFieldName": "successor"
+    },
+    {
+      "sourceFieldName": "/trustStatus",
+      "targetFieldName": "trustStatus"
+    },
+    {
+      "sourceFieldName": "/trustName",
+      "targetFieldName": "trustName"
+    },
+    {
+      "sourceFieldName": "/trustCode",
+      "targetFieldName": "trustCode"
+    }
+  ],
+  "parameters": {
+    "configuration": {
+      "parsingMode": "jsonArray",
+      "documentRoot": "/Providers"
+    }
+  }
+}

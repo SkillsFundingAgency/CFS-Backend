@@ -1,7 +1,10 @@
-﻿using CalculateFunding.Models.Providers.ViewModels;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Providers;
+using CalculateFunding.Models.Providers.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,8 +12,13 @@ namespace CalculateFunding.Services.Providers.Interfaces
 {
     public interface IProviderVersionService
     {
-        Task<IActionResult> GetAllProviders(string providerVersionId);
+        Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day);
+        Task<MasterProviderVersion> GetMasterProviderVersion();
+        Task<IActionResult> GetAllMasterProviders();
+        Task<IActionResult> GetAllProviders(string providerVersionId, bool useCache = false);
         Task<IActionResult> GetAllProviders(int year, int month, int day);
+        Task<IActionResult> SetProviderVersionByDate(int year, int month, int day, string providerVersionId);
+        Task<IActionResult> SetMasterProviderVersion(MasterProviderVersionViewModel masterProviderVersionViewModel);
         Task<IActionResult> UploadProviderVersion(string actionName, string controller, string providerVersionId, ProviderVersionViewModel providers);
     }
 }

@@ -1,10 +1,17 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
+using AutoMapper;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Providers;
@@ -16,6 +23,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly.Bulkhead;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace CalculateFunding.Api.Providers
@@ -61,6 +69,8 @@ namespace CalculateFunding.Api.Providers
             {
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
+
+                app.UseMiddleware<ApiKeyMiddleware>();
             }
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
@@ -71,15 +81,13 @@ namespace CalculateFunding.Api.Providers
             app.UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-            });
-
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
                 c.RoutePrefix = string.Empty;
             });
 
             app.UseHttpsRedirection();
+
+            app.UseHealthCheckMiddleware();
+
             app.UseMvc();
         }
 
@@ -103,12 +111,55 @@ namespace CalculateFunding.Api.Providers
                     return new BlobClient(storageSettings);
                 });
 
+            builder.AddSingleton<IProviderVersionsMetadataRepository, ProviderVersionsMetadataRepository>(
+                ctx =>
+                {
+                    CosmosDbSettings specRepoDbSettings = new CosmosDbSettings();
+
+                    Configuration.Bind("CosmosDbSettings", specRepoDbSettings);
+
+                    specRepoDbSettings.CollectionName = "providerversionsmetadata";
+
+                    CosmosRepository cosmosRepository = new CosmosRepository(specRepoDbSettings);
+
+                    return new ProviderVersionsMetadataRepository(cosmosRepository);
+                });
+
+            builder.AddPolicySettings(Configuration);
+
+            MapperConfiguration providerVersionsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ProviderVersionsMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(providerVersionsConfig.CreateMapper());
+
             builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Providers");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
             builder.AddLogging("CalculateFunding.Api.Providers");
             builder.AddTelemetry();
 
+            builder.AddSingleton<IProvidersResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new ProvidersResiliencePolicies()
+                {
+                    ProviderVersionsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    ProviderVersionMetadataRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                };
+            });
+
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
+
+            builder.AddHealthCheckMiddleware();
+
             ServiceProvider = builder.BuildServiceProvider();
+
+            builder.AddSearch(Configuration);
         }
     }
 }

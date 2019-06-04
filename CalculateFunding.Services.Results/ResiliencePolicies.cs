@@ -29,5 +29,7 @@ namespace CalculateFunding.Services.Results
         public Policy ProviderCalculationResultsSearchRepository { get; set; }
 
         public Policy ProviderChangesRepository { get; set; }
+
+        public Policy ProviderVersionsSearchRepository { get;  set; }
     }
 }

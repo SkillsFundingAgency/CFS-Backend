@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Api.Providers.Controllers;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Providers.Interfaces;

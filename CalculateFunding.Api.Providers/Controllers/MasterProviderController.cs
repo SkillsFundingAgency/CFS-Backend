@@ -1,10 +1,11 @@
-﻿using CalculateFunding.Api.Providers.ViewModels;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Providers.Controllers
 {
@@ -29,12 +30,10 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("api/providers/master")]
-        [ProducesResponseType(200, Type = typeof(MasterProviderDatasetResultViewModel))]
+        [ProducesResponseType(200, Type = typeof(ProviderVersion))]
         public async Task<IActionResult> GetAllMasterProviders()
         {
-            // Lookup which provider version is set to be the master in cache, then fallback to cosmos
-
-            return await _providerVersionService.GetAllProviders(null);
+            return await _providerVersionService.GetAllMasterProviders();
         }
 
         /// <summary>
@@ -43,12 +42,10 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// <returns></returns>
         /// <param name="searchModel">Search Model</param>
         [HttpPost("api/providers/master-search")]
-        [ProducesResponseType(200, Type = typeof(ProviderSearchResults))]
+        [ProducesResponseType(200, Type = typeof(ProviderVersionSearchResults))]
         public async Task<IActionResult> SearchMasterProviders([FromBody]SearchModel searchModel)
         {
-            // Lookup which provider version is set to be the master in cache, then fallback to cosmos
-
-            return await _providerVersionSearchService.SearchProviders(null, searchModel);
+            return await _providerVersionSearchService.SearchMasterProviders(searchModel);
         }
 
         /// <summary>
@@ -56,27 +53,23 @@ namespace CalculateFunding.Api.Providers.Controllers
         /// </summary>
         /// <param name="providerId">Provider Id</param>
         /// <returns></returns>
-        [HttpGet("api/providers/master/{providerVersionId}/{providerId}")]
-        [ProducesResponseType(200, Type = typeof(ProviderViewModel))]
+        [HttpGet("api/providers/master/{providerId}")]
+        [ProducesResponseType(200, Type = typeof(ProviderVersionSearchResult))]
         public async Task<IActionResult> GetProviderByIdFromMaster([FromRoute]string providerId)
         {
-            // Lookup which provider version is set to be the master in cache, then fallback to cosmos
-
-            // Use the provider version search service  _providerVersionSearchService.GetProviderById(providerVersionId, providerId);
-
-            return await _providerVersionSearchService.GetProviderById(null, providerId);
+            return await _providerVersionSearchService.GetProviderByIdFromMaster(providerId);
         }
 
         /// <summary>
         /// Set a specific version (uploaded via ProviderByVersion) to be the master provider list
         /// </summary>
-        /// <param name="configuration"></param>
+        /// <param name="masterProviderVersionViewModel"></param>
         /// <returns></returns>
         [HttpPut("api/providers/master")]
         [ProducesResponseType(201)]
-        public async Task<IActionResult> SetMasterProviderVersion([FromBody]SetMasterProviderViewModel configuration)
+        public async Task<IActionResult> SetMasterProviderVersion([FromBody]MasterProviderVersionViewModel masterProviderVersionViewModel)
         {
-            return NoContent();
+            return await _providerVersionService.SetMasterProviderVersion(masterProviderVersionViewModel);
         }
     }
 }

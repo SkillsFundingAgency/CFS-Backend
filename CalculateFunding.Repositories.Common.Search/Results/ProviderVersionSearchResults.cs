@@ -1,22 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using CalculateFunding.Models.Providers.ViewModels;
-using CalculateFunding.Repositories.Common.Search;
 
-namespace CalculateFunding.Api.Providers.ViewModels
+namespace CalculateFunding.Repositories.Common.Search.Results
 {
-
     public class ProviderVersionSearchResults
     {
         public ProviderVersionSearchResults()
         {
-            Results = Enumerable.Empty<ProviderVersionViewModel>();
+            Results = Enumerable.Empty<ProviderVersionSearchResult>();
             Facets = Enumerable.Empty<Facet>();
         }
 
         public int TotalCount { get; set; }
 
-        public IEnumerable<ProviderVersionViewModel> Results { get; set; }
+        public IEnumerable<ProviderVersionSearchResult> Results { get; set; }
 
         public IEnumerable<Facet> Facets { get; set; }
     }

@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Core.AzureStorage
         public async Task<bool> BlobExistsAsync(string blobName)
         {
             EnsureBlobClient();
-            var blob = await _container.Value.GetBlobReferenceFromServerAsync(blobName);
+            var blob = _container.Value.GetBlockBlobReference(blobName);
 
             return await blob.ExistsAsync(null, null);
         }

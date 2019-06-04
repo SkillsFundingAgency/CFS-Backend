@@ -1,10 +1,8 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
-namespace CalculateFunding.Api.Providers.ViewModels
+namespace CalculateFunding.Models.Providers
 {
-    public enum TrustStatusViewModel
+    public enum TrustStatus
     {
         [EnumMember(Value = "Not applicable")]
         NotApplicable,

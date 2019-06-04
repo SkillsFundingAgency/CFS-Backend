@@ -16,6 +16,15 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Linq;
+using Microsoft.WindowsAzure.Storage;
+using Polly;
+using AutoMapper;
+using CalculateFunding.Models.Providers;
+using System;
+using AutoMapper.Configuration;
+using CalculateFunding.Models.MappingProfiles;
+using Newtonsoft.Json;
+using System.Text;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -33,18 +42,22 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
 
-            IBlobClient blobClient = CreateBlobClient();
-
             ICloudBlob cloudBlob = CreateCloudBlob();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient.GetBlockBlobReference(Arg.Any<string>()).Returns(cloudBlob);
 
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            await providerService.UploadProviderVersion("", "", providerVersionViewModel.Id, providerVersionViewModel);
+            await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
-            await blobClient
+            blobClient
                 .Received(1)
-                .GetBlockBlobReference(Arg.Any<string>())
+                .GetBlockBlobReference(Arg.Any<string>());
+
+            await cloudBlob
+                .Received(1)
                 .UploadFromStreamAsync(Arg.Any<MemoryStream>());
         }
 
@@ -54,7 +67,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Arrange
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
 
-            providerVersionViewModel.Id = null;
+            providerVersionViewModel.ProviderVersionId = null;
             providerVersionViewModel.VersionType = ProviderVersionType.Custom;
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -63,12 +76,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
 
-            ICloudBlob cloudBlob = CreateCloudBlob();
-
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("", "", providerVersionViewModel.Id, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -77,7 +88,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             BadRequestObjectResult badRequestObject = badRequest as BadRequestObjectResult;
             SerializableError validationErrors = badRequestObject.Value as SerializableError;
 
-            ((string[])validationErrors["Id"])[0]
+            ((string[])validationErrors["ProviderVersionId"])[0]
                 .Should()
                 .Be("No provider version Id was provided to UploadProviderVersion");
         }
@@ -97,12 +108,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
 
-            ICloudBlob cloudBlob = CreateCloudBlob();
-
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("", "", providerVersionViewModel.Id, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -122,7 +131,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Arrange
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
 
-            providerVersionViewModel.Providers = new List<ProviderViewModel>();
+            providerVersionViewModel.Providers = new List<Provider>();
             providerVersionViewModel.VersionType = ProviderVersionType.Custom;
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -131,12 +140,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
 
-            ICloudBlob cloudBlob = CreateCloudBlob();
-
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("", "", providerVersionViewModel.Id, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -162,12 +169,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
 
-            ICloudBlob cloudBlob = CreateCloudBlob();
-
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("", "", providerVersionViewModel.Id, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -203,12 +208,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
 
-            ICloudBlob cloudBlob = CreateCloudBlob();
-
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("", "", providerVersionViewModel.Id, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -249,12 +252,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             IBlobClient blobClient = CreateBlobClient();
 
-            ICloudBlob cloudBlob = CreateCloudBlob();
-
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("", "", providerVersionViewModel.Id, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -266,6 +267,245 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ((string[])validationErrors["Providers"])[0]
                 .Should()
                 .Be($"Duplicate UKPRN specified for {providerVersionViewModel.Providers.First().UKPRN} was provided to UploadProviderVersion");
+        }
+
+        [TestMethod]
+        public async Task GetAllProviders_WhenProviderVersionDoesntExist_BlobNotFoundReturned()
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            providerVersionViewModel.Providers = providerVersionViewModel.Providers.Concat(new[] { GetProviderViewModel() });
+            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            ICloudBlob cloudBlob = CreateCloudBlob();
+            cloudBlob.Exists().Returns(false);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(cloudBlob);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
+
+            // Act
+            IActionResult notFoundRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId, true);
+
+            blobClient
+                .Received(1)
+                .GetBlockBlobReference(Arg.Any<string>());
+
+            notFoundRequest
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+
+        [TestMethod]
+        public async Task GetAllProviders_WhenProviderVersionIdExists_ProviderListReturned()
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            providerVersionViewModel.Providers = providerVersionViewModel.Providers.Concat(new[] { GetProviderViewModel() });
+            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
+
+            IMapper mapper = CreateMapper();
+
+            ProviderVersion providerVersion = mapper.Map<ProviderVersion>(providerVersionViewModel);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            ICloudBlob cloudBlob = CreateCloudBlob();
+            cloudBlob.Exists().Returns(true);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(cloudBlob);
+
+            MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerVersion)));
+
+            blobClient
+                .DownloadToStreamAsync(cloudBlob)
+                .Returns(memoryStream);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider, mapper: mapper);
+
+            // Act
+            IActionResult okRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId, true);
+
+            blobClient
+                .Received(1)
+                .GetBlockBlobReference(Arg.Any<string>());
+
+            await blobClient.Received(1)
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync(Arg.Any<string>(), Arg.Any<ProviderVersion>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+
+            okRequest
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        [DataRow(12,12,2019)]
+        public async Task GetAllProviders_WhenADateIsSetAgainstProviderVersion_ProviderListReturned(int day, int month, int year)
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            providerVersionViewModel.Providers = providerVersionViewModel.Providers.Concat(new[] { GetProviderViewModel() });
+            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            ICloudBlob cloudBlob = CreateCloudBlob();
+            cloudBlob.Exists().Returns(true);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(cloudBlob);
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            providerVersionsMetadataRepository
+                .GetProviderVersionByDate(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>())
+                .Returns<ProviderVersionByDate>(new ProviderVersionByDate { Day = day, Month = month, Year = year, ProviderVersionId = providerVersionViewModel.ProviderVersionId });
+
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider, providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act
+            IActionResult okRequest = await providerService.GetAllProviders(year, month, day);
+
+            blobClient
+                .Received(1)
+                .GetBlockBlobReference(Arg.Any<string>());
+
+            await blobClient.Received(1)
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
+        }
+
+        [TestMethod]
+        public async Task GetAllMasterProviders_WhenAllMasterProvidersRequestedAndProviderVersionSet_MasterProvidersReturned()
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            providerVersionViewModel.Providers = providerVersionViewModel.Providers.Concat(new[] { GetProviderViewModel() });
+            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            ICloudBlob cloudBlob = CreateCloudBlob();
+            cloudBlob.Exists().Returns(true);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                        .Returns(cloudBlob);
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            providerVersionsMetadataRepository
+                .GetMasterProviderVersion()
+                .Returns<MasterProviderVersion>(new MasterProviderVersion { ProviderVersionId = providerVersionViewModel.ProviderVersionId });
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider, providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act
+            IActionResult okRequest = await providerService.GetAllMasterProviders();
+
+            blobClient
+                .Received(1)
+                        .GetBlockBlobReference(Arg.Any<string>());
+
+            await blobClient.Received(1)
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
+        }
+
+        [TestMethod]
+        public async Task SetMasterProviderVersion_GivenAValidProviderVersion_MasterProviderIsSet()
+        {
+            // Arrange
+            MasterProviderVersionViewModel masterProviderVersionViewModel = new MasterProviderVersionViewModel { ProviderVersionId = Guid.NewGuid().ToString() };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            cacheProvider
+                .GetAsync<MasterProviderVersion>(Arg.Any<string>())
+                .Returns(new MasterProviderVersion());
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Any<string>())
+                        .Returns(true);
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider, providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act
+            IActionResult okRequest = await providerService.SetMasterProviderVersion(masterProviderVersionViewModel);
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<MasterProviderVersion>(Arg.Any<string>());
+
+            await providerVersionsMetadataRepository
+                .Received(1)
+                .UpsertMaster(Arg.Any<MasterProviderVersion>());
+        }
+
+        [TestMethod]
+        [DataRow(12,12,2019)]
+        public async Task SetProviderVersionByDate_GivenAValidProviderVersion_ProviderVersionDateIsSet(int day, int month, int year)
+        {
+            // Arrange
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            cacheProvider
+                .GetAsync<ProviderVersionByDate>(Arg.Any<string>())
+                .Returns(new ProviderVersionByDate());
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(Arg.Any<string>())
+                        .Returns(true);
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider, providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act
+            IActionResult okRequest = await providerService.SetProviderVersionByDate(day, month, year, Guid.NewGuid().ToString());
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<ProviderVersionByDate>(Arg.Any<string>());
+
+            await providerVersionsMetadataRepository
+                .Received(1)
+                .UpsertProviderVersionByDate(Arg.Any<ProviderVersionByDate>());
         }
 
         private ICacheProvider CreateCacheProvider()
@@ -288,20 +528,45 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return Substitute.For<ILogger>();
         }
 
-        private IProviderVersionService CreateProviderVersionService(IBlobClient blobClient, IValidator<ProviderVersionViewModel> providerVersionModelValidator, ICacheProvider cacheProvider = null)
+        private IProviderVersionsMetadataRepository CreateProviderVersionMetadataRepository()
+        {
+            return Substitute.For<IProviderVersionsMetadataRepository>();
+        }
+
+        private IProvidersResiliencePolicies CreateResiliencePolicies()
+        {
+            IProvidersResiliencePolicies providersResiliencePolicies = Substitute.For<IProvidersResiliencePolicies>();
+            providersResiliencePolicies.ProviderVersionMetadataRepository = Policy.NoOpAsync();
+            return providersResiliencePolicies;
+        }
+
+        private IProviderVersionService CreateProviderVersionService(IBlobClient blobClient, IValidator<ProviderVersionViewModel> providerVersionModelValidator, ICacheProvider cacheProvider = null, IProviderVersionsMetadataRepository providerVersionMetadataRepository = null, IMapper mapper = null)
         {
             return new ProviderVersionService(
                 cacheProvider ?? CreateCacheProvider(),
                 blobClient,
                 CreateLogger(),
-                providerVersionModelValidator);
+                providerVersionModelValidator,
+                providerVersionMetadataRepository ?? CreateProviderVersionMetadataRepository(),
+                CreateResiliencePolicies(),
+                mapper ?? CreateMapper());
+        }
+
+        private IMapper CreateMapper()
+        {
+            Mapper.Reset();
+            MapperConfigurationExpression mappings = new MapperConfigurationExpression();
+            mappings.AddProfile<ProviderVersionsMappingProfile>();
+            Mapper.Initialize(mappings);
+            
+            return Mapper.Instance;
         }
 
         private ProviderVersionViewModel CreateProviderVersion()
         {
             return new ProviderVersionViewModel
             {
-                Id = System.Guid.NewGuid().ToString(),
+                ProviderVersionId = System.Guid.NewGuid().ToString(),
                 Description = "Test provider version description",
                 Name = "Test provider version",
                 Providers = new[]
@@ -311,10 +576,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             };
         }
 
-        public ProviderViewModel GetProviderViewModel()
+        public Provider GetProviderViewModel()
         {
-            return new ProviderViewModel
+            return new Provider
             {
+                ProviderVersionId = System.Guid.NewGuid().ToString(),
                 Name = "EstablishmentName",
                 URN = "URN",
                 UKPRN = "UKPRN",

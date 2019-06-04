@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Models.Providers.ViewModels
 {
-    public class ProviderVersionViewModel : ProviderVersionHeaderViewModel
+    public class ProviderVersionViewModel : ProviderVersionMetadata
     {
-        public IEnumerable<ProviderViewModel> Providers { get; set; }
+        public IEnumerable<Provider> Providers { get; set; }
     }
 }

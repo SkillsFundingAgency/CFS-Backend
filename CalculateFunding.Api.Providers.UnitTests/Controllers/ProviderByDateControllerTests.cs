@@ -1,14 +1,11 @@
 ﻿using CalculateFunding.Api.Providers.Controllers;
-using CalculateFunding.Api.Providers.ViewModels;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Providers.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Results.UnitTests.Controllers
@@ -23,16 +20,18 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
             IProviderVersionService providerVersionService = Substitute.For<IProviderVersionService>();
             IProviderVersionSearchService providerVersionSearchService = Substitute.For<IProviderVersionSearchService>();
 
+            providerVersionService
+                .GetAllProviders(Arg.Any<string>())
+                .Returns(new OkObjectResult(new Provider { ProviderVersionId = "providerVersionId" }));
+
             ProviderByDateController controller = Substitute.For<ProviderByDateController>(providerVersionService, providerVersionSearchService);
 
+            
+            await controller.SetProviderDateProviderVersion(year, month, day, "providerVersionId");
 
-            SetProviderVersionDateViewModel setProviderVersionDateViewModel = new SetProviderVersionDateViewModel();
-
-            await controller.SetProviderDateProviderVersion(year, month, day, setProviderVersionDateViewModel);
-
-            controller
+            await providerVersionService
                 .Received(1)
-                .NoContent();
+                .SetProviderVersionByDate(Arg.Any<int>(), Arg.Any<int>(), Arg.Any<int>(), Arg.Any<string>());
         }
 
         [TestMethod]
