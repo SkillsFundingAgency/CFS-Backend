@@ -45,8 +45,8 @@ namespace CalculateFunding.Services.Datasets
                                     AND r.documentType = @DocumentType",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@SpecificationID", specificationId), 
-                    new SqlParameter("@RelationshipID", relationshipId),
+                    new SqlParameter("@SpecificationId", specificationId), 
+                    new SqlParameter("@RelationshipId", relationshipId),
                     new SqlParameter("@DocumentType", nameof(ProviderSourceDatasetHistory))
                 }
             };
@@ -66,8 +66,8 @@ namespace CalculateFunding.Services.Datasets
                                     AND r.documentType = @DocumentType",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@SpecificationID", specificationId),
-                    new SqlParameter("@RelationshipID", relationshipId),
+                    new SqlParameter("@SpecificationId", specificationId),
+                    new SqlParameter("@RelationshipId", relationshipId),
                     new SqlParameter("@DocumentType", nameof(ProviderSourceDataset))
                 }
             };
