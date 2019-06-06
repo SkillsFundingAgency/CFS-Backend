@@ -195,5 +195,82 @@ namespace CalculateFunding.Services.Jobs.Repositories
                 LastUpdated = (DateTimeOffset)existingResult.lastUpdated
             };
         }
+
+        public async Task<IEnumerable<Job>> GetRunningJobsWithinTimeFrame(string dateTimeFrom, string dateTimeTo)
+        {
+            string query = @"SELECT r.content.id AS id, 
+                                    r.content.jobDefinitionId AS jobDefinitionId, 
+                                    r.content.runningStatus AS runningStatus, 
+                                    r.content.completionStatus AS completionStatus, 
+                                    r.content.invokerUserId AS invokeUserId, 
+                                    r.content.invokerDisplayName AS invokerDisplayName, 
+                                    r.content.itemCount AS itemCount, 
+                                    r.content.specificationId AS specificationId, 
+                                    r.content.trigger.message AS triggerMessage, 
+                                    r.content.trigger.entityId AS triggerEntityId, 
+                                    r.content.trigger.entityType AS triggerEntityType, 
+                                    r.content.parentJobId AS parentJobId, 
+                                    r.content.supersededByJobId AS supersededByJobId, 
+                                    r.content.correlationId AS correlationId, 
+                                    r.content.properties AS properties, 
+                                    r.content.messageBody AS messageBody, 
+                                    r.content.created AS created, 
+                                    r.content.completed AS completed, 
+                                    r.content.outcome AS outcome, 
+                                    r.content.lastUpdated AS lastUpdated 
+                            FROM    r 
+                            WHERE   r.documentType = 'Job' 
+                                    AND r.deleted = false 
+                                    AND (r.content.lastUpdated >= @dateTimeFrom and r.content.lastUpdated <= @dateTimeTo) and r.content.runningStatus != 'Completed'";
+
+            List<SqlParameter> sqlParameters = new List<SqlParameter>
+            {
+                new SqlParameter($"@dateTimeFrom", dateTimeFrom),
+                new SqlParameter($"@dateTimeTo", dateTimeTo),
+            };
+
+            query += " ORDER BY r.content.created DESC";
+
+            IEnumerable<dynamic> existingResults = await _cosmosRepository.QueryDynamic(new SqlQuerySpec(query, new SqlParameterCollection(sqlParameters)), true, 1);
+
+            IList<Job> jobs = new List<Job>();
+
+            if (existingResults.IsNullOrEmpty())
+            {
+                return jobs;
+            }
+
+            foreach (dynamic existingResult in existingResults)
+            {
+                jobs.Add(new Job
+                {
+                    Id = existingResult.id,
+                    JobDefinitionId = existingResult.jobDefinitionId,
+                    RunningStatus = Enum.Parse(typeof(RunningStatus), existingResult.runningStatus),
+                    CompletionStatus = string.IsNullOrWhiteSpace(existingResult.completionStatus) ? null : Enum.Parse(typeof(CompletionStatus), existingResult.completionStatus),
+                    InvokerUserId = existingResult.invokeUserId,
+                    InvokerUserDisplayName = existingResult.invokerDisplayName,
+                    ItemCount = existingResult.itemCount,
+                    SpecificationId = existingResult.specificationId,
+                    Trigger = new Trigger
+                    {
+                        Message = existingResult.triggerMessage ?? string.Empty,
+                        EntityId = existingResult.triggerEntityId ?? string.Empty,
+                        EntityType = existingResult.triggerEntityType ?? string.Empty
+                    },
+                    ParentJobId = existingResult.parentJobId,
+                    SupersededByJobId = existingResult.supersededByJobId,
+                    CorrelationId = existingResult.correlationId,
+                    Properties = existingResult.properties == null ? new Dictionary<string, string>() : ((JObject)existingResult.properties).ToObject<Dictionary<string, string>>(),
+                    MessageBody = existingResult.messageBody,
+                    Created = (DateTimeOffset)existingResult.created,
+                    Completed = (DateTimeOffset?)existingResult.completed,
+                    Outcome = existingResult.outcome,
+                    LastUpdated = (DateTimeOffset)existingResult.lastUpdated
+                });
+            }
+
+            return jobs;
+        }
     }
 }

@@ -61,6 +61,9 @@
             public const string ReIndexAllocationNotificationFeedIndex = "reindex-allocation-notifcication-feed-index";
 
             public const string ReIndexCalculationResultsIndex = "reindex-calculation-results-index";
+
+            //For debug queue only as its on a timer
+            public const string ScaleDownCosmosdbCollection = "scale-down-cosmosdb-collection";
         }
 
         public static class TopicNames
@@ -99,6 +102,8 @@
             public const string UpdateCalculationFieldDefinitionProperties = "calculation-field-definition-properties-update";
 
             public const string UpdateScenarioFieldDefinitionProperties = "scenario-field-definition-properties-update";
+
+            public const string ScaleUpCosmosdbCollection = "scale-up-cosmosdb-collection";
         }
     }
 }

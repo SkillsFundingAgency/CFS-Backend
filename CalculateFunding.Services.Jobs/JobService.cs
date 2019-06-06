@@ -173,6 +173,29 @@ namespace CalculateFunding.Services.Jobs
             }
         }
 
+        public async Task<IActionResult> GetCreatedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo)
+        {
+            Guard.ArgumentNotNull(dateTimeFrom, nameof(dateTimeFrom));
+            Guard.ArgumentNotNull(dateTimeTo, nameof(dateTimeFrom));
+
+            if(dateTimeFrom > DateTimeOffset.UtcNow)
+            {
+                return new BadRequestObjectResult($"{nameof(dateTimeFrom)} cannot be in the future");
+            }
+
+            if (dateTimeTo < dateTimeFrom)
+            {
+                return new BadRequestObjectResult($"{nameof(dateTimeTo)} cannot be before {nameof(dateTimeFrom)}.");
+            }
+
+            string dateTimeFromAsString = dateTimeFrom.ToString();
+            string dateTimeToAsString = dateTimeTo.ToString();
+
+            IEnumerable<Job> jobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetRunningJobsWithinTimeFrame(dateTimeFromAsString, dateTimeToAsString));
+
+            return new OkObjectResult(jobs.Select(_mapper.Map<JobSummary>));
+         }
+
         public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate, HttpRequest request)
         {
             throw new System.NotImplementedException();

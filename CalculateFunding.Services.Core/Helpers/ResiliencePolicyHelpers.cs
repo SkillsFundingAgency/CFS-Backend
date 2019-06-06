@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Services.Core.Options;
+using Microsoft.Azure.Documents;
 using Microsoft.Extensions.Configuration;
 using Polly;
 using Polly.Bulkhead;
@@ -90,6 +91,29 @@ namespace CalculateFunding.Services.Core.Helpers
 
             List<IAsyncPolicy> policies = new List<IAsyncPolicy>(8)
             {
+                circuitBreakerRequestException
+            };
+
+            if (!chainedPolicies.IsNullOrEmpty())
+            {
+                policies.AddRange(chainedPolicies);
+            }
+
+            PolicyWrap policyWrap = Policy.WrapAsync(policies.ToArray());
+
+            return policyWrap;
+        }
+
+        public static Policy CosmosManagementPolicy(IAsyncPolicy[] chainedPolicies = null)
+        {
+            Policy cosmosExceptionRetry = Policy.Handle<DocumentClientException>()
+               .WaitAndRetryAsync(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(20) });
+
+            Policy circuitBreakerRequestException = Policy.Handle<Exception>().CircuitBreakerAsync(100, TimeSpan.FromMinutes(1));
+
+            List<IAsyncPolicy> policies = new List<IAsyncPolicy>(8)
+            {
+                cosmosExceptionRetry,
                 circuitBreakerRequestException
             };
 

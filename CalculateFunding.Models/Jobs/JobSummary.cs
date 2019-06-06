@@ -14,6 +14,9 @@ namespace CalculateFunding.Models.Jobs
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
+        [JsonProperty("jobDefinitionId")]
+        public string JobDefinitionId { get; set; }
+
         [JsonProperty("entityId")]
         public string EntityId { get; set; }
 

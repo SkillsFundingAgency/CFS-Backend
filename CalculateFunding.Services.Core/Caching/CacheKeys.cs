@@ -42,6 +42,8 @@
 
         public static string AllocationLineResultStatusUpdates { get; set; } = "allocation-line-status-updates:";
 
+        public static string AllCosmosScalingConfigs { get; set; } = "all-cosmos-scaling-configs";
+
         /// <summary>
         /// Effective Permissions - eg effective-permissions:userId
         /// </summary>

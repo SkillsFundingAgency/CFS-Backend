@@ -32,7 +32,6 @@ namespace CalculateFunding.Services.Jobs
         private readonly ILogger _logger;
         private readonly IValidator<CreateJobValidationModel> _createJobValidator;
         private readonly IMessengerService _messengerService;
-
         private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         public JobManagementService(
@@ -488,20 +487,26 @@ namespace CalculateFunding.Services.Jobs
             };
         }
 
-        private async Task CheckForSupersededAndCancelOtherJobs(Job currentJob, JobDefinition jobDefinition)
+        private async Task<bool> CheckForSupersededAndCancelOtherJobs(Job currentJob, JobDefinition jobDefinition)
         {
+            bool isSuperseding = false;
+
             if (jobDefinition.SupersedeExistingRunningJobOnEnqueue)
             {
                 IEnumerable<Job> runningJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetRunningJobsForSpecificationAndJobDefinitionId(currentJob.SpecificationId, jobDefinition.Id));
 
                 if (!runningJobs.IsNullOrEmpty())
                 {
+                    isSuperseding = true;
+
                     foreach (Job runningJob in runningJobs)
                     {
                         await SupersedeJob(runningJob, currentJob);
                     }
                 }
             }
+
+            return isSuperseding;
         }
 
         private async Task<Job> CreateJob(JobCreateModel job)

@@ -153,6 +153,15 @@ namespace CalculateFunding.Functions.DebugQueue
                 logger.LogError(ex, "Error while executing Notification Event");
             }
 
+            try
+            {
+                await Functions.CosmosDbScaling.ServiceBus.OnScaleUpCosmosdbCollection.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while executing Scale Up Event");
+            }
+
             logger.LogInformation($"C# Queue trigger function processed: {item}");
         }
     }
