@@ -13,13 +13,7 @@ namespace CalculateFunding.Models.Results.Search
         [Key]
         [IsSearchable]
         [JsonProperty("id")]
-        public string Id
-        {
-            get
-            {
-                return $"{SpecificationId}_{ProviderId}";
-            }
-        }
+        public string Id => $"{SpecificationId}_{ProviderId}";
 
         [IsFilterable, IsFacetable]
         [JsonProperty("specificationId")]
@@ -102,13 +96,20 @@ namespace CalculateFunding.Models.Results.Search
         public string[] CalculationResult { get; set; }
 
         [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
         [JsonProperty("calculationException")]
         public string[] CalculationException { get; set; }
 
         [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
         [JsonProperty("calculationExceptionType")]
         public string[] CalculationExceptionType { get; set; }
 
+        [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
         [JsonProperty("calculationExceptionMessage")]
         public string[] CalculationExceptionMessage { get; set; }
     }

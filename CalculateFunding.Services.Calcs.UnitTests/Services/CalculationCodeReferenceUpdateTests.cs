@@ -26,7 +26,6 @@ namespace CalculateFunding.Services.Calcs.Services
             string expectedOutput,
             IEnumerable<TokenCheckerCall> tokenCheckerCalls)
         {
-            //NCrunch can't run these tests, but they run fine manually
             //Arrange
             ITokenChecker tokenChecker = Substitute.For<ITokenChecker>();
             tokenChecker
