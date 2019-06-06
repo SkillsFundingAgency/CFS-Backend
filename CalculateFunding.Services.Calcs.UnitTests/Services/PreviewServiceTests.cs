@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -403,6 +404,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -524,7 +526,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                Name = "Alice"
+                Name = "Alice",
+                SourceCodeName = "Christopher Robin"
             };
 
             CompilerOptions compilerOptions = new CompilerOptions
@@ -714,7 +717,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = SpecificationId
+                SpecificationId = SpecificationId,
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -843,7 +847,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                Name = "TestFunction"
+                Name = "TestFunction",
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -971,7 +976,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = SpecificationId
+                SpecificationId = SpecificationId,
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -1588,7 +1594,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                Name = "TestFunction"
+                Name = "TestFunction",
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation> { calculation };
@@ -1705,7 +1712,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                Name = "TestFunction"
+                Name = "TestFunction",
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -1833,7 +1841,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                Name = "Calc2"
+                Name = "Calc2",
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -1963,7 +1972,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = SpecificationId
+                SpecificationId = SpecificationId,
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -2083,7 +2093,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = SpecificationId
+                SpecificationId = SpecificationId,
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -2211,7 +2222,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Id = CalculationId,
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
-                SpecificationId = SpecificationId
+                SpecificationId = SpecificationId,
+                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation> { calculation };
@@ -2322,6 +2334,160 @@ namespace CalculateFunding.Services.Calcs.Services
         [Ignore]
 #endif
         [TestMethod]
+        [DynamicData(nameof(CodeContainsItsOwnNameTestCases), DynamicDataSourceType.Method)]
+        public async Task Compile_GivenCodeContainsItsOwnName_ReturnsBasedOnWhetherNameIsToken(string calculationName, string sourceCode, bool codeContainsName, bool isToken)
+        {
+            //Arrange
+            PreviewRequest model = new PreviewRequest
+            {
+                CalculationId = CalculationId,
+                SourceCode = sourceCode,
+                SpecificationId = SpecificationId
+            };
+
+            Calculation calculation = new Calculation
+            {
+                Id = CalculationId,
+                BuildProjectId = BuildProjectId,
+                Current = new CalculationVersion(),
+                SpecificationId = SpecificationId,
+                SourceCodeName = calculationName
+            };
+
+            IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = SpecificationId
+            };
+
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Body
+                .Returns(stream);
+
+            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
+
+            ILogger logger = CreateLogger();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .GetCalculationById(Arg.Is(CalculationId))
+                .Returns(calculation);
+
+            calculationsRepository
+                .GetCalculationsBySpecificationId(Arg.Is(SpecificationId))
+                .Returns(calculations);
+
+            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
+            buildProjectsService
+                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
+                .Returns(buildProject);
+
+            List<SourceFile> sourceFiles = new List<SourceFile>
+            {
+                new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
+            };
+
+            Build build = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles
+            };
+
+            ISourceCodeService sourceCodeService = CreateSourceCodeService();
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
+                .Returns(build);
+
+            Build nonPreviewBuild = new Build
+            {
+                Success = true,
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>()
+            };
+
+            sourceCodeService
+                .Compile(Arg.Any<BuildProject>(),
+                    Arg.Any<IEnumerable<Calculation>>(),
+                    Arg.Any<CompilerOptions>())
+                .Returns(nonPreviewBuild);
+
+            ITokenChecker tokenChecker = CreateTokenChecker();
+            tokenChecker
+                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+                .Returns(isToken);
+
+            PreviewService service = CreateService(logger: logger,
+                previewRequestValidator: validator,
+                calculationsRepository: calculationsRepository,
+                buildProjectsService: buildProjectsService,
+                sourceCodeService: sourceCodeService,
+                tokenChecker: tokenChecker);
+
+            //Act
+            IActionResult result = await service.Compile(request);
+
+            //Assert
+            OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+
+            PreviewResponse previewResponse = okResult.Value.Should().BeOfType<PreviewResponse>().Subject;
+
+            previewResponse
+                .Calculation.Current.SourceCode
+                .Should().Be(sourceCode);
+
+            previewResponse
+                .CompilerOutput.Success
+                .Should().Be(!(isToken && codeContainsName));
+
+            if (codeContainsName)
+            {
+                tokenChecker
+                    .Received(1)
+                    .CheckIsToken(sourceCode, calculationName, sourceCode.IndexOf(calculationName));
+            }
+
+            if (codeContainsName && isToken)
+            {
+                previewResponse
+                    .CompilerOutput.CompilerMessages.Single().Message
+                    .Should().Be($"Circular reference detected - Calculation '{calculationName}' calls itself");
+            }
+            else
+            {
+                previewResponse
+                    .CompilerOutput.CompilerMessages.Count()
+                    .Should().Be(0);
+            }
+
+            await sourceCodeService
+                    .Received(1)
+                    .SaveSourceFiles(Arg.Is(sourceFiles), Arg.Is(SpecificationId), Arg.Is(SourceCodeType.Release));
+        }
+
+        private static IEnumerable<object[]> CodeContainsItsOwnNameTestCases()
+        {
+            foreach (var isToken in new[] {true, false})
+            {
+                foreach (var calculationName in new[] {"Horace", "Alice"})
+                {
+                    yield return new object[] { calculationName, $"Return {calculationName}", true, isToken };
+                    yield return new object[] { calculationName, $"Return {calculationName.ToUpper()}", true, isToken };
+                    yield return new object[] { calculationName, $"Return {calculationName.ToLower()}", true, isToken };
+                    yield return new object[] { calculationName, $"Return 1", false, isToken };
+                }
+            }
+        }
+
+#if NCRUNCH
+        [Ignore]
+#endif
+        [TestMethod]
         [DynamicData(nameof(LogMessagesTestCases), DynamicDataSourceType.Method)]
         public void LogMessages_LogsCorrectly(CompilerMessage[] compilerMessages, BuildProject buildProject, Calculation calculation, string[] logMessages)
         {
@@ -2425,7 +2591,8 @@ Calculation Name: {{calculationName}}").ToArray()
             IDatasetRepository datasetRepository = null,
             IFeatureToggle featureToggle = null,
             ICacheProvider cacheProvider = null,
-            ISourceCodeService sourceCodeService = null)
+            ISourceCodeService sourceCodeService = null,
+            ITokenChecker tokenChecker = null)
         {
             return new PreviewService(
                 logger ?? CreateLogger(),
@@ -2435,7 +2602,8 @@ Calculation Name: {{calculationName}}").ToArray()
                 datasetRepository ?? CreateDatasetRepository(),
                 featureToggle ?? CreateFeatureToggle(),
                 cacheProvider ?? CreateCacheProvider(),
-                sourceCodeService ?? CreateSourceCodeService());
+                sourceCodeService ?? CreateSourceCodeService(),
+                tokenChecker ?? tokenChecker);
         }
 
         static ISourceCodeService CreateSourceCodeService()
@@ -2492,6 +2660,11 @@ Calculation Name: {{calculationName}}").ToArray()
         static IDatasetRepository CreateDatasetRepository()
         {
             return Substitute.For<IDatasetRepository>();
+        }
+
+        static ITokenChecker CreateTokenChecker()
+        {
+            return Substitute.For<ITokenChecker>();
         }
     }
 }

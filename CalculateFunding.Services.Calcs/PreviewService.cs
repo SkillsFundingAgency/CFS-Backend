@@ -36,6 +36,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IFeatureToggle _featureToggle;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISourceCodeService _sourceCodeService;
+        private readonly ITokenChecker _tokenChecker;
 
         public PreviewService(
             ILogger logger,
@@ -45,7 +46,8 @@ namespace CalculateFunding.Services.Calcs
             IDatasetRepository datasetRepository,
             IFeatureToggle featureToggle,
             ICacheProvider cacheProvider,
-            ISourceCodeService sourceCodeService)
+            ISourceCodeService sourceCodeService,
+            ITokenChecker tokenChecker)
         {
             _logger = logger;
             _buildProjectsService = buildProjectsService;
@@ -55,6 +57,7 @@ namespace CalculateFunding.Services.Calcs
             _featureToggle = featureToggle;
             _cacheProvider = cacheProvider;
             _sourceCodeService = sourceCodeService;
+            _tokenChecker = tokenChecker;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -169,7 +172,7 @@ namespace CalculateFunding.Services.Calcs
                     if (!functions.ContainsKey(calculationIdentifier))
                     {
                         compilerOutput.Success = false;
-                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is not an aggregable field", Severity = Models.Calcs.Severity.Error });
+                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is not an aggregable field", Severity = Severity.Error });
                     }
                     else
                     {
@@ -186,7 +189,7 @@ namespace CalculateFunding.Services.Calcs
                                     if (!functions.ContainsKey(aggregateParameter))
                                     {
                                         compilerOutput.Success = false;
-                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{aggregateParameter} is not an aggregable field", Severity = Models.Calcs.Severity.Error });
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{aggregateParameter} is not an aggregable field", Severity = Severity.Error });
                                         continueChecking = false;
                                         break;
                                     }
@@ -197,12 +200,12 @@ namespace CalculateFunding.Services.Calcs
                                     if (SourceCodeHelpers.IsCalcReferencedInAnAggregate(functions, calculationIdentifier))
                                     {
                                         compilerOutput.Success = false;
-                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is already referenced in an aggregation that would cause nesting", Severity = Models.Calcs.Severity.Error });
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} is already referenced in an aggregation that would cause nesting", Severity = Severity.Error });
                                     }
                                     else if (SourceCodeHelpers.CheckSourceForExistingCalculationAggregates(functions, previewRequest.SourceCode))
                                     {
                                         compilerOutput.Success = false;
-                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} cannot reference another calc that is being aggregated", Severity = Models.Calcs.Severity.Error });
+                                        compilerOutput.CompilerMessages.Add(new CompilerMessage { Message = $"{calculationIdentifier} cannot reference another calc that is being aggregated", Severity = Severity.Error });
                                     }
                                 }
                             }
@@ -225,6 +228,8 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Information($"Build did not compile successfully for calculation id {calculationToPreview.Id}");
             }
 
+            CheckCircularReference(calculationToPreview, compilerOutput);
+
             LogMessages(compilerOutput, buildProject, calculationToPreview);
 
             return new OkObjectResult(new PreviewResponse
@@ -232,6 +237,26 @@ namespace CalculateFunding.Services.Calcs
                 Calculation = calculationToPreview,
                 CompilerOutput = compilerOutput
             });
+        }
+
+        private void CheckCircularReference(Calculation calculationToPreview, Build compilerOutput)
+        {
+            string sourceCode = calculationToPreview.Current.SourceCode;
+
+            if (sourceCode.Contains(calculationToPreview.SourceCodeName, StringComparison.InvariantCultureIgnoreCase))
+            {
+                if (_tokenChecker.CheckIsToken(sourceCode,
+                    calculationToPreview.SourceCodeName,
+                    sourceCode.IndexOf(calculationToPreview.SourceCodeName)))
+                {
+                    compilerOutput.CompilerMessages.Add(new CompilerMessage
+                    {
+                        Message = $"Circular reference detected - Calculation '{calculationToPreview.SourceCodeName}' calls itself",
+                        Severity = Severity.Error
+                    });
+                    compilerOutput.Success = false;
+                }
+            }
         }
 
         public void LogMessages(Build compilerOutput, BuildProject buildProject, Calculation calculation)
