@@ -15,7 +15,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.Timer
     public static class OnScaleDownCosmosdbCollection
     {
         [FunctionName("on-scale-down-cosmosdb-collection")]
-        public static async Task Run([TimerTrigger("0 0 * * * *")]TimerInfo timer)
+        public static async Task Run([TimerTrigger("*/15 * * * *")]TimerInfo timer)
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
 
