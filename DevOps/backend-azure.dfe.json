@@ -65,7 +65,7 @@
     "ApiKeyProviders": {
       "type": "string",
       "metadata": {
-        "description":  "Api key for the Providers Service"
+        "description": "Api key for the Providers Service"
       }
     },
     "apiSkuName": {
@@ -500,7 +500,7 @@
     "providersApiAadClientId": {
       "type": "string",
       "metadata": {
-        "description":  "AAD Client Id for the Providers Api"
+        "description": "AAD Client Id for the Providers Api"
       }
     },
     "signalRSkuName": {
@@ -544,6 +544,13 @@
       "type": "int",
       "metadata": {
         "description": "Batch count for partitioning allocation line status update jobs"
+      },
+      "defaultValue": 100
+    },
+    "CalcEngineSearchIndexBatchSize": {
+      "type": "int",
+      "metadata": {
+        "description": "Batch count for search indexing in calculation engine"
       },
       "defaultValue": 100
     },
@@ -1926,6 +1933,10 @@
               "name": "EngineSettings:SaveProviderDegreeOfParallelism",
               "value": "[parameters('SaveProviderDegreeOfParallelism')]",
               "slotSetting": false
+            },
+            {
+              "name": "engineSettings:CalculationResultSearchIndexBatchSize",
+              "value": "[parameters('CalcEngineSearchIndexBatchSize')]"
             }
           ]
         }
