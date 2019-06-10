@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
@@ -23,6 +24,7 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -652,9 +654,9 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
             searchRepository
-                .Index(Arg.Any<IEnumerable<CalculationProviderResultsIndex>>())
+                .Index(Arg.Any<IEnumerable<ProviderCalculationResultsIndex>>())
                 .Returns(new[] { new IndexError { ErrorMessage = "an error" } });
 
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
@@ -705,7 +707,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetAllProviderResults()
                 .Returns(new[] { providerResult });
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
 
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
@@ -734,19 +736,18 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                     .Received(1)
-                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(m => m.Count() == 2));
+                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(m => m.Count() == 2));
 
             await
                 searchRepository
                     .Received(1)
-                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(
+                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(
                         m =>
                             m.First().SpecificationId == "spec-id" &&
                             m.First().SpecificationName == "spec name" &&
-                            m.First().CalculationSpecificationId == "calc-spec-id-1" &&
-                            m.First().CalculationSpecificationName == "calc spec name 1" &&
-                            m.First().CalculationResult == 123 &&
-                            m.First().CalculationType == "Funding" &&
+                            m.First().CalculationId.First() == "calc-id-1" &&
+                            m.First().CalculationName.First() == "calc name 1" &&
+                            m.First().CalculationResult.First() == "123" &&
                             m.First().ProviderId == "prov-id" &&
                             m.First().ProviderName == "prov name" &&
                             m.First().ProviderType == "prov type" &&
@@ -754,21 +755,19 @@ namespace CalculateFunding.Services.Results.Services
                             m.First().UKPRN == "ukprn" &&
                             m.First().UPIN == "upin" &&
                             m.First().URN == "urn" &&
-                            m.First().EstablishmentNumber == "12345" &&
-                            m.First().IsExcluded == false
+                            m.First().EstablishmentNumber == "12345"
                     ));
 
             await
                 searchRepository
                     .Received(1)
-                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(
+                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(
                         m =>
                             m.Last().SpecificationId == "spec-id" &&
                             m.Last().SpecificationName == "spec name" &&
-                            m.Last().CalculationSpecificationId == "calc-spec-id-2" &&
-                            m.Last().CalculationSpecificationName == "calc spec name 2" &&
-                            m.Last().CalculationResult == 10 &&
-                            m.Last().CalculationType == "Number" &&
+                            m.Last().CalculationId.Last() == "calc-id-2" &&
+                            m.Last().CalculationName.Last() == "calc name 2" &&
+                            m.Last().CalculationResult.Last() == "10" &&
                             m.Last().ProviderId == "prov-id" &&
                             m.Last().ProviderName == "prov name" &&
                             m.Last().ProviderType == "prov type" &&
@@ -776,8 +775,7 @@ namespace CalculateFunding.Services.Results.Services
                             m.Last().UKPRN == "ukprn" &&
                             m.Last().UPIN == "upin" &&
                             m.Last().URN == "urn" &&
-                            m.Last().EstablishmentNumber == "12345" &&
-                            m.Last().IsExcluded == false
+                            m.Last().EstablishmentNumber == "12345"
                     ));
         }
 
@@ -792,7 +790,7 @@ namespace CalculateFunding.Services.Results.Services
                 .GetAllProviderResults()
                 .Returns(new[] { providerResult });
 
-            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
 
             SpecificationSummary specificationSummary = new SpecificationSummary()
             {
@@ -821,19 +819,18 @@ namespace CalculateFunding.Services.Results.Services
             await
                 searchRepository
                     .Received(1)
-                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(m => m.Count() == 1));
+                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(m => m.Count() == 1));
 
             await
                 searchRepository
                     .Received(1)
-                    .Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(
+                    .Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(
                         m =>
                             m.First().SpecificationId == "spec-id" &&
                             m.First().SpecificationName == "spec name" &&
-                            m.First().CalculationSpecificationId == "calc-spec-id-1" &&
-                            m.First().CalculationSpecificationName == "calc spec name 1" &&
-                            m.First().CalculationResult == null &&
-                            m.First().CalculationType == "Funding" &&
+                            m.First().CalculationId.First() == "calc-id-1" &&
+                            m.First().CalculationName.First() == "calc name 1" &&
+                            m.First().CalculationResult.First() == "null" &&
                             m.First().ProviderId == "prov-id" &&
                             m.First().ProviderName == "prov name" &&
                             m.First().ProviderType == "prov type" &&
@@ -841,9 +838,43 @@ namespace CalculateFunding.Services.Results.Services
                             m.First().UKPRN == "ukprn" &&
                             m.First().UPIN == "upin" &&
                             m.First().URN == "urn" &&
-                            m.First().EstablishmentNumber == "12345" &&
-                            m.First().IsExcluded == true
+                            m.First().EstablishmentNumber == "12345"
                     ));
+        }
+
+        [TestMethod]
+        public async Task CleanupProviderResultsForSpecification_GivenProviderResultsBySpecificationIdAndProviders_ThenCallsDelete()
+        {
+            //Arrange
+            DocumentEntity<ProviderResult> providerResult = CreateDocumentEntityWithNullCalculationResult();
+
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+            calculationResultsRepository
+                .GetProviderResultsBySpecificationIdAndProviders(Arg.Any<IEnumerable<string>>(), Arg.Is<string>(specificationId))
+                .Returns(new ProviderResult[] { providerResult.Content });
+
+            ResultsService resultsService = CreateResultsService(
+                resultsRepository: calculationResultsRepository);
+
+            SpecificationProviders specificationProviders = new SpecificationProviders { SpecificationId = providerResult.Content.SpecificationId, Providers = new string[] { providerResult.Content.Id } };
+
+            Dictionary<string, string> properties = new Dictionary<string, string>
+            {
+                { "specificationId", specificationId },
+                { "sfa-correlationId", Guid.NewGuid().ToString() }
+            };
+
+            Message message = new Message { Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(specificationProviders)) };
+
+            message.UserProperties["specificationId"] = specificationId;
+
+            //Act
+            await resultsService.CleanupProviderResultsForSpecification(message);
+
+            //Assert
+            await calculationResultsRepository
+                .Received(1)
+                .DeleteCurrentProviderResults(Arg.Is<IEnumerable<ProviderResult>>(x => x.First().Provider.Id == providerResult.Content.Provider.Id));
         }
 
         [TestMethod]
@@ -2041,7 +2072,7 @@ namespace CalculateFunding.Services.Results.Services
             ISearchRepository<ProviderIndex> searchRepository = null,
             ITelemetry telemetry = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
-            ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository = null,
+            ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository = null,
             ISpecificationsRepository specificationsRepository = null,
             IResultsResiliencePolicies resiliencePolicies = null,
             IProviderImportMappingService providerImportMappingService = null,
@@ -2050,8 +2081,11 @@ namespace CalculateFunding.Services.Results.Services
             ICalculationsRepository calculationsRepository = null,
             IValidator<MasterProviderModel> validatorForMasterProvider = null)
         {
+            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
+            featureToggle.IsExceptionMessagesEnabled().Returns(true);
             return new ResultsService(
                 logger ?? CreateLogger(),
+                featureToggle,
                 resultsRepository ?? CreateResultsRepository(),
                 mapper ?? CreateMapper(),
                 searchRepository ?? CreateSearchRepository(),
@@ -2117,9 +2151,9 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<IMessengerService>();
         }
 
-        static ISearchRepository<CalculationProviderResultsIndex> CreateCalculationProviderResultsSearchRepository()
+        static ISearchRepository<ProviderCalculationResultsIndex> CreateCalculationProviderResultsSearchRepository()
         {
-            return Substitute.For<ISearchRepository<CalculationProviderResultsIndex>>();
+            return Substitute.For<ISearchRepository<ProviderCalculationResultsIndex>>();
         }
 
         static ISpecificationsRepository CreateSpecificationsRepository()

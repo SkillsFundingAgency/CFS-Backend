@@ -48,6 +48,11 @@ namespace CalculateFunding.Repositories.Common.Search
             return Task.FromResult(Enumerable.Empty<IndexError>());
         }
 
+        public Task<IEnumerable<IndexError>> Remove(IEnumerable<T> documents)
+        {
+            throw new NotImplementedException();
+        }
+
         private void CreateCSVFromGenericList(IEnumerable<T> documents, string csvPath)
         {
             if (documents == null || documents.Count() == 0) return;

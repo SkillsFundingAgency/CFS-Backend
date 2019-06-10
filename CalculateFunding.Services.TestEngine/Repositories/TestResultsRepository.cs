@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -45,6 +46,17 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             return health;
         }
 
+        public async Task DeleteCurrentTestScenarioTestResults(IEnumerable<TestScenarioResult> testScenarioResults)
+        {
+            Guard.ArgumentNotNull(testScenarioResults, nameof(testScenarioResults));
+
+            await _cosmosRepository.BulkDeleteAsync<TestScenarioResult>(
+                entities: testScenarioResults.Select(x => new KeyValuePair<string, TestScenarioResult>(x.Provider.Id, x)), 
+                degreeOfParallelism: 15,
+                hardDelete: true
+            );
+        }
+
         public async Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId)
         {
             Guard.ArgumentNotNull(providerIds, nameof(providerIds));
@@ -60,29 +72,34 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             int completedCount = 0;
 
             ParallelLoopResult result = Parallel.ForEach(providerIds, new ParallelOptions() { MaxDegreeOfParallelism = _engineSettings.GetCurrentProviderTestResultsDegreeOfParallelism }, async (providerId) =>
-           {
-               SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
-               {
-                   QueryText = @"SELECT * 
+            {
+                try
+                {
+                    SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                    {
+                        QueryText = @"SELECT * 
                                 FROM    Root r 
                                 WHERE   r.documentType = @DocumentType 
                                         AND r.content.specification.id = @SpecificationId
                                         AND r.deleted = false",
-                   Parameters = new SqlParameterCollection
-                   {
-                       new SqlParameter("@DocumentType", nameof(TestScenarioResult)),
-                       new SqlParameter("@SpecificationId", specificationId)
-                   }
-               };
+                        Parameters = new SqlParameterCollection
+                    {
+                        new SqlParameter("@DocumentType", nameof(TestScenarioResult)),
+                        new SqlParameter("@SpecificationId", specificationId)
+                    }
+                    };
 
-               IEnumerable<TestScenarioResult> testScenarioResults = await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sqlQuerySpec, partitionEntityId: providerId);
-               foreach (TestScenarioResult testScenarioResult in testScenarioResults)
-               {
-                   results.Add(testScenarioResult);
-               }
-
-               completedCount++;
-           });
+                    IEnumerable<TestScenarioResult> testScenarioResults = await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sqlQuerySpec, partitionEntityId: providerId);
+                    foreach (TestScenarioResult testScenarioResult in testScenarioResults)
+                    {
+                        results.Add(testScenarioResult);
+                    }
+                }
+                finally
+                {
+                    completedCount++;
+                }
+            });
 
             while (completedCount < providerIds.Count())
             {
@@ -91,6 +108,8 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             return results.AsEnumerable();
         }
+
+
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
         {

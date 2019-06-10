@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.30.0" />
+    <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="1.0.23" />
+    <PackageReference Include="CalculateFunding.Common" Version="1.31.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient" Version="1.0.13" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="1.0.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.2" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.0" />
-    <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="1.0.10" />
     <PackageReference Include="LINQKit.Core" Version="1.1.15" />
   </ItemGroup>
 

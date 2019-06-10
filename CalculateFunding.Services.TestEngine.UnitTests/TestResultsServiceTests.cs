@@ -333,6 +333,40 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
         }
 
         [TestMethod]
+        public async Task CleanupTestResultsForSpecificationProviders_GivenCurrentTestResults_ThenCallsDelete()
+        {
+            //Arrange
+            TestScenarioResult testScenarioResult = CreateTestScenarioResult();
+
+            ITestResultsRepository testResultsRepository = CreateTestResultsRepository();
+            testResultsRepository
+                            .GetCurrentTestResults(Arg.Any<IEnumerable<string>>(), Arg.Is<string>(testScenarioResult.Specification.Id))
+                .Returns(new TestScenarioResult[] { testScenarioResult });
+
+            TestResultsService service = CreateTestResultsService(testResultsRepository: testResultsRepository);
+
+            SpecificationProviders specificationProviders = new SpecificationProviders { SpecificationId = testScenarioResult.Specification.Id, Providers = new string[] { testScenarioResult.Provider.Id } };
+
+            Dictionary<string, string> properties = new Dictionary<string, string>
+            {
+                { "specificationId", testScenarioResult.Specification.Id },
+                { "sfa-correlationId", Guid.NewGuid().ToString() }
+            };
+
+            Message message = new Message { Body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(specificationProviders)) };
+
+            message.UserProperties["specificationId"] = testScenarioResult.Specification.Id;
+
+            //Act
+            await service.CleanupTestResultsForSpecificationProviders(message);
+
+            //Assert
+            await testResultsRepository
+                .Received(1)
+                .DeleteCurrentTestScenarioTestResults(Arg.Is<IEnumerable<TestScenarioResult>>(x => x.First().Provider.Id == testScenarioResult.Provider.Id));
+        }
+
+        [TestMethod]
         public async Task UpdateTestResultsForSpecification_GivenResultsReturnedButIndexeingCausesErrors_LogsErrors()
         {
             //Arrange

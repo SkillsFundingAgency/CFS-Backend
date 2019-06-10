@@ -75,6 +75,8 @@
             public const string JobNotifications = "job-notifications";
 
             public const string DataDefinitionChanges = "data-definition-changes";
+
+            public const string ProviderSourceDatasetCleanup = "provider-sourcedataset-cleanup";
         }
 
         public static class TopicSubscribers
@@ -85,6 +87,8 @@
 
             public const string UpdateScenarioResultsForEditSpecification = "test-scenario-result-update";
 
+            public const string CleanupTestResultsForSpecificationProviders = "test-specification-provider-results-cleanup";
+
             public const string UpdateUsersForEditSpecification = "users-update";
 
             public const string UpdateScenariosForEditCalculation = "test-scenario-update";
@@ -92,6 +96,8 @@
             public const string UpdateCalculationsForEditCalculation = "calcs-calculation-update";
 
             public const string UpdateJobsOnCompletion = "on-job-completion";
+
+            public const string CleanupCalculationResultsForSpecificationProviders = "calculation-specification-provider-results-cleanup";
 
             public const string JobNotificationsToSignalR = "notifications-to-signalr";
 

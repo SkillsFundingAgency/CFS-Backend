@@ -7,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Aggregations;
@@ -24,6 +25,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
@@ -38,7 +40,7 @@ namespace CalculateFunding.Services.Results
         private readonly IMapper _mapper;
         private readonly ISearchRepository<ProviderIndex> _searchRepository;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
-        private readonly ISearchRepository<CalculationProviderResultsIndex> _calculationProviderResultsSearchRepository;
+        private readonly ISearchRepository<ProviderCalculationResultsIndex> _calculationProviderResultsSearchRepository;
         private readonly Polly.Policy _resultsRepositoryPolicy;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly Polly.Policy _resultsSearchRepositoryPolicy;
@@ -48,22 +50,24 @@ namespace CalculateFunding.Services.Results
         private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
         private readonly Polly.Policy _calculationsRepositoryPolicy;
-	    private readonly IValidator<MasterProviderModel> _masterProviderModelValidator;
+        private readonly IValidator<MasterProviderModel> _masterProviderModelValidator;
+        private readonly IFeatureToggle _featureToggle;
 
         public ResultsService(ILogger logger,
+            IFeatureToggle featureToggle,
             ICalculationResultsRepository resultsRepository,
             IMapper mapper,
             ISearchRepository<ProviderIndex> searchRepository,
             ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
-            ISearchRepository<CalculationProviderResultsIndex> calculationProviderResultsSearchRepository,
+            ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository,
             ISpecificationsRepository specificationsRepository,
             IResultsResiliencePolicies resiliencePolicies,
             IProviderImportMappingService providerImportMappingService,
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
-            ICalculationsRepository calculationRepository, 
-	        IValidator<MasterProviderModel> masterProviderModelValidator)
+            ICalculationsRepository calculationRepository,
+            IValidator<MasterProviderModel> masterProviderModelValidator)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -78,6 +82,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
             Guard.ArgumentNotNull(masterProviderModelValidator, nameof(masterProviderModelValidator));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
 
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -94,8 +99,9 @@ namespace CalculateFunding.Services.Results
             _cacheProvider = cacheProvider;
             _messengerService = messengerService;
             _calculationRepository = calculationRepository;
-	        _masterProviderModelValidator = masterProviderModelValidator;
-	        _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
+            _masterProviderModelValidator = masterProviderModelValidator;
+            _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
+            _featureToggle = featureToggle;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -321,7 +327,7 @@ namespace CalculateFunding.Services.Results
         {
             IEnumerable<DocumentEntity<ProviderResult>> providerResults = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetAllProviderResults());
 
-            IList<CalculationProviderResultsIndex> searchItems = new List<CalculationProviderResultsIndex>();
+            IList<ProviderCalculationResultsIndex> searchItems = new List<ProviderCalculationResultsIndex>();
 
             Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
 
@@ -347,15 +353,12 @@ namespace CalculateFunding.Services.Results
                         specificationSummary = specifications[providerResult.SpecificationId];
                     }
 
-                    searchItems.Add(new CalculationProviderResultsIndex
+                    ProviderCalculationResultsIndex searchItem = new ProviderCalculationResultsIndex
                     {
                         SpecificationId = providerResult.SpecificationId,
                         SpecificationName = specificationSummary?.Name,
-                        CalculationSpecificationId = calculationResult.CalculationSpecification.Id,
-                        CalculationSpecificationName = calculationResult.CalculationSpecification.Name,
-                        CalculationName = calculationResult.Calculation.Name,
-                        CalculationId = calculationResult.Calculation.Id,
-                        CalculationType = calculationResult.CalculationType.ToString(),
+                        CalculationName = providerResult.CalculationResults.Select(x => x.Calculation.Name).ToArraySafe(),
+                        CalculationId = providerResult.CalculationResults.Select(x => x.Calculation.Id).ToArraySafe(),
                         ProviderId = providerResult.Provider.Id,
                         ProviderName = providerResult.Provider.Name,
                         ProviderType = providerResult.Provider.ProviderType,
@@ -367,15 +370,32 @@ namespace CalculateFunding.Services.Results
                         UPIN = providerResult.Provider.UPIN,
                         EstablishmentNumber = providerResult.Provider.EstablishmentNumber,
                         OpenDate = providerResult.Provider.DateOpened,
-                        CalculationResult = calculationResult.Value.HasValue ? Convert.ToDouble(calculationResult.Value) : default(double?),
-                        IsExcluded = !calculationResult.Value.HasValue
-                    });
+                        CalculationResult = providerResult.CalculationResults.Select(m => m.Value.HasValue ? m.Value.ToString() : "null").ToArraySafe()
+                    };
+
+                    if (_featureToggle.IsExceptionMessagesEnabled())
+                    {
+                        searchItem.CalculationException = providerResult.CalculationResults
+                            .Where(m => !string.IsNullOrWhiteSpace(m.ExceptionType))
+                            .Select(e => e.Calculation.Id)
+                            .ToArraySafe();
+
+                        searchItem.CalculationExceptionType = providerResult.CalculationResults
+                            .Select(m => m.ExceptionType ?? string.Empty)
+                            .ToArraySafe();
+
+                        searchItem.CalculationExceptionMessage = providerResult.CalculationResults
+                            .Select(m => m.ExceptionMessage ?? string.Empty)
+                            .ToArraySafe();
+                    }
+
+                    searchItems.Add(searchItem);
                 }
             }
 
             for (int i = 0; i < searchItems.Count; i += 500)
             {
-                IEnumerable<CalculationProviderResultsIndex> partitionedResults = searchItems.Skip(i).Take(500);
+                IEnumerable<ProviderCalculationResultsIndex> partitionedResults = searchItems.Skip(i).Take(500);
 
                 IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _calculationProviderResultsSearchRepository.Index(partitionedResults));
 
@@ -388,6 +408,40 @@ namespace CalculateFunding.Services.Results
             }
 
             return new NoContentResult();
+        }
+
+        public async Task CleanupProviderResultsForSpecification(Message message)
+        {
+            string specificationId = message.UserProperties["specificationId"].ToString();
+
+            Models.Results.SpecificationProviders specificationProviders = message.GetPayloadAsInstanceOf<Models.Results.SpecificationProviders>();
+
+            IEnumerable<ProviderResult> providerResults = await _resultsRepositoryPolicy
+                .ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationIdAndProviders(specificationProviders.Providers, specificationId)
+            );
+
+            if (providerResults.Any())
+            {
+                _logger.Information($"Removing {specificationProviders.Providers.Count()} from calculation results for specification {specificationId}");
+
+                await _resultsRepositoryPolicy
+                    .ExecuteAsync(() => _resultsRepository.DeleteCurrentProviderResults(providerResults)
+                );
+
+                SearchResults<ProviderCalculationResultsIndex> indexItems = await _resultsSearchRepositoryPolicy
+                    .ExecuteAsync(() => _calculationProviderResultsSearchRepository.Search(string.Empty,
+                            new SearchParameters
+                            {
+                                Top = providerResults.Count(),
+                                SearchMode = SearchMode.Any,
+                                Filter = $"specificationId eq '{specificationId}' and (" + string.Join(" or ", providerResults.Select(m => $"providerId eq '{m.Provider.Id}'")) + ")",
+                                QueryType = QueryType.Full
+                            }
+                        )
+                    );
+
+                await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _calculationProviderResultsSearchRepository.Remove(indexItems?.Results.Select(m => m.Result)));
+            }
         }
 
         public async Task<IActionResult> RemoveCurrentProviders()
@@ -427,7 +481,7 @@ namespace CalculateFunding.Services.Results
             string json = await request.GetRawBodyStringAsync();
 
             MasterProviderModel[] providers = new MasterProviderModel[0];
-			
+
             try
             {
                 providers = JsonConvert.DeserializeObject<MasterProviderModel[]>(json);
@@ -446,14 +500,14 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("No providers were provided");
             }
 
-	        IEnumerable<ValidationFailure> validationFailures = providers.SelectMany(p => _masterProviderModelValidator.Validate(p).Errors);
+            IEnumerable<ValidationFailure> validationFailures = providers.SelectMany(p => _masterProviderModelValidator.Validate(p).Errors);
 
-	        if (validationFailures.Any())
-	        {
-				return new BadRequestObjectResult(string.Join(",", validationFailures.Select(vf => vf.ErrorMessage)));
-	        }
+            if (validationFailures.Any())
+            {
+                return new BadRequestObjectResult(string.Join(",", validationFailures.Select(vf => vf.ErrorMessage)));
+            }
 
-			IList<ProviderIndex> providersToIndex = new List<ProviderIndex>();
+            IList<ProviderIndex> providersToIndex = new List<ProviderIndex>();
 
             foreach (MasterProviderModel provider in providers)
             {
@@ -465,15 +519,15 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-			IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(providersToIndex));
+            IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(providersToIndex));
 
-			if (errors.Any())
-			{
-				string errorMessage = $"Failed to index providers result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
-				_logger.Error(errorMessage);
+            if (errors.Any())
+            {
+                string errorMessage = $"Failed to index providers result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
+                _logger.Error(errorMessage);
 
-				return new InternalServerErrorResult(errorMessage);
-			}
+                return new InternalServerErrorResult(errorMessage);
+            }
 
             return new NoContentResult();
         }

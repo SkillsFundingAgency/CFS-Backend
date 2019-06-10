@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
@@ -8,6 +9,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Linq;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -74,6 +76,31 @@ namespace CalculateFunding.Services.Datasets
             return await _cosmosRepository.QuerySql<ProviderSourceDataset>(sqlQuerySpec, enableCrossPartitionQuery: true, itemsPerPage: 1000);
         }
 
+        public async Task DeleteCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)
+        {
+            Guard.ArgumentNotNull(providerSourceDatasets, nameof(providerSourceDatasets));
+
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            foreach (ProviderSourceDataset dataset in providerSourceDatasets)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _cosmosRepository.DeleteAsync<ProviderSourceDataset>(dataset.Id, enableCrossPartitionQuery: true);
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await Task.WhenAll(allTasks);
+        }
+
         public async Task UpdateCurrentProviderSourceDatasets(IEnumerable<ProviderSourceDataset> providerSourceDatasets)
         {
             Guard.ArgumentNotNull(providerSourceDatasets, nameof(providerSourceDatasets));
@@ -88,7 +115,7 @@ namespace CalculateFunding.Services.Datasets
                     {
                         try
                         {
-                            await _cosmosRepository.UpsertAsync(dataset, dataset.ProviderId);
+                            await _cosmosRepository.UpsertAsync(entity: dataset, partitionKey: dataset.ProviderId, undelete: true);
                         }
                         finally
                         {

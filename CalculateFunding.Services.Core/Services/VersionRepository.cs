@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Core.Services
         public async Task SaveVersion(T newVersion)
         {
             Guard.ArgumentNotNull(newVersion, nameof(newVersion));
-            await _cosmosRepository.CreateAsync<T>(newVersion);
+            await _cosmosRepository.UpsertAsync<T>(newVersion, enableCrossPartitionQuery: true);
         }
 
         public async Task SaveVersion(T newVersion, string partitionKey)
@@ -38,13 +38,13 @@ namespace CalculateFunding.Services.Core.Services
         public async Task SaveVersions(IEnumerable<T> newVersions, int maxDegreesOfParallelism = 30)
         {
             Guard.ArgumentNotNull(newVersions, nameof(newVersions));
-            await _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
+            await _cosmosRepository.BulkUpsertAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism, enableCrossPartitionQuery: true);
         }
 
         public async Task SaveVersions(IEnumerable<KeyValuePair<string, T>> newVersions, int maxDegreesOfParallelism = 30)
         {
             Guard.ArgumentNotNull(newVersions, nameof(newVersions));
-            await _cosmosRepository.BulkCreateAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism);
+            await _cosmosRepository.BulkUpsertAsync<T>(newVersions.ToList(), degreeOfParallelism: maxDegreesOfParallelism, enableCrossPartitionQuery: true);
         }
 
         public async Task<T> CreateVersion(T newVersion, T currentVersion = null, string partitionKey = null, bool incrementFromCurrentVersion = false)

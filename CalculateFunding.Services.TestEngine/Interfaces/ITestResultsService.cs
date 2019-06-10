@@ -14,6 +14,8 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 
         Task<IActionResult> ReIndex(HttpRequest req);
 
+        Task CleanupTestResultsForSpecificationProviders(Message message);
+
         Task UpdateTestResultsForSpecification(Message message);
     }
 }

@@ -15,6 +15,8 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1);
         Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults();
         Task ProviderResultsBatchProcessing(string specificationId, Func<List<ProviderResult>, Task> persistIndexBatch);
+        Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationIdAndProviders(IEnumerable<string> providerIds, string specificationId);
+        Task DeleteCurrentProviderResults(IEnumerable<ProviderResult> providerResults);
         Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId);
         Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId);
     }

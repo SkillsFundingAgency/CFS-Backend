@@ -10,6 +10,8 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
     {
         Task<IEnumerable<TestScenarioResult>> GetCurrentTestResults(IEnumerable<string> providerIds, string specificationId);
 
+        Task DeleteCurrentTestScenarioTestResults(IEnumerable<TestScenarioResult> testScenarioResults);
+
         Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult);
 
         Task<IEnumerable<DocumentEntity<TestScenarioResult>>> GetAllTestResults();

@@ -193,39 +193,37 @@ namespace CalculateFunding.Repositories.Common.Search
 
         }
 
-        public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)
+        private async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents, Func<T, IndexAction<T>> action)
         {
             var client = await GetOrCreateIndex();
-            var errors = new List<IndexError>();
+            IEnumerable<IndexingResult> indexResults = null;
 
             foreach (var batch in documents.ToBatches(100))
             {
                 try
                 {
-                    var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(IndexAction.MergeOrUpload)));
-                    foreach (IndexingResult result in indexResult.Results)
-                    {
-                        if (!result.Succeeded)
-                        {
-                            errors.Add(new IndexError { Key = result.Key, ErrorMessage = result.ErrorMessage });
-                        }
-                    }
+                    var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(action)));
+                    indexResults = indexResult.Results;
                 }
-                catch (IndexBatchException ex )
+                catch (IndexBatchException ex)
                 {
-                    if (ex.IndexingResults != null)
-                    {
-                        foreach (IndexingResult result in ex.IndexingResults)
-                        {
-                            if (!result.Succeeded)
-                            {
-                                errors.Add(new IndexError { Key = result.Key, ErrorMessage = result.ErrorMessage });
-                            }
-                        }
-                    }
+                    indexResults = ex.IndexingResults;
                 }
             }
-            return errors;
+
+            return indexResults?
+                .Where(x => !x.Succeeded)
+                .Select(x => new IndexError { Key = x.Key, ErrorMessage = x.ErrorMessage }) ?? Enumerable.Empty<IndexError>() ;
+        }
+
+        public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)
+        {
+            return await Index(documents, IndexAction.MergeOrUpload);
+        }
+
+        public async Task<IEnumerable<IndexError>> Remove(IEnumerable<T> documents)
+        {
+            return await Index(documents, IndexAction.Delete);
         }
 
         public async Task DeleteIndex()

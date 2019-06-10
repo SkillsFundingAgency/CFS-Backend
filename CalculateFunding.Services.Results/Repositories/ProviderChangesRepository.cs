@@ -15,10 +15,10 @@ namespace CalculateFunding.Services.Results.Repositories
 {
     public class ProviderChangesRepository : IProviderChangesRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepo;
+        private readonly ICosmosRepository _cosmosRepo;
         private readonly ILogger _logger;
 
-        public ProviderChangesRepository(CosmosRepository cosmosRepository, ILogger logger)
+        public ProviderChangesRepository(ICosmosRepository cosmosRepository, ILogger logger)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));

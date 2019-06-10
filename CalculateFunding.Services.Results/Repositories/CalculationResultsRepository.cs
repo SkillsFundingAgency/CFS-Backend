@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -80,16 +82,78 @@ namespace CalculateFunding.Services.Results.Repositories
     	                            calcResult.exceptionMessage as exceptionMessage
     	                            FROM calcResult IN c.content.calcResults) AS calcResults
                             FROM    calculationresults c
-                            WHERE   c.content.specificationId = @SpecificationID 
+                            WHERE   c.content.specificationId = @SpecificationId 
                                     AND c.documentType = 'ProviderResult' 
                                     AND c.deleted = false",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@SpecificationID", specificationId)
+                    new SqlParameter("@SpecificationId", specificationId)
                 }
             };
 
             await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch, sqlQuerySpec: sqlQuerySpec);
+        }
+
+        public async Task DeleteCurrentProviderResults(IEnumerable<ProviderResult> providerResults)
+        {
+            Guard.ArgumentNotNull(providerResults, nameof(providerResults));
+
+            await _cosmosRepository.BulkDeleteAsync<ProviderResult>(
+                providerResults.Select(x => new KeyValuePair<string, ProviderResult>(x.Provider.Id, x)),
+                degreeOfParallelism: 15, 
+                hardDelete: true);
+        }
+
+        public async Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationIdAndProviders(IEnumerable<string> providerIds, string specificationId)
+        {
+            Guard.ArgumentNotNull(providerIds, nameof(providerIds));
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            if (providerIds.IsNullOrEmpty())
+            {
+                return Enumerable.Empty<ProviderResult>();
+            }
+
+            ConcurrentBag<ProviderResult> results = new ConcurrentBag<ProviderResult>();
+
+            int completedCount = 0;
+
+            Parallel.ForEach(providerIds, async (providerId) =>
+            {
+                try
+                {
+                    SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                    {
+                        QueryText = @"SELECT * 
+                                FROM    Root r 
+                                WHERE   r.documentType = @DocumentType 
+                                        AND r.content.specificationId = @SpecificationId
+                                        AND r.deleted = false",
+                        Parameters = new SqlParameterCollection
+                   {
+                       new SqlParameter("@DocumentType", nameof(ProviderResult)),
+                       new SqlParameter("@SpecificationId", specificationId)
+                   }
+                    };
+
+                    IEnumerable<ProviderResult> providerResults = await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(sqlQuerySpec, partitionEntityId: providerId);
+                    foreach (ProviderResult providerResult in providerResults)
+                    {
+                        results.Add(providerResult);
+                    }
+                }
+                finally
+                {
+                    completedCount++;
+                }
+            });
+
+            while (completedCount < providerIds.Count())
+            {
+                await Task.Delay(20);
+            }
+
+            return results.AsEnumerable();
         }
 
         public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)

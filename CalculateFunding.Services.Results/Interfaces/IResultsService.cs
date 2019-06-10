@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
@@ -23,6 +24,8 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request);
 
         Task<IActionResult> ImportProviders(HttpRequest request);
+
+        Task CleanupProviderResultsForSpecification(Message message);
 
         Task<IActionResult> RemoveCurrentProviders();
 

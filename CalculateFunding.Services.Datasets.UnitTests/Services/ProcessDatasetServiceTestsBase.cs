@@ -5,6 +5,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Providers.Interfaces;
@@ -25,6 +26,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
         protected static ProcessDatasetService CreateProcessDatasetService(
             IBlobClient blobClient = null,
+            IMessengerService messengerService = null,
             ILogger logger = null,
             IDatasetRepository datasetRepository = null,
             IExcelDatasetReader excelDatasetReader = null,
@@ -47,6 +49,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 cacheProvider ?? CreateCacheProvider(),
                 calcsRepository ?? CreateCalcsRepository(),
                 blobClient ?? CreateBlobClient(),
+                messengerService ?? CreateMessengerService(),
                 providerResultsRepository ?? CreateProviderResultsRepository(),
                 resultsRepository ?? CreateResultsRepository(),
                 providerService ?? CreateProviderService(),
@@ -122,6 +125,11 @@ namespace CalculateFunding.Services.Datasets.Services
         protected static IBlobClient CreateBlobClient()
         {
             return Substitute.For<IBlobClient>();
+        }
+
+        protected static IMessengerService CreateMessengerService()
+        {
+            return Substitute.For<IMessengerService>();
         }
 
         protected static ILogger CreateLogger()
