@@ -13,6 +13,8 @@ namespace CalculateFunding.Models.Datasets.Schema
         Float,
         Decimal,
         DateTime,
-        String
+        String,
+        NullableOfInteger,
+        NullableOfDecimal
     }
 }

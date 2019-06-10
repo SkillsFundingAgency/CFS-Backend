@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
 using Microsoft.CodeAnalysis;
@@ -10,11 +11,18 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public abstract class VisualBasicTypeGenerator
     {
+        private static IEnumerable<string> exemptValues = new string[] { "Nullable(Of Decimal)", "Nullable(Of Integer)" };
+
         public static string GenerateIdentifier(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
             {
                 return null;
+            }
+
+            if (exemptValues.Contains(value, StringComparer.InvariantCultureIgnoreCase))
+            {
+                return value;
             }
 
             string className = value;
@@ -82,6 +90,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     break;
                 case FieldType.DateTime:
                     propertyType = SyntaxFactory.IdentifierName("DateTime");
+                    break;
+                case FieldType.NullableOfDecimal:
+                    propertyType = SyntaxFactory.IdentifierName("Nullable(Of Decimal)");
+                    break;
+                case FieldType.NullableOfInteger:
+                    propertyType = SyntaxFactory.IdentifierName("Nullable(Of Integer)");
                     break;
                 default:
                     propertyType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword));

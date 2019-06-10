@@ -378,6 +378,36 @@ namespace CalculateFunding.Services.Calculator
                             value = Convert.ToInt64(value);
                         }
 
+                        if (propType == "System.Nullable`1[System.Int32]")
+                        {
+                            try
+                            {
+                                if (value != null)
+                                {
+                                    value = int.TryParse(value.ToString(), out int outValue) ? (int?)outValue : null;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+                        }
+
+                        if (propType == "System.Nullable`1[System.Decimal]")
+                        {
+                            try
+                            {
+                                if (value != null)
+                                {
+                                    value = decimal.TryParse(value.ToString(), out decimal outValue) ? (decimal?)outValue : null;
+                                }
+                            }
+                            catch(Exception ex)
+                            {
+
+                            }
+                        }
+
                         property.SetValue(data, value);
                     }
                 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using OfficeOpenXml;
 
@@ -106,7 +107,7 @@ namespace CalculateFunding.Services.DataImporter
             return rowResult;
         }
 
-        static void PopulateField(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell, bool shouldCheckType)
+        public static void PopulateField(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell, bool shouldCheckType)
         {
 	        if (!shouldCheckType)
 	        {
@@ -119,15 +120,19 @@ namespace CalculateFunding.Services.DataImporter
 			        case FieldType.Boolean:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<bool>());
 				        break;
+
 			        case FieldType.Integer:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<int?>());
 				        break;
+
 			        case FieldType.Float:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<double?>());
 				        break;
+
 			        case FieldType.Decimal:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<decimal?>());
 				        break;
+
 			        case FieldType.DateTime:
 				        try
 				        {
@@ -141,9 +146,19 @@ namespace CalculateFunding.Services.DataImporter
 				        {
 
 				        }
+                        break;
 
-				        break;
-			        default:
+                    case FieldType.NullableOfDecimal:
+                        dataCell.GetValue<string>().TryParseNullable(out decimal? parsedDecimal);
+                        rowResult.Fields.Add(fieldDefinition.Name, parsedDecimal);
+                        break;
+
+                    case FieldType.NullableOfInteger:
+                        dataCell.GetValue<string>().TryParseNullable(out int? parsedInt);
+                        rowResult.Fields.Add(fieldDefinition.Name, parsedInt);
+                        break;
+
+                    default:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<string>());
 				        break;
 		        }

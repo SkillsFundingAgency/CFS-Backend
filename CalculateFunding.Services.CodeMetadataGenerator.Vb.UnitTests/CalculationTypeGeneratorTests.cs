@@ -439,5 +439,22 @@ Return Result + 0";
                 .Should()
                 .StartWith("Error compiling source code. Please check your code's structure is valid. ");
         }
+
+        [TestMethod]
+        [DataRow("Nullable(Of Decimal)")]
+        [DataRow("Nullable(Of Integer)")]
+        public void GenerateIdentifier_WhenSymbolIsNullableType_DoesNotSubstitute(string input)
+        {
+            // Arrange
+            string inputName = input;
+
+            // Act
+            string result = CalculationTypeGenerator.GenerateIdentifier(inputName);
+
+            // Assert
+            result
+                .Should()
+                .Be(input);
+        }
     }
 }

@@ -151,6 +151,9 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Is(definitionId))
                 .Returns(specificationIds);
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is(definitionId))
+                .Returns(new DatasetDefinition());
 
             DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges
             {
@@ -214,6 +217,9 @@ namespace CalculateFunding.Services.Datasets.Services
             datasetRepository
                 .GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(Arg.Is(definitionId))
                 .Returns(specificationIds);
+            datasetRepository
+                .GetDatasetDefinition(Arg.Is(definitionId))
+                .Returns(new DatasetDefinition());
 
             DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges
             {
