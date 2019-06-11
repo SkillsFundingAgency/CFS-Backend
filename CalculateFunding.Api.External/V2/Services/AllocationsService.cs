@@ -5,8 +5,8 @@ using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Api.External.V2.Models;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -73,7 +73,7 @@ namespace CalculateFunding.Api.External.V2.Services
             {
                 AllocationResultTitle = $"Allocation {publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status}",
                 AllocationResultId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId,
-                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
+                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
                 AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major : 0,
                 AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor : 0,
                 AllocationLine = new Models.AllocationLine
@@ -137,7 +137,7 @@ namespace CalculateFunding.Api.External.V2.Services
                        Period = m.Period,
                        PeriodType = m.Type,
                        PeriodYear = m.Year.ToString(),
-                       ProfileValue = (decimal)m.Value
+                       ProfileValue = m.Value
                    }
                 ).ToArraySafe()) : new List<ProfilePeriod>(),
             };

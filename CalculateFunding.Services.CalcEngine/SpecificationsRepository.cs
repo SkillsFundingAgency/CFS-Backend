@@ -1,9 +1,9 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Proxies;
 
 namespace CalculateFunding.Services.Calculator
 {

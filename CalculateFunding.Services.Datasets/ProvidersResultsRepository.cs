@@ -4,9 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Linq;
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Datasets
                                     AND r.documentType = @DocumentType",
                 Parameters = new SqlParameterCollection
                 {
-                    new SqlParameter("@SpecificationId", specificationId), 
+                    new SqlParameter("@SpecificationId", specificationId),
                     new SqlParameter("@RelationshipId", relationshipId),
                     new SqlParameter("@DocumentType", nameof(ProviderSourceDatasetHistory))
                 }

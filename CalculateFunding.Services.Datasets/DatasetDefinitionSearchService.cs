@@ -1,5 +1,9 @@
-﻿using CalculateFunding.Models;
-using CalculateFunding.Models.Datasets;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
+using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
@@ -10,11 +14,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Serilog;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
-using CalculateFunding.Models.Datasets.Schema;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -41,7 +40,7 @@ namespace CalculateFunding.Services.Datasets
 
         async public Task<IActionResult> SearchDatasetDefinitions(HttpRequest request)
         {
-			string json = await request.GetRawBodyStringAsync();
+            string json = await request.GetRawBodyStringAsync();
 
             SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
 
@@ -57,13 +56,13 @@ namespace CalculateFunding.Services.Datasets
             try
             {
                 await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
-	            DatasetDefinitionSearchResults results = new DatasetDefinitionSearchResults();
-	            foreach (var searchTask in searchTasks)
-	            {
-		            ProcessSearchResults(searchTask.Result, results);
-	            }
+                DatasetDefinitionSearchResults results = new DatasetDefinitionSearchResults();
+                foreach (var searchTask in searchTasks)
+                {
+                    ProcessSearchResults(searchTask.Result, results);
+                }
 
-	            return new OkObjectResult(results);
+                return new OkObjectResult(results);
             }
             catch (FailedToQuerySearchException exception)
             {

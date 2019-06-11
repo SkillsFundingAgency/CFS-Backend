@@ -1,5 +1,5 @@
-﻿using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Helpers;
+﻿using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Results.Interfaces;
 
 namespace CalculateFunding.Services.Results
@@ -15,7 +15,7 @@ namespace CalculateFunding.Services.Results
 
             AllocationLineStatus allocationLineStatus = allocationLineResultVersion.Status;
 
-            if(allocationLineStatus == AllocationLineStatus.Published && major == 0)
+            if (allocationLineStatus == AllocationLineStatus.Published && major == 0)
             {
                 major = 1;
                 minor = 0;

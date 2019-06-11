@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Services.Scenarios.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using CalculateFunding.Services.Scenarios.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios
 {

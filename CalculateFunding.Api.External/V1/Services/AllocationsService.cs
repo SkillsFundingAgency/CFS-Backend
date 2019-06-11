@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -61,7 +61,7 @@ namespace CalculateFunding.Api.External.V1.Services
             return new AllocationModel
             {
                 AllocationResultId = publishedProviderResult.Id,
-                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
+                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
                 AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
                 AllocationLine = new Models.AllocationLine
                 {
@@ -122,7 +122,7 @@ namespace CalculateFunding.Api.External.V1.Services
                                 Period = m.Period,
                                 PeriodType = m.Type,
                                 PeriodYear = m.Year.ToString(),
-                                ProfileValue = (decimal)m.Value
+                                ProfileValue = m.Value
                             }
                     ).ToArraySafe()
             };

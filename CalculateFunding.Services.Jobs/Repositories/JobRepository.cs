@@ -5,9 +5,9 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Jobs.Interfaces;
 using Microsoft.Azure.Documents;
 using Newtonsoft.Json.Linq;
@@ -76,7 +76,11 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
         public IEnumerable<Job> GetRunningJobsForSpecificationAndJobDefinitionId(string specificationId, string jobDefinitionId)
         {
-            IQueryable<Job> query = _cosmosRepository.Query<Job>(enableCrossPartitionQuery: true).Where(m => m.SpecificationId == specificationId && m.JobDefinitionId == jobDefinitionId && m.RunningStatus != RunningStatus.Completed);
+            IQueryable<Job> query = _cosmosRepository
+                .Query<Job>(enableCrossPartitionQuery: true)
+                .Where(m => m.SpecificationId == specificationId
+                            && m.JobDefinitionId == jobDefinitionId
+                            && m.RunningStatus != RunningStatus.Completed);
 
             return query.AsEnumerable();
         }

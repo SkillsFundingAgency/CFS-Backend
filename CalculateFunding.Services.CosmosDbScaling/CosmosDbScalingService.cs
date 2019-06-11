@@ -1,24 +1,21 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Models.CosmosDbScaling;
-using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.CosmosDbScaling.Interfaces;
-using CalculateFunding.Services.CosmosDbScaling.Repositories;
-using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
-using Polly;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.CosmosDbScaling;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.CosmosDbScaling.Interfaces;
+using Microsoft.Azure.ServiceBus;
+using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
@@ -36,8 +33,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
         private readonly Policy _scalingConfigRepositoryPolicy;
 
         public CosmosDbScalingService(
-            ILogger logger, 
-            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider, 
+            ILogger logger,
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider,
             IJobsApiClient jobsApiClient,
             ICacheProvider cacheProvider,
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository,
@@ -72,7 +69,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             Guard.ArgumentNotNull(jobNotification, "Null message payload provided");
 
-            if(jobNotification.RunningStatus == RunningStatus.Completed || jobNotification.RunningStatus == RunningStatus.InProgress)
+            if (jobNotification.RunningStatus == RunningStatus.Completed || jobNotification.RunningStatus == RunningStatus.InProgress)
             {
                 return;
             }
@@ -133,7 +130,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                 if (proceed)
                 {
-                    if(!cosmosDbScalingConfig.IsAtBaseLine)
+                    if (!cosmosDbScalingConfig.IsAtBaseLine)
                     {
                         cosmosDbScalingConfig.CurrentRequestUnits = cosmosDbScalingConfig.BaseRequestUnits;
 
@@ -144,7 +141,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             if (!configsToUpdate.IsNullOrEmpty())
             {
-                foreach(CosmosDbScalingConfig cosmosDbScalingConfig in configsToUpdate)
+                foreach (CosmosDbScalingConfig cosmosDbScalingConfig in configsToUpdate)
                 {
                     try
                     {
@@ -152,7 +149,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                         await UpdateScaleConfig(cosmosDbScalingConfig);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         throw new RetriableException($"Failed to scale down collection for repository type '{cosmosDbScalingConfig.RepositoryType}'", ex);
                     }
@@ -169,11 +166,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             CosmosDbScalingJobConfig cosmosDbScalingJobConfig = cosmosDbScalingConfig.JobRequestUnitConfigs
                     .FirstOrDefault(m => string.Equals(
-                        m.JobDefinitionId, 
-                        jobDefinitionId, 
+                        m.JobDefinitionId,
+                        jobDefinitionId,
                         StringComparison.InvariantCultureIgnoreCase));
 
-            if(cosmosDbScalingJobConfig == null)
+            if (cosmosDbScalingJobConfig == null)
             {
                 string errorMessage = $"A job config does not exist for job definition id {jobDefinitionId}";
 
@@ -219,7 +216,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 await _scalingRepositoryPolicy.ExecuteAsync(() => cosmosDbScalingRepository.SetThroughput(cosmosDbScalingConfig.CurrentRequestUnits));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, $"Failed to set throughput on repository type '{cosmosDbScalingConfig.RepositoryType}' with '{cosmosDbScalingConfig.CurrentRequestUnits}' request units");
 

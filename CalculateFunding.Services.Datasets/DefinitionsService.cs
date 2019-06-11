@@ -7,12 +7,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
@@ -44,8 +44,8 @@ namespace CalculateFunding.Services.Datasets
         public DefinitionsService(
             ILogger logger,
             IDatasetRepository dataSetsRepository,
-            ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository, 
-            IDatasetsResiliencePolicies datasetsResiliencePolicies, 
+            ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository,
+            IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IExcelWriter<DatasetDefinition> excelWriter,
             IBlobClient blobClient,
             IDefinitionChangesDetectionService definitionChangesDetectionService,

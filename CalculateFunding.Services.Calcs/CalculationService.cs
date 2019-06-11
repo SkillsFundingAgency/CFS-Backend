@@ -10,6 +10,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Code;
@@ -511,7 +512,7 @@ namespace CalculateFunding.Services.Calcs
 
             Job job = await SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);
 
-            if(job == null)
+            if (job == null)
             {
                 string errorMessage = $"Failed to create job: '{JobConstants.DefinitionNames.CreateInstructAllocationJob} for specification id '{specificationId}'";
 
@@ -1302,7 +1303,7 @@ namespace CalculateFunding.Services.Calcs
 
             CompilerOptions compilerOptions = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCompilerOptions(specificationId));
 
-            if(compilerOptions == null)
+            if (compilerOptions == null)
             {
                 compilerOptions = new CompilerOptions();
             }
@@ -1365,15 +1366,15 @@ namespace CalculateFunding.Services.Calcs
         {
             IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 
-            bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : 
+            bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false :
                 SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
 
             JobCreateModel job = new JobCreateModel
             {
                 InvokerUserDisplayName = userName,
                 InvokerUserId = userId,
-                JobDefinitionId = generateCalculationAggregations ? 
-                    JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob : 
+                JobDefinitionId = generateCalculationAggregations ?
+                    JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob :
                     JobConstants.DefinitionNames.CreateInstructAllocationJob,
                 SpecificationId = specificationId,
                 Properties = new Dictionary<string, string>

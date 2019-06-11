@@ -7,10 +7,9 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.Azure.Documents;
 
@@ -163,7 +162,7 @@ namespace CalculateFunding.Services.Datasets
                     new SqlParameter("@DatasetDefinitionID", datasetDefinitionId)
                 }
             };
-            
+
             HashSet<string> specificationIds = new HashSet<string>();
 
             IEnumerable<dynamic> results = await _cosmosRepository.QueryDynamic(sqlQuerySpec, true, 1000);

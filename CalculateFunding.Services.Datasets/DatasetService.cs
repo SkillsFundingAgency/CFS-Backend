@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -22,7 +23,6 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
@@ -398,7 +398,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task ValidateDataset(Message message)
         {
-             Guard.ArgumentNotNull(message, nameof(message));
+            Guard.ArgumentNotNull(message, nameof(message));
 
             string operationId = null;
             if (message.UserProperties.ContainsKey("operation-id"))
@@ -885,7 +885,7 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-            foreach(Dataset dataset in datasets)
+            foreach (Dataset dataset in datasets)
             {
                 dataset.Definition.Name = datsetDefinitionReference.Name;
             }
@@ -894,7 +894,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 await _datasetRepository.SaveDatasets(datasets);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.Error(ex, $"Failed to save datasets to cosmos for definition id: {datsetDefinitionReference.Id}");
 
@@ -907,7 +907,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 indexErrors.AddRange((await IndexDatasetInSearch(dataset)));
 
-                foreach(DatasetVersion datasetVersion in dataset.History)
+                foreach (DatasetVersion datasetVersion in dataset.History)
                 {
                     indexErrors.AddRange(await IndexDatasetVersionInSearch(dataset, datasetVersion));
                 }

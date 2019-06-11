@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Models.CosmosDbScaling;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.CosmosDbScaling.Interfaces;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.CosmosDbScaling;
+using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Repositories
 {
@@ -37,6 +37,6 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
             Guard.ArgumentNotNull(config, nameof(config));
 
             return await _cosmosRepository.UpsertAsync<CosmosDbScalingConfig>(config);
-        } 
+        }
     }
 }

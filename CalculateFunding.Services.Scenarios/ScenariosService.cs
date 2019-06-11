@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
@@ -476,7 +477,7 @@ namespace CalculateFunding.Services.Scenarios
             }
 
             const string reasonForCommenting = "The dataset definition referenced by this scenario/spec has been updated and subsequently the code has been commented out";
-           
+
             foreach (TestScenario scenario in scenariosToUpdate)
             {
                 string gherkin = scenario.Current.Gherkin;

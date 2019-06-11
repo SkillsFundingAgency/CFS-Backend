@@ -1,4 +1,4 @@
-﻿using CalculateFunding.Services.Core.Helpers;
+﻿using CalculateFunding.Common.Utility;
 using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Core.Extensions

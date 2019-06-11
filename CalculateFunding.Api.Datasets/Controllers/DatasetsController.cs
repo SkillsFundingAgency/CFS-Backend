@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -86,14 +86,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _datasetSearchService.SearchDatasets(ControllerContext.HttpContext.Request);
         }
 
-	    [Route("api/datasets/datasets-version-search")]
-	    [HttpPost]
-	    public Task<IActionResult> RunDatasetsVersionSearch()
-	    {
-		    return _datasetSearchService.SearchDatasetVersion(ControllerContext.HttpContext.Request);
-	    }
+        [Route("api/datasets/datasets-version-search")]
+        [HttpPost]
+        public Task<IActionResult> RunDatasetsVersionSearch()
+        {
+            return _datasetSearchService.SearchDatasetVersion(ControllerContext.HttpContext.Request);
+        }
 
-		[Route("api/datasets/dataset-definitions-search")]
+        [Route("api/datasets/dataset-definitions-search")]
         [HttpPost]
         public Task<IActionResult> RunDatasetDefinitionsSearch()
         {
@@ -170,14 +170,14 @@ namespace CalculateFunding.Api.Datasets.Controllers
             return _datasetService.Reindex(ControllerContext.HttpContext.Request);
         }
 
-	    [Route("api/datasetsversions/reindex")]
-	    [HttpGet]
-	    public Task<IActionResult> RunReindexDatasetsVersions()
-	    {
-		    return _datasetService.ReindexDatasetVersions(ControllerContext.HttpContext.Request);
-	    }
+        [Route("api/datasetsversions/reindex")]
+        [HttpGet]
+        public Task<IActionResult> RunReindexDatasetsVersions()
+        {
+            return _datasetService.ReindexDatasetVersions(ControllerContext.HttpContext.Request);
+        }
 
-		[Route("api/datasets/get-currentdatasetversion-by-datasetid")]
+        [Route("api/datasets/get-currentdatasetversion-by-datasetid")]
         [HttpGet]
         public Task<IActionResult> RunGetCurrentDatasetVersionByDatasetId()
         {

@@ -5,11 +5,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
 using Serilog;
 using CalculationResult = CalculateFunding.Models.Results.CalculationResult;
 
@@ -70,12 +70,12 @@ namespace CalculateFunding.Services.Calculator
             return providerResults;
         }
 
-        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations, 
+        public ProviderResult CalculateProviderResults(IAllocationModel model, BuildProject buildProject, IEnumerable<CalculationSummaryModel> calculations,
             ProviderSummary provider, IEnumerable<ProviderSourceDataset> providerSourceDatasets, IEnumerable<CalculationAggregation> aggregations = null)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-          
+
             IEnumerable<CalculationResult> calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregations).ToArray();
 
             var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);

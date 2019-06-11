@@ -1,11 +1,10 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.Proxies;
 
 namespace CalculateFunding.Services.Calculator
 {

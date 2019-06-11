@@ -4,7 +4,7 @@ using CalculateFunding.Api.External.Swagger.OperationFilters;
 using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Api.External.V2.Models;
 using CalculateFunding.Api.External.V2.Models.Examples;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Examples;

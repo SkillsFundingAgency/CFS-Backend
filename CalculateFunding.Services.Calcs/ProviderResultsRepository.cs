@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Users;
@@ -12,7 +13,6 @@ using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 
 namespace CalculateFunding.Services.Calcs
@@ -201,11 +201,11 @@ namespace CalculateFunding.Services.Calcs
                 DfeEstablishmentNumber = x.DfeEstablishmentNumber,
                 Status = x.Status,
                 PhaseOfEducation = x.PhaseOfEducation,
-				ReasonEstablishmentClosed = x.ReasonEstablishmentClosed,
-				ReasonEstablishmentOpened = x.ReasonEstablishmentOpened,
-				Successor = x.Successor,
+                ReasonEstablishmentClosed = x.ReasonEstablishmentClosed,
+                ReasonEstablishmentOpened = x.ReasonEstablishmentOpened,
+                Successor = x.Successor,
                 TrustStatus = x.TrustStatus,
-                TrustName =x.TrustName,
+                TrustName = x.TrustName,
                 TrustCode = x.TrustCode
             });
         }
