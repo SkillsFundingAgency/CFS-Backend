@@ -2904,7 +2904,7 @@
             },
             {
               "name": "WEBSITE_CONTENTSHARE",
-              "value": "[toLower(variables('calcEngineFunctionAppName'))]"
+              "value": "[toLower(variables('cosmosScalingFunctionAppName'))]"
             },
             {
               "name": "WEBSITE_TIME_ZONE",
