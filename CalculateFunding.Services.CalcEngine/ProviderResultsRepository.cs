@@ -89,7 +89,7 @@ namespace CalculateFunding.Services.CalcEngine
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            await _cosmosRepository.BulkUpsertAsync(providerResults, degreeOfParallelism);
+            await _cosmosRepository.BulkUpsertAsync(providerResults, degreeOfParallelism: degreeOfParallelism, maintainCreatedDate: false);
 
             stopwatch.Stop();
 
