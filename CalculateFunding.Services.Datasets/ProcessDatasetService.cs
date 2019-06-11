@@ -611,19 +611,17 @@ namespace CalculateFunding.Services.Datasets
                 await _sourceDatasetsVersionRepository.SaveVersions(historyToSave);
             }
 
-            if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
+            Reference relationshipReference = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name);
+
+            DatasetAggregations datasetAggregations = GenerateAggregations(datasetDefinition, loadResult, specificationId, relationshipReference);
+
+            if (!datasetAggregations.Fields.IsNullOrEmpty())
             {
-                Reference relationshipReference = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name);
-
-                DatasetAggregations datasetAggregations = GenerateAggregations(datasetDefinition, loadResult, specificationId, relationshipReference);
-
-                if (!datasetAggregations.Fields.IsNullOrEmpty())
-                {
-                    await _datasetsAggregationsRepository.CreateDatasetAggregations(datasetAggregations);
-                }
-
-                await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
+                await _datasetsAggregationsRepository.CreateDatasetAggregations(datasetAggregations);
             }
+
+            await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
+
 
             await PopulateProviderSummariesForSpecification(specificationId, providerSummaries);
         }

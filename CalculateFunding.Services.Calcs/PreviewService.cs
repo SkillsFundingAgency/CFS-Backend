@@ -124,20 +124,17 @@ namespace CalculateFunding.Services.Calcs
 
             calculation.Current.SourceCode = previewRequest.SourceCode;
 
-            if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
+            Build build = await CheckDatasetValidAggregations(previewRequest);
+
+            if (build != null && build.CompilerMessages.Any(m => m.Severity == Severity.Error))
             {
-                Build build = await CheckDatasetValidAggregations(previewRequest);
-
-                if (build != null && build.CompilerMessages.Any(m => m.Severity == Severity.Error))
+                PreviewResponse response = new PreviewResponse
                 {
-                    PreviewResponse response = new PreviewResponse
-                    {
-                        Calculation = calculation,
-                        CompilerOutput = build
-                    };
+                    Calculation = calculation,
+                    CompilerOutput = build
+                };
 
-                    return new OkObjectResult(response);
-                }
+                return new OkObjectResult(response);
             }
 
             CompilerOptions compilerOptions = compilerOptionsTask.Result ?? new CompilerOptions { SpecificationId = buildProject.SpecificationId };

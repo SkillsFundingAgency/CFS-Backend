@@ -312,11 +312,6 @@ namespace CalculateFunding.Services.Calculator
                 .MockEngineSettings
                 .ProviderBatchSize = 3;
 
-            calculationEngineServiceTestsHelper
-                .FeatureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId });
 
             calculationEngineServiceTestsHelper
@@ -1017,11 +1012,6 @@ namespace CalculateFunding.Services.Calculator
                 .MockEngineSettings
                 .ProviderBatchSize = 3;
 
-            calculationEngineServiceTestsHelper
-                .FeatureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             CalculationEngineService service = calculationEngineServiceTestsHelper.CreateCalculationEngineService();
 
             Message message = new Message();
@@ -1117,11 +1107,6 @@ namespace CalculateFunding.Services.Calculator
              .MockCacheProvider
              .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}_1")
              .Returns(cachedCalculationAggregates);
-
-            calculationEngineServiceTestsHelper
-                .FeatureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
 
             calculationEngineServiceTestsHelper
                 .MockJobsApiClient
@@ -1254,11 +1239,6 @@ namespace CalculateFunding.Services.Calculator
                 .MockCacheProvider
                 .GetAsync<Dictionary<string, List<decimal>>>($"{CacheKeys.CalculationAggregations}{specificationId}_1")
                 .Returns((Dictionary<string, List<decimal>>)null);
-
-            calculationEngineServiceTestsHelper
-                .FeatureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
 
             calculationEngineServiceTestsHelper
                 .MockJobsApiClient

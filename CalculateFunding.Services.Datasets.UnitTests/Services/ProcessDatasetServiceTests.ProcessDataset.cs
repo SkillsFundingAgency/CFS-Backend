@@ -1705,11 +1705,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
@@ -1796,8 +1791,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                datasetsAggregationsRepository: datasetsAggregationsRepository,
-                featureToggle: featureToggle);
+                datasetsAggregationsRepository: datasetsAggregationsRepository);
 
             // Act
             await service.ProcessDataset(message);
@@ -1897,11 +1891,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
@@ -1988,8 +1977,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                datasetsAggregationsRepository: datasetsAggregationsRepository,
-                featureToggle: featureToggle);
+                datasetsAggregationsRepository: datasetsAggregationsRepository);
 
             // Act
             await service.ProcessDataset(message);
@@ -2098,11 +2086,6 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             };
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             IDatasetRepository datasetRepository = CreateDatasetsRepository();
             datasetRepository
                 .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
@@ -2189,8 +2172,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 providerService: providerService,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                datasetsAggregationsRepository: datasetsAggregationsRepository,
-                featureToggle: featureToggle);
+                datasetsAggregationsRepository: datasetsAggregationsRepository);
 
             // Act
             await service.ProcessDataset(message);

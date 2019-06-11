@@ -65,10 +65,7 @@ namespace CalculateFunding.Services.Datasets.Services
         protected static IFeatureToggle CreateFeatureToggle()
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(false);
-
+          
             return featureToggle;
         }
 

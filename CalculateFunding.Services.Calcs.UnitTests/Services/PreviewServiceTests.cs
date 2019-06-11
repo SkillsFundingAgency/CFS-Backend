@@ -912,20 +912,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
-            featureToggle
-                .IsAggregateOverCalculationsEnabled()
-                .Returns(true);
-
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
+                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1029,11 +1020,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = sourceFiles
             };
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -1047,7 +1033,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
+                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1123,11 +1109,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
             {
                 new DatasetSchemaRelationshipModel
@@ -1146,7 +1127,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, featureToggle: featureToggle);
+                datasetRepository: datasetRepository);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1245,11 +1226,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
              {
                 new DatasetSchemaRelationshipModel
@@ -1268,7 +1244,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, featureToggle: featureToggle);
+                datasetRepository: datasetRepository);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1367,11 +1343,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
             {
                 new DatasetSchemaRelationshipModel
@@ -1392,7 +1363,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
+                datasetRepository: datasetRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1504,11 +1475,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
                 .Returns(buildProject);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(true);
-
             IEnumerable<DatasetSchemaRelationshipModel> relationshipModels = new[]
             {
                 new DatasetSchemaRelationshipModel
@@ -1529,7 +1495,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, featureToggle: featureToggle, cacheProvider: cacheProvider);
+                datasetRepository: datasetRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -2614,10 +2580,7 @@ Calculation Name: {{calculationName}}").ToArray()
         static IFeatureToggle CreateFeatureToggle()
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-            featureToggle
-                .IsAggregateSupportInCalculationsEnabled()
-                .Returns(false);
-
+ 
             return featureToggle;
         }
 

@@ -457,56 +457,55 @@ namespace CalculateFunding.Services.Calculator
         {
             IEnumerable<CalculationAggregation> aggregations = Enumerable.Empty<CalculationAggregation>();
 
-            if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
+
+            aggregations = await _cacheProvider.GetAsync<List<CalculationAggregation>>($"{ CacheKeys.DatasetAggregationsForSpecification}{messageProperties.SpecificationId}");
+
+            if (aggregations.IsNullOrEmpty())
             {
-                aggregations = await _cacheProvider.GetAsync<List<CalculationAggregation>>($"{ CacheKeys.DatasetAggregationsForSpecification}{messageProperties.SpecificationId}");
-
-                if (aggregations.IsNullOrEmpty())
+                aggregations = (await _datasetAggregationsRepository.GetDatasetAggregationsForSpecificationId(messageProperties.SpecificationId)).Select(m => new CalculationAggregation
                 {
-                    aggregations = (await _datasetAggregationsRepository.GetDatasetAggregationsForSpecificationId(messageProperties.SpecificationId)).Select(m => new CalculationAggregation
+                    SpecificationId = m.SpecificationId,
+                    Values = m.Fields.IsNullOrEmpty() ? Enumerable.Empty<AggregateValue>() : m.Fields.Select(f => new AggregateValue
                     {
-                        SpecificationId = m.SpecificationId,
-                        Values = m.Fields.IsNullOrEmpty() ? Enumerable.Empty<AggregateValue>() : m.Fields.Select(f => new AggregateValue
-                        {
-                            AggregatedType = f.FieldType,
-                            FieldDefinitionName = f.FieldDefinitionName,
-                            Value = f.Value
-                        })
-                    });
+                        AggregatedType = f.FieldType,
+                        FieldDefinitionName = f.FieldDefinitionName,
+                        Value = f.Value
+                    })
+                });
 
-                    await _cacheProvider.SetAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{messageProperties.SpecificationId}", aggregations.ToList());
-                }
+                await _cacheProvider.SetAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{messageProperties.SpecificationId}", aggregations.ToList());
+            }
 
-                if (!messageProperties.GenerateCalculationAggregationsOnly)
+            if (!messageProperties.GenerateCalculationAggregationsOnly)
+            {
+                Dictionary<string, List<decimal>> cachedCalculationAggregations = new Dictionary<string, List<decimal>>();
+
+                for (int i = 1; i <= messageProperties.BatchCount; i++)
                 {
-                    Dictionary<string, List<decimal>> cachedCalculationAggregations = new Dictionary<string, List<decimal>>();
+                    string batchedCacheKey = $"{CacheKeys.CalculationAggregations}{messageProperties.SpecificationId}_{i}";
 
-                    for (int i = 1; i <= messageProperties.BatchCount; i++)
+                    Dictionary<string, List<decimal>> cachedCalculationAggregationsPart = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Dictionary<string, List<decimal>>>(batchedCacheKey));
+
+                    if (!cachedCalculationAggregationsPart.IsNullOrEmpty())
                     {
-                        string batchedCacheKey = $"{CacheKeys.CalculationAggregations}{messageProperties.SpecificationId}_{i}";
-
-                        Dictionary<string, List<decimal>> cachedCalculationAggregationsPart = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Dictionary<string, List<decimal>>>(batchedCacheKey));
-
-                        if (!cachedCalculationAggregationsPart.IsNullOrEmpty())
+                        foreach (KeyValuePair<string, List<decimal>> cachedAggregations in cachedCalculationAggregationsPart)
                         {
-                            foreach (KeyValuePair<string, List<decimal>> cachedAggregations in cachedCalculationAggregationsPart)
+                            if (!cachedCalculationAggregations.ContainsKey(cachedAggregations.Key))
                             {
-                                if (!cachedCalculationAggregations.ContainsKey(cachedAggregations.Key))
-                                {
-                                    cachedCalculationAggregations.Add(cachedAggregations.Key, new List<decimal>());
-                                }
-
-                                cachedCalculationAggregations[cachedAggregations.Key].AddRange(cachedAggregations.Value);
+                                cachedCalculationAggregations.Add(cachedAggregations.Key, new List<decimal>());
                             }
+
+                            cachedCalculationAggregations[cachedAggregations.Key].AddRange(cachedAggregations.Value);
                         }
                     }
+                }
 
-                    if (!cachedCalculationAggregations.IsNullOrEmpty())
+                if (!cachedCalculationAggregations.IsNullOrEmpty())
+                {
+                    foreach (KeyValuePair<string, List<decimal>> cachedCalculationAggregation in cachedCalculationAggregations)
                     {
-                        foreach (KeyValuePair<string, List<decimal>> cachedCalculationAggregation in cachedCalculationAggregations)
+                        aggregations = aggregations.Concat(new[]
                         {
-                            aggregations = aggregations.Concat(new[]
-                            {
                                 new CalculationAggregation
                                 {
                                     SpecificationId = messageProperties.SpecificationId,
@@ -519,14 +518,11 @@ namespace CalculateFunding.Services.Calculator
                                     }
                                 }
                             });
-                        }
                     }
                 }
-
             }
 
             return aggregations;
-
         }
 
         private async Task CompleteBatch(GenerateAllocationMessageProperties messageProperties, Dictionary<string, List<decimal>> cachedCalculationAggregationsBatch, int itemsProcessed, int totalProviderResults)
