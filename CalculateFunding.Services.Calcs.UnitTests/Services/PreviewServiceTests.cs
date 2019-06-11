@@ -594,7 +594,8 @@ namespace CalculateFunding.Services.Calcs.Services
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
                 { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" }
+                { "Calc1", "return 1" },
+                { "Alice", "return 1" }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -717,7 +718,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                SourceCodeName = "Horace"
+                SourceCodeName = "Horace",
+                Name = "Test Function"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -764,7 +766,8 @@ namespace CalculateFunding.Services.Calcs.Services
             Build build = new Build
             {
                 Success = true,
-                SourceFiles = sourceFiles
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>()
             };
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
@@ -967,7 +970,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                SourceCodeName = "Horace"
+                SourceCodeName = "Horace",
+                Name = "TestFunction"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -1011,12 +1015,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 new SourceFile { FileName = "Calculation.vb", SourceCode = model.SourceCode }
             };
 
-            Dictionary<string, string> sourceCodes = new Dictionary<string, string>();
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" },
+                { "whatever", "return 1" }
+            };
 
             Build compilerOutput = new Build
             {
                 Success = true,
-                SourceFiles = sourceFiles
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>()
             };
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -1617,11 +1627,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 { "Calc1", "return 1" }
             };
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateOverCalculationsEnabled()
-                .Returns(true);
-
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -1634,7 +1639,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
-                buildProjectsService: buildProjectsService, datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
+                buildProjectsService: buildProjectsService, datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1745,16 +1750,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateOverCalculationsEnabled()
-                .Returns(true);
-
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
+                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1874,16 +1874,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
                 .Returns(sourceCodes);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateOverCalculationsEnabled()
-                .Returns(true);
-
             IDatasetRepository datasetRepository = CreateDatasetRepository();
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService,
-                datasetRepository: datasetRepository, featureToggle: featureToggle, sourceCodeService: sourceCodeService);
+                datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
             IActionResult result = await service.Compile(request);
@@ -1938,7 +1933,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                SourceCodeName = "Horace"
+                SourceCodeName = "Horace",
+                Name = "Test Function"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -2316,7 +2312,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
-                SourceCodeName = calculationName
+                SourceCodeName = calculationName,
+                Name = "Alice"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -2361,13 +2358,25 @@ namespace CalculateFunding.Services.Calcs.Services
             Build build = new Build
             {
                 Success = true,
-                SourceFiles = sourceFiles
+                SourceFiles = sourceFiles,
+                CompilerMessages = new List<CompilerMessage>()
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
                 .Returns(build);
+
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>
+            {
+                { "TestFunction", model.SourceCode },
+                { "Calc1", "return 1" },
+                { "Alice", "return 1" }
+            };
+
+            sourceCodeService
+                .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
+                .Returns(sourceCodes);
 
             Build nonPreviewBuild = new Build
             {

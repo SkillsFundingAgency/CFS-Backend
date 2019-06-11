@@ -10,27 +10,12 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 {
     public class ReflectionCodeMetadataGenerator : ICodeMetadataGeneratorService
     {
-        private readonly IFeatureToggle _featureToggle;
-
-        public ReflectionCodeMetadataGenerator(IFeatureToggle featureToggle)
-        {
-            _featureToggle = featureToggle;
-        }
-
         public IEnumerable<TypeInformation> GetTypeInformation(byte[] rawAssembly)
         {
             if (rawAssembly == null || rawAssembly.Length == 0)
             {
                 return Enumerable.Empty<TypeInformation>();
             }
-
-            // Used for outputting assembly to local filesystem for debugging
-            //using (FileStream fs = new FileStream("c:\\dev\\out.dll", FileMode.Create))
-            //{
-            //    fs.Write(rawAssembly, 0, rawAssembly.Length);
-            //    fs.Flush();
-            //    fs.Close();
-            //}
 
             List<TypeInformation> results = new List<TypeInformation>();
 
@@ -100,11 +85,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 if (calculationAttribute != null)
                                 {
                                     entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
-
-                                    if (_featureToggle.IsAggregateOverCalculationsEnabled())
-                                    {
-                                        isCustom = true;
-                                    }
+                                    isCustom = true;
                                 }
 
                                 MethodInformation methodInformation = new MethodInformation()
@@ -148,11 +129,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                             if (calculationAttribute != null)
                             {
                                 entityId = calculationAttribute.NamedArguments.Where(a => a.MemberName == "Id").FirstOrDefault().TypedValue.Value?.ToString();
-
-                                if (_featureToggle.IsAggregateOverCalculationsEnabled())
-                                {
-                                    isCustom = true;
-                                }
+                                isCustom = true;
                             }
 
                             MethodInformation methodInformation = new MethodInformation()

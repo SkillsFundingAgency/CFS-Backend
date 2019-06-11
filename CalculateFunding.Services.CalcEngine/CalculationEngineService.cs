@@ -222,16 +222,17 @@ namespace CalculateFunding.Services.Calculator
                         saveSearchElapsedMs = timingMetrics.saveSearchElapsedMs;
                         saveRedisElapsedMs = timingMetrics.saveRedisElapsedMs;
                         saveQueueElapsedMs = timingMetrics.saveQueueElapsedMs;
+
+                        totalProviderResults += calculationResults.ProviderResults.Count();
+
+                        if (calculationResults.ResultsContainExceptions)
+                        {
+                            await FailJob(messageProperties.JobId, totalProviderResults, "Exceptions were thrown during generation of calculation results");
+
+                            throw new NonRetriableException($"Exceptions were thrown during generation of calculation results for specification Id: '{messageProperties.SpecificationId}'");
+                        }
                     }
 
-                    totalProviderResults += calculationResults.ProviderResults.Count();
-
-                    if (calculationResults.ResultsContainExceptions)
-                    {
-                        await FailJob(messageProperties.JobId, totalProviderResults, "Exceptions were thrown during generation of calculation results");
-
-                        throw new NonRetriableException($"Exceptions were thrown during generation of calculation results for specification Id: '{messageProperties.SpecificationId}'");
-                    }
                 }
 
                 calcTiming.Stop();
