@@ -595,7 +595,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (existingCurrent.Any())
             {
-                _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
+                 _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
 
                 await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.DeleteCurrentProviderSourceDatasets(existingCurrent.Values));
