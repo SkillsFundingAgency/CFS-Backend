@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.CodeGeneration
                     if (split.Length >= 2)
                     {
                         string fileName = $"{split[split.Length - 2]}.{split[split.Length - 1]}";
-                        string folderPath = "";
+                        string folderPath = string.Empty;
                         if (split.Length > 2)
                         {
                             folderPath = string.Join("\\", split.Take(split.Length - 2));

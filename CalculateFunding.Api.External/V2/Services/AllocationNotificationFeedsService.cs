@@ -173,14 +173,18 @@ namespace CalculateFunding.Api.External.V2.Services
                                 FundingRoute = feedIndex.AllocationLineFundingRoute,
                                 ContractRequired = feedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
-                            AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
-                            AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
+                            AllocationMajorVersion = feedIndex.MajorVersion ?? 0,
+                            AllocationMinorVersion = feedIndex.MinorVersion ?? 0,
                             AllocationStatus = feedIndex.AllocationStatus,
                             AllocationAmount = (decimal)feedIndex.AllocationAmount,
                             AllocationResultId = feedIndex.Id,
                             AllocationResultTitle = feedIndex.Title,
-                            ProfilePeriods = string.IsNullOrEmpty(feedIndex.ProviderProfiling) ? new List<ProfilePeriod>() : new List<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(feedIndex.ProviderProfiling).Select(
-                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe())
+                            ProfilePeriods = string.IsNullOrEmpty(feedIndex.ProviderProfiling)
+                                ? new List<ProfilePeriod>()
+                                : new List<ProfilePeriod>(JsonConvert
+                                    .DeserializeObject<IEnumerable<ProfilingPeriod>>(feedIndex.ProviderProfiling)
+                                    .Select(m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod))
+                                    .ToArraySafe())
                         }
                     }
                 });

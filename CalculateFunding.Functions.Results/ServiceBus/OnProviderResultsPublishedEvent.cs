@@ -30,14 +30,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
                 {
                     correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
 
-                    if (featureToggle.IsProviderVariationsEnabled())
-                    {
-                        await resultsService.PublishProviderResultsWithVariations(message);
-                    }
-                    else
-                    {
-                        await resultsService.PublishProviderResults(message);
-                    }
+                    await resultsService.PublishProviderResultsWithVariations(message);
                 }
                 catch (NonRetriableException ex)
                 {

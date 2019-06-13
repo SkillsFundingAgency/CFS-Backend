@@ -515,76 +515,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMajorVersion.Should().Be(0);
             atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMinorVersion.Should().Be(3);
         }
-
-        [TestMethod]
-        public async Task GetNotifications_GivenMajorMinorFeatureToggleOff_ReturnsMajorMinorVersionNumbersAsZero()
-        {
-            //Arrange
-            SearchFeedV2<AllocationNotificationFeedIndex> feeds = new SearchFeedV2<AllocationNotificationFeedIndex>
-            {
-                PageRef = 3,
-                Top = 500,
-                TotalCount = 3,
-                Entries = CreateFeedIndexes()
-            };
-
-            IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
-            feedsSearchService
-                .GetFeedsV2(Arg.Is(3), Arg.Is(2))
-                .ReturnsForAnyArgs(feeds);
-
-            IFeatureToggle features = CreateFeatureToggle();
-            features
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
-            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "Accept", new StringValues("application/json") }
-            };
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "pageRef", new StringValues("3") },
-                { "allocationStatuses", new StringValues("Published,Approved") },
-                { "pageSize", new StringValues("2") }
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request.Scheme.Returns("https");
-            request.Path.Returns(new PathString("/api/v1/test"));
-            request.Host.Returns(new HostString("wherever.naf:12345"));
-            request.QueryString.Returns(new QueryString("?pageRef=3&pageSize=2&allocationStatuses=Published,Approved"));
-            request.Headers.Returns(headerDictionary);
-            request.Query.Returns(queryStringValues);
-
-            //Act
-            IActionResult result = await service.GetNotifications(request, pageRef: 3, pageSize: 2, allocationStatuses: new[] { "Published", "Approved" });
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<ContentResult>();
-
-            ContentResult contentResult = result as ContentResult;
-            AtomFeed<AllocationModel> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AllocationModel>>(contentResult.Content);
-
-            atomFeed
-                .Should()
-                .NotBeNull();
-
-            atomFeed.Id.Should().NotBeEmpty();
-            atomFeed.AtomEntry.Count.Should().Be(3);
-            atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationMajorVersion.Should().Be(0);
-            atomFeed.AtomEntry.ElementAt(0).Content.Allocation.AllocationMinorVersion.Should().Be(0);
-            atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationMajorVersion.Should().Be(0);
-            atomFeed.AtomEntry.ElementAt(1).Content.Allocation.AllocationMinorVersion.Should().Be(0);
-            atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMajorVersion.Should().Be(0);
-            atomFeed.AtomEntry.ElementAt(2).Content.Allocation.AllocationMinorVersion.Should().Be(0);
-        }
-
+        
         [TestMethod]
         public async Task GetNotifications_GivenNullAllocationStatus_ThenOnlyPublishedStatusRequested()
         {

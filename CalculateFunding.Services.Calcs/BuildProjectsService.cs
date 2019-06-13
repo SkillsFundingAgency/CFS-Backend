@@ -228,10 +228,7 @@ namespace CalculateFunding.Services.Calcs
                 allJobProperties.Add(jobProperties);
             }
 
-            if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
-            {
-                await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
-            }
+            await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
 
             try
             {

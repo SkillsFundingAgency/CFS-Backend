@@ -15,14 +15,12 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
     public class CalculationTypeGenerator : VisualBasicTypeGenerator
     {
         private CompilerOptions _compilerOptions;
-        private readonly bool _useSourceCodeNameForCalculations;
 
-        public CalculationTypeGenerator(CompilerOptions compilerOptions, bool useSourceCodeNameForCalculations)
+        public CalculationTypeGenerator(CompilerOptions compilerOptions)
         {
             Guard.ArgumentNotNull(compilerOptions, nameof(compilerOptions));
 
             _compilerOptions = compilerOptions;
-            _useSourceCodeNameForCalculations = useSourceCodeNameForCalculations;
         }
 
         public IEnumerable<SourceFile> GenerateCalcs(IEnumerable<Calculation> calculations)
@@ -92,6 +90,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private StatementSyntax CreateCalculationVariables(Calculation calc)
         {
+            if (string.IsNullOrWhiteSpace(calc.SourceCodeName)) throw new InvalidOperationException($"Calculation source code name is not populated for calc {calc.Id }");
+
             StringBuilder builder = new StringBuilder();
 
             // Add attributes to describe calculation and calculation specification
@@ -127,23 +127,16 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 calc.Current.SourceCode = QuoteAggregateFunctionCalls(calc.Current.SourceCode);
             }
 
-            if (_useSourceCodeNameForCalculations)
-            {
-                builder.AppendLine($"Dim {calc.SourceCodeName} As Func(Of decimal?) = nothing");
+            builder.AppendLine($"Dim {calc.SourceCodeName} As Func(Of decimal?) = nothing");
 
-                builder.AppendLine();
-            }
-            else
-            {
-                builder.AppendLine($"Dim {GenerateIdentifier(calc.Name)} As Func(Of decimal?) = nothing");
-
-                builder.AppendLine();
-            }
+            builder.AppendLine();
 
             SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
 
-
-            return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
+            return tree
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<StatementSyntax>()
                 .FirstOrDefault();
         }
 
@@ -168,14 +161,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 builder.AppendLine();
 
-                if (_useSourceCodeNameForCalculations)
-                {
-                    builder.AppendLine($"{calc.SourceCodeName} = Function() As decimal?");
-                }
-                else
-                {
-                    builder.AppendLine($"{GenerateIdentifier(calc.Name)} = Function() As decimal?");
-                }
+                builder.AppendLine($"{calc.SourceCodeName} = Function() As decimal?");
 
                 builder.AppendLine($"Dim existingCacheItem as String() = Nothing");
                 builder.AppendLine($"If dictionary.TryGetValue(\"{calc.Id}\", existingCacheItem) Then");
@@ -245,15 +231,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 // Reset baseline stack frame count before executing calc
                 builder.AppendLine("stackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
 
-                if (_useSourceCodeNameForCalculations)
-                {
-                    builder.AppendLine($"{calc.SourceCodeName}()");
-                }
-                else
-                {
-                    builder.AppendLine($"{GenerateIdentifier(calc.Name)}()");
-                }
-
+                builder.AppendLine($"{calc.SourceCodeName}()");
 
                 builder.AppendLine();
 
@@ -309,7 +287,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             foreach (Match match in x.Matches(sourceCode))
             {
-                string strippedText = Regex.Replace(match.Value, @"\s+", "");
+                string strippedText = Regex.Replace(match.Value, @"\s+", string.Empty);
 
                 string result = strippedText
                     .Replace("Sum(", "Sum(\"")

@@ -1778,7 +1778,7 @@ namespace CalculateFunding.Services.Specs
         public async Task<IActionResult> ReIndex()
         {
             try
-            { 
+            {
                 await _searchRepository.DeleteIndex();
 
                 SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
@@ -1845,74 +1845,33 @@ WHERE   s.documentType = @DocumentType",
 
         public async Task<IActionResult> RefreshPublishedResults(HttpRequest request)
         {
-            if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
+            request.Query.TryGetValue("specificationId", out StringValues specId);
+
+            string specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
             {
-                request.Query.TryGetValue("specificationId", out StringValues specId);
-
-                string specificationId = specId.FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(specificationId))
-                {
-                    _logger.Warning("No specification Id was provided to SelectSpecificationForFunding");
-                    return new BadRequestObjectResult("Null or empty specification Id provided");
-                }
-
-                Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-
-                if (specification == null)
-                {
-                    return new BadRequestObjectResult($"Specification {specificationId} - was not found");
-                }
-
-                if (_featureToggle.IsProviderVariationsEnabled() || (!_featureToggle.IsProviderVariationsEnabled() && specification.ShouldRefresh))
-                {
-                    try
-                    {
-                        await PublishProviderResults(request, specificationId, "Refreshing published provider results for specification");
-                    }
-                    catch (Exception e)
-                    {
-                        return new InternalServerErrorResult(e.Message);
-                    }
-                }
-                else
-                {
-                    SpecificationCalculationExecutionStatus statusToCache = new SpecificationCalculationExecutionStatus(specificationId, 100, CalculationProgressStatus.Finished);
-                    statusToCache.PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt;
-
-                    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
-                }
-            }
-            else
-            {
-                request.Query.TryGetValue("specificationIds", out StringValues specificationIds);
-                string specificationIdsRetrieved = specificationIds.FirstOrDefault();
-                if (specificationIdsRetrieved.IsNullOrEmpty())
-                {
-                    return new BadRequestObjectResult("Null or empty specification ids parameter was provided");
-                }
-
-                string[] specificationIdsAsArray = specificationIdsRetrieved.Split(',');
-                foreach (string specificationId in specificationIdsAsArray)
-                {
-                    Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-                    if (specification == null)
-                    {
-                        return new BadRequestObjectResult($"Specification {specificationId} - was not found");
-                    }
-                }
-                IEnumerable<Task> calculationTasks = specificationIdsAsArray.Select(specificationId => PublishProviderResults(request, specificationId, "Refreshing published provider results for specification"));
-                try
-                {
-                    await Task.WhenAll(calculationTasks.ToArray());
-                }
-                catch (Exception e)
-                {
-                    return new InternalServerErrorResult(e.Message);
-                }
+                _logger.Warning("No specification Id was provided to SelectSpecificationForFunding");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            return new NoContentResult();
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                return new BadRequestObjectResult($"Specification {specificationId} - was not found");
+            }
+
+            try
+            {
+                await PublishProviderResults(request, specificationId, "Refreshing published provider results for specification");
+
+                return new NoContentResult();
+            }
+            catch (Exception e)
+            {
+                return new InternalServerErrorResult(e.Message);
+            }
         }
 
         public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)

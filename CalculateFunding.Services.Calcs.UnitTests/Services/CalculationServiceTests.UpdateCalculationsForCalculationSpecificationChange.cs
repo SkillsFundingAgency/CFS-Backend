@@ -913,6 +913,8 @@ namespace CalculateFunding.Services.Calcs.Services
            {
                 new Models.Calcs.Calculation
                 {
+                    CalculationSpecification = new Reference(),
+                    SourceCodeName = "A",
                     Current = new CalculationVersion
                     {
                         SourceCode = "return Sum(Calc1)"
@@ -952,7 +954,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId,
             };
-
 
             string json = JsonConvert.SerializeObject(model);
 
@@ -1534,7 +1535,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChange_AndDuplicateCalcFeatureToggleIsSet_UpdatesCalcSourceCodeName()
+        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChange_UpdatesCalcSourceCodeName()
         {
             // Arrange
             const string specificationId = "spec-id";
@@ -1606,10 +1607,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsDuplicateCalculationNameCheckEnabled()
-                .Returns(true);
 
             BuildProject buildProject = new BuildProject();
 
@@ -1624,7 +1621,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                 searchRepository: searchRepository,
                 sourceCodeService: sourceCodeService,
-                featureToggle: featureToggle,
                 buildProjectsService: buildProjectsService);
 
             // Act
@@ -1641,7 +1637,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChange_AndDuplicateCalcFeatureToggleIsSet_UpdatesReferencesInSourceCode()
+        public async Task UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChange_UpdatesReferencesInSourceCode()
         {
             // Arrange
             const string specificationId = "spec-id";
@@ -1754,11 +1750,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsDuplicateCalculationNameCheckEnabled()
-                .Returns(true);
-
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = CreateCalculationCodeReferenceUpdate();
             calculationCodeReferenceUpdate
                 .ReplaceSourceCodeReferences(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
@@ -1777,7 +1768,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationsRepository: calculationsRepository,
                 searchRepository: searchRepository,
                 sourceCodeService: sourceCodeService,
-                featureToggle: featureToggle,
                 calculationVersionRepository: calcVersionRepository,
                 buildProjectsService: buildProjectsService,
                 calculationCodeReferenceUpdate: calculationCodeReferenceUpdate);
@@ -1812,7 +1802,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChange_AndDuplicateCalcFeatureToggleIsSet_AndNameIsDuplicate_ThrowsNonRetriableException()
+        public void UpdateCalculationsForCalculationSpecificationChange_GivenCalcNameChangeAndNameIsDuplicate_ThrowsNonRetriableException()
         {
             // Arrange
             const string specificationId = "spec-id";
@@ -1896,18 +1886,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsDuplicateCalculationNameCheckEnabled()
-                .Returns(true);
-
             CalculationService service = CreateCalculationService(
                 logger: logger,
                 specificationRepository: specificationRepository,
                 calculationsRepository: calculationsRepository,
                 searchRepository: searchRepository,
-                sourceCodeService: sourceCodeService,
-                featureToggle: featureToggle);
+                sourceCodeService: sourceCodeService);
 
             // Act
             Func<Task> action = async () => await service.UpdateCalculationsForCalculationSpecificationChange(message);

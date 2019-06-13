@@ -219,21 +219,7 @@ namespace CalculateFunding.Api.Results
 
             builder.AddFeatureToggling(Configuration);
 
-            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
-            {
-                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
-
-                bool enableAllocationLineMajorMinorVersioning = featureToggle.IsAllocationLineMajorMinorVersioningEnabled();
-
-                if (enableAllocationLineMajorMinorVersioning)
-                {
-                    return new PublishedAllocationLineLogicalResultVersionService();
-                }
-                else
-                {
-                    return new RedundantPublishedAllocationLineLogicalResultVersionService();
-                }
-            });
+            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService, PublishedAllocationLineLogicalResultVersionService>();
 
             builder.AddSingleton<IResultsResiliencePolicies>((ctx) =>
             {

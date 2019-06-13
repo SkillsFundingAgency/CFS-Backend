@@ -50,13 +50,13 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 chars[matches[i].Index] = chars[matches[i].Index].ToString().ToUpperInvariant();
             }
 
-            className = string.Join("", chars);
+            className = string.Join(string.Empty, chars);
 
             if (!isValid)
             {
                 // File name contains invalid chars, remove them
                 Regex regex = new Regex(@"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Nl}\p{Mn}\p{Mc}\p{Cf}\p{Pc}\p{Lm}]");
-                className = regex.Replace(className, "");
+                className = regex.Replace(className, string.Empty);
 
                 // Class name doesn't begin with a letter, insert an underscore
                 if (!Char.IsLetter(className, 0))

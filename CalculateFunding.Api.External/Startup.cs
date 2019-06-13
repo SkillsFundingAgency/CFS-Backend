@@ -285,21 +285,7 @@ namespace CalculateFunding.Api.External
                 return new VersionRepository<PublishedAllocationLineResultVersion>(resultsRepostory);
             });
 
-            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
-            {
-                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
-
-                bool enableMajorMinorVersioning = featureToggle.IsAllocationLineMajorMinorVersioningEnabled();
-
-                if (enableMajorMinorVersioning)
-                {
-                    return new PublishedAllocationLineLogicalResultVersionService();
-                }
-                else
-                {
-                    return new RedundantPublishedAllocationLineLogicalResultVersionService();
-                }
-            });
+            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService, PublishedAllocationLineLogicalResultVersionService>();
 
             builder.AddSingleton<IPublishedProviderResultsSettings, PublishedProviderResultsSettings>((ctx) =>
             {

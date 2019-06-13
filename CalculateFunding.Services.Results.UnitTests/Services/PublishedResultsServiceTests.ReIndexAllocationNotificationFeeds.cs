@@ -11,7 +11,6 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
@@ -30,9 +29,10 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenMessageWithUserDetails_LogsInitiated()
         {
             //Arrange
+            string userName = "Joseph Bloggs";
             Message message = new Message();
             message.UserProperties["user-id"] = "123";
-            message.UserProperties["user-name"] = "Joe Bloggs";
+            message.UserProperties["user-name"] = userName;
 
             IEnumerable<PublishedProviderResult> results = Enumerable.Empty<PublishedProviderResult>();
 
@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Results.Services
             //Assert
             logger
                 .Received(1)
-                .Information($"{nameof(resultsService.ReIndexAllocationNotificationFeeds)} initiated by: 'Joe Bloggs'");
+                .Information($"{nameof(resultsService.ReIndexAllocationNotificationFeeds)} initiated by: '{userName}'");
         }
 
         [TestMethod]
@@ -102,7 +102,8 @@ namespace CalculateFunding.Services.Results.Services
                 .GetAllNonHeldPublishedProviderResults()
                 .Returns(results);
 
-            IEnumerable<PublishedAllocationLineResultVersion> history = CreatePublishedProviderResultsWithDifferentProviders().Select(m => m.FundingStreamResult.AllocationLineResult.Current);
+            IEnumerable<PublishedAllocationLineResultVersion> history = CreatePublishedProviderResultsWithDifferentProviders()
+                .Select(m => m.FundingStreamResult.AllocationLineResult.Current);
             history.ElementAt(1).Status = AllocationLineStatus.Approved;
             history.ElementAt(1).Status = AllocationLineStatus.Published;
 
@@ -306,7 +307,7 @@ namespace CalculateFunding.Services.Results.Services
             feedResult.AllocationLineId.Should().Be("AAAAA");
             feedResult.AllocationLineName.Should().Be("test allocation line 1");
             feedResult.AllocationVersionNumber.Should().Be(1);
-            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.AllocationAmount.Should().Be(50.0);
             feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
             feedResult.ProviderName.Should().Be("test provider name 1");
             feedResult.LaCode.Should().Be("77777");
@@ -333,6 +334,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundAndMajorMinorFeatureToggleIsEnabled_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            int major = 2;
+            int minor = 19;
             Message message = new Message();
 
             const string specificationId = "spec-1";
@@ -342,8 +345,8 @@ namespace CalculateFunding.Services.Results.Services
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
                 result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
-                result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
-                result.FundingStreamResult.AllocationLineResult.Current.Minor = 5;
+                result.FundingStreamResult.AllocationLineResult.Current.Major = major;
+                result.FundingStreamResult.AllocationLineResult.Current.Minor = minor;
             }
 
             IPublishedProviderResultsRepository repository = CreatePublishedProviderResultsRepository();
@@ -413,7 +416,7 @@ namespace CalculateFunding.Services.Results.Services
 
             feedResult.ProviderId.Should().Be("1111");
             feedResult.Title.Should().Be("Allocation test allocation line 1 was Approved");
-            feedResult.Summary.Should().Be("UKPRN: 1111, version 1.5");
+            feedResult.Summary.Should().Be($"UKPRN: 1111, version {major}.{minor}");
             feedResult.DatePublished.HasValue.Should().Be(false);
             feedResult.FundingStreamId.Should().Be("fs-1");
             feedResult.FundingStreamName.Should().Be("funding stream 1");
@@ -423,7 +426,7 @@ namespace CalculateFunding.Services.Results.Services
             feedResult.AllocationLineId.Should().Be("AAAAA");
             feedResult.AllocationLineName.Should().Be("test allocation line 1");
             feedResult.AllocationVersionNumber.Should().Be(1);
-            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.AllocationAmount.Should().Be(50.0);
             feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
             feedResult.ProviderName.Should().Be("test provider name 1");
             feedResult.LaCode.Should().Be("77777");
@@ -558,7 +561,7 @@ namespace CalculateFunding.Services.Results.Services
             feedResult.AllocationLineId.Should().Be("AAAAA");
             feedResult.AllocationLineName.Should().Be("test allocation line 1");
             feedResult.AllocationVersionNumber.Should().Be(1);
-            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.AllocationAmount.Should().Be(50.0);
             feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
             feedResult.ProviderName.Should().Be("test provider name 1");
             feedResult.LaCode.Should().Be("77777");
@@ -691,7 +694,7 @@ namespace CalculateFunding.Services.Results.Services
             feedResult.AllocationLineId.Should().Be("AAAAA");
             feedResult.AllocationLineName.Should().Be("test allocation line 1");
             feedResult.AllocationVersionNumber.Should().Be(1);
-            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.AllocationAmount.Should().Be(50.0);
             feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
             feedResult.ProviderName.Should().Be("test provider name 1");
             feedResult.LaCode.Should().Be("77777");
@@ -723,6 +726,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexAllocationNotificationFeeds_GivenPublishedProviderFoundAndMajorMinorFeatureToggleIsEnabledAndIsAllAllocationResultsVersionsInFeedIndexEnabled_IndexesAndReturnsNoContentResult()
         {
             //Arrange
+            int major = 2;
+            int minor = 7;
             Message message = new Message();
 
             const string specificationId = "spec-1";
@@ -733,8 +738,8 @@ namespace CalculateFunding.Services.Results.Services
             {
                 result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
                 result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
-                result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
-                result.FundingStreamResult.AllocationLineResult.Current.Minor = 5;
+                result.FundingStreamResult.AllocationLineResult.Current.Major = major;
+                result.FundingStreamResult.AllocationLineResult.Current.Minor = minor;
                 result.FundingStreamResult.AllocationLineResult.Current.FeedIndexId = "feed-index-id";
             }
 
@@ -775,24 +780,14 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is("spec-1"))
                 .Returns(specification);
 
-            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-            featureToggle
-                .IsAllAllocationResultsVersionsInFeedIndexEnabled()
-                .Returns(true);
-
             IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
-            await searchRepository
-                .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
+            await searchRepository.Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
 
             PublishedResultsService resultsService = CreateResultsService(
                 logger,
                 publishedProviderResultsRepository: repository,
                 allocationNotificationFeedSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
-                featureToggle: featureToggle);
+                specificationsRepository: specificationsRepository);
 
             //Act
             await resultsService.ReIndexAllocationNotificationFeeds(message);
@@ -807,7 +802,7 @@ namespace CalculateFunding.Services.Results.Services
 
             feedResult.ProviderId.Should().Be("1111");
             feedResult.Title.Should().Be("Allocation test allocation line 1 was Approved");
-            feedResult.Summary.Should().Be("UKPRN: 1111, version 1.5");
+            feedResult.Summary.Should().Be($"UKPRN: 1111, version {major}.{minor}");
             feedResult.DatePublished.HasValue.Should().Be(false);
             feedResult.FundingStreamId.Should().Be("fs-1");
             feedResult.FundingStreamName.Should().Be("funding stream 1");
@@ -817,7 +812,7 @@ namespace CalculateFunding.Services.Results.Services
             feedResult.AllocationLineId.Should().Be("AAAAA");
             feedResult.AllocationLineName.Should().Be("test allocation line 1");
             feedResult.AllocationVersionNumber.Should().Be(1);
-            feedResult.AllocationAmount.Should().Be((double)50.0);
+            feedResult.AllocationAmount.Should().Be(50.0);
             feedResult.ProviderProfiling.Should().Be("[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]");
             feedResult.ProviderName.Should().Be("test provider name 1");
             feedResult.LaCode.Should().Be("77777");
@@ -835,17 +830,19 @@ namespace CalculateFunding.Services.Results.Services
             feedResult.FundingStreamPeriodId.Should().Be("pt1");
             feedResult.AllocationLineContractRequired.Should().Be(true);
             feedResult.AllocationLineFundingRoute.Should().Be("LA");
-            feedResult.MajorVersion.Should().Be(1);
-            feedResult.MinorVersion.Should().Be(5);
+            feedResult.MajorVersion.Should().Be(major);
+            feedResult.MinorVersion.Should().Be(minor);
         }
 
         [TestMethod]
         public async Task ReIndexAllocationNotificationFeeds_GivenRequest_AddsServiceBusMessage()
         {
             //Arrange
+            string userId = "1234";
+            string userName = "Joseph Bloggs";
             ClaimsPrincipal principle = new ClaimsPrincipal(new[]
            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, "123"), new Claim(ClaimTypes.Name, "Joe Bloggs") })
+                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, userId), new Claim(ClaimTypes.Name, userName) })
             });
 
             HttpContext context = Substitute.For<HttpContext>();
@@ -876,7 +873,7 @@ namespace CalculateFunding.Services.Results.Services
                 .SendToQueue(
                     Arg.Is(ServiceBusConstants.QueueNames.ReIndexAllocationNotificationFeedIndex),
                     Arg.Is(string.Empty),
-                    Arg.Is<IDictionary<string, string>>(m => m["user-id"] == "123" && m["user-name"] == "Joe Bloggs"));
+                    Arg.Is<IDictionary<string, string>>(m => m["user-id"] == userId && m["user-name"] == userName));
         }
     }
 }

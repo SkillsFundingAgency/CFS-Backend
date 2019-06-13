@@ -18,7 +18,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -77,7 +76,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task RefreshPublishResults_GivenSpecShouldNotBeRefreshed_CreatesFinishedCacheItemAndReturnsNoContentResult()
+        public async Task RefreshPublishResults_GivenSpecShouldNotBeRefreshed_CreatesCacheItemAndReturnsNoContentResult()
         {
             // Arrange
             const string specificationId = "123";
@@ -109,8 +108,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             // Assert
             actionResultReturned.Should().BeOfType<NoContentResult>();
-            await mockCacheProvider.Received().SetAsync(Arg.Is($"{CalculationProgressPrependKey}{specificationId}"),
-                Arg.Is<SpecificationCalculationExecutionStatus>(m => m.PercentageCompleted == 100 && m.CalculationProgress == CalculationProgressStatus.Finished), TimeSpan.FromHours(6), false);
+            await mockCacheProvider
+                .Received()
+                .SetAsync(Arg.Is($"{CalculationProgressPrependKey}{specificationId}"),
+                    Arg.Is<SpecificationCalculationExecutionStatus>(m => m.PercentageCompleted == 0
+                                                                         && m.CalculationProgress == CalculationProgressStatus.NotStarted),
+                    TimeSpan.FromHours(6),
+                    false);
         }
 
         [TestMethod]
@@ -182,46 +186,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             // Assert
             actionResultReturned.Should().BeOfType<BadRequestObjectResult>();
-        }
-
-        [TestMethod]
-        public async Task RefreshPublishResults_GivenValidRequestParametersAndFeatureToggleIsFalse_ShouldReturnNoContentResult()
-        {
-            // Arrange
-            const string specificationId1 = "123";
-            const string specificationId2 = "333";
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
-            HttpRequest httpRequest = Substitute.For<HttpRequest>();
-
-            ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
-            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
-
-            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 = new SpecificationCalculationExecutionStatus(specificationId1, 0, CalculationProgressStatus.NotStarted);
-            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall2 = new SpecificationCalculationExecutionStatus(specificationId2, 0, CalculationProgressStatus.NotStarted);
-
-            ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
-
-            SpecificationsService specificationsService = CreateService(specificationsRepository: mockSpecificationsRepository,
-                cacheProvider: mockCacheProvider, featureToggle: featureToggle);
-
-            httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
-            {
-                { "specificationIds", new StringValues($"{specificationId1},{specificationId2}") }
-            }));
-
-            // Act
-            IActionResult actionResultReturned = await specificationsService.RefreshPublishedResults(httpRequest);
-
-            // Assert
-            actionResultReturned.Should().BeOfType<NoContentResult>();
-            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId1}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
-            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId2}", expectedSpecificationStatusCall2, TimeSpan.FromHours(6), false);
-
         }
 
         [TestMethod]
@@ -297,29 +261,24 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             const string specificationId1 = "123";
             const string specificationId2 = "333";
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
             HttpRequest httpRequest = Substitute.For<HttpRequest>();
 
             ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
-            mockSpecificationsRepository.GetSpecificationById(Arg.Any<string>()).Returns(new Specification());
-
-            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall1 = new SpecificationCalculationExecutionStatus(specificationId1, 0, CalculationProgressStatus.NotStarted);
-            SpecificationCalculationExecutionStatus expectedSpecificationStatusCall2 = new SpecificationCalculationExecutionStatus(specificationId2, 0, CalculationProgressStatus.NotStarted);
+            mockSpecificationsRepository
+                .GetSpecificationById(Arg.Any<string>())
+                .Returns(new Specification());
 
             ICacheProvider mockCacheProvider = Substitute.For<ICacheProvider>();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             SpecificationsService specificationsService = CreateService(specificationsRepository: mockSpecificationsRepository,
-                cacheProvider: mockCacheProvider, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+                cacheProvider: mockCacheProvider,
+                jobsApiClient: jobsApiClient);
 
             httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
             {
-                { "specificationIds", new StringValues($"{specificationId1},{specificationId2}") }
+                { "specificationId", new StringValues($"{specificationId1},{specificationId2}") }
             }));
 
             // Act
@@ -327,11 +286,21 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             // Assert
             actionResultReturned.Should().BeOfType<NoContentResult>();
-            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId1}", expectedSpecificationStatusCall1, TimeSpan.FromHours(6), false);
-            await mockCacheProvider.Received().SetAsync($"{CalculationProgressPrependKey}{specificationId2}", expectedSpecificationStatusCall2, TimeSpan.FromHours(6), false);
 
-            await jobsApiClient.Received(1).CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.PublishProviderResultsJob && j.SpecificationId == specificationId1 && j.Trigger.Message == $"Refreshing published provider results for specification"));
-            await jobsApiClient.Received(1).CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.PublishProviderResultsJob && j.SpecificationId == specificationId2 && j.Trigger.Message == $"Refreshing published provider results for specification"));
+            await mockCacheProvider
+                .Received(1)
+                .SetAsync($"{CalculationProgressPrependKey}{specificationId1},{specificationId2}",
+                    Arg.Is<SpecificationCalculationExecutionStatus>(e => e.SpecificationId == $"{specificationId1},{specificationId2}"
+                                                                       && e.CalculationProgress == CalculationProgressStatus.NotStarted),
+                    TimeSpan.FromHours(6),
+                    false);
+
+            await jobsApiClient
+                .Received(1)
+                .CreateJob(Arg.Is<JobCreateModel>(j =>
+                    j.JobDefinitionId == JobConstants.DefinitionNames.PublishProviderResultsJob
+                    && j.SpecificationId == $"{specificationId1},{specificationId2}"
+                    && j.Trigger.Message == $"Refreshing published provider results for specification"));
         }
     }
 }

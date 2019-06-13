@@ -68,29 +68,6 @@ namespace CalculateFunding.Api.External.UnitTests
                 .BeOfType<PublishedAllocationLineLogicalResultVersionService>();
         }
 
-        [TestMethod]
-        public void ConfigureServices_WhenMajorMinorVersioningIsDisabled_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            _enableMajorMinorVersioning = false;
-
-            IConfigurationRoot configuration = CreateTestConfiguration();
-
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            IServiceProvider serviceProvider = target.ServiceProvider;
-
-            IPublishedAllocationLineLogicalResultVersionService service = (IPublishedAllocationLineLogicalResultVersionService)serviceProvider.GetService(typeof(IPublishedAllocationLineLogicalResultVersionService));
-
-            service
-               .Should()
-               .BeOfType<RedundantPublishedAllocationLineLogicalResultVersionService>();
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>

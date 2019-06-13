@@ -396,28 +396,15 @@ namespace CalculateFunding.Services.Calcs
 
                 calculation.Current = calculationVersion;
 
-                if (_featureToggle.IsDuplicateCalculationNameCheckEnabled())
+                IActionResult nameValidResult = await IsCalculationNameValid(calculation.CalculationSpecification.Id, calculation.Name, null);
+
+                if (nameValidResult is ConflictResult)
                 {
-                    IActionResult nameValidResult = await IsCalculationNameValid(calculation.CalculationSpecification.Id, calculation.Name, null);
-
-                    if (nameValidResult is ConflictResult)
-                    {
-                        _logger.Error("Calculation with the same generated source code name already exists in this specification. Calculation Name {calcName} and Specification {specificationId}", calculation.Name, calculation.SpecificationId);
-                        throw new NonRetriableException($"Calculation with the same generated source code name already exists in this specification. Calculation Name {calculation.Name} and Specification {calculation.SpecificationId}");
-                    }
-
-                    calculation.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculation.Name);
+                    _logger.Error("Calculation with the same generated source code name already exists in this specification. Calculation Name {calcName} and Specification {specificationId}", calculation.Name, calculation.SpecificationId);
+                    throw new NonRetriableException($"Calculation with the same generated source code name already exists in this specification. Calculation Name {calculation.Name} and Specification {calculation.SpecificationId}");
                 }
-                else
-                {
-                    Calculation calculationDuplicateCheck = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationByCalculationSpecificationId(calculation.CalculationSpecification.Id));
 
-                    if (calculationDuplicateCheck != null)
-                    {
-                        _logger.Error($"The calculation with the same id {calculation.CalculationSpecification.Id} has already been created");
-                        throw new InvalidOperationException($"The calculation with the same id {calculation.CalculationSpecification.Id} has already been created");
-                    }
-                }
+                calculation.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculation.Name);
 
                 HttpStatusCode result = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.CreateDraftCalculation(calculation));
 
@@ -499,8 +486,8 @@ namespace CalculateFunding.Services.Calcs
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
 
-            string userId = properties.ContainsKey("user-id") ? properties["user-id"] : "";
-            string userName = properties.ContainsKey("user-name") ? properties["user-name"] : "";
+            string userId = properties.ContainsKey("user-id") ? properties["user-id"] : string.Empty;
+            string userName = properties.ContainsKey("user-name") ? properties["user-name"] : string.Empty;
             string correlationId = message.GetCorrelationId();
 
             Trigger trigger = new Trigger
@@ -555,15 +542,6 @@ namespace CalculateFunding.Services.Calcs
 
             List<Calculation> calculationsToUpdate = new List<Calculation>();
 
-            if (!_featureToggle.IsDuplicateCalculationNameCheckEnabled())
-            {
-                if (calculationVersionComparison.Current.Name != calculationVersionComparison.Previous.Name)
-                {
-                    IEnumerable<Calculation> updatedCalculations = await UpdateCalculationCodeOnCalculationSpecificationChange(calculationVersionComparison, message.GetUserDetails());
-                    calculationsToUpdate.AddRange(updatedCalculations);
-                }
-            }
-
             Calculation calculation = calculationsToUpdate.FirstOrDefault(m => m.CalculationSpecification.Id == calculationId);
 
             if (calculation == null)
@@ -578,25 +556,22 @@ namespace CalculateFunding.Services.Calcs
                 calculationsToUpdate.Add(calculation);
             }
 
-            if (_featureToggle.IsDuplicateCalculationNameCheckEnabled())
+            IActionResult nameValidResult = await IsCalculationNameValid(specificationId, calculationVersionComparison.Current.Name, calculationVersionComparison.CalculationId);
+
+            if (nameValidResult is ConflictResult)
             {
-                IActionResult nameValidResult = await IsCalculationNameValid(specificationId, calculationVersionComparison.Current.Name, calculationVersionComparison.CalculationId);
+                _logger.Error("Calculation with the same generated source code name already exists in this specification. Calculation Name {calcName} and Specification {specificationId}", calculation.Name, calculation.SpecificationId);
+                throw new NonRetriableException($"Calculation with the same generated source code name already exists in this specification. Calculation Name {calculationVersionComparison.Current.Name} and Specification {calculationVersionComparison.SpecificationId}");
+            }
 
-                if (nameValidResult is ConflictResult)
-                {
-                    _logger.Error("Calculation with the same generated source code name already exists in this specification. Calculation Name {calcName} and Specification {specificationId}", calculation.Name, calculation.SpecificationId);
-                    throw new NonRetriableException($"Calculation with the same generated source code name already exists in this specification. Calculation Name {calculationVersionComparison.Current.Name} and Specification {calculationVersionComparison.SpecificationId}");
-                }
+            string newCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationVersionComparison.Current.Name);
 
-                string newCalcSourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationVersionComparison.Current.Name);
+            if (calculation.SourceCodeName != newCalcSourceCodeName)
+            {
+                IEnumerable<Calculation> updatedCalculations = await UpdateCalculationCodeOnCalculationSpecificationChange(calculation.SourceCodeName, newCalcSourceCodeName, specification.Id, message.GetUserDetails());
+                calculationsToUpdate.AddRange(updatedCalculations);
 
-                if (calculation.SourceCodeName != newCalcSourceCodeName)
-                {
-                    IEnumerable<Calculation> updatedCalculations = await UpdateCalculationCodeOnCalculationSpecificationChange(calculation.SourceCodeName, newCalcSourceCodeName, specification.Id, message.GetUserDetails());
-                    calculationsToUpdate.AddRange(updatedCalculations);
-
-                    calculation.SourceCodeName = newCalcSourceCodeName;
-                }
+                calculation.SourceCodeName = newCalcSourceCodeName;
             }
 
             calculation.Name = calculationVersionComparison.Current.Name;
@@ -790,8 +765,8 @@ namespace CalculateFunding.Services.Calcs
 
             UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, user);
 
-            string userId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : "";
-            string userName = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : "";
+            string userId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : string.Empty;
+            string userName = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : string.Empty;
 
             Job job = null;
 

@@ -298,8 +298,8 @@ namespace CalculateFunding.Api.External.V2.Services
                                     ContractRequired = allocationFeedIndex.AllocationLineContractRequired ? "Y" : "N"
                                 },
                                 AllocationStatus = allocationFeedIndex.AllocationStatus,
-                                AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
-                                AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
+                                AllocationMajorVersion = feedIndex.MajorVersion ?? 0,
+                                AllocationMinorVersion = feedIndex.MinorVersion ?? 0,
                                 AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount)
                             };
 
@@ -459,12 +459,13 @@ namespace CalculateFunding.Api.External.V2.Services
                                 FundingRoute = allocationFeedIndex.AllocationLineFundingRoute,
                                 ContractRequired = allocationFeedIndex.AllocationLineContractRequired ? "Y" : "N"
                             },
-                            AllocationMajorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MajorVersion.HasValue) ? feedIndex.MajorVersion.Value : 0,
-                            AllocationMinorVersion = (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled() && feedIndex.MinorVersion.HasValue) ? feedIndex.MinorVersion.Value : 0,
+                            AllocationMajorVersion = feedIndex.MajorVersion ?? 0,
+                            AllocationMinorVersion = feedIndex.MinorVersion ?? 0,
                             AllocationStatus = allocationFeedIndex.AllocationStatus,
                             AllocationAmount = Convert.ToDecimal(allocationFeedIndex.AllocationAmount),
-                            ProfilePeriods = new Collection<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling).Select(
-                                    m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod)).ToArraySafe()),
+                            ProfilePeriods = new Collection<ProfilePeriod>(JsonConvert.DeserializeObject<IEnumerable<ProfilingPeriod>>(allocationFeedIndex.ProviderProfiling)
+                                .Select(m => new ProfilePeriod(m.Period, m.Occurrence, m.Year.ToString(), m.Type, m.Value, m.DistributionPeriod))
+                                .ToArraySafe()),
                             Calculations = new Collection<CalculationResult>(calculations)
                         });
                     }

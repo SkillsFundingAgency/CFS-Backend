@@ -762,12 +762,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IValidator<CalculationCreateModel> validator = CreateCalculationValidator(new ValidationResult(new[] { new ValidationFailure("prop1", "any error") }));
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsDuplicateCalculationNameCheckEnabled()
-                .Returns(true);
-
-            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, featureToggle: featureToggle, calculationCreateModelValidator: validator);
+            SpecificationsService service = CreateService(specificationsRepository: specificationsRepository, 
+                calculationCreateModelValidator: validator);
 
             // Act
             IActionResult result = await service.CreateCalculation(request);

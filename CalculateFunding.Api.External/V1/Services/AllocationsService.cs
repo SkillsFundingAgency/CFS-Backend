@@ -36,7 +36,7 @@ namespace CalculateFunding.Api.External.V1.Services
 
             AllocationModel allocation = CreateAllocation(publishedProviderResult);
 
-            return Formatter.ActionResult<AllocationModel>(httpRequest, allocation);
+            return Formatter.ActionResult(httpRequest, allocation);
         }
 
         public async Task<IActionResult> GetAllocationAndHistoryByAllocationResultId(string allocationResultId, HttpRequest httpRequest)
@@ -61,9 +61,9 @@ namespace CalculateFunding.Api.External.V1.Services
             return new AllocationModel
             {
                 AllocationResultId = publishedProviderResult.Id,
-                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
+                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value ?? 0,
                 AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
-                AllocationLine = new Models.AllocationLine
+                AllocationLine = new AllocationLine
                 {
                     Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                     Name = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
@@ -87,7 +87,7 @@ namespace CalculateFunding.Api.External.V1.Services
                         EndMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndMonth,
                     }
                 },
-                Period = new Models.Period
+                Period = new Period
                 {
                     Id = publishedProviderResult.FundingPeriod.Id,
                     Name = publishedProviderResult.FundingPeriod.Name,
