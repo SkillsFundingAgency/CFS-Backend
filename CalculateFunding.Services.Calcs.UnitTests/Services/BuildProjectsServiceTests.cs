@@ -843,7 +843,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndFeatureToggleIsOn_CallsUpdateCalculationLastupdatedDate()
+        public async Task UpdateAllocations_GivenBuildProject_CallsUpdateCalculationLastupdatedDate()
         {
             //Arrange
             string specificationId = "test-spec1";
@@ -870,11 +870,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(10000);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
             ILogger logger = CreateLogger();
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -899,7 +894,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(jobViewModelResponse);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, cacheProvider: cacheProvider, featureToggle: featureToggle, specificationsRepository: specificationRepository);
+                logger: logger, cacheProvider: cacheProvider, specificationsRepository: specificationRepository);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -909,56 +904,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationRepository
                     .Received(1)
                     .UpdateCalculationLastUpdatedDate(Arg.Is(specificationId));
-        }
-
-        [TestMethod]
-        public async Task UpdateAllocations_GivenBuildProjectAndFeatureToggleIsOff_DoesNotCallUpdateCalculationLastupdatedDate()
-        {
-            //Arrange
-            string specificationId = "test-spec1";
-
-            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            Message message = new Message(Encoding.UTF8.GetBytes(""));
-
-            message.UserProperties.Add("specification-id", specificationId);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
-                .Returns(true);
-
-            cacheProvider
-                .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
-                .Returns(10000);
-
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
-            ILogger logger = CreateLogger();
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-
-            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, cacheProvider: cacheProvider, featureToggle: featureToggle, specificationsRepository: specificationRepository);
-
-            //Act
-            await buildProjectsService.UpdateAllocations(message);
-
-            //Assert
-            await
-                specificationRepository
-                    .DidNotReceive()
-                    .UpdateCalculationLastUpdatedDate(Arg.Any<string>());
         }
 
         [TestMethod]

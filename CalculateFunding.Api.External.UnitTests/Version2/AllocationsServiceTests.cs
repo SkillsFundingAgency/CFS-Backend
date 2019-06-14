@@ -225,12 +225,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 .GetPublishedProviderResultByVersionId(Arg.Is(allocationResultId))
                 .Returns(publishedProviderResult);
 
-            IFeatureToggle features = CreateFeatureToggle();
-            features
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
-            AllocationsService service = CreateService(resultsService, features);
+            AllocationsService service = CreateService(resultsService);
 
             //Act
             IActionResult result = service.GetAllocationByAllocationResultId(allocationResultId, request);

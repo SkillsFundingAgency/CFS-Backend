@@ -388,11 +388,6 @@ namespace CalculateFunding.Services.Results.Services
                 }
             }
 
-            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
             IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
             await searchRepository
                 .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
@@ -401,8 +396,7 @@ namespace CalculateFunding.Services.Results.Services
                 logger,
                 publishedProviderResultsRepository: repository,
                 allocationNotificationFeedSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
-                featureToggle: featureToggle);
+                specificationsRepository: specificationsRepository);
 
             //Act
             await resultsService.ReIndexAllocationNotificationFeeds(message);
@@ -522,17 +516,11 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsProviderVariationsEnabled()
-                .Returns(true);
-
             PublishedResultsService resultsService = CreateResultsService(
                 logger,
                 publishedProviderResultsRepository: repository,
                 allocationNotificationFeedSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
-                featureToggle: featureToggle);
+                specificationsRepository: specificationsRepository);
 
             IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
             await searchRepository
@@ -655,11 +643,6 @@ namespace CalculateFunding.Services.Results.Services
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsProviderVariationsEnabled()
-                .Returns(true);
-
             IEnumerable<AllocationNotificationFeedIndex> resultsBeingSaved = null;
             await searchRepository
                 .Index(Arg.Do<IEnumerable<AllocationNotificationFeedIndex>>(r => resultsBeingSaved = r));
@@ -668,8 +651,7 @@ namespace CalculateFunding.Services.Results.Services
                 logger,
                 publishedProviderResultsRepository: repository,
                 allocationNotificationFeedSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
-                featureToggle: featureToggle);
+                specificationsRepository: specificationsRepository);
 
             //Act
             await resultsService.ReIndexAllocationNotificationFeeds(message);
