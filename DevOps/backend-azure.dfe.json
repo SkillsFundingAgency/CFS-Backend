@@ -2176,10 +2176,6 @@
               "value": "[parameters('DisableProviderProfilingService')]"
             },
             {
-              "name": "features:allAllocationResultsVersionsInFeedIndexEnabled",
-              "value": "[parameters('EnableAllAllocationVersionsInFeedIndex')]"
-            },
-            {
               "name": "PublishedProviderResultsSettings:UpdateAllocationLineResultStatusBatchCount",
               "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
             },
