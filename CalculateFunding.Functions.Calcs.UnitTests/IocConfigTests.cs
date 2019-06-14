@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Functions.Calcs.UnitTests
 {
     [TestClass]
-    public class IoConfigTests : IoCUnitTestBase
+    public class IocConfigTests : IoCUnitTestBase
     {
         [TestMethod]
         public void ConfigureServices_RegisterDependenciesCorrectly()

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Api.External.V2.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

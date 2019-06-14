@@ -111,8 +111,7 @@ namespace CalculateFunding.Functions.Calcs
             builder
                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
-            builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((
-                ctx) =>
+            builder.AddSingleton<ISourceFileRepository, SourceFileRepository>(ctx =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
 

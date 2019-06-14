@@ -2,6 +2,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TestResult = CalculateFunding.Models.Results.TestResult;
 
 namespace CalculateFunding.Models.UnitTests
 {
@@ -16,7 +17,7 @@ namespace CalculateFunding.Models.UnitTests
             {
                 Provider = new Reference("Ref ID", "Reference Name"),
                 Specification = new Reference("SpecificationId", "Specification Name"),
-                TestResult = Results.TestResult.Passed,
+                TestResult = TestResult.Passed,
                 TestScenario = new Reference("TestScenarioId", "Test Scenario Name")
             };
 

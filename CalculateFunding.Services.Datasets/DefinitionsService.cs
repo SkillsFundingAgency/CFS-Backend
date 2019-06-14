@@ -7,12 +7,12 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
@@ -44,8 +44,8 @@ namespace CalculateFunding.Services.Datasets
         public DefinitionsService(
             ILogger logger,
             IDatasetRepository dataSetsRepository,
-            ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository, 
-            IDatasetsResiliencePolicies datasetsResiliencePolicies, 
+            ISearchRepository<DatasetDefinitionIndex> datasetDefinitionSearchRepository,
+            IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IExcelWriter<DatasetDefinition> excelWriter,
             IBlobClient blobClient,
             IDefinitionChangesDetectionService definitionChangesDetectionService,
@@ -114,24 +114,29 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
             }
 
+            DatasetDefinitionChanges datasetDefinitionChanges = new DatasetDefinitionChanges();
+
             DatasetDefinition existingDefinition = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDatasetDefinition(definition.Id));
 
-            DatasetDefinitionChanges datasetDefinitionChanges = _definitionChangesDetectionService.DetectChanges(definition, existingDefinition);
-
-            IEnumerable<string> relationships = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinitionChanges.Id));
-
-            IEnumerable<FieldDefinitionChanges> fieldDefinitionChanges = datasetDefinitionChanges.TableDefinitionChanges.SelectMany(m => m.FieldChanges);
-
-            if (!relationships.IsNullOrEmpty() && !fieldDefinitionChanges.IsNullOrEmpty())
+            if (existingDefinition != null)
             {
-                if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.RemovedField)))
-                {
-                    return new BadRequestObjectResult("Unable to remove a field as there are currently relationships setup against this schema");
-                }
+                datasetDefinitionChanges = _definitionChangesDetectionService.DetectChanges(definition, existingDefinition);
 
-                if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.IdentifierType)))
+                IEnumerable<string> relationships = await _datasetsRepositoryPolicy.ExecuteAsync(() => _datasetsRepository.GetDistinctRelationshipSpecificationIdsForDatasetDefinitionId(datasetDefinitionChanges.Id));
+
+                IEnumerable<FieldDefinitionChanges> fieldDefinitionChanges = datasetDefinitionChanges.TableDefinitionChanges.SelectMany(m => m.FieldChanges);
+
+                if (!relationships.IsNullOrEmpty() && !fieldDefinitionChanges.IsNullOrEmpty())
                 {
-                    return new BadRequestObjectResult("Unable to change provider identifier as there are currently relationships setup against this schema");
+                    if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.RemovedField)))
+                    {
+                        return new BadRequestObjectResult("Unable to remove a field as there are currently relationships setup against this schema");
+                    }
+
+                    if (fieldDefinitionChanges.Any(m => m.ChangeTypes.Any(c => c == FieldDefinitionChangeType.IdentifierType)))
+                    {
+                        return new BadRequestObjectResult("Unable to change provider identifier as there are currently relationships setup against this schema");
+                    }
                 }
             }
 

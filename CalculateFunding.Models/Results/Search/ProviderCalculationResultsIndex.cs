@@ -1,9 +1,7 @@
-﻿using Microsoft.Azure.Search;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
+using Microsoft.Azure.Search;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results.Search
 {
@@ -15,13 +13,7 @@ namespace CalculateFunding.Models.Results.Search
         [Key]
         [IsSearchable]
         [JsonProperty("id")]
-        public string Id
-        {
-            get
-            {
-                return $"{SpecificationId}_{ProviderId}";
-            }
-        }
+        public string Id => $"{SpecificationId}_{ProviderId}";
 
         [IsFilterable, IsFacetable]
         [JsonProperty("specificationId")]
@@ -69,15 +61,19 @@ namespace CalculateFunding.Models.Results.Search
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }
 
+        [IsSearchable]
         [JsonProperty("ukPrn")]
         public string UKPRN { get; set; }
 
+        [IsSearchable]
         [JsonProperty("urn")]
         public string URN { get; set; }
 
+        [IsSearchable]
         [JsonProperty("upin")]
         public string UPIN { get; set; }
 
+        [IsSearchable]
         [JsonProperty("establishmentNumber")]
         public string EstablishmentNumber { get; set; }
 
@@ -99,12 +95,21 @@ namespace CalculateFunding.Models.Results.Search
         [JsonProperty("calculationResult")]
         public string[] CalculationResult { get; set; }
 
+        [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
         [JsonProperty("calculationException")]
         public string[] CalculationException { get; set; }
 
+        [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
         [JsonProperty("calculationExceptionType")]
         public string[] CalculationExceptionType { get; set; }
 
+        [IsFacetable]
+        [IsSearchable]
+        [IsFilterable]
         [JsonProperty("calculationExceptionMessage")]
         public string[] CalculationExceptionMessage { get; set; }
     }

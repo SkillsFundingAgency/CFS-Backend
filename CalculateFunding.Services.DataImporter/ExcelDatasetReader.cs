@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using OfficeOpenXml;
 
@@ -25,15 +26,18 @@ namespace CalculateFunding.Services.DataImporter
 	        {
 	            foreach (var tableDefinition in datasetDefinition.TableDefinitions)
 	            {
-	                var workSheet = excel.Workbook.Worksheets.First(x => Regex.IsMatch(x.Name, WildCardToRegular(tableDefinition.Name)));
-	                yield return ConvertSheetToObjects(workSheet, tableDefinition).TableLoadResult;
+                    ExcelWorksheet workSheet = excel.Workbook.Worksheets.First(x => x.Name != "Errors");
+                    if (workSheet != null)
+                    {
+                        yield return ConvertSheetToObjects(workSheet, tableDefinition).TableLoadResult;
+                    }
 	            }
             }     
 	    }
 
         public TableLoadResultWithHeaders Read(ExcelPackage excelPackage, DatasetDefinition datasetDefinition, bool parse)
         {
-             if (datasetDefinition.TableDefinitions.Count == 1 && excelPackage.Workbook.Worksheets.Count > 0)
+            if (datasetDefinition.TableDefinitions.Count == 1 && excelPackage.Workbook.Worksheets.Count > 0)
             {
                 return ConvertSheetToObjects(excelPackage.Workbook.Worksheets.First(), datasetDefinition.TableDefinitions.First(), parse);
             }
@@ -43,7 +47,7 @@ namespace CalculateFunding.Services.DataImporter
 
         private static TableLoadResultWithHeaders ConvertSheetToObjects(ExcelWorksheet worksheet, TableDefinition tableDefinition, bool parse = true)
         {
-	        var result = new TableLoadResultWithHeaders()
+            TableLoadResultWithHeaders result = new TableLoadResultWithHeaders()
 	        {
 		        TableLoadResult = new TableLoadResult
 		        {
@@ -62,7 +66,7 @@ namespace CalculateFunding.Services.DataImporter
 
             foreach (var row in rows.Skip(1))
             {
-                var rowResult = LoadRow(worksheet, tableDefinition, headerDictionary, row, parse);
+                RowLoadResult rowResult = LoadRow(worksheet, tableDefinition, headerDictionary, row, parse);
 
                 result.TableLoadResult.Rows.Add(rowResult);
             }
@@ -77,7 +81,7 @@ namespace CalculateFunding.Services.DataImporter
 
         private static RowLoadResult LoadRow(ExcelWorksheet worksheet, TableDefinition tableDefinition, Dictionary<string, int> headerDictionary, int row, bool shouldCheckType)
         {
-            var rowResult = new RowLoadResult
+            RowLoadResult rowResult = new RowLoadResult
             {
                 Fields = new Dictionary<string, object>()
             };
@@ -86,7 +90,7 @@ namespace CalculateFunding.Services.DataImporter
             {
                 if (headerDictionary.ContainsKey(fieldDefinition.Name))
                 {
-                    var dataCell = worksheet.Cells[row, headerDictionary[fieldDefinition.Name]];
+                    ExcelRange dataCell = worksheet.Cells[row, headerDictionary[fieldDefinition.Name]];
 
 					PopulateField(fieldDefinition, rowResult, dataCell, shouldCheckType);
 
@@ -103,7 +107,7 @@ namespace CalculateFunding.Services.DataImporter
             return rowResult;
         }
 
-        static void PopulateField(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell, bool shouldCheckType)
+        public static void PopulateField(FieldDefinition fieldDefinition, RowLoadResult rowResult, ExcelRange dataCell, bool shouldCheckType)
         {
 	        if (!shouldCheckType)
 	        {
@@ -116,15 +120,19 @@ namespace CalculateFunding.Services.DataImporter
 			        case FieldType.Boolean:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<bool>());
 				        break;
+
 			        case FieldType.Integer:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<int?>());
 				        break;
+
 			        case FieldType.Float:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<double?>());
 				        break;
+
 			        case FieldType.Decimal:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<decimal?>());
 				        break;
+
 			        case FieldType.DateTime:
 				        try
 				        {
@@ -138,9 +146,19 @@ namespace CalculateFunding.Services.DataImporter
 				        {
 
 				        }
+                        break;
 
-				        break;
-			        default:
+                    case FieldType.NullableOfDecimal:
+                        dataCell.GetValue<string>().TryParseNullable(out decimal? parsedDecimal);
+                        rowResult.Fields.Add(fieldDefinition.Name, parsedDecimal);
+                        break;
+
+                    case FieldType.NullableOfInteger:
+                        dataCell.GetValue<string>().TryParseNullable(out int? parsedInt);
+                        rowResult.Fields.Add(fieldDefinition.Name, parsedInt);
+                        break;
+
+                    default:
 				        rowResult.Fields.Add(fieldDefinition.Name, dataCell.GetValue<string>());
 				        break;
 		        }
@@ -149,14 +167,14 @@ namespace CalculateFunding.Services.DataImporter
 
         private static Dictionary<string, int> MatchHeaderColumns(ExcelWorksheet worksheet, TableDefinition tableDefinition)
         {
-            var start = worksheet.Dimension.Start;
-            var end = worksheet.Dimension.End;
+            ExcelCellAddress start = worksheet.Dimension.Start;
+            ExcelCellAddress end = worksheet.Dimension.End;
 
-            var headerDictionary = new Dictionary<string, int>();
+            Dictionary<string, int> headerDictionary = new Dictionary<string, int>();
             for (int col = start.Column; col <= end.Column; col++)
             {
-                var val = worksheet.Cells[1, col];
-                var valAsString = val.GetValue<string>()?.ToLowerInvariant();
+                ExcelRange val = worksheet.Cells[1, col];
+                string valAsString = val.GetValue<string>()?.ToLowerInvariant();
                 if (valAsString != null)
                 {
                     AddToDictionary(headerDictionary, tableDefinition, valAsString, col);
@@ -168,7 +186,7 @@ namespace CalculateFunding.Services.DataImporter
 
         public static void AddToDictionary(IDictionary<string, int> headers, TableDefinition tableDefinition, string headerCellValue, int colIndex)
         {
-            var columns = tableDefinition.FieldDefinitions.Where(x => MatchColumn(x, headerCellValue)).ToList();
+            List<FieldDefinition> columns = tableDefinition.FieldDefinitions.Where(x => MatchColumn(x, headerCellValue)).ToList();
             if (columns != null)
             {
                 foreach (var column in columns)
@@ -183,9 +201,8 @@ namespace CalculateFunding.Services.DataImporter
 
         private static bool MatchColumn(FieldDefinition x, string valAsString)
         {
-            return !string.IsNullOrEmpty(x.MatchExpression) ? Regex.IsMatch(valAsString, WildCardToRegular(x.MatchExpression)) : valAsString.ToLowerInvariant().Contains(x.Name.ToLowerInvariant());
+            return !string.IsNullOrEmpty(x.MatchExpression) ? Regex.IsMatch(valAsString, WildCardToRegular(x.MatchExpression)) : string.Equals(valAsString.Trim(),x.Name.Trim(),StringComparison.InvariantCultureIgnoreCase);
         }
-
 
         private static String WildCardToRegular(String value)
         {

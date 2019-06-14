@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using Serilog;
 
 namespace CalculateFunding.Services.Calculator
@@ -68,7 +66,7 @@ namespace CalculateFunding.Services.Calculator
                         PolicySpecifications = GetReferences(attributes, "PolicySpecification").ToList()
                     };
 
-                   _funcs.Add(new Tuple<FieldInfo, CalculationResult>(executeFunc, result));
+                    _funcs.Add(new Tuple<FieldInfo, CalculationResult>(executeFunc, result));
                 }
             }
 
@@ -218,25 +216,36 @@ namespace CalculateFunding.Services.Calculator
 
             Dictionary<string, string[]> results = (Dictionary<string, string[]>)_mainMethod.Invoke(_instance, null);
 
-            foreach(KeyValuePair<string, string[]> calcResult in results)
+            foreach (KeyValuePair<string, string[]> calcResult in results)
             {
-                if(calcResult.Value.Length < 3)
+                if (calcResult.Value.Length < 1)
                 {
-                    _logger.Error("Calc result does not contain the 3 elements required");
+                    _logger.Error("The number of items returned from the key value pair in the calculation results is under the minimum required.");
                     continue;
                 }
 
                 Tuple<FieldInfo, CalculationResult> func = _funcs.FirstOrDefault(m => string.Equals(m.Item2.Calculation.Id, calcResult.Key, StringComparison.InvariantCultureIgnoreCase));
 
-                if(func != null)
+                if (func != null)
                 {
                     CalculationResult calculationResult = func.Item2;
 
                     calculationResult.Value = calcResult.Value[0].GetValueOrNull<decimal>();
 
-                    calculationResult.ExceptionType = calcResult.Value[1];
+                    if (calcResult.Value.Length >= 3)
+                    {
+                        calculationResult.ExceptionType = calcResult.Value[1];
 
-                    calculationResult.ExceptionMessage = calcResult.Value[2];
+                        calculationResult.ExceptionMessage = calcResult.Value[2];
+
+                        if (calcResult.Value.Count() == 4)
+                        {
+                            if (TimeSpan.TryParse(calcResult.Value[3], out TimeSpan ts))
+                            {
+                                calculationResult.ElapsedTime = ts.Ticks;
+                            }
+                        }
+                    }
 
                     calculationResults.Add(calculationResult);
                 }
@@ -342,7 +351,7 @@ namespace CalculateFunding.Services.Calculator
                         {
                             bool isNumber = int.TryParse(row.Keys.First(), out keyValue);
 
-                            propertyName = GetProperty(fieldAttribute,  isNumber ? "Id" : "Name");
+                            propertyName = GetProperty(fieldAttribute, isNumber ? "Id" : "Name");
                         }
                     }
                     else
@@ -367,6 +376,36 @@ namespace CalculateFunding.Services.Calculator
                         if (propType == "System.Int64")
                         {
                             value = Convert.ToInt64(value);
+                        }
+
+                        if (propType == "System.Nullable`1[System.Int32]")
+                        {
+                            try
+                            {
+                                if (value != null)
+                                {
+                                    value = int.TryParse(value.ToString(), out int outValue) ? (int?)outValue : null;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+
+                            }
+                        }
+
+                        if (propType == "System.Nullable`1[System.Decimal]")
+                        {
+                            try
+                            {
+                                if (value != null)
+                                {
+                                    value = decimal.TryParse(value.ToString(), out decimal outValue) ? (decimal?)outValue : null;
+                                }
+                            }
+                            catch(Exception ex)
+                            {
+
+                            }
                         }
 
                         property.SetValue(data, value);

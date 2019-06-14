@@ -1,10 +1,10 @@
-﻿using CalculateFunding.Models.Datasets;
+﻿using System.Collections.Generic;
+using System.Linq;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Datasets
             string newDatasetDefinitionAsJson = JsonConvert.SerializeObject(newDatasetDefinition);
             string existingDatasetDefinitionAsJson = JsonConvert.SerializeObject(existingDatasetDefinition);
 
-            if(string.Equals(newDatasetDefinitionAsJson, existingDatasetDefinitionAsJson))
+            if (string.Equals(newDatasetDefinitionAsJson, existingDatasetDefinitionAsJson))
             {
                 return datasetDefinitionChanges;
             }
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Datasets
             }
 
             datasetDefinitionChanges.TableDefinitionChanges.AddRange(DetectTableDefinitionChanges(existingDatasetDefinition.TableDefinitions, newDatasetDefinition.TableDefinitions));
-           
+
             return datasetDefinitionChanges;
         }
 
@@ -131,12 +131,12 @@ namespace CalculateFunding.Services.Datasets
                         fieldDefinitionChanges.ChangeTypes.Add(FieldDefinitionChangeType.IsNotAggregable);
                     }
 
-                    if(newFieldDefinition.Type != existingFieldDefinition.Type)
+                    if (newFieldDefinition.Type != existingFieldDefinition.Type)
                     {
                         fieldDefinitionChanges.ChangeTypes.Add(FieldDefinitionChangeType.FieldType);
                     }
 
-                    if(newFieldDefinition.IdentifierFieldType != existingFieldDefinition.IdentifierFieldType)
+                    if (newFieldDefinition.IdentifierFieldType != existingFieldDefinition.IdentifierFieldType)
                     {
                         fieldDefinitionChanges.ChangeTypes.Add(FieldDefinitionChangeType.IdentifierType);
                     }

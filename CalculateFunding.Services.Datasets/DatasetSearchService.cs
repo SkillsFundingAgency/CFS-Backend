@@ -1,8 +1,14 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Filtering;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -10,14 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Serilog;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System;
-using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Services.Core.Filtering;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -25,7 +23,7 @@ namespace CalculateFunding.Services.Datasets
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<DatasetIndex> _searchRepository;
-	    private readonly ISearchRepository<DatasetVersionIndex> _searchVersionRepository;
+        private readonly ISearchRepository<DatasetVersionIndex> _searchVersionRepository;
 
         private FacetFilterType[] Facets = {
             new FacetFilterType("fundingPeriodNames", true),
@@ -37,8 +35,8 @@ namespace CalculateFunding.Services.Datasets
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
 
         public DatasetSearchService(ILogger logger,
-            ISearchRepository<DatasetIndex> searchRepository, 
-	        ISearchRepository<DatasetVersionIndex> searchVersionRepository)
+            ISearchRepository<DatasetIndex> searchRepository,
+            ISearchRepository<DatasetVersionIndex> searchVersionRepository)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(searchVersionRepository, nameof(searchVersionRepository));
@@ -46,7 +44,7 @@ namespace CalculateFunding.Services.Datasets
 
             _logger = logger;
             _searchRepository = searchRepository;
-	        _searchVersionRepository = searchVersionRepository;
+            _searchVersionRepository = searchVersionRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -58,14 +56,14 @@ namespace CalculateFunding.Services.Datasets
                 Name = nameof(DatasetService)
             };
 
-	        health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
 
-			return health;
+            return health;
         }
 
         async public Task<IActionResult> SearchDatasets(HttpRequest request)
         {
-			string json = await request.GetRawBodyStringAsync();
+            string json = await request.GetRawBodyStringAsync();
 
             SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
 
@@ -82,13 +80,13 @@ namespace CalculateFunding.Services.Datasets
             {
                 await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
-	            DatasetSearchResults results = new DatasetSearchResults();
-	            foreach (var searchTask in searchTasks)
-	            {
-		            ProcessSearchResults(searchTask.Result, results);
-	            }
+                DatasetSearchResults results = new DatasetSearchResults();
+                foreach (var searchTask in searchTasks)
+                {
+                    ProcessSearchResults(searchTask.Result, results);
+                }
 
-	            return new OkObjectResult(results);
+                return new OkObjectResult(results);
             }
             catch (FailedToQuerySearchException exception)
             {
@@ -98,64 +96,64 @@ namespace CalculateFunding.Services.Datasets
             }
         }
 
-	    async public Task<IActionResult> SearchDatasetVersion(HttpRequest request)
-	    {
-			string json = await request.GetRawBodyStringAsync();
+        async public Task<IActionResult> SearchDatasetVersion(HttpRequest request)
+        {
+            string json = await request.GetRawBodyStringAsync();
 
-		    SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
+            SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);
 
-		    if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
-		    {
-			    _logger.Error("A null or invalid search model was provided for searching datasets");
+            if (searchModel == null || searchModel.PageNumber < 1 || searchModel.Top < 1)
+            {
+                _logger.Error("A null or invalid search model was provided for searching datasets");
 
-			    return new BadRequestObjectResult("An invalid search model was provided");
-		    }
-			
-		    IDictionary<string, string[]> searchModelDictionary = searchModel.Filters;
+                return new BadRequestObjectResult("An invalid search model was provided");
+            }
 
-		    List<Filter> filters = searchModelDictionary.Select(keyValueFilterPair => new Filter(keyValueFilterPair.Key, keyValueFilterPair.Value, false, "eq")).ToList();
+            IDictionary<string, string[]> searchModelDictionary = searchModel.Filters;
 
-		    FilterHelper filterHelper = new FilterHelper(filters);
+            List<Filter> filters = searchModelDictionary.Select(keyValueFilterPair => new Filter(keyValueFilterPair.Key, keyValueFilterPair.Value, false, "eq")).ToList();
 
-			int skip = (searchModel.PageNumber - 1) * searchModel.Top;
-		    SearchParameters searchParameters = new SearchParameters()
-		    {
-			    Filter = filterHelper.BuildAndFilterQuery(),
-			    IncludeTotalResultCount = true,
-			    OrderBy = new[]{"version desc"},
-			    Skip = skip,
-			    Top = searchModel.Top
-		    };
+            FilterHelper filterHelper = new FilterHelper(filters);
 
-		    SearchResults<DatasetVersionIndex> searchResults = await _searchVersionRepository.Search(searchModel.SearchTerm, searchParameters);
+            int skip = (searchModel.PageNumber - 1) * searchModel.Top;
+            SearchParameters searchParameters = new SearchParameters()
+            {
+                Filter = filterHelper.BuildAndFilterQuery(),
+                IncludeTotalResultCount = true,
+                OrderBy = new[] { "version desc" },
+                Skip = skip,
+                Top = searchModel.Top
+            };
 
-		    DatasetVersionSearchResults datasetVersionSearchResults = new DatasetVersionSearchResults()
-		    {
-			    TotalCount = (int)(searchResults?.TotalCount ?? 0),
-			    Results = searchResults.Results.Select(ConvertToDatasetVersionSearchResult)
-			};
+            SearchResults<DatasetVersionIndex> searchResults = await _searchVersionRepository.Search(searchModel.SearchTerm, searchParameters);
 
-		    return new OkObjectResult(datasetVersionSearchResults);
-	    }
+            DatasetVersionSearchResults datasetVersionSearchResults = new DatasetVersionSearchResults()
+            {
+                TotalCount = (int)(searchResults?.TotalCount ?? 0),
+                Results = searchResults.Results.Select(ConvertToDatasetVersionSearchResult)
+            };
 
-	    private DatasetVersionSearchResult ConvertToDatasetVersionSearchResult(Repositories.Common.Search.SearchResult<DatasetVersionIndex> sr)
-	    {
-		    return new DatasetVersionSearchResult()
-		    {
-			    Name = sr.Result.Name,
-			    Id = sr.Result.Id,
-			    Version = sr.Result.Version,
-			    BlobName = sr.Result.BlobName,
-			    ChangeNote = sr.Result.ChangeNote,
-			    Description = sr.Result.Description,
-			    DatasetId = sr.Result.DatasetId,
-			    LastUpdatedByName = sr.Result.LastUpdatedByName,
-			    DefinitionName = sr.Result.DefinitionName,
-			    LastUpdatedDate = sr.Result.LastUpdatedDate
-		    };
-	    }
+            return new OkObjectResult(datasetVersionSearchResults);
+        }
 
-	    IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
+        private DatasetVersionSearchResult ConvertToDatasetVersionSearchResult(Repositories.Common.Search.SearchResult<DatasetVersionIndex> sr)
+        {
+            return new DatasetVersionSearchResult()
+            {
+                Name = sr.Result.Name,
+                Id = sr.Result.Id,
+                Version = sr.Result.Version,
+                BlobName = sr.Result.BlobName,
+                ChangeNote = sr.Result.ChangeNote,
+                Description = sr.Result.Description,
+                DatasetId = sr.Result.DatasetId,
+                LastUpdatedByName = sr.Result.LastUpdatedByName,
+                DefinitionName = sr.Result.DefinitionName,
+                LastUpdatedDate = sr.Result.LastUpdatedDate
+            };
+        }
+
+        IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
         {
             if (searchModel.Filters == null)
                 searchModel.Filters = new Dictionary<string, string[]>();
@@ -262,5 +260,5 @@ namespace CalculateFunding.Services.Datasets
                 });
             }
         }
-	}
+    }
 }

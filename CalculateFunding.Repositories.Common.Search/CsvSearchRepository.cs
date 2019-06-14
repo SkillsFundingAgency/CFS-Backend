@@ -32,7 +32,7 @@ namespace CalculateFunding.Repositories.Common.Search
             throw new NotImplementedException();
         }
 
-        public Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null)
+        public Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null, bool allResults = false)
         {
             throw new NotImplementedException();
         }
@@ -46,6 +46,11 @@ namespace CalculateFunding.Repositories.Common.Search
         {
             CreateCSVFromGenericList(documents, $"c:\\temp\\{typeof(T).Name}.csv");
             return Task.FromResult(Enumerable.Empty<IndexError>());
+        }
+
+        public Task<IEnumerable<IndexError>> Remove(IEnumerable<T> documents)
+        {
+            throw new NotImplementedException();
         }
 
         private void CreateCSVFromGenericList(IEnumerable<T> documents, string csvPath)

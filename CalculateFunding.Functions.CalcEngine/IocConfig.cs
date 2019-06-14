@@ -71,7 +71,7 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new ProviderSourceDatasetsRepository(calcsCosmosRepostory, engineSettings);
             });
 
-            builder.AddSingleton<Services.Calculator.Interfaces.IProviderResultsRepository, Services.Calculator.ProviderResultsRepository>((ctx) =>
+            builder.AddSingleton<Services.Calculator.Interfaces.IProviderResultsRepository, Services.CalcEngine.ProviderResultsRepository>((ctx) =>
             {
                 CosmosDbSettings calcResultsDbSettings = new CosmosDbSettings();
 
@@ -91,7 +91,9 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
 
-                return new Services.Calculator.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle);
+                EngineSettings engineSettings = ctx.GetService<EngineSettings>();
+
+                return new Services.CalcEngine.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle, engineSettings);
             });
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>

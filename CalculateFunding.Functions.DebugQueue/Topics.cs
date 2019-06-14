@@ -14,6 +14,32 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Topics
     {
+        [FunctionName("on-provider-sourcedataset-cleanup")]
+        public static async Task RunOnProviderSourceDatasetCleanup([QueueTrigger(ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup, Connection = "AzureConnectionString")] string item, ILogger logger)
+        {
+            Message message = Helpers.ConvertToMessage<Models.Results.SpecificationProviders>(item);
+
+            try
+            {
+                await Functions.Results.ServiceBus.OnProviderResultsSpecificationCleanup.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error while executing Results {nameof(RunOnProviderSourceDatasetCleanup)}");
+            }
+
+            try
+            {
+                await Functions.TestEngine.ServiceBus.OnTestSpecificationProviderResultsCleanup.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error while executing TestEngine {nameof(RunOnProviderSourceDatasetCleanup)}");
+            }
+
+            logger.LogInformation($"C# Queue trigger function processed: {item}");
+        }
+
         [FunctionName("on-edit-specification")]
         public static async Task RunOnEditSpecificationEvent([QueueTrigger(ServiceBusConstants.TopicNames.EditSpecification, Connection = "AzureConnectionString")] string item, ILogger logger)
         {
@@ -151,6 +177,15 @@ namespace CalculateFunding.Functions.DebugQueue
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error while executing Notification Event");
+            }
+
+            try
+            {
+                await Functions.CosmosDbScaling.ServiceBus.OnScaleUpCosmosdbCollection.Run(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error while executing Scale Up Event");
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");

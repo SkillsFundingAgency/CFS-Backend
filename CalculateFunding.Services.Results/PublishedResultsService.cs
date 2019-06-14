@@ -15,6 +15,7 @@ using CalculateFunding.Common.ApiClient.Profiling.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Providers;
@@ -1301,7 +1302,7 @@ namespace CalculateFunding.Services.Results
 
             IDictionary<string, string> properties = httpRequest.BuildMessageProperties();
 
-            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ReIndexAllocationNotificationFeedIndex, "", properties);
+            await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.ReIndexAllocationNotificationFeedIndex, string.Empty, properties);
 
             return new NoContentResult();
         }
@@ -1988,7 +1989,7 @@ namespace CalculateFunding.Services.Results
                 IDictionary<string, string> properties = request.BuildMessageProperties();
                 properties["specification-id"] = specificationSummary.Id;
 
-                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.MigrateFeedIndexId, "", properties);
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.MigrateFeedIndexId, string.Empty, properties);
             }
 
             return new NoContentResult();
@@ -2003,7 +2004,7 @@ namespace CalculateFunding.Services.Results
                 IDictionary<string, string> properties = request.BuildMessageProperties();
                 properties["specification-id"] = specificationSummary.Id;
 
-                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.MigrateResultVersions, "", properties);
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.MigrateResultVersions, string.Empty, properties);
             }
 
             return new NoContentResult();
@@ -2215,10 +2216,11 @@ namespace CalculateFunding.Services.Results
                     NavVendorNo = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.NavVendorNo,
                     DfeEstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DfeEstablishmentNumber,
                     ProviderStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
-                    PolicySummaries = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations != null ?
-                        JsonConvert.SerializeObject(CreatePolicySummaries(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations, specification)) : "",
-                    Calculations = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations != null ?
-                        JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations.Select(m =>
+                    PolicySummaries = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations != null
+                        ? JsonConvert.SerializeObject(CreatePolicySummaries(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations, specification))
+                        : string.Empty,
+                    Calculations = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations != null
+                        ? JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations.Select(m =>
                            new PublishedProviderCalculationResultSummary
                            {
                                CalculationName = m.CalculationSpecification.Name,
@@ -2229,43 +2231,32 @@ namespace CalculateFunding.Services.Results
                                AllocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                                PolicyId = m.Policy.Id,
                                PolicyName = m.Policy.Name
-                           })) : "",
-                    FinancialEnvelopes = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes != null ?
-                        JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes) : ""
+                           }))
+                        : string.Empty,
+                    FinancialEnvelopes = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes != null
+                        ? JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes)
+                        : string.Empty
                 };
 
                 if (publishedProviderResult.FundingStreamResult.AllocationLineResult.HasResultBeenVaried)
                 {
-                    PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
-                    ProviderSummary currentProvider = publishedAllocationLineResultVersion.Provider;
+                    PublishedAllocationLineResultVersion variedResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
+                    ProviderSummary currentProvider = variedResultVersion.Provider;
 
                     feedIndex.Successors = !string.IsNullOrWhiteSpace(currentProvider.Successor) ? new[] { currentProvider.Successor } : null;
                     feedIndex.OpenReason = currentProvider.ReasonEstablishmentOpened;
                     feedIndex.CloseReason = currentProvider.ReasonEstablishmentClosed;
-                    feedIndex.Predecessors = publishedAllocationLineResultVersion.Predecessors?.ToArray();
+                    feedIndex.Predecessors = variedResultVersion.Predecessors?.ToArray();
                 }
 
-                if (_featureToggle.IsProviderVariationsEnabled())
-                {
-                    PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
-                    feedIndex.VariationReasons = publishedAllocationLineResultVersion.VariationReasons?.Select(vr => vr.ToString()).ToArray();
-                }
+                PublishedAllocationLineResultVersion publishedAllocationLineResultVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current;
+                feedIndex.VariationReasons = publishedAllocationLineResultVersion.VariationReasons?.Select(vr => vr.ToString()).ToArray();
 
-                if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
-                {
-                    feedIndex.MajorVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major;
-                    feedIndex.MinorVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor;
-                }
+                feedIndex.MajorVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major;
+                feedIndex.MinorVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor;
 
-                if (_featureToggle.IsAllAllocationResultsVersionsInFeedIndexEnabled())
-                {
-                    feedIndex.Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId;
-                    feedIndex.IsDeleted = false;
-                }
-                else
-                {
-                    feedIndex.Id = publishedProviderResult.Id;
-                }
+                feedIndex.Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId;
+                feedIndex.IsDeleted = false;
 
                 notifications.Add(feedIndex);
             }

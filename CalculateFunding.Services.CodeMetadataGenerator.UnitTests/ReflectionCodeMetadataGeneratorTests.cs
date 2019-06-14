@@ -270,12 +270,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         public void GetTypeInformation_WhenFeatureToggleIsOn_SetsIsCustomToTrue()
         {
             // Arrange
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateOverCalculationsEnabled()
-                .Returns(true);
-
-            ICodeMetadataGeneratorService generator = GetCodeGenerator(featureToggle);
+            ICodeMetadataGeneratorService generator = GetCodeGenerator();
 
             byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
 
@@ -294,52 +289,14 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
 
             List<MethodInformation> methods = new List<MethodInformation>(datasetType.Methods);
 
-            methods.Should().HaveCount(9, "Calculations should contain expected number of methods");
-
-            MethodInformation firstCalculation = methods.Where(m=>m.Name== "ABHighNeedsCalc002").SingleOrDefault();
-            firstCalculation.Should().NotBeNull("firstCalculation should not be null");
-            firstCalculation.Name.Should().Be("ABHighNeedsCalc002");
-            firstCalculation.FriendlyName.Should().Be("AB High Needs Calc 002");
-            firstCalculation.Description.Should().Be("test");
-            firstCalculation.IsCustom.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void GetTypeInformation_WhenFeatureToggleIsNotOn_SetsIsCustomToFalse()
-        {
-            // Arrange
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAggregateOverCalculationsEnabled()
-                .Returns(false);
-
-            ICodeMetadataGeneratorService generator = GetCodeGenerator(featureToggle);
-
-            byte[] assembly = GetCalculationClassWithListDescriptionsExampleAssembly();
-
-            // Act
-            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
-
-            // Assert
-            result.Should().NotBeNull("Result should not be null");
-
-            result.Should().ContainSingle(c => c.Name == "Calculations");
-
-            TypeInformation datasetType = result.Where(e => e.Name == "Calculations").FirstOrDefault();
-            datasetType.Name.Should().Be("Calculations");
-            datasetType.Description.Should().BeNull();
-            datasetType.Type.Should().Be("Calculations");
-
-            List<MethodInformation> methods = new List<MethodInformation>(datasetType.Methods);
-
-            methods.Should().HaveCount(9, "Calculations should contain expected number of methods");
+            methods.Should().HaveCount(5, "Calculations should contain expected number of methods");
 
             MethodInformation firstCalculation = methods.Where(m => m.Name == "ABHighNeedsCalc002").SingleOrDefault();
             firstCalculation.Should().NotBeNull("firstCalculation should not be null");
             firstCalculation.Name.Should().Be("ABHighNeedsCalc002");
             firstCalculation.FriendlyName.Should().Be("AB High Needs Calc 002");
             firstCalculation.Description.Should().Be("test");
-            firstCalculation.IsCustom.Should().BeFalse();
+            firstCalculation.IsCustom.Should().BeTrue();
         }
 
         [TestMethod]
@@ -395,9 +352,9 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             result.FirstOrDefault(m => m.Name == "If-Then-ElseIf-Then").Should().NotBeNull();
         }
 
-        private static ICodeMetadataGeneratorService GetCodeGenerator(IFeatureToggle featureToggle = null)
+        private static ICodeMetadataGeneratorService GetCodeGenerator()
         {
-            return new ReflectionCodeMetadataGenerator(featureToggle ?? CreateFeatureToggle());
+            return new ReflectionCodeMetadataGenerator();
         }
 
         private static IFeatureToggle CreateFeatureToggle()

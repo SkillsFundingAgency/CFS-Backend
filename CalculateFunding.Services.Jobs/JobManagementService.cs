@@ -9,6 +9,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Jobs.Interfaces;
 using FluentValidation;
@@ -32,7 +33,6 @@ namespace CalculateFunding.Services.Jobs
         private readonly ILogger _logger;
         private readonly IValidator<CreateJobValidationModel> _createJobValidator;
         private readonly IMessengerService _messengerService;
-
         private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         public JobManagementService(
@@ -83,17 +83,19 @@ namespace CalculateFunding.Services.Jobs
 
             if (!jobs.Any())
             {
-                _logger.Warning("Empty collection of job create models was provided");
+                string message = "Empty collection of job create models was provided";
+                _logger.Warning(message);
 
-                return new BadRequestObjectResult("Empty collection of job create models was provided");
+                return new BadRequestObjectResult(message);
             }
 
             IEnumerable<JobDefinition> jobDefinitions = await _jobDefinitionsService.GetAllJobDefinitions();
 
             if (jobDefinitions.IsNullOrEmpty())
             {
-                _logger.Error("Failed to retrieve job definitions");
-                return new InternalServerErrorResult("Failed to retrieve job definitions");
+                string message = "Failed to retrieve job definitions";
+                _logger.Error(message);
+                return new InternalServerErrorResult(message);
             }
 
             IList<ValidationResult> validationResults = new List<ValidationResult>();
@@ -109,9 +111,10 @@ namespace CalculateFunding.Services.Jobs
 
                 if (jobDefinition == null)
                 {
-                    _logger.Warning($"A job definition could not be found for id: {jobCreateModel.JobDefinitionId}");
+                    string message = $"A job definition could not be found for id: {jobCreateModel.JobDefinitionId}";
+                    _logger.Warning(message);
 
-                    return new PreconditionFailedResult($"A job definition could not be found for id: {jobCreateModel.JobDefinitionId}");
+                    return new PreconditionFailedResult(message);
                 }
 
                 if (!jobCreateModel.Properties.ContainsKey("sfa-correlationId"))
@@ -141,36 +144,90 @@ namespace CalculateFunding.Services.Jobs
 
             foreach (JobCreateModel job in jobs)
             {
-                Guard.ArgumentNotNull(job.Trigger, nameof(job.Trigger));
-
-                JobDefinition jobDefinition = jobDefinitions.First(m => m.Id == job.JobDefinitionId);
-
-                if (string.IsNullOrWhiteSpace(job.InvokerUserId) || string.IsNullOrWhiteSpace(job.InvokerUserDisplayName))
-                {
-                    job.InvokerUserId = user?.Id;
-                    job.InvokerUserDisplayName = user?.Name;
-                }
-
-                Job newJobResult = await CreateJob(job);
+                Job newJobResult = await JobFromJobCreateModel(job, jobDefinitions, user);
 
                 if (newJobResult == null)
                 {
-                    _logger.Error($"Failed to create a job for job definition id: {job.JobDefinitionId}");
-                    return new InternalServerErrorResult($"Failed to create a job for job definition id: {job.JobDefinitionId}");
+                    string message = $"Failed to create a job for job definition id: {job.JobDefinitionId}";
+                    _logger.Error(message);
+                    return new InternalServerErrorResult(message);
                 }
 
                 createdJobs.Add(newJobResult);
-
-                await CheckForSupersededAndCancelOtherJobs(newJobResult, jobDefinition);
-
-                await QueueNewJob(newJobResult, jobDefinition);
-
-                JobNotification jobNotification = CreateJobNotificationFromJob(newJobResult);
-
-                await _notificationService.SendNotification(jobNotification);
             }
 
+            IEnumerable<JobDefinition> jobDefinitionsToSupersede = await SupersedeJobs(createdJobs, jobDefinitions);
+
+            await QueueNotifications(createdJobs, jobDefinitionsToSupersede);
+
             return new OkObjectResult(createdJobs);
+        }
+
+        private async Task<Job> JobFromJobCreateModel(JobCreateModel job, IEnumerable<JobDefinition> jobDefinitions, Reference user)
+        {
+            Guard.ArgumentNotNull(job.Trigger, nameof(job.Trigger));
+
+            JobDefinition jobDefinition = jobDefinitions.First(m => m.Id == job.JobDefinitionId);
+
+            if (string.IsNullOrWhiteSpace(job.InvokerUserId) || string.IsNullOrWhiteSpace(job.InvokerUserDisplayName))
+            {
+                job.InvokerUserId = user?.Id;
+                job.InvokerUserDisplayName = user?.Name;
+            }
+
+            Job newJobResult = await CreateJob(job);
+            return newJobResult;
+        }
+
+        private async Task QueueNotifications(IList<Job> createdJobs, IEnumerable<JobDefinition> jobDefinitionsToSupersede)
+        {
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            foreach (Job job in createdJobs)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            JobDefinition jobDefinition = jobDefinitionsToSupersede.First(m => m.Id == job.JobDefinitionId);
+
+                            await QueueNewJob(job, jobDefinition);
+
+                            JobNotification jobNotification = CreateJobNotificationFromJob(job);
+
+                            await _notificationService.SendNotification(jobNotification);
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+        }
+
+        private async Task<IEnumerable<JobDefinition>> SupersedeJobs(IList<Job> createdJobs, IEnumerable<JobDefinition> jobDefinitions)
+        {
+            IEnumerable<IGrouping<string, Job>> jobDefinitionGroups = createdJobs
+                .GroupBy(j => j.JobDefinitionId);
+
+            IEnumerable<JobDefinition> jobDefinitionsToSupersede = jobDefinitions
+                .GroupBy(x => x.Id)
+                .Select(x => x.First(y => y.Id == x.Key));
+
+            foreach (IGrouping<string, Job> jobDefinitionKvp in jobDefinitionGroups)
+            {
+                Job jobToSupersedeOthers = jobDefinitionKvp.First();
+
+                JobDefinition jobDefinition = jobDefinitionsToSupersede.First(m => m.Id == jobToSupersedeOthers.JobDefinitionId);
+
+                await CheckForSupersededAndCancelOtherJobs(jobToSupersedeOthers, jobDefinition);
+            }
+
+            return jobDefinitionsToSupersede;
         }
 
         public async Task<IActionResult> AddJobLog(string jobId, JobLogUpdateModel jobLogUpdateModel)
@@ -254,7 +311,7 @@ namespace CalculateFunding.Services.Jobs
             // Send notification after status logged
             await _notificationService.SendNotification(new JobNotification());
 
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -268,7 +325,7 @@ namespace CalculateFunding.Services.Jobs
             // Send notification after status logged
             await _notificationService.SendNotification(new JobNotification());
 
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public async Task SupersedeJob(Job runningJob, Job replacementJob)
@@ -488,20 +545,27 @@ namespace CalculateFunding.Services.Jobs
             };
         }
 
-        private async Task CheckForSupersededAndCancelOtherJobs(Job currentJob, JobDefinition jobDefinition)
+        private async Task<bool> CheckForSupersededAndCancelOtherJobs(Job currentJob, JobDefinition jobDefinition)
         {
+            bool isSuperseding = false;
+
             if (jobDefinition.SupersedeExistingRunningJobOnEnqueue)
             {
-                IEnumerable<Job> runningJobs = _jobsRepositoryNonAsyncPolicy.Execute(() => _jobRepository.GetRunningJobsForSpecificationAndJobDefinitionId(currentJob.SpecificationId, jobDefinition.Id));
+                IEnumerable<Job> runningJobs = _jobsRepositoryNonAsyncPolicy.Execute(() =>
+                    _jobRepository.GetRunningJobsForSpecificationAndJobDefinitionId(currentJob.SpecificationId, jobDefinition.Id));
 
                 if (!runningJobs.IsNullOrEmpty())
                 {
+                    isSuperseding = true;
+
                     foreach (Job runningJob in runningJobs)
                     {
                         await SupersedeJob(runningJob, currentJob);
                     }
                 }
             }
+
+            return isSuperseding;
         }
 
         private async Task<Job> CreateJob(JobCreateModel job)

@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Services.Calcs.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
-namespace CalculateFunding.Services.Calcs.Services.Calculations
+namespace CalculateFunding.Services.Calcs.Services
 {
     [TestClass]
     public class CalculationCodeReferenceUpdateTests
@@ -26,7 +26,6 @@ namespace CalculateFunding.Services.Calcs.Services.Calculations
             string expectedOutput,
             IEnumerable<TokenCheckerCall> tokenCheckerCalls)
         {
-            //NCrunch can't run these tests, but they run fine manually
             //Arrange
             ITokenChecker tokenChecker = Substitute.For<ITokenChecker>();
             tokenChecker
@@ -58,9 +57,9 @@ namespace CalculateFunding.Services.Calcs.Services.Calculations
             yield return new object[] { "Hello, world!", "X", "Y", "Hello, world!", new TokenCheckerCall[] { } };
             yield return new object[] { "Hello, world!", "l", "m", "Hemlo, wormd!", new []
             {
-                new TokenCheckerCall{ SourceCode = "Hello, world!", Position=2},
-                new TokenCheckerCall{ SourceCode = "Hemlo, world!", Position=3},
-                new TokenCheckerCall{ SourceCode = "Hemlo, world!", Position=10}
+                new TokenCheckerCall{ SourceCode = "Hello, world!", Position = 2},
+                new TokenCheckerCall{ SourceCode = "Hemlo, world!", Position = 3},
+                new TokenCheckerCall{ SourceCode = "Hemlo, world!", Position = 10}
             } };
             yield return new object[] {
                 @"The Dairymaid she curtsied,

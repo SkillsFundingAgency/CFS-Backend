@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

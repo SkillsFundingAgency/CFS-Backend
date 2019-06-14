@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.ApplicationInsights;
 

@@ -912,7 +912,7 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public async Task CreateJobs_GivenMultipleCreateJobsThatDoNotSupersede_CreatesTwoNotificationsReturnsOKObjectResult()
+        public async Task CreateJobs_GivenMultipleCreateJobsThatDoNotSupersede_CreatesTwoNotificationsScalesUpTwoTimesReturnsOKObjectResult()
         {
             //Arrange
             IEnumerable<JobCreateModel> jobs = new[]
@@ -1008,7 +1008,7 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
-        public async Task CreateJobs_GivenMultipleCreateJobsAndOneSupersedesOneCurrentJob_CreatesThreeNotificationsReturnsOKObjectResult()
+        public async Task CreateJobs_GivenMultipleCreateJobsAndOneSupersedesOneCurrentJob_CreatesThreeNotificationsScalesUpOneJobReturnsOKObjectResult()
         {
             //Arrange
             IEnumerable<JobCreateModel> jobs = new[]

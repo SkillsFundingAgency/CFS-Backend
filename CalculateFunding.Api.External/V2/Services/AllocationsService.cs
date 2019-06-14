@@ -5,8 +5,8 @@ using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Api.External.V2.Models;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -73,16 +73,20 @@ namespace CalculateFunding.Api.External.V2.Services
             {
                 AllocationResultTitle = $"Allocation {publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name} was {publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status}",
                 AllocationResultId = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FeedIndexId,
-                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
-                AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major : 0,
-                AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor : 0,
-                AllocationLine = new Models.AllocationLine
+                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue
+                    ? publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value 
+                    : 0,
+                AllocationMajorVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Major,
+                AllocationMinorVersion = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Minor,
+                AllocationLine = new AllocationLine
                 {
                     Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                     Name = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
                     ShortName = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.ShortName,
                     FundingRoute = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.ToString(),
-                    ContractRequired = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired ? "Y" : "N"
+                    ContractRequired = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired
+                        ? "Y" 
+                        : "N"
                 },
                 AllocationStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Status.ToString(),
                 FundingStream = new AllocationFundingStreamModel
@@ -100,7 +104,7 @@ namespace CalculateFunding.Api.External.V2.Services
                         EndMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndMonth,
                     }
                 },
-                Period = new Models.Period
+                Period = new Period
                 {
                     Id = publishedProviderResult.FundingPeriod.Id,
                     Name = publishedProviderResult.FundingPeriod.Name,
@@ -129,37 +133,40 @@ namespace CalculateFunding.Api.External.V2.Services
                     ProviderVariation = providerVariation
 
                 },
-                ProfilePeriods = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods != null ? new List<ProfilePeriod>(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Select(m =>
-                   new ProfilePeriod
-                   {
-                       DistributionPeriod = m.DistributionPeriod,
-                       Occurrence = m.Occurrence,
-                       Period = m.Period,
-                       PeriodType = m.Type,
-                       PeriodYear = m.Year.ToString(),
-                       ProfileValue = (decimal)m.Value
-                   }
-                ).ToArraySafe()) : new List<ProfilePeriod>(),
+                ProfilePeriods = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods != null
+                    ? new List<ProfilePeriod>(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods
+                        .Select(m => new ProfilePeriod
+                               {
+                                   DistributionPeriod = m.DistributionPeriod,
+                                   Occurrence = m.Occurrence,
+                                   Period = m.Period,
+                                   PeriodType = m.Type,
+                                   PeriodYear = m.Year.ToString(),
+                                   ProfileValue = m.Value
+                               })
+                        .ToArraySafe())
+                    : new List<ProfilePeriod>(),
             };
         }
 
         AllocationWithHistoryModel CreateAllocationWithHistoryModel(PublishedProviderResultWithHistory publishedProviderResultWithHistory)
         {
-            AllocationWithHistoryModel allocationModel = new AllocationWithHistoryModel(CreateAllocation(publishedProviderResultWithHistory.PublishedProviderResult));
-
-            allocationModel.History = new Collection<AllocationHistoryModel>(publishedProviderResultWithHistory.History?.Select(m =>
-                   new AllocationHistoryModel
-                   {
-                       AllocationAmount = m.Value,
-                       AllocationVersionNumber = m.Version,
-                       Status = m.Status.ToString(),
-                       Date = m.Date,
-                       Author = m.Author.Name,
-                       Comment = m.Comment,
-                       AllocationMajorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Major : 0,
-                       AllocationMinorVersion = _featureToggle.IsAllocationLineMajorMinorVersioningEnabled() ? m.Minor : 0,
-                   }
-                ).OrderByDescending(m => m.Date).ToArraySafe());
+            AllocationWithHistoryModel allocationModel = new AllocationWithHistoryModel(CreateAllocation(publishedProviderResultWithHistory.PublishedProviderResult))
+            {
+                History = new Collection<AllocationHistoryModel>(publishedProviderResultWithHistory.History?.Select(m =>
+                       new AllocationHistoryModel
+                       {
+                           AllocationAmount = m.Value,
+                           AllocationVersionNumber = m.Version,
+                           Status = m.Status.ToString(),
+                           Date = m.Date,
+                           Author = m.Author.Name,
+                           Comment = m.Comment,
+                           AllocationMajorVersion = m.Major,
+                           AllocationMinorVersion = m.Minor,
+                       }
+                ).OrderByDescending(m => m.Date).ToArraySafe())
+            };
 
             return allocationModel;
         }

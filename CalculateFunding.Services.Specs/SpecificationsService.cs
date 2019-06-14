@@ -11,6 +11,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Specs;
@@ -27,10 +28,12 @@ using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Serilog;
+using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -1565,6 +1568,8 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> EditCalculation(HttpRequest request)
         {
+            Guard.ArgumentNotNull(request, nameof(request));
+
             request.Query.TryGetValue("specificationId", out StringValues specId);
 
             string specificationId = specId.FirstOrDefault();
@@ -1766,7 +1771,7 @@ namespace CalculateFunding.Services.Specs
                     throw new FailedToIndexSearchException(errors);
                 }
 
-                _logger.Information($"Succeffuly assigned relationship id: {relationshipId} to specification with id: {specificationId}");
+                _logger.Information($"Successfully assigned relationship id: {relationshipId} to specification with id: {specificationId}");
             }
         }
 
@@ -1776,30 +1781,47 @@ namespace CalculateFunding.Services.Specs
             {
                 await _searchRepository.DeleteIndex();
 
-                const string sql = "select s.id, s.content.current.name, s.content.current.fundingStreams, s.content.current.fundingPeriod, s.content.current.publishStatus, s.content.current.description, s.content.current.dataDefinitionRelationshipIds, s.content.publishedResultsRefreshedAt, s.updatedAt from specs s where s.documentType = 'Specification'";
+                SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+                {
+                    QueryText = @"
+SELECT  s.id, 
+        s.content.current.name, 
+        s.content.current.fundingStreams,
+        s.content.current.fundingPeriod,
+        s.content.current.publishStatus, 
+        s.content.current.description, 
+        s.content.current.dataDefinitionRelationshipIds, 
+        s.content.publishedResultsRefreshedAt, 
+        s.updatedAt
+FROM    specs s 
+WHERE   s.documentType = @DocumentType",
+                    Parameters = new SqlParameterCollection
+                    {
+                        new SqlParameter("@DocumentType", "Specification")
+                    }
+                };
 
-                IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sql)).ToArraySafe();
+                IEnumerable<SpecificationSearchModel> specifications = (await _specificationsRepository.GetSpecificationsByRawQuery<SpecificationSearchModel>(sqlQuerySpec)).ToArraySafe();
 
                 List<SpecificationIndex> specDocuments = new List<SpecificationIndex>();
 
-                foreach (SpecificationSearchModel specification in specifications)
+                specDocuments = specifications.Select(specification => new SpecificationIndex
                 {
-                    specDocuments.Add(new SpecificationIndex
-                    {
-                        Id = specification.Id,
-                        Name = specification.Name,
-                        FundingStreamIds = specification.FundingStreams?.Select(s => s.Id).ToArray(),
-                        FundingStreamNames = specification.FundingStreams?.Select(s => s.Name).ToArray(),
-                        FundingPeriodId = specification.FundingPeriod.Id,
-                        FundingPeriodName = specification.FundingPeriod.Name,
-                        LastUpdatedDate = specification.UpdatedAt,
-                        Status = specification.PublishStatus,
-                        Description = specification.Description,
-                        IsSelectedForFunding = specification.IsSelectedForFunding,
-                        DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty() ? new string[0] : specification.DataDefinitionRelationshipIds,
-                        PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
-                    });
-                }
+                    Id = specification.Id,
+                    Name = specification.Name,
+                    FundingStreamIds = specification.FundingStreams?.Select(s => s.Id).ToArray(),
+                    FundingStreamNames = specification.FundingStreams?.Select(s => s.Name).ToArray(),
+                    FundingPeriodId = specification.FundingPeriod.Id,
+                    FundingPeriodName = specification.FundingPeriod.Name,
+                    LastUpdatedDate = specification.UpdatedAt,
+                    Status = specification.PublishStatus,
+                    Description = specification.Description,
+                    IsSelectedForFunding = specification.IsSelectedForFunding,
+                    DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty()
+                        ? new string[0]
+                        : specification.DataDefinitionRelationshipIds,
+                    PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
+                }).ToList();
 
                 if (!specDocuments.IsNullOrEmpty())
                 {
@@ -1823,74 +1845,33 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<IActionResult> RefreshPublishedResults(HttpRequest request)
         {
-            if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
+            request.Query.TryGetValue("specificationId", out StringValues specId);
+
+            string specificationId = specId.FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(specificationId))
             {
-                request.Query.TryGetValue("specificationId", out StringValues specId);
-
-                string specificationId = specId.FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(specificationId))
-                {
-                    _logger.Warning("No specification Id was provided to SelectSpecificationForFunding");
-                    return new BadRequestObjectResult("Null or empty specification Id provided");
-                }
-
-                Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-
-                if (specification == null)
-                {
-                    return new BadRequestObjectResult($"Specification {specificationId} - was not found");
-                }
-
-                if (_featureToggle.IsProviderVariationsEnabled() || (!_featureToggle.IsProviderVariationsEnabled() && specification.ShouldRefresh))
-                {
-                    try
-                    {
-                        await PublishProviderResults(request, specificationId, "Refreshing published provider results for specification");
-                    }
-                    catch (Exception e)
-                    {
-                        return new InternalServerErrorResult(e.Message);
-                    }
-                }
-                else
-                {
-                    SpecificationCalculationExecutionStatus statusToCache = new SpecificationCalculationExecutionStatus(specificationId, 100, CalculationProgressStatus.Finished);
-                    statusToCache.PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt;
-
-                    CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
-                }
-            }
-            else
-            {
-                request.Query.TryGetValue("specificationIds", out StringValues specificationIds);
-                string specificationIdsRetrieved = specificationIds.FirstOrDefault();
-                if (specificationIdsRetrieved.IsNullOrEmpty())
-                {
-                    return new BadRequestObjectResult("Null or empty specification ids parameter was provided");
-                }
-
-                string[] specificationIdsAsArray = specificationIdsRetrieved.Split(',');
-                foreach (string specificationId in specificationIdsAsArray)
-                {
-                    Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-                    if (specification == null)
-                    {
-                        return new BadRequestObjectResult($"Specification {specificationId} - was not found");
-                    }
-                }
-                IEnumerable<Task> calculationTasks = specificationIdsAsArray.Select(specificationId => PublishProviderResults(request, specificationId, "Refreshing published provider results for specification"));
-                try
-                {
-                    await Task.WhenAll(calculationTasks.ToArray());
-                }
-                catch (Exception e)
-                {
-                    return new InternalServerErrorResult(e.Message);
-                }
+                _logger.Warning("No specification Id was provided to SelectSpecificationForFunding");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            return new NoContentResult();
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                return new BadRequestObjectResult($"Specification {specificationId} - was not found");
+            }
+
+            try
+            {
+                await PublishProviderResults(request, specificationId, "Refreshing published provider results for specification");
+
+                return new NoContentResult();
+            }
+            catch (Exception e)
+            {
+                return new InternalServerErrorResult(e.Message);
+            }
         }
 
         public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)

@@ -20,5 +20,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task SaveSourceFiles(IEnumerable<SourceFile> sourceFiles, string specificationId, SourceCodeType sourceCodeType);
 
         Task DeleteAssembly(string specificationId);
+
+        IEnumerable<SourceFile> GenerateSourceFiles(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions);
     }
 }

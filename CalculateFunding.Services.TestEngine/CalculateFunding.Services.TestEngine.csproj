@@ -3,10 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <DebugType>full</DebugType>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.1" />
+    <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="1.0.25" />
+    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.2" />
     <PackageReference Include="gherkin" Version="5.0.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.9.1" />
     <PackageReference Include="Polly-Signed" Version="5.9.0" />

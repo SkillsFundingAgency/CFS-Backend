@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Specs.Interfaces
 {
@@ -25,7 +26,9 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId);
         Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName);
         Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId);
+        [Obsolete]
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
+        Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec);
         Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
         Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream);
         Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);

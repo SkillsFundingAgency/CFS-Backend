@@ -30,6 +30,13 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("exceptionMessage")]
         public string ExceptionMessage { get; set; }
 
+        /// <summary>
+        /// Elapsed time, used for debugging locally and shouldn't be stored in cosmos
+        /// </summary>
+        [JsonIgnore]
+        [JsonProperty("elapsedTime")]
+        public long ElapsedTime { get; set; }
+
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
 

@@ -13,6 +13,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -29,6 +30,7 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Providers.Interfaces;
@@ -48,6 +50,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalcsRepository _calcsRepository;
         private readonly IBlobClient _blobClient;
+        private readonly IMessengerService _messengerService;
         private readonly IProvidersResultsRepository _providersResultsRepository;
         private readonly IResultsRepository _resultsRepository;
         private readonly IProviderService _providerService;
@@ -66,6 +69,7 @@ namespace CalculateFunding.Services.Datasets
             ICacheProvider cacheProvider,
             ICalcsRepository calcsRepository,
             IBlobClient blobClient,
+            IMessengerService messengerService,
             IProvidersResultsRepository providersResultsRepository,
             IResultsRepository resultsRepository,
             IProviderService providerService,
@@ -80,6 +84,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(providersResultsRepository, nameof(providersResultsRepository));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
@@ -106,6 +111,7 @@ namespace CalculateFunding.Services.Datasets
             _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
+            _messengerService = messengerService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -439,7 +445,7 @@ namespace CalculateFunding.Services.Datasets
                 return;
             }
 
-            Dictionary<string, ProviderSourceDataset> existingCurrent = new Dictionary<string, ProviderSourceDataset>();
+            ConcurrentDictionary<string, ProviderSourceDataset> existingCurrent = new ConcurrentDictionary<string, ProviderSourceDataset>();
 
             IEnumerable<ProviderSourceDataset> existingCurrentDatasets = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.GetCurrentProviderSourceDatasets(specificationId, relationshipId));
@@ -448,7 +454,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 foreach (ProviderSourceDataset currentDataset in existingCurrentDatasets)
                 {
-                    existingCurrent.Add(currentDataset.ProviderId, currentDataset);
+                    existingCurrent.TryAdd(currentDataset.ProviderId, currentDataset);
                 }
             }
 
@@ -551,13 +557,15 @@ namespace CalculateFunding.Services.Datasets
                                     newVersion = await _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current, providerId);
                                     newVersion.Author = user;
                                     newVersion.Rows = sourceDataset.Current.Rows;
-
+                                    
                                     sourceDataset.Current = newVersion;
 
                                     updateCurrentDatasets.TryAdd(providerId, sourceDataset);
 
                                     historyToSave.Add(newVersion);
                                 }
+
+                                existingCurrent.TryRemove(providerId, out ProviderSourceDataset existingProviderSourceDataset);
                             }
                             else
                             {
@@ -585,25 +593,36 @@ namespace CalculateFunding.Services.Datasets
                 _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values));
             }
 
+            if (existingCurrent.Any())
+            {
+                 _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
+
+                await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
+                _providersResultsRepository.DeleteCurrentProviderSourceDatasets(existingCurrent.Values));
+
+                foreach (IEnumerable<ProviderSourceDataset> providerSourceDataSets in existingCurrent.Values.Partition<ProviderSourceDataset>(1000))
+                {
+                    await SendProviderSourceDatasetCleanupMessageToTopic(specificationId, ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup, providerSourceDataSets);
+                }
+            }
+
             if (historyToSave.Any())
             {
                 _logger.Information($"Saving {historyToSave.Count()} items to history");
                 await _sourceDatasetsVersionRepository.SaveVersions(historyToSave);
             }
 
-            if (_featureToggle.IsAggregateSupportInCalculationsEnabled())
+            Reference relationshipReference = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name);
+
+            DatasetAggregations datasetAggregations = GenerateAggregations(datasetDefinition, loadResult, specificationId, relationshipReference);
+
+            if (!datasetAggregations.Fields.IsNullOrEmpty())
             {
-                Reference relationshipReference = new Reference(relationshipSummary.Relationship.Id, relationshipSummary.Relationship.Name);
-
-                DatasetAggregations datasetAggregations = GenerateAggregations(datasetDefinition, loadResult, specificationId, relationshipReference);
-
-                if (!datasetAggregations.Fields.IsNullOrEmpty())
-                {
-                    await _datasetsAggregationsRepository.CreateDatasetAggregations(datasetAggregations);
-                }
-
-                await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
+                await _datasetsAggregationsRepository.CreateDatasetAggregations(datasetAggregations);
             }
+
+            await _cacheProvider.RemoveAsync<List<CalculationAggregation>>($"{CacheKeys.DatasetAggregationsForSpecification}{specificationId}");
+
 
             await PopulateProviderSummariesForSpecification(specificationId, providerSummaries);
         }
@@ -755,6 +774,22 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Failed to add a job log for job id '{jobId}'");
             }
+        }
+
+        private async Task SendProviderSourceDatasetCleanupMessageToTopic(string specificationId, string topicName, IEnumerable<ProviderSourceDataset> providers)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(providers, nameof(providers));
+
+            SpecificationProviders specificationProviders = new SpecificationProviders { SpecificationId = specificationId, Providers = providers.Select(x => x.ProviderId) };
+
+            Dictionary<string, string> properties = new Dictionary<string, string>
+            {
+                { "specificationId", specificationId },
+                { "sfa-correlationId", Guid.NewGuid().ToString() }
+            };
+
+            await _messengerService.SendToTopic(topicName, specificationProviders, properties, true);
         }
     }
 }

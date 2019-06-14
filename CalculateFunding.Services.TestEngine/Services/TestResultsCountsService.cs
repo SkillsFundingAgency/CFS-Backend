@@ -1,4 +1,11 @@
-﻿using CalculateFunding.Models;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
@@ -11,13 +18,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {

@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Jobs
                 jobDefinitionIds = jobTypes.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries);
             }
 
-            Job job = await _jobRepository.GetLastestJobBySpecificationId(specificationId, jobDefinitionIds);
+            Job job = await _jobRepository.GetLatestJobBySpecificationId(specificationId, jobDefinitionIds);
   
             if (job == null)
             {
@@ -172,6 +172,29 @@ namespace CalculateFunding.Services.Jobs
                 return new OkObjectResult(_mapper.Map<JobSummary>(job));
             }
         }
+
+        public async Task<IActionResult> GetCreatedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo)
+        {
+            Guard.ArgumentNotNull(dateTimeFrom, nameof(dateTimeFrom));
+            Guard.ArgumentNotNull(dateTimeTo, nameof(dateTimeFrom));
+
+            if(dateTimeFrom > DateTimeOffset.UtcNow)
+            {
+                return new BadRequestObjectResult($"{nameof(dateTimeFrom)} cannot be in the future");
+            }
+
+            if (dateTimeTo < dateTimeFrom)
+            {
+                return new BadRequestObjectResult($"{nameof(dateTimeTo)} cannot be before {nameof(dateTimeFrom)}.");
+            }
+
+            string dateTimeFromAsString = dateTimeFrom.ToString();
+            string dateTimeToAsString = dateTimeTo.ToString();
+
+            IEnumerable<Job> jobs = await _jobsRepositoryPolicy.ExecuteAsync(() => _jobRepository.GetRunningJobsWithinTimeFrame(dateTimeFromAsString, dateTimeToAsString));
+
+            return new OkObjectResult(jobs.Select(_mapper.Map<JobSummary>));
+         }
 
         public Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate, HttpRequest request)
         {

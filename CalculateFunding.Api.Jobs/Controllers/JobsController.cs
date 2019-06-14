@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Jobs.Interfaces;
@@ -118,6 +119,14 @@ namespace CalculateFunding.Api.Jobs.Controllers
         public async Task<IActionResult> CancelJob(string jobId)
         {
             return await _jobManagementService.CancelJob(jobId, ControllerContext.HttpContext.Request);
+        }
+
+        [HttpGet]
+        [Route("api/jobs/noncompleted/dateTimeFrom/{dateTimeFrom}/dateTimeTo/{dateTimeTo}")]
+        [ProducesResponseType(200, Type = typeof(JobSummary))]
+        public async Task<IActionResult> GetCreatedJobsWithinTimeFrame([FromQuery] DateTimeOffset dateTimeFrom, [FromQuery]  DateTimeOffset dateTimeTo)
+        {
+            return await _jobService.GetCreatedJobsWithinTimeFrame(dateTimeFrom, dateTimeTo);
         }
     }
 }

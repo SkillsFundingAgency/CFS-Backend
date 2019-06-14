@@ -11,6 +11,7 @@ using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
@@ -232,21 +233,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddFeatureToggling(config);
 
-            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService>((ctx) =>
-            {
-                IFeatureToggle featureToggle = ctx.GetService<IFeatureToggle>();
-
-                bool enableMajorMinorVersioning = featureToggle.IsAllocationLineMajorMinorVersioningEnabled();
-
-                if (enableMajorMinorVersioning)
-                {
-                    return new PublishedAllocationLineLogicalResultVersionService();
-                }
-                else
-                {
-                    return new RedundantPublishedAllocationLineLogicalResultVersionService();
-                }
-            });
+            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService, PublishedAllocationLineLogicalResultVersionService>();
 
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.Utility;
 
 namespace CalculateFunding.Services.Results.Repositories
 {

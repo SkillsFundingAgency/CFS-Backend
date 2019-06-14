@@ -645,7 +645,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
                 cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository, searchRepository: mockSearchRepository);
 
-            // Act
             //Act
             Func<Task<IActionResult>> editSpecification = async () => await specificationsService.EditCalculation(request);
 
@@ -805,14 +804,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .IsCalculationNameValid(Arg.Is(specification.Id), Arg.Is("Another name"), Arg.Is(CalculationId))
                 .Returns(false);
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsDuplicateCalculationNameCheckEnabled()
-                .Returns(true);
+            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(specificationsRepository, calculationsRepository);
 
-            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(specificationsRepository, calculationsRepository, featureToggle);
-
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, featureToggle: featureToggle, calculationEditModelValidator: validator);
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
+                calculationEditModelValidator: validator);
 
             // Act
             IActionResult result = await specificationsService.EditCalculation(request);
@@ -823,9 +818,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .BeOfType<BadRequestObjectResult>();
         }
 
-        private IValidator<CalculationEditModel> CreateRealEditCalculationValidator(ISpecificationsRepository specificationsRepository, ICalculationsRepository calculationsRepository, IFeatureToggle featureToggle)
+        private IValidator<CalculationEditModel> CreateRealEditCalculationValidator(ISpecificationsRepository specificationsRepository,
+            ICalculationsRepository calculationsRepository)
         {
-            return new CalculationEditModelValidator(specificationsRepository, calculationsRepository, featureToggle);
+            return new CalculationEditModelValidator(specificationsRepository, calculationsRepository);
         }
     }
 }

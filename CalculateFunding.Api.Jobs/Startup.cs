@@ -82,7 +82,7 @@ namespace CalculateFunding.Api.Jobs
 
             builder.
                 AddSingleton<IValidator<CreateJobValidationModel>, CreateJobValidator>();
-
+  
             builder
                  .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) =>
                  {

@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V1.Interfaces;
 using CalculateFunding.Api.External.V1.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -36,7 +36,7 @@ namespace CalculateFunding.Api.External.V1.Services
 
             AllocationModel allocation = CreateAllocation(publishedProviderResult);
 
-            return Formatter.ActionResult<AllocationModel>(httpRequest, allocation);
+            return Formatter.ActionResult(httpRequest, allocation);
         }
 
         public async Task<IActionResult> GetAllocationAndHistoryByAllocationResultId(string allocationResultId, HttpRequest httpRequest)
@@ -61,9 +61,9 @@ namespace CalculateFunding.Api.External.V1.Services
             return new AllocationModel
             {
                 AllocationResultId = publishedProviderResult.Id,
-                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.HasValue ? (decimal)publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value.Value : 0,
+                AllocationAmount = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Value ?? 0,
                 AllocationVersionNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Version,
-                AllocationLine = new Models.AllocationLine
+                AllocationLine = new AllocationLine
                 {
                     Id = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
                     Name = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Name,
@@ -87,7 +87,7 @@ namespace CalculateFunding.Api.External.V1.Services
                         EndMonth = publishedProviderResult.FundingStreamResult.FundingStream.PeriodType.EndMonth,
                     }
                 },
-                Period = new Models.Period
+                Period = new Period
                 {
                     Id = publishedProviderResult.FundingPeriod.Id,
                     Name = publishedProviderResult.FundingPeriod.Name,
@@ -122,7 +122,7 @@ namespace CalculateFunding.Api.External.V1.Services
                                 Period = m.Period,
                                 PeriodType = m.Type,
                                 PeriodYear = m.Year.ToString(),
-                                ProfileValue = (decimal)m.Value
+                                ProfileValue = m.Value
                             }
                     ).ToArraySafe()
             };

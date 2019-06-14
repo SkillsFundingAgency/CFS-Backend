@@ -1,9 +1,6 @@
-﻿using CalculateFunding.Models.Users;
-using CalculateFunding.Services.Core.Helpers;
+﻿using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Interfaces.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Services.Core.Services
 {

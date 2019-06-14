@@ -61,6 +61,9 @@
             public const string ReIndexAllocationNotificationFeedIndex = "reindex-allocation-notifcication-feed-index";
 
             public const string ReIndexCalculationResultsIndex = "reindex-calculation-results-index";
+
+            //For debug queue only as its on a timer
+            public const string ScaleDownCosmosdbCollection = "scale-down-cosmosdb-collection";
         }
 
         public static class TopicNames
@@ -72,6 +75,8 @@
             public const string JobNotifications = "job-notifications";
 
             public const string DataDefinitionChanges = "data-definition-changes";
+
+            public const string ProviderSourceDatasetCleanup = "provider-sourcedataset-cleanup";
         }
 
         public static class TopicSubscribers
@@ -82,6 +87,8 @@
 
             public const string UpdateScenarioResultsForEditSpecification = "test-scenario-result-update";
 
+            public const string CleanupTestResultsForSpecificationProviders = "test-specification-provider-results-cleanup";
+
             public const string UpdateUsersForEditSpecification = "users-update";
 
             public const string UpdateScenariosForEditCalculation = "test-scenario-update";
@@ -89,6 +96,8 @@
             public const string UpdateCalculationsForEditCalculation = "calcs-calculation-update";
 
             public const string UpdateJobsOnCompletion = "on-job-completion";
+
+            public const string CleanupCalculationResultsForSpecificationProviders = "calculation-specification-provider-results-cleanup";
 
             public const string JobNotificationsToSignalR = "notifications-to-signalr";
 
@@ -99,6 +108,8 @@
             public const string UpdateCalculationFieldDefinitionProperties = "calculation-field-definition-properties-update";
 
             public const string UpdateScenarioFieldDefinitionProperties = "scenario-field-definition-properties-update";
+
+            public const string ScaleUpCosmosdbCollection = "scale-up-cosmosdb-collection";
         }
     }
 }

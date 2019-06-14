@@ -14,9 +14,11 @@ namespace CalculateFunding.Repositories.Common.Search
 
         Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents);
 
+        Task<IEnumerable<IndexError>> Remove(IEnumerable<T> documents);
+
         Task Initialize();
 
-        Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null);
+        Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null, bool allResults = false);
 
         Task<T> SearchById(string id, SearchParameters searchParameters = null, string IdFieldOverride = "");
 

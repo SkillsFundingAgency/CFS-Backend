@@ -21,5 +21,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<BuildProject> GetBuildProjectForSpecificationId(string specificationId);
 
         Task<IActionResult> CompileAndSaveAssembly(string specificationId);
+
+        Task<IActionResult> GenerateAndSaveSourceProject(string specificationId, SourceCodeType sourceCodeType);
     }
 }

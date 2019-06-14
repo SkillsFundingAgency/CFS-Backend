@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -20,13 +20,11 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -521,7 +519,7 @@ namespace CalculateFunding.Services.Datasets
 
         public async Task UpdateRelationshipDatasetDefinitionName(Reference datsetDefinitionReference)
         {
-            if(datsetDefinitionReference == null)
+            if (datsetDefinitionReference == null)
             {
                 _logger.Error("Null dataset definition reference supplied");
                 throw new NonRetriableException("A null dataset definition reference was supplied");
@@ -541,7 +539,7 @@ namespace CalculateFunding.Services.Datasets
 
                     foreach (DefinitionSpecificationRelationship definitionSpecificationRelationship in relationships)
                     {
-                        definitionSpecificationRelationship.DatasetDefinition.Name = datsetDefinitionReference.Name; 
+                        definitionSpecificationRelationship.DatasetDefinition.Name = datsetDefinitionReference.Name;
                     }
 
                     await _datasetRepository.UpdateDefinitionSpecificationRelationships(relationships);
@@ -549,7 +547,7 @@ namespace CalculateFunding.Services.Datasets
                     _logger.Information($"Updated {relationshipCount} relationships with new definition name: {datsetDefinitionReference.Name}");
 
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.Error(ex, ex.Message);
 

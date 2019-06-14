@@ -402,11 +402,14 @@ namespace CalculateFunding.Services.Results.Services
         public async Task FetchProviderProfile_GivenFetchProviderProfileSucceedsAndMajorMinorIsEnabled_UpdatesPublishedProviderResult()
         {
             // Arrange
+            int majorVersion = 3;
+            int minorVersion = 42;
+
             PublishedProviderResult result = CreatePublishedProviderResults().First();
             result.SpecificationId = specificationId;
             result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
-            result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
-            result.FundingStreamResult.AllocationLineResult.Current.Minor = 1;
+            result.FundingStreamResult.AllocationLineResult.Current.Major = majorVersion;
+            result.FundingStreamResult.AllocationLineResult.Current.Minor = minorVersion;
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
             requestModel.First().ProviderId = result.ProviderId;
@@ -473,42 +476,71 @@ namespace CalculateFunding.Services.Results.Services
                 .BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
 
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
+
             await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
-            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 1 && m.First().MajorVersion == 1 && m.First().MinorVersion == 1));
+
+            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => 
+                m.Count() == 1 
+                && m.First().MajorVersion == majorVersion
+                && m.First().MinorVersion == minorVersion));
+
             await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
                 m.AllocationValueByDistributionPeriod.First().AllocationValue == 50
             ));
         }
 
         [TestMethod]
-        public async Task FetchProviderProfile_GivenFetchProviderProfileSucceedsAndMIsAllAllocationResultsVersionsInFeedIndexEnabled_UpdatesPublishedProviderResult()
+        public async Task FetchProviderProfile_GivenFetchProviderProfileSucceeds_UpdatesPublishedProviderResult()
         {
             // Arrange
+            int major = 3;
+            int minor = 9;
+            string feedIndexId = "feed-index-id-134567u65";
+
             PublishedProviderResult result = CreatePublishedProviderResults().First();
             result.SpecificationId = specificationId;
             result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
-            result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
-            result.FundingStreamResult.AllocationLineResult.Current.Minor = 1;
-            result.FundingStreamResult.AllocationLineResult.Current.FeedIndexId = "feed-index-id-1";
+            result.FundingStreamResult.AllocationLineResult.Current.Major = major;
+            result.FundingStreamResult.AllocationLineResult.Current.Minor = minor;
+            result.FundingStreamResult.AllocationLineResult.Current.FeedIndexId = feedIndexId;
 
             IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
             requestModel.First().ProviderId = result.ProviderId;
             requestModel.First().AllocationLineResultId = result.Id;
 
-            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel
-            {
-                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
-                 {
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "October", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "April", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
-                 }
-            });
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK,
+                new ProviderProfilingResponseModel
+                {
+                    DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
+                     {
+                        new Common.ApiClient.Profiling.Models.ProfilingPeriod
+                        {
+                            Period = "October",
+                            Occurrence = 1,
+                            Year = 2018,
+                            Type = "CalendarMonth",
+                            Value = 82190.0M,
+                            DistributionPeriod = "2018-2019"
+                        },
+                        new Common.ApiClient.Profiling.Models.ProfilingPeriod
+                        {
+                            Period = "April",
+                            Occurrence = 1,
+                            Year = 2019,
+                            Type = "CalendarMonth",
+                            Value = 82190.0M,
+                            DistributionPeriod = "2018-2019"
+                        }
+                     }
+                });
 
             ILogger logger = Substitute.For<ILogger>();
+
             IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
             publishedProviderResultsRepository
                 .GetPublishedProviderResultForId(Arg.Is(result.Id), Arg.Is(result.ProviderId))
                 .Returns(result);
+
             IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
@@ -525,14 +557,6 @@ namespace CalculateFunding.Services.Results.Services
             {
                 Id = specificationId
             };
-
-            IFeatureToggle featureToggler = Substitute.For<IFeatureToggle>();
-            featureToggler
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-            featureToggler
-                .IsAllAllocationResultsVersionsInFeedIndexEnabled()
-                .Returns(true);
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -545,7 +569,6 @@ namespace CalculateFunding.Services.Results.Services
                 profilingApiClient: providerProfilingRepository,
                 specificationsRepository: specificationsRepository,
                 allocationNotificationFeedSearchRepository: feedsSearchRepository,
-                featureToggle: featureToggler,
                 jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
@@ -558,108 +581,26 @@ namespace CalculateFunding.Services.Results.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
-            IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
-            await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
-
-            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
-                m.Count() == 1 &&
-                m.First().MajorVersion == 1 &&
-                m.First().MinorVersion == 1 &&
-                m.First().Title == "Allocation test allocation line 1 was Approved" &&
-                m.First().Id == "feed-index-id-1"));
-
-            await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
-                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50
-            ));
-        }
-
-        [TestMethod]
-        public async Task FetchProviderProfile_GivenFetchProviderProfileSucceedsAndMajorMinorIsDisabled_UpdatesPublishedProviderResultDoesNotIndexMajorMinor()
-        {
-            // Arrange
-            PublishedProviderResult result = CreatePublishedProviderResults().First();
-            result.SpecificationId = specificationId;
-            result.FundingStreamResult.AllocationLineResult.Current.Status = AllocationLineStatus.Approved;
-            result.FundingStreamResult.AllocationLineResult.Current.Major = 1;
-            result.FundingStreamResult.AllocationLineResult.Current.Minor = 1;
-
-            IEnumerable<FetchProviderProfilingMessageItem> requestModel = CreateProfilingMessageItems();
-            requestModel.First().ProviderId = result.ProviderId;
-            requestModel.First().AllocationLineResultId = result.Id;
-
-            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse = new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.OK, new ProviderProfilingResponseModel()
-            {
-                DeliveryProfilePeriods = new List<Common.ApiClient.Profiling.Models.ProfilingPeriod>
-                 {
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Oct", Occurrence = 1, Year = 2018, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" },
-                    new Common.ApiClient.Profiling.Models.ProfilingPeriod { Period = "Apr", Occurrence = 1, Year = 2019, Type = "CalendarMonth", Value = 82190.0M, DistributionPeriod = "2018-2019" }
-                 }
-            });
-
-            ILogger logger = Substitute.For<ILogger>();
-            IPublishedProviderResultsRepository publishedProviderResultsRepository = Substitute.For<IPublishedProviderResultsRepository>();
-            publishedProviderResultsRepository
-                .GetPublishedProviderResultForId(Arg.Is(result.Id), Arg.Is(result.ProviderId))
-                .Returns(result);
-            IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
-            providerProfilingRepository
-                .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
-                .Returns(Task.FromResult(profileResponse));
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetCurrentSpecificationById(Arg.Is(specificationId))
-                .Returns(CreateSpecification(specificationId));
-
-            ISearchRepository<AllocationNotificationFeedIndex> feedsSearchRepository = CreateAllocationNotificationFeedSearchRepository();
-
-            SpecificationCurrentVersion specification = new SpecificationCurrentVersion
-            {
-                Id = specificationId
-            };
-
-            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(Arg.Is(jobId))
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
-
-            PublishedResultsService service = CreateResultsService(
-                logger: logger,
-                publishedProviderResultsRepository: publishedProviderResultsRepository,
-                profilingApiClient: providerProfilingRepository,
-                specificationsRepository: specificationsRepository,
-                allocationNotificationFeedSearchRepository:
-                feedsSearchRepository,
-                featureToggle: featureToggle,
-                jobsApiClient: jobsApiClient);
-
-            string json = JsonConvert.SerializeObject(requestModel);
-
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-            message.UserProperties["specification-id"] = specificationId;
-            message.UserProperties["jobId"] = jobId;
-
-            // Act
-            await service.FetchProviderProfile(message);
-
-            // Assert
-            result
-                .FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods
+            result.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods
                 .Should()
                 .BeEquivalentTo(profileResponse.Content.DeliveryProfilePeriods, "Profile Periods should be copied onto Published Provider Result");
 
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { result };
-            await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
-            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 1 && m.First().MajorVersion == null && m.First().MinorVersion == null));
-            await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
-                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50
-            ));
+            await publishedProviderResultsRepository
+                .Received(1)
+                .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(savedResults => toBeSavedResults.SequenceEqual(savedResults)));
+
+            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m =>
+                m.Count() == 1 &&
+                m.Single().MajorVersion == major &&
+                m.Single().MinorVersion == minor &&
+                m.Single().Title == "Allocation test allocation line 1 was Approved" &&
+                m.Single().Id == feedIndexId));
+
+            await providerProfilingRepository
+                .Received(1)
+                .GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                    m.AllocationValueByDistributionPeriod.First().AllocationValue == 50));
         }
 
         [TestMethod]

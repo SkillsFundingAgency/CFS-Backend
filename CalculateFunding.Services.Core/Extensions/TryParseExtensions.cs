@@ -89,5 +89,52 @@ namespace CalculateFunding.Services.Core.Extensions
 	    {
 		    return TryParse<byte>(value, byte.TryParse);
 	    }
-	}
+
+        public static bool TryParseNullable(this object value, out int? parsed)
+        {
+            parsed = null;
+            try
+            {
+                if (value == null || string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().ToLower() == "null")
+                    return true;
+
+                int parsedValue;
+                if (int.TryParse(value.ToString(), out parsedValue))
+                {
+                    parsed = (int?)parsedValue;
+                    return true;
+                };
+
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        public static bool TryParseNullable(this object value, out decimal? parsed)
+        {
+            parsed = null;
+            try
+            {
+                if (value == null || string.IsNullOrWhiteSpace(value.ToString()) || value.ToString().ToLower() == "null")
+                    return true;
+
+                decimal parsedValue;
+                if(decimal.TryParse(value.ToString(), out parsedValue))
+                {
+                    parsed = (decimal?)parsedValue;
+                    return true;
+                };
+
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+       
+    }
 }

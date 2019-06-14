@@ -8,6 +8,7 @@ using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -57,7 +58,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .When(x => x.GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>()))
+                .When(x => x.GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<SqlQuerySpec>()))
                 .Do(x => { throw new Exception(); });
 
             ILogger logger = CreateLogger();
@@ -100,7 +101,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 {
                     Id = SpecificationId,
                     Name = SpecificationName,
-                    FundingStreams = new List<Reference>() { new Reference("fs-id", "fs-name") },
+                    FundingStreams = new List<Reference> { new Reference("fs-id", "fs-name") },
                     FundingPeriod = new Reference("18/19", "2018/19"),
                     UpdatedAt = DateTime.Now
                 }
@@ -113,7 +114,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>())
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<SqlQuerySpec>())
                 .Returns(specifications);
 
             ILogger logger = CreateLogger();
@@ -151,7 +152,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>())
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<SqlQuerySpec>())
                 .Returns(specifications);
 
             ILogger logger = CreateLogger();
@@ -192,7 +193,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
-                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<string>())
+                .GetSpecificationsByRawQuery<SpecificationSearchModel>(Arg.Any<SqlQuerySpec>())
                 .Returns(specifications);
 
             ILogger logger = CreateLogger();

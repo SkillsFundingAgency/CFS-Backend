@@ -60,23 +60,28 @@ namespace CalculateFunding.Services.Results.Services
             message.UserProperties["user-id"] = "123";
             message.UserProperties["user-name"] = "Joe Bloggs";
 
-            DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
-
-            ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
-            calculationResultsRepository
-                .GetAllProviderResults(Arg.Is(providerResult.Content.SpecificationId))
-                .Returns(new[] { providerResult });
-
-            ILogger logger = CreateLogger();
+            ProviderResult providerResult = CreateProviderResult();
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Index(Arg.Any<IEnumerable<ProviderCalculationResultsIndex>>())
                 .Returns(new[] { new IndexError { ErrorMessage = "an error" } });
 
+            ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
+
+            calculationResultsRepository
+                .WhenForAnyArgs(x => x.ProviderResultsBatchProcessing(default, default)).Do(x =>
+                {
+                    var y = x.Arg<Func<List<ProviderResult>, Task>>();
+                    y(new List<ProviderResult> { providerResult }).GetAwaiter().GetResult();
+                });
+
+            ILogger logger = CreateLogger();
+
+
             SpecificationSummary specificationSummary = new SpecificationSummary()
             {
-                Id = providerResult.Content.SpecificationId,
+                Id = providerResult.SpecificationId,
                 Name = "spec name",
             };
 
@@ -92,7 +97,7 @@ namespace CalculateFunding.Services.Results.Services
                 logger: logger);
 
             //Act
-           Func<Task> test = async () => await service.ReIndexCalculationResults(message);
+            Func<Task> test = async () => await service.ReIndexCalculationResults(message);
 
             //Assert
             test
@@ -120,20 +125,23 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
             Message message = new Message();
 
-            DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
-
-            ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
-            calculationResultsRepository
-                .GetAllProviderResults(Arg.Is(providerResult.Content.SpecificationId))
-                .Returns(new[] { providerResult });
+            ProviderResult providerResult = CreateProviderResult();
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
 
             SpecificationSummary specificationSummary = new SpecificationSummary()
             {
-                Id = providerResult.Content.SpecificationId,
+                Id = providerResult.SpecificationId,
                 Name = "spec name",
             };
+
+            ICalculationResultsRepository calculationResultsRepository = CreateCalculationResultsRepository();
+            calculationResultsRepository
+                .WhenForAnyArgs(x => x.ProviderResultsBatchProcessing(default, default)).Do(x =>
+                {
+                    var y = x.Arg<Func<List<ProviderResult>, Task>>();
+                    y(new List<ProviderResult> { providerResult }).GetAwaiter().GetResult();
+                });
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -168,7 +176,7 @@ namespace CalculateFunding.Services.Results.Services
                             m.First().CalculationId.SequenceEqual(new[] { "calc-id-1", "calc-id-2" }) &&
                             m.First().CalculationName.SequenceEqual(new[] { "calc name 1", "calc name 2" }) &&
                             m.First().CalculationResult.SequenceEqual(new[] { "123", "10" }) &&
-                            featureToggleEnabled ? m.First().CalculationException.SequenceEqual(new[] { "true", "false" }) : m.First().CalculationException == null &&
+                            featureToggleEnabled ? m.First().CalculationException.SequenceEqual(new[] { "calc-id-1" }) : m.First().CalculationException == null &&
                             m.First().ProviderId == "prov-id" &&
                             m.First().ProviderName == "prov name" &&
                             m.First().ProviderType == "prov type" &&
@@ -184,8 +192,8 @@ namespace CalculateFunding.Services.Results.Services
         public async Task ReIndexCalculationResults_GivenRequest_AddsServiceBusMessage()
         {
             //Arrange
-             ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
+            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
+           {
                 new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, "123"), new Claim(ClaimTypes.Name, "Joe Bloggs") })
             });
 
@@ -278,46 +286,43 @@ namespace CalculateFunding.Services.Results.Services
             return featureToggle;
         }
 
-        static DocumentEntity<ProviderResult> CreateDocumentEntity()
+        static ProviderResult CreateProviderResult()
         {
-            return new DocumentEntity<ProviderResult>
+            return new ProviderResult
             {
-                UpdatedAt = DateTime.Now,
-                Content = new ProviderResult
+                CreatedAt = DateTime.Now,
+                SpecificationId = "spec-id",
+                CalculationResults = new List<CalculationResult>
                 {
-                    SpecificationId = "spec-id",
-                    CalculationResults = new List<CalculationResult>
+                    new CalculationResult
                     {
-                        new CalculationResult
-                        {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
-                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
-                            Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
-                            ExceptionType = "Exception"
-                        },
-                        new CalculationResult
-                        {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
-                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
-                            Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
-                        }
+                        CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                        Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                        Value = 123,
+                        CalculationType = Models.Calcs.CalculationType.Funding,
+                        ExceptionType = "Exception"
                     },
-                    Provider = new ProviderSummary
+                    new CalculationResult
                     {
-                        Id = "prov-id",
-                        Name = "prov name",
-                        ProviderType = "prov type",
-                        ProviderSubType = "prov sub type",
-                        Authority = "authority",
-                        UKPRN = "ukprn",
-                        UPIN = "upin",
-                        URN = "urn",
-                        EstablishmentNumber = "12345",
-                        LACode = "la code",
-                        DateOpened = DateTime.Now.AddDays(-7)
+                        CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                        Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                        Value = 10,
+                        CalculationType = Models.Calcs.CalculationType.Number
                     }
+                },
+                Provider = new ProviderSummary
+                {
+                    Id = "prov-id",
+                    Name = "prov name",
+                    ProviderType = "prov type",
+                    ProviderSubType = "prov sub type",
+                    Authority = "authority",
+                    UKPRN = "ukprn",
+                    UPIN = "upin",
+                    URN = "urn",
+                    EstablishmentNumber = "12345",
+                    LACode = "la code",
+                    DateOpened = DateTime.Now.AddDays(-7)
                 }
             };
         }

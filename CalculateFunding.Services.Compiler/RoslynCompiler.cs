@@ -1,15 +1,12 @@
-﻿using System;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
+using Serilog;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Compiler.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Emit;
-using Serilog;
 
 namespace CalculateFunding.Services.Compiler
 {
@@ -72,22 +69,6 @@ namespace CalculateFunding.Services.Compiler
                     Location = GetLocation(x)
                 })
                 .ToList();
-
-            foreach (var compilerMessage in compilerOutput.CompilerMessages)
-            {
-                switch (compilerMessage.Severity)
-                {
-                    case Severity.Info:
-                        Logger.Information(compilerMessage.Message);
-                        break;
-                    case Severity.Warning:
-                        Logger.Warning(compilerMessage.Message);
-                        break;
-                    case Severity.Error:
-                        Logger.Error(compilerMessage.Message);
-                        break;
-                }
-            }
 
             return compilerOutput;
         }

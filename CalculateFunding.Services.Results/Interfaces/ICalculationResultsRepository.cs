@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
@@ -13,7 +14,9 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results);
         Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1);
         Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults();
-        Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults(string specificationId);
+        Task ProviderResultsBatchProcessing(string specificationId, Func<List<ProviderResult>, Task> persistIndexBatch);
+        Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationIdAndProviders(IEnumerable<string> providerIds, string specificationId);
+        Task DeleteCurrentProviderResults(IEnumerable<ProviderResult> providerResults);
         Task<decimal> GetCalculationResultTotalForSpecificationId(string specificationId);
         Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId);
     }

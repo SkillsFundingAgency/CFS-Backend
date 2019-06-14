@@ -16,6 +16,7 @@ using CalculateFunding.Services.Compiler.Languages;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Serilog;
 
 namespace CalculateFunding.Services.Calcs.Services
@@ -98,328 +99,42 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void CompileBuildProject_WhenBuildingBasicCalculation_ThenCompilesOk()
+        public void Compile_ErrorThrown_ReturnsErrorAsCompilerMessage()
         {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Calculation> calculations = new List<Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
+            //Arrange
+            BuildProject buildProject = new BuildProject { SpecificationId = "3456" };
+            IEnumerable<Calculation> calculations = new List<Calculation>();
 
-            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
+            string errorMessage = "The sky is red, I don't understand";
 
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
+            ISourceFileGenerator sourceFileGenerator = Substitute.For<ISourceFileGenerator>();
+            sourceFileGenerator
+                .GenerateCode(buildProject, calculations, Arg.Any<CompilerOptions>())
+                .Throws(new Exception(errorMessage));
 
-            CompilerOptions compilerOptions = new CompilerOptions();
+            ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
+            sourceFileGeneratorProvider
+                .CreateSourceFileGenerator(TargetLanguage.VisualBasic)
+                .Returns(sourceFileGenerator);
 
-            // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
+            SourceCodeService sourceCodeService = CreateSourceCodeService(sourceFileGeneratorProvider: sourceFileGeneratorProvider);
 
-            // Assert
-            build.Success.Should().BeTrue();
-        }
+            //Act
+            Build result = sourceCodeService.Compile(buildProject, calculations);
 
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsLessThanSign_ThenCompilesOkEnsuresLessThanSignTranslatesToLessThanText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 <",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            CompilerOptions compilerOptions = new CompilerOptions();
-
-            // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
-
-            // Assert
-            build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
+            //Assert
+            result.CompilerMessages.Count
                 .Should()
-                .Contain("Calc1LessThan");
-        }
-
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsGreaterThanSign_ThenCompilesOkEnsuresGreaterThanSignTranslatesToGreaterThanText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 >",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            CompilerOptions compilerOptions = new CompilerOptions();
-
-            // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
-
-            // Assert
-            build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
+                .Be(1);
+            result.CompilerMessages.Count(x => x.Message == errorMessage && x.Severity == Severity.Error)
                 .Should()
-                .Contain("Calc1GreaterThan");
-        }
+                .Be(1);
 
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPoundSign_ThenCompilesOkEnsuresPoundSignTranslatesToPoundText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 £",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            CompilerOptions compilerOptions = new CompilerOptions();
-
-            // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
-
-            // Assert
-            build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
-                .Should()
-                .Contain("Calc1Pound");
-        }
-
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsEqualsSign_ThenCompilesOkEnsuresEqualsSignTranslatesToEqualsText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 =",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            CompilerOptions compilerOptions = new CompilerOptions();
-
-            // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
-
-            // Assert
-            build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
-                .Should()
-                .Contain("Calc1Equals");
-        }
-
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPercentSign_ThenCompilesOkEnsuresPercentSignTranslatesToPercentText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 %",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            CompilerOptions compilerOptions = new CompilerOptions();
-
-            // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
-
-            // Assert
-            build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
-                .Should()
-                .Contain("Calc1Percent");
-        }
-
-        [TestMethod]
-        public void CompileBuildProject_WhenBuildingBasicCalculationAndNameContainsPlusSign_ThenCompilesOkEnsuresPlusSignTranslatesToPlusText()
-        {
-            // Arrange
-            string specificationId = "test-spec1";
-            List<Models.Calcs.Calculation> calculations = new List<Models.Calcs.Calculation>
-            {
-                new Models.Calcs.Calculation
-                {
-                    Id = "calcId1",
-                    Name = "calc 1 +",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
-                    Current = new CalculationVersion
-                    {
-                         SourceCode = "return 10"
-                    }
-                }
-            };
-
-            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
-
-            BuildProject buildProject = new BuildProject
-            {
-                SpecificationId = specificationId,
-                Id = Guid.NewGuid().ToString(),
-                Name = specificationId
-            };
-
-            CompilerOptions compilerOptions = new CompilerOptions();
-
-            // Act
-            Build build = sourceCodeService.Compile(buildProject, calculations, compilerOptions);
-
-            // Assert
-            build
-                .SourceFiles.First(m => m.FileName == "Calculations.vb")
-                .SourceCode
-                .Should()
-                .Contain("Calc1Plus");
+            sourceFileGenerator
+                .Received(1)
+                .GenerateCode(buildProject,
+                    calculations,
+                    Arg.Is<CompilerOptions>(x => x.SpecificationId == buildProject.SpecificationId && !x.OptionStrictEnabled));
         }
 
         [TestMethod]
@@ -742,13 +457,13 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void CompileBuildProject_WhenBuildingCalculation_AndUseSourceCodeNameToggle_ThenCompilationUsesSourceCodeName()
+        public void CompileBuildProject_WhenBuildingCalculation_ThenCompilationUsesSourceCodeName()
         {
             // Arrange
             string specificationId = "test-spec1";
             List<Calculation> calculations = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
                     Id = "calcId1",
                     Name = "calc 1",
@@ -767,12 +482,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 }
             };
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsDuplicateCalculationNameCheckEnabled()
-                .Returns(true);
-
-            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler(featureToggle);
+            SourceCodeService sourceCodeService = CreateServiceWithRealCompiler();
 
             BuildProject buildProject = new BuildProject
             {
@@ -792,8 +502,8 @@ namespace CalculateFunding.Services.Calcs.Services
             string calcSourceCode = build.SourceFiles.First(s => s.FileName == "Calculations.vb").SourceCode;
             calcSourceCode.Should().Contain($"Dim differentCalcName As Func(Of decimal?) = nothing");
             calcSourceCode.Should().NotContain($"Dim calc1 As Func(Of decimal?) = nothing");
-            calcSourceCode.Should().Contain($"Dim calcResult As Nullable(Of Decimal) = differentCalcName()");
-            calcSourceCode.Should().NotContain($"Dim calcResult As Nullable(Of Decimal) = calc1()");
+            calcSourceCode.Should().Contain($"differentCalcName()");
+            calcSourceCode.Should().NotContain($"calc1()");
         }
 
         private static SourceCodeService CreateSourceCodeService(
@@ -821,7 +531,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ISourceFileGeneratorProvider sourceFileGeneratorProvider = CreateSourceFileGeneratorProvider();
             sourceFileGeneratorProvider
                 .CreateSourceFileGenerator(Arg.Is(TargetLanguage.VisualBasic))
-                .Returns(new VisualBasicSourceFileGenerator(logger, featureToggle ?? CreateFeatureToggle()));
+                .Returns(new VisualBasicSourceFileGenerator(logger));
 
             VisualBasicCompiler vbCompiler = new VisualBasicCompiler(logger);
             CompilerFactory compilerFactory = new CompilerFactory(null, vbCompiler);
@@ -872,11 +582,6 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ICodeMetadataGeneratorService CreateCodeMetadataGeneratorService()
         {
             return Substitute.For<ICodeMetadataGeneratorService>();
-        }
-
-        private static IFeatureToggle CreateFeatureToggle()
-        {
-            return Substitute.For<IFeatureToggle>();
         }
     }
 }

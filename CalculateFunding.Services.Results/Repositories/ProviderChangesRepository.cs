@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -15,10 +16,10 @@ namespace CalculateFunding.Services.Results.Repositories
 {
     public class ProviderChangesRepository : IProviderChangesRepository, IHealthChecker
     {
-        private readonly CosmosRepository _cosmosRepo;
+        private readonly ICosmosRepository _cosmosRepo;
         private readonly ILogger _logger;
 
-        public ProviderChangesRepository(CosmosRepository cosmosRepository, ILogger logger)
+        public ProviderChangesRepository(ICosmosRepository cosmosRepository, ILogger logger)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));

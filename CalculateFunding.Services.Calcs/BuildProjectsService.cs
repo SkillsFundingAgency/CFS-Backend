@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -10,12 +9,11 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
@@ -230,10 +228,7 @@ namespace CalculateFunding.Services.Calcs
                 allJobProperties.Add(jobProperties);
             }
 
-            if (_featureToggle.IsAllocationLineMajorMinorVersioningEnabled())
-            {
-                await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
-            }
+            await _specificationsRepository.UpdateCalculationLastUpdatedDate(specificationId);
 
             try
             {
@@ -334,6 +329,31 @@ namespace CalculateFunding.Services.Calcs
             return new NoContentResult();
         }
 
+        public async Task<IActionResult> GenerateAndSaveSourceProject(string specificationId, SourceCodeType sourceCodeType)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
+
+            IEnumerable<Models.Calcs.Calculation> calculations = await _calculationsRepository.GetCalculationsBySpecificationId(specificationId);
+            CompilerOptions compilerOptions = await _calculationsRepository.GetCompilerOptions(specificationId);
+            if (compilerOptions == null)
+            {
+                throw new InvalidOperationException("Compiler options returned were null");
+            }
+
+            if (sourceCodeType == SourceCodeType.Diagnostics)
+            {
+                compilerOptions.UseDiagnosticsMode = true;
+            }
+
+            IEnumerable<SourceFile> sourceFiles = _sourceCodeService.GenerateSourceFiles(buildProject, calculations, compilerOptions);
+
+            await _sourceCodeService.SaveSourceFiles(sourceFiles, specificationId, sourceCodeType);
+
+            return new NoContentResult();
+        }
+
         public async Task UpdateBuildProjectRelationships(Message message)
         {
             Guard.ArgumentNotNull(message, nameof(message));
@@ -359,7 +379,7 @@ namespace CalculateFunding.Services.Calcs
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error($"Message does not contain a specification id");
-                 
+
                 throw new ArgumentNullException(nameof(specificationId));
             }
 
@@ -418,7 +438,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 buildProject = await _buildProjectsRepositoryPolicy.ExecuteAsync(() => _buildProjectsRepository.GetBuildProjectBySpecificationId(specificationId));
 
-                if(buildProject == null)
+                if (buildProject == null)
                 {
                     buildProject = await GenerateBuildProject(specificationId);
 
@@ -439,7 +459,7 @@ namespace CalculateFunding.Services.Calcs
             }
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
-           
+
             byte[] assembly = await _sourceCodeService.GetAssembly(buildProject);
 
             if (assembly.IsNullOrEmpty())
@@ -534,7 +554,7 @@ namespace CalculateFunding.Services.Calcs
                 Build = new Build()
             };
 
-            IEnumerable<DatasetSpecificationRelationshipViewModel>  datasetRelationshipModels =   await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetCurrentRelationshipsBySpecificationId(specificationId));
+            IEnumerable<DatasetSpecificationRelationshipViewModel> datasetRelationshipModels = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetCurrentRelationshipsBySpecificationId(specificationId));
 
             if (!datasetRelationshipModels.IsNullOrEmpty())
             {
@@ -544,16 +564,16 @@ namespace CalculateFunding.Services.Calcs
 
                 IEnumerable<string> definitionIds = datasetRelationshipModels.Select(m => m.Definition?.Id);
 
-                foreach(string definitionId in definitionIds)
+                foreach (string definitionId in definitionIds)
                 {
                     Task task = Task.Run(async () =>
                     {
-                            DatasetDefinition datasetDefinition = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetDatasetDefinitionById(definitionId));
+                        DatasetDefinition datasetDefinition = await _datasetRepositoryPolicy.ExecuteAsync(() => _datasetRepository.GetDatasetDefinitionById(definitionId));
 
-                            if (datasetDefinition != null)
-                            {
-                                datasetDefinitions.Add(datasetDefinition);
-                            }
+                        if (datasetDefinition != null)
+                        {
+                            datasetDefinitions.Add(datasetDefinition);
+                        }
                     });
 
                     definitionTasks.Add(task);

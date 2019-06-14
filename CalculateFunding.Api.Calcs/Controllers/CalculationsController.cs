@@ -1,7 +1,8 @@
-﻿using CalculateFunding.Services.Calcs.Interfaces;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Calcs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Calcs.Controllers
 {
@@ -147,12 +148,12 @@ namespace CalculateFunding.Api.Calcs.Controllers
             return new OkResult();
         }
 
-	    [Route("api/calcs/{calcSpecId}/calculation")]
-	    [HttpGet]
-	    public async Task<IActionResult> GetCalculationByCalculationSpecificationId(string calcSpecId)
-	    {
-		    return await _calcsService.GetCalculationByCalculationSpecificationId(calcSpecId);
-	    }
+        [Route("api/calcs/{calcSpecId}/calculation")]
+        [HttpGet]
+        public async Task<IActionResult> GetCalculationByCalculationSpecificationId(string calcSpecId)
+        {
+            return await _calcsService.GetCalculationByCalculationSpecificationId(calcSpecId);
+        }
 
         [Route("api/calcs/{specificationId}/assembly")]
         [HttpGet]
@@ -173,6 +174,34 @@ namespace CalculateFunding.Api.Calcs.Controllers
         public async Task<IActionResult> DuplicateCalcNamesMigration()
         {
             return await _calcsService.DuplicateCalcNamesMigration();
+        }
+
+        [Route("api/calcs/{specificationId}/compileAndSaveAssembly")]
+        [HttpGet]
+        public async Task<IActionResult> CompileAndSaveAssembly([FromRoute]string specificationId)
+        {
+            return await _buildProjectsService.CompileAndSaveAssembly(specificationId);
+        }
+
+        [Route("api/calcs/{specificationId}/sourceFiles/release")]
+        [HttpPost]
+        public async Task<IActionResult> SaveSourceFilesRelease([FromRoute]string specificationId)
+        {
+            return await _buildProjectsService.GenerateAndSaveSourceProject(specificationId, SourceCodeType.Release);
+        }
+
+        [Route("api/calcs/{specificationId}/sourceFiles/preview")]
+        [HttpPost]
+        public async Task<IActionResult> SaveSourceFilesPreview([FromRoute]string specificationId)
+        {
+            return await _buildProjectsService.GenerateAndSaveSourceProject(specificationId, SourceCodeType.Preview);
+        }
+
+        [Route("api/calcs/{specificationId}/sourceFiles/diagnostics")]
+        [HttpPost]
+        public async Task<IActionResult> SaveSourceFilesDiagnostics([FromRoute]string specificationId)
+        {
+            return await _buildProjectsService.GenerateAndSaveSourceProject(specificationId, SourceCodeType.Diagnostics);
         }
     }
 }

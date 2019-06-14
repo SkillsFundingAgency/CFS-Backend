@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.202
+VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Models", "Models", "{539AB1D8-B007-4CB6-8355-918D498486E2}"
 EndProject
@@ -194,6 +194,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Providers.UnitTests", "CalculateFunding.Services.Providers.UnitTests\CalculateFunding.Services.Providers.UnitTests.csproj", "{0BE9904B-B724-4008-B3F1-29D3D4AA83AA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Core.AspNet", "CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj", "{3A223CA4-327B-4380-8AB8-33AB0A7249C5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.CosmosDbScaling", "CalculateFunding.Services.CosmosDbScaling\CalculateFunding.Services.CosmosDbScaling.csproj", "{2202F13C-53C2-4EC5-9956-77FD10F30636}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.CosmosDbScaling.UnitTests", "CalculateFunding.Services.CosmosDbScaling.UnitTests\CalculateFunding.Services.CosmosDbScaling.UnitTests.csproj", "{02D6A877-941F-4729-B01D-87E5AE454DD0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.CosmosDbScaling", "CalculateFunding.Functions.CosmosDbScaling\CalculateFunding.Functions.CosmosDbScaling.csproj", "{23262995-D11B-44BF-AB0C-65270E1AAC7D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.CosmosDbScaling.UnitTests", "CalculateFunding.Functions.CosmosDbScaling.UnitTests\CalculateFunding.Functions.CosmosDbScaling.UnitTests.csproj", "{8E8AB38A-D948-4819-A38B-D68ECAA347F2}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Api.Providers", "CalculateFunding.Api.Providers\CalculateFunding.Api.Providers.csproj", "{447D052E-7A0F-4665-8059-E66363CA0C0A}"
 EndProject
@@ -833,6 +841,38 @@ Global
 		{3A223CA4-327B-4380-8AB8-33AB0A7249C5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3A223CA4-327B-4380-8AB8-33AB0A7249C5}.Release|x64.ActiveCfg = Release|Any CPU
 		{3A223CA4-327B-4380-8AB8-33AB0A7249C5}.Release|x64.Build.0 = Release|Any CPU
+		{2202F13C-53C2-4EC5-9956-77FD10F30636}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2202F13C-53C2-4EC5-9956-77FD10F30636}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2202F13C-53C2-4EC5-9956-77FD10F30636}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2202F13C-53C2-4EC5-9956-77FD10F30636}.Debug|x64.Build.0 = Debug|Any CPU
+		{2202F13C-53C2-4EC5-9956-77FD10F30636}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2202F13C-53C2-4EC5-9956-77FD10F30636}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2202F13C-53C2-4EC5-9956-77FD10F30636}.Release|x64.ActiveCfg = Release|Any CPU
+		{2202F13C-53C2-4EC5-9956-77FD10F30636}.Release|x64.Build.0 = Release|Any CPU
+		{02D6A877-941F-4729-B01D-87E5AE454DD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02D6A877-941F-4729-B01D-87E5AE454DD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02D6A877-941F-4729-B01D-87E5AE454DD0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{02D6A877-941F-4729-B01D-87E5AE454DD0}.Debug|x64.Build.0 = Debug|Any CPU
+		{02D6A877-941F-4729-B01D-87E5AE454DD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02D6A877-941F-4729-B01D-87E5AE454DD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02D6A877-941F-4729-B01D-87E5AE454DD0}.Release|x64.ActiveCfg = Release|Any CPU
+		{02D6A877-941F-4729-B01D-87E5AE454DD0}.Release|x64.Build.0 = Release|Any CPU
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D}.Debug|x64.Build.0 = Debug|Any CPU
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D}.Release|x64.ActiveCfg = Release|Any CPU
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D}.Release|x64.Build.0 = Release|Any CPU
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2}.Debug|x64.Build.0 = Debug|Any CPU
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2}.Release|x64.ActiveCfg = Release|Any CPU
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2}.Release|x64.Build.0 = Release|Any CPU
 		{447D052E-7A0F-4665-8059-E66363CA0C0A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{447D052E-7A0F-4665-8059-E66363CA0C0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{447D052E-7A0F-4665-8059-E66363CA0C0A}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -945,6 +985,10 @@ Global
 		{0ADCA660-A1E2-4B1C-A013-B9DDE217F37A} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
 		{0BE9904B-B724-4008-B3F1-29D3D4AA83AA} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
 		{3A223CA4-327B-4380-8AB8-33AB0A7249C5} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
+		{2202F13C-53C2-4EC5-9956-77FD10F30636} = {B684F41D-5064-4DAB-AFFB-B8EC0028E372}
+		{02D6A877-941F-4729-B01D-87E5AE454DD0} = {42CC12ED-881F-4113-AFA0-742962C1DBD8}
+		{23262995-D11B-44BF-AB0C-65270E1AAC7D} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
+		{8E8AB38A-D948-4819-A38B-D68ECAA347F2} = {D0291231-03FB-445B-9A51-A1E30A91AB2B}
 		{447D052E-7A0F-4665-8059-E66363CA0C0A} = {3F254982-CACC-4292-A1E5-1EBA7FD739F6}
 		{E0A61B5B-15DE-4041-A745-B656A8D1C619} = {4845DECB-A618-4EAE-A8A6-4F0AEBC2DE3B}
 		{71F1E275-8CB7-40F2-B781-9313E88A49D8} = {C03B53AE-5975-4A18-B784-ABDF3C4E0A5D}

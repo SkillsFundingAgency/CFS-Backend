@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Models.Jobs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,5 +17,7 @@ namespace CalculateFunding.Services.Jobs.Interfaces
         Task<IActionResult> GetJobLogs(string jobId);
 
         Task<IActionResult> UpdateJob(string jobId, JobUpdateModel jobUpdate, HttpRequest request);
+
+        Task<IActionResult> GetCreatedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo);
     }
 }

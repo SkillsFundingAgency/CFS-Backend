@@ -98,7 +98,7 @@ namespace CalculateFunding.Repositories.Common.Search
             await searchInitializer.Initialise<T>();
         }
 
-        public async Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null)
+        public async Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null, bool allResults = false)
         {
             var client = await GetOrCreateIndex();
 
@@ -106,7 +106,29 @@ namespace CalculateFunding.Repositories.Common.Search
             {
                 searchText = ParseSearchText(searchText);
 
-                var azureSearchResult = await client.Documents.SearchAsync<T>(searchText, searchParameters ?? DefaultParameters);
+                DocumentSearchResult<T> azureSearchResult = await client.Documents.SearchAsync<T>(searchText, searchParameters ?? DefaultParameters);
+
+                IEnumerable<SearchResult<T>> results = azureSearchResult.Results.Select(x => new SearchResult<T>
+                {
+                    HitHighLights = x.Highlights,
+                    Result = x.Document,
+                    Score = x.Score
+                });
+
+                SearchContinuationToken continuationToken = azureSearchResult.ContinuationToken;
+
+                // only keep querying to return all items if we want all results to be returned
+                while (allResults && continuationToken != null)
+                {
+                    DocumentSearchResult<T> continuationResult = await client.Documents.ContinueSearchAsync<T>(continuationToken);
+                    results = results.Concat(continuationResult.Results.Select(x => new SearchResult<T>
+                    {
+                        HitHighLights = x.Highlights,
+                        Result = x.Document,
+                        Score = x.Score
+                    }));
+                    continuationToken = continuationResult.ContinuationToken;
+                }
 
                 var response = new SearchResults<T>
                 {
@@ -121,12 +143,7 @@ namespace CalculateFunding.Repositories.Common.Search
                             Count = (int)(m.Count ?? 0)
                         })
                     }).ToList(),
-                    Results = azureSearchResult.Results.Select(x => new SearchResult<T>
-                    {
-                        HitHighLights = x.Highlights,
-                        Result = x.Document,
-                        Score = x.Score
-                    }).ToList()
+                    Results = results.ToList()
                 };
                 return response;
             }
@@ -176,39 +193,37 @@ namespace CalculateFunding.Repositories.Common.Search
 
         }
 
-        public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)
+        private async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents, Func<T, IndexAction<T>> action)
         {
             var client = await GetOrCreateIndex();
-            var errors = new List<IndexError>();
+            IEnumerable<IndexingResult> indexResults = null;
 
-            foreach (var batch in documents.ToBatches(1000))
+            foreach (var batch in documents.ToBatches(100))
             {
                 try
                 {
-                    var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(IndexAction.MergeOrUpload)));
-                    foreach (IndexingResult result in indexResult.Results)
-                    {
-                        if (!result.Succeeded)
-                        {
-                            errors.Add(new IndexError { Key = result.Key, ErrorMessage = result.ErrorMessage });
-                        }
-                    }
+                    var indexResult = await client.Documents.IndexAsync(new IndexBatch<T>(batch.Select(action)));
+                    indexResults = indexResult.Results;
                 }
-                catch (IndexBatchException ex )
+                catch (IndexBatchException ex)
                 {
-                    if (ex.IndexingResults != null)
-                    {
-                        foreach (IndexingResult result in ex.IndexingResults)
-                        {
-                            if (!result.Succeeded)
-                            {
-                                errors.Add(new IndexError { Key = result.Key, ErrorMessage = result.ErrorMessage });
-                            }
-                        }
-                    }
+                    indexResults = ex.IndexingResults;
                 }
             }
-            return errors;
+
+            return indexResults?
+                .Where(x => !x.Succeeded)
+                .Select(x => new IndexError { Key = x.Key, ErrorMessage = x.ErrorMessage }) ?? Enumerable.Empty<IndexError>() ;
+        }
+
+        public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)
+        {
+            return await Index(documents, IndexAction.MergeOrUpload);
+        }
+
+        public async Task<IEnumerable<IndexError>> Remove(IEnumerable<T> documents)
+        {
+            return await Index(documents, IndexAction.Delete);
         }
 
         public async Task DeleteIndex()

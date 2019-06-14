@@ -3,10 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <DebugType>full</DebugType>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.1" />
+    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>

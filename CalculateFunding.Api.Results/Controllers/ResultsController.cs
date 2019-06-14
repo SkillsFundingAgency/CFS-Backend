@@ -1,8 +1,8 @@
+using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Results.Controllers
 {

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
@@ -263,6 +264,39 @@ namespace CalculateFunding.Services.TestRunner.Services
                         _logger.Error($"The following errors occcurred while updating test results for specification id: {specificationVersionComparison.Id}, {string.Join(";", indexErrors.Select(m => m.ErrorMessage))}");
                     }
                 }
+            }
+        }
+
+        public async Task CleanupTestResultsForSpecificationProviders(Message message)
+        {
+            string specificationId = message.UserProperties["specificationId"].ToString();
+
+            Models.Results.SpecificationProviders specificationProviders = message.GetPayloadAsInstanceOf<Models.Results.SpecificationProviders>();
+
+            IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsPolicy
+                .ExecuteAsync(() => _testResultsRepository.GetCurrentTestResults(specificationProviders.Providers, specificationId)
+            );
+
+            if (testScenarioResults.Any())
+            {
+                _logger.Information($"Removing {specificationProviders.Providers.Count()} from test results for specification {specificationId}");
+
+                await _testResultsPolicy.ExecuteAsync(() =>
+                    _testResultsRepository.DeleteCurrentTestScenarioTestResults(testScenarioResults));
+
+                SearchResults<TestScenarioResultIndex> indexItems = await _testResultsSearchPolicy
+                    .ExecuteAsync(() => _searchRepository.Search(string.Empty, 
+                            new SearchParameters
+                            {
+                                Top = testScenarioResults.Count(),
+                                SearchMode = SearchMode.Any,
+                                Filter = $"specificationId eq '{specificationId}' and (" + string.Join(" or ", testScenarioResults.Select(m => $"providerId eq '{m.Provider.Id}'")) + ")",
+                                QueryType = QueryType.Full
+                            }
+                        )
+                    );
+
+                await _testResultsSearchPolicy.ExecuteAsync(() => _searchRepository.Remove(indexItems?.Results.Select(m => m.Result)));
             }
         }
     }

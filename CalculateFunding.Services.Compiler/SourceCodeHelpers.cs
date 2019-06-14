@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.IO;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Common.Utility;
 
 namespace CalculateFunding.Services.Compiler
 {

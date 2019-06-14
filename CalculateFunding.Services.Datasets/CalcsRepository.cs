@@ -1,12 +1,11 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Users;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Datasets.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets
 {

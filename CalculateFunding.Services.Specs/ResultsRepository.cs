@@ -1,12 +1,10 @@
-﻿using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Users;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Specs.Interfaces;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -26,7 +24,7 @@ namespace CalculateFunding.Services.Specs
             string url = string.Format(resultsForSpecificationUrl, specificationId, 1);
 
             IEnumerable<ProviderResult> providerResults = await _apiClientProxy.GetAsync<IEnumerable<ProviderResult>>(url);
-            if(providerResults == null)
+            if (providerResults == null)
             {
                 throw new InvalidOperationException("Provider results should not return null, but empty array");
             }

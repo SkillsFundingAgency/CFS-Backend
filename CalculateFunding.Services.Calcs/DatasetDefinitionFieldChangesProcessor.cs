@@ -1,4 +1,8 @@
-﻿using CalculateFunding.Common.FeatureToggles;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
@@ -6,14 +10,9 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -28,7 +27,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationsRepository _calculationsRepository;
 
         public DatasetDefinitionFieldChangesProcessor(
-            IFeatureToggle featureToggle, 
+            IFeatureToggle featureToggle,
             IDatasetRepository datasetRepository,
             ICalcsResiliencePolicies resiliencePolicies,
             ILogger logger,
@@ -103,7 +102,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(fieldChanges, nameof(fieldChanges));
             Guard.ArgumentNotNull(relationshipSpecificationIds, nameof(relationshipSpecificationIds));
 
-            IEnumerable<IGrouping<string,FieldDefinitionChanges>> groupedFieldChanges = fieldChanges.GroupBy(f => f.FieldDefinition.Id);
+            IEnumerable<IGrouping<string, FieldDefinitionChanges>> groupedFieldChanges = fieldChanges.GroupBy(f => f.FieldDefinition.Id);
 
             IList<FieldDefinitionChanges> fieldDefinitionChanges = new List<FieldDefinitionChanges>();
 
@@ -111,10 +110,10 @@ namespace CalculateFunding.Services.Calcs
 
             foreach (IGrouping<string, FieldDefinitionChanges> grouping in groupedFieldChanges)
             {
-                FieldDefinitionChanges  fieldDefinitionChange = grouping.FirstOrDefault(m => m.ChangeTypes.Any(
-                    c => c == FieldDefinitionChangeType.FieldName) || m.RequiresRemap);
+                FieldDefinitionChanges fieldDefinitionChange = grouping.FirstOrDefault(m => m.ChangeTypes.Any(
+                   c => c == FieldDefinitionChangeType.FieldName) || m.RequiresRemap);
 
-                if(fieldDefinitionChange != null)
+                if (fieldDefinitionChange != null)
                 {
                     fieldDefinitionChanges.Add(fieldDefinitionChange);
                 }

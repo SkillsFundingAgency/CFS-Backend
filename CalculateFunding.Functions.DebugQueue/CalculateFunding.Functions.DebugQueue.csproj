@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
     <UserSecretsId>df0d69d5-a6db-4598-909f-262fc39cb8c8</UserSecretsId>
+    <LangVersion>7.1</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Functions.CalcEngine\CalculateFunding.Functions.CalcEngine.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Calcs\CalculateFunding.Functions.Calcs.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Functions.CosmosDbScaling\CalculateFunding.Functions.CosmosDbScaling.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Datasets\CalculateFunding.Functions.Datasets.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Jobs\CalculateFunding.Functions.Jobs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Notifications\CalculateFunding.Functions.Notifications.csproj" />

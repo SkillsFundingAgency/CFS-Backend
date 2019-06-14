@@ -56,16 +56,14 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static string GetCorrelationId(this HttpRequest request)
         {
-            const string sfaCorellationId = "sfa-correlationId";
+            const string sfaCorrelationId = "sfa-correlationId";
 
-            if (request.Headers.ContainsKey(sfaCorellationId))
+            if (request.Headers.ContainsKey(sfaCorrelationId))
             {
-                return request.Headers[sfaCorellationId].FirstOrDefault();
+                return request.Headers[sfaCorrelationId].FirstOrDefault();
             }
-            else
-            {
-                return Guid.NewGuid().ToString();
-            }
+
+            return Guid.NewGuid().ToString();
         }
 
         public static Reference GetUser(this HttpRequest request)

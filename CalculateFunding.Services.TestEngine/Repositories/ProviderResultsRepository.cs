@@ -2,9 +2,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.TestRunner.Interfaces;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
@@ -31,9 +32,19 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                 throw new ArgumentNullException(nameof(specificationId));
             }
 
-            string sql = $"select * from c where c.documentType = 'ProviderResult' and c.content.provider.id = '{providerId}' and c.content.specification.id = '{specificationId}'";
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT *
+                            FROM    c 
+                            WHERE   c.documentType = 'ProviderResult'
+                                    AND c.content.specification.id = @SpecificationId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationId", specificationId)
+                }
+            };
 
-            ProviderResult providerResult = (await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(sql, partitionEntityId: providerId)).FirstOrDefault();
+            ProviderResult providerResult = (await _cosmosRepository.QueryPartitionedEntity<ProviderResult>(sqlQuerySpec, partitionEntityId: providerId)).FirstOrDefault();
 
             return providerResult;
         }

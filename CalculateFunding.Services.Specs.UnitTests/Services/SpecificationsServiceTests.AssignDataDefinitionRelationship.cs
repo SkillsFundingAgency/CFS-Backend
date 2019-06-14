@@ -251,7 +251,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             //Assert
             logger
                 .Received(1)
-                .Information($"Succeffuly assigned relationship id: {RelationshipId} to specification with id: {SpecificationId}");
+                .Information($"Successfully assigned relationship id: {RelationshipId} to specification with id: {SpecificationId}");
 
             await
                 searchRepository
