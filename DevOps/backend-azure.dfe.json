@@ -319,53 +319,11 @@
         "description": "Client secret of the profiling application"
       }
     },
-    "EnableMajorMinorVersioning": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable the major minor versioning"
-      }
-    },
-    "EnableAllAllocationVersionsInFeedIndex": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable the all allocation versions in feed index"
-      }
-    },
-    "EnableDatasetAggregations": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable dataset aggregations"
-      }
-    },
-    "EnableProviderVariations": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable the variation of provider allocation results"
-      }
-    },
-    "AggregateOverCalculationsEnabled": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable aggregating over calculations"
-      }
-    },
     "EnableNewProviderCalculationResultsIndex": {
       "defaultValue": false,
       "type": "bool",
       "metadata": {
         "description": "Feature toggle to enable new calc results index"
-      }
-    },
-    "EnableDuplicateCalculationNameCheck": {
-      "defaultValue": false,
-      "type": "bool",
-      "metadata": {
-        "description": "Feature toggle to enable new check for duplicate calculation names"
       }
     },
     "EnableDynamicBuildProject": {
@@ -1591,10 +1549,6 @@
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
-              "name": "features:aggregateSupportInCalculationsEnabled",
-              "value": "[parameters('EnableDatasetAggregations')]"
-            },
-            {
               "name": "features:useFieldDefinitionIdsInSourceDatasetsEnabled",
               "value": "[parameters('EnableUseFieldDefinitionIdsInSourceDatasets')]"
             },
@@ -1742,14 +1696,6 @@
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountId'),'2015-05-01-preview').key1)]"
             },
             {
-              "name": "features:allocationLineMajorMinorVersioningEnabled",
-              "value": "[parameters('EnableMajorMinorVersioning')]"
-            },
-            {
-              "name": "features:aggregateSupportInCalculationsEnabled",
-              "value": "[parameters('EnableDatasetAggregations')]"
-            },
-            {
               "name": "jobsClient:ApiKey",
               "value": "[parameters('ApiKeyJobs')]"
             },
@@ -1760,10 +1706,6 @@
             {
               "name": "engineSettings:MaxPartitionSize",
               "value": "[parameters('CalcEngineMaxPartitionSize')]"
-            },
-            {
-              "name": "features:duplicateCalculationNameCheckEnabled",
-              "value": "[parameters('EnableDuplicateCalculationNameCheck')]"
             },
             {
               "name": "features:dynamicBuildProjectEnabled",
@@ -1905,14 +1847,6 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-datasets.azurewebsites.net/api/')]"
             },
             {
-              "name": "features:allocationLineMajorMinorVersioningEnabled",
-              "value": "[parameters('EnableMajorMinorVersioning')]"
-            },
-            {
-              "name": "features:aggregateSupportInCalculationsEnabled",
-              "value": "[parameters('EnableDatasetAggregations')]"
-            },
-            {
               "name": "features:newProviderCalculationResultsIndexEnabled",
               "value": "[parameters('EnableNewProviderCalculationResultsIndex')]"
             },
@@ -1927,10 +1861,6 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:duplicateCalculationNameCheckEnabled",
-              "value": "[parameters('EnableDuplicateCalculationNameCheck')]"
             },
             {
               "name": "features:useFieldDefinitionIdsInSourceDatasetsEnabled",
@@ -2246,10 +2176,6 @@
               "value": "[parameters('DisableProviderProfilingService')]"
             },
             {
-              "name": "features:allocationLineMajorMinorVersioningEnabled",
-              "value": "[parameters('EnableMajorMinorVersioning')]"
-            },
-            {
               "name": "features:allAllocationResultsVersionsInFeedIndexEnabled",
               "value": "[parameters('EnableAllAllocationVersionsInFeedIndex')]"
             },
@@ -2272,10 +2198,6 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:providerVariationsEnabled",
-              "value": "[parameters('EnableProviderVariations')]"
             },
             {
               "name": "resultsClient:ApiKey",
@@ -2406,10 +2328,6 @@
             {
               "name": "AzureStorageSettings:ConnectionString",
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountid'),'2015-05-01-preview').key1)]"
-            },
-            {
-              "name": "features:duplicateCalculationNameCheckEnabled",
-              "value": "[parameters('EnableDuplicateCalculationNameCheck')]"
             }
           ]
         }
@@ -3241,24 +3159,12 @@
               "value": "[parameters('ApiKeyCalcs')]"
             },
             {
-              "name": "features:aggregateSupportInCalculationsEnabled",
-              "value": "[parameters('EnableDatasetAggregations')]"
-            },
-            {
-              "name": "features:duplicateCalculationNameCheckEnabled",
-              "value": "[parameters('EnableDuplicateCalculationNameCheck')]"
-            },
-            {
               "name": "jobsClient:ApiKey",
               "value": "[parameters('ApiKeyJobs')]"
             },
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:aggregateOverCalculationsEnabled",
-              "value": "[parameters('AggregateOverCalculationsEnabled')]"
             },
             {
               "name": "engineSettings:MaxPartitionSize",
@@ -3405,10 +3311,6 @@
               "value": "[parameters('DisableProviderProfilingService')]"
             },
             {
-              "name": "features:allocationLineMajorMinorVersioningEnabled",
-              "value": "[parameters('EnableMajorMinorVersioning')]"
-            },
-            {
               "name": "PublishedProviderResultsSettings:UpdateAllocationLineResultStatusBatchCount",
               "value": "[parameters('UpdateAllocationLineResultStatusBatchCount')]"
             }
@@ -3542,10 +3444,6 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeyTestEngine')]"
-            },
-            {
-              "name": "features:aggregateOverCalculationsEnabled",
-              "value": "[parameters('AggregateOverCalculationsEnabled')]"
             }
           ]
         }
@@ -3664,14 +3562,6 @@
             {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeyResults')]"
-            },
-            {
-              "name": "features:allocationLineMajorMinorVersioningEnabled",
-              "value": "[parameters('EnableMajorMinorVersioning')]"
-            },
-            {
-              "name": "features:allAllocationResultsVersionsInFeedIndexEnabled",
-              "value": "[parameters('EnableAllAllocationVersionsInFeedIndex')]"
             },
             {
               "name": "PublishedProviderResultsSettings:UpdateAllocationLineResultStatusBatchCount",
@@ -3812,24 +3702,12 @@
               "value": "[parameters('ApiKeySpecs')]"
             },
             {
-              "name": "features:allocationLineMajorMinorVersioningEnabled",
-              "value": "[parameters('EnableMajorMinorVersioning')]"
-            },
-            {
               "name": "jobsClient:ApiKey",
               "value": "[parameters('ApiKeyJobs')]"
             },
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "features:providerVariationsEnabled",
-              "value": "[parameters('EnableProviderVariations')]"
-            },
-            {
-              "name": "features:duplicateCalculationNameCheckEnabled",
-              "value": "[parameters('EnableDuplicateCalculationNameCheck')]"
             }
           ]
         }
