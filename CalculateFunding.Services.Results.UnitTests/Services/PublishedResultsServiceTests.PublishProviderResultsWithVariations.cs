@@ -54,9 +54,7 @@ namespace CalculateFunding.Services.Results.Services
         public void PublishProviderResultsWithVariations_WhenMessageDoesNotHaveJobId_ThenThrowsException()
         {
             // Arrange
-            IFeatureToggle featureToggle = InitialiseFeatureToggle();
-
-            PublishedResultsService resultsService = CreateResultsService(featureToggle: featureToggle);
+            PublishedResultsService resultsService = CreateResultsService();
 
             Message message = new Message();
 
@@ -337,8 +335,6 @@ namespace CalculateFunding.Services.Results.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
-            IFeatureToggle featureToggle = InitialiseFeatureToggle();
-
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient();
 
             PublishedResultsService resultsService = CreateResultsService(
@@ -347,7 +343,7 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 publishedProviderResultsVersionRepository: versionRepository,
-                featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -571,8 +567,6 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting()
             };
 
-            IFeatureToggle featureToggle = InitialiseFeatureToggle();
-
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(SpecificationId1), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
@@ -612,7 +606,6 @@ namespace CalculateFunding.Services.Results.Services
                 cacheProvider: mockCacheProvider,
                 publishedProviderResultsAssemblerService: assemblerService,
                 publishedProviderResultsVersionRepository: versionRepository,
-                featureToggle: featureToggle,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -850,8 +843,6 @@ namespace CalculateFunding.Services.Results.Services
                 .GetPublishedProviderResultForId("c3BlYy0xMTIzQUFBQUE=", "123")
                 .Returns(existingProviderResultToRemove);
 
-            IFeatureToggle featureToggle = InitialiseFeatureToggle();
-
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient();
 
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
@@ -859,7 +850,7 @@ namespace CalculateFunding.Services.Results.Services
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 publishedProviderResultsVersionRepository: versionRepository,
-                featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -1907,8 +1898,6 @@ namespace CalculateFunding.Services.Results.Services
         public async Task PublishProviderResultsWithVariations_WhenProviderClosed_ThenNotProfiled()
         {
             // Arrange
-            IFeatureToggle featureToggle = InitialiseFeatureToggle();
-
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
             message.UserProperties["jobId"] = jobId;
@@ -1948,7 +1937,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository);
 
-            PublishedResultsService service = CreateResultsService(featureToggle: featureToggle, jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
+            PublishedResultsService service = CreateResultsService(jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository, publishedProviderResultsAssemblerService: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService);
 
@@ -1966,8 +1955,6 @@ namespace CalculateFunding.Services.Results.Services
         public async Task PublishProviderResultsWithVariations_WhenProviderHasNotVaried_ThenNoUpdatesPerfomed()
         {
             // Arrange
-            IFeatureToggle featureToggle = InitialiseFeatureToggle();
-
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
             message.UserProperties["jobId"] = jobId;
@@ -1997,7 +1984,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository);
 
-            PublishedResultsService service = CreateResultsService(featureToggle: featureToggle, jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
+            PublishedResultsService service = CreateResultsService(jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository, publishedProviderResultsAssemblerService: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService);
 
@@ -2305,9 +2292,6 @@ namespace CalculateFunding.Services.Results.Services
         // Applies to all provider variation scenarios
         public async Task PublishProviderResultsWithVariations_WhenRequestIsToChoose_ThenNoVariationsProcessed()
         {
-            // Arrange
-            IFeatureToggle featureToggle = InitialiseFeatureToggle();
-
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
             message.UserProperties["jobId"] = jobId;
@@ -2332,7 +2316,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository, logger);
 
-            PublishedResultsService service = CreateResultsService(featureToggle: featureToggle, jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
+            PublishedResultsService service = CreateResultsService(jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository, publishedProviderResultsAssemblerService: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService, logger: logger);
 
@@ -2804,8 +2788,6 @@ namespace CalculateFunding.Services.Results.Services
                 Arg.Any<Reference>())
                 .Returns(processProviderVariationsResult);
 
-            IFeatureToggle featureToggles = InitialiseFeatureToggle(true);
-
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient(true);
 
             PublishedResultsService resultsService = CreateResultsService(
@@ -2815,8 +2797,7 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResultsAssemblerService: assembler,
                 providerChangesRepository: providerChangesRepository,
                 providerVariationsService: providerVariationsService,
-                jobsApiClient: jobsApiClient,
-                featureToggle: featureToggles);
+                jobsApiClient: jobsApiClient);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -2887,8 +2868,6 @@ namespace CalculateFunding.Services.Results.Services
                 Arg.Any<Reference>())
                 .Returns(processProviderVariationsResult);
 
-            IFeatureToggle featureToggles = InitialiseFeatureToggle(true);
-
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient(true);
 
             ILogger logger = CreateLogger();
@@ -2903,7 +2882,6 @@ namespace CalculateFunding.Services.Results.Services
                 providerChangesRepository: providerChangesRepository,
                 providerVariationsService: providerVariationsService,
                 jobsApiClient: jobsApiClient,
-                featureToggle: featureToggles,
                 logger: logger,
                 cacheProvider: cacheProvider);
 
@@ -4962,12 +4940,11 @@ namespace CalculateFunding.Services.Results.Services
             ILogger logger = null,
             ICacheProvider cacheProvider = null)
         {
-            IFeatureToggle featureToggle = InitialiseFeatureToggle();
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient();
             IPublishedAllocationLineLogicalResultVersionService versionService = CreateRealPublishedAllocationLineLogicalResultVersionService();
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository, logger);
 
-            return CreateResultsService(featureToggle: featureToggle, jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
+            return CreateResultsService(jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository, publishedProviderResultsAssemblerService: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService,
                 publishedAllocationLineLogicalResultVersionService: versionService, logger: logger ?? CreateLogger(),
@@ -5235,16 +5212,6 @@ namespace CalculateFunding.Services.Results.Services
         private IVersionRepository<PublishedAllocationLineResultVersion> CreateRealPublishedProviderResultsVersionRepository()
         {
             return new VersionRepository<PublishedAllocationLineResultVersion>(Substitute.For<ICosmosRepository>());
-        }
-
-        private static IFeatureToggle InitialiseFeatureToggle(bool enableProviderVariations = true)
-        {
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsProviderVariationsEnabled()
-                .Returns(enableProviderVariations);
-
-            return featureToggle;
         }
 
         private static IJobsApiClient InitialiseJobsApiClient(bool isRefreshJob = true)

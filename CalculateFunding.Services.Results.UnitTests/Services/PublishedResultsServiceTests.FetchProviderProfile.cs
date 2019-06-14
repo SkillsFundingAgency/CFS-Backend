@@ -446,11 +446,6 @@ namespace CalculateFunding.Services.Results.Services
                 Id = specificationId
             };
 
-            IFeatureToggle featureToggler = Substitute.For<IFeatureToggle>();
-            featureToggler
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
@@ -458,7 +453,7 @@ namespace CalculateFunding.Services.Results.Services
 
             PublishedResultsService service = CreateResultsService(logger: logger, publishedProviderResultsRepository: publishedProviderResultsRepository,
                 profilingApiClient: providerProfilingRepository, specificationsRepository: specificationsRepository, allocationNotificationFeedSearchRepository: feedsSearchRepository,
-                featureToggle: featureToggler, jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient);
 
             string json = JsonConvert.SerializeObject(requestModel);
 

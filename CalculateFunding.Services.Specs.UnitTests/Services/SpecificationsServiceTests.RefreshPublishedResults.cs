@@ -123,11 +123,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             // Arrange
             const string specificationId1 = "123";
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsProviderVariationsEnabled()
-                .Returns(true);
-
             HttpRequest httpRequest = Substitute.For<HttpRequest>();
 
             ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
@@ -142,7 +137,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
             SpecificationsService specificationsService = CreateService(specificationsRepository: mockSpecificationsRepository,
-                cacheProvider: mockCacheProvider, featureToggle: featureToggle, jobsApiClient: jobsApiClient);
+                cacheProvider: mockCacheProvider, jobsApiClient: jobsApiClient);
 
             httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
             {
@@ -200,12 +195,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ISpecificationsRepository mockSpecificationsRepository = Substitute.For<ISpecificationsRepository>();
             mockSpecificationsRepository.GetSpecificationById(validSpecificationId).Returns(new Specification());
 
-            IFeatureToggle featureToggle = CreateFeatureToggle();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(false);
-
-            SpecificationsService specificationsService = CreateService(messengerService: messengerService, featureToggle: featureToggle);
+            SpecificationsService specificationsService = CreateService(messengerService: messengerService);
             HttpRequest httpRequest = Substitute.For<HttpRequest>();
             httpRequest.Query.Returns(new QueryCollection(new Dictionary<string, StringValues>()
             {

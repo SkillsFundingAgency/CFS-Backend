@@ -593,7 +593,7 @@ namespace CalculateFunding.Services.Datasets
                 _providersResultsRepository.UpdateCurrentProviderSourceDatasets(updateCurrentDatasets.Values));
             }
 
-            if (existingCurrent.Any())
+            if (_featureToggle.IsProviderResultsSpecificationCleanupEnabled() && existingCurrent.Any())
             {
                  _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
 

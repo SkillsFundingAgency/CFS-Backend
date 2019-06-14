@@ -464,12 +464,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 .GetFeedsV2(Arg.Is(3), Arg.Is(2))
                 .ReturnsForAnyArgs(feeds);
 
-            IFeatureToggle features = CreateFeatureToggle();
-            features
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
-            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
@@ -522,12 +517,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Arrange
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 
-            IFeatureToggle features = CreateFeatureToggle();
-            features
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
-            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
@@ -565,12 +555,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Arrange
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 
-            IFeatureToggle features = CreateFeatureToggle();
-            features
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
-            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
@@ -608,12 +593,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Arrange
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 
-            IFeatureToggle features = CreateFeatureToggle();
-            features
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
-            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
@@ -653,12 +633,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Arrange
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 
-            IFeatureToggle features = CreateFeatureToggle();
-            features
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
-            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
@@ -700,12 +675,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Arrange
             IAllocationNotificationsFeedsSearchService feedsSearchService = CreateSearchService();
 
-            IFeatureToggle features = CreateFeatureToggle();
-            features
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
-
-            AllocationNotificationFeedsService service = CreateService(feedsSearchService, features);
+            AllocationNotificationFeedsService service = CreateService(feedsSearchService);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {

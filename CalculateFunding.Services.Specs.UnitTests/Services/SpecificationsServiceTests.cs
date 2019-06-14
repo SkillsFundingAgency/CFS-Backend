@@ -86,9 +86,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected IFeatureToggle CreateFeatureToggle()
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-            featureToggle
-                .IsAllocationLineMajorMinorVersioningEnabled()
-                .Returns(true);
 
             return featureToggle;
         }
