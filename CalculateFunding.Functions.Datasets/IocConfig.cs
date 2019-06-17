@@ -211,6 +211,7 @@ namespace CalculateFunding.Functions.Datasets
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {
@@ -254,7 +255,8 @@ namespace CalculateFunding.Functions.Datasets
                     DatasetSearchService = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     DatasetDefinitionSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

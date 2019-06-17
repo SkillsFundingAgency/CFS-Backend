@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Web;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -26,7 +21,6 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
@@ -38,6 +32,14 @@ using Newtonsoft.Json;
 using OfficeOpenXml;
 using Polly;
 using Serilog;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Web;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -52,17 +54,17 @@ namespace CalculateFunding.Services.Datasets
         private readonly IValidator<DatasetMetadataModel> _datasetMetadataModelValidator;
         private readonly ISearchRepository<DatasetIndex> _datasetIndexSearchRepository;
         private readonly ISearchRepository<DatasetVersionIndex> _datasetVersionIndexRepository;
+        private readonly IProvidersApiClient _providersApiClient;
         private readonly IValidator<GetDatasetBlobModel> _getDatasetBlobModelValidator;
         private readonly ICacheProvider _cacheProvider;
-        private readonly IProviderService _providerService;
         private readonly IValidator<ExcelPackage> _dataWorksheetValidator;
         private readonly IValidator<DatasetUploadValidationModel> _datasetUploadValidator;
         private readonly Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
+        private readonly Policy _providersApiClientPolicy;
 
-        static IEnumerable<ProviderSummary> _providerSummaries = new List<ProviderSummary>();
-
-        public DatasetService(IBlobClient blobClient,
+        public DatasetService(
+            IBlobClient blobClient,
             ILogger logger,
             IDatasetRepository datasetRepository,
             IValidator<CreateNewDatasetModel> createNewDatasetModelValidator,
@@ -72,12 +74,12 @@ namespace CalculateFunding.Services.Datasets
             ISearchRepository<DatasetIndex> datasetIndexSearchRepository,
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator,
             ICacheProvider cacheProvider,
-            IProviderService providerService,
             IValidator<ExcelPackage> dataWorksheetValidator,
             IValidator<DatasetUploadValidationModel> datasetUploadValidator,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IJobsApiClient jobsApiClient,
-            ISearchRepository<DatasetVersionIndex> datasetVersionIndexRepository)
+            ISearchRepository<DatasetVersionIndex> datasetVersionIndexRepository,
+            IProvidersApiClient providersApiClient)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -89,11 +91,11 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(datasetIndexSearchRepository, nameof(datasetIndexSearchRepository));
             Guard.ArgumentNotNull(getDatasetBlobModelValidator, nameof(getDatasetBlobModelValidator));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(providerService, nameof(providerService));
             Guard.ArgumentNotNull(dataWorksheetValidator, nameof(dataWorksheetValidator));
             Guard.ArgumentNotNull(datasetUploadValidator, nameof(datasetUploadValidator));
             Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
 
             _blobClient = blobClient;
             _logger = logger;
@@ -105,12 +107,13 @@ namespace CalculateFunding.Services.Datasets
             _datasetIndexSearchRepository = datasetIndexSearchRepository;
             _getDatasetBlobModelValidator = getDatasetBlobModelValidator;
             _cacheProvider = cacheProvider;
-            _providerService = providerService;
             _dataWorksheetValidator = dataWorksheetValidator;
             _datasetUploadValidator = datasetUploadValidator;
             _jobsApiClient = jobsApiClient;
             _datasetVersionIndexRepository = datasetVersionIndexRepository;
+            _providersApiClient = providersApiClient;
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
+            _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -1111,10 +1114,26 @@ namespace CalculateFunding.Services.Datasets
         private async Task<(IDictionary<string, IEnumerable<string>> validationFailures, int providersProcessed)> ValidateTableResults(DatasetDefinition datasetDefinition, ICloudBlob blob)
         {
             int rowCount = 0;
-            if (_providerSummaries.IsNullOrEmpty())
+
+            ConcurrentBag<ProviderSummary> summaries = new ConcurrentBag<ProviderSummary>();
+
+            ApiResponse<ProviderVersion> providerVersionResponse = await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetAllMasterProviders());
+
+            if (!providerVersionResponse.StatusCode.IsSuccess() ||
+                providerVersionResponse.Content == null ||
+                providerVersionResponse.Content.Providers.IsNullOrEmpty())
             {
-                _providerSummaries = await _providerService.FetchCoreProviderData();
+                string errorMessage = $"Failed to fetch master providers with status code: {providerVersionResponse.StatusCode.ToString()}";
+
+                _logger.Error(errorMessage);
+
+                throw new RetriableException(errorMessage);
             }
+
+            Parallel.ForEach(providerVersionResponse.Content.Providers, (provider) =>
+            {
+                summaries.Add(_mapper.Map<ProviderSummary>(provider));
+            });
 
             Dictionary<string, IEnumerable<string>> validationFailures = new Dictionary<string, IEnumerable<string>>();
 
@@ -1129,7 +1148,7 @@ namespace CalculateFunding.Services.Datasets
                 {
                     using (ExcelPackage excelPackage = new ExcelPackage(datasetStream))
                     {
-                        DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => _providerSummaries, datasetDefinition);
+                        DatasetUploadValidationModel uploadModel = new DatasetUploadValidationModel(excelPackage, () => summaries, datasetDefinition);
                         ValidationResult validationResult = _datasetUploadValidator.Validate(uploadModel);
                         if (uploadModel.Data != null)
                         {

@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
@@ -136,8 +137,6 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-
-
         public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
@@ -173,6 +172,27 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddSingleton<IJobsApiClient, JobsApiClient>();
+
+            return builder;
+        }
+
+        public static IServiceCollection AddProvidersInterServiceClient(this IServiceCollection builder, IConfiguration config)
+        {
+            builder.AddHttpClient(HttpClientKeys.Providers,
+               c =>
+               {
+                   ApiOptions apiOptions = new ApiOptions();
+
+                   config.Bind("providersClient", apiOptions);
+
+                   SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+               })
+               .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+               .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
+               .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
+
+            builder
+                .AddSingleton<IProvidersApiClient, ProvidersApiClient>();
 
             return builder;
         }

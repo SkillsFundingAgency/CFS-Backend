@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
@@ -43,10 +44,10 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<GetDatasetBlobModel> getDatasetBlobModelValidator = null,
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
-            IProviderService providerService = null,
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
             IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
-            IJobsApiClient jobsApiClient = null)
+            IJobsApiClient jobsApiClient = null,
+            IProvidersApiClient providersApiClient = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -59,13 +60,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 searchRepository ?? CreateSearchRepository(),
                 getDatasetBlobModelValidator ?? CreateGetDatasetBlobModelValidator(),
                 cacheProvider ?? CreateCacheProvider(),
-                providerService ?? CreateProviderService(),
                 datasetWorksheetValidator ?? CreateDataWorksheetValidator(),
                 datasetUploadValidator ?? CreateDatasetUploadValidator(),
                 DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                datasetVersionIndex ?? CreateDatasetVersionRepository()
-                );
+                datasetVersionIndex ?? CreateDatasetVersionRepository(),
+                providersApiClient ?? CreateProvidersApiClient());
         }
 
         protected IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()
@@ -81,11 +81,6 @@ namespace CalculateFunding.Services.Datasets.Services
         private ITelemetry CreateTelemetry()
         {
             return Substitute.For<ITelemetry>();
-        }
-
-        protected IProviderService CreateProviderService()
-        {
-            return Substitute.For<IProviderService>();
         }
 
         protected IProvidersResultsRepository CreateProviderResultsRepository()
@@ -261,6 +256,11 @@ namespace CalculateFunding.Services.Datasets.Services
         protected IJobsApiClient CreateJobsApiClient()
         {
             return Substitute.For<IJobsApiClient>();
+        }
+
+        protected IProvidersApiClient CreateProvidersApiClient()
+        {
+            return Substitute.For<IProvidersApiClient>();
         }
     }
 }

@@ -6,13 +6,19 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
@@ -366,27 +372,147 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = errors }
             };
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             ICacheProvider cacheProvider = CreateCacheProvider();
+
+            IMapper mapper = CreateMapper();
 
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 datasetUploadValidator: datasetUploadValidator,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                providersApiClient: providersApiClient,
+                mapper: mapper);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            await service.ValidateDataset(message);
 
-            // Assert
-            result
-               .Should().NotThrow();
+            // Assert     
+            mapper
+                .Received(1)
+                .Map<ProviderSummary>(Arg.Any<Common.ApiClient.Providers.Models.Provider>());
 
             await cacheProvider
                 .Received(1)
                 .SetAsync(Arg.Is($"{CacheKeys.DatasetValidationStatus}:{operationId}"), Arg.Is<DatasetValidationStatusModel>(v =>
                 v.OperationId == operationId &&
                 v.ValidationFailures.Count == 3));
+        }
+
+        [TestMethod]
+        public void OnValidateDataset_GivenNoProvidersReturned_ThrowsRetriableException()
+        {
+            //Arrange
+            const string blobPath = "dataset-id/v1/ds.xlsx";
+            const string operationId = "operationId";
+            const string errorMessage = "Failed to fetch master providers with status code: BadRequest";
+
+            GetDatasetBlobModel model = new GetDatasetBlobModel
+            {
+                DatasetId = "dataset-id",
+                Version = 1,
+                Filename = "ds.xlsx"
+            };
+            string json = JsonConvert.SerializeObject(model);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+
+            Message message = new Message(byteArray);
+            message.UserProperties.Add("jobId", "job1");
+            message.UserProperties.Add("operation-id", operationId);
+
+            ILogger logger = CreateLogger();
+
+            IDictionary<string, string> metaData = new Dictionary<string, string>
+            {
+                { "dataDefinitionId", DataDefintionId }
+            };
+
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+            blob
+                .Metadata
+                .Returns(metaData);
+
+            MemoryStream memoryStream = new MemoryStream(CreateTestExcelPackage());
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobPath))
+                .Returns(blob);
+            blobClient
+                .DownloadToStreamAsync(Arg.Is(blob))
+                .Returns(memoryStream);
+
+            DatasetDefinition datasetDefinition = new DatasetDefinition
+            {
+                Id = DataDefintionId
+            };
+
+            IEnumerable<DatasetDefinition> datasetDefinitions = new[]
+            {
+                datasetDefinition
+            };
+
+            IDatasetRepository datasetRepository = CreateDatasetsRepository();
+            datasetRepository
+                .GetDatasetDefinitionsByQuery(Arg.Any<Expression<Func<DatasetDefinition, bool>>>())
+                .Returns(datasetDefinitions);
+
+            List<DatasetValidationError> errors = new List<DatasetValidationError>
+            {
+                new DatasetValidationError { ErrorMessage = "error" }
+            };
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                new ValidationFailure("prop1", "any error")
+            });
+
+            IValidator<DatasetUploadValidationModel> datasetUploadValidator = CreateDatasetUploadValidator(validationResult);
+
+            IEnumerable<TableLoadResult> tableLoadResults = new[]
+            {
+                new TableLoadResult{ GlobalErrors = errors }
+            };
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(new ApiResponse<ProviderVersion>(HttpStatusCode.BadRequest));
+
+            IMapper mapper = CreateMapper();
+
+            DatasetService service = CreateDatasetService(
+                logger: logger,
+                blobClient: blobClient,
+                datasetRepository: datasetRepository,
+                datasetUploadValidator: datasetUploadValidator,
+                providersApiClient: providersApiClient,
+                mapper: mapper);
+
+            // Act
+            Func<Task> result = () => service.ValidateDataset(message);
+
+            // Assert
+            result
+               .Should()
+               .ThrowExactly<RetriableException>()
+               .Which
+               .Message
+               .Should()
+               .Be(errorMessage);
         }
 
         [TestMethod]
@@ -667,16 +793,29 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+               {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 datasetUploadValidator: datasetUploadValidator,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                providersApiClient: providersApiClient);
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };
-
 
             // Assert
             result
@@ -766,10 +905,24 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+             {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 blobClient: blobClient,
-                datasetRepository: datasetRepository
+                datasetRepository: datasetRepository,
+                providersApiClient: providersApiClient
                 );
 
             // Act
@@ -877,6 +1030,21 @@ namespace CalculateFunding.Services.Datasets.Services
                 new IndexError()
             };
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider(),
+                    new Common.ApiClient.Providers.Models.Provider(),
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Index(Arg.Any<List<DatasetIndex>>())
@@ -886,7 +1054,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                searchRepository: searchRepository);
+                searchRepository: searchRepository,
+                providersApiClient: providersApiClient);
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };
@@ -979,11 +1148,25 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                 searchRepository: searchRepository,
-                 cacheProvider: cacheProvider);
+                searchRepository: searchRepository,
+                cacheProvider: cacheProvider,
+                providersApiClient: providersApiClient);
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };
@@ -1049,9 +1232,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const int newDatasetVersion = 2;
             const string filename = "ds.xlsx";
-
             const string blobPath = "dataset-id/v2/ds.xlsx";
-
             const string dataDefinitionId = "definition-id";
             const string authorId = "author-id";
             const string authorName = "author-name";
@@ -1140,12 +1321,26 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             DatasetService service = CreateDatasetService(
                 logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                providersApiClient: providersApiClient);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
@@ -1323,10 +1518,26 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+               {
+                    new Common.ApiClient.Providers.Models.Provider(),
+                    new Common.ApiClient.Providers.Models.Provider(),
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                 searchRepository: searchRepository);
+                searchRepository: searchRepository,
+                providersApiClient: providersApiClient);
 
             DatasetVersion existingDatasetVersion1 = new DatasetVersion()
             {
@@ -1357,7 +1568,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            Func<Task> result = () => service.ValidateDataset(message);
 
             // Assert
             result
@@ -1375,9 +1586,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const int providedNewDatasetVersion = 2;
             const string filename = "ds.xlsx";
-
             const string blobPath = "dataset-id/v2/ds.xlsx";
-
             const string dataDefinitionId = "definition-id";
             const string authorId = "author-id";
             const string authorName = "author-name";
@@ -1461,10 +1670,24 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider(),
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                 searchRepository: searchRepository);
+                searchRepository: searchRepository,
+                providersApiClient: providersApiClient);
 
             DatasetVersion existingDatasetVersion1 = new DatasetVersion()
             {
@@ -1483,10 +1706,9 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            Func<Task> action = async () => { await service.ValidateDataset(message); };
+            Func<Task> action = () => service.ValidateDataset(message);
 
             // Assert
-
             action
                 .Should().Throw<InvalidOperationException>()
                 .WithMessage($"Failed to retrieve dataset for id: {model.DatasetId} response was null");
@@ -1502,9 +1724,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const int newDatasetVersion = 2;
             const string filename = "ds.xlsx";
-
             const string blobPath = "dataset-id/v2/ds.xlsx";
-
             const string dataDefinitionId = "definition-id";
             const string authorId = "author-id";
             const string authorName = "author-name";
@@ -1586,12 +1806,26 @@ namespace CalculateFunding.Services.Datasets.Services
                 new TableLoadResult{ GlobalErrors = new List<DatasetValidationError>() }
             };
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                 searchRepository: searchRepository);
+                searchRepository: searchRepository,
+                providersApiClient: providersApiClient);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
@@ -1614,7 +1848,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(existingDataset);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            Func<Task> result = () => service.ValidateDataset(message);
 
             // Assert
             result
@@ -1632,9 +1866,7 @@ namespace CalculateFunding.Services.Datasets.Services
             //Arrange
             const int newDatasetVersion = 2;
             const string filename = "ds.xlsx";
-
             const string blobPath = "dataset-id/v2/ds.xlsx";
-
             const string dataDefinitionId = "definition-id";
             const string authorId = "author-id";
             const string authorName = "author-name";
@@ -1718,10 +1950,24 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ISearchRepository<DatasetIndex> searchRepository = CreateSearchRepository();
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
-                 searchRepository: searchRepository);
+                searchRepository: searchRepository,
+                providersApiClient: providersApiClient);
 
             DatasetVersion existingDatasetVersion = new DatasetVersion()
             {
@@ -1757,7 +2003,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(indexErrors);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            Func<Task> result = () => service.ValidateDataset(message);
 
             // Assert
             result
@@ -2602,12 +2848,26 @@ namespace CalculateFunding.Services.Datasets.Services
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
+            ApiResponse<ProviderVersion> providerVersionResponse = new ApiResponse<ProviderVersion>(HttpStatusCode.OK, new ProviderVersion
+            {
+                Providers = new[]
+                {
+                    new Common.ApiClient.Providers.Models.Provider()
+                }
+            });
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetAllMasterProviders()
+                .Returns(providerVersionResponse);
+
             DatasetService service = CreateDatasetService(logger: logger,
                 blobClient: blobClient,
                 datasetRepository: datasetRepository,
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient,
+                providersApiClient: providersApiClient);
 
             // Act
             Func<Task> result = async () => { await service.ValidateDataset(message); };

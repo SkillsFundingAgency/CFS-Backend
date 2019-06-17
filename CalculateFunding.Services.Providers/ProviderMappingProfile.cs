@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search.Results;
 
@@ -12,6 +13,10 @@ namespace CalculateFunding.Services.Providers
                 .ForMember(p => p.Id, opt => opt.MapFrom(s => s.ProviderId))
                 .ForMember(p => p.DateOpened, opt => opt.MapFrom(s => s.OpenDate))
                 .ForMember(p => p.DateClosed, opt => opt.MapFrom(s => s.CloseDate));
+
+            CreateMap<Provider, ProviderSummary>()
+                .ForMember(p => p.Id, opt => opt.MapFrom(s => s.ProviderId))
+                .ForMember(p => p.TrustStatus, opt => opt.Ignore());
         }
     }
 }

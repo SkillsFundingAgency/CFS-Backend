@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CalculateFunding.Common" Version="1.33.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="5.0.2" />
     <PackageReference Include="Polly-Signed" Version="5.9.0" />
   </ItemGroup>

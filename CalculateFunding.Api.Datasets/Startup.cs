@@ -215,6 +215,7 @@ namespace CalculateFunding.Api.Datasets
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
 
             builder.AddCosmosDb(Configuration);
 
@@ -255,7 +256,8 @@ namespace CalculateFunding.Api.Datasets
                     DatasetSearchService = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     DatasetDefinitionSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
