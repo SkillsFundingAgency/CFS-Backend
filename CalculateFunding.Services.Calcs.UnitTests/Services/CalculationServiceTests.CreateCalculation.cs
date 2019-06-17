@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.CodeGeneration;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -218,7 +219,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidCalculation_AndSavesLogs()
+        public async Task CreateCalculation_GivenValidCalculation_CreateCalculationAndSavesLogs()
         {
             //Arrange
             Calculation calculation = CreateCalculation();
@@ -306,7 +307,8 @@ namespace CalculateFunding.Services.Calcs.Services
                        m.Current.Author.Name == Username &&
                        m.Current.Date.Date == DateTimeOffset.Now.Date &&
                        m.Current.Version == 1 &&
-                       m.Current.DecimalPlaces == 6
+                       m.Current.DecimalPlaces == 6 &&
+                       m.Current.SourceCode == CodeGenerationConstants.VisualBasicDefaultSourceCode
                    ));
 
             await
