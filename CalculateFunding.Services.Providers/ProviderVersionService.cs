@@ -58,6 +58,18 @@ namespace CalculateFunding.Services.Providers
             _mapper = mapper;
         }
 
+        public async Task<IActionResult> DoesProviderVersionExist(string providerVersionId)
+        {
+            Guard.ArgumentNotNull(providerVersionId, nameof(providerVersionId));
+
+            if(await Exists(providerVersionId))
+            {
+                return new NoContentResult();
+            }
+
+            return new NotFoundResult();
+        }
+
         public async Task<IActionResult> GetAllProviders(int year, int month, int day)
         {
             Guard.ArgumentNotNull(day, nameof(day));

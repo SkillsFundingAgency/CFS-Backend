@@ -51,6 +51,18 @@ namespace CalculateFunding.Api.Providers.Controllers
         }
 
         /// <summary>
+        /// Does provider verion exist for specified Provider Version
+        /// </summary>
+        /// <param name="providerVersionId">Provider Version Id</param>
+        /// <returns></returns>
+        [HttpHead("api/providers/versions/{providerVersionId}")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> DoesProviderVersionExist([FromRoute]string providerVersionId)
+        {
+            return await _providerVersionService.DoesProviderVersionExist(providerVersionId);
+        }
+
+        /// <summary>
         /// Get all providers for the given providerVersionId key
         /// </summary>
         /// <param name="providerVersionId">Provider Version Id</param>

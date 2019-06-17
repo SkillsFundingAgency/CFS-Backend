@@ -56,6 +56,7 @@ Get-ChildItem "$rootFolder" -Filter *.csv |
 
                 $provider = @{
                     providerVersionId_providerId = $version + "_" + $item.UKPRN
+                    providerId = $item.UKPRN
                     providerVersionId = $version
                     name = $item.'EstablishmentName'
                     urn = $item.URN

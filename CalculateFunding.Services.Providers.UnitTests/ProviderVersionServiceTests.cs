@@ -304,6 +304,45 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .BeOfType<NotFoundResult>();
         }
 
+        [TestMethod]
+        public async Task DoesProviderVersionExist_WhenProviderVersionExists_NoContentReturned()
+        {
+            // Arrange
+            IBlobClient blobClient = CreateBlobClient();
+            
+            blobClient
+                .BlobExistsAsync(Arg.Any<string>())
+                .Returns(true);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient);
+
+            // Act
+            IActionResult noContentResult = await providerService.DoesProviderVersionExist(Guid.NewGuid().ToString());
+
+            noContentResult
+                .Should()
+                .BeOfType<NoContentResult>();
+        }
+
+        [TestMethod]
+        public async Task DoesProviderVersionExist_WhenProviderVersionDoesntExist_NotFoundReturned()
+        {
+            // Arrange
+            IBlobClient blobClient = CreateBlobClient();
+
+            blobClient
+                .BlobExistsAsync(Arg.Any<string>())
+                .Returns(false);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient);
+
+            // Act
+            IActionResult notFoundResult = await providerService.DoesProviderVersionExist(Guid.NewGuid().ToString());
+
+            notFoundResult
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
 
         [TestMethod]
         public async Task GetAllProviders_WhenProviderVersionIdExists_ProviderListReturned()
@@ -540,13 +579,19 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return providersResiliencePolicies;
         }
 
-        private IProviderVersionService CreateProviderVersionService(IBlobClient blobClient, IValidator<ProviderVersionViewModel> providerVersionModelValidator, ICacheProvider cacheProvider = null, IProviderVersionsMetadataRepository providerVersionMetadataRepository = null, IMapper mapper = null)
+        private IValidator<ProviderVersionViewModel> CreateProviderVersionModelValidator()
+        {
+            IValidator<ProviderVersionViewModel> providerVersionModelValidator = Substitute.For<IValidator<ProviderVersionViewModel>>();
+            return providerVersionModelValidator;
+        }
+
+        private IProviderVersionService CreateProviderVersionService(IBlobClient blobClient, IValidator<ProviderVersionViewModel> providerVersionModelValidator = null, ICacheProvider cacheProvider = null, IProviderVersionsMetadataRepository providerVersionMetadataRepository = null, IMapper mapper = null)
         {
             return new ProviderVersionService(
                 cacheProvider ?? CreateCacheProvider(),
                 blobClient,
                 CreateLogger(),
-                providerVersionModelValidator,
+                providerVersionModelValidator ?? CreateProviderVersionModelValidator(),
                 providerVersionMetadataRepository ?? CreateProviderVersionMetadataRepository(),
                 CreateResiliencePolicies(),
                 mapper ?? CreateMapper());

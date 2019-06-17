@@ -19,7 +19,7 @@ Write-Host "Updating indexers on: $searchServiceUrl";
 $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]";
 $headers.Add("api-key", $apiKeyObj.azureSearchKey.value);
 
-$indexes | ForEach-Object {
+$indexers | ForEach-Object {
     
     $schema = Get-Content -Raw -Path "$rootFolder\$_\$_.json" | ConvertFrom-Json
 

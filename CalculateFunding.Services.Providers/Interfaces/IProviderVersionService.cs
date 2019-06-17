@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Providers.Interfaces
 {
     public interface IProviderVersionService
     {
+        Task<IActionResult> DoesProviderVersionExist(string providerVersionId);
         Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day);
         Task<MasterProviderVersion> GetMasterProviderVersion();
         Task<IActionResult> GetAllMasterProviders();

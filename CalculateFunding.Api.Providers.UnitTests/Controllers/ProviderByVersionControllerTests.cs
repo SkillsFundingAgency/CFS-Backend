@@ -72,6 +72,25 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
         }
 
         [TestMethod]
+        [DataRow("providerVersionId")]
+        public async Task DoesProviderVersionExist_CallsCorrectly(
+            string providerVersionId)
+        {
+            IProviderVersionService providerVersionService = Substitute.For<IProviderVersionService>();
+            IProviderVersionSearchService providerVersionSearchService = Substitute.For<IProviderVersionSearchService>();
+
+            ProviderByVersionController controller = new ProviderByVersionController(
+                providerVersionService,
+                providerVersionSearchService);
+
+            await controller.DoesProviderVersionExist(providerVersionId);
+
+            await providerVersionService
+                .Received(1)
+                .DoesProviderVersionExist(providerVersionId);
+        }
+
+        [TestMethod]
         [DataRow("providerVersionId", "providerId")]
         public async Task GetProviderByIdFromProviderVersion_CallsCorrectly(
                string providerVersionId, 
