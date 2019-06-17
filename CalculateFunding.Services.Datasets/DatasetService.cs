@@ -1,3 +1,11 @@
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Web;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -32,14 +40,6 @@ using Newtonsoft.Json;
 using OfficeOpenXml;
 using Polly;
 using Serilog;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using System.Web;
 
 namespace CalculateFunding.Services.Datasets
 {

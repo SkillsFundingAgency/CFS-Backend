@@ -300,7 +300,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task OnValidateDataset_GivenTableResultsContainsOneError_ReturnsOKResultWithMessage()
+        public async Task OnValidateDataset_GivenTableResultsContainsOneError_EnsuresDatasetValidationModelIsWrittenToCache()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -712,7 +712,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public async Task OnValidateDataset_GivenTableResultsContainsThreeErrors_ReturnsOKResultWithMessage()
+        public async Task OnValidateDataset_GivenTableResultsContainsThreeErrors_EnsuresValidationResultModelIsWrittenToCache()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
@@ -815,11 +815,12 @@ namespace CalculateFunding.Services.Datasets.Services
                 providersApiClient: providersApiClient);
 
             // Act
-            Func<Task> result = async () => { await service.ValidateDataset(message); };
+            Func<Task> test = async () => { await service.ValidateDataset(message); };
 
             // Assert
-            result
-                .Should().NotThrow();
+            test
+                .Should()
+                .NotThrow();
 
             await cacheProvider
                 .Received(1)
@@ -829,7 +830,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         [TestMethod]
-        public void OnValidateDataset_GivenTableResultsAndMetadatValidatesButFailsToSave_ReturnsInternalServerError()
+        public void OnValidateDataset_GivenTableResultsAndMetadatValidatesButFailsToSave_ThrowsInValidOperationException()
         {
             //Arrange
             const string blobPath = "dataset-id/v1/ds.xlsx";
