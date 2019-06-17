@@ -62,6 +62,12 @@
         "description": "Api key for the Jobs Service"
       }
     },
+    "ApiKeyPolicy": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Policy Service"
+      }
+    },
     "ApiKeyProviders": {
       "type": "string",
       "metadata": {
@@ -475,6 +481,12 @@
         "description": "AAD Client Id for the Providers Api"
       }
     },
+    "policyApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Policy Api"
+      }
+    },
     "signalRSkuName": {
       "type": "string",
       "allowedValues": [
@@ -567,11 +579,13 @@
     "notificationsFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-notifications')]",
     "cosmosScalingFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-cosmosscaling')]",
     "providersFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-providers')]",
+    "policyFunctionAppName": "[concat('fa-', parameters('environmentKey'), '-policy')]",
     "datasetsApiAppName": "[concat('app-', parameters('environmentKey'), '-datasets')]",
     "resultsApiAppName": "[concat('app-', parameters('environmentKey'), '-results')]",
     "specsApiAppName": "[concat('app-', parameters('environmentKey'), '-specs')]",
     "calcsApiAppName": "[concat('app-', parameters('environmentKey'), '-calcs')]",
     "jobsApiAppName": "[concat('app-', parameters('environmentKey'), '-jobs')]",
+    "policyApiAppName": "[concat('app-', parameters('environmentKey'), '-policy')]",
     "profilingApiAppName": "[concat('app-', parameters('environmentKey'), '-profiling')]",
     "calcEngineApiAppName": "[concat('app-', parameters('environmentKey'), '-calcengine')]",
     "testEngineApiAppName": "[concat('app-', parameters('environmentKey'), '-testengine')]",
@@ -4504,6 +4518,214 @@
             {
               "name": "cfsApiTokenOptions:ClientSecret",
               "value": "[parameters('CFSAPIAzureBearerTokenClientSecret')]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('policyApiAppName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+      ],
+      "resources": [
+        {
+          "name": "authSettings",
+          "type": "config",
+          "apiVersion": "2018-02-01",
+          "dependsOn": [ "[resourceId('Microsoft.Web/Sites', variables('policyApiAppName'))]" ],
+          "properties": {
+            "enabled": "[parameters('enablePlatformAuth')]",
+            "unauthenticatedClientAction": 0,
+            "tokenStoreEnabled": true,
+            "defaultProvider": 0,
+            "clientId": "[parameters('policyApiAadClientId')]",
+            "issuer": "[parameters('aadAuthIssuer')]",
+            "allowedAudiences": null,
+            "isAadAutoProvisioned": false
+          }
+        }
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "appSettings": [
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsights:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "CosmosDbSettings:DatabaseName",
+              "value": "calculate-funding"
+            },
+            {
+              "name": "CosmosDbSettings:CollectionName",
+              "value": "policy"
+            },
+            {
+              "name": "SearchServiceName",
+              "value": "[variables('azureSearchName')]"
+            },
+            {
+              "name": "SearchServiceKey",
+              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
+            },
+            {
+              "name": "AzureStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "apiKeyMiddleware:apiKey",
+              "value": "[parameters('ApiKeyPolicy')]"
+          ]
+        }
+      }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites",
+      "name": "[variables('policyFunctionAppName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
+        "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]",
+        "[variables('applicationInsightsName')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('cfsStorageAccountName'))]",
+        "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+      ],
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "httpsOnly": true,
+        "siteConfig": {
+          "alwaysOn": true,
+          "use32BitWorkerProcess": false,
+          "http20Enabled": true,
+          "phpVersion": "",
+          "pythonVersion": "",
+          "nodeVersion": "",
+          "minTlsVersion": "1.2",
+          "ftpsState": "Disabled",
+          "appSettings": [
+            {
+              "name": "AzureWebJobsDashboard",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountName'), ';AccountKey=', listKeys(variables('storageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(variables('policyFunctionAppName'))]"
+            },
+            {
+              "name": "WEBSITE_TIME_ZONE",
+              "value": "GMT Standard Time"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~2"
+            },
+            {
+              "name": "ROUTING_EXTENSION_VERSION",
+              "value": "~.2"
+            },
+            {
+              "name": "WEBSITE_RUN_FROM_PACKAGE",
+              "value": "1"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsightsOptions:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "ApplicationInsights:InstrumentationKey",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('applicationInsightsName')), '2014-04-01').InstrumentationKey]"
+            },
+            {
+              "name": "RedisSettings:CacheConnection",
+              "value": "[concat(variables('cacheName'),'.redis.cache.windows.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]"
+            },
+            {
+              "name": "ServiceBusSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.ServiceBus/namespaces/AuthorizationRules'),variables('serviceBusNamespaceName'),'RootManageSharedAccessKey'),'2017-04-01').primaryConnectionString]"
+            },
+            {
+              "name": "CosmosDbSettings:ConnectionString",
+              "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]"
+            },
+            {
+              "name": "CommonStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountId'),'2015-05-01-preview').key1)]"
+            },
+            {
+              "name": "CosmosDbSettings:DatabaseName",
+              "value": "calculate-funding"
+            },
+            {
+              "name": "CosmosDbSettings:CollectionName",
+              "value": "policy"
+            },
+            {
+              "name": "SearchServiceName",
+              "value": "[variables('azureSearchName')]"
+            },
+            {
+              "name": "SearchServiceKey",
+              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]"
             }
           ]
         }
