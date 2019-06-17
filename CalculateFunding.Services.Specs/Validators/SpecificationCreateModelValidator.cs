@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 
@@ -7,10 +8,12 @@ namespace CalculateFunding.Services.Specs.Validators
     public class SpecificationCreateModelValidator : AbstractValidator<SpecificationCreateModel>
     {
         private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly IProviderVersionService _providerVersionService;
 
-        public SpecificationCreateModelValidator(ISpecificationsRepository specificationsRepository)
+        public SpecificationCreateModelValidator(ISpecificationsRepository specificationsRepository, IProviderVersionService providerVersionService)
         {
             _specificationsRepository = specificationsRepository;
+            _providerVersionService = providerVersionService;
 
             RuleFor(model => model.Description)
                .NotEmpty()
@@ -19,6 +22,17 @@ namespace CalculateFunding.Services.Specs.Validators
             RuleFor(model => model.FundingPeriodId)
                .NotEmpty()
                .WithMessage("Null or empty academic year id provided");
+
+            RuleFor(model => model.ProviderVersionId)
+                .NotEmpty()
+                .WithMessage("Null or empty provider version id")
+                .Custom((name, context) => {
+                    SpecificationCreateModel specModel = context.ParentContext.InstanceToValidate as SpecificationCreateModel;
+                    if (!_providerVersionService.Exists(specModel.ProviderVersionId).Result)
+                    {
+                        context.AddFailure($"Provider version id selected does not exist");
+                    }
+                });
 
             RuleFor(model => model.FundingStreamIds)
               .NotNull()

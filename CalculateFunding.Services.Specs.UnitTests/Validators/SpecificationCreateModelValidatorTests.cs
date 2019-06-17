@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
 using FluentAssertions;
@@ -15,10 +16,62 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
     [TestClass]
     public class SpecificationCreateModelValidatorTests
     {
-        static string fundingPeriodId = Guid.NewGuid().ToString();
-        static string fundingStreamId = Guid.NewGuid().ToString();
-        static string description = "A test description";
-        static string name = "A test name";
+        private static string providerVersionId = Guid.NewGuid().ToString();
+        private static string fundingPeriodId = Guid.NewGuid().ToString();
+        private static string fundingStreamId = Guid.NewGuid().ToString();
+        private static string description = "A test description";
+        private static string name = "A test name";
+
+        [TestMethod]
+        public void Validate_GivenEmptyProviderVersionId_ValidIsFalse()
+        {
+            //Arrange
+            SpecificationCreateModel model = CreateModel();
+            model.ProviderVersionId = string.Empty;
+
+            SpecificationCreateModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors.Select(x => x.PropertyName == "ProviderVersionId" && x.ErrorCode == "NotEmptyValidator")
+                .Count()
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenProviderVersionIdDoesntExist_ValidIsFalse()
+        {
+            //Arrange
+            SpecificationCreateModel model = CreateModel();
+
+            IProviderVersionService providerVersionService = CreateProviderVersionService(false);
+
+            SpecificationCreateModelValidator validator = CreateValidator(providerVersionService: providerVersionService);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors.Select(x => x.PropertyName == "ProviderVersionId" && x.ErrorMessage == "Provider version id selected does not exist")
+                .Count()
+                .Should()
+                .Be(1);
+        }
 
         [TestMethod]
         public void Validate_GivenEmptyFundingPeriodId_ValidIsFalse()
@@ -165,10 +218,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         }
 
 
-        static SpecificationCreateModel CreateModel()
+        private static SpecificationCreateModel CreateModel()
         {
             return new SpecificationCreateModel
             {
+                ProviderVersionId = providerVersionId,
                 FundingPeriodId = fundingPeriodId,
                 FundingStreamIds = new List<string>() { fundingStreamId },
                 Description = description,
@@ -176,7 +230,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             };
         }
 
-        static ISpecificationsRepository CreateSpecificationsRepository(bool hasSpecification = false)
+        private static ISpecificationsRepository CreateSpecificationsRepository(bool hasSpecification = false)
         {
             ISpecificationsRepository repository = Substitute.For<ISpecificationsRepository>();
 
@@ -187,9 +241,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return repository;
         }
 
-        static SpecificationCreateModelValidator CreateValidator(ISpecificationsRepository repository = null)
+        private static IProviderVersionService CreateProviderVersionService(bool providerVersionShouldExist = true)
         {
-            return new SpecificationCreateModelValidator(repository ?? CreateSpecificationsRepository());
+            IProviderVersionService providerVersionService = Substitute.For<IProviderVersionService>();
+
+            providerVersionService
+                .Exists(Arg.Any<string>())
+                .Returns(providerVersionShouldExist);
+
+            return providerVersionService;
+        }
+
+        private static SpecificationCreateModelValidator CreateValidator(ISpecificationsRepository repository = null, IProviderVersionService providerVersionService = null)
+        {
+            return new SpecificationCreateModelValidator(repository ?? CreateSpecificationsRepository(), providerVersionService ?? CreateProviderVersionService());
         }
     }
 }

@@ -16,6 +16,8 @@ namespace CalculateFunding.Models.Specs
         [JsonIgnore]
         public string SpecificationId { get; set; }
 
+        public string ProviderVersionId { get; set; }
+
         public string FundingPeriodId { get; set; }
 
         public IEnumerable<string> FundingStreamIds { get; set; }

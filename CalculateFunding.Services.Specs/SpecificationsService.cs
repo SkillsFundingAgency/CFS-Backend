@@ -24,6 +24,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
@@ -1056,6 +1057,7 @@ namespace CalculateFunding.Services.Specs
             SpecificationVersion specificationVersion = new SpecificationVersion
             {
                 Name = createModel.Name,
+                ProviderVersionId = createModel.ProviderVersionId,
                 FundingPeriod = new Reference(fundingPeriod.Id, fundingPeriod.Name),
                 Description = createModel.Description,
                 Policies = new List<Policy>(),
@@ -1161,6 +1163,7 @@ namespace CalculateFunding.Services.Specs
 
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
+            specificationVersion.ProviderVersionId = editModel.ProviderVersionId;
             specificationVersion.Name = editModel.Name;
             specificationVersion.Description = editModel.Description;
             specificationVersion.Author = user;

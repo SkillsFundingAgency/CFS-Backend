@@ -325,6 +325,46 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
+        public async Task Exists_WhenProviderVersionDoesntExist_FalseReturned()
+        {
+            // Arrange
+            IBlobClient blobClient = CreateBlobClient();
+
+            blobClient
+                .BlobExistsAsync(Arg.Any<string>())
+                .Returns(false);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient);
+
+            // Act
+            bool exists = await providerService.Exists(Guid.NewGuid().ToString());
+
+            exists
+                .Should()
+                .BeFalse();
+        }
+
+        [TestMethod]
+        public async Task Exists_WhenProviderVersionDoesntExist_TrueReturned()
+        {
+            // Arrange
+            IBlobClient blobClient = CreateBlobClient();
+
+            blobClient
+                .BlobExistsAsync(Arg.Any<string>())
+                .Returns(true);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient);
+
+            // Act
+            bool exists = await providerService.Exists(Guid.NewGuid().ToString());
+
+            exists
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
         public async Task DoesProviderVersionExist_WhenProviderVersionDoesntExist_NotFoundReturned()
         {
             // Arrange

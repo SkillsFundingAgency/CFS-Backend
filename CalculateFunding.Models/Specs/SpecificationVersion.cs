@@ -30,6 +30,9 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("fundingPeriod")]
         public Reference FundingPeriod { get; set; }
 
+        [JsonProperty("providerVersionId")]
+        public string ProviderVersionId { get; set; }
+
         [JsonProperty("fundingStreams")]
         public IEnumerable<Reference> FundingStreams { get; set; }
 

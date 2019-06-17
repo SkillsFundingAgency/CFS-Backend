@@ -4,14 +4,21 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers.Validators;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -85,6 +92,34 @@ namespace CalculateFunding.Api.Specs
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<IFundingService, FundingService>();
+            builder.AddSingleton<IProviderVersionService, ProviderVersionService>();
+            builder.AddSingleton<IValidator<ProviderVersionViewModel>, UploadProviderVersionValidator>();
+
+            builder
+                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
+                {
+                    AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                    Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "providerversions";
+
+                    return new BlobClient(storageSettings);
+                });
+
+            builder.AddSingleton<IProviderVersionsMetadataRepository, ProviderVersionsMetadataRepository>(
+                ctx =>
+                {
+                    CosmosDbSettings specRepoDbSettings = new CosmosDbSettings();
+
+                    Configuration.Bind("CosmosDbSettings", specRepoDbSettings);
+
+                    specRepoDbSettings.CollectionName = "providerversionsmetadata";
+
+                    CosmosRepository cosmosRepository = new CosmosRepository(specRepoDbSettings);
+
+                    return new ProviderVersionsMetadataRepository(cosmosRepository);
+                });
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
@@ -134,6 +169,19 @@ namespace CalculateFunding.Api.Specs
                 return new SpecificationsResiliencePolicies()
                 {
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+            });
+
+            builder.AddSingleton<IProvidersResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new ProvidersResiliencePolicies()
+                {
+                    ProviderVersionsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    ProviderVersionMetadataRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 };
             });
 

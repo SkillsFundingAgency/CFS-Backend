@@ -21,5 +21,6 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<IActionResult> SetProviderVersionByDate(int year, int month, int day, string providerVersionId);
         Task<IActionResult> SetMasterProviderVersion(MasterProviderVersionViewModel masterProviderVersionViewModel);
         Task<IActionResult> UploadProviderVersion(string actionName, string controller, string providerVersionId, ProviderVersionViewModel providers);
+        Task<bool> Exists(string providerVersionId);
     }
 }
