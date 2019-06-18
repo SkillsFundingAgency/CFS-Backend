@@ -1991,11 +1991,6 @@
               "value": "[parameters('EnableUseFieldDefinitionIdsInSourceDatasets')]"
             },
             {
-              "name": "EngineSettings:CalculateProviderResultsDegreeOfParallelism",
-              "value": "[parameters('CalculateProviderResultsDegreeOfParallelism')]",
-              "slotSetting": false
-            },
-            {
               "name": "EngineSettings:GetProviderSourceDatasetsDegreeOfParallelism",
               "value": "[parameters('GetProviderSourceDatasetsDegreeOfParallelism')]",
               "slotSetting": false
