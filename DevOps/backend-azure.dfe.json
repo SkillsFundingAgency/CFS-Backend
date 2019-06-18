@@ -1972,10 +1972,6 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
             },
             {
-              "name": "features:useFieldDefinitionIdsInSourceDatasetsEnabled",
-              "value": "[parameters('EnableUseFieldDefinitionIdsInSourceDatasets')]"
-            },
-            {
               "name": "EngineSettings:CalculateProviderResultsDegreeOfParallelism",
               "value": "[parameters('CalculateProviderResultsDegreeOfParallelism')]",
               "slotSetting": false
