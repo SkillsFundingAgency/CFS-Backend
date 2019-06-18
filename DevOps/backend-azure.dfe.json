@@ -1977,11 +1977,6 @@
               "slotSetting": false
             },
             {
-              "name": "EngineSettings:SaveProviderDegreeOfParallelism",
-              "value": "[parameters('SaveProviderDegreeOfParallelism')]",
-              "slotSetting": false
-            },
-            {
               "name": "features:useFieldDefinitionIdsInSourceDatasetsEnabled",
               "value": "[parameters('EnableUseFieldDefinitionIdsInSourceDatasets')]"
             },
