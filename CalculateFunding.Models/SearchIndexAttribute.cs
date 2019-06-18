@@ -8,6 +8,7 @@ namespace CalculateFunding.Models
         public IndexerType IndexerType { get; set; }
         public string DatabaseName { get; set; }
         public string CollectionName { get; set; }
+        public string IndexName { get; set; }
         public string IndexerQuery { get; set; }
     }
 }
