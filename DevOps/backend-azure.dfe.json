@@ -1977,11 +1977,6 @@
               "slotSetting": false
             },
             {
-              "name": "EngineSettings:GetProviderSourceDatasetsDegreeOfParallelism",
-              "value": "[parameters('GetProviderSourceDatasetsDegreeOfParallelism')]",
-              "slotSetting": false
-            },
-            {
               "name": "EngineSettings:SaveProviderDegreeOfParallelism",
               "value": "[parameters('SaveProviderDegreeOfParallelism')]",
               "slotSetting": false
