@@ -926,7 +926,10 @@ namespace CalculateFunding.Services.Calculator
         }
 
         [TestMethod]
-        public async Task GenerateAllocations_GivenJobIsGenerateCalculationAggregationsJob_EnsuresAggregationsCreatedAndCached()
+        [DataRow("Calc1,Calc2,Calc3")]
+        [DataRow("calc1,calc2,calc3")]
+        [DataRow("cAlC1,calC2,CALC3")]
+        public async Task GenerateAllocations_GivenJobIsGenerateCalculationAggregationsJobAndCalculationsToAggregateInAnyCase_EnsuresAggregationsCreatedAndCached(string calculationsToAggregate)
         {
             //Arrange
             const string cacheKey = "Cache-key";
@@ -943,7 +946,7 @@ namespace CalculateFunding.Services.Calculator
 
             ApiResponse<JobViewModel> jobViewModel = new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId, JobDefinitionId = JobConstants.DefinitionNames.GenerateCalculationAggregationsJob });
 
-            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>
+            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase)
             {
                 { "Calc1", new List<decimal>() },
                 { "Calc2", new List<decimal>() },
@@ -1024,8 +1027,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("ignore-save-provider-results", "true");
             messageUserProperties.Add("jobId", jobId);
             messageUserProperties.Add("batch-count", "7");
-            messageUserProperties.Add("calculations-to-aggregate", "Calc1,Calc2,Calc3");
-
+            messageUserProperties.Add("calculations-to-aggregate", calculationsToAggregate);
 
             //Act
             await service.GenerateAllocations(message);
@@ -1057,7 +1059,10 @@ namespace CalculateFunding.Services.Calculator
         }
 
         [TestMethod]
-        public async Task GenerateAllocations_GivenCachedAggregateValuesExist_EnsuresAllocationModelCalledWithCachecdAggregates()
+        [DataRow("Calc1,Calc2,Calc3")]
+        [DataRow("calc1,calc2,calc3")]
+        [DataRow("cAlC1,calC2,CALC3")]
+        public async Task GenerateAllocations_GivenCachedAggregateValuesExistAndAggregationsToAggregateInMessageAreInAnyCase_EnsuresAllocationModelCalledWithCachecdAggregates(string calculationsToAggregate)
         {
             //Arrange
             const string cacheKey = "Cache-key";
@@ -1070,7 +1075,7 @@ namespace CalculateFunding.Services.Calculator
             CalculationEngineServiceTestsHelper calculationEngineServiceTestsHelper =
                 new CalculationEngineServiceTestsHelper();
 
-            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>
+            Dictionary<string, List<decimal>> cachedCalculationAggregates = new Dictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase)
             {
                 { "Calc1", new List<decimal>{ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 } },
                 { "Calc2", new List<decimal>{ 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20 } },
@@ -1151,7 +1156,7 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
             messageUserProperties.Add("batch-count", "1");
             messageUserProperties.Add("batch-number", "1");
-            messageUserProperties.Add("calculations-to-aggregate", "Calc1,Calc2,Calc3");
+            messageUserProperties.Add("calculations-to-aggregate", calculationsToAggregate);
 
             //Act
             await service.GenerateAllocations(message);

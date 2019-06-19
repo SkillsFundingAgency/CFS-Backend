@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,7 +50,7 @@ namespace CalculateFunding.Services.Compiler.Languages
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceFile.SourceCode);
 
-            Dictionary<string, string> functions = new Dictionary<string, string>();
+            Dictionary<string, string> functions = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
             foreach (LambdaExpressionSyntax func in syntaxTree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
             {
