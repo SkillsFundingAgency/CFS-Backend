@@ -1,7 +1,7 @@
 ﻿using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using System.IO;
 using System.Threading.Tasks;
 
