@@ -5,18 +5,18 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
-using WindowsAzure = Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
     public class QueueMessengerService : IMessengerService
     {
         CloudQueueClient _queueClient;
-        WindowsAzure.CloudStorageAccount _storageAccount;
+        CloudStorageAccount _storageAccount;
 
         public QueueMessengerService(string connectionString)
         {
-            _storageAccount = Microsoft.WindowsAzure.Storage.CloudStorageAccount.Parse(connectionString);
+            _storageAccount = CloudStorageAccount.Parse(connectionString);
         }
 
         public async Task<(bool Ok, string Message)> IsHealthOk(string queueName)
