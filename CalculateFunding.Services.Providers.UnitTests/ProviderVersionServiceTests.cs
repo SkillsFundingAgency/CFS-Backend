@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
     public class ProviderVersionServiceTests
     {
         [TestMethod]
-        public async Task UpdateProviderData_WhenAllPropertiesPopulated()
+        public async Task UploadProviderVersion_WhenAllPropertiesPopulated()
         {
             // Arrange
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task UpdateProviderData_WhenVersionIdEmpty_UploadFails()
+        public async Task UploadProviderVersion_WhenVersionIdEmpty_UploadFails()
         {
             // Arrange
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task UpdateProviderData_WheDescriptionEmpty_UploadFails()
+        public async Task UploadProviderVersion_WheDescriptionEmpty_UploadFails()
         {
             // Arrange
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
@@ -123,6 +123,31 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ((string[])validationErrors["Description"])[0]
                 .Should()
                 .Be("No provider description was provided to UploadProviderVersion");
+        }
+
+        [TestMethod]
+        public async Task UploadProviderVersion_WhenVersionExists_UploadFails()
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(providerVersionViewModel.ProviderVersionId + ".json")
+                .Returns(true);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator);
+
+            // Act
+            IActionResult conflictResponse = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+
+            // Assert
+            conflictResponse
+                .Should()
+                .BeOfType<ConflictResult>();
         }
 
         [TestMethod]

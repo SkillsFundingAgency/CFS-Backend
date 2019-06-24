@@ -262,22 +262,27 @@ namespace CalculateFunding.Services.Providers
             return new NoContentResult();
         }
 
-        public async Task<IActionResult> UploadProviderVersion(string actionName, string controller, string providerVersionId, ProviderVersionViewModel providers)
+        public async Task<IActionResult> UploadProviderVersion(string actionName, string controller, string providerVersionId, ProviderVersionViewModel providerVersionModel)
         {
             Guard.IsNullOrWhiteSpace(actionName, nameof(actionName));
             Guard.IsNullOrWhiteSpace(controller, nameof(controller));
-            Guard.ArgumentNotNull(providers, nameof(providers));
+            Guard.ArgumentNotNull(providerVersionModel, nameof(providerVersionModel));
 
-            BadRequestObjectResult validationResult = (await _providerVersionModelValidator.ValidateAsync(providers)).PopulateModelState();
+            BadRequestObjectResult validationResult = (await _providerVersionModelValidator.ValidateAsync(providerVersionModel)).PopulateModelState();
 
             if (validationResult != null)
             {
                 return validationResult;
             }
 
-            ProviderVersion providerVersion = _mapper.Map<ProviderVersion>(providers);
+            if(await this.Exists(providerVersionId.ToLowerInvariant()))
+            {
+                return new ConflictResult();
+            }
 
-            ICloudBlob blob = _blobClient.GetBlockBlobReference(providerVersionId + ".json");
+            ProviderVersion providerVersion = _mapper.Map<ProviderVersion>(providerVersionModel);
+
+            ICloudBlob blob = _blobClient.GetBlockBlobReference(providerVersionId.ToLowerInvariant() + ".json");
 
             // convert string to stream
             byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerVersion));
