@@ -9,6 +9,7 @@ using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Providers;
 using CalculateFunding.Services.Providers.Interfaces;
@@ -153,7 +154,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder.AddCaching(config);
 
             builder.AddApplicationInsights(config, "CalculateFunding.Functions.TestEngine");
-            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.TestEngine");
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.TestEngine", TelemetryChannelType.Sync);
             builder.AddLogging("CalculateFunding.Functions.TestEngine");
 
             builder.AddTelemetry();

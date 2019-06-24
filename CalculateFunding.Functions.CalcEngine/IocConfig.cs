@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using FluentValidation;
@@ -137,7 +138,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddApplicationInsights(config, "CalculateFunding.Functions.CalcEngine");
 
-            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.CalcEngine");
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.CalcEngine", TelemetryChannelType.Sync);
 
             builder.AddLogging("CalculateFunding.Functions.CalcEngine", config);
 
