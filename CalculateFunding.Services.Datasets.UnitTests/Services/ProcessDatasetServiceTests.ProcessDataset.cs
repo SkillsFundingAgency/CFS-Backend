@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -33,6 +35,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -1187,15 +1190,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK,summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -1236,7 +1239,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader);
 
@@ -1354,15 +1357,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -1435,7 +1438,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 messengerService: messengerService,
@@ -1570,15 +1573,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -1651,7 +1654,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 messengerService: messengerService,
@@ -1790,15 +1793,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456", LACode = "111" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456", LACode = "111" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -1839,7 +1842,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader);
 
@@ -1958,15 +1961,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -2009,7 +2012,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 datasetsAggregationsRepository: datasetsAggregationsRepository);
@@ -2144,15 +2147,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -2195,7 +2198,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 datasetsAggregationsRepository: datasetsAggregationsRepository);
@@ -2339,15 +2342,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -2390,7 +2393,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 datasetsAggregationsRepository: datasetsAggregationsRepository);
@@ -2521,16 +2524,16 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
-                new ProviderSummary { Id = "456", UPIN = "222333" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "456", UPIN = "222333" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -2571,7 +2574,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader);
 
@@ -2680,15 +2683,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -2731,7 +2734,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 versionRepository: versionRepository);
@@ -2869,15 +2872,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -2943,7 +2946,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 versionRepository: versionRepository);
@@ -3060,15 +3063,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -3149,7 +3152,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 versionRepository: versionRepository);
@@ -3280,15 +3283,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .CompileAndSaveAssembly(Arg.Is(SpecificationId))
                 .Returns(HttpStatusCode.NoContent);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -3334,7 +3337,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 jobsApiClient: jobsApiClient);
@@ -3479,15 +3482,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .CompileAndSaveAssembly(Arg.Is(SpecificationId))
                 .Returns(HttpStatusCode.NoContent);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -3533,7 +3536,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 jobsApiClient: jobsApiClient);
@@ -3666,15 +3669,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .CompileAndSaveAssembly(Arg.Is(SpecificationId))
                 .Returns(HttpStatusCode.NoContent);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -3720,7 +3723,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 jobsApiClient: jobsApiClient);
@@ -3862,15 +3865,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .CompileAndSaveAssembly(Arg.Is(SpecificationId))
                 .Returns(HttpStatusCode.NoContent);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -3916,7 +3919,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 jobsApiClient: jobsApiClient);
@@ -4037,15 +4040,15 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetBuildProjectBySpecificationId(Arg.Is(SpecificationId))
                 .Returns(buildProject);
 
-            IEnumerable<ProviderSummary> summaries = new[]
+            IEnumerable<ApiClientProviders.Models.ProviderSummary> summaries = new[]
             {
-                new ProviderSummary { Id = "123",  UPIN = "123456" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "123",  UPIN = "123456" },
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(summaries);
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .FetchCoreProviderData(SpecificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, summaries));
 
             IProvidersResultsRepository providerResultsRepository = CreateProviderResultsRepository();
 
@@ -4091,7 +4094,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 calcsRepository: calcsRepository,
                 blobClient: blobClient,
                 cacheProvider: cacheProvider,
-                providerService: providerService,
+                providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
                 featureToggle: featureToggle);

@@ -85,7 +85,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
-            builder.AddSingleton<IProviderService, ProviderService>();
+            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
@@ -126,7 +126,7 @@ namespace CalculateFunding.Functions.TestEngine
             MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c =>
             {
                 c.AddProfile<ResultsMappingProfile>();
-                c.AddProfile<ProviderMappingProfile>();
+                c.AddProfile<Services.Providers.ProviderMappingProfile>();
             });
 
             builder
@@ -149,6 +149,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder.AddScenariosInterServiceClient(config);
             builder.AddCalcsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
 
             builder.AddCaching(config);
 

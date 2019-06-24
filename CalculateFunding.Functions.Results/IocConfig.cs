@@ -106,7 +106,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
             builder.AddSingleton<IProviderVariationAssemblerService, ProviderVariationAssemblerService>();
             builder.AddSingleton<IProviderVariationsService, ProviderVariationsService>();
-            builder.AddSingleton<IProviderService, ProviderService>();
+            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
             builder.AddSingleton<IJobHelperService, JobHelperService>();
             builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
 
@@ -125,7 +125,7 @@ namespace CalculateFunding.Functions.Results
             {
                 c.AddProfile<DatasetsMappingProfile>();
                 c.AddProfile<ResultServiceMappingProfile>();
-                c.AddProfile<ProviderMappingProfile>();
+                c.AddProfile<Services.Providers.ProviderMappingProfile>();
             });
 
             builder
@@ -230,6 +230,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
 
             builder.AddFeatureToggling(config);
 

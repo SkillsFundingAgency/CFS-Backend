@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Providers;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -44,17 +50,17 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Status = "Closed" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Status = "Closed" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -101,17 +107,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, Authority = "authority1" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, Authority = "authority1" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -155,17 +161,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, EstablishmentNumber = "en1" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, EstablishmentNumber = "en1" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -209,17 +215,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, DfeEstablishmentNumber = "den1" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, DfeEstablishmentNumber = "den1" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -263,17 +269,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, Name = "name1" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, Name = "name1" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -317,17 +323,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, LACode = "lac1" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, LACode = "lac1" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -371,17 +377,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, LegalName = "ln1" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, LegalName = "ln1" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -434,17 +440,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, Authority = "authority1", EstablishmentNumber = "en1", DfeEstablishmentNumber = "den1", LACode = "lac1", LegalName = "ln1", Name = "name1" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, Authority = "authority1", EstablishmentNumber = "en1", DfeEstablishmentNumber = "den1", LACode = "lac1", LegalName = "ln1", Name = "name1" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -488,17 +494,17 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, Successor = "prov2" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, Successor = "prov2" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -535,18 +541,18 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Successor = "prov2", Status = "Closed" },
-                new ProviderSummary { Id = "prov2" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Successor = "prov2", Status = "Closed" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov2" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -587,17 +593,17 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>();
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, ReasonEstablishmentOpened = "Test opened reason" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, ReasonEstablishmentOpened = "Test opened reason" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -644,17 +650,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -739,19 +745,19 @@ namespace CalculateFunding.Services.Results.Services
                     } }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
-                new ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
-                new ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -837,19 +843,19 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
-                new ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
-                new ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -974,19 +980,19 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
-                new ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
-                new ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -1061,19 +1067,19 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
-                new ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
-                new ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov1", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov2", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" },
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov3", Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -1116,17 +1122,17 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId }, }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, Authority = "authority", DfeEstablishmentNumber = "den", EstablishmentNumber = "en", LACode = "lac", LegalName = "ln", Name = "name", Status = "Open" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -1163,17 +1169,17 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1", Provider = new ProviderSummary { Id = providerId } }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>()
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>()
             {
-                new ProviderSummary { Id = "prov2"}
+                new ApiClientProviders.Models.ProviderSummary { Id = "prov2"}
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -1225,14 +1231,14 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc1" }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>();
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>();
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             Func<Task> action = async () => await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -1273,17 +1279,17 @@ namespace CalculateFunding.Services.Results.Services
 
             List<PublishedProviderResultExisting> existingPublishedResults = new List<PublishedProviderResultExisting>();
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, ReasonEstablishmentOpened = "Test opened reason" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, ReasonEstablishmentOpened = "Test opened reason" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -1333,17 +1339,17 @@ namespace CalculateFunding.Services.Results.Services
                 new PublishedProviderResultExisting { ProviderId = providerId, AllocationLineId = "alloc2", Provider = new ProviderSummary { Id = providerId} }
             };
 
-            List<ProviderSummary> coreProviderData = new List<ProviderSummary>
+            List<ApiClientProviders.Models.ProviderSummary> coreProviderData = new List<ApiClientProviders.Models.ProviderSummary>
             {
-                new ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Status = "Closed" }
+                new ApiClientProviders.Models.ProviderSummary { Id = providerId, ReasonEstablishmentClosed = "Test closed reason", Status = "Closed" }
             };
 
-            IProviderService providerService = CreateProviderService();
-            providerService
-                .FetchCoreProviderData()
-                .Returns(coreProviderData);
+            IProvidersApiClient providerApiClient = CreateProvidersApiClient();
+            providerApiClient
+                .FetchCoreProviderData(specificationId)
+                .Returns(new ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>>(HttpStatusCode.OK, coreProviderData));
 
-            IProviderVariationAssemblerService service = CreateService(providerService);
+            IProviderVariationAssemblerService service = CreateService(providerApiClient);
 
             // Act
             IEnumerable<ProviderChangeItem> results = await service.AssembleProviderVariationItems(providerResults, existingPublishedResults, specificationId);
@@ -1357,14 +1363,24 @@ namespace CalculateFunding.Services.Results.Services
             results.First().DoesProviderHaveSuccessor.Should().BeFalse();
         }
 
-        private IProviderVariationAssemblerService CreateService(IProviderService providerService = null)
+        private IProviderVariationAssemblerService CreateService(IProvidersApiClient providersApiClient = null, IMapper mapper = null)
         {
-            return new ProviderVariationAssemblerService(providerService ?? CreateProviderService());
+            return new ProviderVariationAssemblerService(providersApiClient ?? CreateProvidersApiClient(), mapper ?? CreateMapper());
         }
 
-        private IProviderService CreateProviderService()
+        private IProvidersApiClient CreateProvidersApiClient()
         {
-            return Substitute.For<IProviderService>();
+            return Substitute.For<IProvidersApiClient>();
+        }
+
+        private IMapper CreateMapper()
+        {
+            MapperConfiguration config = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ProviderMappingProfile>();
+            });
+
+            return new Mapper(config);
         }
     }
 }

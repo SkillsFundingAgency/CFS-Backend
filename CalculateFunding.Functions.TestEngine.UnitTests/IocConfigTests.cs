@@ -40,7 +40,6 @@ namespace CalculateFunding.Functions.TestEngine.UnitTests
                 scope.ServiceProvider.GetService<ITestResultsSearchService>().Should().NotBeNull(nameof(ITestResultsSearchService));
                 scope.ServiceProvider.GetService<ITestResultsCountsService>().Should().NotBeNull(nameof(ITestResultsCountsService));
                 scope.ServiceProvider.GetService<ITestResultsService>().Should().NotBeNull(nameof(ITestResultsService));
-                scope.ServiceProvider.GetService<IProviderService>().Should().NotBeNull(nameof(IProviderService));
             }
         }
 

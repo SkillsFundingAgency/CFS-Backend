@@ -35,6 +35,7 @@ namespace CalculateFunding.Api.Providers.UnitTests
             ResolveType<MasterProviderController>().Should().NotBeNull(nameof(MasterProviderController));
             ResolveType<ProviderByDateController>().Should().NotBeNull(nameof(ProviderByDateController));
             ResolveType<ProviderByVersionController>().Should().NotBeNull(nameof(ProviderByVersionController));
+            ResolveType<ScopedProvidersController>().Should().NotBeNull(nameof(ProviderByVersionController));
         }
 
         [TestMethod]

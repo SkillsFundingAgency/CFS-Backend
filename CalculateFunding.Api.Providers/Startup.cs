@@ -97,6 +97,7 @@ namespace CalculateFunding.Api.Providers
 
             builder.AddSingleton<IProviderVersionService, ProviderVersionService>();
             builder.AddSingleton<IProviderVersionSearchService, ProviderVersionSearchService>();
+            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
             builder.AddSingleton<IValidator<ProviderVersionViewModel>, UploadProviderVersionValidator>();
 
             builder
@@ -129,12 +130,14 @@ namespace CalculateFunding.Api.Providers
 
             MapperConfiguration providerVersionsConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<ProviderVersionsMappingProfile>();
+                c.AddProfile<Models.MappingProfiles.ProviderMappingProfile>();
             });
 
             builder
                 .AddSingleton(providerVersionsConfig.CreateMapper());
 
+            builder.AddResultsInterServiceClient(Configuration);
+            builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Providers");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Providers");
             builder.AddLogging("CalculateFunding.Api.Providers");

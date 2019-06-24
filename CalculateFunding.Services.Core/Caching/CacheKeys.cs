@@ -28,9 +28,9 @@
 
         public static string CurrentCalculation { get; set; } = "calculation-current:";
 
-        public static string AllProviderSummaries { get; set; } = "all-provider-summaries";
+        public static string AllProviderSummaries { get; set; } = "all-provider-summaries:";
 
-        public static string AllProviderSummaryCount { get; set; } = " all-provider-summary-count";
+        public static string AllProviderSummaryCount { get; set; } = " all-provider-summary-count:";
 
         public static string AllFundingStreams { get; set; } = "all-funding-streams";
 

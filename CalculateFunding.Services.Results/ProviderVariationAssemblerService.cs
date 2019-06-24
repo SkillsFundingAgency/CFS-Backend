@@ -1,12 +1,16 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
+using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 
 namespace CalculateFunding.Services.Results
 {
@@ -14,25 +18,30 @@ namespace CalculateFunding.Services.Results
     {
         private const string ProviderStatusClosed = "Closed";
 
-        private readonly IProviderService _providerService;
+        private readonly IProvidersApiClient _providersApiClient;
+        private readonly IMapper _mapper;
 
-        public ProviderVariationAssemblerService(IProviderService providerService)
+        public ProviderVariationAssemblerService(IProvidersApiClient providersApiClient, IMapper mapper)
         {
-            Guard.ArgumentNotNull(providerService, nameof(providerService));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
-            _providerService = providerService;
+            _providersApiClient = providersApiClient;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<ProviderChangeItem>> AssembleProviderVariationItems(IEnumerable<ProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingPublishedProviderResults, string specificationId)
         {
             List<ProviderChangeItem> changeItems = new List<ProviderChangeItem>();
 
-            IEnumerable<ProviderSummary> coreProviderData = await _providerService.FetchCoreProviderData();
+            ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>> coreApiProviderData = await _providersApiClient.FetchCoreProviderData(specificationId);
 
-            if (coreProviderData.IsNullOrEmpty())
+            if (coreApiProviderData?.Content == null || coreApiProviderData.Content.IsNullOrEmpty())
             {
                 throw new NonRetriableException("Failed to retrieve core provider data");
             }
+
+            IEnumerable<ProviderSummary> coreProviderData = _mapper.Map<IEnumerable<ProviderSummary>>(coreApiProviderData.Content);
 
             foreach (ProviderResult providerResult in providerResults)
             {

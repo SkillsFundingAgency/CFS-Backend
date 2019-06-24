@@ -162,20 +162,15 @@ namespace CalculateFunding.Functions.Datasets
             builder
                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
-            builder.AddSingleton<IProviderService, ProviderService>();
-
             builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
-
-            builder
-                .AddSingleton<IResultsRepository, ResultsRepository>();
 
             builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
 
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<DatasetsMappingProfile>();
-                c.AddProfile<ProviderMappingProfile>();
+                c.AddProfile<Services.Providers.ProviderMappingProfile>();
             });
 
             builder

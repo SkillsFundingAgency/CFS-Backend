@@ -112,7 +112,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/update-buildproject-relationships")]
         [HttpPost]
-        public Task<IActionResult> RunUpdateBuildProjectRealtionships()
+        public Task<IActionResult> RunUpdateBuildProjectRelationships()
         {
             return _buildProjectsService.UpdateBuildProjectRelationships(ControllerContext.HttpContext.Request);
         }

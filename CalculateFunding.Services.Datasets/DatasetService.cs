@@ -11,7 +11,6 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
-using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -40,6 +39,7 @@ using Newtonsoft.Json;
 using OfficeOpenXml;
 using Polly;
 using Serilog;
+using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -1117,7 +1117,7 @@ namespace CalculateFunding.Services.Datasets
 
             ConcurrentBag<ProviderSummary> summaries = new ConcurrentBag<ProviderSummary>();
 
-            ApiResponse<ProviderVersion> providerVersionResponse = await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetAllMasterProviders());
+            ApiResponse<ApiClientProviders.Models.ProviderVersion> providerVersionResponse = await _providersApiClientPolicy.ExecuteAsync(() => _providersApiClient.GetAllMasterProviders());
 
             if (!providerVersionResponse.StatusCode.IsSuccess() ||
                 providerVersionResponse.Content == null ||

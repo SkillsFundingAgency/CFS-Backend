@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs;
+﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Results;
@@ -8,7 +10,7 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers;
 using NSubstitute;
 using Serilog;
 
@@ -32,15 +34,15 @@ namespace CalculateFunding.Services.Datasets.Services
             IExcelDatasetReader excelDatasetReader = null,
             ICacheProvider cacheProvider = null,
             ICalcsRepository calcsRepository = null,
-            IProviderService providerService = null,
-            IResultsRepository resultsRepository = null,
+            IProvidersApiClient providersApiClient = null,
             IProvidersResultsRepository providerResultsRepository = null,
             ITelemetry telemetry = null,
             IDatasetsResiliencePolicies datasetsResiliencePolicies = null,
             IVersionRepository<ProviderSourceDatasetVersion> versionRepository = null,
             IDatasetsAggregationsRepository datasetsAggregationsRepository = null,
             IFeatureToggle featureToggle = null,
-            IJobsApiClient jobsApiClient = null)
+            IJobsApiClient jobsApiClient = null,
+            IMapper mapper = null)
         {
 
             return new ProcessDatasetService(
@@ -51,21 +53,21 @@ namespace CalculateFunding.Services.Datasets.Services
                 blobClient ?? CreateBlobClient(),
                 messengerService ?? CreateMessengerService(),
                 providerResultsRepository ?? CreateProviderResultsRepository(),
-                resultsRepository ?? CreateResultsRepository(),
-                providerService ?? CreateProviderService(),
+                providersApiClient ?? CreateProvidersApiClient(),
                 versionRepository ?? CreateVersionRepository(),
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
                 datasetsResiliencePolicies ?? DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 datasetsAggregationsRepository ?? CreateDatasetsAggregationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
-                jobsApiClient ?? CreateJobsApiClient());
+                jobsApiClient ?? CreateJobsApiClient(),
+                mapper ?? CreateMapper());
         }
 
         protected static IFeatureToggle CreateFeatureToggle()
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-          
+
             return featureToggle;
         }
 
@@ -94,19 +96,14 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ITelemetry>();
         }
 
-        protected static IProviderService CreateProviderService()
+        protected static IProvidersApiClient CreateProvidersApiClient()
         {
-            return Substitute.For<IProviderService>();
+            return Substitute.For<IProvidersApiClient>();
         }
 
         protected static IProvidersResultsRepository CreateProviderResultsRepository()
         {
             return Substitute.For<IProvidersResultsRepository>();
-        }
-
-        protected static IResultsRepository CreateResultsRepository()
-        {
-            return Substitute.For<IResultsRepository>();
         }
 
         protected static IExcelDatasetReader CreateExcelDatasetReader()
@@ -137,6 +134,15 @@ namespace CalculateFunding.Services.Datasets.Services
         protected static IDatasetRepository CreateDatasetsRepository()
         {
             return Substitute.For<IDatasetRepository>();
+        }
+        protected static IMapper CreateMapper()
+        {
+            MapperConfiguration config = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ProviderMappingProfile>();
+            });
+
+            return new Mapper(config);
         }
     }
 }

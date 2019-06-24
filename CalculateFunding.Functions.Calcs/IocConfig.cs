@@ -1,4 +1,5 @@
 ﻿using System;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
@@ -24,6 +25,8 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
@@ -100,7 +103,7 @@ namespace CalculateFunding.Functions.Calcs
                 .AddSingleton<VisualBasicSourceFileGenerator>();
             builder.AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
             builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
-            builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>();
+            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
             builder.AddSingleton<ISpecificationRepository, SpecificationRepository>();
             builder.AddSingleton<IBuildProjectsService, BuildProjectsService>();
             builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
@@ -110,6 +113,14 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<IJobHelperService, JobHelperService>();
             builder
                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
+
+            MapperConfiguration providersConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ProviderMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(providersConfig.CreateMapper());
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>(ctx =>
             {
@@ -151,6 +162,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddServiceBus(config);
 
             builder.AddResultsInterServiceClient(config);
+            builder.AddProvidersInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddDatasetsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);

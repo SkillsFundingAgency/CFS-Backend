@@ -153,7 +153,7 @@ namespace CalculateFunding.Api.TestRunner
             MapperConfiguration mapperConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<ResultsMappingProfile>();
-                c.AddProfile<ProviderMappingProfile>();
+                c.AddProfile<Services.Providers.ProviderMappingProfile>();
             });
 
             builder
@@ -163,7 +163,7 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton<ITestResultsService, TestResultsService>()
                 .AddSingleton<IHealthChecker, TestResultsService>();
 
-            builder.AddSingleton<IProviderService, ProviderService>();
+            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
 
             builder.AddUserProviderFromRequest();
 
@@ -175,6 +175,7 @@ namespace CalculateFunding.Api.TestRunner
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddScenariosInterServiceClient(Configuration);
             builder.AddResultsInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
 

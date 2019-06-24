@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -15,13 +16,14 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
+using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
+using ApiClientModels = CalculateFunding.Common.ApiClient.Models;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
@@ -34,7 +36,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ITelemetry _telemetry;
         private readonly Polly.Policy _testResultsPolicy;
         private readonly Polly.Policy _testResultsSearchPolicy;
-        private readonly IProviderService _providerService;
+        private readonly IProvidersApiClient _providersApiClient;
 
         public TestResultsService(ITestResultsRepository testResultsRepository,
             ISearchRepository<TestScenarioResultIndex> searchRepository,
@@ -42,7 +44,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             ILogger logger,
             ITelemetry telemetry,
             ITestRunnerResiliencePolicies policies,
-            IProviderService providerService)
+            IProvidersApiClient providersApiClient)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
@@ -50,7 +52,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(policies, nameof(policies));
-            Guard.ArgumentNotNull(providerService, nameof(providerService));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
 
             _testResultsRepository = testResultsRepository;
             _searchRepository = searchRepository;
@@ -59,7 +61,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             _telemetry = telemetry;
             _testResultsPolicy = policies.TestResultsRepository;
             _testResultsSearchPolicy = policies.TestResultsSearchRepository;
-            _providerService = providerService;
+            _providersApiClient = providersApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -156,13 +158,20 @@ namespace CalculateFunding.Services.TestRunner.Services
         {
             IEnumerable<DocumentEntity<TestScenarioResult>> testScenarioResults = await _testResultsRepository.GetAllTestResults();
 
-            IEnumerable<ProviderSummary> summaries = await _providerService.FetchCoreProviderData();
-
             IList<TestScenarioResultIndex> searchItems = new List<TestScenarioResultIndex>();
 
             foreach (DocumentEntity<TestScenarioResult> documentEnity in testScenarioResults)
             {
                 TestScenarioResult testScenarioResult = documentEnity.Content;
+
+                ApiClientModels.ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>> summariesApi = await _providersApiClient.FetchCoreProviderData(testScenarioResult.Specification.Id);
+
+                if(summariesApi?.Content == null)
+                {
+                    return new NoContentResult();
+                }
+
+                IEnumerable<ProviderSummary> summaries = Mapper.Map<IEnumerable<ProviderSummary>>(summariesApi);
 
                 TestScenarioResultIndex testScenarioResultIndex = new TestScenarioResultIndex
                 {

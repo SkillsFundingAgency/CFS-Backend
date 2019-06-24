@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.CosmosDb;
+﻿using AutoMapper;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -24,6 +25,8 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -113,10 +116,6 @@ namespace CalculateFunding.Api.Calcs
                .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
 
             builder
-                .AddSingleton<IProviderResultsRepository, ProviderResultsRepository>()
-                .AddSingleton<IHealthChecker, ProviderResultsRepository>();
-
-            builder
                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
 
             builder
@@ -174,6 +173,7 @@ namespace CalculateFunding.Api.Calcs
             builder.AddServiceBus(Configuration);
 
             builder.AddResultsInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddDatasetsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);

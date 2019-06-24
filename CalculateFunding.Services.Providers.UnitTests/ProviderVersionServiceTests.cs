@@ -641,7 +641,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             Mapper.Reset();
             MapperConfigurationExpression mappings = new MapperConfigurationExpression();
-            mappings.AddProfile<ProviderVersionsMappingProfile>();
+            mappings.AddProfile<Models.MappingProfiles.ProviderMappingProfile>();
             Mapper.Initialize(mappings);
             
             return Mapper.Instance;

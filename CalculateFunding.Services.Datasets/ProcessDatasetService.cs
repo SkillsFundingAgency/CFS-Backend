@@ -6,9 +6,11 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -33,7 +35,6 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -52,8 +53,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IBlobClient _blobClient;
         private readonly IMessengerService _messengerService;
         private readonly IProvidersResultsRepository _providersResultsRepository;
-        private readonly IResultsRepository _resultsRepository;
-        private readonly IProviderService _providerService;
+        private readonly IProvidersApiClient _providersApiClient;
         private readonly IVersionRepository<ProviderSourceDatasetVersion> _sourceDatasetsVersionRepository;
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
@@ -62,6 +62,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly IFeatureToggle _featureToggle;
         private readonly Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
+        private readonly IMapper _mapper;
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
@@ -71,15 +72,15 @@ namespace CalculateFunding.Services.Datasets
             IBlobClient blobClient,
             IMessengerService messengerService,
             IProvidersResultsRepository providersResultsRepository,
-            IResultsRepository resultsRepository,
-            IProviderService providerService,
+            IProvidersApiClient providersApiClient,
             IVersionRepository<ProviderSourceDatasetVersion> sourceDatasetsVersionRepository,
             ILogger logger,
             ITelemetry telemetry,
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IDatasetsAggregationsRepository datasetsAggregationsRepository,
             IFeatureToggle featureToggle,
-            IJobsApiClient jobsApiClient)
+            IJobsApiClient jobsApiClient,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
@@ -87,13 +88,13 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(providersResultsRepository, nameof(providersResultsRepository));
-            Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
-            Guard.ArgumentNotNull(providerService, nameof(providerService));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(datasetsAggregationsRepository, nameof(datasetsAggregationsRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _datasetRepository = datasetRepository;
             _excelDatasetReader = excelDatasetReader;
@@ -101,8 +102,7 @@ namespace CalculateFunding.Services.Datasets
             _calcsRepository = calcsRepository;
             _blobClient = blobClient;
             _providersResultsRepository = providersResultsRepository;
-            _resultsRepository = resultsRepository;
-            _providerService = providerService;
+            _providersApiClient = providersApiClient;
             _sourceDatasetsVersionRepository = sourceDatasetsVersionRepository;
             _logger = logger;
             _telemetry = telemetry;
@@ -112,6 +112,7 @@ namespace CalculateFunding.Services.Datasets
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
             _messengerService = messengerService;
+            _mapper = mapper;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -425,8 +426,6 @@ namespace CalculateFunding.Services.Datasets
 
         private async Task PersistDataset(TableLoadResult loadResult, Dataset dataset, DatasetDefinition datasetDefinition, BuildProject buildProject, string specificationId, string relationshipId, int version, Reference user)
         {
-            IEnumerable<ProviderSummary> providerSummaries = await _providerService.FetchCoreProviderData();
-
             Guard.IsNullOrWhiteSpace(relationshipId, nameof(relationshipId));
 
             IList<ProviderSourceDataset> providerSourceDatasets = new List<ProviderSourceDataset>();
@@ -461,6 +460,15 @@ namespace CalculateFunding.Services.Datasets
             ConcurrentDictionary<string, ProviderSourceDataset> resultsByProviderId = new ConcurrentDictionary<string, ProviderSourceDataset>();
 
             ConcurrentDictionary<string, ProviderSourceDataset> updateCurrentDatasets = new ConcurrentDictionary<string, ProviderSourceDataset>();
+
+            ApiResponse<IEnumerable<Common.ApiClient.Providers.Models.ProviderSummary>> providerApiSummaries = await _providersApiClient.FetchCoreProviderData(specificationId);
+
+            if (providerApiSummaries?.Content == null)
+            {
+                return;
+            }
+
+            IEnumerable<ProviderSummary> providerSummaries = _mapper.Map<IEnumerable<ProviderSummary>>(providerApiSummaries.Content);
 
             Parallel.ForEach(loadResult.Rows, (RowLoadResult row) =>
             {
@@ -662,12 +670,16 @@ namespace CalculateFunding.Services.Datasets
         {
             string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
 
-            IEnumerable<string> providerIdsAll = await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
-                _resultsRepository.GetAllProviderIdsForSpecificationId(specificationId));
+            ApiResponse<IEnumerable<string>> providerIdsAll = await _providersApiClient.GetScopedProviderIds(specificationId);
+
+            if(providerIdsAll?.Content == null || providerIdsAll.Content.IsNullOrEmpty())
+            {
+                return;
+            }
 
             IList<ProviderSummary> providerSummaries = new List<ProviderSummary>();
 
-            foreach (string providerId in providerIdsAll)
+            foreach (string providerId in providerIdsAll.Content)
             {
                 ProviderSummary cachedProvider = allCachedProviders.FirstOrDefault(m => m.Id == providerId);
 

@@ -125,6 +125,15 @@ namespace CalculateFunding.Services.Providers
             return new NotFoundResult();
         }
 
+        public async Task<ProviderVersion> GetProvidersByVersion(string providerVersionId, bool useCache = false)
+        {
+            Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
+
+            OkObjectResult okObjectResult = await this.GetAllProviders(providerVersionId, useCache) as OkObjectResult;
+
+            return okObjectResult.Value as ProviderVersion;
+        }
+
         public async Task<IActionResult> GetAllProviders(string providerVersionId, bool useCache = false)
         {
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));

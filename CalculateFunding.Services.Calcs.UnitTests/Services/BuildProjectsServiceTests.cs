@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
@@ -21,6 +22,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Providers.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -699,7 +701,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(false);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId))
+                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, 1));
 
             ILogger logger = CreateLogger();
 
@@ -734,16 +739,19 @@ namespace CalculateFunding.Services.Calcs.Services
             jobsApiClient
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobViewModelResponse);
+            jobsApiClient
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(new List<Job> { new Job { SpecificationId = specificationId } });
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             await
-                providerResultsRepository
+                providersApiClient
                     .Received(1)
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
@@ -822,22 +830,22 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             ILogger logger = CreateLogger();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
+                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             await
-                providerResultsRepository
+                providersApiClient
                     .DidNotReceive()
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
@@ -860,6 +868,15 @@ namespace CalculateFunding.Services.Calcs.Services
             Message message = new Message(Encoding.UTF8.GetBytes(""));
             message.UserProperties.Add("jobId", "job-id-1");
             message.UserProperties.Add("specification-id", specificationId);
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetScopedProviderIds(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, Enumerable.Empty<string>()));
+
+            providersApiClient
+                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId))
+                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, 0));
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
@@ -894,7 +911,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(jobViewModelResponse);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, cacheProvider: cacheProvider, specificationsRepository: specificationRepository);
+                logger: logger, cacheProvider: cacheProvider, specificationsRepository: specificationRepository, providersApiClient: providersApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -970,11 +987,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
-                .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
-
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .GetJobById(Arg.Is(parentJobId))
@@ -986,16 +998,21 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetScopedProviderIds(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, engineSettings: engineSettings);
+                logger: logger, cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings, providersApiClient: providersApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             await
-                providerResultsRepository
+                providersApiClient
                     .DidNotReceive()
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
 
@@ -1088,10 +1105,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
@@ -1106,7 +1123,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ILogger logger = CreateLogger();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobsApiClient: jobsApiClient, engineSettings: engineSettings);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
@@ -1193,10 +1210,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
 
@@ -1213,7 +1230,7 @@ namespace CalculateFunding.Services.Calcs.Services
             EngineSettings engineSettings = CreateEngineSettings(1);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobsApiClient: jobsApiClient, engineSettings: engineSettings);
 
             IEnumerable<JobCreateModel> jobModelsToTest = null;
@@ -1302,10 +1319,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1319,7 +1336,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ILogger logger = CreateLogger();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                logger: logger, providersApiClient: providersApiClient, cacheProvider: cacheProvider,
                 jobsApiClient: jobsApiClient, engineSettings: engineSettings);
 
             //Act
@@ -1404,12 +1421,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetJobById(Arg.Is(parentJobId))
                 .Returns((ApiResponse<JobViewModel>)null);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-
             ILogger logger = CreateLogger();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                logger: logger, cacheProvider: cacheProvider,
                 jobsApiClient: jobsApiClient);
 
             //Act
@@ -1476,12 +1491,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetJobById(Arg.Is(jobId))
                 .Returns(jobResponse);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-
             ILogger logger = CreateLogger();
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
+                logger: logger, cacheProvider: cacheProvider,
                 jobsApiClient: jobsApiClient);
 
             //Act
@@ -1563,10 +1576,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1603,15 +1616,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 });
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, engineSettings: engineSettings);
+                logger: logger, cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, engineSettings: engineSettings, providersApiClient: providersApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             await
-                providerResultsRepository
+                providersApiClient
                     .DidNotReceive()
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
 
@@ -1721,10 +1734,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
@@ -1777,15 +1790,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 });
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, engineSettings: engineSettings);
+                logger: logger, cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, engineSettings: engineSettings, providersApiClient: providersApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             await
-                providerResultsRepository
+                providersApiClient
                     .DidNotReceive()
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
 
@@ -1881,7 +1894,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(CreateJobs());
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetScopedProviderIds(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, Enumerable.Empty<string>()));
 
             ILogger logger = CreateLogger();
 
@@ -1925,8 +1941,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 });
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider,
-                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository);
+                logger: logger, cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient, calculationsRepository: calculationsRepository, providersApiClient: providersApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
@@ -1999,10 +2015,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
                 .Returns(providerSummaries);
 
-            IProviderResultsRepository providerResultsRepository = CreateProviderResultsRepository();
-            providerResultsRepository
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
                 .GetScopedProviderIds(Arg.Is(specificationId))
-                .Returns(providerIds);
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+
+            providersApiClient
+                .PopulateProviderSummariesForSpecification(Arg.Is(specificationId))
+                .Returns(new ApiResponse<int?>(HttpStatusCode.OK, 0));
 
             ILogger logger = CreateLogger();
 
@@ -2039,14 +2059,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(jobViewModelResponse);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, providerResultsRepository: providerResultsRepository, cacheProvider: cacheProvider);
+                logger: logger, cacheProvider: cacheProvider, providersApiClient: providersApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);
 
             //Assert
             await
-                providerResultsRepository
+                providersApiClient
                     .Received(1)
                     .PopulateProviderSummariesForSpecification(Arg.Is(specificationId));
         }
@@ -2186,7 +2206,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private static BuildProjectsService CreateBuildProjectsService(
             ILogger logger = null,
             ITelemetry telemetry = null,
-            IProviderResultsRepository providerResultsRepository = null,
+            IProvidersApiClient providersApiClient = null,
             ISpecificationRepository specificationsRepository = null,
             ICacheProvider cacheProvider = null,
             ICalculationsRepository calculationsRepository = null,
@@ -2200,7 +2220,7 @@ namespace CalculateFunding.Services.Calcs.Services
             return new BuildProjectsService(
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
-                providerResultsRepository ?? CreateProviderResultsRepository(),
+                providersApiClient ?? CreateProvidersApiClient(),
                 specificationsRepository ?? CreateSpecificationRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 calculationsRepository ?? CreateCalculationsRepository(),
@@ -2270,11 +2290,6 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ICacheProvider>();
         }
 
-        private static Interfaces.IProviderResultsRepository CreateProviderResultsRepository()
-        {
-            return Substitute.For<Interfaces.IProviderResultsRepository>();
-        }
-
         private static ISpecificationRepository CreateSpecificationRepository()
         {
             return Substitute.For<ISpecificationRepository>();
@@ -2298,6 +2313,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IBuildProjectsRepository CreateBuildProjectRepository()
         {
             return Substitute.For<IBuildProjectsRepository>();
+        }
+
+        private static IProvidersApiClient CreateProvidersApiClient()
+        {
+            return Substitute.For<IProvidersApiClient>();
         }
     }
 }

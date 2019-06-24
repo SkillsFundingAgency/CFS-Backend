@@ -188,13 +188,7 @@ namespace CalculateFunding.Api.Datasets
                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
             builder
-                .AddSingleton<IProviderService, ProviderService>();
-
-            builder
                .AddSingleton<ICalcsRepository, CalcsRepository>();
-
-            builder
-                .AddSingleton<IResultsRepository, ResultsRepository>();
 
             builder
                 .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();
@@ -203,7 +197,6 @@ namespace CalculateFunding.Api.Datasets
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<DatasetsMappingProfile>();
-                c.AddProfile<ProviderMappingProfile>();
             });
 
             builder
@@ -213,7 +206,6 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddCalcsInterServiceClient(Configuration);
             builder.AddResultsInterServiceClient(Configuration);
-            builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
 
@@ -263,7 +255,8 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
 
-            builder.AddSingleton<IProviderService, ProviderService>();
+            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
+            builder.AddSpecificationsInterServiceClient(Configuration);
 
             builder.AddHealthCheckMiddleware();
         }

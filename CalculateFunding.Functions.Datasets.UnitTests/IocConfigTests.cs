@@ -30,7 +30,6 @@ namespace CalculateFunding.Functions.Datasets.UnitTests
                 scope.ServiceProvider.GetService<IDefinitionSpecificationRelationshipService>().Should().NotBeNull(nameof(IDefinitionSpecificationRelationshipService));
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
                 scope.ServiceProvider.GetService<IExcelDatasetReader>().Should().NotBeNull(nameof(IExcelDatasetReader));
-                scope.ServiceProvider.GetService<IProviderService>().Should().NotBeNull(nameof(IProviderService));
                 scope.ServiceProvider.GetService<ICalcsRepository>().Should().NotBeNull(nameof(ICalcsRepository));
             }
         }

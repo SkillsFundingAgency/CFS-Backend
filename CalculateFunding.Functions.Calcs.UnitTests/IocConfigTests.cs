@@ -30,7 +30,6 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
                 scope.ServiceProvider.GetService<IPreviewService>().Should().NotBeNull(nameof(IPreviewService));
                 scope.ServiceProvider.GetService<ICompilerFactory>().Should().NotBeNull(nameof(ICompilerFactory));
                 scope.ServiceProvider.GetService<ISourceFileGeneratorProvider>().Should().NotBeNull(nameof(ISourceFileGeneratorProvider));
-                scope.ServiceProvider.GetService<IProviderResultsRepository>().Should().NotBeNull(nameof(IProviderResultsRepository));
                 scope.ServiceProvider.GetService<ISpecificationRepository>().Should().NotBeNull(nameof(ISpecificationRepository));
                 scope.ServiceProvider.GetService<IBuildProjectsService>().Should().NotBeNull(nameof(IBuildProjectsService));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -17,12 +18,14 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Compiler;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -35,7 +38,7 @@ namespace CalculateFunding.Services.Calcs
     {
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
-        private readonly IProviderResultsRepository _providerResultsRepository;
+        private readonly IProvidersApiClient _providersApiClient;
         private readonly ISpecificationRepository _specificationsRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly ICalculationsRepository _calculationsRepository;
@@ -52,7 +55,7 @@ namespace CalculateFunding.Services.Calcs
         public BuildProjectsService(
             ILogger logger,
             ITelemetry telemetry,
-            IProviderResultsRepository providerResultsRepository,
+            IProvidersApiClient providersApiClient,
             ISpecificationRepository specificationsRepository,
             ICacheProvider cacheProvider,
             ICalculationsRepository calculationsRepository,
@@ -66,7 +69,6 @@ namespace CalculateFunding.Services.Calcs
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
-            Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
@@ -77,10 +79,11 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
+            Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
 
             _logger = logger;
             _telemetry = telemetry;
-            _providerResultsRepository = providerResultsRepository;
+            _providersApiClient = providersApiClient;
             _specificationsRepository = specificationsRepository;
             _cacheProvider = cacheProvider;
             _calculationsRepository = calculationsRepository;
@@ -168,15 +171,15 @@ namespace CalculateFunding.Services.Calcs
             }
 
             bool summariesExist = await _cacheProvider.KeyExists<ProviderSummary>(cacheKey);
-            long totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey);
+            long? totalCount = await _cacheProvider.ListLengthAsync<ProviderSummary>(cacheKey);
 
             bool refreshCachedScopedProviders = false;
 
             if (summariesExist)
             {
-                IEnumerable<string> scopedProviderIds = await _providerResultsRepository.GetScopedProviderIds(specificationId);
+                ApiResponse<IEnumerable<string>> scopedProviderIds = await _providersApiClient.GetScopedProviderIds(specificationId);
 
-                if (scopedProviderIds.Count() != totalCount)
+                if (scopedProviderIds?.Content != null && scopedProviderIds.Content.Count() != totalCount)
                 {
                     refreshCachedScopedProviders = true;
                 }
@@ -184,7 +187,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     IEnumerable<ProviderSummary> cachedScopedSummaries = await _cacheProvider.ListRangeAsync<ProviderSummary>(cacheKey, 0, (int)totalCount);
 
-                    IEnumerable<string> differences = scopedProviderIds.Except(cachedScopedSummaries.Select(m => m.Id));
+                    IEnumerable<string> differences = scopedProviderIds.Content.Except(cachedScopedSummaries.Select(m => m.Id));
 
                     refreshCachedScopedProviders = differences.AnyWithNullCheck();
                 }
@@ -192,7 +195,17 @@ namespace CalculateFunding.Services.Calcs
 
             if (!summariesExist || refreshCachedScopedProviders)
             {
-                totalCount = await _providerResultsRepository.PopulateProviderSummariesForSpecification(specificationId);
+                ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId);
+
+                if(totalCountFromApi?.Content == null)
+                {
+                    string errorMessage = $"No provider version set for specification '{specificationId}'";
+                    _logger.Information(errorMessage);
+
+                    throw new NonRetriableException(errorMessage);
+                }
+
+                totalCount = totalCountFromApi.Content;
             }
 
             const string providerSummariesPartitionIndex = "provider-summaries-partition-index";

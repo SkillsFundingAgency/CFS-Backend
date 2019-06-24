@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.MappingProfiles;
@@ -451,7 +452,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             ILogger logger = null,
             ITelemetry telemetry = null,
             ResiliencePolicies policies = null,
-            IProviderService providerService = null)
+            IProvidersApiClient providersApiClient = null)
         {
             return new TestResultsService(
                 testResultsRepository ?? CreateTestResultsRepository(),
@@ -460,7 +461,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 logger ?? CreateLogger(),
                 telemetry ?? CreateTelemetry(),
                 policies ?? TestRunnerResilienceTestHelper.GenerateTestPolicies(),
-                providerService ?? CreateProviderService()
+                providersApiClient ?? CreateProviderApiClient()
                 );
         }
 
@@ -494,9 +495,9 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             return Substitute.For<ITelemetry>();
         }
 
-        static IProviderService CreateProviderService()
+        static IProvidersApiClient CreateProviderApiClient()
         {
-            return Substitute.For<IProviderService>();
+            return Substitute.For<IProvidersApiClient>();
         }
 
         private TestScenarioResult CreateTestScenarioResult()
