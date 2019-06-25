@@ -24,8 +24,6 @@ using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets;
 using CalculateFunding.Services.Datasets.Interfaces;
 using CalculateFunding.Services.Datasets.Validators;
-using CalculateFunding.Services.Providers;
-using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -254,8 +252,6 @@ namespace CalculateFunding.Api.Datasets
             });
 
             builder.AddTransient<IValidator<DatasetUploadValidationModel>, DatasetItemValidator>();
-
-            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
             builder.AddSpecificationsInterServiceClient(Configuration);
 
             builder.AddHealthCheckMiddleware();

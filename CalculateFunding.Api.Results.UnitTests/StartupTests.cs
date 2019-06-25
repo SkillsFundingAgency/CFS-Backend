@@ -14,14 +14,6 @@ namespace CalculateFunding.Api.Results.UnitTests
     [TestClass]
     public class StartupTests : IoCUnitTestBase
     {
-        bool enableMajorMinorVersioning = true;
-
-        [TestInitialize()]
-        public void BeforeTest()
-        {
-            enableMajorMinorVersioning = true;
-        }
-
         [TestMethod]
         public void ConfigureServices_RegisterDependenciesCorrectly()
         {
@@ -71,7 +63,6 @@ namespace CalculateFunding.Api.Results.UnitTests
                 { "calcsClient:ApiKey", "Local" },
                 { "jobsClient:ApiKey", "Local" },
                 { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
-                { "features:allocationLineMajorMinorVersioningEnabled", enableMajorMinorVersioning.ToString().ToLowerInvariant()}
             };
 
             return configData;

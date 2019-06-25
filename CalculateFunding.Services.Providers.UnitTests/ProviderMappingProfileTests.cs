@@ -1,5 +1,6 @@
 ﻿using System;
 using AutoMapper;
+using CalculateFunding.Models.MappingProfiles;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

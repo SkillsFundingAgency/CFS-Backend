@@ -12,7 +12,6 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
 using NSubstitute;

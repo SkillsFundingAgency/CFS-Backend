@@ -1,5 +1,5 @@
-﻿using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Providers.Interfaces;
+﻿using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
 
@@ -8,12 +8,12 @@ namespace CalculateFunding.Services.Specs.Validators
     public class SpecificationEditModelValidator : AbstractValidator<SpecificationEditModel>
     {
         private readonly ISpecificationsRepository _specificationsRepository;
-        private readonly IProviderVersionService _providerVersionService;
+        private readonly IProvidersApiClient _providersApiClient;
 
-        public SpecificationEditModelValidator(ISpecificationsRepository specificationsRepository, IProviderVersionService providerVersionService)
+        public SpecificationEditModelValidator(ISpecificationsRepository specificationsRepository, IProvidersApiClient providersApiClient)
         {
             _specificationsRepository = specificationsRepository;
-            _providerVersionService = providerVersionService;
+            _providersApiClient = providersApiClient;
 
             RuleFor(model => model.Description)
                .NotEmpty()
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Specs.Validators
                 .WithMessage("Null or empty provider version id")
                 .Custom((name, context) => {
                     SpecificationEditModel specModel = context.ParentContext.InstanceToValidate as SpecificationEditModel;
-                    if (!_providerVersionService.Exists(specModel.ProviderVersionId).Result)
+                    if (_providersApiClient.DoesProviderVersionExist(specModel.ProviderVersionId).Result == System.Net.HttpStatusCode.NotFound)
                     {
                         context.AddFailure($"Provider version id selected does not exist");
                     }

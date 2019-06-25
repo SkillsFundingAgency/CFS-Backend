@@ -438,7 +438,7 @@ namespace CalculateFunding.Services.Calculator
                 return null;
             }
 
-            Dictionary<string, List<decimal>> cachedCalculationAggregationsBatch = new Dictionary<string, List<decimal>>();
+            Dictionary<string, List<decimal>> cachedCalculationAggregationsBatch = new Dictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase);
 
             if (!messageProperties.CalculationsToAggregate.IsNullOrEmpty())
             {
@@ -479,7 +479,7 @@ namespace CalculateFunding.Services.Calculator
 
             if (!messageProperties.GenerateCalculationAggregationsOnly)
             {
-                Dictionary<string, List<decimal>> cachedCalculationAggregations = new Dictionary<string, List<decimal>>();
+                Dictionary<string, List<decimal>> cachedCalculationAggregations = new Dictionary<string, List<decimal>>(StringComparer.InvariantCultureIgnoreCase);
 
                 for (int i = 1; i <= messageProperties.BatchCount; i++)
                 {
@@ -562,15 +562,18 @@ namespace CalculateFunding.Services.Calculator
 
             foreach (ProviderResult providerResult in providerResults)
             {
-                IEnumerable<CalculationResult> calculationResultsForAggregation = providerResult.CalculationResults.Where(m => calculationsToAggregate.Contains(VisualBasicTypeGenerator.GenerateIdentifier(m.Calculation.Name)));
+                IEnumerable<CalculationResult> calculationResultsForAggregation = providerResult.CalculationResults.Where(m => 
+                    calculationsToAggregate.Contains(VisualBasicTypeGenerator.GenerateIdentifier(m.Calculation.Name), StringComparer.InvariantCultureIgnoreCase));
 
                 foreach (CalculationResult calculationResult in calculationResultsForAggregation)
                 {
                     string calculationReferenceName = CalculationTypeGenerator.GenerateIdentifier(calculationResult.Calculation.Name.Trim());
 
-                    if (cachedCalculationAggregationsBatch.ContainsKey(calculationReferenceName))
+                    string calcNameFromCalcsToAggregate = messageProperties.CalculationsToAggregate.FirstOrDefault(m => string.Equals(m, calculationReferenceName, StringComparison.InvariantCultureIgnoreCase));
+
+                    if (!string.IsNullOrWhiteSpace(calcNameFromCalcsToAggregate) && cachedCalculationAggregationsBatch.ContainsKey(calculationReferenceName))
                     {
-                        cachedCalculationAggregationsBatch[calculationReferenceName].Add(calculationResult.Value.HasValue ? calculationResult.Value.Value : 0);
+                        cachedCalculationAggregationsBatch[calcNameFromCalcsToAggregate].Add(calculationResult.Value.HasValue ? calculationResult.Value.Value : 0);
                     }
 
                 }

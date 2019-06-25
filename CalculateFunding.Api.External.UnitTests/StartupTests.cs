@@ -1,28 +1,17 @@
-using CalculateFunding.Api.External;
+using System;
+using System.Collections.Generic;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Api.External.UnitTests
 {
     [TestClass]
     public class StartupTests : IoCUnitTestBase
     {
-        private bool _enableMajorMinorVersioning = true;
-        private bool _disableProviderProfiling = true;
-
-        [TestInitialize()]
-        public void BeforeTest()
-        {
-            _enableMajorMinorVersioning = true;
-            _disableProviderProfiling = true;
-        }
-
         [TestMethod]
         public void ConfigureServices_RegisterDependenciesCorrectly()
         {
@@ -38,7 +27,7 @@ namespace CalculateFunding.Api.External.UnitTests
             ResolveType<V1.Controllers.AllocationNotificationsController>().Should().NotBeNull(nameof(V1.Controllers.AllocationNotificationsController));
             ResolveType<V1.Controllers.FundingStreamController>().Should().NotBeNull(nameof(V1.Controllers.FundingStreamController));
             ResolveType<V1.Controllers.ProviderResultsController>().Should().NotBeNull(nameof(V1.Controllers.ProviderResultsController));
-			ResolveType<V1.Controllers.TimePeriodsController>().Should().NotBeNull(nameof(V1.Controllers.TimePeriodsController));
+            ResolveType<V1.Controllers.TimePeriodsController>().Should().NotBeNull(nameof(V1.Controllers.TimePeriodsController));
 
             // Assert v2
             ResolveType<V2.Controllers.AllocationsController>().Should().NotBeNull(nameof(V2.Controllers.AllocationsController));
@@ -89,7 +78,6 @@ namespace CalculateFunding.Api.External.UnitTests
                 { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
                 { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
                 { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
-                { "features:allocationLineMajorMinorVersioningEnabled", _enableMajorMinorVersioning.ToString()}
             };
 
             return configData;

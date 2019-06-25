@@ -6,7 +6,6 @@ using NSubstitute;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Providers.Validators;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using CalculateFunding.Services.Providers.Interfaces;
 using System.IO;
 using Serilog;
@@ -16,7 +15,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Linq;
-using Microsoft.WindowsAzure.Storage;
 using Polly;
 using AutoMapper;
 using CalculateFunding.Models.Providers;
@@ -25,6 +23,7 @@ using AutoMapper.Configuration;
 using CalculateFunding.Models.MappingProfiles;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.Azure.Storage.Blob;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {

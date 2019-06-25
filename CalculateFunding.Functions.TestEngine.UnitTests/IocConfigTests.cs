@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
-using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Tests.Common;

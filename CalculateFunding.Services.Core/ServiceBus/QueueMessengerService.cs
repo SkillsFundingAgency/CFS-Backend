@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Newtonsoft.Json;
+using Microsoft.WindowsAzure.Storage;
 
 namespace CalculateFunding.Services.Core.ServiceBus
 {
@@ -39,7 +39,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             {
                 if (_queueClient == null)
                 {
-                    _queueClient = _storageAccount.CreateCloudQueueClient();
+                    _queueClient =  _storageAccount.CreateCloudQueueClient();
                 }
 
                 return _queueClient;
@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
 
             await queue.CreateIfNotExistsAsync();
 
-            CloudQueueMessage message = compressData ? new CloudQueueMessage(CompressData(queueMessageJson), true) : new CloudQueueMessage(queueMessageJson);
+            CloudQueueMessage message = compressData ? new CloudQueueMessage(CompressData(queueMessageJson)) : new CloudQueueMessage(queueMessageJson);
 
             await queue.AddMessageAsync(message);
         }

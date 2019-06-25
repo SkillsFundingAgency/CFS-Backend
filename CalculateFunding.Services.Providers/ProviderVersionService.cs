@@ -14,7 +14,7 @@ using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Providers.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.Azure.Storage.Blob;
 using Newtonsoft.Json;
 using Polly;
 using Serilog;

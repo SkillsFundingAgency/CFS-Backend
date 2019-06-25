@@ -5,53 +5,51 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Models.Scenarios
 {
-    [SearchIndex(IndexerForType = typeof(TestScenario),
-       CollectionName = "scenarios",
-       DatabaseName = "allocations")]
+    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "scenarioindex")]
     public class ScenarioIndex
     {
         [Key]
-        [IsSearchable]
+        [IsSearchable, IsRetrievable(true)]
         [JsonProperty("id")]
         public string Id { get; set; }
 
-        [IsSearchable]
+        [IsSearchable, IsRetrievable(true)]
         [JsonProperty("name")]
         public string Name { get; set; }
 
-        [IsSearchable]
+        [IsSearchable, IsRetrievable(true)]
         [JsonProperty("description")]
         public string Description { get; set; }
 
         [JsonProperty("specificationId")]
-        [IsFilterable, IsFacetable]
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
         public string SpecificationId { get; set; }
 
-        [IsFilterable, IsSortable, IsSearchable, IsFacetable]
+        [IsFilterable, IsSortable, IsSearchable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("specificationName")]
         public string SpecificationName { get; set; }
 
-        [IsFilterable, IsSortable, IsSearchable, IsFacetable]
+        [IsFilterable, IsSortable, IsSearchable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("fundingPeriodName")]
         public string FundingPeriodName { get; set; }
 
-        [IsFilterable]
+        [IsFilterable, IsRetrievable(true)]
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
 
-        [IsFilterable, IsFacetable, IsSearchable]
+        [IsFilterable, IsFacetable, IsSearchable, IsRetrievable(true)]
         [JsonProperty("fundingStreamNames")]
         public string[] FundingStreamNames { get; set; }
 
-        [IsFilterable, IsFacetable]
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("fundingStreamIds")]
         public string[] FundingStreamIds { get; set; }
 
-        [IsFilterable, IsSortable, IsFacetable, IsSearchable]
+        [IsFilterable, IsSortable, IsFacetable, IsSearchable, IsRetrievable(true)]
         [JsonProperty("status")]
         public string Status { get; set; }
 
-        [IsFilterable, IsSortable]
+        [IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset? LastUpdatedDate { get; set; }
     }

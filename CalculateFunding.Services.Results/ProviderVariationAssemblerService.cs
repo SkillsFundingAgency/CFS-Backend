@@ -8,7 +8,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 

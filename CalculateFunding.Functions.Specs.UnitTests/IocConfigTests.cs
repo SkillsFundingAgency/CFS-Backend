@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -22,7 +22,6 @@ namespace CalculateFunding.Functions.Specs.UnitTests
             using (IServiceScope scope = IocConfig.Build(configuration).CreateScope())
             {
                 // Assert
-                scope.ServiceProvider.GetService<IProviderVersionService>().Should().NotBeNull(nameof(IProviderVersionService));
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
                 scope.ServiceProvider.GetService<ISpecificationsService>().Should().NotBeNull(nameof(ISpecificationsService));
                 scope.ServiceProvider.GetService<ISpecificationsSearchService>().Should().NotBeNull(nameof(ISpecificationsSearchService));

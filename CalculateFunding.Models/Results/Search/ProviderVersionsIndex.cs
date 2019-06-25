@@ -7,10 +7,10 @@ using System.Text;
 
 namespace CalculateFunding.Models.Results.Search
 {
+    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "providerversionsindex")]
     public class ProviderVersionsIndex
     {
         [Key]
-        [IsSearchable]
         [JsonProperty("id")]
         public string Id
         {
@@ -20,10 +20,14 @@ namespace CalculateFunding.Models.Results.Search
             }
         }
 
+        [IsFilterable]
+        [IsFacetable]
         [IsSearchable]
         [JsonProperty("providerVersionId")]
         public string ProviderVersionId { get; set; }
 
+        [IsFilterable]
+        [IsFacetable]
         [IsSearchable]
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
@@ -64,11 +68,9 @@ namespace CalculateFunding.Models.Results.Search
         [JsonProperty("providerSubType")]
         public string ProviderSubType { get; set; }
 
-        [IsSearchable]
         [JsonProperty("dateOpened")]
         public DateTimeOffset? DateOpened { get; set; }
 
-        [IsSearchable]
         [JsonProperty("dateClosed")]
         public DateTimeOffset? DateClosed { get; set; }
 

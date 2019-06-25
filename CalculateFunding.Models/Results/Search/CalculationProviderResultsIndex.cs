@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results.Search
 {
+    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "calculationproviderresultsindex")]
     public class CalculationProviderResultsIndex
     {
         public CalculationProviderResultsIndex() { }
@@ -58,7 +59,7 @@ namespace CalculateFunding.Models.Results.Search
         /// ID is the CalculationSpecificationId and ProviderId combined with an _
         /// </summary>
         [Key]
-        [IsSearchable]
+        [IsSearchable, IsRetrievable(true)]
         [JsonProperty("id")]
         public string Id
         {
@@ -68,50 +69,58 @@ namespace CalculateFunding.Models.Results.Search
             }
         }
 
-        [IsFilterable, IsFacetable]
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 
         [IsSearchable]
         [IsFacetable]
         [IsSortable]
+        [IsRetrievable(true)]
         [JsonProperty("specificationName")]
         public string SpecificationName { get; set; }
 
         [IsFilterable]
         [IsFacetable]
+        [IsRetrievable(true)]
         [JsonProperty("calculationId")]
         public string CalculationId { get; set; }
 
         [IsFilterable]
         [IsFacetable]
+        [IsRetrievable(true)]
         [JsonProperty("calculationName")]
         public string CalculationName { get; set; }
 
         [IsFilterable]
         [IsFacetable]
+        [IsRetrievable(true)]
         [JsonProperty("calculationSpecificationId")]
         public string CalculationSpecificationId { get; set; }
 
         [IsFilterable]
         [IsFacetable]
+        [IsRetrievable(true)]
         [JsonProperty("calculationType")]
         public string CalculationType { get; set; }
 
         [IsSearchable]
         [IsFacetable]
         [IsSortable]
+        [IsRetrievable(true)]
         [JsonProperty("calculationSpecificationName")]
         public string CalculationSpecificationName { get; set; }
 
         [IsFilterable]
         [IsFacetable]
+        [IsRetrievable(true)]
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
         [IsSearchable]
         [IsFacetable]
         [IsSortable]
+        [IsRetrievable(true)]
         [JsonProperty("providerName")]
         public string ProviderName { get; set; }
 
@@ -119,6 +128,7 @@ namespace CalculateFunding.Models.Results.Search
         [IsFacetable]
         [IsFilterable]
         [IsSortable]
+        [IsRetrievable(true)]
         [JsonProperty("providerType")]
         public string ProviderType { get; set; }
 
@@ -126,6 +136,7 @@ namespace CalculateFunding.Models.Results.Search
         [IsFacetable]
         [IsFilterable]
         [IsSortable]
+        [IsRetrievable(true)]
         [JsonProperty("localAuthority")]
         public string LocalAuthority { get; set; }
 
@@ -133,34 +144,40 @@ namespace CalculateFunding.Models.Results.Search
         [IsFacetable]
         [IsFilterable]
         [IsSortable]
+        [IsRetrievable(true)]
         [JsonProperty("providerSubType")]
         public string ProviderSubType { get; set; }
 
-        [IsFilterable, IsSortable]
+        [IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }
 
         [JsonProperty("ukPrn")]
+        [IsRetrievable(true)]
         public string UKPRN { get; set; }
 
         [JsonProperty("urn")]
+        [IsRetrievable(true)]
         public string URN { get; set; }
 
         [JsonProperty("upin")]
+        [IsRetrievable(true)]
         public string UPIN { get; set; }
 
         [JsonProperty("establishmentNumber")]
+        [IsRetrievable(true)]
         public string EstablishmentNumber { get; set; }
 
         [JsonProperty("openDate")]
+        [IsRetrievable(true)]
         public DateTimeOffset? OpenDate { get; set; }
 
         // NullValueHandling should be set to allow nulls when saving into search, otherwise the merge skips this property and null is never set
-        [IsFilterable, IsSortable]
+        [IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("calculationResult", NullValueHandling = NullValueHandling.Include)]
         public double? CalculationResult { get; set; }
 
-        [IsFilterable]
+        [IsFilterable, IsRetrievable(true)]
         [JsonProperty("isExcluded")]
         public bool IsExcluded { get; set; }
     }

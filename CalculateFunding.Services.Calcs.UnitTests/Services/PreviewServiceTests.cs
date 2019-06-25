@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -1547,14 +1548,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository
                 .DidNotReceive()
                 .GetDatasetSchemaRelationshipModelsForSpecificationId(Arg.Any<string>());
-
         }
 
         [TestMethod]
-        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFound_CompilesCodeAndReturnsOk()
+        [DataRow("Calc1")]
+        [DataRow("calc1")]
+        [DataRow("cAlC1")]
+        public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFoundInAnyCase_CompilesCodeAndReturnsOk(string calcReference)
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum(Calc1)\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            string stringCompareCode = $"Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum({calcReference})\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -1621,7 +1624,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 CompilerMessages = new List<CompilerMessage>()
             };
 
-            Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
+            Dictionary<string, string> sourceCodes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
             {
                 { "TestFunction", model.SourceCode },
                 { "Calc1", "return 1" }

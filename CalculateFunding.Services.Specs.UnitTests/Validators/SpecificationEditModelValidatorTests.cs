@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
 using FluentAssertions;
@@ -55,9 +56,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             SpecificationEditModel model = CreateModel();
             model.SpecificationId = "specId";
 
-            IProviderVersionService providerVersionService = CreateProviderVersionService(false);
+            IProvidersApiClient providersApiClient = CreateProviderApiClient(HttpStatusCode.NotFound);
 
-            SpecificationEditModelValidator validator = CreateValidator(providerVersionService: providerVersionService);
+            SpecificationEditModelValidator validator = CreateValidator(providersApiClient: providersApiClient);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -248,20 +249,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return repository;
         }
 
-        private static IProviderVersionService CreateProviderVersionService(bool providerVersionShouldExist = true)
+        private static IProvidersApiClient CreateProviderApiClient(HttpStatusCode statusCode = HttpStatusCode.NoContent)
         {
-            IProviderVersionService providerVersionService = Substitute.For<IProviderVersionService>();
+            IProvidersApiClient providerApiClient = Substitute.For<IProvidersApiClient>();
 
-            providerVersionService
-                .Exists(Arg.Any<string>())
-                .Returns(providerVersionShouldExist);
+            providerApiClient
+                .DoesProviderVersionExist(Arg.Any<string>())
+                .Returns(statusCode);
 
-            return providerVersionService;
+            return providerApiClient;
         }
 
-        private static SpecificationEditModelValidator CreateValidator(ISpecificationsRepository repository = null, IProviderVersionService providerVersionService = null)
+        private static SpecificationEditModelValidator CreateValidator(ISpecificationsRepository repository = null, IProvidersApiClient providersApiClient = null)
         {
-            return new SpecificationEditModelValidator(repository ?? CreateSpecificationsRepository(), providerVersionService ?? CreateProviderVersionService());
+            return new SpecificationEditModelValidator(repository ?? CreateSpecificationsRepository(), providersApiClient ?? CreateProviderApiClient());
         }
     }
 }

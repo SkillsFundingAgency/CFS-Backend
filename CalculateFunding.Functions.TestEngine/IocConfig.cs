@@ -10,8 +10,6 @@ using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Providers;
-using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.TestEngine.Interfaces;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
@@ -85,7 +83,7 @@ namespace CalculateFunding.Functions.TestEngine
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
-            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
@@ -126,7 +124,7 @@ namespace CalculateFunding.Functions.TestEngine
             MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c =>
             {
                 c.AddProfile<ResultsMappingProfile>();
-                c.AddProfile<Services.Providers.ProviderMappingProfile>();
+                c.AddProfile<ProviderMappingProfile>();
             });
 
             builder

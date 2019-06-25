@@ -22,8 +22,6 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
-using CalculateFunding.Services.Providers;
-using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
@@ -106,7 +104,6 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
             builder.AddSingleton<IProviderVariationAssemblerService, ProviderVariationAssemblerService>();
             builder.AddSingleton<IProviderVariationsService, ProviderVariationsService>();
-            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
             builder.AddSingleton<IJobHelperService, JobHelperService>();
             builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
 
@@ -125,7 +122,7 @@ namespace CalculateFunding.Functions.Results
             {
                 c.AddProfile<DatasetsMappingProfile>();
                 c.AddProfile<ResultServiceMappingProfile>();
-                c.AddProfile<Services.Providers.ProviderMappingProfile>();
+                c.AddProfile<ProviderMappingProfile>();
             });
 
             builder

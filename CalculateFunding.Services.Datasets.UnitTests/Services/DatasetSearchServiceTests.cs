@@ -17,8 +17,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Repositories.Common.Search.Results;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using Microsoft.WindowsAzure.Storage.Blob;
 
 namespace CalculateFunding.Services.Calcs.Services
 {

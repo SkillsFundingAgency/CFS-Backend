@@ -5,31 +5,31 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Models.Datasets.Schema
 {
-    [SearchIndex(IndexerForType = typeof(DatasetDefinition),
-        CollectionName = "results",
-        DatabaseName = "allocations")]
+    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "datasetdefinitionindex")]
     public class DatasetDefinitionIndex
     {
         [Key]
-        [IsSearchable]
+        [IsSearchable, IsRetrievable(true)]
         [JsonProperty("id")]
         public string Id { get; set; }
 
-        [IsSearchable, IsFilterable, IsSortable]
+        [IsSearchable, IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("name")]
         public string Name { get; set; }
 
         [JsonProperty("description")]
+        [IsRetrievable(true)]
         public string Description { get; set; }
 
-        [IsFilterable, IsFacetable]
+        [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("providerIdentifier")]
         public string ProviderIdentifier { get; set; }
 
         [JsonProperty("modelHash")]
+        [IsRetrievable(true)]
         public string ModelHash { get; set; }
 
-        [IsFilterable, IsSortable]
+        [IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("lastUpdatedDate")]
         public DateTimeOffset LastUpdatedDate { get; set; }
     }
