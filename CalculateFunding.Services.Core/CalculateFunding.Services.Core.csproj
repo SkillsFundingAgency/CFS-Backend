@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.9.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="3.4.0" />
+    <PackageReference Include="Microsoft.Azure.Storage.Queue" Version="10.0.3" />
     <PackageReference Include="Microsoft.Azure.Storage.Blob" Version="10.0.3" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
