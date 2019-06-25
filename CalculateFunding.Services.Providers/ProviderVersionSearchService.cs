@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
@@ -16,7 +17,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProviderVersionSearchService : IProviderVersionSearchService
+    public class ProviderVersionSearchService : IProviderVersionSearchService, IHealthChecker
     {
         private readonly Policy _searchRepositoryPolicy;
         private readonly ILogger _logger;
@@ -41,6 +42,27 @@ namespace CalculateFunding.Services.Providers
             _providerVersionMetadataRepository = providerVersionMetadataRepository;
             _providerVersionMetadataRepositoryPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
             _providerVersionService = providerVersionService;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+           
+            ServiceHealth providerVersionMetadataRepoHealth = await ((IHealthChecker)_providerVersionMetadataRepository).IsHealthOk();
+
+            ServiceHealth providerVersionServiceHealth = await _providerVersionService.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProviderVersionSearchService)
+            };
+
+            health.Dependencies.AddRange(providerVersionMetadataRepoHealth.Dependencies);
+            health.Dependencies.AddRange(providerVersionServiceHealth.Dependencies);
+
+            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+
+            return health;
         }
 
         public async Task<IActionResult> GetProviderById(string providerVersionId, string providerId)

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
@@ -22,7 +23,7 @@ using Serilog;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProviderVersionService : IProviderVersionService
+    public class ProviderVersionService : IProviderVersionService, IHealthChecker
     {
         private const int CACHE_DURATION = 7;
         private readonly ICacheProvider _cacheProvider;
@@ -56,6 +57,23 @@ namespace CalculateFunding.Services.Providers
             _providerVersionMetadataRepository = providerVersionMetadataRepository;
             _providerVersionMetadataRepositoryPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
             _mapper = mapper;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth providerVersionMetadataRepoHealth = await ((IHealthChecker)_providerVersionMetadataRepository).IsHealthOk();
+            (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) blobClientRepoHealth = await _blobClient.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProviderVersionService)
+            };
+            health.Dependencies.AddRange(providerVersionMetadataRepoHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = cacheRepoHealth.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = blobClientRepoHealth.Ok, DependencyName = blobClientRepoHealth.GetType().GetFriendlyName(), Message = blobClientRepoHealth.Message });
+
+            return health;
         }
 
         public async Task<IActionResult> DoesProviderVersionExist(string providerVersionId)

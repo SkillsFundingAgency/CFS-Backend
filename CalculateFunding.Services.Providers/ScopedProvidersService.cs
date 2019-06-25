@@ -5,19 +5,21 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ScopedProvidersService : IScopedProvidersService
+    public class ScopedProvidersService : IScopedProvidersService, IHealthChecker
     {
         private const string getSpecificationSummary = "specs/specification-summary-by-id?specificationId={0}";
         private const string getProviderVersion = "providers/versions/{0}";
@@ -42,6 +44,22 @@ namespace CalculateFunding.Services.Providers
             _specificationsApiClient = specificationsApiClient;
             _providerVersionService = providerVersionService;
             _mapper = mapper;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth providerVersionServiceHealth = await ((IHealthChecker)_providerVersionService).IsHealthOk();
+            (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
+
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProviderVersionService)
+            };
+            health.Dependencies.AddRange(providerVersionServiceHealth.Dependencies);
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = cacheRepoHealth.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+
+            return health;
         }
 
         public async Task<IActionResult> PopulateProviderSummariesForSpecification(string specificationId)

@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
@@ -95,9 +96,18 @@ namespace CalculateFunding.Api.Providers
         {
             builder.AddCaching(Configuration);
 
-            builder.AddSingleton<IProviderVersionService, ProviderVersionService>();
-            builder.AddSingleton<IProviderVersionSearchService, ProviderVersionSearchService>();
-            builder.AddSingleton<IScopedProvidersService, ScopedProvidersService>();
+            builder
+                .AddSingleton<IProviderVersionService, ProviderVersionService>()
+                .AddSingleton<IHealthChecker, ProviderVersionService>();
+
+            builder
+                .AddSingleton<IProviderVersionSearchService, ProviderVersionSearchService>()
+                .AddSingleton<IHealthChecker, ProviderVersionSearchService>();
+
+            builder
+                .AddSingleton<IScopedProvidersService, ScopedProvidersService>()
+                .AddSingleton<IHealthChecker, ScopedProvidersService>();
+
             builder.AddSingleton<IValidator<ProviderVersionViewModel>, UploadProviderVersionValidator>();
 
             builder

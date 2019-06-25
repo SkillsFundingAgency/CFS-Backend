@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Providers.Interfaces
 {
-    public interface IProviderVersionService
+    public interface IProviderVersionService : IHealthChecker
     {
         Task<IActionResult> DoesProviderVersionExist(string providerVersionId);
         Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day);
