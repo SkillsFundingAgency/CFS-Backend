@@ -123,7 +123,6 @@ namespace CalculateFunding.Api.Specs
                 c =>
                 {
                     c.AddProfile<SpecificationsMappingProfile>();
-                    c.AddProfile<ProviderMappingProfile>();
                 }
             );
 

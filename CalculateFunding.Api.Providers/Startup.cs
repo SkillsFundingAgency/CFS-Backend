@@ -140,7 +140,7 @@ namespace CalculateFunding.Api.Providers
 
             MapperConfiguration providerVersionsConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<Models.MappingProfiles.ProviderMappingProfile>();
+                c.AddProfile<Models.MappingProfiles.ProviderVersionsMappingProfile>();
             });
 
             builder

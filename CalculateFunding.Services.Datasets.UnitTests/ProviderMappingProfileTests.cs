@@ -1,19 +1,19 @@
 ﻿using System;
 using AutoMapper;
-using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Services.Datasets.MappingProfiles;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Providers.UnitTests
+namespace CalculateFunding.Services.Datasets.UnitTests
 {
     [TestClass]
     public class ProviderMappingProfileTests
     {
         [TestMethod]
-        public void ResultServiceMappingProfile_ShouldBeValid()
+        public void DatasetsServiceMappingProfile_ShouldBeValid()
         {
             // Arrange
-            MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<ProviderVersionsMappingProfile>());
+            MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<ProviderMappingProfile>());
             Action action = new Action(() =>
             {
                 config.AssertConfigurationIsValid();

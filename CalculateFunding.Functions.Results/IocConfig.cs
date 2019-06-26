@@ -24,6 +24,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.MappingProfiles;
 using CalculateFunding.Services.Results.Repositories;
 using CalculateFunding.Services.Results.Validators;
 using FluentValidation;

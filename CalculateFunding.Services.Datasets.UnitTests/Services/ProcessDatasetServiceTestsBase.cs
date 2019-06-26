@@ -11,6 +11,7 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.DataImporter;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Datasets.MappingProfiles;
 using NSubstitute;
 using Serilog;
 

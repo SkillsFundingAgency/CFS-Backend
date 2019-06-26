@@ -112,14 +112,6 @@ namespace CalculateFunding.Functions.Calcs
             builder
                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
-            MapperConfiguration providersConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<ProviderMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(providersConfig.CreateMapper());
-
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>(ctx =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();

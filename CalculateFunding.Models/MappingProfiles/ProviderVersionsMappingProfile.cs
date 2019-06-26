@@ -4,11 +4,11 @@ using CalculateFunding.Models.Providers.ViewModels;
 
 namespace CalculateFunding.Models.MappingProfiles
 {
-    public class ProviderMappingProfile : Profile
+    public class ProviderVersionsMappingProfile : Profile
     {
         private const string MASTER_KEY = "master";
 
-        public ProviderMappingProfile()
+        public ProviderVersionsMappingProfile()
         {
             CreateMap<MasterProviderVersionViewModel, MasterProviderVersion>()
                 .ForMember(c => c.ProviderVersionTypeString, opt => opt.Ignore())
@@ -23,8 +23,6 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(c => c.ProviderVersionTypeString, opt => opt.Ignore())
                 .ForMember(c => c.ProviderVersionId, opt => opt.MapFrom(c => c.ProviderVersionId))
                 .ForMember(c => c.Providers, opt => opt.MapFrom(c => c.Providers));
-
-            CreateMap<Models.Results.ProviderSummary, CalculateFunding.Common.ApiClient.Providers.Models.ProviderSummary>();
         }
     }
 }

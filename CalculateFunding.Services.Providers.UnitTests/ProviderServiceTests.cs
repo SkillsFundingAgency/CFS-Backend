@@ -330,7 +330,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
         private IMapper CreateMapper()
         {
-            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<ProviderMappingProfile>());
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<ProviderVersionsMappingProfile>());
             return mapperConfiguration.CreateMapper();
         }
 
