@@ -1129,68 +1129,6 @@
           ]
         },
         {
-          "type": "topics",
-          "name": "provider-sourcedataset-cleanup",
-          "apiVersion": "2017-04-01",
-          "location": "[resourceGroup().location]",
-          "properties": {
-            "defaultMessageTimeToLive": "P14D",
-            "maxSizeInMegabytes": 1024,
-            "requiresDuplicateDetection": false,
-            "duplicateDetectionHistoryTimeWindow": "PT10M",
-            "enableBatchedOperations": true,
-            "status": "Active",
-            "supportOrdering": true,
-            "autoDeleteOnIdle": "P10675199DT2H48M5.4775807S",
-            "enablePartitioning": false,
-            "enableExpress": false,
-            "path": "provider-sourcedataset-cleanup"
-          },
-          "resources": [
-            {
-              "apiVersion": "2017-04-01",
-              "name": "calculation-specification-provider-results-cleanup",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "provider-sourcedataset-cleanup"
-              ],
-              "properties": {
-                "lockDuration": "PT5M",
-                "requiresSession": false,
-                "defaultMessageTimeToLive": "P14D",
-                "deadLetteringOnMessageExpiration": false,
-                "deadLetteringOnFilterEvaluationExceptions": true,
-                "maxDeliveryCount": 10,
-                "status": "Active",
-                "enableBatchedOperations": true
-              },
-              "resources": []
-            },
-            {
-              "apiVersion": "2017-04-01",
-              "name": "test-specification-provider-results-cleanup",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "provider-sourcedataset-cleanup"
-              ],
-              "properties": {
-                "lockDuration": "PT5M",
-                "requiresSession": false,
-                "defaultMessageTimeToLive": "P14D",
-                "deadLetteringOnMessageExpiration": false,
-                "deadLetteringOnFilterEvaluationExceptions": true,
-                "maxDeliveryCount": 10,
-                "status": "Active",
-                "enableBatchedOperations": true
-              },
-              "resources": []
-            }
-          ],
-          "dependsOn": [
-            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
-          ]
-        },
-        {
           "type": "queues",
           "name": "calc-events-instruct-generate-allocations",
           "apiVersion": "2017-04-01",
