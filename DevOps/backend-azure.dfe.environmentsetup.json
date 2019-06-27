@@ -7,6 +7,569 @@
       "metadata": {
         "description": "The environment key for this particular environment eg t1dv"
       }
+    },
+    "ApiKeyCalcs": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Calcs Service"
+      }
+    },
+    "ApiKeyDatasets": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Datasets Service"
+      }
+    },
+    "ApiKeyExternal": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the External Service"
+      }
+    },
+    "ApiKeyResults": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Results Service"
+      }
+    },
+    "ApiKeyScenarios": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Scenarios Service"
+      }
+    },
+    "ApiKeySpecs": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Specs Service"
+      }
+    },
+    "ApiKeyTestEngine": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Test Engine Service"
+      }
+    },
+    "ApiKeyUsers": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Users Service"
+      }
+    },
+    "ApiKeyJobs": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Jobs Service"
+      }
+    },
+    "ApiKeyProviders": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Providers Service"
+      }
+    },
+    "ApiKeyPolicy": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Policy Service"
+      }
+    },
+    "ApiKeyPublishing": {
+      "type": "string",
+      "metadata": {
+        "description": "Api key for the Publishing Service"
+      }
+    },
+    "apiSkuName": {
+      "type": "string",
+      "defaultValue": "P3v2",
+      "allowedValues": [
+        "F1",
+        "D1",
+        "B1",
+        "B2",
+        "B3",
+        "S1",
+        "S2",
+        "S3",
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P3v3",
+        "P3v2",
+        "P3v1"
+      ],
+      "metadata": {
+        "description": "Describes plan's pricing tier and instance size. Check details at https://azure.microsoft.com/en-us/pricing/details/app-service/"
+      }
+    },
+    "apiSkuCapacity": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "metadata": {
+        "description": "Describes API plan's instance count"
+      }
+    },
+    "apiSkuTier": {
+      "type": "string",
+      "defaultValue": "PremiumV2",
+      "metadata": {
+        "description": "Tier for API hosting plan"
+      }
+    },
+    "apiSkuSize": {
+      "type": "string",
+      "defaultValue": "P3v2",
+      "metadata": {
+        "description": "Size for API hosting plan"
+      }
+    },
+    "apiSkuFamily": {
+      "type": "string",
+      "defaultValue": "Pv2",
+      "metadata": {
+        "description": "Family for API hosting plan"
+      }
+    },
+    "engineSkuName": {
+      "type": "string",
+      "defaultValue": "EP2",
+      "allowedValues": [
+        "EP1",
+        "EP2",
+        "EP3"
+      ],
+      "metadata": {
+        "description": "Name (SkuCode) for Engine hosting plan check details at https://docs.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code#premium"
+      }
+    },
+    "engineSkuTier": {
+      "type": "string",
+      "defaultValue": "ElasticPremium",
+      "metadata": {
+        "description": "Tier (Sku) for Engine hosting plan check details at https://docs.microsoft.com/en-us/azure/azure-functions/functions-infrastructure-as-code#premium"
+      }
+    },
+    "engineNumberofWorkers": {
+      "type": "int",
+      "defaultValue": "2",
+      "metadata": {
+        "description": "For Hosting Plan sets minimum Number of Workers."
+      }
+    },
+    "engineMaximumElasticWorkerCount": {
+      "type": "int",
+      "defaultValue": "10",
+      "metadata": {
+        "description": "For Hosting Plan sets maximum number of Elastic Workers desired_max_scale_out."
+      }
+    },
+    "searchSkuName": {
+      "type": "string",
+      "allowedValues": [
+        "free",
+        "basic",
+        "standard"
+      ],
+      "defaultValue": "standard",
+      "metadata": {
+        "description": "The pricing tier of the Search Service"
+      }
+    },
+    "searchReplicas": {
+      "type": "int",
+      "defaultValue": 2,
+      "minValue": 1,
+      "maxValue": 12,
+      "metadata": {
+        "description": "Total number of replicas for search"
+      }
+    },
+    "searchPartitions": {
+      "type": "int",
+      "defaultValue": 1,
+      "minValue": 1,
+      "maxValue": 12,
+      "metadata": {
+        "description": "Total number of partitions for search"
+      }
+    },
+    "cacheSKUName": {
+      "type": "string",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ],
+      "defaultValue": "Basic",
+      "metadata": {
+        "description": "The pricing tier of the new Azure Redis Cache."
+      }
+    },
+    "cacheSKUFamily": {
+      "type": "string",
+      "allowedValues": [
+        "C",
+        "P"
+      ],
+      "defaultValue": "C",
+      "metadata": {
+        "description": "The family for the sku. Either C = Basic/Standard or P = Premium"
+      }
+    },
+    "cacheSKUCapacity": {
+      "type": "int",
+      "allowedValues": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "defaultValue": 0,
+      "metadata": {
+        "description": "The size of the new Azure Redis Cache instance. 1-6 for Basic/Standard or 1-4 for Premium"
+      }
+    },
+    "AzureAdTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "The identifier of the Azure AD Tenant."
+      }
+    },
+    "AzureAdAudienceExternal": {
+      "type": "string",
+      "metadata": {
+        "description": "The identifier of the audience used by the External Api."
+      }
+    },
+    "AzureAdAudienceProfiling": {
+      "type": "string",
+      "metadata": {
+        "description": "The identifier of the audience used by the Profiling Api."
+      }
+    },
+    "AzureAdAuthority": {
+      "type": "string",
+      "defaultValue": "https://login.windows.net",
+      "metadata": {
+        "description": "The authority used to validate JWT Tokens."
+      }
+    },
+    "ProviderProfilingAzureBearerTokenUrl": {
+      "type": "string",
+      "defaultValue": "https://login.microsoftonline.com/fcsazuresfabisgov.onmicrosoft.com/oauth2/v2.0/token",
+      "metadata": {
+        "description": "Url for acquiring token"
+      }
+    },
+    "ProviderProfilingAzureBearerTokenGrantType": {
+      "type": "string",
+      "defaultValue": "client_credentials",
+      "metadata": {
+        "description": "The grant type to use for acquiring token"
+      }
+    },
+    "ProviderProfilingAzureBearerTokenScope": {
+      "type": "string",
+      "metadata": {
+        "description": "Scope required for acquiring token"
+      }
+    },
+    "ProviderProfilingAzureBearerTokenClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Client id of the profiling application"
+      }
+    },
+    "ProviderProfilingAzureBearerTokenClientSecret": {
+      "type": "string",
+      "metadata": {
+        "description": "Client secret of the profiling application"
+      }
+    },
+    "ProviderProfilingApiUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Api url of the profiling application"
+      }
+    },
+    "DisableProviderProfilingService": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable the mock profiling api"
+      }
+    },
+    "CFSAPIAzureBearerTokenUrl": {
+      "type": "string",
+      "defaultValue": "https://login.microsoftonline.com/fad277c9-c60a-4da1-b5f3-b3b8b34a82f9/oauth2/v2.0/token",
+      "metadata": {
+        "description": "Url for acquiring token"
+      }
+    },
+    "CFSAPIAzureBearerTokenGrantType": {
+      "type": "string",
+      "defaultValue": "client_credentials",
+      "metadata": {
+        "description": "The grant type to use for acquiring token"
+      }
+    },
+    "CFSAPIAzureBearerTokenScope": {
+      "type": "string",
+      "metadata": {
+        "description": "Scope required for acquiring token"
+      }
+    },
+    "CFSAPIAzureBearerTokenClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Client id of the profiling application"
+      }
+    },
+    "CFSAPIAzureBearerTokenClientSecret": {
+      "type": "string",
+      "metadata": {
+        "description": "Client secret of the profiling application"
+      }
+    },
+    "EnableNewProviderCalculationResultsIndex": {
+      "defaultValue": false,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable new calc results index"
+      }
+    },
+    "EnableDynamicBuildProject": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable new check for duplicate calculation names"
+      }
+    },
+    "EnableUseFieldDefinitionIdsInSourceDatasets": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable mapping with field definition ids"
+      }
+    },
+    "EnableProcessDatasetDefinitionNameChanges": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable processing of dataset definition changes"
+      }
+    },
+    "EnableProcessDatasetDefinitionFieldChanges": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable processing of dataset definition field changes"
+      }
+    },
+    "EnableExceptionMessages": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable exception messages to be surfaced up to the user"
+      }
+    },
+    "EnableCosmosDynamicScaling": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable exception scaling up and down for cosmos collections"
+      }
+    },
+    "EnableProviderResultsSpecificationCleanup": {
+      "defaultValue": true,
+      "type": "bool",
+      "metadata": {
+        "description": "Feature toggle to enable enable provider results specification cleanup"
+      }
+    },
+    "storageFirewallEnabled": {
+      "type": "bool",
+      "metadata": {
+        "description": "Enables a restricted set of users access to provisioned storage accounts"
+      },
+      "defaultValue": true
+    },
+    "cosmosFirewallEnabled": {
+      "type": "bool",
+      "metadata": {
+        "description": "Enables a restricted set of users access to provisioned cosmos database"
+      },
+      "defaultValue": true
+    },
+    "aadAuthIssuer": {
+      "type": "string",
+      "metadata": {
+        "description": "The issuer for the platform level auth AAD provider"
+      },
+      "defaultValue": "https://sts.windows.net/1a92889b-8ea1-4a16-8132-347814051567/"
+    },
+    "enablePlatformAuth": {
+      "type": "bool",
+      "metadata": {
+        "description": "Should platform authentication be enabled"
+      },
+      "defaultValue": false
+    },
+    "calcsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Calcs Api"
+      }
+    },
+    "datasetsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Datasets Api"
+      }
+    },
+    "externalApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the External Api"
+      }
+    },
+    "resultsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Results Api"
+      }
+    },
+    "scenariosApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Scenarios Api"
+      }
+    },
+    "specsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Specs Api"
+      }
+    },
+    "testEngineApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the TestEngine Api"
+      }
+    },
+    "usersApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Users Api"
+      }
+    },
+    "jobsApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Jobs Api"
+      }
+    },
+    "profilingApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Profiling Api"
+      }
+    },
+    "providersApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Providers Api"
+      }
+    },
+    "policyApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Policy Api"
+      }
+    },
+    "publishingApiAadClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "AAD Client Id for the Publishing Api"
+      }
+    },
+    "signalRSkuName": {
+      "type": "string",
+      "allowedValues": [
+        "Free_DS2",
+        "Basic_DS2"
+      ],
+      "defaultValue": "Free_DS2",
+      "metadata": {
+        "description": "SignalR Service Sku"
+      }
+    },
+    "signalRTier": {
+      "type": "string",
+      "allowedValues": [
+        "Free",
+        "Basic",
+        "Premium"
+      ],
+      "defaultValue": "Free",
+      "metadata": {
+        "description": "SignalR Service Tier"
+      }
+    },
+    "signalRCapacity": {
+      "type": "int",
+      "defaultValue": "1",
+      "metadata": {
+        "description": "Number of instances for the SignalR Service"
+      }
+    },
+    "UpdateAllocationLineResultStatusBatchCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Batch count for partitioning allocation line status update jobs"
+      },
+      "defaultValue": 500
+    },
+    "CalcEngineMaxPartitionSize": {
+      "type": "int",
+      "metadata": {
+        "description": "Batch count for partitioning allocation line status update jobs"
+      },
+      "defaultValue": 100
+    },
+    "CalcEngineSearchIndexBatchSize": {
+      "type": "int",
+      "metadata": {
+        "description": "Batch count for search indexing in calculation engine"
+      },
+      "defaultValue": 100
+    },
+    "CalculateProviderResultsDegreeOfParallelism": {
+      "type": "int",
+      "metadata": {
+        "description": "How many providers to calculate at once on a single server. This controls how many threads are started at once to run calculations. The more cores available, the higher the number can be. If too many run in parallel, it starts to slow down due to context switching of the threads."
+      },
+      "defaultvalue": 20
+    },
+    "GetProviderSourceDatasetsDegreeofParallelism": {
+      "type": "int",
+      "metadata": {
+        "description": "The number of source provider datasets to retrieve in parallel from cosmosdb. This is the balance of CPU and network IO wait. All provider sources need to be queried before calculations can start."
+      },
+      "defaultvalue": 30
+    },
+    "SaveProviderDegreeOfParallelism": {
+      "type": "int",
+      "metadata": {
+        "description": "The number provider calculations results to write into cosmos in parallel. This is the balance of CPU and network IO wait. A single document is written to cosmos per provider."
+      },
+      "defaultValue": 30
     }
   },
   "variables": {
