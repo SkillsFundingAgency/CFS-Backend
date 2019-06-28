@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -123,6 +124,7 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.EditSpecificationStatus(ControllerContext.HttpContext.Request);
         }
 
+        [Obsolete("Moved to policy service")]
         [Route("api/specs/funding-streams")]
         [HttpGet]
         public async Task<IActionResult> RunFundingStreams()
@@ -193,6 +195,7 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.EditCalculation(ControllerContext.HttpContext.Request);
         }
 
+        [Obsolete("Moved to policy service")]
         [Route("api/specs/get-fundingstreams")]
         [HttpGet]
         public async Task<IActionResult> RunGetFundingStreams()
@@ -200,6 +203,7 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _fundingService.GetFundingStreams();
         }
 
+        [Obsolete("Moved to policy service")]
         [Route("api/specs/get-fundingstream-by-id")]
         [HttpGet]
         public async Task<IActionResult> RunGetFundingStreamById()
@@ -235,6 +239,7 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specSearchService.SearchSpecifications(ControllerContext.HttpContext.Request);
         }
 
+        [Obsolete("Moved to policy service")]
         [Route("api/specs/save-fundingstream")]
         [HttpPost]
         public async Task<IActionResult> RunSaveFundingStreamn()
@@ -242,6 +247,7 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _fundingService.SaveFundingStream(ControllerContext.HttpContext.Request);
         }
 
+        [Obsolete("Moved to policy service")]
         [Route("api/specs/get-fundingperiods")]
         [HttpGet]
         public async Task<IActionResult> RunGetFundingPeriods()
@@ -249,6 +255,7 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _fundingService.GetFundingPeriods(ControllerContext.HttpContext.Request);
         }
 
+        [Obsolete("Moved to policy service")]
         [Route("api/specs/get-fundingperiod-by-id")]
         [HttpGet]
         public async Task<IActionResult> RunGetFundingPeriodById()
@@ -256,6 +263,7 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _fundingService.GetFundingPeriodById(ControllerContext.HttpContext.Request);
         }
 
+        [Obsolete("Moved to policy service")]
         [Route("api/specs/save-fundingperiods")]
         [HttpPost]
         public async Task<IActionResult> RunSaveFundingPeriods()

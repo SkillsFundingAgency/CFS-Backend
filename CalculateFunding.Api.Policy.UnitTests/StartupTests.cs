@@ -21,7 +21,7 @@ namespace CalculateFunding.Api.Policy.UnitTests
             target.ConfigureServices(Services);
 
             // Assert
-            ResolveType<PolicyController>().Should().NotBeNull(nameof(PolicyController));
+            ResolveType<FundingStreamController>().Should().NotBeNull(nameof(FundingStreamController));
         }
 
         protected override Dictionary<string, string> AddToConfiguration()
