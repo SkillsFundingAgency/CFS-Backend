@@ -3621,6 +3621,23 @@
     },
     {
       "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites/slots",
+      "name": "[concat(variables('testEngineApiAppName'), '/', 'Staging')]",
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "comments": "This specifies the web app Staging slot.",
+      "tags": {
+        "displayName": "WebAppStagingSlots"
+      },
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/Sites', variables('testEngineApiAppName'))]"
+      ]
+    },
+    {
+      "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
       "name": "[variables('resultsApiAppName')]",
       "location": "[resourceGroup().location]",
@@ -3900,7 +3917,7 @@
         }
       }
     },
-	{
+    {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites/slots",
       "name": "[concat(variables('specsApiAppName'), '/', 'Staging')]",
