@@ -8,7 +8,7 @@ namespace CalculateFunding.Models.MappingProfiles
     {
         public SpecificationsMappingProfile()
         {
-            CreateMap<PolicyCreateModel, Policy>()
+            CreateMap<PolicyCreateModel, Specs.Policy>()
                 .AfterMap((src, dest) => { dest.Id = Guid.NewGuid().ToString(); })
                 .ForMember(m => m.Id, opt => opt.Ignore())
                 .ForMember(m => m.Calculations, opt => opt.Ignore())

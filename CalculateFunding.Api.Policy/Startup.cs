@@ -2,17 +2,22 @@ using System;
 using System.IO;
 using System.Reflection;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Policy;
+using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -83,18 +88,42 @@ namespace CalculateFunding.Api.Policy
 
         public void RegisterComponents(IServiceCollection builder)
         {
-            builder.AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
+            builder
+               .AddSingleton<IFundingStreamService, FundingStreamService>()
+               .AddSingleton<IHealthChecker, FundingStreamService>();
+
+            builder
+                .AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
+                    {
+                        CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                        cosmosDbSettings.CollectionName = "policy";
+
+                        Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                        CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
+
+                        return new PolicyRepository(cosmosRepostory);
+                    })
+                .AddSingleton<IHealthChecker, FundingStreamService>();
+
+            builder.AddSingleton<IPolicyResilliencePolicies>((ctx) =>
             {
-                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
-                cosmosDbSettings.CollectionName = "policy";
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
-                Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+                Polly.Policy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
 
-                CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
-
-                return new PolicyRepository(cosmosRepostory);
+                return new PolicyResilliencePolicies()
+                {
+                    PolicyRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CacheProvider = redisPolicy
+                };
             });
+
+            builder.AddPolicySettings(Configuration);
+            builder.AddCaching(Configuration);
 
             builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Policy");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Policy");

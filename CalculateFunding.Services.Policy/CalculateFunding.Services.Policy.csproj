@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common" Version="1.33.0" />
+    <PackageReference Include="YamlDotNet" Version="5.2.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
