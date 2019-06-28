@@ -3329,6 +3329,7 @@
             }
           ]
         }
+		}
       },
 	  {
       "apiVersion": "2016-08-01",
@@ -3346,7 +3347,6 @@
       "dependsOn": [
         "[resourceId('Microsoft.Web/Sites', variables('calcsApiAppName'))]"
       ]
-    },
     },
     {
       "apiVersion": "2016-08-01",
