@@ -63,13 +63,6 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/results/get-provider")]
-        [HttpGet]
-        public async Task<IActionResult> RunGetProvider()
-        {
-            return await _resultsService.GetProviderById(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/results/get-provider-source-datasets")]
         [HttpGet]
         public async Task<IActionResult> RunGetProviderSourceDatasetsByProviderIdAndSpecificationId()
@@ -145,20 +138,6 @@ namespace CalculateFunding.Api.Results.Controllers
         public async Task<IActionResult> RunGetProviderResultsBySpecificationId()
         {
             return await _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/results/import-providers")]
-        [HttpPost]
-        public async Task<IActionResult> RunImportProviders()
-        {
-            return await _resultsService.ImportProviders(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/results/remove-current-providers")]
-        [HttpPost]
-        public async Task<IActionResult> RunRemoveCurrentProviders()
-        {
-            return await _resultsService.RemoveCurrentProviders();
         }
 
         [Route("api/results/reindex/allocation-feeds")]

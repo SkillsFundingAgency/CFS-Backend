@@ -11,8 +11,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<IActionResult> GetProviderSpecifications(HttpRequest request);
 
-        Task<IActionResult> GetProviderById(HttpRequest request);
-
         Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request);
 
         Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request);
@@ -23,11 +21,7 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request);
 
-        Task<IActionResult> ImportProviders(HttpRequest request);
-
         Task CleanupProviderResultsForSpecification(Message message);
-
-        Task<IActionResult> RemoveCurrentProviders();
 
         Task<IActionResult> HasCalculationResults(string calculationId);
     }

@@ -37,7 +37,6 @@ namespace CalculateFunding.Services.Results
         private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IMapper _mapper;
-        private readonly ISearchRepository<ProviderIndex> _searchRepository;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _calculationProviderResultsSearchRepository;
         private readonly Polly.Policy _resultsRepositoryPolicy;
@@ -86,7 +85,6 @@ namespace CalculateFunding.Services.Results
             _logger = logger;
             _resultsRepository = resultsRepository;
             _mapper = mapper;
-            _searchRepository = searchRepository;
             _telemetry = telemetry;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
@@ -106,7 +104,6 @@ namespace CalculateFunding.Services.Results
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth datasetsRepoHealth = await ((IHealthChecker)_resultsRepository).IsHealthOk();
-            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
             ServiceHealth providerSourceDatasetRepoHealth = await ((IHealthChecker)_providerSourceDatasetRepository).IsHealthOk();
             (bool Ok, string Message) calcSearchRepoHealth = await _calculationProviderResultsSearchRepository.IsHealthOk();
 
@@ -115,31 +112,10 @@ namespace CalculateFunding.Services.Results
                 Name = nameof(ResultsService)
             };
             health.Dependencies.AddRange(datasetsRepoHealth.Dependencies);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
             health.Dependencies.AddRange(providerSourceDatasetRepoHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = calcSearchRepoHealth.Ok, DependencyName = _calculationProviderResultsSearchRepository.GetType().GetFriendlyName(), Message = calcSearchRepoHealth.Message });
 
             return health;
-        }
-
-        public async Task<IActionResult> GetProviderById(HttpRequest request)
-        {
-            string providerId = GetParameter(request, "providerId");
-
-            if (string.IsNullOrWhiteSpace(providerId))
-            {
-                _logger.Error("No provider Id was provided to GetProviderById");
-                return new BadRequestObjectResult("Null or empty provider Id provided");
-            }
-
-            ProviderIndex provider = await _resultsRepositoryPolicy.ExecuteAsync(() => _searchRepository.SearchById(providerId, IdFieldOverride: "providerId"));
-
-            if (provider == null)
-            {
-                return new NotFoundResult();
-            }
-
-            return new OkObjectResult(provider);
         }
 
         public async Task<IActionResult> GetProviderResults(HttpRequest request)
@@ -441,94 +417,6 @@ namespace CalculateFunding.Services.Results
 
                 await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _calculationProviderResultsSearchRepository.Remove(indexItems?.Results.Select(m => m.Result)));
             }
-        }
-
-        public async Task<IActionResult> RemoveCurrentProviders()
-        {
-            try
-            {
-                await _searchRepository.DeleteIndex();
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to delete providers index");
-
-                return new InternalServerErrorResult(ex.Message);
-            }
-
-            bool cachedSummaryCountExists = await _cacheProvider.KeyExists<string>(CacheKeys.AllProviderSummaryCount);
-
-            if (cachedSummaryCountExists)
-            {
-                await _cacheProvider.KeyDeleteAsync<string>(CacheKeys.AllProviderSummaryCount);
-            }
-
-            bool cachedSummariesExists = await _cacheProvider.KeyExists<ProviderSummary>(CacheKeys.AllProviderSummaries);
-
-            if (cachedSummariesExists)
-            {
-                await _cacheProvider.RemoveAsync<ProviderSummary>(CacheKeys.AllProviderSummaries);
-            }
-
-            await _cacheProvider.RemoveByPatternAsync("scoped-provider-summaries:*");
-
-            return new NoContentResult();
-        }
-
-        public async Task<IActionResult> ImportProviders(HttpRequest request)
-        {
-            string json = await request.GetRawBodyStringAsync();
-
-            MasterProviderModel[] providers = new MasterProviderModel[0];
-
-            try
-            {
-                providers = JsonConvert.DeserializeObject<MasterProviderModel[]>(json);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Invalid providers were provided");
-
-                return new BadRequestObjectResult($"Invalid providers were provided: {ex.Message}");
-            }
-
-            if (providers.IsNullOrEmpty())
-            {
-                _logger.Error("No providers were provided");
-
-                return new BadRequestObjectResult("No providers were provided");
-            }
-
-            IEnumerable<ValidationFailure> validationFailures = providers.SelectMany(p => _masterProviderModelValidator.Validate(p).Errors);
-
-            if (validationFailures.Any())
-            {
-                return new BadRequestObjectResult(string.Join(",", validationFailures.Select(vf => vf.ErrorMessage)));
-            }
-
-            IList<ProviderIndex> providersToIndex = new List<ProviderIndex>();
-
-            foreach (MasterProviderModel provider in providers)
-            {
-                ProviderIndex providerIndex = _providerImportMappingService.Map(provider);
-
-                if (providerIndex != null)
-                {
-                    providersToIndex.Add(providerIndex);
-                }
-            }
-
-            IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(providersToIndex));
-
-            if (errors.Any())
-            {
-                string errorMessage = $"Failed to index providers result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }";
-                _logger.Error(errorMessage);
-
-                return new InternalServerErrorResult(errorMessage);
-            }
-
-            return new NoContentResult();
         }
 
         public async Task<IActionResult> HasCalculationResults(string calculationId)
