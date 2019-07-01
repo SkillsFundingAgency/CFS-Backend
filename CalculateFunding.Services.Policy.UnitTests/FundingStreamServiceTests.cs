@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger, policyRepository: policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
             // Act
             IActionResult result = await fundingStreamsService.GetFundingStreams();
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
            
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger, cacheProvider, policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger, cacheProvider, policyRepository);
 
             // Act
             IActionResult result = await fundingStreamsService.GetFundingStreams();
@@ -123,7 +123,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger, cacheProvider, policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger, cacheProvider, policyRepository);
 
             // Act
             IActionResult result = await fundingStreamsService.GetFundingStreams();
@@ -156,7 +156,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             // Arrange
             ILogger logger = CreateLogger();
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger);
 
             // Act
             IActionResult result = await fundingStreamsService.GetFundingStreamById(fundingStreamId);
@@ -188,7 +188,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
                 .Returns((FundingStream)null);
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger, policyRepository: policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
             // Act
             IActionResult result = await fundingStreamsService.GetFundingStreamById(fundingStreamId);
@@ -219,7 +219,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
                 .Returns(fundingStream);
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(policyRepository: policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(policyRepository: policyRepository);
 
             // Act
             IActionResult result = await fundingStreamsService.GetFundingStreamById(fundingStreamId);
@@ -242,7 +242,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             ILogger logger = CreateLogger();
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger);
 
             //Act
             IActionResult result = await fundingStreamsService.SaveFundingStream(request);
@@ -273,7 +273,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             ILogger logger = CreateLogger();
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger);
 
             //Act
             IActionResult result = await fundingStreamsService.SaveFundingStream(request);
@@ -312,7 +312,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             ILogger logger = CreateLogger();
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger);
 
             //Act
             IActionResult result = await fundingStreamsService.SaveFundingStream(request);
@@ -358,7 +358,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .SaveFundingStream(Arg.Any<FundingStream>())
                 .Returns(failedCode);
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger, policyRepository: policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
             //Act
             IActionResult result = await fundingStreamsService.SaveFundingStream(request);
@@ -408,7 +408,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .When(x => x.SaveFundingStream(Arg.Any<FundingStream>()))
                 .Do(x => { throw new Exception(); });
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger, policyRepository: policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
             string expectedErrorMessage = $"Exception occurred writing to yaml file: {yamlFile} to cosmos db";
 
@@ -460,7 +460,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .SaveFundingStream(Arg.Any<FundingStream>())
                 .Returns(statusCode);
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger: logger, policyRepository: policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
             //Act
             IActionResult result = await fundingStreamsService.SaveFundingStream(request);
@@ -536,7 +536,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .KeyExists<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
                 .Returns(true);
 
-            FundingStreamService fundingStreamsService = CreateFundingStreamsService(logger, cacheProvider, policyRepository);
+            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger, cacheProvider, policyRepository);
 
             //Act
             IActionResult result = await fundingStreamsService.SaveFundingStream(request);
@@ -561,7 +561,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .KeyDeleteAsync<FundingStream[]>(CacheKeys.AllFundingStreams);
         }
 
-        private static FundingStreamService CreateFundingStreamsService(
+        private static FundingStreamService CreateFundingStreamService(
             ILogger logger = null,
             ICacheProvider cacheProvider = null,
             IPolicyRepository policyRepository = null)

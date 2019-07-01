@@ -93,6 +93,10 @@ namespace CalculateFunding.Api.Policy
                .AddSingleton<IHealthChecker, FundingStreamService>();
 
             builder
+             .AddSingleton<IFundingPeriodService, FundingPeriodService>()
+             .AddSingleton<IHealthChecker, FundingPeriodService>();
+
+            builder
                 .AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
                     {
                         CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();

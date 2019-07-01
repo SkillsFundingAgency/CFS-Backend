@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Policy.Controllers
@@ -9,9 +10,11 @@ namespace CalculateFunding.Api.Policy.Controllers
     [ApiController]
     public class FundingPeriodController : ControllerBase
     {
-        public FundingPeriodController()
-        {
+        private readonly IFundingPeriodService _fundingPeriodService;
 
+        public FundingPeriodController(IFundingPeriodService fundingPeriodService)
+        {
+            _fundingPeriodService = fundingPeriodService;
         }
 
         /// <summary>
@@ -22,7 +25,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         [Produces(typeof(IEnumerable<Period>))]
         public async Task<IActionResult> GetFundingPeriods()
         {
-            return new OkObjectResult(Enumerable.Empty<Period>());
+            return await _fundingPeriodService.GetFundingPeriods();
         }
 
         /// <summary>
@@ -34,19 +37,18 @@ namespace CalculateFunding.Api.Policy.Controllers
         [Produces(typeof(Period))]
         public async Task<IActionResult> GetFundingPeriodById([FromRoute]string fundingPeriodId)
         {
-            return new OkObjectResult(new Period());
+            return await _fundingPeriodService.GetFundingPeriodById(fundingPeriodId);
         }
 
         /// <summary>
         /// Saves (creates or updates) a Funding Period
         /// </summary>
-        /// <param name="fundingPeriodYaml">YAML contents of a funding period</param>
         /// <returns>Saved Funding Period</returns>
         [HttpPost("api/fundingperiods")]
         [Produces(typeof(Period))]
-        public async Task<IActionResult> SaveFundingPeriod([FromBody]string fundingPeriodYaml)
+        public async Task<IActionResult> SaveFundingPeriods()
         {
-            return new OkObjectResult(new Period());
+            return await _fundingPeriodService.SaveFundingPeriods(ControllerContext.HttpContext.Request);
         }
     }
 }

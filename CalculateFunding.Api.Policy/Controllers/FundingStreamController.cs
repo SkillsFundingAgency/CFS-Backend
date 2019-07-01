@@ -16,6 +16,10 @@ namespace CalculateFunding.Api.Policy.Controllers
             _fundingStreamService = fundingStreamService;
         }
 
+        /// <summary>
+        /// Get all funding streams
+        /// </summary>
+        /// <returns>A list of funding streams</returns>
         [HttpGet("api/fundingstreams")]
         [Produces(typeof(IEnumerable<FundingStream>))]
         public async Task<IActionResult> GetFundingStreams()
@@ -23,6 +27,11 @@ namespace CalculateFunding.Api.Policy.Controllers
             return await _fundingStreamService.GetFundingStreams();
         }
 
+        /// <summary>
+        /// Gets a specific funding stream by ID
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID eg PES</param>
+        /// <returns>Funding Stream</returns>
         [HttpGet("api/fundingstreams/{fundingStreamId}")]
         [Produces(typeof(FundingStream))]
         public async Task<IActionResult> GetFundingStreamById([FromRoute]string fundingStreamId)
@@ -30,6 +39,10 @@ namespace CalculateFunding.Api.Policy.Controllers
             return await _fundingStreamService.GetFundingStreamById(fundingStreamId);
         }
 
+
+        /// <summary>
+        /// Saves (creates or updates) a funding stream
+        /// </summary>
         [HttpPost("api/fundingstreams")]
         [Produces(typeof(FundingStream))]
         public async Task<IActionResult> SaveFundingStream()

@@ -13,5 +13,8 @@ namespace CalculateFunding.Services.Policy.Interfaces
         Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);
         Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream);
+        Task<Period> GetFundingPeriodById(string fundingPeriodId);
+        Task<IEnumerable<Period>> GetFundingPeriods(Expression<Func<Period, bool>> query = null);
+        Task SaveFundingPeriods(IEnumerable<Period> fundingPeriods);
     }
 }

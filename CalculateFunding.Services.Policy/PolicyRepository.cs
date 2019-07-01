@@ -58,5 +58,28 @@ namespace CalculateFunding.Services.Policy
 
             return await _cosmosRepository.UpsertAsync<FundingStream>(fundingStream, fundingStream.Id, true);
         }
+
+        public async Task<Period> GetFundingPeriodById(string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+
+            return (await _cosmosRepository.ReadAsync<Period>(fundingPeriodId, true))?.Content;
+        }
+
+        public async Task<IEnumerable<Period>> GetFundingPeriods(Expression<Func<Period, bool>> query = null)
+        {
+            IQueryable<Period> fundingPeriods = query == null
+               ? _cosmosRepository.Query<Period>(true)
+               : _cosmosRepository.Query<Period>(true).Where(query);
+
+            return await Task.FromResult(fundingPeriods.AsEnumerable());
+        }
+
+        public async Task SaveFundingPeriods(IEnumerable<Period> fundingPeriods)
+        {
+            Guard.ArgumentNotNull(fundingPeriods, nameof(fundingPeriods));
+
+            await _cosmosRepository.BulkUpsertAsync<Period>(fundingPeriods.ToList(), enableCrossPartitionQuery: true);
+        }
     }
 }
