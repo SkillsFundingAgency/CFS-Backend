@@ -9,6 +9,7 @@ using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
@@ -25,6 +26,14 @@ namespace CalculateFunding.Services.Providers
         private readonly Policy _providerVersionMetadataRepositoryPolicy;
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadataRepository;
         private readonly IProviderVersionService _providerVersionService;
+
+        private FacetFilterType[] Facets = {
+            new FacetFilterType("providerType"),
+            new FacetFilterType("providerSubType"),
+            new FacetFilterType("authority"),
+            new FacetFilterType("providerId"),
+            new FacetFilterType("providerVersionId")
+        };
 
         public ProviderVersionSearchService(ILogger logger,
             ISearchRepository<ProviderVersionsIndex> searchRepository,
@@ -197,63 +206,139 @@ namespace CalculateFunding.Services.Providers
 
         private async Task<ProviderVersionSearchResults> SearchProviderVersionSearchResults(SearchModel searchModel)
         {
-            SearchResults<ProviderVersionsIndex> searchResults = await BuildItemsSearchTask(searchModel);
+            IEnumerable<Task<SearchResults<ProviderVersionsIndex>>> searchTasks = BuildSearchTasks(searchModel);
+
+            await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
             ProviderVersionSearchResults results = new ProviderVersionSearchResults();
-
-            ProcessSearchResults(searchResults, results);
+            foreach (var searchTask in searchTasks)
+            {
+                ProcessSearchResults(searchTask.Result, results);
+            }
 
             return results;
         }
 
-        private Task<SearchResults<ProviderVersionsIndex>> BuildItemsSearchTask(SearchModel searchModel)
+        private IEnumerable<Task<SearchResults<ProviderVersionsIndex>>> BuildSearchTasks(SearchModel searchModel)
         {
-            return Task.Run(() =>
+            IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
+
+            IEnumerable<Task<SearchResults<ProviderVersionsIndex>>> searchTasks = new Task<SearchResults<ProviderVersionsIndex>>[0];
+
+            if (searchModel.IncludeFacets)
             {
-                return _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                foreach (var filterPair in facetDictionary)
                 {
-                    Facets = searchModel.Filters.Select(x => x.Key).ToList(),
-                    SearchMode = (SearchMode)searchModel.SearchMode,
-                    IncludeTotalResultCount = true,
-                    Filter = $"{string.Join(" and ", searchModel.Filters.Select(x => $"{x.Key} eq '{x.Value.First()}'"))}",
-                    QueryType = QueryType.Simple
-                }));
+                    searchTasks = searchTasks.Concat(new[]
+                    {
+                        Task.Run(() =>
+                        {
+                            var s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
+
+                            return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                            {
+                                Facets = new[]{ filterPair.Key },
+                                SearchMode = (SearchMode)searchModel.SearchMode,
+                                IncludeTotalResultCount = true,
+                                Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
+                                QueryType = QueryType.Full
+                            });
+                        })
+                    });
+                }
+            }
+
+            searchTasks = searchTasks.Concat(new[]
+            {
+                BuildItemsSearchTask(facetDictionary, searchModel)
             });
+
+            return searchTasks;
+        }
+
+        private IDictionary<string, string> BuildFacetDictionary(SearchModel searchModel)
+        {
+            if (searchModel.Filters == null)
+                searchModel.Filters = new Dictionary<string, string[]>();
+
+            searchModel.Filters = searchModel.Filters.ToList().Where(m => !m.Value.IsNullOrEmpty())
+                .ToDictionary(m => m.Key, m => m.Value);
+
+            IDictionary<string, string> facetDictionary = new Dictionary<string, string>();
+
+            foreach (var facet in Facets)
+            {
+                string filter = "";
+                if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name].AnyWithNullCheck())
+                {
+                    if (facet.IsMulti)
+                        filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x}'"))}))";
+                    else
+                        filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
+                }
+                facetDictionary.Add(facet.Name, filter);
+            }
+
+            return facetDictionary;
+        }
+
+        private async Task<SearchResults<ProviderVersionsIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
+        {
+            int skip = (searchModel.PageNumber - 1) * searchModel.Top;
+
+            return await _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+            {
+                Skip = skip,
+                Top = searchModel.Top,
+                SearchMode = (SearchMode)searchModel.SearchMode,
+                IncludeTotalResultCount = true,
+                Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
+                QueryType = QueryType.Full
+            }));
         }
 
         private void ProcessSearchResults(SearchResults<ProviderVersionsIndex> searchResult, ProviderVersionSearchResults results)
         {
-            results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
-            results.Results = searchResult?.Results?.Select(m => new ProviderVersionSearchResult
+            if (!searchResult.Facets.IsNullOrEmpty())
             {
-                Id = m.Result.Id,
-                Name = m.Result.Name,
-                ProviderVersionId = m.Result.ProviderVersionId,
-                ProviderId = m.Result.ProviderId,
-                URN = m.Result.URN,
-                UKPRN = m.Result.UKPRN,
-                UPIN = m.Result.UPIN,
-                EstablishmentNumber = m.Result.EstablishmentNumber,
-                DfeEstablishmentNumber = m.Result.DfeEstablishmentNumber,
-                Authority = m.Result.Authority,
-                ProviderType = m.Result.ProviderType,
-                ProviderSubType = m.Result.ProviderSubType,
-                DateOpened = m.Result.DateOpened,
-                DateClosed = m.Result.DateClosed,
-                ProviderProfileIdType = m.Result.ProviderProfileIdType,
-                LaCode = m.Result.LaCode,
-                NavVendorNo = m.Result.NavVendorNo,
-                CrmAccountId = m.Result.CrmAccountId,
-                LegalName = m.Result.LegalName,
-                Status = m.Result.Status,
-                PhaseOfEducation = m.Result.PhaseOfEducation,
-                ReasonEstablishmentOpened = m.Result.ReasonEstablishmentOpened,
-                ReasonEstablishmentClosed = m.Result.ReasonEstablishmentClosed,
-                Successor = m.Result.Successor,
-                TrustStatus = m.Result.TrustStatus,
-                TrustName = m.Result.TrustName,
-                TrustCode = m.Result.TrustCode
-            });
+                results.Facets = results.Facets.Concat(searchResult.Facets);
+            }
+            else
+            {
+                results.TotalCount = (int)(searchResult?.TotalCount ?? 0);
+                results.Results = searchResult?.Results?.Select(m => new ProviderVersionSearchResult
+                {
+                    Id = m.Result.Id,
+                    Name = m.Result.Name,
+                    ProviderVersionId = m.Result.ProviderVersionId,
+                    ProviderId = m.Result.ProviderId,
+                    URN = m.Result.URN,
+                    UKPRN = m.Result.UKPRN,
+                    UPIN = m.Result.UPIN,
+                    EstablishmentNumber = m.Result.EstablishmentNumber,
+                    DfeEstablishmentNumber = m.Result.DfeEstablishmentNumber,
+                    Authority = m.Result.Authority,
+                    ProviderType = m.Result.ProviderType,
+                    ProviderSubType = m.Result.ProviderSubType,
+                    DateOpened = m.Result.DateOpened,
+                    DateClosed = m.Result.DateClosed,
+                    ProviderProfileIdType = m.Result.ProviderProfileIdType,
+                    LaCode = m.Result.LaCode,
+                    NavVendorNo = m.Result.NavVendorNo,
+                    CrmAccountId = m.Result.CrmAccountId,
+                    LegalName = m.Result.LegalName,
+                    Status = m.Result.Status,
+                    PhaseOfEducation = m.Result.PhaseOfEducation,
+                    ReasonEstablishmentOpened = m.Result.ReasonEstablishmentOpened,
+                    ReasonEstablishmentClosed = m.Result.ReasonEstablishmentClosed,
+                    Successor = m.Result.Successor,
+                    TrustStatus = m.Result.TrustStatus,
+                    TrustName = m.Result.TrustName,
+                    TrustCode = m.Result.TrustCode,
+                    Town = m.Result.Town,
+                    Postcode = m.Result.Postcode
+                });
+            }
         }
     }
 }

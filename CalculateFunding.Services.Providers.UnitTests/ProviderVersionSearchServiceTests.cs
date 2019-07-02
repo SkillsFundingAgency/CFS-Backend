@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.GetProviderById(providerVersionViewModel.ProviderVersionId, provider.ProviderId);
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerId") && c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(provider.ProviderId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderId)));
 
 
             okRequest
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult notFoundRequest = await providerService.GetProviderById(providerVersionViewModel.ProviderVersionId, string.Empty);
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(providerVersionViewModel.ProviderVersionId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(providerVersionViewModel.ProviderVersionId)));
 
             notFoundRequest
                 .Should()
@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult internalServerResult = await providerService.GetProviderById(providerVersionViewModel.ProviderVersionId, string.Empty);
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(providerVersionViewModel.ProviderVersionId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(providerVersionViewModel.ProviderVersionId)));
 
             internalServerResult
                 .Should()
@@ -164,7 +164,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.GetProviderById(year, month, day, provider.ProviderId);
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerId") && c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(provider.ProviderId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderId)));
 
             okRequest
                 .Should()
@@ -212,7 +212,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult notFoundRequest = await providerService.GetProviderById(year, month, day, "12345");
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(providerVersionId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(providerVersionId)));
 
             notFoundRequest
                 .Should()
@@ -290,7 +290,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.GetProviderByIdFromMaster(provider.ProviderId);
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerId") && c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(provider.ProviderId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderId)));
 
 
             okRequest
@@ -338,7 +338,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult notFoundResult = await providerService.GetProviderByIdFromMaster(provider.ProviderId);
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerId") && c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(provider.ProviderId) && c.Filter.Contains(providerVersionId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderId) && c.Filter.Contains(providerVersionId)));
 
             notFoundResult
                 .Should()
@@ -480,7 +480,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.SearchProviders(provider.ProviderVersionId);
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(provider.ProviderVersionId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderVersionId)));
 
             okRequest
                 .Should()
@@ -517,7 +517,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.SearchProviders(provider.ProviderVersionId);
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(provider.ProviderVersionId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderVersionId)));
 
             okRequest
                 .Should()
@@ -556,7 +556,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.SearchMasterProviders(new Models.SearchModel { Filters = new Dictionary<string, string[]> { { "providerId", new List<string> { provider.ProviderId }.ToArray() } } });
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(provider.ProviderVersionId) && c.Facets.Any(f => f == "providerId") && c.Filter.Contains(provider.ProviderId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderVersionId) && c.Filter.Contains(provider.ProviderId)));
 
             okRequest
                 .Should()
@@ -600,7 +600,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.SearchProviders(year, month, day, new Models.SearchModel { Filters = new Dictionary<string, string[]> { { "providerId", new List<string> { provider.ProviderId }.ToArray() } } });
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerId") && c.Facets.Any(f => f == "providerVersionId") && c.Filter.Contains(provider.ProviderId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderId)));
 
             okRequest
                 .Should()
@@ -637,7 +637,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.SearchProviderVersions(new Models.SearchModel { Filters = new Dictionary<string, string[]> { { "providerId", new List<string> { provider.ProviderId }.ToArray() } } });
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerId") && c.Filter.Contains(provider.ProviderId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderId)));
 
             okRequest
                 .Should()
@@ -674,7 +674,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IActionResult okRequest = await providerService.SearchProviderVersions(new Models.SearchModel { Filters = new Dictionary<string, string[]> { { "providerId", new List<string> { provider.ProviderId }.ToArray() } } });
 
             await searchRepository.Received(1)
-                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Facets.Any(f => f == "providerId") && c.Filter.Contains(provider.ProviderId)));
+                    .Search(Arg.Any<string>(), Arg.Is<SearchParameters>(c => c.Filter.Contains(provider.ProviderId)));
 
             okRequest
                 .Should()

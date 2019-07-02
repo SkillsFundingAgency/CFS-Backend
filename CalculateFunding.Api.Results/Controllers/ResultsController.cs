@@ -9,7 +9,6 @@ namespace CalculateFunding.Api.Results.Controllers
     public class ResultsController : Controller
     {
         private readonly IResultsService _resultsService;
-        private readonly IResultsSearchService _resultsSearchService;
         private readonly ICalculationProviderResultsSearchService _calculationProviderResultsSearchService;
         private readonly IPublishedResultsService _publishedResultsService;
         private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
@@ -18,14 +17,12 @@ namespace CalculateFunding.Api.Results.Controllers
 
         public ResultsController(
              IResultsService resultsService,
-             IResultsSearchService resultsSearchService,
              ICalculationProviderResultsSearchService calculationProviderResultsSearchService,
              IPublishedResultsService publishedResultsService,
              IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
              IFeatureToggle featureToggle,
              IProviderCalculationResultsReIndexerService providerCalculationResultsReIndexerService)
         {
-            Guard.ArgumentNotNull(resultsSearchService, nameof(resultsSearchService));
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
             Guard.ArgumentNotNull(calculationProviderResultsSearchService, nameof(calculationProviderResultsSearchService));
             Guard.ArgumentNotNull(publishedResultsService, nameof(publishedResultsService));
@@ -33,20 +30,12 @@ namespace CalculateFunding.Api.Results.Controllers
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providerCalculationResultsReIndexerService, nameof(providerCalculationResultsReIndexerService));
 
-            _resultsSearchService = resultsSearchService;
             _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
             _publishedResultsService = publishedResultsService;
             _resultsService = resultsService;
             _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
             _featureToggle = featureToggle;
             _providerCalculationResultsReIndexerService = providerCalculationResultsReIndexerService;
-        }
-
-        [Route("api/results/providers-search")]
-        [HttpPost]
-        public async Task<IActionResult> RunProvidersSearch()
-        {
-            return await _resultsSearchService.SearchProviders(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/results/get-provider-specs")]

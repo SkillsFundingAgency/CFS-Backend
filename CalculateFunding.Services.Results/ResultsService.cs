@@ -43,7 +43,6 @@ namespace CalculateFunding.Services.Results
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly Polly.Policy _resultsSearchRepositoryPolicy;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
-        private readonly IProviderImportMappingService _providerImportMappingService;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
@@ -55,13 +54,11 @@ namespace CalculateFunding.Services.Results
             IFeatureToggle featureToggle,
             ICalculationResultsRepository resultsRepository,
             IMapper mapper,
-            ISearchRepository<ProviderIndex> searchRepository,
             ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository,
             ISpecificationsRepository specificationsRepository,
             IResultsResiliencePolicies resiliencePolicies,
-            IProviderImportMappingService providerImportMappingService,
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
             ICalculationsRepository calculationRepository,
@@ -69,13 +66,11 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
-            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
             Guard.ArgumentNotNull(calculationProviderResultsSearchRepository, nameof(calculationProviderResultsSearchRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
-            Guard.ArgumentNotNull(providerImportMappingService, nameof(providerImportMappingService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
@@ -92,7 +87,6 @@ namespace CalculateFunding.Services.Results
             _specificationsRepository = specificationsRepository;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
             _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
-            _providerImportMappingService = providerImportMappingService;
             _cacheProvider = cacheProvider;
             _messengerService = messengerService;
             _calculationRepository = calculationRepository;

@@ -32,7 +32,7 @@ Get-ChildItem "$rootFolder" -Filter *.csv |
 
         $responseData = New-Object PSObject;
         
-        $columns = 'UKPRN','URN','LA (code)','LA (name)','OpenDate', 'CloseDate','EstablishmentTypeGroup (name)','TypeOfEstablishment (name)','PhaseOfEducation (code)','EstablishmentStatus (name)','EstablishmentName','EstablishmentNumber'
+        $columns = 'UKPRN','URN','LA (code)','LA (name)','OpenDate', 'CloseDate','EstablishmentTypeGroup (name)','TypeOfEstablishment (name)','PhaseOfEducation (code)','EstablishmentStatus (name)','EstablishmentName','EstablishmentNumber','Town','Postcode'
 
         $providers = @();
 
@@ -82,6 +82,8 @@ Get-ChildItem "$rootFolder" -Filter *.csv |
                     trustStatus = $item.'TrustSchoolFlag (name)'
                     trustName = $item.'Trusts (name)'
                     trustCode = $item.'Trusts (code)'
+                    town = $item.'Town'
+                    postcode = $item.'Postcode'
                 }
 
                 $providers += $provider

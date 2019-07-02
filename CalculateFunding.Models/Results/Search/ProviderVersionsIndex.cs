@@ -57,14 +57,20 @@ namespace CalculateFunding.Models.Results.Search
         public string DfeEstablishmentNumber { get; set; }
 
         [IsSearchable]
+        [IsFacetable]
+        [IsFilterable]
         [JsonProperty("authority")]
         public string Authority { get; set; }
 
         [IsSearchable]
+        [IsFacetable]
+        [IsFilterable]
         [JsonProperty("providerType")]
         public string ProviderType { get; set; }
 
         [IsSearchable]
+        [IsFacetable]
+        [IsFilterable]
         [JsonProperty("providerSubType")]
         public string ProviderSubType { get; set; }
 
@@ -125,5 +131,13 @@ namespace CalculateFunding.Models.Results.Search
         [IsSearchable]
         [JsonProperty("trustCode")]
         public string TrustCode { get; set; }
+
+        [IsSearchable]
+        [JsonProperty("town")]
+        public string Town { get; set; }
+
+        [IsSearchable]
+        [JsonProperty("postcode")]
+        public string Postcode { get; set; }
     }
 }

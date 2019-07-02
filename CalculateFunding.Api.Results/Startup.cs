@@ -79,9 +79,6 @@ namespace CalculateFunding.Api.Results
             builder
               .AddSingleton<IPublishedResultsService, PublishedResultsService>()
               .AddSingleton<IHealthChecker, PublishedResultsService>();
-            builder
-                .AddSingleton<IResultsSearchService, ResultsSearchService>()
-                .AddSingleton<IHealthChecker, ResultsSearchService>();
 
             builder
                 .AddSingleton<IProviderCalculationResultsSearchService, ProviderCalculationResultsSearchService>()
@@ -90,8 +87,6 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
-
-            builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
 
             builder
                .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();

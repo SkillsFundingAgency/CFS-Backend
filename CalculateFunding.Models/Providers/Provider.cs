@@ -80,6 +80,12 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("successor")]
         public string Successor { get; set; }
 
+        [JsonProperty("town")]
+        public string Town { get; set; }
+
+        [JsonProperty("postcode")]
+        public string Postcode { get; set; }
+
         [JsonIgnore]
 
         public TrustStatus TrustStatus

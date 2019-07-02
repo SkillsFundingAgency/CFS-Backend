@@ -171,7 +171,6 @@ namespace CalculateFunding.Api.External
             builder
                 .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
-            builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
 
             builder
                .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();

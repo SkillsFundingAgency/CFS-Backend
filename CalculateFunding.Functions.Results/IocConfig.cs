@@ -97,9 +97,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IPublishedResultsService, PublishedResultsService>();
-            builder.AddSingleton<IResultsSearchService, ResultsSearchService>();
             builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
-            builder.AddSingleton<IProviderImportMappingService, ProviderImportMappingService>();
             builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();

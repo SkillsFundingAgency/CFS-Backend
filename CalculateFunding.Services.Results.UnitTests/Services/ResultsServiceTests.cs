@@ -1005,13 +1005,11 @@ namespace CalculateFunding.Services.Results.Services
         static ResultsService CreateResultsService(ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
             IMapper mapper = null,
-            ISearchRepository<ProviderIndex> searchRepository = null,
             ITelemetry telemetry = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository = null,
             ISpecificationsRepository specificationsRepository = null,
             IResultsResiliencePolicies resiliencePolicies = null,
-            IProviderImportMappingService providerImportMappingService = null,
             ICacheProvider cacheProvider = null,
             IMessengerService messengerService = null,
             ICalculationsRepository calculationsRepository = null,
@@ -1024,13 +1022,11 @@ namespace CalculateFunding.Services.Results.Services
                 featureToggle,
                 resultsRepository ?? CreateResultsRepository(),
                 mapper ?? CreateMapper(),
-                searchRepository ?? CreateSearchRepository(),
                 telemetry ?? CreateTelemetry(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
-                providerImportMappingService ?? CreateProviderImportMappingService(),
                 cacheProvider ?? CreateCacheProvider(),
                 messengerService ?? CreateMessengerService(),
                 calculationsRepository ?? CreateCalculationsRepository(),
@@ -1045,11 +1041,6 @@ namespace CalculateFunding.Services.Results.Services
         static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
-        }
-
-        static IProviderImportMappingService CreateProviderImportMappingService()
-        {
-            return Substitute.For<IProviderImportMappingService>();
         }
 
         static ILogger CreateLogger()
@@ -1075,11 +1066,6 @@ namespace CalculateFunding.Services.Results.Services
         static IMapper CreateMapper()
         {
             return Substitute.For<IMapper>();
-        }
-
-        static ISearchRepository<ProviderIndex> CreateSearchRepository()
-        {
-            return Substitute.For<ISearchRepository<ProviderIndex>>();
         }
 
         static IMessengerService CreateMessengerService()

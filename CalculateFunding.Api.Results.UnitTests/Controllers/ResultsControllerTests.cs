@@ -19,7 +19,6 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
             string fundingStreamId)
         {
             IResultsService resultsService = Substitute.For<IResultsService>();
-            IResultsSearchService resultsSearchService = Substitute.For<IResultsSearchService>();
             ICalculationProviderResultsSearchService calculationProviderResultsSearchService = Substitute.For<ICalculationProviderResultsSearchService>();
             IPublishedResultsService publishedResultsService = Substitute.For<IPublishedResultsService>();
             IProviderCalculationResultsSearchService providerCalculationsResultsSearchService = Substitute.For<IProviderCalculationResultsSearchService>();
@@ -28,7 +27,6 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
 
             ResultsController controller = new ResultsController(
                 resultsService,
-                resultsSearchService,
                 calculationProviderResultsSearchService,
                 publishedResultsService,
                 providerCalculationsResultsSearchService,

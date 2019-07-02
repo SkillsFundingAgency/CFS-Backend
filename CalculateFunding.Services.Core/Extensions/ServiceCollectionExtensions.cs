@@ -229,9 +229,6 @@ namespace CalculateFunding.Services.Core.Extensions
               .AddSingleton<ISearchRepository<SpecificationIndex>, SearchRepository<SpecificationIndex>>();
 
             builder
-                .AddSingleton<ISearchRepository<ProviderIndex>, SearchRepository<ProviderIndex>>();
-
-            builder
                .AddSingleton<ISearchRepository<ScenarioIndex>, SearchRepository<ScenarioIndex>>();
 
             builder

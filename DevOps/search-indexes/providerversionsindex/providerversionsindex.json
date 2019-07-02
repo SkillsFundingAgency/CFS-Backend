@@ -75,25 +75,25 @@
       "name": "authority",
       "type": "Edm.String",
       "searchable": true,
-      "filterable": false,
+      "filterable": true,
       "sortable": false,
-      "facetable": false
+      "facetable": true
     },
     {
       "name": "providerType",
       "type": "Edm.String",
       "searchable": true,
-      "filterable": false,
+      "filterable": true,
       "sortable": false,
-      "facetable": false
+      "facetable": true
     },
     {
       "name": "providerSubType",
       "type": "Edm.String",
       "searchable": true,
-      "filterable": false,
+      "filterable": true,
       "sortable": false,
-      "facetable": false
+      "facetable": true
     },
     {
       "name": "dateOpened",
@@ -209,6 +209,22 @@
     },
     {
       "name": "trustCode",
+      "type": "Edm.String",
+      "searchable": true,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
+    },
+    {
+      "name": "town",
+      "type": "Edm.String",
+      "searchable": true,
+      "filterable": false,
+      "sortable": false,
+      "facetable": false
+    },
+    {
+      "name": "postcode",
       "type": "Edm.String",
       "searchable": true,
       "filterable": false,

@@ -111,6 +111,14 @@
     {
       "sourceFieldName": "/trustCode",
       "targetFieldName": "trustCode"
+    },
+    {
+      "sourceFieldName": "/town",
+      "targetFieldName": "town"
+    },
+    {
+      "sourceFieldName": "/postcode",
+      "targetFieldName": "postcode"
     }
   ],
   "parameters": {
