@@ -5,5 +5,7 @@
         Polly.Policy PolicyRepository { get; set; }
 
         Polly.Policy CacheProvider { get; set; }
+
+        Polly.Policy FundingSchemaRepository { get; set; }
     }
 }

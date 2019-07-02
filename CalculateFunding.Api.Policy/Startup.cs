@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using Polly.Bulkhead;
+using CalculateFunding.Common.Storage;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -89,12 +90,28 @@ namespace CalculateFunding.Api.Policy
         public void RegisterComponents(IServiceCollection builder)
         {
             builder
-               .AddSingleton<IFundingStreamService, FundingStreamService>()
-               .AddSingleton<IHealthChecker, FundingStreamService>();
+                .AddSingleton<IFundingStreamService, FundingStreamService>()
+                .AddSingleton<IHealthChecker, FundingStreamService>();
 
             builder
-             .AddSingleton<IFundingPeriodService, FundingPeriodService>()
-             .AddSingleton<IHealthChecker, FundingPeriodService>();
+                .AddSingleton<IFundingPeriodService, FundingPeriodService>()
+                .AddSingleton<IHealthChecker, FundingPeriodService>();
+
+            builder
+                .AddSingleton<IFundingSchemaService, FundingSchemaService>()
+                .AddSingleton<IHealthChecker, FundingSchemaService>();
+
+            builder
+                .AddSingleton<IFundingSchemaRepository, FundingSchemaRepository>((ctx) =>
+                {
+                    BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
+
+                    Configuration.Bind("CommonStorageSettings", blobStorageOptions);
+
+                    blobStorageOptions.ContainerName = "fundingschemas";
+
+                    return new FundingSchemaRepository(blobStorageOptions);
+                });
 
             builder
                 .AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
@@ -122,7 +139,8 @@ namespace CalculateFunding.Api.Policy
                 return new PolicyResilliencePolicies()
                 {
                     PolicyRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    CacheProvider = redisPolicy
+                    CacheProvider = redisPolicy,
+                    FundingSchemaRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

@@ -4,7 +4,21 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <RootNamespace>CalculateFunding.Services.Policy</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\LogicalModel.json" />
+    <None Remove="Resources\LogicalModelInvalidVersion.json" />
+    <None Remove="Resources\LogicalModelNoVersion.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\LogicalModelInvalidVersion.json" />
+    <EmbeddedResource Include="Resources\LogicalModelNoVersion.json" />
+    <EmbeddedResource Include="Resources\LogicalModel.json" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />

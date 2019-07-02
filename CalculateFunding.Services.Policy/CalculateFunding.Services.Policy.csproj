@@ -9,6 +9,9 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common" Version="1.33.0" />
+    <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.11" />
     <PackageReference Include="YamlDotNet" Version="5.2.1" />
   </ItemGroup>
   <ItemGroup>

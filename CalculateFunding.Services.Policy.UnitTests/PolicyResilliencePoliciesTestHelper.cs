@@ -9,7 +9,8 @@ namespace CalculateFunding.Services.Policy.UnitTests
             return new PolicyResilliencePolicies()
             {
                 PolicyRepository = Polly.Policy.NoOpAsync(),
-                CacheProvider = Polly.Policy.NoOpAsync()
+                CacheProvider = Polly.Policy.NoOpAsync(),
+                FundingSchemaRepository = Polly.Policy.NoOpAsync()
             };
         }
     }
