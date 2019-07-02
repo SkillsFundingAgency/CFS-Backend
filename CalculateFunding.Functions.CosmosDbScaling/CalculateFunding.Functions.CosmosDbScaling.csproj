@@ -11,10 +11,12 @@
     <Content Include="host.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="3.0.5" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.26" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.29" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Core" Version="3.0.8" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Core" Version="3.0.9" />
+    <PackageReference Include="Microsoft.Azure.EventHubs" Version="3.0.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="local.settings.json">

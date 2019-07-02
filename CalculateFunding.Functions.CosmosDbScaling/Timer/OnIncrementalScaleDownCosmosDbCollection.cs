@@ -5,16 +5,14 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using CalculateFunding.Functions.CosmosDbScaling;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.Timer
 {
-
-    public static class OnScaleDownCosmosDbCollection
+    public static class OnIncrementa1ScaleDownCosmosDbCollection
     {
-        [FunctionName("on-scale-down-cosmosdb-collection")]
+        [FunctionName("on-incremental-scale-down-cosmosdb-collection")]
         public static async Task Run([TimerTrigger("*/15 * * * *")]TimerInfo timer)
         {
             IConfigurationRoot config = ConfigHelper.AddConfig();
@@ -33,11 +31,11 @@ namespace CalculateFunding.Functions.CosmosDbScaling.Timer
 
                 try
                 {
-                    await scalingService.ScaleDowmForJobConfiguration();
+                    await scalingService.ScaleDowmIncrementally();
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, "An error occurred getting message from timer job: on-scale-down-cosmosdb-collection");
+                    logger.Error(exception, "An error occurred getting message from timer job: on-incremental-scale-down-cosmosdb-collection");
                     throw;
                 }
             }

@@ -12,24 +12,9 @@ namespace CalculateFunding.Models.CosmosDbScaling
         public string Id { get; set; }
 
         [JsonProperty("repositoryType")]
-        public CosmosRepositoryType RepositoryType { get; set; }
-
-        [JsonProperty("baseRequestUnits")]
-        public int BaseRequestUnits { get; set; }
-
-        [JsonProperty("maxRequestUnits")]
-        public int MaxRequestUnits { get; set; }
-
-        [JsonProperty("currentRequestUnits")]
-        public int CurrentRequestUnits { get; set; }
+        public CosmosCollectionType RepositoryType { get; set; }
 
         [JsonProperty("jobRequestUnitConfigs")]
         public IEnumerable<CosmosDbScalingJobConfig> JobRequestUnitConfigs { get; set; }
-
-        [JsonIgnore]
-        public int AvailableRequestUnits => MaxRequestUnits - CurrentRequestUnits;
-
-        [JsonIgnore]
-        public bool IsAtBaseLine => CurrentRequestUnits == BaseRequestUnits;
     }
 }

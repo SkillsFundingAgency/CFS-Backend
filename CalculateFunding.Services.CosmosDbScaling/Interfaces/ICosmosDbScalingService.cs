@@ -1,7 +1,6 @@
-﻿using Microsoft.Azure.ServiceBus;
-using System;
+﻿using Microsoft.Azure.EventHubs;
+using Microsoft.Azure.ServiceBus;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
@@ -10,6 +9,10 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
     {
         Task ScaleUp(Message message);
 
-        Task ScaleDown();
+        Task ScaleUp(IEnumerable<EventData> events);
+
+        Task ScaleDowmForJobConfiguration();
+
+        Task ScaleDowmIncrementally();
     }
 }

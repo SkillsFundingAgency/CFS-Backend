@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -18,9 +19,9 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
             _cosmosRepository = cosmosRepository;
         }
 
-        public async Task<CosmosDbScalingConfig> GetConfigByRepositoryType(CosmosRepositoryType cosmosRepositoryType)
+        public async Task<CosmosDbScalingConfig> GetConfigByRepositoryType(CosmosCollectionType cosmosCollectionType)
         {
-            IQueryable<CosmosDbScalingConfig> configs = _cosmosRepository.Query<CosmosDbScalingConfig>().Where(x => x.RepositoryType == cosmosRepositoryType);
+            IQueryable<CosmosDbScalingConfig> configs = _cosmosRepository.Query<CosmosDbScalingConfig>().Where(x => x.RepositoryType == cosmosCollectionType);
 
             return await Task.FromResult(configs.AsEnumerable().FirstOrDefault());
         }
@@ -32,11 +33,26 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
             return await Task.FromResult(configs.AsEnumerable());
         }
 
-        public async Task<HttpStatusCode> UpdateCurrentRequestUnits(CosmosDbScalingConfig config)
+        public async Task<CosmosDbScalingCollectionSettings> GetCollectionSettingsByRepositoryType(CosmosCollectionType cosmosCollectionType)
         {
-            Guard.ArgumentNotNull(config, nameof(config));
+            CosmosDbScalingCollectionSettings settings = _cosmosRepository.Query<CosmosDbScalingCollectionSettings>().FirstOrDefault(x => x.CosmosCollectionType == cosmosCollectionType);
 
-            return await _cosmosRepository.UpsertAsync<CosmosDbScalingConfig>(config);
+            return await Task.FromResult(settings);
+        }
+
+        public async Task<HttpStatusCode> UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings)
+        {
+            Guard.ArgumentNotNull(settings, nameof(settings));
+
+            return await _cosmosRepository.UpsertAsync<CosmosDbScalingCollectionSettings>(settings);
+        }
+
+        public async Task<IEnumerable<CosmosDbScalingCollectionSettings>> GetCollectionSettingsIncremented(int previousMinutes)
+        {
+            IQueryable<CosmosDbScalingCollectionSettings> settings = _cosmosRepository.Query<CosmosDbScalingCollectionSettings>()
+                .Where(x => x.LastScalingIncrementDateTime <= DateTimeOffset.Now.AddMinutes(-previousMinutes));
+
+            return await Task.FromResult(settings.AsEnumerable());
         }
     }
 }

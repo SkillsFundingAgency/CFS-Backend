@@ -201,7 +201,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.CosmosDbScaling", "CalculateFunding.Functions.CosmosDbScaling\CalculateFunding.Functions.CosmosDbScaling.csproj", "{23262995-D11B-44BF-AB0C-65270E1AAC7D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.CosmosDbScaling.UnitTests", "CalculateFunding.Functions.CosmosDbScaling.UnitTests\CalculateFunding.Functions.CosmosDbScaling.UnitTests.csproj", "{8E8AB38A-D948-4819-A38B-D68ECAA347F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.CosmosDbScaling.UnitTests", "CalculateFunding.Functions.CosmosDbScaling.UnitTests\CalculateFunding.Functions.CosmosDbScaling.UnitTests.csproj", "{8E8AB38A-D948-4819-A38B-D68ECAA347F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

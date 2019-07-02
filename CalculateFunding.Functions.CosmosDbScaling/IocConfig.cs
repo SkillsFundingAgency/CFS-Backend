@@ -43,6 +43,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddSingleton<ICosmosDbScalingRequestModelBuilder, CosmosDbScalingRequestModelBuilder>();
 
+            builder.AddSingleton<ICosmosDbThrottledEventsFilter, CosmosDbThrottledEventsFilter>();
+
             builder.AddSingleton<CalculationProviderResultsScalingRepository>((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
