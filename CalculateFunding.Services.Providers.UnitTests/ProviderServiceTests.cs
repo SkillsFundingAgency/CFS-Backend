@@ -100,7 +100,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().Successor == provider.Successor &&
                     x.First().TrustStatus == Enum.Parse<Models.Results.TrustStatus>(provider.TrustStatusViewModelString) &&
                     x.First().TrustName == provider.TrustName &&
-                    x.First().TrustCode == provider.TrustCode
+                    x.First().TrustCode == provider.TrustCode &&
+                    x.First().Town == provider.Town &&
+                    x.First().Postcode == provider.Postcode
+
                 ), Arg.Is(cacheKey));
 
             totalCountResult
@@ -362,7 +365,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Successor = provider.Successor,
                 TrustStatus = Enum.Parse<Models.Results.TrustStatus>(provider.TrustStatusViewModelString),
                 TrustName = provider.TrustName,
-                TrustCode = provider.TrustCode
+                TrustCode = provider.TrustCode,
+                Town = provider.Town,
+                Postcode = provider.Postcode
             };
         }
 

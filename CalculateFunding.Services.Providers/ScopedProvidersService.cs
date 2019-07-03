@@ -210,7 +210,9 @@ namespace CalculateFunding.Services.Providers
                     Successor = x.Successor,
                     TrustStatus = Enum.TryParse(x.TrustStatusViewModelString, out Models.Results.TrustStatus trustStatus) ? trustStatus : Models.Results.TrustStatus.NotApplicable,
                     TrustName = x.TrustName,
-                    TrustCode = x.TrustCode
+                    TrustCode = x.TrustCode,
+                    Town = x.Town,
+                    Postcode = x.Postcode
                 });
 
                 await _cacheProvider.CreateListAsync(providerSummaries, cacheKeyAllProviderSummaries);

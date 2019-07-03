@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<IActionResult> GetProviderById(string providerVersionId, string providerId)
         {
-            SearchModel searchModel = new SearchModel { };
+            SearchModel searchModel = new SearchModel { Top = 1 };
             searchModel.Filters = new Dictionary<string, string[]>
             {
                 { "providerId", new string[] { providerId  } },
@@ -284,7 +284,7 @@ namespace CalculateFunding.Services.Providers
 
         private async Task<SearchResults<ProviderVersionsIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
         {
-            int skip = (searchModel.PageNumber - 1) * searchModel.Top;
+            int skip = searchModel.PageNumber > 0 ? (searchModel.PageNumber - 1) * searchModel.Top : 0;
 
             return await _searchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
             {
