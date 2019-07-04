@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
     {
         Task SaveFundingSchemaVersion(string blobName, byte[] schemaBytes);
 
-        Task<bool> Exists(string blobName);
+        Task<bool> SchemaVersionExists(string blobName);
 
         Task<string> GetFundingSchemaVersion(string blobName);
     }

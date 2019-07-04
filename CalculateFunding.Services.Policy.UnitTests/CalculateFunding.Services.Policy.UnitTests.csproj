@@ -12,12 +12,14 @@
     <None Remove="Resources\LogicalModel.json" />
     <None Remove="Resources\LogicalModelInvalidVersion.json" />
     <None Remove="Resources\LogicalModelNoVersion.json" />
+    <None Remove="Resources\LogicalModelTemplate.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\LogicalModelInvalidVersion.json" />
     <EmbeddedResource Include="Resources\LogicalModelNoVersion.json" />
     <EmbeddedResource Include="Resources\LogicalModel.json" />
+    <EmbeddedResource Include="Resources\LogicalModelTemplate.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -215,7 +215,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
 
             fundingSchemaRepository
-                .Exists(Arg.Is(blobName))
+                .SchemaVersionExists(Arg.Is(blobName))
                 .Returns(false);
 
             FundingSchemaService fundingSchemaService = CreateFundingSchemaService(fundingSchemaRepository: fundingSchemaRepository);
@@ -240,7 +240,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
             
             fundingSchemaRepository
-                .When(x => x.Exists(Arg.Any<string>()))
+                .When(x => x.SchemaVersionExists(Arg.Any<string>()))
                 .Do(x => { throw new Exception(); });
 
             ILogger logger = CreateLogger();
@@ -275,7 +275,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
 
             fundingSchemaRepository
-                .Exists(Arg.Is(blobName))
+                .SchemaVersionExists(Arg.Is(blobName))
                 .Returns(true);
 
             fundingSchemaRepository
@@ -314,7 +314,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
 
             fundingSchemaRepository
-                .Exists(Arg.Is(blobName))
+                .SchemaVersionExists(Arg.Is(blobName))
                 .Returns(true);
 
             fundingSchemaRepository
@@ -355,7 +355,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
 
             fundingSchemaRepository
-                .Exists(Arg.Is(blobName))
+                .SchemaVersionExists(Arg.Is(blobName))
                 .Returns(true);
 
             fundingSchemaRepository

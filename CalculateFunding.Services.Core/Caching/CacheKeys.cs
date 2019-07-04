@@ -44,6 +44,8 @@
 
         public static string AllCosmosScalingConfigs { get; set; } = "all-cosmos-scaling-configs";
 
+        public static string FundingTemplatePrefix { get; set; } = "funding-template:";
+
         /// <summary>
         /// Effective Permissions - eg effective-permissions:userId
         /// </summary>

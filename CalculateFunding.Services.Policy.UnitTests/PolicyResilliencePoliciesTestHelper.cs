@@ -10,7 +10,8 @@ namespace CalculateFunding.Services.Policy.UnitTests
             {
                 PolicyRepository = Polly.Policy.NoOpAsync(),
                 CacheProvider = Polly.Policy.NoOpAsync(),
-                FundingSchemaRepository = Polly.Policy.NoOpAsync()
+                FundingSchemaRepository = Polly.Policy.NoOpAsync(),
+                FundingTemplateRepository = Polly.Policy.NoOpAsync()
             };
         }
     }

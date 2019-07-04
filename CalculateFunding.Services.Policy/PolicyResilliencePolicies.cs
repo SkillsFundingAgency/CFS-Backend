@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Services.Policy.Interfaces;
+using Polly;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -9,5 +10,7 @@ namespace CalculateFunding.Services.Policy
         public Polly.Policy CacheProvider { get; set; }
 
         public Polly.Policy FundingSchemaRepository { get; set; }
+
+        public Polly.Policy FundingTemplateRepository { get; set; }
     }
 }

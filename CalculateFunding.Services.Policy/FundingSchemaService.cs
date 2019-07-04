@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Policy
         {
             try
             {
-                return await _fundingSchemaRepositoryPolicy.ExecuteAsync(() => _fundingSchemaRepository.Exists(blobName));
+                return await _fundingSchemaRepositoryPolicy.ExecuteAsync(() => _fundingSchemaRepository.SchemaVersionExists(blobName));
             }
             catch(Exception ex)
             {

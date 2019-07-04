@@ -102,6 +102,14 @@ namespace CalculateFunding.Api.Policy
                 .AddSingleton<IHealthChecker, FundingSchemaService>();
 
             builder
+                .AddSingleton<IFundingTemplateService, FundingTemplateService>()
+                .AddSingleton<IHealthChecker, FundingTemplateService>();
+
+            builder
+                .AddSingleton<IFundingTemplateValidationService, FundingTemplateValidationService>()
+                .AddSingleton<IHealthChecker, FundingTemplateValidationService>();
+
+            builder
                 .AddSingleton<IFundingSchemaRepository, FundingSchemaRepository>((ctx) =>
                 {
                     BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
@@ -112,6 +120,18 @@ namespace CalculateFunding.Api.Policy
 
                     return new FundingSchemaRepository(blobStorageOptions);
                 });
+
+            builder
+               .AddSingleton<IFundingTemplateRepository, FundingTemplateRepository>((ctx) =>
+               {
+                   BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
+
+                   Configuration.Bind("CommonStorageSettings", blobStorageOptions);
+
+                   blobStorageOptions.ContainerName = "fundingtemplates";
+
+                   return new FundingTemplateRepository(blobStorageOptions);
+               });
 
             builder
                 .AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
@@ -140,7 +160,8 @@ namespace CalculateFunding.Api.Policy
                 {
                     PolicyRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProvider = redisPolicy,
-                    FundingSchemaRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    FundingSchemaRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    FundingTemplateRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
 

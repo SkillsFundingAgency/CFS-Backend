@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Policy.Controllers
@@ -7,17 +9,24 @@ namespace CalculateFunding.Api.Policy.Controllers
     [ApiController]
     public class TemplateController : ControllerBase
     {
+        private readonly IFundingTemplateService _fundingTemplateService;
+
+        public TemplateController(IFundingTemplateService fundingTemplateService)
+        {
+            Guard.ArgumentNotNull(fundingTemplateService, nameof(fundingTemplateService));
+            _fundingTemplateService = fundingTemplateService;
+        }
+
         [HttpGet("api/templates/{fundingStreamId}/{templateVersion}")]
         [Produces("application/json")]
         public async Task<IActionResult> GetFundingTemplate([FromRoute]string fundingStreamId, [FromRoute]string templateVersion)
         {
-            return new OkObjectResult(String.Empty);
+            return await _fundingTemplateService.GetFundingTemplate(fundingStreamId, templateVersion);
         }
 
         /// <summary>
         /// Saves (creates or updates) a funding template based off a schema version for a funding stream.
         /// </summary>
-        /// <param name="templateJson">Template JSON in the format of the schema.
         /// There is an assumption that the following json will be populated to get the schema version and funding stream in the body content:
         /// {
         ///      "schemaVersion: "1.0"
@@ -30,13 +39,19 @@ namespace CalculateFunding.Api.Policy.Controllers
         [HttpPost("api/templates")]
         [ProducesResponseType(201)]
         [Produces("application/json")]
-        public async Task<IActionResult> SaveFundingTemplate([FromBody] string templateJson)
+        public async Task<IActionResult> SaveFundingTemplate()
         {
+            string controllerName = string.Empty;
 
+            if (this.ControllerContext.RouteData.Values.ContainsKey("controller"))
+            {
+                controllerName = (string)this.ControllerContext.RouteData.Values["controller"];
+            }
 
-            // There may be a need to follow this guide to get the raw body content https://weblog.west-wind.com/posts/2017/sep/14/accepting-raw-request-body-content-in-aspnet-core-api-controllers
-
-            return new CreatedAtActionResult(nameof(GetFundingTemplate), nameof(TemplateController), new { fundingStreamId = "PSG", templateVersion = "1.0" }, string.Empty);
+            return await _fundingTemplateService.SaveFundingTemplate(
+                nameof(GetFundingTemplate),
+                controllerName,
+                ControllerContext.HttpContext.Request);
         }
     }
 }
