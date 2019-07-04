@@ -748,7 +748,7 @@
       "name": "[concat(variables('eventHubNameSpace'), '/',variables('eventHubNameSpace'),'/$Default')]",
       "location": "West Europe",
       "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventHubNameSpace'), variables('eventHubNameSpace'))]",
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventHubNameSpace'), variables('eventHubName'))]",
         "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubNameSpace'))]"
       ],
       "properties": {}
