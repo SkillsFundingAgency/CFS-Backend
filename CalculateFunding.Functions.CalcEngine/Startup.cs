@@ -1,4 +1,7 @@
-﻿using System;
+﻿using CalculateFunding.Services.Core.Extensions;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
@@ -12,46 +15,44 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calculator;
 using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.AspNet;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Core.Logging;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using FluentValidation;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
+using CalculateFunding.Functions.CalcEngine.ServiceBus;
+using System;
+
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.CalcEngine.Startup))]
 
 namespace CalculateFunding.Functions.CalcEngine
 {
-    static public class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            ServiceCollection serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
+            return Register(builder, config);
+        }
+
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder.AddSingleton<OnCalcsGenerateAllocationResults>();
+            builder.AddSingleton<OnCalculationGenerateFailure>();
             builder.AddSingleton<ICalculationEngineService, CalculationEngineService>();
             builder.AddSingleton<ICalculationEngine, CalculationEngine>();
             builder.AddSingleton<IAllocationFactory, AllocationFactory>();
@@ -94,7 +95,14 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
-                return new Services.CalcEngine.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle, engineSettings);
+                return new Services.CalcEngine.ProviderResultsRepository(
+                    calcsCosmosRepostory,
+                    calculationProviderResultsSearchRepository,
+                    specificationsRepository,
+                    logger,
+                    providerCalculationResultsSearchRepository,
+                    featureToggle,
+                    engineSettings);
             });
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
@@ -138,7 +146,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddApplicationInsights(config, "CalculateFunding.Functions.CalcEngine");
 
-            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.CalcEngine", TelemetryChannelType.Sync);
+            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.CalcEngine");
 
             builder.AddLogging("CalculateFunding.Functions.CalcEngine", config);
 
@@ -155,6 +163,8 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSingleton<IJobHelperResiliencePolicies>(calcResiliencePolicies);
 
             builder.AddSingleton<IValidator<ICalculatorResiliencePolicies>, CalculatorResiliencePoliciesValidator>();
+
+            return builder.BuildServiceProvider();
         }
 
         private static CalculatorResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
