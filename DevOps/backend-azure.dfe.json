@@ -637,7 +637,7 @@
       "name": "[variables('documentDatabaseName')]",
       "location": "[resourceGroup().location]",
       "dependson": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventHubNameSpace'), variables('eventHubNameSpace'))]"
+        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventHubNameSpace'), variables('eventHubName'))]"
       ],
       "resources": [
         {
