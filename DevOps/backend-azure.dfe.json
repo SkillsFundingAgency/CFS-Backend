@@ -615,11 +615,7 @@
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
     "storageFirewallOptions": "{\"bypass\": \"AzureServices\",\r\n                \"virtualNetworkRules\": [],\r\n                \"ipRules\": [\r\n                    {\r\n                        \"value\": \"213.123.63.150\",\r\n                        \"action\": \"Allow\"\r\n                    },\r\n                    {\r\n                        \"value\": \"86.188.174.157\",\r\n                        \"action\": \"Allow\"\r\n                    }\r\n                ],\r\n                \"defaultAction\": \"Deny\"}",
     "cosmosFirewallOptions": "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,0.0.0.0",
-    "signalRName": "[concat('sr-', parameters('environmentKey'), '-cfs')]",
-    "eventHubNameSpace": "[concat('ehn-', parameters('environmentKey'), '-cfs')]",
-    "eventHubName": "[concat('eh-', parameters('environmentKey'), '-cfs')]",
-    "eventHubAuthorizationRuleId": "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubNameSpace'),'/RootManageSharedAccessKey')]",
-    "cosmosdbDiagSettingName": "[concat('diagnostics', parameters('environmentKey'), 'cosmosdb')]"
+    "signalRName": "[concat('sr-', parameters('environmentKey'), '-cfs')]"
   },
   "resources": [
     {
@@ -636,43 +632,6 @@
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "name": "[variables('documentDatabaseName')]",
       "location": "[resourceGroup().location]",
-      "dependson": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventHubNameSpace'), variables('eventHubName'))]"
-      ],
-      "resources": [
-        {
-          "type": "providers/diagnosticSettings",
-          "name": "[concat('Microsoft.Insights/', variables('cosmosdbDiagSettingName'))]",
-          "dependsOn": [
-            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]"
-          ],
-          "apiVersion": "2017-05-01-preview",
-          "properties": {
-            "name": "[variables('cosmosdbDiagSettingName')]",
-            "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
-            "eventHubAuthorizationRuleId": "[variables('eventHubAuthorizationRuleId')]",
-            "eventHubName": "[variables('eventHubName')]",
-            "logs": [
-              {
-                "category": "DataPlaneRequests",
-                "enabled": true,
-                "retentionPolicy": {
-                  "days": 35,
-                  "enabled": false
-                }
-              },
-              {
-                "category": "QueryRuntimeStatistics",
-                "enabled": true,
-                "retentionPolicy": {
-                  "days": 35,
-                  "enabled": false
-                }
-              }
-            ]
-          }
-        }
-      ],
       "properties": {
         "name": "[variables('documentDatabaseName')]",
         "databaseAccountOfferType": "[variables('offerType')]",
@@ -685,64 +644,7 @@
         "ipRangeFilter": "[if(parameters('cosmosFirewallEnabled'), variables('cosmosFirewallOptions'), '')]"
       }
     },
-    {
-      "type": "Microsoft.EventHub/namespaces",
-      "apiVersion": "2018-01-01-preview",
-      "name": "[variables('eventHubNameSpace')]",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Basic",
-        "tier": "Basic",
-        "capacity": 1
-      },
-      "properties": {
-        "zoneRedundant": false,
-        "isAutoInflateEnabled": false,
-        "maximumThroughputUnits": 0,
-        "kafkaEnabled": false
-      }
-    },
-    {
-      "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
-      "apiVersion": "2017-04-01",
-      "name": "[variables('eventHubAuthorizationRuleId')]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubNameSpace'))]"
-      ],
-      "properties": {
-        "rights": [
-          "Listen",
-          "Manage",
-          "Send"
-        ]
-      }
-    },
-    {
-      "type": "Microsoft.EventHub/namespaces/eventhubs",
-      "apiVersion": "2017-04-01",
-      "name": "[concat(variables('eventHubNameSpace'), '/',variables('eventHubName'))]",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubNameSpace'))]"
-      ],
-      "properties": {
-        "messageRetentionInDays": 1,
-        "partitionCount": 2,
-        "status": "Active"
-      }
-    },
-    {
-      "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
-      "apiVersion": "2017-04-01",
-      "name": "[concat(variables('eventHubNameSpace'), '/',variables('eventHubNameSpace'),'/$Default')]",
-      "location": "West Europe",
-      "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces/eventhubs', variables('eventHubNameSpace'), variables('eventHubName'))]",
-        "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubNameSpace'))]"
-      ],
-      "properties": {}
-    },
+
     {
       "apiVersion": "2015-02-28",
       "name": "[variables('azureSearchName')]",
