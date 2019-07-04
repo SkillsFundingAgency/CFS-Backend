@@ -618,7 +618,7 @@
     "signalRName": "[concat('sr-', parameters('environmentKey'), '-cfs')]",
     "eventHubNameSpace": "[concat('ehn-', parameters('environmentKey'), '-cfs')]",
     "eventHubName": "[concat('eh-', parameters('environmentKey'), '-cfs')]",
-    "eventHubAuthorizationRuleId": "[concat(variables('eventHubNameSpace'), '/RootManageSharedAccessKey')]",
+    "eventHubAuthorizationRuleId": "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubNameSpace'),'/RootManageSharedAccessKey')]",
     "cosmosdbDiagSettingName": "[concat('diagnostics', parameters('environmentKey'), 'cosmosdb')]"
   },
   "resources": [
@@ -667,16 +667,6 @@
                 "retentionPolicy": {
                   "days": 35,
                   "enabled": false
-                }
-              }
-            ],
-            "metrics": [
-              {
-                "category": "AllMetrics",
-                "enabled": true,
-                "retentionPolicy": {
-                  "enabled": false,
-                  "days": 35
                 }
               }
             ]
