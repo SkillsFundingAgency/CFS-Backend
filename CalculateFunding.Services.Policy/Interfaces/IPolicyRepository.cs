@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Policy.Interfaces
 {
     public interface IPolicyRepository
     {
-        Task<FundingConfiguration> GetFundingConfiguration(string fundingStreamId, string fundingPeriodId);
+        Task<FundingConfiguration> GetFundingConfiguration(string configId);
         Task<HttpStatusCode> SaveFundingConfiguration(FundingConfiguration configuration);
         Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);

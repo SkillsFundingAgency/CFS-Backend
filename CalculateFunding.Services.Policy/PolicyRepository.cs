@@ -68,13 +68,11 @@ namespace CalculateFunding.Services.Policy
             return await _cosmosRepository.UpsertAsync<FundingConfiguration>(fundingConfiguration, fundingConfiguration.Id, true);
         }
 
-        public async Task<FundingConfiguration> GetFundingConfiguration(string fundingStreamId, string fundingPeriodId)
+        public async Task<FundingConfiguration> GetFundingConfiguration(string configId)
         {
-            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(configId, nameof(configId));
 
-            IEnumerable<DocumentEntity<FundingConfiguration>> fundingConfiguration = await _cosmosRepository.GetAllDocumentsAsync<FundingConfiguration>(query: m => m.Content.FundingStreamId == fundingStreamId && m.Content.FundingPeriodId == fundingPeriodId);
-            return fundingConfiguration.Select(x => x.Content).FirstOrDefault();
+            return (await _cosmosRepository.ReadAsync<FundingConfiguration>(configId, true))?.Content;
         }
 
 

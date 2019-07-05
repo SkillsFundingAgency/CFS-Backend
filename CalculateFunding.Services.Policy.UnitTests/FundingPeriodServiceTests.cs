@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        public async Task GetFundingPeriods_GivenPeriodsAlreadyInCache_ReturnsOKWithResultsFromCachel()
+        public async Task GetFundingPeriods_GivenPeriodsAlreadyInCache_ReturnsOKWithResultsFromCache()
         {
             // Arrange
             ILogger logger = CreateLogger();

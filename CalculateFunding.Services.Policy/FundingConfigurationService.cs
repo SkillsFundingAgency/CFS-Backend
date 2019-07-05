@@ -31,25 +31,31 @@ namespace CalculateFunding.Services.Policy
     public class FundingConfigurationService : IFundingConfigurationService, IHealthChecker
     {
         private readonly ILogger _logger;
+        private readonly ICacheProvider _cacheProvider;
         private readonly IMapper _mapper;
         private readonly IPolicyRepository _policyRepository;
         private readonly Polly.Policy _policyRepositoryPolicy;
+        private readonly Polly.Policy _cacheProviderPolicy;
         private readonly IValidator<FundingConfiguration> _fundingConfigurationValidator;
 
         public FundingConfigurationService(
             ILogger logger,
+            ICacheProvider cacheProvider,
             IMapper mapper,
             IPolicyRepository policyRepository,
             IPolicyResilliencePolicies policyResilliencePolicies,
             IValidator<FundingConfiguration> fundingConfigurationValidator)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
             Guard.ArgumentNotNull(policyResilliencePolicies, nameof(policyResilliencePolicies));
             Guard.ArgumentNotNull(fundingConfigurationValidator, nameof(fundingConfigurationValidator));
 
             _logger = logger;
+            _cacheProvider = cacheProvider;
+            _cacheProviderPolicy = policyResilliencePolicies.CacheProvider;
             _mapper = mapper;
             _policyRepository = policyRepository;
             _policyRepositoryPolicy = policyResilliencePolicies.PolicyRepository;
@@ -59,13 +65,15 @@ namespace CalculateFunding.Services.Policy
         public async Task<ServiceHealth> IsHealthOk()
         {
             ServiceHealth policyRepoHealth = await ((IHealthChecker)_policyRepository).IsHealthOk();
+            (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(FundingConfigurationService)
             };
             health.Dependencies.AddRange(policyRepoHealth.Dependencies);
-            
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = cacheRepoHealth.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+
             return health;
         }
 
@@ -85,7 +93,16 @@ namespace CalculateFunding.Services.Policy
                 return new BadRequestObjectResult("Null or empty funding period Id provided");
             }
 
-            FundingConfiguration fundingConfiguration = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingConfiguration(fundingStreamId, fundingPeriodId));
+            string cachKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
+            string configId = $"config-{fundingStreamId}-{fundingPeriodId}";
+
+            FundingConfiguration fundingConfiguration = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<FundingConfiguration>(cachKey));
+
+            if (fundingConfiguration == null)
+            {
+                fundingConfiguration = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingConfiguration(configId));
+                await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingConfiguration>(cachKey, fundingConfiguration));
+            }
 
             if (fundingConfiguration == null)
             {
@@ -109,7 +126,6 @@ namespace CalculateFunding.Services.Policy
             {
                 opt.Items["FundingStreamId"] = fundingStreamId;
                 opt.Items["FundingPeriodId"] = fundingPeriodId;
-                opt.Items["Id"] = Guid.NewGuid().ToString();
             });
 
             BadRequestObjectResult validationResult = (await _fundingConfigurationValidator.ValidateAsync(fundingConfiguration)).PopulateModelState();
@@ -127,7 +143,7 @@ namespace CalculateFunding.Services.Policy
                 {
                     int statusCode = (int)result;
 
-                    string errorMessage = $"Failed to save configuration file fzor funding stream id: {fundingStreamId} and period id: {fundingPeriodId} to cosmos db with status {statusCode}";
+                    string errorMessage = $"Failed to save configuration file for funding stream id: {fundingStreamId} and period id: {fundingPeriodId} to cosmos db with status {statusCode}";
 
                     _logger.Error(errorMessage);
 
@@ -142,6 +158,10 @@ namespace CalculateFunding.Services.Policy
 
                 return new InternalServerErrorResult(errorMessage);
             }
+
+            string cachKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
+
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingConfiguration>(cachKey, fundingConfiguration));
 
             _logger.Information($"Successfully saved configuration file for funding stream id: {fundingStreamId} and period id: {fundingPeriodId} to cosmos db");
 

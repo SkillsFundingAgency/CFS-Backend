@@ -105,7 +105,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
         [TestMethod]
         [DataRow("1234", "5678")]
-        public async Task GetFundingConfiguration__GivenFundingConfigurationnWasFound_ReturnsSuccess(string fundingStreamId, string fundingPeriodId)
+        public async Task GetFundingConfiguration__GivenFundingConfigurationWasFound_ReturnsSuccess(string fundingStreamId, string fundingPeriodId)
         {
             // Arrange
             FundingStream fundingStream = new FundingStream
@@ -118,9 +118,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 Id = fundingPeriodId
             };
 
+            string configId = $"config-{fundingStreamId}-{fundingPeriodId}";
+
             FundingConfiguration fundingConfiguration = new FundingConfiguration
             {
-                Id = Guid.NewGuid().ToString()
+                Id = configId
             };
 
 
@@ -134,10 +136,63 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Returns(fundingPeriod);
 
             policyRepository
-                .GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .GetFundingConfiguration(Arg.Is(configId))
                 .Returns(fundingConfiguration);
 
             FundingConfigurationService fundingConfigurationsService = CreateFundingConfigurationService(policyRepository: policyRepository);
+
+            // Act
+            IActionResult result = await fundingConfigurationsService.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(fundingConfiguration);
+        }
+
+        [TestMethod]
+        [DataRow("1234", "5678")]
+        public async Task GetFundingConfiguration__GivenFundingConfigurationAlreadyInCache_ReturnsSuccessWithConfigurationFromCache(string fundingStreamId, string fundingPeriodId)
+        {
+            // Arrange
+            FundingStream fundingStream = new FundingStream
+            {
+                Id = fundingStreamId
+            };
+
+            Period fundingPeriod = new Period
+            {
+                Id = fundingPeriodId
+            };
+
+            string configId = $"config-{fundingStreamId}-{fundingPeriodId}";
+
+            FundingConfiguration fundingConfiguration = new FundingConfiguration
+            {
+                Id = configId
+            };
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(fundingStream);
+
+            policyRepository
+                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .Returns(fundingPeriod);
+
+            string cacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<FundingConfiguration>(Arg.Is(cacheKey))
+                .Returns(fundingConfiguration);
+
+            FundingConfigurationService fundingConfigurationsService = CreateFundingConfigurationService(policyRepository: policyRepository, cacheProvider: cacheProvider);
 
             // Act
             IActionResult result = await fundingConfigurationsService.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
@@ -204,18 +259,19 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Failed to save configuration file fzor funding stream id: {fundingStreamId} and period id: {fundingPeriodId} to cosmos db with status 400"));
+                .Error(Arg.Is($"Failed to save configuration file for funding stream id: {fundingStreamId} and period id: {fundingPeriodId} to cosmos db with status 400"));
         }
 
         private static FundingConfigurationService CreateFundingConfigurationService(
             ILogger logger = null,
-            IMapper mapper = null,
             ICacheProvider cacheProvider = null,
+            IMapper mapper = null,
             IPolicyRepository policyRepository = null,
             IValidator<FundingConfiguration> validator = null)
         {
             return new FundingConfigurationService(
                 logger ?? CreateLogger(),
+                cacheProvider ?? CreateCacheProvider(),
                 mapper ?? CreateMapper(),
                 policyRepository ?? CreatePolicyRepository(),
                 PolicyResilliencePoliciesTestHelper.GenerateTestPolicies(),
@@ -245,6 +301,11 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 }
             };
 
+        }
+
+        private static ICacheProvider CreateCacheProvider()
+        {
+            return Substitute.For<ICacheProvider>();
         }
 
         private static IMapper CreateMapper()

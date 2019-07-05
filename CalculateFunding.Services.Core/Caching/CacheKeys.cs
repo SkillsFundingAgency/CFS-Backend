@@ -12,6 +12,8 @@
 
         public const string FundingPeriods = "funding-periods";
 
+        public const string FundingConfig = "funding-config:";
+
         public const string CalculationProgress = "calculation-progress:";
 
         public static string SpecificationSummaryById { get; set; } = "specification-summary:";
