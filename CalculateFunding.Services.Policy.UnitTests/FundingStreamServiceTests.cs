@@ -570,7 +570,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 logger ?? CreateLogger(),
                 cacheProvider ?? CreateCacheProvider(),
                 policyRepository ?? CreatePolicyRepository(),
-                PolicyResilliencePoliciesTestHelper.GenerateTestPolicies());
+                PolicyResiliencePoliciesTestHelper.GenerateTestPolicies());
         }
 
         private static ILogger CreateLogger()

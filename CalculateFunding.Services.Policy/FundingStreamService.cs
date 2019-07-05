@@ -30,18 +30,18 @@ namespace CalculateFunding.Services.Policy
             ILogger logger, 
             ICacheProvider cacheProvider, 
             IPolicyRepository policyRepository,
-            IPolicyResilliencePolicies policyResilliencePolicies)
+            IPolicyResiliencePolicies policyResiliencePolicies)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
-            Guard.ArgumentNotNull(policyResilliencePolicies, nameof(policyResilliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
 
             _logger = logger;
             _cacheProvider = cacheProvider;
             _policyRepository = policyRepository;
-            _policyRepositoryPolicy = policyResilliencePolicies.PolicyRepository;
-            _cacheProviderPolicy = policyResilliencePolicies.CacheProvider;
+            _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
+            _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

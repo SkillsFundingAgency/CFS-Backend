@@ -7,7 +7,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
-namespace CalculateFunding.Services.Calculator
+namespace CalculateFunding.Services.CalcEngine.UnitTests
 {
     [TestClass]
     public class CalculationRepositoryTests

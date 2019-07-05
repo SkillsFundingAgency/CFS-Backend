@@ -3,7 +3,7 @@ using Polly;
 
 namespace CalculateFunding.Services.Policy
 {
-    public class PolicyResilliencePolicies : IPolicyResilliencePolicies
+    public class PolicyResiliencePolicies : IPolicyResiliencePolicies
     {
         public Polly.Policy PolicyRepository { get; set; }
 

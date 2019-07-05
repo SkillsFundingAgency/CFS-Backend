@@ -14,6 +14,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Models.Specs;
@@ -250,7 +251,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 .AddSingleton<ISearchRepository<DatasetVersionIndex>, SearchRepository<DatasetVersionIndex>>();
 
             builder
-                .AddSingleton<ISearchRepository<ProviderVersionsIndex>, SearchRepository<ProviderVersionsIndex>>();
+                .AddSingleton<ISearchRepository<ProvidersIndex>, SearchRepository<ProvidersIndex>>();
 
             return builder;
         }

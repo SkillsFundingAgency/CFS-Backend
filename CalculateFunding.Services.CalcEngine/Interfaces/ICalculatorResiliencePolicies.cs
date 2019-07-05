@@ -1,6 +1,6 @@
 ﻿using Polly;
 
-namespace CalculateFunding.Services.Calculator.Interfaces
+namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
     public interface ICalculatorResiliencePolicies
     {

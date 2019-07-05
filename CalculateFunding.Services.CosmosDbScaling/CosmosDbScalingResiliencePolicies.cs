@@ -3,7 +3,7 @@ using Polly;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
-    public class CosmosDbScallingResilliencePolicies : ICosmosDbScallingResilliencePolicies
+    public class CosmosDbScalingResiliencePolicies : ICosmosDbScalingResiliencePolicies
     {
         public Policy ScalingRepository { get; set; }
 
@@ -14,5 +14,3 @@ namespace CalculateFunding.Services.CosmosDbScaling
         public Policy CacheProvider { get; set; }
     }
 }
-
-

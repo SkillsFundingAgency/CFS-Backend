@@ -99,9 +99,9 @@ namespace CalculateFunding.Api.Providers.Controllers
         {
             string controllerName = string.Empty;
 
-            if (this.ControllerContext.RouteData.Values.ContainsKey("controller"))
+            if (ControllerContext.RouteData.Values.ContainsKey("controller"))
             {
-                controllerName = (string)this.ControllerContext.RouteData.Values["controller"];
+                controllerName = (string)ControllerContext.RouteData.Values["controller"];
             }
 
             return await _providerVersionService.UploadProviderVersion(nameof(GetProvidersByVersion), controllerName, providerVersionId, providers);

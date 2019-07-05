@@ -396,7 +396,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             return new FundingSchemaService(
                 logger ?? CreateLogger(), 
                 fundingSchemaRepository ?? CreateFundingSchemaRepository(),
-                PolicyResilliencePoliciesTestHelper.GenerateTestPolicies());
+                PolicyResiliencePoliciesTestHelper.GenerateTestPolicies());
         }
 
         private static ILogger CreateLogger()

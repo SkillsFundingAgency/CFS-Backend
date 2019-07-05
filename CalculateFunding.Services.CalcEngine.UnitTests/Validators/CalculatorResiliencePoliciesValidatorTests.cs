@@ -4,7 +4,7 @@ using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Polly;
 
-namespace CalculateFunding.Services.Calculator.Validators
+namespace CalculateFunding.Services.CalcEngine.UnitTests.Validators
 {
     [TestClass]
     public class CalculatorResiliencePoliciesValidatorTests

@@ -11,7 +11,6 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -29,18 +28,18 @@ namespace CalculateFunding.Services.Policy
         public FundingPeriodService(ILogger logger,
             ICacheProvider cacheProvider,
             IPolicyRepository policyRepository,
-            IPolicyResilliencePolicies policyResilliencePolicies)
+            IPolicyResiliencePolicies policyResiliencePolicies)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
-            Guard.ArgumentNotNull(policyResilliencePolicies, nameof(policyResilliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
 
             _logger = logger;
             _cacheProvider = cacheProvider;
             _policyRepository = policyRepository;
-            _policyRepositoryPolicy = policyResilliencePolicies.PolicyRepository;
-            _cacheProviderPolicy = policyResilliencePolicies.CacheProvider;
+            _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
+            _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

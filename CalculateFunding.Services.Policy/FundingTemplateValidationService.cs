@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Common.Extensions;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
@@ -8,10 +10,6 @@ using CalculateFunding.Services.Policy.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
-using Serilog;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Web.Mvc;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -26,17 +24,17 @@ namespace CalculateFunding.Services.Policy
 
         public FundingTemplateValidationService(
             IFundingSchemaRepository fundingSchemaRepository,
-            IPolicyResilliencePolicies policyResilliencePolicies,
+            IPolicyResiliencePolicies policyResiliencePolicies,
             IPolicyRepository policyRepository)
         {
             Guard.ArgumentNotNull(fundingSchemaRepository, nameof(fundingSchemaRepository));
-            Guard.ArgumentNotNull(policyResilliencePolicies, nameof(policyResilliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
 
             _fundingSchemaRepository = fundingSchemaRepository;
-            _fundingSchemaRepositoryPolicy = policyResilliencePolicies.FundingSchemaRepository;
+            _fundingSchemaRepositoryPolicy = policyResiliencePolicies.FundingSchemaRepository;
             _policyRepository = policyRepository;
-            _policyRepositoryPolicy = policyResilliencePolicies.PolicyRepository;
+            _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -48,10 +46,12 @@ namespace CalculateFunding.Services.Policy
                 Name = nameof(FundingSchemaService)
             };
 
-            health.Dependencies.Add(new DependencyHealth {
+            health.Dependencies.Add(new DependencyHealth
+            {
                 HealthOk = fundingSchemaRepoHealth.Ok,
                 DependencyName = fundingSchemaRepoHealth.GetType().GetFriendlyName(),
-                Message = fundingSchemaRepoHealth.Message });
+                Message = fundingSchemaRepoHealth.Message
+            });
 
             return health;
         }
@@ -68,14 +68,14 @@ namespace CalculateFunding.Services.Policy
             {
                 parsedFundingTemplate = JObject.Parse(fundingTemplate);
             }
-            catch(JsonReaderException jre)
+            catch (JsonReaderException jre)
             {
                 fundingTemplateValidationResult.ValidationState.Errors.Add(jre.Message);
 
                 return fundingTemplateValidationResult;
             }
 
-            if (parsedFundingTemplate["schemaVersion"] == null || 
+            if (parsedFundingTemplate["schemaVersion"] == null ||
                 string.IsNullOrWhiteSpace(parsedFundingTemplate["schemaVersion"].Value<string>()))
             {
                 fundingTemplateValidationResult.ValidationState.Errors.Add("Missing schema version from funding template.");
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Policy
 
                 FundingStream fundingStream = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingStreamById(fundingTemplateValidationResult.FundingStreamId));
 
-                if(fundingStream == null)
+                if (fundingStream == null)
                 {
                     fundingTemplateValidationResult.ValidationState.Errors.Add($"A funding stream could not be found for funding stream id '{fundingTemplateValidationResult.FundingStreamId}'");
                 }

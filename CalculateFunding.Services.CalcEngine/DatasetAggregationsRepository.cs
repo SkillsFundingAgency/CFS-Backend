@@ -1,12 +1,11 @@
 ﻿using CalculateFunding.Models.Datasets;
-using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calculator
+namespace CalculateFunding.Services.CalcEngine
 {
     public class DatasetAggregationsRepository : IDatasetAggregationsRepository
     {

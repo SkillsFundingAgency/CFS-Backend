@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using CalculateFunding.Models.Results;
 
-namespace CalculateFunding.Services.Calculator
+namespace CalculateFunding.Services.CalcEngine.UnitTests
 {
     public static class MockData
     {

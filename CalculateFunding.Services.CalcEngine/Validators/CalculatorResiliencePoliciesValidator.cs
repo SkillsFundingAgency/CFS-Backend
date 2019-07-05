@@ -1,6 +1,4 @@
-﻿using CalculateFunding.Services.Calculator;
-using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Services.Core.Helpers;
+﻿using CalculateFunding.Services.CalcEngine.Interfaces;
 using FluentValidation;
 
 namespace CalculateFunding.Services.CalcEngine.Validators

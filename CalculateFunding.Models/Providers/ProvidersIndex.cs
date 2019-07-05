@@ -1,24 +1,16 @@
 ﻿using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 
-namespace CalculateFunding.Models.Results.Search
+namespace CalculateFunding.Models.Providers
 {
-    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "providerversionsindex")]
-    public class ProviderVersionsIndex
+    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "providersindex")]
+    public class ProvidersIndex
     {
         [Key]
         [JsonProperty("id")]
-        public string Id
-        {
-            get
-            {
-                return $"{ProviderVersionId}_{UKPRN}";
-            }
-        }
+        public string Id => $"{ProviderVersionId}_{UKPRN}";
 
         [IsFilterable]
         [IsFacetable]

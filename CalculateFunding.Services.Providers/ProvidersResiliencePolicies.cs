@@ -7,8 +7,8 @@ namespace CalculateFunding.Services.Providers
     {
         public Policy ProviderVersionsSearchRepository { get; set; }
 
-        public Policy ProviderVersionRepository { get; set; }
-
         public Policy ProviderVersionMetadataRepository { get; set; }
+
+        public Policy BlobRepositoryPolicy { get; set; }
     }
 }

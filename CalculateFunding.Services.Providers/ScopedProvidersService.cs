@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -48,7 +46,7 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth providerVersionServiceHealth = await ((IHealthChecker)_providerVersionService).IsHealthOk();
+            ServiceHealth providerVersionServiceHealth = await _providerVersionService.IsHealthOk();
             (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
 
 
@@ -105,7 +103,7 @@ namespace CalculateFunding.Services.Providers
             foreach (string providerId in providerIds)
             {
                 ProviderSummary cachedProvider = allCachedProviders.FirstOrDefault(m => m.Id == providerId);
-                
+
                 if (cachedProvider != null)
                 {
                     providerSummaries.Add(cachedProvider);
@@ -121,9 +119,9 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<IActionResult> FetchCoreProviderData(string specificationId)
         {
-            IEnumerable<ProviderSummary>  providerSummaries = await this.GetScopedProvidersBySpecification(specificationId);
+            IEnumerable<ProviderSummary> providerSummaries = await this.GetScopedProvidersBySpecification(specificationId);
 
-            if(providerSummaries.IsNullOrEmpty())
+            if (providerSummaries.IsNullOrEmpty())
             {
                 return new NoContentResult();
             }

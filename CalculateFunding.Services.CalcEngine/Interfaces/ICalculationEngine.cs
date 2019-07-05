@@ -6,7 +6,7 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 
-namespace CalculateFunding.Services.Calculator.Interfaces
+namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
     public interface ICalculationEngine
     {

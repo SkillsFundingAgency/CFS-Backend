@@ -109,13 +109,13 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddFeatureToggling(config);
 
-            builder.AddSingleton<ICosmosDbScallingResilliencePolicies>(m =>
+            builder.AddSingleton<ICosmosDbScalingResiliencePolicies>(m =>
             {
                 PolicySettings policySettings = builder.GetPolicySettings(config);
 
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
 
-                CosmosDbScallingResilliencePolicies resiliencePolicies = new CosmosDbScallingResilliencePolicies()
+                CosmosDbScalingResiliencePolicies resiliencePolicies = new CosmosDbScalingResiliencePolicies()
                 {
                     ScalingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ScalingConfigRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
@@ -126,6 +126,5 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return resiliencePolicies;
             });
         }
-
     }
 }

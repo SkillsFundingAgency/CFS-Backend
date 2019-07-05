@@ -1,30 +1,18 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Net;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.FundingPolicy.ViewModels;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Policy.Interfaces;
 using FluentValidation;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Storage.Blob;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Schema;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -43,22 +31,22 @@ namespace CalculateFunding.Services.Policy
             ICacheProvider cacheProvider,
             IMapper mapper,
             IPolicyRepository policyRepository,
-            IPolicyResilliencePolicies policyResilliencePolicies,
+            IPolicyResiliencePolicies policyResiliencePolicies,
             IValidator<FundingConfiguration> fundingConfigurationValidator)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
-            Guard.ArgumentNotNull(policyResilliencePolicies, nameof(policyResilliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
             Guard.ArgumentNotNull(fundingConfigurationValidator, nameof(fundingConfigurationValidator));
 
             _logger = logger;
             _cacheProvider = cacheProvider;
-            _cacheProviderPolicy = policyResilliencePolicies.CacheProvider;
+            _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
             _mapper = mapper;
             _policyRepository = policyRepository;
-            _policyRepositoryPolicy = policyResilliencePolicies.PolicyRepository;
+            _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
             _fundingConfigurationValidator = fundingConfigurationValidator;
         }
 

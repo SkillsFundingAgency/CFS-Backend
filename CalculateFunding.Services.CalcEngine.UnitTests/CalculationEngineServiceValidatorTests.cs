@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using CalculateFunding.Services.CalcEngine;
 using CalculateFunding.Services.CalcEngine.Validators;
-using CalculateFunding.Services.Calculator.Interfaces;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using FluentAssertions;
 using FluentValidation;
@@ -15,7 +12,6 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
-using Polly.NoOp;
 using Serilog;
 
 namespace CalculateFunding.Services.Calculator

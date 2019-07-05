@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using CalculateFunding.Common.CosmosDb;
+﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -98,7 +97,7 @@ namespace CalculateFunding.Api.Calcs
             builder
                 .AddSingleton<IPreviewService, PreviewService>()
                 .AddSingleton<IHealthChecker, PreviewService>();
-           
+
             builder
                .AddSingleton<ICompilerFactory, CompilerFactory>();
 

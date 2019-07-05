@@ -274,7 +274,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 cacheProvider ?? CreateCacheProvider(),
                 mapper ?? CreateMapper(),
                 policyRepository ?? CreatePolicyRepository(),
-                PolicyResilliencePoliciesTestHelper.GenerateTestPolicies(),
+                PolicyResiliencePoliciesTestHelper.GenerateTestPolicies(),
                 validator ?? CreateValidator());
         }
 

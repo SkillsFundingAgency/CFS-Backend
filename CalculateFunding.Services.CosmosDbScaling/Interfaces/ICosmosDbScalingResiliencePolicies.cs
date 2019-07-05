@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {
-    public interface ICosmosDbScallingResilliencePolicies
+    public interface ICosmosDbScalingResiliencePolicies
     {
         Policy ScalingRepository { get; set; }
 

@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
 {
@@ -24,7 +24,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.UnitTests
                 scope.ServiceProvider.GetService<ICosmosDbScalingConfigRepository>().Should().NotBeNull(nameof(ICosmosDbScalingConfigRepository));
                 scope.ServiceProvider.GetService<ICosmosDbScalingRepositoryProvider>().Should().NotBeNull(nameof(ICosmosDbScalingRepositoryProvider));
                 scope.ServiceProvider.GetService<ICosmosDbScalingService>().Should().NotBeNull(nameof(ICosmosDbScalingService));
-                scope.ServiceProvider.GetService<ICosmosDbScallingResilliencePolicies>().Should().NotBeNull(nameof(ICosmosDbScallingResilliencePolicies));
+                scope.ServiceProvider.GetService<ICosmosDbScalingResiliencePolicies>().Should().NotBeNull(nameof(ICosmosDbScalingResiliencePolicies));
             }
         }
 

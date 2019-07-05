@@ -15,8 +15,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Services.CalcEngine;
-using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -32,7 +31,7 @@ using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 
-namespace CalculateFunding.Services.Calculator
+namespace CalculateFunding.Services.CalcEngine
 {
     public class CalculationEngineService : ICalculationEngineService
     {

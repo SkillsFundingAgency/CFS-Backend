@@ -6,11 +6,11 @@ using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CalcEngine;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calculator;
-using CalculateFunding.Services.Calculator.Interfaces;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -71,7 +71,7 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new ProviderSourceDatasetsRepository(calcsCosmosRepostory, engineSettings);
             });
 
-            builder.AddSingleton<Services.Calculator.Interfaces.IProviderResultsRepository, Services.CalcEngine.ProviderResultsRepository>((ctx) =>
+            builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>((ctx) =>
             {
                 CosmosDbSettings calcResultsDbSettings = new CosmosDbSettings();
 
@@ -111,7 +111,7 @@ namespace CalculateFunding.Functions.CalcEngine
                 .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
-                .AddSingleton<Services.Calculator.Interfaces.ICalculationsRepository, Services.Calculator.CalculationsRepository>();
+                .AddSingleton<Services.CalcEngine.Interfaces.ICalculationsRepository, Services.CalcEngine.CalculationsRepository>();
 
             builder
                .AddSingleton<IDatasetAggregationsRepository, DatasetAggregationsRepository>();

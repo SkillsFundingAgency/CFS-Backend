@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
 
-namespace CalculateFunding.Services.Calculator
+namespace CalculateFunding.Services.CalcEngine
 {
     public class CalculationsRepository : ICalculationsRepository
     {

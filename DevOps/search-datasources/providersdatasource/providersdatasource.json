@@ -1,5 +1,5 @@
 {
-  "name": "providerversionsdatasource",
+  "name": "providersdatasource",
   "type": "azureblob",
   "credentials": { "connectionString": "" },
   "container": {

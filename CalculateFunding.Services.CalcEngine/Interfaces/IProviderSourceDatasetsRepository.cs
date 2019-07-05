@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calculator.Interfaces
+namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
     public interface IProviderSourceDatasetsRepository
     {

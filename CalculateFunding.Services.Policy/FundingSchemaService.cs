@@ -27,15 +27,15 @@ namespace CalculateFunding.Services.Policy
         public FundingSchemaService(
             ILogger logger,
             IFundingSchemaRepository fundingSchemaRepository,
-            IPolicyResilliencePolicies policyResilliencePolicies)
+            IPolicyResiliencePolicies policyResiliencePolicies)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(fundingSchemaRepository, nameof(fundingSchemaRepository));
-            Guard.ArgumentNotNull(policyResilliencePolicies, nameof(policyResilliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
 
             _logger = logger;
             _fundingSchemaRepository = fundingSchemaRepository;
-            _fundingSchemaRepositoryPolicy = policyResilliencePolicies.FundingSchemaRepository;
+            _fundingSchemaRepositoryPolicy = policyResiliencePolicies.FundingSchemaRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

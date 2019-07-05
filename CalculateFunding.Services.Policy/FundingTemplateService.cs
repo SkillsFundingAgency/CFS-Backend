@@ -28,22 +28,22 @@ namespace CalculateFunding.Services.Policy
         public FundingTemplateService(
             ILogger logger, 
             IFundingTemplateRepository fundingTemplateRepository,
-            IPolicyResilliencePolicies policyResilliencePolicies,
+            IPolicyResiliencePolicies policyResiliencePolicies,
             IFundingTemplateValidationService fundingTemplateValidationService,
             ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(fundingTemplateRepository, nameof(fundingTemplateRepository));
-            Guard.ArgumentNotNull(policyResilliencePolicies, nameof(policyResilliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
             Guard.ArgumentNotNull(fundingTemplateValidationService, nameof(fundingTemplateValidationService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _logger = logger;
             _fundingTemplateRepository = fundingTemplateRepository;
-            _fundingTemplateRepositoryPolicy = policyResilliencePolicies.FundingTemplateRepository;
+            _fundingTemplateRepositoryPolicy = policyResiliencePolicies.FundingTemplateRepository;
             _fundingTemplateValidationService = fundingTemplateValidationService;
             _cacheProvider = cacheProvider;
-            _cacheProviderPolicy = policyResilliencePolicies.CacheProvider;
+            _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
         }
 
         public async Task<ServiceHealth> IsHealthOk()

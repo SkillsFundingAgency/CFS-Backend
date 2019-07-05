@@ -1,6 +1,6 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.FeatureToggles;
-using CalculateFunding.Services.Calculator.Interfaces;
+using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -11,7 +11,7 @@ using NSubstitute;
 using Polly;
 using Serilog;
 
-namespace CalculateFunding.Services.Calculator
+namespace CalculateFunding.Services.CalcEngine.UnitTests
 {
     public class CalculationEngineServiceTestsHelper
     {

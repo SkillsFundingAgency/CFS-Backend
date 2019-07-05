@@ -1,8 +1,8 @@
-﻿using CalculateFunding.Services.Calculator.Interfaces;
+﻿using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Interfaces;
 using Polly;
 
-namespace CalculateFunding.Services.Calculator
+namespace CalculateFunding.Services.CalcEngine
 {
     public class CalculatorResiliencePolicies : ICalculatorResiliencePolicies, IJobHelperResiliencePolicies
     {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Providers;
@@ -63,7 +62,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IScopedProvidersService providerService = CreateProviderService(resultsApiClient: resultsApiClient, specificationsApiClient: specificationsApiClientProxy, providerVersionService: providerVersionService, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult totalCountResult  = await providerService.PopulateProviderSummariesForSpecification(specificationId);
+            IActionResult totalCountResult = await providerService.PopulateProviderSummariesForSpecification(specificationId);
 
             await specificationsApiClientProxy
                 .Received(1)

@@ -140,7 +140,7 @@ namespace CalculateFunding.Api.Providers
 
             MapperConfiguration providerVersionsConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<Models.MappingProfiles.ProviderVersionsMappingProfile>();
+                c.AddProfile<ProviderVersionsMappingProfile>();
             });
 
             builder
@@ -163,6 +163,7 @@ namespace CalculateFunding.Api.Providers
                 {
                     ProviderVersionsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     ProviderVersionMetadataRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

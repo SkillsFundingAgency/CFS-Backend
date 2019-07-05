@@ -1,8 +1,11 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
-using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
@@ -14,11 +17,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Providers.UnitTests
 {
@@ -38,9 +36,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN} } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -78,9 +76,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex>();
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -111,9 +109,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex>();
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .When(s => s.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
                     .Do(x => { throw new FailedToQuerySearchException("Test Message", null); });
@@ -132,7 +130,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        [DataRow(12,12,2019)]
+        [DataRow(12, 12, 2019)]
         public async Task GetProviderById_WhenProviderIdExistsForDate_ProviderReturned(int day, int month, int year)
         {
             // Arrange
@@ -145,11 +143,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -191,9 +189,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex>();
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -233,9 +231,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex>();
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -271,9 +269,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -319,9 +317,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             string providerVersionId = Guid.NewGuid().ToString();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex>();
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -358,9 +356,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex>();
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -395,9 +393,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex>();
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -431,9 +429,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex>();
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex>();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -467,9 +465,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -504,9 +502,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .When(s => s.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
                 .Do(x => { throw new FailedToQuerySearchException("Test Message", null); });
@@ -537,9 +535,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -581,11 +579,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
             IProviderVersionService providerVersionService = CreateProviderVersionService();
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -624,9 +622,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -661,9 +659,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ICacheProvider cacheProvider = CreateCacheProvider();
 
-            SearchResults<ProviderVersionsIndex> searchResults = new SearchResults<ProviderVersionsIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProviderVersionsIndex>> { new Repositories.Common.Search.SearchResult<ProviderVersionsIndex> { Result = new ProviderVersionsIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
+            SearchResults<ProvidersIndex> searchResults = new SearchResults<ProvidersIndex> { Results = new List<Repositories.Common.Search.SearchResult<ProvidersIndex>> { new Repositories.Common.Search.SearchResult<ProvidersIndex> { Result = new ProvidersIndex { ProviderVersionId = provider.ProviderVersionId, UKPRN = provider.UKPRN } } } };
 
-            ISearchRepository<ProviderVersionsIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .When(s => s.Search(Arg.Any<string>(), Arg.Any<SearchParameters>()))
                 .Do(x => { throw new FailedToQuerySearchException("Test Message", null); });
@@ -696,9 +694,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return Substitute.For<IProviderVersionsMetadataRepository>();
         }
 
-        private ISearchRepository<ProviderVersionsIndex> CreateSearchRepository()
+        private ISearchRepository<ProvidersIndex> CreateSearchRepository()
         {
-            return Substitute.For<ISearchRepository<ProviderVersionsIndex>>();
+            return Substitute.For<ISearchRepository<ProvidersIndex>>();
         }
 
         private IProvidersResiliencePolicies CreateResiliencePolicies()
@@ -714,7 +712,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return Substitute.For<IProviderVersionService>();
         }
 
-        private IProviderVersionSearchService CreateProviderVersionSearchService(ICacheProvider cacheProvider = null, ISearchRepository<ProviderVersionsIndex> searchRepository = null, IProviderVersionsMetadataRepository providerVersionMetadataRepository = null, IProviderVersionService providerVersionService = null)
+        private IProviderVersionSearchService CreateProviderVersionSearchService(ICacheProvider cacheProvider = null, ISearchRepository<ProvidersIndex> searchRepository = null, IProviderVersionsMetadataRepository providerVersionMetadataRepository = null, IProviderVersionService providerVersionService = null)
         {
             return new ProviderVersionSearchService(
                 CreateLogger(),

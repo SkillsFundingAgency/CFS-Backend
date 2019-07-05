@@ -2,7 +2,7 @@
 using CalculateFunding.Models.Results;
 using System.Collections.Generic;
 
-namespace CalculateFunding.Services.Calculator.Interfaces
+namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
     public interface IAllocationModel
     {

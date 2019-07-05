@@ -5,9 +5,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
 {
     public static class CosmosDbScalingResilienceTestHelper
     {
-        public static ICosmosDbScallingResilliencePolicies GenerateTestPolicies()
+        public static ICosmosDbScalingResiliencePolicies GenerateTestPolicies()
         {
-            return new CosmosDbScallingResilliencePolicies()
+            return new CosmosDbScalingResiliencePolicies()
             {
                  CacheProvider = Policy.NoOpAsync(),
                  JobsApiClient = Policy.NoOpAsync(),

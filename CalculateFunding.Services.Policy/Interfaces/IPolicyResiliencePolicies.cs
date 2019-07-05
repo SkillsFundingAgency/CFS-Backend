@@ -1,6 +1,6 @@
 ﻿namespace CalculateFunding.Services.Policy.Interfaces
 {
-    public interface IPolicyResilliencePolicies
+    public interface IPolicyResiliencePolicies
     {
         Polly.Policy PolicyRepository { get; set; }
 

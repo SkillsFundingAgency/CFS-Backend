@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Providers
     {
         private readonly Policy _searchRepositoryPolicy;
         private readonly ILogger _logger;
-        private readonly ISearchRepository<ProviderVersionsIndex> _searchRepository;
+        private readonly ISearchRepository<ProvidersIndex> _searchRepository;
         private readonly Policy _providerVersionMetadataRepositoryPolicy;
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadataRepository;
         private readonly IProviderVersionService _providerVersionService;
@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Providers
         };
 
         public ProviderVersionSearchService(ILogger logger,
-            ISearchRepository<ProviderVersionsIndex> searchRepository,
+            ISearchRepository<ProvidersIndex> searchRepository,
             IProviderVersionsMetadataRepository providerVersionMetadataRepository,
             IProvidersResiliencePolicies resiliencePolicies,
             IProviderVersionService providerVersionService)
@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.Providers
 
         private async Task<ProviderVersionSearchResults> SearchProviderVersionSearchResults(SearchModel searchModel)
         {
-            IEnumerable<Task<SearchResults<ProviderVersionsIndex>>> searchTasks = BuildSearchTasks(searchModel);
+            IEnumerable<Task<SearchResults<ProvidersIndex>>> searchTasks = BuildSearchTasks(searchModel);
 
             await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
 
@@ -219,11 +219,11 @@ namespace CalculateFunding.Services.Providers
             return results;
         }
 
-        private IEnumerable<Task<SearchResults<ProviderVersionsIndex>>> BuildSearchTasks(SearchModel searchModel)
+        private IEnumerable<Task<SearchResults<ProvidersIndex>>> BuildSearchTasks(SearchModel searchModel)
         {
             IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
 
-            IEnumerable<Task<SearchResults<ProviderVersionsIndex>>> searchTasks = new Task<SearchResults<ProviderVersionsIndex>>[0];
+            IEnumerable<Task<SearchResults<ProvidersIndex>>> searchTasks = new Task<SearchResults<ProvidersIndex>>[0];
 
             if (searchModel.IncludeFacets)
             {
@@ -282,7 +282,7 @@ namespace CalculateFunding.Services.Providers
             return facetDictionary;
         }
 
-        private async Task<SearchResults<ProviderVersionsIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
+        private async Task<SearchResults<ProvidersIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
         {
             int skip = searchModel.PageNumber > 0 ? (searchModel.PageNumber - 1) * searchModel.Top : 0;
 
@@ -297,7 +297,7 @@ namespace CalculateFunding.Services.Providers
             }));
         }
 
-        private void ProcessSearchResults(SearchResults<ProviderVersionsIndex> searchResult, ProviderVersionSearchResults results)
+        private void ProcessSearchResults(SearchResults<ProvidersIndex> searchResult, ProviderVersionSearchResults results)
         {
             if (!searchResult.Facets.IsNullOrEmpty())
             {

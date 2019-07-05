@@ -1,19 +1,15 @@
-﻿using CalculateFunding.Models.Policy;
+﻿using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
-using CalculateFunding.Services.Policy.UnitTests;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Schema;
 using Newtonsoft.Json.Schema.Generation;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Policy.UnitTests
 {
@@ -616,7 +612,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         {
             return new FundingTemplateValidationService(
                     fundingSchemaRepository ?? CreateFundingSchemaRepository(),
-                    PolicyResilliencePoliciesTestHelper.GenerateTestPolicies(),
+                    PolicyResiliencePoliciesTestHelper.GenerateTestPolicies(),
                     policyRepository ?? CreatePolicyRepository()
                 );
         }

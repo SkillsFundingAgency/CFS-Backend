@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -20,7 +19,6 @@ using Newtonsoft.Json;
 using Polly;
 using Serilog;
 
-
 namespace CalculateFunding.Services.Providers
 {
     public class ProviderVersionService : IProviderVersionService, IHealthChecker
@@ -31,8 +29,8 @@ namespace CalculateFunding.Services.Providers
         private readonly ILogger _logger;
         private readonly IValidator<ProviderVersionViewModel> _providerVersionModelValidator;
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadataRepository;
-        private readonly Policy _providerVersionRepositoryPolicy;
         private readonly Policy _providerVersionMetadataRepositoryPolicy;
+        private readonly Policy _blobRepositoryPolicy;
         private readonly IMapper _mapper;
 
         public ProviderVersionService(ICacheProvider cacheProvider,
@@ -56,6 +54,8 @@ namespace CalculateFunding.Services.Providers
             _providerVersionModelValidator = providerVersionModelValidator;
             _providerVersionMetadataRepository = providerVersionMetadataRepository;
             _providerVersionMetadataRepositoryPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
+            _blobRepositoryPolicy = resiliencePolicies.BlobRepositoryPolicy;
+
             _mapper = mapper;
         }
 
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Providers
             (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
             (bool Ok, string Message) blobClientRepoHealth = await _blobClient.IsHealthOk();
 
-            ServiceHealth health = new ServiceHealth()
+            ServiceHealth health = new ServiceHealth
             {
                 Name = nameof(ProviderVersionService)
             };
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.ArgumentNotNull(providerVersionId, nameof(providerVersionId));
 
-            if(await Exists(providerVersionId))
+            if (await Exists(providerVersionId))
             {
                 return new NoContentResult();
             }
@@ -147,7 +147,7 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
-            OkObjectResult okObjectResult = await this.GetAllProviders(providerVersionId, useCache) as OkObjectResult;
+            OkObjectResult okObjectResult = await GetAllProviders(providerVersionId, useCache) as OkObjectResult;
 
             return okObjectResult.Value as ProviderVersion;
         }
@@ -219,6 +219,16 @@ namespace CalculateFunding.Services.Providers
             return await _blobClient.BlobExistsAsync(blobName);
         }
 
+        public async Task<bool> Exists(ProviderVersionViewModel providerVersionModel)
+        {
+            Guard.ArgumentNotNull(providerVersionModel, nameof(providerVersionModel));
+
+            return await _providerVersionMetadataRepository.Exists(providerVersionModel.Name,
+                providerVersionModel.ProviderVersionTypeString,
+                providerVersionModel.Version,
+                providerVersionModel.FundingStream);
+        }
+
         public async Task<IActionResult> SetProviderVersionByDate(int year, int month, int day, string providerVersionId)
         {
             Guard.ArgumentNotNull(year, nameof(year));
@@ -241,7 +251,7 @@ namespace CalculateFunding.Services.Providers
                     await _cacheProvider.RemoveAsync<ProviderVersionByDate>(localCacheKey);
                 }
 
-                await _providerVersionMetadataRepositoryPolicy.ExecuteAsync<HttpStatusCode>(() => _providerVersionMetadataRepository.UpsertProviderVersionByDate(newProviderVersionByDate));
+                await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.UpsertProviderVersionByDate(newProviderVersionByDate));
             }
             else
             {
@@ -259,47 +269,51 @@ namespace CalculateFunding.Services.Providers
 
             bool exists = await Exists(newMasterProviderVersion.ProviderVersionId);
 
-            if (exists)
-            {
-                MasterProviderVersion masterProviderVersion = await _cacheProvider.GetAsync<MasterProviderVersion>(CacheKeys.MasterProviderVersion);
-
-                if (masterProviderVersion != null)
-                {
-                    await _cacheProvider.RemoveAsync<MasterProviderVersion>(CacheKeys.MasterProviderVersion);
-                }
-
-                await _providerVersionMetadataRepositoryPolicy.ExecuteAsync<HttpStatusCode>(() => _providerVersionMetadataRepository.UpsertMaster(newMasterProviderVersion));
-            }
-            else
+            if (!exists)
             {
                 string error = $"Failed to retrieve provider version with id: {newMasterProviderVersion.ProviderVersionId}";
                 _logger.Error(error);
                 return new PreconditionFailedResult(error);
             }
 
+            MasterProviderVersion masterProviderVersion = await _cacheProvider.GetAsync<MasterProviderVersion>(CacheKeys.MasterProviderVersion);
+
+            if (masterProviderVersion != null)
+            {
+                await _cacheProvider.RemoveAsync<MasterProviderVersion>(CacheKeys.MasterProviderVersion);
+            }
+
+            await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.UpsertMaster(newMasterProviderVersion));
+
             return new NoContentResult();
         }
 
-        public async Task<IActionResult> UploadProviderVersion(string actionName, string controller, string providerVersionId, ProviderVersionViewModel providerVersionModel)
+        public async Task<IActionResult> UploadProviderVersion(string actionName, 
+            string controller, 
+            string providerVersionId, 
+            ProviderVersionViewModel providerVersionModel)
         {
             Guard.IsNullOrWhiteSpace(actionName, nameof(actionName));
             Guard.IsNullOrWhiteSpace(controller, nameof(controller));
+            Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
             Guard.ArgumentNotNull(providerVersionModel, nameof(providerVersionModel));
 
-            BadRequestObjectResult validationResult = (await _providerVersionModelValidator.ValidateAsync(providerVersionModel)).PopulateModelState();
-
-            if (validationResult != null)
-            {
-                return validationResult;
-            }
-
-            if(await this.Exists(providerVersionId.ToLowerInvariant()))
-            {
-                return new ConflictResult();
-            }
+            IActionResult validationResult = await UploadProviderVersionValidate(providerVersionModel, providerVersionId);
+            if (validationResult != null) return validationResult;
 
             ProviderVersion providerVersion = _mapper.Map<ProviderVersion>(providerVersionModel);
+            providerVersion.Id = $"providerVersion-{ providerVersionId }";
 
+            await UploadProviderVersionBlob(providerVersionId, providerVersion);
+
+            await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.CreateProviderVersion(providerVersion));
+
+            return new CreatedAtActionResult(actionName, controller, new { providerVersionId = providerVersionId }, providerVersionId);
+        }
+
+        private async Task UploadProviderVersionBlob(string providerVersionId, ProviderVersion providerVersion)
+        {
+            //HACK this should be in a retry policy too, fix
             ICloudBlob blob = _blobClient.GetBlockBlobReference(providerVersionId.ToLowerInvariant() + ".json");
 
             // convert string to stream
@@ -307,10 +321,22 @@ namespace CalculateFunding.Services.Providers
 
             using (MemoryStream stream = new MemoryStream(byteArray))
             {
-                await blob.UploadFromStreamAsync(stream);
+                await _blobRepositoryPolicy.ExecuteAsync(() => blob.UploadFromStreamAsync(stream));
             }
+        }
 
-            return new CreatedAtActionResult(actionName, controller, new { providerVersionId = providerVersionId }, providerVersionId);
+        private async Task<IActionResult> UploadProviderVersionValidate(ProviderVersionViewModel providerVersionModel,
+            string providerVersionId)
+        {
+            BadRequestObjectResult validationResult = (await _providerVersionModelValidator.ValidateAsync(providerVersionModel)).PopulateModelState();
+
+            if (validationResult != null) return validationResult;
+
+            if (await Exists(providerVersionId.ToLowerInvariant())) return new ConflictResult();
+
+            if (await Exists(providerVersionModel)) return new ConflictResult();
+
+            return null;
         }
     }
 }

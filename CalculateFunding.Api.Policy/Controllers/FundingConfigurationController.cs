@@ -25,9 +25,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         {
             return await _fundingConfigurationService.GetFundingConfiguration(fundingStreamId, fundingPeriodId);
         }
-
-
-
+        
         [HttpPost("api/configuration/{fundingStreamId}/{fundingPeriodId}")]
         [ProducesResponseType(201)]
         public async Task<IActionResult> SaveFundingConfiguration([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId, [FromBody]FundingConfigurationViewModel configurationViewModel)

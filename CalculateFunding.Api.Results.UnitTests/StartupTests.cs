@@ -1,4 +1,5 @@
-using CalculateFunding.Api.Results;
+using System;
+using System.Collections.Generic;
 using CalculateFunding.Api.Results.Controllers;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
@@ -6,8 +7,6 @@ using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Api.Results.UnitTests
 {

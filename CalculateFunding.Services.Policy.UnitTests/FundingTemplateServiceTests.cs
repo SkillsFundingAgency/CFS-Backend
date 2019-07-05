@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Common.Caching;
+﻿using System;
+using System.IO;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.Mvc;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -11,11 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web.Mvc;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -183,7 +183,7 @@ namespace CalculateFunding.Services.Policy
                 .Returns(validationResult);
 
             IFundingTemplateRepository fundingTemplateRepository = CreateFundingTemplateRepository();
-           
+
             ILogger logger = CreateLogger();
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -474,7 +474,7 @@ namespace CalculateFunding.Services.Policy
             fundingTemplateRepository
               .GetFundingTemplateVersion(Arg.Is(blobName))
               .Returns(template);
-           
+
             ILogger logger = CreateLogger();
 
             FundingTemplateService fundingTemplateService = CreateFundingTemplateService(
@@ -509,7 +509,7 @@ namespace CalculateFunding.Services.Policy
             return new FundingTemplateService(
                    logger ?? CreateLogger(),
                    fundingTemplateRepository ?? CreateFundingTemplateRepository(),
-                   PolicyResilliencePoliciesTestHelper.GenerateTestPolicies(),
+                   PolicyResiliencePoliciesTestHelper.GenerateTestPolicies(),
                    fundingTemplateValidationService ?? CreateFundingTemplateValidationService(),
                    cacheProvider ?? CreateCacheProvider()
                 );

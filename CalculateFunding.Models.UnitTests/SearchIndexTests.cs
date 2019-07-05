@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 namespace CalculateFunding.Models.UnitTests
 {
 #if NCRUNCH
-        [Ignore]
+    [Ignore]
 #endif
     [TestClass]
     public class SearchIndexTests
@@ -28,30 +28,48 @@ namespace CalculateFunding.Models.UnitTests
 
             foreach (Type type in searchIndexTypes)
             {
-                CustomAttributeData indexNameMember = type.CustomAttributes.FirstOrDefault(m => m.NamedArguments.FirstOrDefault(n => n.MemberName == "IndexName") != null);
-
-                if(indexNameMember == null)
+                try
                 {
-                    ErrorLog.Add($"Missing IndexName attribute on model {type.Name}");
+                    CustomAttributeData indexNameMember = type.CustomAttributes.FirstOrDefault(m => m.NamedArguments.FirstOrDefault(n => n.MemberName == "IndexName") != null);
+
+                    if (indexNameMember == null)
+                    {
+                        ErrorLog.Add($"Missing IndexName attribute on model {type.Name}");
+                    }
+                    else
+                    {
+                        string indexName = indexNameMember.NamedArguments.First(m => m.MemberName == "IndexName").TypedValue.Value.ToString();
+
+                        if (indexName.ToLowerInvariant() != type.Name.ToLowerInvariant())
+                        {
+                            ErrorLog.Add($"Index name {indexName} does not match type name {type.Name}");
+                        }
+
+                        if (!indexName.EndsWith("index"))
+                        {
+                            ErrorLog.Add($"Index name {indexName} is not valid");
+                        }
+
+                        string jsonFilePath = $@"{searchIndexDirectoryPath}\{indexName}\{indexName}.json";
+
+                        if (!File.Exists(jsonFilePath))
+                        {
+                            ErrorLog.Add($"Missing corresponding json schema for {type.Name}");
+                        }
+                    }
                 }
-
-                string indexName = indexNameMember.NamedArguments.First(m => m.MemberName == "IndexName").TypedValue.Value.ToString();
-
-                string jsonFilePath = $@"{searchIndexDirectoryPath}\{indexName}\{indexName}.json";
-
-                if (!File.Exists(jsonFilePath))
+                catch (Exception e)
                 {
-                    ErrorLog.Add($"Missing coresponding json schema for {type.Name}");
+                    ErrorLog.Add($"Unexpected error checking '{type.Name}': {e.Message}{Environment.NewLine}{e.StackTrace}");
                 }
             }
 
             //Assert
             if (ErrorLog.Any())
             {
-                Assert.Fail(string.Join("\r\n", ErrorLog));
+                Assert.Fail(string.Join(Environment.NewLine, ErrorLog));
             }
         }
-
 
         [TestMethod]
         public void SearchIndexTest_GivenSearchSchemasAndModels_EnsureFieldsMatch()
@@ -64,45 +82,78 @@ namespace CalculateFunding.Models.UnitTests
             IEnumerable<string> indexNames = Directory.GetDirectories(searchIndexDirectoryPath, "*index", SearchOption.TopDirectoryOnly)
                 .Select(m => new DirectoryInfo(m).Name);
 
+            //Act
             foreach (string indexName in indexNames)
             {
-                string jsonFilePath = $@"{searchIndexDirectoryPath}\{indexName}\{indexName}.json";
-
-                string jsonText = File.ReadAllText(jsonFilePath, Encoding.UTF8);
-
-                SearchIndexSchema searchIndexSchema = JsonConvert.DeserializeObject<SearchIndexSchema>(jsonText);
-
-                Type searchIndexType = searchIndexTypes.FirstOrDefault(m =>
-                    m.CustomAttributes.FirstOrDefault(p =>
-                    p.NamedArguments.Any(n =>
-                    n.TypedValue.Value.ToString() == searchIndexSchema.Name)) != null);
-
-                IEnumerable<string> searchIndexProperties = searchIndexType.GetProperties()
-                    .Select(m => m.CustomAttributes
-                        .First(a => a.AttributeType.Name == "JsonPropertyAttribute")
-                        .ConstructorArguments[0].Value.ToString().ToLower());
-
-                IEnumerable<string> searchIndexJsonProperties = searchIndexSchema.Fields.Select(m => m.Name.ToLower());
-
-                bool areEquivalent = !searchIndexProperties.Except(searchIndexJsonProperties).Any();
-
-                if (!areEquivalent)
+                try
                 {
-                    ErrorLog.Add($"Index {indexName}: The model contains the following properties not found in the json Schema ({ string.Join(",", searchIndexProperties.Except(searchIndexJsonProperties))})");
+                    string jsonFilePath = $@"{searchIndexDirectoryPath}\{indexName}\{indexName}.json";
+
+                    string jsonText = File.ReadAllText(jsonFilePath, Encoding.UTF8);
+                    SearchIndexSchema searchIndexSchema = JsonConvert.DeserializeObject<SearchIndexSchema>(jsonText);
+                    if (searchIndexSchema?.Name == null)
+                    {
+                        ErrorLog.Add(string.IsNullOrWhiteSpace(jsonText)
+                            ? $"{indexName} json is blank"
+                            : $"{indexName} json name is not available");
+                    }
+                    else if (searchIndexSchema.Name != indexName)
+                    {
+                        ErrorLog.Add($"Expected to find index { indexName }, but found { searchIndexSchema.Name }");
+                    }
+                    else
+                    {
+                        Type searchIndexType = searchIndexTypes
+                            .FirstOrDefault(m => m.CustomAttributes
+                                                     .FirstOrDefault(p => p.NamedArguments
+                                                         .Any(n => n.TypedValue.Value.ToString() == searchIndexSchema.Name)) != null);
+
+                        IEnumerable<string> searchIndexProperties = searchIndexType.GetProperties()
+                            .Select(m => m.CustomAttributes
+                                .FirstOrDefault(a => a.AttributeType.Name == "JsonPropertyAttribute")
+                                ?.ConstructorArguments[0].Value.ToString().ToLower())
+                            .Where(p => p != null);
+
+                        IEnumerable<string> searchIndexJsonProperties = searchIndexSchema.Fields
+                            .Select(m => m.Name.ToLower())
+                            .Where(p => p != null);
+
+                        if (!searchIndexProperties.Any())
+                        {
+                            ErrorLog.Add($"Index {indexName}: The model contains no properties");
+                        }
+                        else if (!searchIndexJsonProperties.Any())
+                        {
+                            ErrorLog.Add($"Index {indexName}: The json contains no properties");
+                        }
+                        else
+                        {
+                            IEnumerable<string> notInJson = searchIndexProperties.Except(searchIndexJsonProperties);
+                            if (notInJson.Any())
+                            {
+                                string properties = string.Join(",", notInJson);
+                                ErrorLog.Add($"Index {indexName}: The model contains the following properties not found in the json schema ({properties})");
+                            }
+
+                            IEnumerable<string> notInModel = searchIndexJsonProperties.Except(searchIndexProperties);
+                            if (notInModel.Any())
+                            {
+                                string properties = string.Join(",", notInModel);
+                                ErrorLog.Add($"Index {indexName}: The json schema contains the following properties not found in the model ({properties})");
+                            }
+                        }
+                    }
                 }
-
-                areEquivalent = !searchIndexJsonProperties.Except(searchIndexProperties).Any();
-
-                if (!areEquivalent)
+                catch (Exception e)
                 {
-                    ErrorLog.Add($"Index {indexName}: The json schema contains the following properties not found in the model ({ string.Join(",", searchIndexJsonProperties.Except(searchIndexProperties))})");
+                    ErrorLog.Add($"Unexpected error checking '{indexName}': {e.Message}{Environment.NewLine}{ e.StackTrace }");
                 }
             }
 
             //Assert
             if (ErrorLog.Any())
             {
-                Assert.Fail(string.Join("\r\n", ErrorLog));
+                Assert.Fail(string.Join(Environment.NewLine, ErrorLog));
             }
         }
 
@@ -114,73 +165,137 @@ namespace CalculateFunding.Models.UnitTests
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 
-            IEnumerable<string> indexNames = Directory.GetDirectories(searchIndexDirectoryPath, "*index", SearchOption.TopDirectoryOnly)
+            IEnumerable<string> indexNames = Directory
+                .GetDirectories(searchIndexDirectoryPath, "*index", SearchOption.TopDirectoryOnly)
                 .Select(m => new DirectoryInfo(m).Name);
 
             //Act
-            foreach(string indexName in indexNames)
+            foreach (string indexName in indexNames)
             {
-                string jsonFilePath = $@"{searchIndexDirectoryPath}\{indexName}\{indexName}.json";
-
-                string jsonText = File.ReadAllText(jsonFilePath, Encoding.UTF8);
-
-                SearchIndexSchema searchIndexSchema = JsonConvert.DeserializeObject<SearchIndexSchema>(jsonText);
-
-                Type searchIndexType = searchIndexTypes.FirstOrDefault(m =>
-                    m.CustomAttributes.FirstOrDefault(p =>
-                    p.NamedArguments.Any(n =>
-                    n.TypedValue.Value.ToString() == searchIndexSchema.Name)) != null);
-
-                IEnumerable<PropertyInfo> searchIndexProperties = searchIndexType.GetProperties();
-                
-                foreach(SearchIndexField searchIndexField in searchIndexSchema.Fields)
+                try
                 {
-                    PropertyInfo matchedProperty = searchIndexProperties.FirstOrDefault(m => 
-                        string.Equals(m.Name, searchIndexField.Name, StringComparison.InvariantCultureIgnoreCase));
+                    string jsonFilePath = $@"{searchIndexDirectoryPath}\{indexName}\{indexName}.json";
 
-                    if(matchedProperty != null)
+                    string jsonText = File.ReadAllText(jsonFilePath, Encoding.UTF8);
+
+                    SearchIndexSchema searchIndexSchema = JsonConvert.DeserializeObject<SearchIndexSchema>(jsonText);
+                    if (searchIndexSchema?.Name == null)
                     {
-                        IEnumerable<string> attributesEnabledInModel = matchedProperty.CustomAttributes.Where(m =>
-                            m.AttributeType.Name != "JsonPropertyAttribute").Select(m => m.AttributeType.Name.Replace("Attribute", "").Replace("Is", "").ToLower());
+                        ErrorLog.Add(string.IsNullOrWhiteSpace(jsonText)
+                            ? $"{indexName} json is blank"
+                            : $"{indexName} json name is not available");
+                    }
+                    else if (searchIndexSchema.Name != indexName)
+                    {
+                        ErrorLog.Add($"Expected to find index {indexName}, but found {searchIndexSchema.Name}");
+                    }
+                    else
+                    {
+                        Type searchIndexType = searchIndexTypes.FirstOrDefault(m =>
+                            m.CustomAttributes.FirstOrDefault(p =>
+                                p.NamedArguments.Any(n =>
+                                    n.TypedValue.Value.ToString() == searchIndexSchema.Name)) != null);
 
-                        IEnumerable<string> attributesEnabledInJson = searchIndexField.GetType().GetProperties().Where(p =>
-                            p.PropertyType == typeof(bool) &&
-                                (bool)p.GetValue(searchIndexField, null))
-                                .Select(p => p.Name.ToLower());
+                        IEnumerable<PropertyInfo> searchIndexProperties = searchIndexType.GetProperties();
 
-                        IEnumerable<string> unsyncedAttributes = attributesEnabledInModel.Except(attributesEnabledInJson);
-
-                        bool areEquivalent = !unsyncedAttributes.Any();
-
-                        if (!areEquivalent)
+                        foreach (SearchIndexField searchIndexField in searchIndexSchema.Fields)
                         {
-                            ErrorLog.Add($"Index {indexName}: The follwoing attributes in the model for {searchIndexField.Name} are not in sync with the json schema ({string.Join(",",unsyncedAttributes)})");
-                        }
+                            PropertyInfo matchedProperty = searchIndexProperties.FirstOrDefault(m =>
+                                string.Equals(m.CustomAttributes
+                                                  .SingleOrDefault(x => x.AttributeType.Name == "JsonPropertyAttribute")
+                                                  ?.ConstructorArguments[0].ToString().Replace("\"", "")
+                                              ?? m.Name,
+                                    searchIndexField.Name,
+                                    StringComparison.InvariantCultureIgnoreCase));
 
-                        unsyncedAttributes = attributesEnabledInJson.Except(attributesEnabledInModel);
-
-                        areEquivalent = !unsyncedAttributes.Any();
-
-                        if (!areEquivalent)
-                        {
-                            ErrorLog.Add($"Index {indexName}: The following attributes in the json schema for {searchIndexField.Name} are not in sync with the model ({string.Join(",", unsyncedAttributes)})");
+                            if (matchedProperty == null)
+                            {
+                                ErrorLog.Add($"{indexName}: {searchIndexField.Name} did not match any properties");
+                            }
+                            else
+                            {
+                                CheckIndexFieldTypes(matchedProperty, searchIndexField, ErrorLog, indexName);
+                                CheckIndexAttributes(matchedProperty, searchIndexField, ErrorLog, indexName);
+                            }
                         }
                     }
+                }
+                catch (Exception e)
+                {
+                    ErrorLog.Add($"Unexpected error checking '{indexName}': {e.Message}{Environment.NewLine}{e.StackTrace}");
                 }
             }
 
             //Assert
-
             if (ErrorLog.Any())
             {
-                Assert.Fail(string.Join("\r\n", ErrorLog));
+                Assert.Fail(string.Join(Environment.NewLine, ErrorLog));
+            }
+        }
+
+        private void CheckIndexFieldTypes(PropertyInfo matchedProperty, SearchIndexField searchIndexField, IList<string> ErrorLog, string indexName)
+        {
+            bool modelIsCollection = false;
+            bool jsonIsCollection = false;
+
+            string modelType = matchedProperty.PropertyType.Name == "Nullable`1"
+                ? matchedProperty.PropertyType.GenericTypeArguments[0].Name
+                : matchedProperty.PropertyType.Name;
+            if (modelType.EndsWith("[]"))
+            {
+                modelType = modelType.Replace("[]", "");
+                modelIsCollection = true;
+            }
+
+            string jsonType = searchIndexField.Type;
+
+            if (jsonType.StartsWith("Collection("))
+            {
+                jsonType = jsonType.Substring(11, jsonType.Length - 12);
+                jsonIsCollection = true;
+            }
+            jsonType = jsonType.Split(new[] { '.' })[1];
+
+            if (modelType.ToLowerInvariant() != jsonType.ToLowerInvariant() || modelIsCollection != jsonIsCollection)
+            {
+                ErrorLog.Add($"Expected {indexName}.{ matchedProperty.Name } to be of type { (modelIsCollection ? " collection of " : "") }{ modelType }, but found { (jsonIsCollection ? " collection of " : "") } { jsonType }");
+            }
+        }
+
+        private void CheckIndexAttributes(PropertyInfo matchedProperty, SearchIndexField searchIndexField, IList<string> ErrorLog, string indexName)
+        {
+            IEnumerable<string> attributesEnabledInModel = matchedProperty.CustomAttributes
+                .Where(m => !(new[] { "JsonPropertyAttribute", "JsonIgnoreAttribute" }).Contains(m.AttributeType.Name))
+                .Select(m => m.AttributeType.Name.Replace("Attribute", "").Replace("Is", "").ToLower());
+
+            IEnumerable<string> attributesEnabledInJson = searchIndexField.GetType().GetProperties()
+                .Where(p => p.PropertyType == typeof(bool) &&
+                            (bool)p.GetValue(searchIndexField, null))
+                .Select(p => p.Name.ToLower());
+
+            IEnumerable<string> unsyncedAttributes = attributesEnabledInModel.Except(attributesEnabledInJson);
+
+            if (unsyncedAttributes.Any())
+            {
+                string attributes = string.Join(",", unsyncedAttributes);
+                ErrorLog.Add(
+                    $"Index {indexName}: {searchIndexField.Name} Json attributes ({attributes}) are false but should be true");
+            }
+
+            unsyncedAttributes = attributesEnabledInJson.Except(attributesEnabledInModel);
+
+            if (unsyncedAttributes.Any())
+            {
+                string attributes = string.Join(",", unsyncedAttributes);
+                ErrorLog.Add(
+                    $"Index {indexName}: {searchIndexField.Name} Json attributes ({attributes}) are true but should be false");
             }
         }
 
         private static IEnumerable<Type> GetTypesWithSearchIndexAttribute()
         {
-           Assembly modelsAssembly = AppDomain.CurrentDomain.GetAssemblies().
-            SingleOrDefault(assembly => assembly.GetName().Name == "CalculateFunding.Models");
+            Assembly modelsAssembly = AppDomain.CurrentDomain.GetAssemblies().
+             SingleOrDefault(assembly => assembly.GetName().Name == "CalculateFunding.Models");
 
             foreach (Type type in modelsAssembly.GetTypes())
             {
@@ -191,6 +306,4 @@ namespace CalculateFunding.Models.UnitTests
             }
         }
     }
-
-    
 }

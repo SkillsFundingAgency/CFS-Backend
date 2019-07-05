@@ -2,11 +2,11 @@
 
 namespace CalculateFunding.Services.Policy.UnitTests
 {
-    public static class PolicyResilliencePoliciesTestHelper
+    public static class PolicyResiliencePoliciesTestHelper
     {
-        public static IPolicyResilliencePolicies GenerateTestPolicies()
+        public static IPolicyResiliencePolicies GenerateTestPolicies()
         {
-            return new PolicyResilliencePolicies()
+            return new PolicyResiliencePolicies()
             {
                 PolicyRepository = Polly.Policy.NoOpAsync(),
                 CacheProvider = Polly.Policy.NoOpAsync(),

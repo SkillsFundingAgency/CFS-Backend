@@ -1,13 +1,8 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Providers.Interfaces
 {
@@ -24,5 +19,6 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<IActionResult> SetMasterProviderVersion(MasterProviderVersionViewModel masterProviderVersionViewModel);
         Task<IActionResult> UploadProviderVersion(string actionName, string controller, string providerVersionId, ProviderVersionViewModel providers);
         Task<bool> Exists(string providerVersionId);
+        Task<bool> Exists(ProviderVersionViewModel providerVersionViewModel);
     }
 }

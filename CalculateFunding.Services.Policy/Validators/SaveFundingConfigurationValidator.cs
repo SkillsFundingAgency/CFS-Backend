@@ -1,15 +1,8 @@
 ﻿using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.FundingPolicy;
-using CalculateFunding.Models.FundingPolicy.ViewModels;
 using CalculateFunding.Models.Policy;
-using CalculateFunding.Models.Providers;
-using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Policy.Interfaces;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CalculateFunding.Services.Providers.Validators
 {
@@ -18,13 +11,13 @@ namespace CalculateFunding.Services.Providers.Validators
         private readonly IPolicyRepository _policyRepository;
         private readonly Polly.Policy _policyRepositoryPolicy;
 
-        public SaveFundingConfigurationValidator(IPolicyRepository policyRepository, IPolicyResilliencePolicies policyResilliencePolicies)
+        public SaveFundingConfigurationValidator(IPolicyRepository policyRepository, IPolicyResiliencePolicies policyResiliencePolicies)
         {
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
-            Guard.ArgumentNotNull(policyResilliencePolicies, nameof(policyResilliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
 
             _policyRepository = policyRepository;
-            _policyRepositoryPolicy = policyResilliencePolicies.PolicyRepository;
+            _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
 
             RuleFor(model => model.FundingStreamId)
                .NotEmpty()

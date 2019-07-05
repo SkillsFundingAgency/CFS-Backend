@@ -87,7 +87,6 @@ namespace CalculateFunding.Models.Providers
         public string Postcode { get; set; }
 
         [JsonIgnore]
-
         public TrustStatus TrustStatus
         {
             get

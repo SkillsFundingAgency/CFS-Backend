@@ -1,10 +1,8 @@
 ﻿using CalculateFunding.Models.Datasets;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Calculator.Interfaces
+namespace CalculateFunding.Services.CalcEngine.Interfaces
 {
     public interface IDatasetAggregationsRepository
     {

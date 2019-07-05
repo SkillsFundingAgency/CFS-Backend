@@ -38,7 +38,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             IJobsApiClient jobsApiClient,
             ICacheProvider cacheProvider,
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository,
-            ICosmosDbScallingResilliencePolicies cosmosDbScallingResilliencePolicies,
+            ICosmosDbScalingResiliencePolicies cosmosDbScalingResiliencePolicies,
             ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(cosmosDbScalingRepositoryProvider, nameof(cosmosDbScalingRepositoryProvider));
-            Guard.ArgumentNotNull(cosmosDbScallingResilliencePolicies, nameof(cosmosDbScallingResilliencePolicies));
+            Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies, nameof(cosmosDbScalingResiliencePolicies));
             Guard.ArgumentNotNull(cosmosDbScalingRequestModelBuilder, nameof(cosmosDbScalingRequestModelBuilder));
 
             _logger = logger;
@@ -55,10 +55,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
             _cosmosDbScalingConfigRepository = cosmosDbScalingConfigRepository;
             _cosmosDbScalingRequestModelBuilder = cosmosDbScalingRequestModelBuilder;
             _jobsApiClient = jobsApiClient;
-            _scalingRepositoryPolicy = cosmosDbScallingResilliencePolicies.ScalingRepository;
-            _cacheProviderPolicy = cosmosDbScallingResilliencePolicies.CacheProvider;
-            _scalingConfigRepositoryPolicy = cosmosDbScallingResilliencePolicies.ScalingConfigRepository;
-            _jobsApiClientPolicy = cosmosDbScallingResilliencePolicies.JobsApiClient;
+            _scalingRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingRepository;
+            _cacheProviderPolicy = cosmosDbScalingResiliencePolicies.CacheProvider;
+            _scalingConfigRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingConfigRepository;
+            _jobsApiClientPolicy = cosmosDbScalingResiliencePolicies.JobsApiClient;
         }
 
         public async Task ScaleUp(Message message)

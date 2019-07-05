@@ -154,7 +154,7 @@ namespace CalculateFunding.Api.Policy
                     })
                 .AddSingleton<IHealthChecker, FundingStreamService>();
 
-            builder.AddSingleton<IPolicyResilliencePolicies>((ctx) =>
+            builder.AddSingleton<IPolicyResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
@@ -162,7 +162,7 @@ namespace CalculateFunding.Api.Policy
 
                 Polly.Policy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
 
-                return new PolicyResilliencePolicies()
+                return new PolicyResiliencePolicies()
                 {
                     PolicyRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProvider = redisPolicy,
