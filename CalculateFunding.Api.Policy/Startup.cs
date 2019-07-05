@@ -19,6 +19,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using Polly.Bulkhead;
 using CalculateFunding.Common.Storage;
+using AutoMapper;
+using CalculateFunding.Services.Providers.Validators;
+using FluentValidation;
+using CalculateFunding.Models.FundingPolicy;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -80,8 +84,6 @@ namespace CalculateFunding.Api.Policy
 
             app.UseMiddleware<LoggedInUserMiddleware>();
 
-            app.UseMiddleware<ApiKeyMiddleware>();
-
             app.UseMvc();
 
             app.UseHealthCheckMiddleware();
@@ -100,6 +102,10 @@ namespace CalculateFunding.Api.Policy
             builder
                 .AddSingleton<IFundingSchemaService, FundingSchemaService>()
                 .AddSingleton<IHealthChecker, FundingSchemaService>();
+
+            builder
+                .AddSingleton<IFundingConfigurationService, FundingConfigurationService>()
+                .AddSingleton<IHealthChecker, FundingConfigurationService>();
 
             builder
                 .AddSingleton<IFundingTemplateService, FundingTemplateService>()
@@ -165,7 +171,18 @@ namespace CalculateFunding.Api.Policy
                 };
             });
 
+            builder.AddSingleton<IValidator<FundingConfiguration>, SaveFundingConfigurationValidator>();
+
             builder.AddPolicySettings(Configuration);
+
+            MapperConfiguration fundingConfMappingConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<Models.MappingProfiles.FundingConfigurationMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(fundingConfMappingConfig.CreateMapper());
+
             builder.AddCaching(Configuration);
 
             builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Policy");

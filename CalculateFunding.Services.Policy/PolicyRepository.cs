@@ -6,8 +6,10 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Extensions;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 
@@ -58,6 +60,23 @@ namespace CalculateFunding.Services.Policy
 
             return await _cosmosRepository.UpsertAsync<FundingStream>(fundingStream, fundingStream.Id, true);
         }
+
+        public async Task<HttpStatusCode> SaveFundingConfiguration(FundingConfiguration fundingConfiguration)
+        {
+            Guard.ArgumentNotNull(fundingConfiguration, nameof(fundingConfiguration));
+
+            return await _cosmosRepository.UpsertAsync<FundingConfiguration>(fundingConfiguration, fundingConfiguration.Id, true);
+        }
+
+        public async Task<FundingConfiguration> GetFundingConfiguration(string fundingStreamId, string fundingPeriodId)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+
+            IEnumerable<DocumentEntity<FundingConfiguration>> fundingConfiguration = await _cosmosRepository.GetAllDocumentsAsync<FundingConfiguration>(query: m => m.Content.FundingStreamId == fundingStreamId && m.Content.FundingPeriodId == fundingPeriodId);
+            return fundingConfiguration.Select(x => x.Content).FirstOrDefault();
+        }
+
 
         public async Task<Period> GetFundingPeriodById(string fundingPeriodId)
         {

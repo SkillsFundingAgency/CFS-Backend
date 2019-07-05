@@ -4,12 +4,15 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.Policy;
 
 namespace CalculateFunding.Services.Policy.Interfaces
 {
     public interface IPolicyRepository
     {
+        Task<FundingConfiguration> GetFundingConfiguration(string fundingStreamId, string fundingPeriodId);
+        Task<HttpStatusCode> SaveFundingConfiguration(FundingConfiguration configuration);
         Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);
         Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream);

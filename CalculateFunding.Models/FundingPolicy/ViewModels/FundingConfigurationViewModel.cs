@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace CalculateFunding.Models.FundingPolicy
+namespace CalculateFunding.Models.FundingPolicy.ViewModels
 {
-    public class FundingConfigurationUpdateViewModel
+    public class FundingConfigurationViewModel
     {
         /// <summary>
         /// Organisational groupings for funding feed publishing

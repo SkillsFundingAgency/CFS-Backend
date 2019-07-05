@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Models.FundingPolicy
@@ -9,14 +10,18 @@ namespace CalculateFunding.Models.FundingPolicy
         /// Grouping organisation 
         /// </summary>
         [EnumDataType(typeof(OrganisationIdentifierType))]
+        [JsonProperty("identifierType")]
         public OrganisationIdentifierType IdentifierType { get; set; }
 
         [EnumDataType(typeof(GroupingReason))]
+        [JsonProperty("groupingReason")]
         public GroupingReason GroupingReason { get; set; }
 
         [EnumDataType(typeof(OrganisationGroupingType))]
+        [JsonProperty("organisationGroupingType")]
         public OrganisationGroupingType OrganisationGroupingType { get; set; }
 
+        [JsonProperty("providerTypeMatch")]
         public IEnumerable<ProviderTypeMatch> ProviderTypeMatch { get; set; }
     }
 }
