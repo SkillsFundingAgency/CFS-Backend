@@ -1,40 +1,48 @@
-﻿using CalculateFunding.Services.Core.Constants;
+﻿using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Services;
-using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using System;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public static class OnCreateInstructAllocationLineResultStatusUpdatesFailure
+    public class OnCreateInstructAllocationLineResultStatusUpdatesFailure
     {
-        [FunctionName("on-instruct-allocationline-result-status-updates-poisoned")]
-        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.InstructAllocationLineResultStatusUpdatesPoisoned, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly IJobHelperService _jobHelperService;
+
+        public OnCreateInstructAllocationLineResultStatusUpdatesFailure(
+            ILogger logger,
+            IJobHelperService jobHelperService,
+            ICorrelationIdProvider correlationIdProvider)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(jobHelperService, nameof(jobHelperService));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
 
-            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _jobHelperService = jobHelperService;
+        }
+
+        [FunctionName("on-instruct-allocationline-result-status-updates-poisoned")]
+        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.InstructAllocationLineResultStatusUpdatesPoisoned, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        {
+            try
             {
-                IJobHelperService jobHelperService = scope.ServiceProvider.GetService<IJobHelperService>();
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
-
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await jobHelperService.ProcessDeadLetteredMessage(message);
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.InstructAllocationLineResultStatusUpdatesPoisoned}");
-                    throw;
-                }
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _jobHelperService.ProcessDeadLetteredMessage(message);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.InstructAllocationLineResultStatusUpdatesPoisoned}");
+                throw;
             }
         }
     }

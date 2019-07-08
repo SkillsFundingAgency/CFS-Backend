@@ -1,42 +1,50 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public static class OnCalcsInstructAllocationResultsFailure
+    public class OnCalcsInstructAllocationResultsFailure
     {
-        [FunctionName("on-calcs-instruct-allocations-poisoned")]
-        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalculationJobInitialiserPoisoned, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly IJobHelperService _jobHelperService;
+
+        public OnCalcsInstructAllocationResultsFailure(
+            ILogger logger,
+            ICorrelationIdProvider correlationIdProvider,
+            IJobHelperService jobHelperService)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(jobHelperService, nameof(jobHelperService));
 
-            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _jobHelperService = jobHelperService;
+        }
+
+        [FunctionName("on-calcs-instruct-allocations-poisoned")]
+        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalculationJobInitialiserPoisoned, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        {
+            try
             {
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                IJobHelperService jobHelperService = scope.ServiceProvider.GetService<IJobHelperService>();
-                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _jobHelperService.ProcessDeadLetteredMessage(message);
 
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await jobHelperService.ProcessDeadLetteredMessage(message);
-
-                    logger.Information("Proccessed instruct generate allocations dead lettered message complete");
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CalculationJobInitialiserPoisoned}");
-                    throw;
-                }
-
+                _logger.Information("Proccessed instruct generate allocations dead lettered message complete");
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CalculationJobInitialiserPoisoned}");
+                throw;
             }
         }
     }

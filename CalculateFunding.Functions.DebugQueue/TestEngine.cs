@@ -1,8 +1,10 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Constants;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Functions.DebugQueue
@@ -12,11 +14,16 @@ namespace CalculateFunding.Functions.DebugQueue
         [FunctionName("on-test-execution-event")]
         public static async Task RunTests([QueueTrigger(ServiceBusConstants.QueueNames.TestEngineExecuteTests, Connection = "AzureConnectionString")] string item, ILogger log)
         {
-            Message message = Helpers.ConvertToMessage<BuildProject>(item);
+            using (IServiceScope scope = Functions.TestEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<BuildProject>(item);
 
-            await Functions.TestEngine.ServiceBus.OnTestExecution.Run(message);
+                OnTestExecution function = scope.ServiceProvider.GetService<OnTestExecution>();
 
-            log.LogInformation($"C# Queue trigger function processed: {item}");
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
         }
     }
 }

@@ -1,41 +1,48 @@
-﻿using CalculateFunding.Services.Core.Constants;
+﻿using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.TestEngine.ServiceBus
 {
-    public static class OnTestExecution
+    public class OnTestExecution
     {
-        [FunctionName("on-test-execution-event")]
-        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.TestEngineExecuteTests, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly ITestEngineService _testEngineService;
+
+        public OnTestExecution(
+            ILogger logger,
+            ICorrelationIdProvider correlationIdProvider,
+            ITestEngineService testEngineService)
         {
-            var config = ConfigHelper.AddConfig();
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(testEngineService, nameof(testEngineService));
 
-            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _testEngineService = testEngineService;
+        }
+
+        [FunctionName("on-test-execution-event")]
+        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.TestEngineExecuteTests, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        {
+            try
             {
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                ITestEngineService testEngineService = scope.ServiceProvider.GetService<ITestEngineService>();
-
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await testEngineService.RunTests(message);
-
-                }
-                catch (Exception exception)
-                {
-                    ILogger logger = scope.ServiceProvider.GetService<ILogger>();
-                    logger.Error(exception, $"An error occurred processing message on queue: '{ServiceBusConstants.QueueNames.TestEngineExecuteTests}'");
-                    throw;
-                }
-
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _testEngineService.RunTests(message);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred processing message on queue: '{ServiceBusConstants.QueueNames.TestEngineExecuteTests}'");
+                throw;
             }
         }
     }

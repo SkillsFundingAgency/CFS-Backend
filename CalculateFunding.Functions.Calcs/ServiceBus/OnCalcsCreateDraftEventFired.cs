@@ -3,43 +3,47 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using CalculateFunding.Common.Utility;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public static class OnCalcsCreateDraftEvent
+    public class OnCalcsCreateDraftEvent
     {
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly ICalculationService _calculationService;
 
-        [FunctionName("on-calcs-create-draft-event")]
-        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CreateDraftCalculation, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public OnCalcsCreateDraftEvent(
+            ILogger logger,
+            ICorrelationIdProvider correlationIdProvider,
+            ICalculationService calculationService)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(calculationService, nameof(calculationService));
 
-            using (var scope = IocConfig.Build(config).CreateScope())
-            {
-                ICalculationService calculationService = scope.ServiceProvider.GetService<ICalculationService>();
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
-                ICacheProvider cacheProvider = scope.ServiceProvider.GetService<ICacheProvider>();
-
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await calculationService.CreateCalculation(message);
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CreateDraftCalculation}");
-                    throw;
-                }
-
-            }
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _calculationService = calculationService;
         }
 
+        [FunctionName("on-calcs-create-draft-event")]
+        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CreateDraftCalculation, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        {
+            try
+            {
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _calculationService.CreateCalculation(message);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CreateDraftCalculation}");
+                throw;
+            }
+        }
     }
 }

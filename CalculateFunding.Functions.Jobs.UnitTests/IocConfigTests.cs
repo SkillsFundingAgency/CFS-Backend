@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.Jobs.UnitTests
             IConfigurationRoot configuration = CreateTestConfiguration();
 
             // Act
-            using (IServiceScope scope = IocConfig.Build(configuration).CreateScope())
+            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
             {
                 // Assert
                 scope.ServiceProvider.GetService<IJobRepository>().Should().NotBeNull(nameof(IJobRepository));

@@ -1,5 +1,6 @@
 ﻿using System;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Functions.Jobs.ServiceBus;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
@@ -10,37 +11,42 @@ using CalculateFunding.Services.Jobs.Interfaces;
 using CalculateFunding.Services.Jobs.Repositories;
 using CalculateFunding.Services.Jobs.Validators;
 using FluentValidation;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Jobs.Startup))]
+
 namespace CalculateFunding.Functions.Jobs
 {
-    public static class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        public static IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            ServiceCollection serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
+            return Register(builder, config);
+        }
+
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder
+               .AddSingleton<OnJobNotification>();
+
+            builder
+              .AddSingleton<OnCheckForJobTimeout>();
+
             builder
                 .AddSingleton<IJobManagementService, JobManagementService>();
 
@@ -110,6 +116,8 @@ namespace CalculateFunding.Functions.Jobs
             builder.AddLogging("CalculateFunding.Functions.Jobs");
 
             builder.AddTelemetry();
+
+            return builder.BuildServiceProvider();
         }
     }
 }

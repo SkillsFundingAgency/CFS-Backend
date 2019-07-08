@@ -1,5 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Functions.Calcs.ServiceBus;
+using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
+using CalculateFunding.Functions.Results.ServiceBus;
+using CalculateFunding.Functions.Scenarios.ServiceBus;
+using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Jobs;
 using CalculateFunding.Models.Specs;
@@ -8,6 +13,7 @@ using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace CalculateFunding.Functions.DebugQueue
@@ -19,22 +25,33 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             Message message = Helpers.ConvertToMessage<Models.Results.SpecificationProviders>(item);
 
-            try
+            using (IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.Results.ServiceBus.OnProviderResultsSpecificationCleanup.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Results {nameof(RunOnProviderSourceDatasetCleanup)}");
+                try
+                {
+                    OnProviderResultsSpecificationCleanup function = scope.ServiceProvider.GetService<OnProviderResultsSpecificationCleanup>();
+
+                    await function.Run(message);
+
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing Results {nameof(RunOnProviderSourceDatasetCleanup)}");
+                }
             }
 
-            try
+            using (IServiceScope scope = Functions.TestEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.TestEngine.ServiceBus.OnTestSpecificationProviderResultsCleanup.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing TestEngine {nameof(RunOnProviderSourceDatasetCleanup)}");
+                try
+                {
+                    OnTestSpecificationProviderResultsCleanup function = scope.ServiceProvider.GetService<OnTestSpecificationProviderResultsCleanup>();
+
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing TestEngine {nameof(RunOnProviderSourceDatasetCleanup)}");
+                }
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");
@@ -43,35 +60,50 @@ namespace CalculateFunding.Functions.DebugQueue
         [FunctionName("on-edit-specification")]
         public static async Task RunOnEditSpecificationEvent([QueueTrigger(ServiceBusConstants.TopicNames.EditSpecification, Connection = "AzureConnectionString")] string item, ILogger logger)
         {
-            Message message = Helpers.ConvertToMessage<Models.Specs.SpecificationVersionComparisonModel>(item);
+            Message message = Helpers.ConvertToMessage<SpecificationVersionComparisonModel>(item);
 
-            try
+            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.Calcs.ServiceBus.OnEditSpecificationEvent.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Calcs {nameof(RunOnEditSpecificationEvent)}");
-            }
+                try
+                {
+                    Functions.Calcs.ServiceBus.OnEditSpecificationEvent function = scope.ServiceProvider.GetService<Functions.Calcs.ServiceBus.OnEditSpecificationEvent>();
 
-            try
-            {
-                await Functions.TestEngine.ServiceBus.OnEditSpecificationEvent.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing TestEngine {nameof(RunOnEditSpecificationEvent)}");
+                    await function.Run(message);
+
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing Calcs {nameof(RunOnEditSpecificationEvent)}");
+                }
             }
 
-            try
+            using (IServiceScope scope = Functions.TestEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.Users.ServiceBus.OnEditSpecificationEvent.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Users {nameof(RunOnEditSpecificationEvent)}");
+                try
+                {
+                    Functions.TestEngine.ServiceBus.OnEditSpecificationEvent function = scope.ServiceProvider.GetService<Functions.TestEngine.ServiceBus.OnEditSpecificationEvent>();
+
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing TestEngine {nameof(RunOnEditSpecificationEvent)}");
+                }
             }
 
+            using (IServiceScope scope = Users.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                try
+                {
+                    Users.ServiceBus.OnEditSpecificationEvent function = scope.ServiceProvider.GetService<Users.ServiceBus.OnEditSpecificationEvent>();
+
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing Users {nameof(RunOnEditSpecificationEvent)}");
+                }
+            }
             logger.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
@@ -80,22 +112,32 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             Message message = Helpers.ConvertToMessage<CalculationVersionComparisonModel>(item);
 
-            try
+            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.Calcs.ServiceBus.OnEditCalculationSpecificationEvent.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Calcs {nameof(OnEditCalculation)}");
+                try
+                {
+                    OnEditCalculationSpecificationEvent function = scope.ServiceProvider.GetService<OnEditCalculationSpecificationEvent>();
+
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing Calcs {nameof(OnEditCalculation)}");
+                }
             }
 
-            try
+            using (IServiceScope scope = Scenarios.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.Scenarios.ServiceBus.OnEditCaluclationEvent.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Scenarios {nameof(OnEditCalculation)}");
+                try
+                {
+                    OnEditCaluclationEvent function = scope.ServiceProvider.GetService<OnEditCaluclationEvent>();
+
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing Scenarios {nameof(OnEditCalculation)}");
+                }
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");
@@ -106,40 +148,46 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             Message message = Helpers.ConvertToMessage<DatasetDefinitionChanges>(item);
 
-            try
+            using (IServiceScope scope = Functions.Datasets.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.Datasets.ServiceBus.OnDataDefinitionChanges.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Datasets {nameof(OnDataDefinitionChanges)}");
+                try
+                {
+                    Functions.Datasets.ServiceBus.OnDataDefinitionChanges function = scope.ServiceProvider.GetService<Functions.Datasets.ServiceBus.OnDataDefinitionChanges>();
+
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing Datasets {nameof(OnDataDefinitionChanges)}");
+                }
             }
 
-            try
+            using (IServiceScope scope = Scenarios.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.Calcs.ServiceBus.OnDataDefinitionChanges.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Scenarios {nameof(OnDataDefinitionChanges)}");
+                try
+                {
+                    Scenarios.ServiceBus.OnDataDefinitionChanges function = scope.ServiceProvider.GetService<Scenarios.ServiceBus.OnDataDefinitionChanges>();
+
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing Scenarios {nameof(OnDataDefinitionChanges)}");
+                }
             }
 
-            try
+            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Functions.Calcs.ServiceBus.OnDataDefinitionChanges.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Calcs {nameof(OnDataDefinitionChanges)}");
-            }
+                try
+                {
+                    Functions.Calcs.ServiceBus.OnDataDefinitionChanges function = scope.ServiceProvider.GetService<Functions.Calcs.ServiceBus.OnDataDefinitionChanges>();
 
-            try
-            {
-                await Functions.Scenarios.ServiceBus.OnDataDefinitionChanges.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error while executing Scenarios {nameof(OnDataDefinitionChanges)}");
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Error while executing Calcs {nameof(OnDataDefinitionChanges)}");
+                }
             }
 
             logger.LogInformation($"C# Queue trigger function processed: {item}");
@@ -154,41 +202,64 @@ namespace CalculateFunding.Functions.DebugQueue
             Message message = Helpers.ConvertToMessage<JobNotification>(item);
 
             JobNotification jobNotification = message.GetPayloadAsInstanceOf<JobNotification>();
-            try
-            {
-                if (jobNotification.CompletionStatus == CompletionStatus.Succeeded && jobNotification.JobType == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
+           
+                try
                 {
-                    await Functions.Calcs.ServiceBus.OnCalculationAggregationsJobCompleted.Run(message);
+                    if (jobNotification.CompletionStatus == CompletionStatus.Succeeded && jobNotification.JobType == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)
+                    {
+                        using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+                        {
+                            OnCalculationAggregationsJobCompleted function = scope.ServiceProvider.GetService<OnCalculationAggregationsJobCompleted>();
+
+                            await function.Run(message);
+                        }
+                    }
+                    else
+                    {
+                        using (IServiceScope scope = Jobs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+                        {
+                            Jobs.ServiceBus.OnJobNotification function = scope.ServiceProvider.GetService<Jobs.ServiceBus.OnJobNotification>();
+
+                            await function.Run(message);
+                        }
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    await Jobs.ServiceBus.OnJobNotification.Run(message);
+                    logger.LogError(ex, "Error while executing Jobs Notification Event");
+                }
+            
+
+            using (IServiceScope scope = Functions.Notifications.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                try
+                {
+                    Notifications.OnNotificationEventTrigger function = scope.ServiceProvider.GetService<Notifications.OnNotificationEventTrigger>();
+
+                    await function.Run(message, signalRMessages);
+
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error while executing Notification Event");
                 }
             }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error while executing Jobs Notification Event");
-            }
 
-            try
+            using (IServiceScope scope = Functions.CosmosDbScaling.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
-                await Notifications.OnNotificationEventTrigger.Run(message, signalRMessages);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error while executing Notification Event");
-            }
+                try
+                {
+                    OnScaleUpCosmosDbCollection function = scope.ServiceProvider.GetService<OnScaleUpCosmosDbCollection>();
 
-            try
-            {
-                await Functions.CosmosDbScaling.ServiceBus.OnScaleUpCosmosdbCollection.Run(message);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error while executing Scale Up Event");
-            }
+                    await function.Run(message);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error while executing Scale Up Event");
+                }
 
-            logger.LogInformation($"C# Queue trigger function processed: {item}");
+                logger.LogInformation($"C# Queue trigger function processed: {item}");
+            }
         }
     }
 }

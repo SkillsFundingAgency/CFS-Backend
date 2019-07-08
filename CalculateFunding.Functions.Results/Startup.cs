@@ -12,6 +12,7 @@ using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Functions.Results.ServiceBus;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
@@ -29,6 +30,7 @@ using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
 using CalculateFunding.Services.Results.Validators;
 using FluentValidation;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,65 +38,48 @@ using Polly;
 using Polly.Bulkhead;
 using Serilog;
 
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Results.Startup))]
+
 namespace CalculateFunding.Functions.Results
 {
-    static public class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
         private static TimeSpan[] retryTimeSpans = new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) };
         private static int numberOfExceptionsBeforeCircuitBreaker = 100;
         private static TimeSpan circuitBreakerFailurePeriod = TimeSpan.FromMinutes(1);
 
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        public static IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            ServiceCollection serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        public static IServiceProvider Build(Message message, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(message, config);
-            }
-
-            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
-
-            Reference user = message.GetUserDetails();
-
-            userProfileProvider.SetUser(user.Id, user.Name);
-
-            return _serviceProvider;
+            return Register(builder, config);
         }
 
-        public static IServiceProvider BuildServiceProvider(Message message, IConfigurationRoot config)
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            ServiceCollection serviceProvider = new ServiceCollection();
-
-            serviceProvider.AddUserProviderFromMessage(message);
-
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
-        }
-
-        public static void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
-        {
+            builder.AddSingleton<OnCreateAllocationLineResultStatusUpdates>();
+            builder.AddSingleton<OnCreateAllocationLineResultStatusUpdatesFailure>();
+            builder.AddSingleton<OnCreateInstructAllocationLineResultStatusUpdates>();
+            builder.AddSingleton<OnCreateInstructAllocationLineResultStatusUpdatesFailure>();
+            builder.AddSingleton<OnFetchProviderProfileEvent>();
+            builder.AddSingleton<OnFetchProviderProfileFailure>();
+            builder.AddSingleton<OnMigrateFeedIndexIdEvent>();
+            builder.AddSingleton<OnMigrateResultVersionsEvent>();
+            builder.AddSingleton<OnProviderResultsPublishedEvent>();
+            builder.AddSingleton<OnProviderResultsPublishedFailure>();
+            builder.AddSingleton<OnProviderResultsSpecificationCleanup>();
+            builder.AddSingleton<OnReIndexAllocationNotificationFeeds>();
+            builder.AddSingleton<OnReIndexCalculationResults>();
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IPublishedResultsService, PublishedResultsService>();
@@ -284,6 +269,8 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddSingleton<IResultsResiliencePolicies>(resultsResiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(resultsResiliencePolicies);
+
+            return builder.BuildServiceProvider();
         }
 
         private static ResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)

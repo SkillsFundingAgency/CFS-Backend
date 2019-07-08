@@ -1,11 +1,9 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

@@ -1,39 +1,48 @@
 using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public static class OnReIndexCalculationResults
+    public class OnReIndexCalculationResults
     {
-        [FunctionName("on-reindex-calculation-results")]
-        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly IProviderCalculationResultsReIndexerService _indexerService;
+
+        public OnReIndexCalculationResults(
+            ILogger logger,
+            IProviderCalculationResultsReIndexerService indexerService,
+            ICorrelationIdProvider correlationIdProvider)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(indexerService, nameof(indexerService));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
 
-            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _indexerService = indexerService;
+        }
+
+        [FunctionName("on-reindex-calculation-results")]
+        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        {
+            try
             {
-                IProviderCalculationResultsReIndexerService indexerService = scope.ServiceProvider.GetService<IProviderCalculationResultsReIndexerService>();
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
-
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await indexerService.ReIndexCalculationResults(message);
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex}");
-                    throw;
-                }
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _indexerService.ReIndexCalculationResults(message);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.ReIndexCalculationResultsIndex}");
+                throw;
             }
         }
     }

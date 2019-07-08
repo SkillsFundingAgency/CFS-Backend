@@ -19,7 +19,7 @@ namespace CalculateFunding.Functions.Results.UnitTests
             IConfigurationRoot configuration = CreateTestConfiguration();
 
             // Act
-            using (IServiceScope scope = IocConfig.Build(configuration).CreateScope())
+            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
             {
                 // Assert
                 scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));

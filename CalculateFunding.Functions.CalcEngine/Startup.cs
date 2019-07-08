@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Core.Extensions;
+﻿using System;
+using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,7 +25,7 @@ using FluentValidation;
 using Polly.Bulkhead;
 using Serilog;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
-using System;
+
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.CalcEngine.Startup))]
 

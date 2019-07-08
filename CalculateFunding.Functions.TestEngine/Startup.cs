@@ -2,6 +2,7 @@
 using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
@@ -18,40 +19,48 @@ using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.Repositories;
 using CalculateFunding.Services.TestRunner.Services;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Bulkhead;
 
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.TestEngine.Startup))]
+
 namespace CalculateFunding.Functions.TestEngine
 {
-    static public class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            var serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        {
+            return Register(builder, config);
+        }
+
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             builder
-                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
+              .AddSingleton<OnTestSpecificationProviderResultsCleanup>();
+
+            builder
+              .AddSingleton<OnEditSpecificationEvent>();
+
+            builder
+              .AddSingleton<OnTestExecution>();
+
+            builder
+               .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
 
             builder
                 .AddSingleton<IGherkinParserService, GherkinParserService>();
@@ -187,6 +196,8 @@ namespace CalculateFunding.Functions.TestEngine
 
                 return resiliencePolicies;
             });
+
+            return builder.BuildServiceProvider();
         }
     }
 }

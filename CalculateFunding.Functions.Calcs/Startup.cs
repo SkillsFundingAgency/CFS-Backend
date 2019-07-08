@@ -1,8 +1,11 @@
 ﻿using System;
+using CalculateFunding.Services.Core.Extensions;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
@@ -18,72 +21,48 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.AspNet;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using FluentValidation;
-using Microsoft.Azure.ServiceBus;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using CalculateFunding.Functions.Calcs.ServiceBus;
+
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Calcs.Startup))]
 
 namespace CalculateFunding.Functions.Calcs
 {
-    static public class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            var serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        public static IServiceProvider Build(Message message, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(message, config);
-            }
-
-            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
-
-            Reference user = message.GetUserDetails();
-
-            userProfileProvider.SetUser(user.Id, user.Name);
-
-            return _serviceProvider;
+            return Register(builder, config);
         }
 
-        static public IServiceProvider BuildServiceProvider(Message message, IConfigurationRoot config)
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            var serviceProvider = new ServiceCollection();
-
-            serviceProvider.AddUserProviderFromMessage(message);
-
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
-        }
-
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
-        {
+            builder.AddSingleton<CalcsAddRelationshipToBuildProject>();
+            builder.AddSingleton<OnCalcsCreateDraftEvent>();
+            builder.AddSingleton<OnCalcsInstructAllocationResultsFailure>();
+            builder.AddSingleton<OnCalcsInstructAllocationResults>();
+            builder.AddSingleton<OnCalculationAggregationsJobCompleted>();
+            builder.AddSingleton<OnDataDefinitionChanges>();
+            builder.AddSingleton<OnEditCalculationSpecificationEvent>();
+            builder.AddSingleton<OnEditSpecificationEvent>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<ICalculationService, CalculationService>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
@@ -168,6 +147,8 @@ namespace CalculateFunding.Functions.Calcs
             ResiliencePolicies resiliencePolicies = CreateResiliencePolicies(policySettings);
             builder.AddSingleton<ICalcsResiliencePolicies>(resiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(resiliencePolicies);
+
+            return builder.BuildServiceProvider();
         }
 
         private static ResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)

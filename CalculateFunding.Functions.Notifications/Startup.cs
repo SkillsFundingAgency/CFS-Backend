@@ -7,65 +7,40 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Notifications;
 using CalculateFunding.Services.Notifications.Interfaces;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Notifications.Startup))]
+
 namespace CalculateFunding.Functions.Notifications
 {
-    public static class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            var serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        public static IServiceProvider Build(Message message, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(message, config);
-            }
-
-            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
-
-            Reference user = message.GetUserDetails();
-
-            userProfileProvider.SetUser(user.Id, user.Name);
-
-            return _serviceProvider;
+            return Register(builder, config);
         }
 
-        static public IServiceProvider BuildServiceProvider(Message message, IConfigurationRoot config)
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            var serviceProvider = new ServiceCollection();
+            builder
+                .AddSingleton<OnNotificationEventTrigger>();
 
-            serviceProvider.AddUserProviderFromMessage(message);
-
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
-        }
-
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
-        {
             builder
                 .AddSingleton<INotificationService, NotificationService>();
 
@@ -91,6 +66,8 @@ namespace CalculateFunding.Functions.Notifications
                     MessagePolicy = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
                 };
             });
+
+            return builder.BuildServiceProvider();
         }
     }
 }

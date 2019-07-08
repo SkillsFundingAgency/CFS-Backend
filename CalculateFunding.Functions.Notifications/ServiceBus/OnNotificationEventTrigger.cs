@@ -8,16 +8,33 @@ using CalculateFunding.Services.Notifications.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace CalculateFunding.Functions.Notifications
 {
-    public static class OnNotificationEventTrigger
+    public class OnNotificationEventTrigger
     {
+        private readonly ILogger _logger;
+        private readonly INotificationService _notificationService;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+
+        public OnNotificationEventTrigger(
+            ILogger logger,
+            INotificationService notificationService,
+            ICorrelationIdProvider correlationIdProvider)
+        {
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(notificationService, nameof(notificationService));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+
+            _logger = logger;
+            _notificationService = notificationService;
+            _correlationIdProvider = correlationIdProvider;
+        }
+
         // Read from notification-events topic and send SignalR messages to clients
         [FunctionName("notification-event")]
-        public static async Task Run([ServiceBusTrigger(
+        public async Task Run([ServiceBusTrigger(
                 ServiceBusConstants.TopicNames.JobNotifications,
                 ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR,
                 Connection = ServiceBusConstants.ConnectionStringConfigurationKey)]Message message,
@@ -27,25 +44,15 @@ namespace CalculateFunding.Functions.Notifications
             Guard.ArgumentNotNull(message, nameof(message));
             Guard.ArgumentNotNull(signalRMessages, nameof(signalRMessages));
 
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
-            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
+            try
             {
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                INotificationService notificationService = scope.ServiceProvider.GetService<INotificationService>();
-                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
-
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await notificationService.OnNotificationEvent(message, signalRMessages);
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.JobNotifications} in subscriber { ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR}");
-                    throw;
-                }
-
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _notificationService.OnNotificationEvent(message, signalRMessages);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.JobNotifications} in subscriber { ServiceBusConstants.TopicSubscribers.JobNotificationsToSignalR}");
+                throw;
             }
         }
     }

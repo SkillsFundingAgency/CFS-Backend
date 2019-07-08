@@ -2,6 +2,7 @@
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
@@ -13,38 +14,40 @@ using CalculateFunding.Services.Scenarios;
 using CalculateFunding.Services.Scenarios.Interfaces;
 using CalculateFunding.Services.Scenarios.Validators;
 using FluentValidation;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Bulkhead;
 
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Scenarios.Startup))]
+
 namespace CalculateFunding.Functions.Scenarios
 {
-    static public class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            var serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
+            return Register(builder, config);
+        }
+
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder.AddSingleton<OnDataDefinitionChanges>();
+            builder.AddSingleton<OnEditCaluclationEvent>();
+            builder.AddSingleton<OnEditSpecificationEvent>();
             builder.AddSingleton<IScenariosRepository, ScenariosRepository>();
             builder.AddSingleton<IScenariosService, ScenariosService>();
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
@@ -129,6 +132,8 @@ namespace CalculateFunding.Functions.Scenarios
                     ScenariosRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
+            return builder.BuildServiceProvider();
         }
     }
 }
