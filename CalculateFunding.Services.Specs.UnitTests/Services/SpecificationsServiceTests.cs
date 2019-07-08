@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using AutoMapper;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -18,6 +17,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Models.Policy;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -41,6 +41,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private SpecificationsService CreateService(
             IMapper mapper = null,
             ISpecificationsRepository specificationsRepository = null,
+            IPoliciesRepository policiesRepository = null,
             ILogger logs = null,
             IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null,
@@ -59,6 +60,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
+                policiesRepository ?? CreatePoliciesRepository(),
                 logs ?? CreateLogger(),
                 policyCreateModelValidator ?? CreatePolicyValidator(),
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(),
@@ -130,6 +132,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
+        }
+
+        protected IPoliciesRepository CreatePoliciesRepository()
+        {
+            return Substitute.For<IPoliciesRepository>();
         }
 
         protected ILogger CreateLogger()

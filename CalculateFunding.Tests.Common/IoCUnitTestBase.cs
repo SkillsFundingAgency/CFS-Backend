@@ -49,6 +49,8 @@ namespace CalculateFunding.Tests.Common
                 { "specificationsClient:ApiKey", "Local" },
                 { "resultsClient:ApiEndPoint", "https://localhost:7005/api/" },
                 { "resultsClient:ApiKey", "Local" },
+                { "policiesClient:ApiEndPoint", "https://localhost:7013/api/" },
+                { "policiesClient:ApiKey", "Local" },
             };
 
             var cb = new ConfigurationBuilder()

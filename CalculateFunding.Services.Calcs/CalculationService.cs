@@ -17,6 +17,7 @@ using CalculateFunding.Models.Code;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -55,6 +56,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly IValidator<Calculation> _calculationValidator;
         private readonly IBuildProjectsService _buildProjectsService;
         private readonly ISpecificationRepository _specsRepository;
+        private readonly IPoliciesRepository _policiesRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _calculationRepositoryPolicy;
         private readonly Polly.Policy _calculationSearchRepositoryPolicy;
@@ -77,6 +79,7 @@ namespace CalculateFunding.Services.Calcs
             IValidator<Calculation> calculationValidator,
             IBuildProjectsService buildProjectsService,
             ISpecificationRepository specificationRepository,
+            IPoliciesRepository policiesRepository,
             ICacheProvider cacheProvider,
             ICalcsResiliencePolicies resiliencePolicies,
             IVersionRepository<CalculationVersion> calculationVersionRepository,
@@ -92,6 +95,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationValidator, nameof(calculationValidator));
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
+            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
@@ -106,6 +110,7 @@ namespace CalculateFunding.Services.Calcs
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
             _specsRepository = specificationRepository;
+            _policiesRepository = policiesRepository;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _calculationVersionRepository = calculationVersionRepository;
@@ -597,7 +602,7 @@ namespace CalculateFunding.Services.Calcs
 
                 if (!fundingStreamIdsForSpecification.IsNullOrEmpty())
                 {
-                    IEnumerable<FundingStream> allfundingStreams = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetFundingStreams());
+                    IEnumerable<FundingStream> allfundingStreams = await _specificationsRepositoryPolicy.ExecuteAsync(() => _policiesRepository.GetFundingStreams());
 
                     foreach (string fundingStreamId in fundingStreamIdsForSpecification)
                     {

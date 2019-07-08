@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core;
@@ -14,6 +11,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -68,11 +69,13 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository: specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository: policiesRepository);
 
             //Act
             Func<Task> test = async () => await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -116,15 +119,17 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
 
-            specificationsRepository
+            policiesRepository
                     .GetFundingStreams()
                     .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             Func<Task> test = async () => await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -139,7 +144,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Be($"Failed to find a funding stream for id: fs-1");
 
             await
-                specificationsRepository
+                policiesRepository
                 .Received(1)
                 .GetFundingStreams();
         }
@@ -172,16 +177,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
 
-            specificationsRepository
+            policiesRepository
                  .GetFundingStreams()
                  .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -277,17 +283,18 @@ namespace CalculateFunding.Services.Results.Services
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -474,16 +481,17 @@ namespace CalculateFunding.Services.Results.Services
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                             .GetFundingStreams()
                             .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -657,16 +665,17 @@ namespace CalculateFunding.Services.Results.Services
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -840,16 +849,17 @@ namespace CalculateFunding.Services.Results.Services
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1067,16 +1077,17 @@ namespace CalculateFunding.Services.Results.Services
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1195,15 +1206,17 @@ namespace CalculateFunding.Services.Results.Services
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1321,15 +1334,17 @@ namespace CalculateFunding.Services.Results.Services
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository pliciesRepository = CreatePoliciesRepository();
+
+            pliciesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            pliciesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(pliciesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1495,15 +1510,17 @@ namespace CalculateFunding.Services.Results.Services
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1681,15 +1698,17 @@ namespace CalculateFunding.Services.Results.Services
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1851,16 +1870,17 @@ namespace CalculateFunding.Services.Results.Services
 
             Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
                 .GetFundingPeriodById(Arg.Is("fp1"))
                 .Returns(fundingPeriod);
 
-            specificationsRepository
+            policiesRepository
                  .GetFundingStreams()
                  .Returns(fundingStreams);
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(specificationsRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -2650,13 +2670,13 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
-            ISpecificationsRepository specificationsRepository = null,
+            IPoliciesRepository policiesRepository = null,
             ILogger logger = null,
             IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = null,
             IMapper mapper = null)
         {
             return new PublishedProviderResultsAssemblerService(
-                specificationsRepository ?? CreateSpecificationsRepository(),
+                policiesRepository ?? CreatePoliciesRepository(),
                 logger ?? CreateLogger(),
                 allocationResultsVersionRepository ?? CreateAllocationResultsVersionRepository(),
                 mapper ?? CreateRealMapper());
@@ -2670,6 +2690,11 @@ namespace CalculateFunding.Services.Results.Services
         static ISpecificationsRepository CreateSpecificationsRepository()
         {
             return Substitute.For<ISpecificationsRepository>();
+        }
+
+        static IPoliciesRepository CreatePoliciesRepository()
+        {
+            return Substitute.For<IPoliciesRepository>();
         }
 
         static ILogger CreateLogger()

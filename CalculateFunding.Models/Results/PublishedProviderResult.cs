@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Policy;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results

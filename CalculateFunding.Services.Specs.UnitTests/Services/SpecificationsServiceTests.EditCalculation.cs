@@ -804,7 +804,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .IsCalculationNameValid(Arg.Is(specification.Id), Arg.Is("Another name"), Arg.Is(CalculationId))
                 .Returns(false);
 
-            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(specificationsRepository, calculationsRepository);
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(specificationsRepository, calculationsRepository, policiesRepository);
 
             SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
                 calculationEditModelValidator: validator);
@@ -818,10 +820,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .BeOfType<BadRequestObjectResult>();
         }
 
-        private IValidator<CalculationEditModel> CreateRealEditCalculationValidator(ISpecificationsRepository specificationsRepository,
-            ICalculationsRepository calculationsRepository)
+        private IValidator<CalculationEditModel> CreateRealEditCalculationValidator(
+            ISpecificationsRepository specificationsRepository,
+            ICalculationsRepository calculationsRepository,
+            IPoliciesRepository policiesRepository)
         {
-            return new CalculationEditModelValidator(specificationsRepository, calculationsRepository);
+            return new CalculationEditModelValidator(specificationsRepository, calculationsRepository, policiesRepository);
         }
     }
 }

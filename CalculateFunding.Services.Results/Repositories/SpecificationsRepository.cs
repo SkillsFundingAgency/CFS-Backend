@@ -14,8 +14,7 @@ namespace CalculateFunding.Services.Results.Repositories
         private const string specsUrl = "specs/specification-summary-by-id?specificationId=";
         private const string allSpecsUrl = "specs/specification-summaries";
         private const string currentSpecsUrl = "specs/specification-current-version-by-id?specificationId=";
-        private const string fundingStreamsUrl = "specs/get-fundingstreams";
-        private const string fundingPeriodUrl = "specs/get-fundingPeriod-by-id?fundingPeriodId=";
+
         private const string updatePublishedRefreshedDateUrl = "specs/update-published-refreshed-date?specificationId=";
 
         private readonly ISpecificationsApiClientProxy _apiClient;
@@ -43,20 +42,6 @@ namespace CalculateFunding.Services.Results.Repositories
             string url = $"{currentSpecsUrl}{specificationId}";
 
             return await _apiClient.GetAsync<SpecificationCurrentVersion>(url);
-        }
-
-        public async Task<IEnumerable<FundingStream>> GetFundingStreams()
-        {
-            return await _apiClient.GetAsync<IEnumerable<FundingStream>>(fundingStreamsUrl);
-        }
-
-        public async Task<Period> GetFundingPeriodById(string fundingPeriodId)
-        {
-            Guard.ArgumentNotNull(fundingPeriodId, nameof(fundingPeriodId));
-
-            string url = $"{fundingPeriodUrl}{fundingPeriodId}";
-
-            return await _apiClient.GetAsync<Period>(url);
         }
 
         public async Task<HttpStatusCode> UpdatePublishedRefreshedDate(string specificationId, DateTimeOffset publishedRefreshDate)

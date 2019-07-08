@@ -41,6 +41,10 @@ using Serilog;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
 using ISpecificationsRepository = CalculateFunding.Services.Results.Interfaces.ISpecificationsRepository;
 using SpecificationsRepository = CalculateFunding.Services.Results.Repositories.SpecificationsRepository;
+using IPolicyFundingStreamService = CalculateFunding.Services.Policy.Interfaces.IFundingStreamService;
+using PolicyFundingStreamService = CalculateFunding.Services.Policy.FundingStreamService;
+using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Policy;
 
 namespace CalculateFunding.Api.External
 {
@@ -174,6 +178,8 @@ namespace CalculateFunding.Api.External
 
             builder
                .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
+            builder
+              .AddSingleton<IFundingPeriodService, FundingPeriodService>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
@@ -260,15 +266,29 @@ namespace CalculateFunding.Api.External
             builder.AddSingleton<Services.Specs.Interfaces.ISpecificationsRepository, Services.Specs.SpecificationsRepository>(
                 ctx =>
                 {
+                    CosmosDbSettings policyRepoDbSettings = new CosmosDbSettings();
+
+                    Configuration.Bind("CosmosDbSettings", policyRepoDbSettings);
+
+                    policyRepoDbSettings.CollectionName = "specs";
+
+                    CosmosRepository cosmosRepository = new CosmosRepository(policyRepoDbSettings);
+
+                    return new Services.Specs.SpecificationsRepository(cosmosRepository);
+                });
+
+            builder.AddSingleton<Services.Policy.Interfaces.IPolicyRepository, Services.Policy.PolicyRepository>(
+                ctx =>
+                {
                     CosmosDbSettings specRepoDbSettings = new CosmosDbSettings();
 
                     Configuration.Bind("CosmosDbSettings", specRepoDbSettings);
 
-                    specRepoDbSettings.CollectionName = "specs";
+                    specRepoDbSettings.CollectionName = "policies";
 
                     CosmosRepository cosmosRepository = new CosmosRepository(specRepoDbSettings);
 
-                    return new Services.Specs.SpecificationsRepository(cosmosRepository);
+                    return new Services.Policy.PolicyRepository(cosmosRepository);
                 });
 
             builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
@@ -295,7 +315,7 @@ namespace CalculateFunding.Api.External
                 return settings;
             });
 
-            builder.AddSingleton<IFundingService, FundingService>();
+            builder.AddSingleton<IPolicyFundingStreamService, PolicyFundingStreamService>();
             builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
@@ -305,7 +325,11 @@ namespace CalculateFunding.Api.External
             builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
 
+            builder.AddSingleton<Services.Results.Interfaces.IPoliciesRepository, Services.Results.Repositories.PoliciesRepository>();
+            
+
             builder.AddResultsInterServiceClient(Configuration);
+            builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddUserProviderFromRequest();
 
@@ -348,6 +372,21 @@ namespace CalculateFunding.Api.External
                     CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                };
+            });
+            builder.AddSingleton<IPolicyResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                Polly.Policy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
+
+                return new PolicyResiliencePolicies()
+                {
+                    PolicyRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CacheProvider = redisPolicy,
+                    FundingSchemaRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
             builder.AddHealthCheckMiddleware();

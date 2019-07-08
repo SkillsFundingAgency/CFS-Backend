@@ -37,34 +37,6 @@ namespace CalculateFunding.Services.Specs
             return health;
         }
 
-        public async Task<Period> GetPeriodById(string periodId)
-        {
-            DocumentEntity<Period> period = await _repository.ReadAsync<Period>(periodId);
-
-            if (period == null || period.Content == null)
-            {
-                return null;
-            }
-
-            return period.Content;
-        }
-
-        public async Task<FundingStream> GetFundingStreamById(string fundingStreamId)
-        {
-            IEnumerable<FundingStream> fundingStreams = await GetFundingStreams(m => m.Id == fundingStreamId);
-
-            return fundingStreams.FirstOrDefault();
-        }
-
-        public Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null)
-        {
-            var fundingStreams = query == null 
-                ? _repository.Query<FundingStream>() 
-                : _repository.Query<FundingStream>().Where(query);
-
-            return Task.FromResult(fundingStreams.AsEnumerable());
-        }
-
         public Task<DocumentEntity<Specification>> CreateSpecification(Specification specification)
         {
             return _repository.CreateDocumentAsync(specification);
@@ -144,13 +116,6 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(specifications.AsEnumerable());
         }
 
-        public Task<IEnumerable<Period>> GetPeriods()
-        {
-            var fundingPeriods = _repository.Query<Period>();
-
-            return Task.FromResult(fundingPeriods.ToList().AsEnumerable());
-        }
-
         public async Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)
         {
             var specification = await GetSpecificationById(specificationId);
@@ -184,16 +149,6 @@ namespace CalculateFunding.Services.Specs
             var specification = await GetSpecificationById(specificationId);
 
             return specification?.Current.GetPolicy(policyId);
-        }
-
-        public Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream)
-        {
-            return _repository.UpsertAsync<FundingStream>(fundingStream);
-        }
-
-        public Task SavePeriods(IEnumerable<Period> periods)
-        {
-            return _repository.BulkUpsertAsync<Period>(periods.ToList());
         }
 
         public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)

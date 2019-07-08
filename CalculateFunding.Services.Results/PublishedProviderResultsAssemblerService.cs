@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core;
@@ -19,23 +20,23 @@ namespace CalculateFunding.Services.Results
 {
     public class PublishedProviderResultsAssemblerService : IPublishedProviderResultsAssemblerService
     {
-        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly IPoliciesRepository _policiesRepository;
         private readonly ILogger _logger;
         private readonly IVersionRepository<PublishedAllocationLineResultVersion> _allocationResultsVersionRepository;
         private readonly IMapper _mapper;
 
         public PublishedProviderResultsAssemblerService(
-            ISpecificationsRepository specificationsRepository,
+            IPoliciesRepository policiesRepository,
             ILogger logger,
             IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository,
             IMapper mapper)
         {
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(allocationResultsVersionRepository, nameof(allocationResultsVersionRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
 
-            _specificationsRepository = specificationsRepository;
+            _policiesRepository = policiesRepository;
             _logger = logger;
             _allocationResultsVersionRepository = allocationResultsVersionRepository;
             _mapper = mapper;
@@ -49,7 +50,7 @@ namespace CalculateFunding.Services.Results
 
             string specificationId = specificationCurrentVersion.Id;
 
-            Period fundingPeriod = await _specificationsRepository.GetFundingPeriodById(specificationCurrentVersion.FundingPeriod.Id);
+            Period fundingPeriod = await _policiesRepository.GetFundingPeriodById(specificationCurrentVersion.FundingPeriod.Id);
 
             if (fundingPeriod == null)
             {
@@ -351,7 +352,7 @@ namespace CalculateFunding.Services.Results
         private async Task<IEnumerable<FundingStream>> GetAllFundingStreams()
         {
 
-            IEnumerable<FundingStream> allFundingStreams = await _specificationsRepository.GetFundingStreams();
+            IEnumerable<FundingStream> allFundingStreams = await _policiesRepository.GetFundingStreams();
 
             if (allFundingStreams.IsNullOrEmpty())
             {

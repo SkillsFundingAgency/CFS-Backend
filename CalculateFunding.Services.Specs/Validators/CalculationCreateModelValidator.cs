@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
@@ -12,14 +13,17 @@ namespace CalculateFunding.Services.Specs.Validators
     {
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ICalculationsRepository _calculationsRepository;
+        private readonly IPoliciesRepository _policiesRepository;
 
-        public CalculationCreateModelValidator(ISpecificationsRepository specificationsRepository, ICalculationsRepository calculationsRepository)
+        public CalculationCreateModelValidator(ISpecificationsRepository specificationsRepository, ICalculationsRepository calculationsRepository, IPoliciesRepository policiesRepository)
         {
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
 
             _specificationsRepository = specificationsRepository;
             _calculationsRepository = calculationsRepository;
+            _policiesRepository = policiesRepository;
 
             RuleFor(model => model.Description)
                .NotEmpty()
@@ -86,7 +90,7 @@ namespace CalculateFunding.Services.Specs.Validators
 
                         if (!string.IsNullOrWhiteSpace(model.SpecificationId) && !string.IsNullOrWhiteSpace(model.AllocationLineId))
                         {
-                            IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams();
+                            IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams();
                             if (fundingStreams == null)
                             {
                                 context.AddFailure("Unable to query funding streams, result returned null");
@@ -95,6 +99,9 @@ namespace CalculateFunding.Services.Specs.Validators
 
                             bool foundFundingStream = false;
 
+                            // TODO: Add new API method to GetFundingStream by Allocation Line Id, to avoid 
+                            // 1. Retrieving All Funding Streams from Cosmos DB - can save lot of time. But first we need to ensure if there is index for ghis type of query
+                            // 2. In-memory O(n*m) operation to match allocation line with funding streams
                             foreach (FundingStream fundingStream in fundingStreams)
                             {
                                 foreach (AllocationLine allocationLine in fundingStream.AllocationLines)

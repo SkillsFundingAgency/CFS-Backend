@@ -30,6 +30,7 @@ namespace CalculateFunding.Services.Calcs.Services
             IValidator<Calculation> calcValidator = null,
             IBuildProjectsService buildProjectsService = null,
             ISpecificationRepository specificationRepository = null,
+            IPoliciesRepository policiesRepository = null,
             ICacheProvider cacheProvider = null,
             ICalcsResiliencePolicies resiliencePolicies = null,
             IVersionRepository<CalculationVersion> calculationVersionRepository = null,
@@ -46,6 +47,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 calcValidator ?? CreateCalculationValidator(),
                 buildProjectsService ?? CreateBuildProjectsService(),
                 specificationRepository ?? CreateSpecificationRepository(),
+                policiesRepository ?? CreatePoliciesRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 calculationVersionRepository ?? CreateCalculationVersionRepository(),
@@ -104,6 +106,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ISpecificationRepository CreateSpecificationRepository()
         {
             return Substitute.For<ISpecificationRepository>();
+        }
+
+        private static IPoliciesRepository CreatePoliciesRepository()
+        {
+            return Substitute.For<IPoliciesRepository>();
         }
 
         private static IBuildProjectsRepository CreateBuildProjectsRepository()

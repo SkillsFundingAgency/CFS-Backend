@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.Validators;
@@ -306,16 +307,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         {
             //Arrange
             ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
-
+            IPoliciesRepository policiesRepo = CreatePoliciesRepository();
             specsRepo
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
-            specsRepo
+            policiesRepo
                 .GetFundingStreams()
                 .Returns(fundingStreams);
 
-            CalculationEditModelValidator validator = CreateValidator(specsRepo);
+            CalculationEditModelValidator validator = CreateValidator(specsRepo, policiesRepository: policiesRepo);
 
             // Act
             ValidationResult result = validator.Validate(calculationEditModel);
@@ -406,11 +407,22 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return repository;
         }
 
-        private static CalculationEditModelValidator CreateValidator(ISpecificationsRepository specsRepository = null,
-            ICalculationsRepository calculationsRepository = null)
+        private static IPoliciesRepository CreatePoliciesRepository()
         {
-            return new CalculationEditModelValidator(specsRepository ?? CreateSpecificationsRepository(),
-                calculationsRepository ?? CreateCalculationsRepository());
+            IPoliciesRepository repository = Substitute.For<IPoliciesRepository>();
+
+            return repository;
+        }
+
+        private static CalculationEditModelValidator CreateValidator(
+            ISpecificationsRepository specsRepository = null,
+            ICalculationsRepository calculationsRepository = null,
+            IPoliciesRepository policiesRepository = null)
+        {
+            return new CalculationEditModelValidator(
+                specsRepository ?? CreateSpecificationsRepository(),
+                calculationsRepository ?? CreateCalculationsRepository(),
+                policiesRepository ?? CreatePoliciesRepository());
         }
 
         private static ICalculationsRepository CreateCalculationsRepository(bool isCalculationNameValid = true)

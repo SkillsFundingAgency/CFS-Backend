@@ -80,6 +80,7 @@
     <ProjectReference Include="..\CalculateFunding.Services.Core.AspNet\CalculateFunding.Services.Core.AspNet.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.External\CalculateFunding.Services.External.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Policy\CalculateFunding.Services.Policy.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
   </ItemGroup>

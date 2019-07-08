@@ -198,6 +198,24 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        public static IServiceCollection AddPoliciesInterServiceClient(this IServiceCollection builder, IConfiguration config)
+        {
+            builder
+                 .AddSingleton<IPoliciesApiClientProxy, PoliciesApiProxy>((ctx) =>
+                 {
+                     ApiOptions apiOptions = new ApiOptions();
+
+                     config.Bind("policiesClient", apiOptions);
+
+                     ILogger logger = ctx.GetService<ILogger>();
+                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
+
+                     return new PoliciesApiProxy(apiOptions, logger, correlationIdProvider);
+                 });
+
+            return builder;
+        }
+
         public static IServiceCollection AddFeatureToggling(this IServiceCollection builder, IConfiguration config)
         {
             builder

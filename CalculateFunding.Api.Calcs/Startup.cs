@@ -113,7 +113,8 @@ namespace CalculateFunding.Api.Calcs
                .AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
 
             builder
-               .AddSingleton<ISpecificationRepository, SpecificationRepository>();
+               .AddSingleton<ISpecificationRepository, SpecificationRepository>()
+               .AddSingleton<IPoliciesRepository, PoliciesRepository>();
 
             builder
                 .AddSingleton<IBuildProjectsService, BuildProjectsService>()
@@ -174,6 +175,7 @@ namespace CalculateFunding.Api.Calcs
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddDatasetsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+            builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddCaching(Configuration);
 

@@ -37,7 +37,7 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
 			Mapper.Initialize(mappings);
 		    IMapper mapperUnderTest = Mapper.Instance;
 
-            Models.Specs.Period fundingPeriod = new Models.Specs.Period()
+            Models.Policy.Period fundingPeriod = new Models.Policy.Period()
 		    {
 			    Name = "Name",
 			    Id = "Id",
@@ -69,23 +69,23 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
             string allocationLineName = "Name";
             string allocationLineShortName = "short-name";
 
-            Models.Specs.FundingStream fundingStream = new Models.Specs.FundingStream()
+            Models.Policy.FundingStream fundingStream = new Models.Policy.FundingStream()
             {
-                AllocationLines = new List<Models.Specs.AllocationLine>()
+                AllocationLines = new List<Models.Policy.AllocationLine>()
                 {
-                    new Models.Specs.AllocationLine()
+                    new Models.Policy.AllocationLine()
                     {
                         Id = allocationLineId,
                         Name = allocationLineName,
                         ShortName = allocationLineShortName,
-                        FundingRoute = Models.Specs.FundingRoute.LA,
+                        FundingRoute = Models.Policy.FundingRoute.LA,
                         IsContractRequired = true
                     }
                 },
                 Name = "Name",
                 Id = "id",
                 ShortName = "short-name",
-                PeriodType = new Models.Specs.PeriodType
+                PeriodType = new Models.Policy.PeriodType
                 {
                     Id = "p1",
                     Name = "period 1",

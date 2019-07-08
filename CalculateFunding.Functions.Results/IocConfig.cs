@@ -184,7 +184,8 @@ namespace CalculateFunding.Functions.Results
             });
 
             builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>()
+                .AddSingleton<IPoliciesRepository, PoliciesRepository>();
 
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
@@ -227,6 +228,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddJobsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
+            builder.AddPoliciesInterServiceClient(config);
 
             builder.AddFeatureToggling(config);
 

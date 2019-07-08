@@ -40,7 +40,7 @@ namespace CalculateFunding.Api.External.V1.Controllers
 
         public Task<IActionResult> Get()
 	    {
-		    return _timePeriodsService.GetFundingPeriods(Request);
+		    return _timePeriodsService.GetFundingPeriods();
 	    }
     }
 }

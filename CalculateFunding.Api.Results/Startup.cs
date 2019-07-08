@@ -161,7 +161,8 @@ namespace CalculateFunding.Api.Results
             builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
 
             builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>()
+                .AddSingleton<IPoliciesRepository, PoliciesRepository>();
 
             builder
                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
@@ -207,6 +208,7 @@ namespace CalculateFunding.Api.Results
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddCalcsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+            builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 

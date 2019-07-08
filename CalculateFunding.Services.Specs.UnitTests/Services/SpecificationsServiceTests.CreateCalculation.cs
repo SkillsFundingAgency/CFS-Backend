@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -252,11 +253,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            specificationsRepository
+            policiesRepository
                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
                .Returns(fundingStreams);
 
@@ -274,7 +276,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Map<Calculation>(Arg.Any<CalculationCreateModel>())
                 .Returns(calculation);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper);
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper, policiesRepository: policiesRepository);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -373,11 +375,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
                 .Returns(fundingStreams);
 
@@ -411,7 +415,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(newSpecVersion);
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
-                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository);
+                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository,
+                policiesRepository: policiesRepository);
 
 
             //Act
@@ -524,11 +529,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            specificationsRepository
+            policiesRepository
                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
                .Returns(fundingStreams);
 
@@ -558,7 +565,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(newSpecVersion);
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
-                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository);
+                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository,
+                policiesRepository: policiesRepository);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -664,11 +672,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
                 .Returns(fundingStreams);
 
@@ -702,7 +712,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(newSpecVersion);
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
-                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository);
+                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository,
+                policiesRepository: policiesRepository);
 
 
             //Act

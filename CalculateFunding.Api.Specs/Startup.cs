@@ -73,6 +73,7 @@ namespace CalculateFunding.Api.Specs
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
+            builder.AddSingleton<IPoliciesRepository, PoliciesRepository>();
             builder
                 .AddSingleton<ISpecificationsService, SpecificationsService>()
                 .AddSingleton<IHealthChecker, SpecificationsService>();
@@ -88,7 +89,6 @@ namespace CalculateFunding.Api.Specs
                 .AddSingleton<IHealthChecker, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
-            builder.AddSingleton<IFundingService, FundingService>();
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
@@ -144,7 +144,7 @@ namespace CalculateFunding.Api.Specs
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddCalcsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
-
+            builder.AddPoliciesInterServiceClient(Configuration);
             builder.AddPolicySettings(Configuration);
 
             builder.AddSingleton<ISpecificationsResiliencePolicies>((ctx) =>

@@ -52,6 +52,7 @@ namespace CalculateFunding.Functions.Specs
         {
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();
+            builder.AddSingleton<IPoliciesRepository, PoliciesRepository>();
             builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
@@ -112,6 +113,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddResultsInterServiceClient(config);
             builder.AddCalcsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
+            builder.AddPoliciesInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

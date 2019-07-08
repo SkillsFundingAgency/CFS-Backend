@@ -32,7 +32,6 @@ namespace CalculateFunding.Services.Calcs
             return _apiClient.GetAsync<SpecificationSummary>(url);
         }
 
-
         public Task<IEnumerable<Calculation>> GetCalculationSpecificationsForSpecification(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
@@ -42,14 +41,6 @@ namespace CalculateFunding.Services.Calcs
 
             return _apiClient.GetAsync<IEnumerable<Calculation>>(url);
         }
-
-        public Task<IEnumerable<FundingStream>> GetFundingStreams()
-        {
-            string url = $"specs/funding-streams";
-
-            return _apiClient.GetAsync<IEnumerable<FundingStream>>(url);
-        }
-
 
         public async Task<HttpStatusCode> UpdateCalculationLastUpdatedDate(string specificationId)
         {

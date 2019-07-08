@@ -7,12 +7,11 @@ using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.V2.Services;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using IPolicyFundingPeriodService = CalculateFunding.Services.Policy.Interfaces.IFundingPeriodService;
 
 namespace CalculateFunding.Api.External.UnitTests.Version2
 {
@@ -23,14 +22,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         public async Task GetTimePeriods_WhenServiceReturns200OkResult_ShouldReturnOkResultWithFundingPeriods()
         {
             // Arrange
-            Models.Specs.Period fundingPeriod1 = new Models.Specs.Period()
+            Models.Policy.Period fundingPeriod1 = new Models.Policy.Period()
             {
                 Id = "AYCode",
                 Name = "AcademicYear",
                 StartDate = DateTimeOffset.Now,
                 EndDate = DateTimeOffset.Now.AddYears(1)
             };
-            Models.Specs.Period fundingPeriod2 = new Models.Specs.Period()
+            Models.Policy.Period fundingPeriod2 = new Models.Policy.Period()
             {
                 Id = "FYCode",
                 Name = "FinalYear",
@@ -44,19 +43,19 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             Mapper.Initialize(mappings);
             IMapper mapper = Mapper.Instance;
 
-            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Specs.Period>
+            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Policy.Period>
             {
                 fundingPeriod1,
                 fundingPeriod2
             });
 
-            IFundingService mockFundingService = Substitute.For<IFundingService>();
-            mockFundingService.GetFundingPeriods(Arg.Any<HttpRequest>()).Returns(specServiceOkObjectResult);
+            IPolicyFundingPeriodService mockFundingService = Substitute.For<IPolicyFundingPeriodService>();
+            mockFundingService.GetFundingPeriods().Returns(specServiceOkObjectResult);
 
             TimePeriodsService serviceUnderTest = new TimePeriodsService(mockFundingService, mapper);
 
             // Act
-            IActionResult result = await serviceUnderTest.GetFundingPeriods(Substitute.For<HttpRequest>());
+            IActionResult result = await serviceUnderTest.GetFundingPeriods();
 
             // Assert
             result
@@ -94,13 +93,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             // Arrange
             IMapper mockMapper = Substitute.For<IMapper>();
 
-            IFundingService mockFundingService = Substitute.For<IFundingService>();
-            mockFundingService.GetFundingPeriods(Arg.Any<HttpRequest>()).Returns(new InternalServerErrorResult("Doesn't matter message`"));
+            IPolicyFundingPeriodService mockFundingService = Substitute.For<IPolicyFundingPeriodService>();
+            mockFundingService.GetFundingPeriods().Returns(new InternalServerErrorResult("Doesn't matter message`"));
 
             TimePeriodsService serviceUnderTest = new TimePeriodsService(mockFundingService, mockMapper);
 
             // Act
-            IActionResult result = await serviceUnderTest.GetFundingPeriods(Substitute.For<HttpRequest>());
+            IActionResult result = await serviceUnderTest.GetFundingPeriods();
 
             // Assert
             result

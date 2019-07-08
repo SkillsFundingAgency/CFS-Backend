@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Results
 {

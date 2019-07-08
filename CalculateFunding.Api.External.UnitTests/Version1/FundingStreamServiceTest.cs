@@ -6,11 +6,11 @@ using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.V1.Models;
 using CalculateFunding.Api.External.V1.Services;
-using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using IPolicyFundingStreamService = CalculateFunding.Services.Policy.Interfaces.IFundingStreamService;
 
 namespace CalculateFunding.Api.External.UnitTests.Version1
 {
@@ -20,23 +20,23 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         [TestMethod]
         public async Task GetFundingStreams_WhenServiceReturnsOkResult_ShouldReturnOkResultWithFundingStreams()
         {
-            Models.Specs.FundingStream fundingStream = new Models.Specs.FundingStream()
+            Models.Policy.FundingStream fundingStream = new Models.Policy.FundingStream()
             {
-                AllocationLines = new List<Models.Specs.AllocationLine>()
+                AllocationLines = new List<Models.Policy.AllocationLine>()
                 {
-                    new Models.Specs.AllocationLine()
+                    new Models.Policy.AllocationLine()
                     {
                         Id = "id",
                         Name = "name",
                         ShortName = "short-name",
-                        FundingRoute = Models.Specs.FundingRoute.LA,
+                        FundingRoute = Models.Policy.FundingRoute.LA,
                         IsContractRequired = true
                     }
                 },
                 Name = "name",
                 Id = "id",
                 ShortName = "short-name",
-                PeriodType = new Models.Specs.PeriodType
+                PeriodType = new Models.Policy.PeriodType
                 {
                     Id = "p1",
                     Name = "period 1",
@@ -58,7 +58,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 fundingStream
             });
 
-            IFundingService mockFundingService = Substitute.For<IFundingService>();
+            IPolicyFundingStreamService mockFundingService = Substitute.For<IPolicyFundingStreamService>();
             mockFundingService.GetFundingStreams().Returns(specServiceOkObjectResult);
 
             FundingStreamService fundingStreamService = new FundingStreamService(mockFundingService, mapper);
@@ -100,9 +100,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             // Arrange
             IMapper mapper = Substitute.For<IMapper>();
 
-            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Specs.FundingStream>());
+            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Policy.FundingStream>());
 
-            IFundingService mockFundingService = Substitute.For<IFundingService>();
+            IPolicyFundingStreamService mockFundingService = Substitute.For<IPolicyFundingStreamService>();
 
             mockFundingService.GetFundingStreams().Returns(specServiceOkObjectResult);
 

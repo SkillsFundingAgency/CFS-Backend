@@ -103,6 +103,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
             builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
             builder.AddSingleton<ISpecificationRepository, SpecificationRepository>();
+            builder.AddSingleton<IPoliciesRepository, PoliciesRepository>();
             builder.AddSingleton<IBuildProjectsService, BuildProjectsService>();
             builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
             builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
@@ -156,6 +157,7 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddDatasetsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
+            builder.AddPoliciesInterServiceClient(config);
 
             builder.AddCaching(config);
 

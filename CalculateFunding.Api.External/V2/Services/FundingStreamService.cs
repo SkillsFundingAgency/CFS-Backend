@@ -4,31 +4,31 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using IPolicyFundingStreamService = CalculateFunding.Services.Policy.Interfaces.IFundingStreamService;
 
 namespace CalculateFunding.Api.External.V2.Services
 {
     public class FundingStreamService : IFundingStreamService
     {
-        private readonly IFundingService _fundingService;
+        private readonly IPolicyFundingStreamService _fundingStreamService;
         private readonly IMapper _mapper;
 
-        public FundingStreamService(IFundingService fundingService, IMapper mapper)
+        public FundingStreamService(IPolicyFundingStreamService fundingStreamService, IMapper mapper)
         {
-            Guard.ArgumentNotNull(fundingService, nameof(fundingService));
+            Guard.ArgumentNotNull(fundingStreamService, nameof(fundingStreamService));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
-            _fundingService = fundingService;
+            _fundingStreamService = fundingStreamService;
             _mapper = mapper;
         }
 
         public async Task<IActionResult> GetFundingStreams()
         {
-            IActionResult result = await _fundingService.GetFundingStreams();
+            IActionResult result = await _fundingStreamService.GetFundingStreams();
 
             if (result is OkObjectResult okObjectResult)
             {
-                IEnumerable<CalculateFunding.Models.Specs.FundingStream> fundingStream = (IEnumerable<CalculateFunding.Models.Specs.FundingStream>)okObjectResult.Value;
+                IEnumerable<CalculateFunding.Models.Policy.FundingStream> fundingStream = (IEnumerable<CalculateFunding.Models.Policy.FundingStream>)okObjectResult.Value;
                 if (fundingStream.IsNullOrEmpty())
                 {
                     return new OkResult();
@@ -44,7 +44,7 @@ namespace CalculateFunding.Api.External.V2.Services
 
         public async Task<IActionResult> GetFundingStream(string fundingStreamId)
         {
-            IActionResult result = await _fundingService.GetFundingStreamById(fundingStreamId);
+            IActionResult result = await _fundingStreamService.GetFundingStreamById(fundingStreamId);
 
             if (result is OkObjectResult okObjectResult)
             {

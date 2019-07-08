@@ -13,6 +13,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -81,8 +82,16 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateResultsAssembler();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(
+                specificationsRepository, 
+                policiesRepository, 
+                calculationResultsRepository, 
+                providerResultsAssembler, 
+                publishedProviderResultsRepository, 
+                providerVariationAssemblerService, 
+                logger);
 
             Message message = new Message();
             message.UserProperties["jobId"] = jobId;
@@ -110,8 +119,9 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateResultsAssembler();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = "-1";
@@ -153,8 +163,9 @@ namespace CalculateFunding.Services.Results.Services
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, resultsRepository, resultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesRepository, resultsRepository, resultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -241,8 +252,9 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -403,8 +415,9 @@ namespace CalculateFunding.Services.Results.Services
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
 
             ILogger logger = CreateLogger();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -493,8 +506,9 @@ namespace CalculateFunding.Services.Results.Services
             SpecificationCalculationExecutionStatus expectedProgressCall6 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 53);
             SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 63);
             SpecificationCalculationExecutionStatus expectedProgressCall8 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 73);
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService, cacheProvider: mockCacheProvider);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService, cacheProvider: mockCacheProvider);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = SpecificationId1;
@@ -703,8 +717,9 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
 
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesRepository, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -913,13 +928,15 @@ namespace CalculateFunding.Services.Results.Services
             specificationsRepository
                 .UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
                 .Returns(HttpStatusCode.InternalServerError);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             ILogger logger = CreateLogger();
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -1236,13 +1253,15 @@ namespace CalculateFunding.Services.Results.Services
             ICalculationResultsRepository resultsRepository = InitialiseCalculationResultsRepository(providerResults);
 
             ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(null);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
             specificationsRepository.UpdatePublishedRefreshedDate(Arg.Is(specificationId), Arg.Any<DateTimeOffset>())
                 .Returns(Task.FromResult(HttpStatusCode.OK));
 
             IVersionRepository<PublishedAllocationLineResultVersion> publishedResultsVersionRepository = CreateRealPublishedProviderResultsVersionRepository();
+  
 
-            IPublishedProviderResultsAssemblerService assembler = CreateRealResultsAssembler(specificationsRepository, publishedResultsVersionRepository);
+            IPublishedProviderResultsAssemblerService assembler = CreateRealResultsAssembler(policiesRepository, publishedResultsVersionRepository);
 
             ILogger logger = CreateLogger();
 
@@ -1255,7 +1274,8 @@ namespace CalculateFunding.Services.Results.Services
                 publishedProviderResultsAssemblerService: assembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 logger: logger,
-                jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient,
+                policiesRepository: policiesRepository);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -1287,12 +1307,12 @@ namespace CalculateFunding.Services.Results.Services
 
             DateTimeOffset specVariationDate = DateTimeOffset.Parse("2018-04-30T23:59:59");
             ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
-
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -1318,9 +1338,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                policiesRepository: policiesRepository,
+                specificationsRepository: specificationsRepository, 
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1359,8 +1383,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(13, 26);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -1386,9 +1411,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1427,8 +1456,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -1473,9 +1503,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Store results to be saved to assert on them later
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1520,8 +1554,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -1566,9 +1601,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, 
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Store results to be saved to assert on them later
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1612,8 +1651,10 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
+           
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -1658,9 +1699,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, 
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Store results to be saved to assert on them later
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1702,8 +1747,10 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -1727,9 +1774,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
             await publishedProviderResultsRepository
@@ -1777,8 +1828,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24, 36);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -1867,7 +1919,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                specificationsRepository,
+                policiesRepository,
+                calculationResultsRepository, 
+                providerResultsAssembler, 
+                publishedProviderResultsRepository, 
+                providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1906,12 +1964,13 @@ namespace CalculateFunding.Services.Results.Services
 
             DateTimeOffset specVariationDate = DateTimeOffset.Parse("2018-04-30T23:59:59");
             ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -1935,11 +1994,15 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository);
+            IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, policiesRepository);
 
-            PublishedResultsService service = CreateResultsService(jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, publishedProviderResultsAssemblerService: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService);
+            PublishedResultsService service = CreateResultsService(
+                jobsApiClient: jobsApiClient, 
+                resultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, 
+                publishedProviderResultsAssemblerService: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationsService: providerVariationsService);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -1963,12 +2026,13 @@ namespace CalculateFunding.Services.Results.Services
 
             DateTimeOffset specVariationDate = DateTimeOffset.Parse("2019-04-30T23:59:59");
             ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -1982,10 +2046,13 @@ namespace CalculateFunding.Services.Results.Services
                 .AssembleProviderVariationItems(Arg.Is(providerResults), Arg.Any<IEnumerable<PublishedProviderResultExisting>>(), Arg.Is(specificationId))
                 .Returns(new List<ProviderChangeItem>());
 
-            IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository);
+            IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, policiesRepository);
 
-            PublishedResultsService service = CreateResultsService(jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, publishedProviderResultsAssemblerService: providerResultsAssembler,
+            PublishedResultsService service = CreateResultsService(
+                jobsApiClient: jobsApiClient, 
+                resultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, 
+                publishedProviderResultsAssemblerService: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService);
 
             // Act
@@ -2012,8 +2079,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResultsFirstTime = new List<PublishedProviderResultExisting>()
             {
@@ -2111,9 +2179,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, 
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             List<PublishedProviderResult> resultsBeingSaved = new List<PublishedProviderResult>();
@@ -2154,8 +2226,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResultsFirstTime = new List<PublishedProviderResultExisting>()
             {
@@ -2251,9 +2324,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, 
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             List<PublishedProviderResult> resultsBeingSaved = new List<PublishedProviderResult>();
             await publishedProviderResultsRepository
@@ -2302,23 +2379,29 @@ namespace CalculateFunding.Services.Results.Services
 
             DateTimeOffset specVariationDate = DateTimeOffset.Parse("2019-04-30T23:59:59");
             ISpecificationsRepository specificationsRepository = InitialiseSpecificationRepository(specVariationDate);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepository(existingResults);
 
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
 
-            IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository, logger);
+            IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, policiesRepository, logger);
 
-            PublishedResultsService service = CreateResultsService(jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, publishedProviderResultsAssemblerService: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService, logger: logger);
+            PublishedResultsService service = CreateResultsService(
+                jobsApiClient: jobsApiClient, 
+                resultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, 
+                publishedProviderResultsAssemblerService: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationsService: providerVariationsService, 
+                logger: logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -2348,8 +2431,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -2376,9 +2460,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler, logger: logger);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository, 
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler, 
+                logger: logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -2408,8 +2497,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -2420,9 +2510,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler, logger: logger);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler, 
+                logger: logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -2452,8 +2547,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -2498,9 +2594,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler, logger: logger);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler, 
+                logger: logger);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2532,8 +2633,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -2575,9 +2677,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler, logger: logger);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler, 
+                logger: logger);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2610,8 +2717,9 @@ namespace CalculateFunding.Services.Results.Services
             providerResults.Remove(providerResults.First(r => r.Provider.Id == "prov1"));
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -2638,9 +2746,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler, logger: logger);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler, 
+                logger: logger);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2677,8 +2790,9 @@ namespace CalculateFunding.Services.Results.Services
             providerResults.Remove(providerResults.First(r => r.Provider.Id == "prov1"));
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -2705,6 +2819,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationAssembler: providerVariationAssembler,
@@ -2913,8 +3028,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -2939,9 +3055,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -2967,8 +3087,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -2992,9 +3113,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3019,8 +3144,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -3047,9 +3173,14 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler, logger: logger);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler, 
+                logger: logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3121,8 +3252,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -3212,7 +3344,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                specificationsRepository,
+                policiesRepository,
+                calculationResultsRepository, 
+                providerResultsAssembler, 
+                publishedProviderResultsRepository, 
+                providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -3295,8 +3433,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -3386,7 +3525,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                specificationsRepository,
+                policiesRepository,
+                calculationResultsRepository, 
+                providerResultsAssembler, 
+                publishedProviderResultsRepository, 
+                providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -3469,8 +3614,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>
             {
@@ -3541,7 +3687,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3621,8 +3767,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -3716,7 +3863,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3792,8 +3939,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -3885,7 +4033,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3941,8 +4089,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -3994,7 +4143,7 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4055,8 +4204,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -4108,7 +4258,7 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4169,8 +4319,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -4222,7 +4373,7 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4261,8 +4412,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults(AllocationLineStatus.Published);
 
@@ -4288,9 +4440,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4351,8 +4507,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -4424,7 +4581,7 @@ namespace CalculateFunding.Services.Results.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -4454,8 +4611,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -4483,9 +4641,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4532,8 +4694,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12, 24);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = InitialisePublishedProviderResultsRepositoryWithExistingResults();
 
@@ -4559,9 +4722,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
             await publishedProviderResultsRepository
@@ -4643,8 +4810,9 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -4738,7 +4906,7 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesRepository, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4793,8 +4961,9 @@ namespace CalculateFunding.Services.Results.Services
             List<ProviderResult> providerResults = CreateProviderResults(12);
 
             ICalculationResultsRepository calculationResultsRepository = InitialiseCalculationResultsRepository(providerResults);
+            IPoliciesRepository policiesRepository = InitialisePoliciesRepository();
 
-            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(specificationsRepository);
+            IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesRepository);
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>()
             {
@@ -4839,9 +5008,13 @@ namespace CalculateFunding.Services.Results.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(calculationResultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, providerResultsAssembler: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationAssembler: providerVariationAssembler);
+            PublishedResultsService service = InitialisePublishedResultsService(
+                calculationResultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                policiesRepository: policiesRepository,
+                providerResultsAssembler: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationAssembler: providerVariationAssembler);
 
             // Store results to be saved to assert on them later
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4933,6 +5106,7 @@ namespace CalculateFunding.Services.Results.Services
 
         private PublishedResultsService InitialisePublishedResultsService(
             ISpecificationsRepository specificationsRepository,
+            IPoliciesRepository policiesRepository,
             ICalculationResultsRepository calculationResultsRepository,
             IPublishedProviderResultsAssemblerService providerResultsAssembler,
             IPublishedProviderResultsRepository publishedProviderResultsRepository,
@@ -4942,12 +5116,17 @@ namespace CalculateFunding.Services.Results.Services
         {
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient();
             IPublishedAllocationLineLogicalResultVersionService versionService = CreateRealPublishedAllocationLineLogicalResultVersionService();
-            IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, specificationsRepository, logger);
+            IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, policiesRepository, logger);
 
-            return CreateResultsService(jobsApiClient: jobsApiClient, resultsRepository: calculationResultsRepository,
-                specificationsRepository: specificationsRepository, publishedProviderResultsAssemblerService: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService,
-                publishedAllocationLineLogicalResultVersionService: versionService, logger: logger ?? CreateLogger(),
+            return CreateResultsService(
+                jobsApiClient: jobsApiClient, 
+                resultsRepository: calculationResultsRepository,
+                specificationsRepository: specificationsRepository,
+                publishedProviderResultsAssemblerService: providerResultsAssembler,
+                publishedProviderResultsRepository: publishedProviderResultsRepository, 
+                providerVariationsService: providerVariationsService,
+                publishedAllocationLineLogicalResultVersionService: versionService, 
+                logger: logger ?? CreateLogger(),
                 cacheProvider: cacheProvider ?? CreateCacheProvider());
         }
 
@@ -5107,6 +5286,7 @@ namespace CalculateFunding.Services.Results.Services
         private static ISpecificationsRepository InitialiseSpecificationRepository(DateTimeOffset? specVariationDate)
         {
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+
             specificationsRepository
                 .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(new SpecificationCurrentVersion
@@ -5154,10 +5334,18 @@ namespace CalculateFunding.Services.Results.Services
                         }
                     }
                 });
-            specificationsRepository
-                .GetFundingPeriodById(Arg.Is("1819"))
-                .Returns(new Period { EndDate = DateTimeOffset.Parse("2019-08-31T23:59:59"), Id = "1819", Name = "AY1819", StartDate = DateTimeOffset.Parse("2018-09-01T00:00:00") });
-            specificationsRepository
+
+            return specificationsRepository;
+        }
+
+        private static IPoliciesRepository InitialisePoliciesRepository()
+        {
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+
+            policiesRepository
+            .GetFundingPeriodById(Arg.Is("1819"))
+            .Returns(new Period { EndDate = DateTimeOffset.Parse("2019-08-31T23:59:59"), Id = "1819", Name = "AY1819", StartDate = DateTimeOffset.Parse("2018-09-01T00:00:00") });
+            policiesRepository
                 .GetFundingStreams()
                 .Returns(new List<FundingStream>
                 {
@@ -5189,16 +5377,17 @@ namespace CalculateFunding.Services.Results.Services
                         }
                     }
                 });
-            return specificationsRepository;
+
+            return policiesRepository;
         }
 
         private IPublishedProviderResultsAssemblerService CreateRealResultsAssembler(
-            ISpecificationsRepository specificationsRepository,
+            IPoliciesRepository policiesRepository,
             IVersionRepository<PublishedAllocationLineResultVersion> publishedResultsVersionRepository = null,
             IMapper mapper = null)
         {
             return new PublishedProviderResultsAssemblerService(
-                specificationsRepository,
+                policiesRepository,
                 CreateLogger(),
                 publishedResultsVersionRepository ?? CreatePublishedProviderResultsVersionRepository(),
                 mapper ?? CreateRealMapper());

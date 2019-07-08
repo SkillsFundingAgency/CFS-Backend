@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -36,6 +37,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
             IMapper mapper = CreateImplementedMapper();
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
@@ -44,7 +46,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationsRepository: specificationsRepository,
                 searchRepository: searchRepository,
                 mapper: mapper,
-                specificationVersionRepository: versionRepository);
+                specificationVersionRepository: versionRepository,
+                policiesRepository: policiesRepository);
 
             SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
             {
@@ -87,7 +90,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 Name = "Funding Period 1"
             };
 
-            specificationsRepository
+            policiesRepository
                 .GetPeriodById(Arg.Is(fundingPeriodId))
                 .Returns(fundingPeriod);
 
@@ -98,7 +101,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 AllocationLines = new List<AllocationLine>(),
             };
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
                 .Returns(fundingStream);
 
@@ -192,13 +195,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
             IMapper mapper = CreateImplementedMapper();
 
             SpecificationsService specificationsService = CreateService(
                 specificationsRepository: specificationsRepository,
                 searchRepository: searchRepository,
-                mapper: mapper);
+                mapper: mapper,
+                policiesRepository: policiesRepository);
 
             SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
             {
@@ -241,7 +246,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 Name = "Funding Period 1"
             };
 
-            specificationsRepository
+            policiesRepository
                 .GetPeriodById(Arg.Is(fundingPeriodId))
                 .Returns(fundingPeriod);
 
@@ -252,11 +257,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 AllocationLines = new List<AllocationLine>(),
             };
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
                 .Returns(fundingStream);
 
-            specificationsRepository
+            policiesRepository
                 .GetFundingStreamById(Arg.Is(fundingStreamNotFoundId))
                 .Returns((FundingStream)null);
 
@@ -272,11 +277,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .Be("Unable to find funding stream with ID 'notfound'.");
 
-            await specificationsRepository
+            await policiesRepository
                 .Received(1)
                 .GetFundingStreamById(Arg.Is(fundingStreamNotFoundId));
 
-            await specificationsRepository
+            await policiesRepository
                 .Received(1)
                 .GetFundingStreamById(Arg.Is(fundingStreamId));
         }

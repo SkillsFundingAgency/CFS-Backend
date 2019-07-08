@@ -6,6 +6,6 @@ namespace CalculateFunding.Api.External.V2.Interfaces
 {
 	public interface ITimePeriodsService
 	{
-		Task<IActionResult> GetFundingPeriods(HttpRequest request);
+		Task<IActionResult> GetFundingPeriods();
 	}
 }

@@ -14,6 +14,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Versioning;
@@ -41,6 +42,7 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly IPoliciesRepository _policiesRepository;
         private readonly ILogger _logger;
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
@@ -62,6 +64,7 @@ namespace CalculateFunding.Services.Specs
         public SpecificationsService(
             IMapper mapper,
             ISpecificationsRepository specificationsRepository,
+            IPoliciesRepository policiesRepository,
             ILogger logger,
             IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelValidator,
@@ -79,6 +82,7 @@ namespace CalculateFunding.Services.Specs
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policyCreateModelValidator, nameof(policyCreateModelValidator));
             Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
@@ -95,6 +99,7 @@ namespace CalculateFunding.Services.Specs
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
+            _policiesRepository = policiesRepository;
             _logger = logger;
             _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelValidator;
@@ -115,6 +120,7 @@ namespace CalculateFunding.Services.Specs
         public SpecificationsService(
             IMapper mapper,
             ISpecificationsRepository specificationsRepository,
+            IPoliciesRepository policiesRepository,
             ILogger logger,
             IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelValidator,
@@ -134,6 +140,7 @@ namespace CalculateFunding.Services.Specs
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policyCreateModelValidator, nameof(policyCreateModelValidator));
             Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
@@ -152,6 +159,7 @@ namespace CalculateFunding.Services.Specs
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
+            _policiesRepository = policiesRepository;
             _logger = logger;
             _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelValidator;
@@ -362,7 +370,7 @@ namespace CalculateFunding.Services.Specs
                 if (!specification.Content.Current.FundingStreams.IsNullOrEmpty())
                 {
                     string[] fundingStreamIds = specification.Content.Current.FundingStreams.Select(p => p.Id).ToArray();
-                    IEnumerable<FundingStream> fundingStreamsResult = await _specificationsRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
+                    IEnumerable<FundingStream> fundingStreamsResult = await _policiesRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
                     fundingStreams.AddRange(fundingStreamsResult);
                 }
 
@@ -856,7 +864,7 @@ namespace CalculateFunding.Services.Specs
 
             string[] fundingSteamIds = specification.Current.FundingStreams.Select(s => s.Id).ToArray();
 
-            IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
+            IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
 
             if (fundingStreams.IsNullOrEmpty())
             {
@@ -1043,7 +1051,7 @@ namespace CalculateFunding.Services.Specs
                 return validationResult;
             }
 
-            Period fundingPeriod = await _specificationsRepository.GetPeriodById(createModel.FundingPeriodId);
+            Period fundingPeriod = await _policiesRepository.GetPeriodById(createModel.FundingPeriodId);
 
             Reference user = request.GetUser();
 
@@ -1071,7 +1079,7 @@ namespace CalculateFunding.Services.Specs
             List<FundingStream> fundingStreamObjects = new List<FundingStream>();
             foreach (string fundingStreamId in createModel.FundingStreamIds)
             {
-                FundingStream fundingStream = await _specificationsRepository.GetFundingStreamById(fundingStreamId);
+                FundingStream fundingStream = await _policiesRepository.GetFundingStreamById(fundingStreamId);
                 if (fundingStream == null)
                 {
                     return new PreconditionFailedResult($"Unable to find funding stream with ID '{fundingStreamId}'.");
@@ -1174,7 +1182,7 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                Period fundingPeriod = await _specificationsRepository.GetPeriodById(editModel.FundingPeriodId);
+                Period fundingPeriod = await _policiesRepository.GetPeriodById(editModel.FundingPeriodId);
                 if (fundingPeriod == null)
                 {
                     return new PreconditionFailedResult($"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
@@ -1190,7 +1198,7 @@ namespace CalculateFunding.Services.Specs
             {
                 string[] fundingStreamIds = editModel.FundingStreamIds.ToArray();
 
-                IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
+                IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
 
                 if (!fundingStreams.Any())
                 {
@@ -1515,7 +1523,7 @@ namespace CalculateFunding.Services.Specs
             if (!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
             {
                 string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
-                IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
+                IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
                 foreach (FundingStream fundingStream in fundingStreams)
                 {
                     AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == createModel.AllocationLineId);
@@ -1651,8 +1659,11 @@ namespace CalculateFunding.Services.Specs
             FundingStream currentFundingStream = null;
             if (!string.IsNullOrWhiteSpace(editModel.AllocationLineId))
             {
-                string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
-                IEnumerable<FundingStream> fundingStreams = await _specificationsRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
+                string[] fundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
+
+                // TODO: Add new API method to GetFundingStreams that checks if any fundingStream contains given ID
+                // 1. Retrieving All Funding Streams from Cosmos DB - can save lot of time. But first we need to ensure if there is index for ghis type of query
+                IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
                 foreach (FundingStream fundingStream in fundingStreams)
                 {
                     AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == editModel.AllocationLineId);

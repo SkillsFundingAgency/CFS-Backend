@@ -12,14 +12,11 @@ namespace CalculateFunding.Services.Specs.Interfaces
     public interface ISpecificationsRepository
     {
         Task<DocumentEntity<Specification>> CreateSpecification(Specification specification);
-        Task<Period> GetPeriodById(string periodId);
-        Task<FundingStream> GetFundingStreamById(string fundingStreamId);
         Task<Specification> GetSpecificationById(string specificationId);
         Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId);
         Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null);
         Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
         Task<IEnumerable<Specification>> GetSpecifications();
-        Task<IEnumerable<Period>> GetPeriods();
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);
         Task<HttpStatusCode> UpdateSpecification(Specification specification);
         Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName);
@@ -30,9 +27,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec);
         Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
-        Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream);
-        Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);
-        Task SavePeriods(IEnumerable<Period> periods);
         Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
     }
 }

@@ -6,6 +6,7 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -19,19 +20,23 @@ namespace CalculateFunding.Services.Results
     public class ProviderVariationsService : IProviderVariationsService
     {
         private readonly IProviderVariationAssemblerService _providerVariationAssemblerService;
-        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly IPoliciesRepository _policiesRepository;
         private readonly ILogger _logger;
         private readonly IMapper _mapper;
 
-        public ProviderVariationsService(IProviderVariationAssemblerService providerVariationAssemblerService, ISpecificationsRepository specificationsRepository, ILogger logger, IMapper mapper)
+        public ProviderVariationsService(
+            IProviderVariationAssemblerService providerVariationAssemblerService,
+            IPoliciesRepository policiesRepository,
+            ILogger logger, 
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(providerVariationAssemblerService, nameof(providerVariationAssemblerService));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _providerVariationAssemblerService = providerVariationAssemblerService;
-            _specificationsRepository = specificationsRepository;
+            _policiesRepository = policiesRepository;
             _logger = logger;
             _mapper = mapper;
         }
@@ -668,7 +673,7 @@ namespace CalculateFunding.Services.Results
 
         private async Task<Period> GetFundingPeriod(SpecificationCurrentVersion specification)
         {
-            Period fundingPeriod = await _specificationsRepository.GetFundingPeriodById(specification.FundingPeriod.Id);
+            Period fundingPeriod = await _policiesRepository.GetFundingPeriodById(specification.FundingPeriod.Id);
 
             if (fundingPeriod == null)
             {

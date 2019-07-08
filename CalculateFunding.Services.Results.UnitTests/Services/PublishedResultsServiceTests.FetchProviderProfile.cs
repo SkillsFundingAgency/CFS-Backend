@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
-                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp18", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
+                FundingPeriod = new Models.Policy.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp18", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
                     AllocationLineResult = new PublishedAllocationLineResult
@@ -251,7 +251,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
-                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp18", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
+                FundingPeriod = new Models.Policy.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp18", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
                     AllocationLineResult = new PublishedAllocationLineResult
@@ -327,7 +327,7 @@ namespace CalculateFunding.Services.Results.Services
             PublishedProviderResult result = new PublishedProviderResult
             {
                 ProviderId = "prov1",
-                FundingPeriod = new Models.Specs.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp18", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
+                FundingPeriod = new Models.Policy.Period { EndDate = DateTimeOffset.Now.AddDays(-3), Id = "fp18", Name = "funding 1", StartDate = DateTimeOffset.Now.AddDays(-1) },
                 FundingStreamResult = new PublishedFundingStreamResult
                 {
                     AllocationLineResult = new PublishedAllocationLineResult

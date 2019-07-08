@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -545,12 +546,13 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
+            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
 
             mockSpecificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            mockSpecificationRepository
+            mockPoliciesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreamsToReturn);
 
@@ -581,6 +583,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
+                    policiesRepository: mockPoliciesRepository,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
                     buildProjectsService: buildProjectsService,
@@ -709,12 +712,13 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProject buildProject = new BuildProject();
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
+            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
 
             mockSpecificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            mockSpecificationRepository
+            mockPoliciesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreamsToReturn);
 
@@ -743,6 +747,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
+                    policiesRepository: mockPoliciesRepository,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
                     buildProjectsService: buildProjectsService,
@@ -1244,6 +1249,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
+            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
 
             mockSpecificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
@@ -1256,7 +1262,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> mockSearchRepository = CreateSearchRepository();
 
-            mockSpecificationRepository
+            mockPoliciesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreamsToReturn);
 
@@ -1280,6 +1286,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
+                    policiesRepository: mockPoliciesRepository,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
                     sourceCodeService: sourceCodeService,
@@ -1393,7 +1400,9 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
-            mockSpecificationRepository
+            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
+
+            mockPoliciesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreamsToReturn);
 
@@ -1411,6 +1420,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
+                    policiesRepository: mockPoliciesRepository,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository);
 
@@ -1504,7 +1514,9 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
-            mockSpecificationRepository
+            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
+
+            mockPoliciesRepository
                 .GetFundingStreams()
                 .Returns(fundingStreamsToReturn);
 
@@ -1522,6 +1534,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
+                    policiesRepository: mockPoliciesRepository,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository);
 
