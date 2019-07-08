@@ -21,6 +21,8 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
 
         public async Task<CosmosDbScalingConfig> GetConfigByRepositoryType(CosmosCollectionType cosmosCollectionType)
         {
+            Guard.ArgumentNotNull(cosmosCollectionType, nameof(cosmosCollectionType));
+
             IQueryable<CosmosDbScalingConfig> configs = _cosmosRepository.Query<CosmosDbScalingConfig>().Where(x => x.RepositoryType == cosmosCollectionType);
 
             return await Task.FromResult(configs.AsEnumerable().FirstOrDefault());
@@ -35,9 +37,11 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
 
         public async Task<CosmosDbScalingCollectionSettings> GetCollectionSettingsByRepositoryType(CosmosCollectionType cosmosCollectionType)
         {
-            CosmosDbScalingCollectionSettings settings = _cosmosRepository.Query<CosmosDbScalingCollectionSettings>().FirstOrDefault(x => x.CosmosCollectionType == cosmosCollectionType);
+            Guard.ArgumentNotNull(cosmosCollectionType, nameof(cosmosCollectionType));
 
-            return await Task.FromResult(settings);
+            IQueryable<CosmosDbScalingCollectionSettings> settings = _cosmosRepository.Query<CosmosDbScalingCollectionSettings>().Where(x => x.CosmosCollectionType == cosmosCollectionType);
+
+            return await Task.FromResult(settings?.AsEnumerable().FirstOrDefault());
         }
 
         public async Task<HttpStatusCode> UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings)
