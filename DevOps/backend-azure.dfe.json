@@ -1197,7 +1197,7 @@
             "lockDuration": "PT5M",
             "maxSizeInMegabytes": 2048,
             "requiresDuplicateDetection": false,
-            "requiresSession": false,
+            "requiresSession": true,
             "defaultMessageTimeToLive": "P1D",
             "deadLetteringOnMessageExpiration": false,
             "enableBatchedOperations": true,
