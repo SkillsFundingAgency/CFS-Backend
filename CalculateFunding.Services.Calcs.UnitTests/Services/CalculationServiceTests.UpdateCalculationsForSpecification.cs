@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
@@ -95,7 +96,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns((IEnumerable<Calculation>)null);
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger);
+            IMapper mapper = Substitute.For<IMapper>();
+
+            CalculationService service = CreateCalculationService(mapper, calculationsRepository, logger);
 
             //Act
             await service.UpdateCalculationsForSpecification(message);
@@ -176,7 +179,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsService: buildProjectsService, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
+            IMapper mapper = Substitute.For<IMapper>();
+
+            CalculationService service = CreateCalculationService(mapper, calculationsRepository, logger, buildProjectsService: buildProjectsService, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
 
             // Act
             await service.UpdateCalculationsForSpecification(message);
@@ -266,7 +271,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1" });
 
-            CalculationService service = CreateCalculationService(calculationsRepository, logger, buildProjectsService: buildProjectsService, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
+            IMapper mapper = Substitute.For<IMapper>();
+
+            CalculationService service = CreateCalculationService(mapper, calculationsRepository, logger, buildProjectsService: buildProjectsService, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
 
             //Act
             await service.UpdateCalculationsForSpecification(message);
@@ -368,7 +375,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
 
+            IMapper mapper = Substitute.For<IMapper>();
+
             CalculationService service = CreateCalculationService(
+                mapper,
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,
@@ -474,7 +484,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns((Job)null);
 
+            IMapper mapper = Substitute.For<IMapper>();
+
             CalculationService service = CreateCalculationService(
+                mapper,
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,
@@ -588,7 +601,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-1", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob });
 
+            IMapper mapper = Substitute.For<IMapper>();
+
             CalculationService service = CreateCalculationService(
+                mapper,
                 calculationsRepository,
                 logger,
                 buildProjectsService: buildProjectsService,

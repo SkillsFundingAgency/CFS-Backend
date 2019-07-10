@@ -12,6 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		DevOps\backend-azure.dfe.json = DevOps\backend-azure.dfe.json
 		Readme.md = Readme.md
 	EndProjectSection
+	ProjectSection(FolderGlobals) = preProject
+		C_5_4Projects_4CFS_4CalculateFunding-Backend_4DevOps_4backend-azure_1dfe_1json__JsonSchema = 
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{B684F41D-5064-4DAB-AFFB-B8EC0028E372}"
 EndProject
@@ -213,25 +216,25 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.P
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Api.Policy", "CalculateFunding.Api.Policy\CalculateFunding.Api.Policy.csproj", "{3CCA3840-518C-41EC-9954-5BE414B79ACB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Policy", "CalculateFunding.Functions.Policy\CalculateFunding.Functions.Policy.csproj", "{B3396235-B53B-4BDD-9C48-9AA5851D38C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Policy", "CalculateFunding.Functions.Policy\CalculateFunding.Functions.Policy.csproj", "{B3396235-B53B-4BDD-9C48-9AA5851D38C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.Policy.UnitTests", "CalculateFunding.Api.Policy.UnitTests\CalculateFunding.Api.Policy.UnitTests.csproj", "{9FF0AAB2-C638-4B47-8033-DDABC0531143}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Api.Policy.UnitTests", "CalculateFunding.Api.Policy.UnitTests\CalculateFunding.Api.Policy.UnitTests.csproj", "{9FF0AAB2-C638-4B47-8033-DDABC0531143}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Policy.UnitTests", "CalculateFunding.Services.Policy.UnitTests\CalculateFunding.Services.Policy.UnitTests.csproj", "{784B95A4-9E0C-4D62-AFCD-D0E3D5B879D2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Policy.UnitTests", "CalculateFunding.Services.Policy.UnitTests\CalculateFunding.Services.Policy.UnitTests.csproj", "{784B95A4-9E0C-4D62-AFCD-D0E3D5B879D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Policy.UnitTests", "CalculateFunding.Functions.Policy.UnitTests\CalculateFunding.Functions.Policy.UnitTests.csproj", "{05F9E266-B040-4B93-AC9B-6D69AF5785CA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Policy.UnitTests", "CalculateFunding.Functions.Policy.UnitTests\CalculateFunding.Functions.Policy.UnitTests.csproj", "{05F9E266-B040-4B93-AC9B-6D69AF5785CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Publishing", "CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj", "{12FE23FC-F7F5-4BFE-A600-A6A923618C36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Publishing", "CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj", "{12FE23FC-F7F5-4BFE-A600-A6A923618C36}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.Publishing", "CalculateFunding.Api.Publishing\CalculateFunding.Api.Publishing.csproj", "{FB5D3A1F-45BE-4B82-B07F-5AC5EE1B46E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Api.Publishing", "CalculateFunding.Api.Publishing\CalculateFunding.Api.Publishing.csproj", "{FB5D3A1F-45BE-4B82-B07F-5AC5EE1B46E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Publishing", "CalculateFunding.Functions.Publishing\CalculateFunding.Functions.Publishing.csproj", "{74AAF591-4ACA-49B3-A7D6-0DD0C491D38F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Publishing", "CalculateFunding.Functions.Publishing\CalculateFunding.Functions.Publishing.csproj", "{74AAF591-4ACA-49B3-A7D6-0DD0C491D38F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Api.Publishing.UnitTests", "CalculateFunding.Api.Publishing.UnitTests\CalculateFunding.Api.Publishing.UnitTests.csproj", "{058F2FF0-57A9-4390-A561-81A57CB80991}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Api.Publishing.UnitTests", "CalculateFunding.Api.Publishing.UnitTests\CalculateFunding.Api.Publishing.UnitTests.csproj", "{058F2FF0-57A9-4390-A561-81A57CB80991}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Services.Publishing.UnitTests", "CalculateFunding.Services.Publishing.UnitTests\CalculateFunding.Services.Publishing.UnitTests.csproj", "{F066E5DC-A354-4FDF-BCE6-535056F134BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Services.Publishing.UnitTests", "CalculateFunding.Services.Publishing.UnitTests\CalculateFunding.Services.Publishing.UnitTests.csproj", "{F066E5DC-A354-4FDF-BCE6-535056F134BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalculateFunding.Functions.Publishing.UnitTests", "CalculateFunding.Functions.Publishing.UnitTests\CalculateFunding.Functions.Publishing.UnitTests.csproj", "{02A5C6ED-42A6-448C-B348-C3153E878571}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CalculateFunding.Functions.Publishing.UnitTests", "CalculateFunding.Functions.Publishing.UnitTests\CalculateFunding.Functions.Publishing.UnitTests.csproj", "{02A5C6ED-42A6-448C-B348-C3153E878571}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

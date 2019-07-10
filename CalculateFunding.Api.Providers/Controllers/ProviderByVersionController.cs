@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
@@ -85,6 +86,13 @@ namespace CalculateFunding.Api.Providers.Controllers
         public async Task<IActionResult> GetProviderByIdFromProviderVersion([FromRoute]string providerVersionId, [FromRoute]string providerId)
         {
             return await _providerVersionSearchService.GetProviderById(providerVersionId, providerId);
+        }
+
+        [HttpGet("api/providers/versions-by-fundingstream/{fundingStreamId}")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<ProviderVersion>))]
+        public async Task<IActionResult> GetProviderVersions([FromRoute]string fundingStreamId)
+        {
+            return await _providerVersionService.GetProviderVersions(fundingStreamId);
         }
 
         /// <summary>

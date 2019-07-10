@@ -12,6 +12,7 @@ using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.CodeMetadataGenerator;
@@ -103,7 +104,6 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<ISourceFileGeneratorProvider, SourceFileGeneratorProvider>();
             builder.AddSingleton<IValidator<PreviewRequest>, PreviewRequestModelValidator>();
             builder.AddSingleton<ISpecificationRepository, SpecificationRepository>();
-            builder.AddSingleton<IPoliciesRepository, PoliciesRepository>();
             builder.AddSingleton<IBuildProjectsService, BuildProjectsService>();
             builder.AddSingleton<IBuildProjectsRepository, BuildProjectsRepository>();
             builder.AddSingleton<ICodeMetadataGeneratorService, ReflectionCodeMetadataGenerator>();
@@ -136,6 +136,14 @@ namespace CalculateFunding.Functions.Calcs
 
                 return new VersionRepository<CalculationVersion>(resultsRepostory);
             });
+
+            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<PolicyMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(resultsConfig.CreateMapper());
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {

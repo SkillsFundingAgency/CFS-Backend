@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -14,7 +15,6 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Versioning;
@@ -35,6 +35,8 @@ using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Serilog;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using CalculateFunding.Models.Policy;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -42,7 +44,8 @@ namespace CalculateFunding.Services.Specs
     {
         private readonly IMapper _mapper;
         private readonly ISpecificationsRepository _specificationsRepository;
-        private readonly IPoliciesRepository _policiesRepository;
+        private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly Polly.Policy _policiesApiClientPolicy;
         private readonly ILogger _logger;
         private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
@@ -64,7 +67,7 @@ namespace CalculateFunding.Services.Specs
         public SpecificationsService(
             IMapper mapper,
             ISpecificationsRepository specificationsRepository,
-            IPoliciesRepository policiesRepository,
+            IPoliciesApiClient policiesApiClient,
             ILogger logger,
             IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelValidator,
@@ -78,11 +81,13 @@ namespace CalculateFunding.Services.Specs
             IValidator<CalculationEditModel> calculationEditModelValidator,
             IResultsRepository resultsRepository,
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
-            IFeatureToggle featureToggle)
+            IFeatureToggle featureToggle,
+            ISpecificationsResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
-            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policyCreateModelValidator, nameof(policyCreateModelValidator));
             Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
@@ -99,7 +104,8 @@ namespace CalculateFunding.Services.Specs
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
-            _policiesRepository = policiesRepository;
+            _policiesApiClient = policiesApiClient;
+            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _logger = logger;
             _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelValidator;
@@ -120,7 +126,7 @@ namespace CalculateFunding.Services.Specs
         public SpecificationsService(
             IMapper mapper,
             ISpecificationsRepository specificationsRepository,
-            IPoliciesRepository policiesRepository,
+            IPoliciesApiClient policiesApiClient,
             ILogger logger,
             IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelValidator,
@@ -140,7 +146,7 @@ namespace CalculateFunding.Services.Specs
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
-            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policyCreateModelValidator, nameof(policyCreateModelValidator));
             Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
@@ -159,7 +165,8 @@ namespace CalculateFunding.Services.Specs
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
-            _policiesRepository = policiesRepository;
+            _policiesApiClient = policiesApiClient;
+            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _logger = logger;
             _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelValidator;
@@ -370,8 +377,9 @@ namespace CalculateFunding.Services.Specs
                 if (!specification.Content.Current.FundingStreams.IsNullOrEmpty())
                 {
                     string[] fundingStreamIds = specification.Content.Current.FundingStreams.Select(p => p.Id).ToArray();
-                    IEnumerable<FundingStream> fundingStreamsResult = await _policiesRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
-                    fundingStreams.AddRange(fundingStreamsResult);
+                    Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResultResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamIds.FirstOrDefault()));
+                    FundingStream fundingStreamResult = _mapper.Map<FundingStream>(fundingStreamResultResponse?.Content);
+                    fundingStreams.Add(fundingStreamResult);
                 }
 
                 result = ConvertSpecificationToCurrentVersion(specification, fundingStreams);
@@ -864,16 +872,17 @@ namespace CalculateFunding.Services.Specs
 
             string[] fundingSteamIds = specification.Current.FundingStreams.Select(s => s.Id).ToArray();
 
-            IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
-
-            if (fundingStreams.IsNullOrEmpty())
+            Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingSteamIds.FirstOrDefault()));
+            if (fundingStreamResponse?.Content == null)
             {
                 _logger.Error("No funding streams were returned");
 
                 return new InternalServerErrorResult("No funding stream were returned");
             }
 
-            return new OkObjectResult(fundingStreams);
+            FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
+            
+            return new OkObjectResult(new List<FundingStream> { fundingStream });
         }
 
         public async Task<IActionResult> CreatePolicy(HttpRequest request)
@@ -1051,7 +1060,8 @@ namespace CalculateFunding.Services.Specs
                 return validationResult;
             }
 
-            Period fundingPeriod = await _policiesRepository.GetPeriodById(createModel.FundingPeriodId);
+            Common.ApiClient.Models.ApiResponse<PolicyModels.Period> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(createModel.FundingPeriodId));
+            Period fundingPeriod = _mapper.Map<Period>(fundingPeriodResponse?.Content);
 
             Reference user = request.GetUser();
 
@@ -1077,9 +1087,11 @@ namespace CalculateFunding.Services.Specs
 
             List<Reference> fundingStreams = new List<Reference>();
             List<FundingStream> fundingStreamObjects = new List<FundingStream>();
+
             foreach (string fundingStreamId in createModel.FundingStreamIds)
             {
-                FundingStream fundingStream = await _policiesRepository.GetFundingStreamById(fundingStreamId);
+                Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamId));
+                FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
                 if (fundingStream == null)
                 {
                     return new PreconditionFailedResult($"Unable to find funding stream with ID '{fundingStreamId}'.");
@@ -1182,45 +1194,47 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                Period fundingPeriod = await _policiesRepository.GetPeriodById(editModel.FundingPeriodId);
-                if (fundingPeriod == null)
+                Common.ApiClient.Models.ApiResponse<PolicyModels.Period> fundingPeriodResponse =  await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
+                if (fundingPeriodResponse?.Content == null)
                 {
                     return new PreconditionFailedResult($"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
                 }
+
+                Period fundingPeriod = _mapper.Map<Period>(fundingPeriodResponse?.Content);
                 specificationVersion.FundingPeriod = new Reference { Id = fundingPeriod.Id, Name = fundingPeriod.Name };
             }
 
             IEnumerable<string> existingFundingStreamIds = specificationVersion.FundingStreams?.Select(m => m.Id);
 
-            bool fundingStreamsChanged = !existingFundingStreamIds.EqualTo(editModel.FundingStreamIds);
+            bool fundingStreamsChanged = !existingFundingStreamIds.SequenceEqual(editModel.FundingStreamIds);
 
             if (fundingStreamsChanged)
             {
-                string[] fundingStreamIds = editModel.FundingStreamIds.ToArray();
-
-                IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
-
-                if (!fundingStreams.Any())
+                foreach (string fundingStreamId in editModel.FundingStreamIds)
                 {
-                    return new InternalServerErrorResult("No funding streams were retrieved to add to the Specification");
-                }
+                    Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamId));
 
-                List<Reference> fundingStreamReferences = new List<Reference>();
+                    if (fundingStreamResponse?.Content == null)
+                    {
+                        return new InternalServerErrorResult("No funding streams were retrieved to add to the Specification");
+                    }
 
-                Dictionary<string, bool> allocationLines = new Dictionary<string, bool>();
+                    FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
 
-                foreach (FundingStream fundingStream in fundingStreams)
-                {
+                    List<Reference> fundingStreamReferences = new List<Reference>();
+
+                    Dictionary<string, bool> allocationLines = new Dictionary<string, bool>();
+
                     fundingStreamReferences.Add(new Reference(fundingStream.Id, fundingStream.Name));
                     foreach (AllocationLine allocationLine in fundingStream.AllocationLines)
                     {
                         allocationLines.Add(allocationLine.Id, true);
                     }
+
+                    specificationVersion.FundingStreams = fundingStreamReferences;
+
+                    RemoveMissingAllocationLineAssociations(allocationLines, specificationVersion.Policies);
                 }
-
-                specificationVersion.FundingStreams = fundingStreamReferences;
-
-                RemoveMissingAllocationLineAssociations(allocationLines, specificationVersion.Policies);
             }
 
             HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
@@ -1523,7 +1537,16 @@ namespace CalculateFunding.Services.Specs
             if (!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
             {
                 string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
-                IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams(f => fundingSteamIds.Contains(f.Id));
+                Common.ApiClient.Models.ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreams());
+                IEnumerable<FundingStream> fundingStreams = _mapper.Map<IEnumerable<FundingStream>>(fundingStreamsResponse?.Content);
+
+                if (fundingStreams.IsNullOrEmpty() || !fundingStreams.Any(x => fundingSteamIds.Contains(x.Id)))
+                {
+                    _logger.Error("No funding streams were returned");
+
+                    return new InternalServerErrorResult("No funding stream were returned");
+                }
+
                 foreach (FundingStream fundingStream in fundingStreams)
                 {
                     AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == createModel.AllocationLineId);
@@ -1659,21 +1682,25 @@ namespace CalculateFunding.Services.Specs
             FundingStream currentFundingStream = null;
             if (!string.IsNullOrWhiteSpace(editModel.AllocationLineId))
             {
-                string[] fundingStreamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
-
-                // TODO: Add new API method to GetFundingStreams that checks if any fundingStream contains given ID
-                // 1. Retrieving All Funding Streams from Cosmos DB - can save lot of time. But first we need to ensure if there is index for ghis type of query
-                IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams(f => fundingStreamIds.Contains(f.Id));
-                foreach (FundingStream fundingStream in fundingStreams)
+                string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
+                Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingSteamIds.FirstOrDefault()));
+                if (fundingStreamResponse?.Content == null)
                 {
-                    AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == editModel.AllocationLineId);
-                    if (allocationLine != null)
-                    {
-                        calculation.AllocationLine = allocationLine;
-                        currentFundingStream = fundingStream;
-                        break;
-                    }
+                    _logger.Error("No funding streams were returned");
+
+                    return new InternalServerErrorResult("No funding stream were returned");
                 }
+
+                FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
+
+                
+                AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == editModel.AllocationLineId);
+                if (allocationLine != null)
+                {
+                    calculation.AllocationLine = allocationLine;
+                    currentFundingStream = fundingStream;
+                }
+
                 if (currentFundingStream == null)
                 {
                     return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {editModel.AllocationLineId}");
@@ -2132,6 +2159,7 @@ WHERE   s.documentType = @DocumentType",
                 LastUpdatedDate = specification.UpdatedAt,
                 Name = specification.Content.Name,
                 Policies = specification.Content.Current.Policies,
+                ProviderVersionId = specification.Content.Current.ProviderVersionId,
                 FundingStreams = fundingStreams,
                 PublishStatus = specification.Content.Current.PublishStatus,
                 IsSelectedForFunding = specification.Content.IsSelectedForFunding,

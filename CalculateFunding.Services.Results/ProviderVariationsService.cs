@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
@@ -14,29 +16,33 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Results.Interfaces;
 using Newtonsoft.Json;
 using Serilog;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Results
 {
     public class ProviderVariationsService : IProviderVariationsService
     {
         private readonly IProviderVariationAssemblerService _providerVariationAssemblerService;
-        private readonly IPoliciesRepository _policiesRepository;
+        private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly Polly.Policy _policiesApiClientPolicy;
         private readonly ILogger _logger;
         private readonly IMapper _mapper;
 
         public ProviderVariationsService(
             IProviderVariationAssemblerService providerVariationAssemblerService,
-            IPoliciesRepository policiesRepository,
+            IPoliciesApiClient policiesApiClient,
+            IResultsResiliencePolicies resiliencePolicies,
             ILogger logger, 
             IMapper mapper)
         {
             Guard.ArgumentNotNull(providerVariationAssemblerService, nameof(providerVariationAssemblerService));
-            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _providerVariationAssemblerService = providerVariationAssemblerService;
-            _policiesRepository = policiesRepository;
+            _policiesApiClient = policiesApiClient;
+            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _logger = logger;
             _mapper = mapper;
         }
@@ -673,7 +679,8 @@ namespace CalculateFunding.Services.Results
 
         private async Task<Period> GetFundingPeriod(SpecificationCurrentVersion specification)
         {
-            Period fundingPeriod = await _policiesRepository.GetFundingPeriodById(specification.FundingPeriod.Id);
+            ApiResponse<PolicyModels.Period> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specification.FundingPeriod.Id));
+            Period fundingPeriod = _mapper.Map<Period>(fundingPeriodResponse?.Content);
 
             if (fundingPeriod == null)
             {

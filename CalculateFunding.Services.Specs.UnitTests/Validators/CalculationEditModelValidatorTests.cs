@@ -1,14 +1,20 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Services.Specs.Validators;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Validators
 {
@@ -53,7 +59,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
-            CalculationEditModelValidator validator = CreateValidator(specsRepo);
+            CalculationEditModelValidator validator = CreateValidator(specsRepository: specsRepo);
 
             // Act
             ValidationResult result = validator.Validate(calculationEditModel);
@@ -102,7 +108,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 .IsCalculationNameValid(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(false);
 
-            CalculationEditModelValidator validator = CreateValidator(repository, calculationsRepository);
+            CalculationEditModelValidator validator = CreateValidator(specsRepository: repository, calculationsRepository: calculationsRepository);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -165,41 +171,41 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 }
             };
 
-            IEnumerable<FundingStream> defaultFundingStreams = new List<FundingStream>
+            IEnumerable<PolicyModels.FundingStream> defaultFundingStreams = new List<PolicyModels.FundingStream>
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs1",
                     Name = "Funding Stream 1",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "al1",
                             Name = "Allocation Line 1",
                         }
                     }
                 },
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs2",
                     Name = "Funding Stream 2",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "al2",
                             Name = "Allocation Line 2",
                         }
                     }
                 },
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs3",
                     Name = "Funding Stream 3",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = allocationLineid,
                             Name = "Allocation Line which should be found",
@@ -301,22 +307,24 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         [DynamicData(nameof(ValidateWithSpecificationAndFundingStreamTestCases), DynamicDataSourceType.Method)]
         public void ValidateWithSpecificationAndFundingStream_ValidatesAsExpected(CalculationEditModel calculationEditModel,
             Specification specification,
-            IEnumerable<FundingStream> fundingStreams,
+            IEnumerable<PolicyModels.FundingStream> fundingStreams,
             bool expectedResult,
             IEnumerable<string> expectedErrors)
         {
             //Arrange
             ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
-            IPoliciesRepository policiesRepo = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiCLient = CreatePoliciesApiClient();
+            ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams);
+
             specsRepo
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
-            policiesRepo
+            policiesApiCLient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(fundingStreamsResponse);
 
-            CalculationEditModelValidator validator = CreateValidator(specsRepo, policiesRepository: policiesRepo);
+            CalculationEditModelValidator validator = CreateValidator(specsRepository: specsRepo, policiesApiClient: policiesApiCLient);
 
             // Act
             ValidationResult result = validator.Validate(calculationEditModel);
@@ -357,7 +365,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
-            CalculationEditModelValidator validator = CreateValidator(specsRepo);
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, new List<PolicyModels.FundingStream> { new PolicyModels.FundingStream() }));
+
+            CalculationEditModelValidator validator = CreateValidator(specsRepository: specsRepo, policiesApiClient: policiesApiClient);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -407,22 +421,36 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return repository;
         }
 
-        private static IPoliciesRepository CreatePoliciesRepository()
+        private static IPoliciesApiClient CreatePoliciesApiClient()
         {
-            IPoliciesRepository repository = Substitute.For<IPoliciesRepository>();
+            IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>();
 
-            return repository;
+            return policiesApiClient;
+        }
+
+        private static IMapper CreateMapper()
+        {
+            MapperConfiguration mappingConfiguration = new MapperConfiguration(
+                c =>
+                {
+                    c.AddProfile<PolicyMappingProfile>();
+                }
+            );
+            IMapper mapper = mappingConfiguration.CreateMapper();
+            return mapper;
         }
 
         private static CalculationEditModelValidator CreateValidator(
+            IMapper mapper = null,
             ISpecificationsRepository specsRepository = null,
             ICalculationsRepository calculationsRepository = null,
-            IPoliciesRepository policiesRepository = null)
+            IPoliciesApiClient policiesApiClient = null)
         {
             return new CalculationEditModelValidator(
+                mapper ?? CreateMapper(),
                 specsRepository ?? CreateSpecificationsRepository(),
                 calculationsRepository ?? CreateCalculationsRepository(),
-                policiesRepository ?? CreatePoliciesRepository());
+                policiesApiClient ?? CreatePoliciesApiClient());
         }
 
         private static ICalculationsRepository CreateCalculationsRepository(bool isCalculationNameValid = true)

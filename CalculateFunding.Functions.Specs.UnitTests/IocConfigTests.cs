@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Tests.Common;
@@ -23,6 +24,7 @@ namespace CalculateFunding.Functions.Specs.UnitTests
             {
                 // Assert
                 scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
+                scope.ServiceProvider.GetService<IPoliciesApiClient>().Should().NotBeNull(nameof(IPoliciesApiClient));
                 scope.ServiceProvider.GetService<ISpecificationsService>().Should().NotBeNull(nameof(ISpecificationsService));
                 scope.ServiceProvider.GetService<ISpecificationsSearchService>().Should().NotBeNull(nameof(ISpecificationsSearchService));
                 scope.ServiceProvider.GetService<IResultsRepository>().Should().NotBeNull(nameof(IResultsRepository));

@@ -184,8 +184,7 @@ namespace CalculateFunding.Functions.Results
             });
 
             builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>()
-                .AddSingleton<IPoliciesRepository, PoliciesRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
                .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();

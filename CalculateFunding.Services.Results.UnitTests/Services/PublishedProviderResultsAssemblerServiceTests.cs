@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Results;
@@ -6,6 +8,8 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.MappingProfiles;
+using CalculateFunding.Services.Results.UnitTests;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -14,7 +18,9 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Results.Services
 {
@@ -69,13 +75,13 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, CreateFundingPeriod(new Reference("fp1", "funding period 1"))));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository: policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient: policiesApiClient);
 
             //Act
             Func<Task> test = async () => await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -96,9 +102,9 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
             IEnumerable<ProviderResult> providerResults = CreateProviderResults();
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001"
                 }
@@ -119,17 +125,17 @@ namespace CalculateFunding.Services.Results.Services
             };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, CreateFundingPeriod(new Reference("fp1", "funding period 1"))));
 
-            policiesRepository
-                    .GetFundingStreams()
-                    .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             Func<Task> test = async () => await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -144,7 +150,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Be($"Failed to find a funding stream for id: fs-1");
 
             await
-                policiesRepository
+                policiesApiClient
                 .Received(1)
                 .GetFundingStreams();
         }
@@ -155,9 +161,9 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
             IEnumerable<ProviderResult> providerResults = Enumerable.Empty<ProviderResult>();
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001"
                 }
@@ -177,17 +183,17 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(CreateFundingPeriod(new Reference("fp1", "funding period 1")));
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, CreateFundingPeriod(new Reference("fp1", "funding period 1"))));
 
-            policiesRepository
-                 .GetFundingStreams()
-                 .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -205,25 +211,25 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
             IEnumerable<ProviderResult> providerResults = CreateProviderResults();
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
                     Name = "fs one",
                     ShortName = "fs1",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1",
                             ShortName = "AA",
-                            FundingRoute = FundingRoute.LA,
+                            FundingRoute = PolicyModels.FundingRoute.LA,
                             IsContractRequired = true
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
                 }
             };
 
@@ -281,20 +287,19 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -334,7 +339,8 @@ namespace CalculateFunding.Services.Results.Services
             result.FundingStreamResult.AllocationLineResult.Current.Author.Name.Should().Be("authorName");
             result.FundingStreamResult.AllocationLineResult.AllocationLine.FundingRoute.Should().Be(PublishedFundingRoute.LA);
             result.FundingStreamResult.AllocationLineResult.AllocationLine.IsContractRequired.Should().BeTrue();
-            result.FundingPeriod.Should().BeSameAs(fundingPeriod);
+            result.FundingPeriod.Id.Should().Be(fundingPeriod.Id);
+            result.FundingPeriod.Name.Should().Be(fundingPeriod.Name);
         }
 
         [TestMethod]
@@ -403,25 +409,25 @@ namespace CalculateFunding.Services.Results.Services
             };
 
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
                     Name = "fs one",
                     ShortName = "fs1",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1",
                             ShortName = "AA",
-                            FundingRoute = FundingRoute.LA,
+                            FundingRoute = PolicyModels.FundingRoute.LA,
                             IsContractRequired = true
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
                 }
             };
 
@@ -479,19 +485,19 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
-                            .GetFundingStreams()
-                            .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -587,25 +593,25 @@ namespace CalculateFunding.Services.Results.Services
             };
 
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
                     Name = "fs one",
                     ShortName = "fs1",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1",
                             ShortName = "AA",
-                            FundingRoute = FundingRoute.LA,
+                            FundingRoute = PolicyModels.FundingRoute.LA,
                             IsContractRequired = true
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
                 }
             };
 
@@ -663,19 +669,19 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -770,26 +776,25 @@ namespace CalculateFunding.Services.Results.Services
             }
             };
 
-
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
                     Name = "fs one",
                     ShortName = "fs1",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1",
                             ShortName = "AA",
-                            FundingRoute = FundingRoute.LA,
+                            FundingRoute = PolicyModels.FundingRoute.LA,
                             IsContractRequired = true
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
                 }
             };
 
@@ -847,19 +852,19 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -991,33 +996,33 @@ namespace CalculateFunding.Services.Results.Services
             };
 
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
                     Name = "fs one",
                     ShortName = "fs1",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1",
                             ShortName = "AA",
-                            FundingRoute = FundingRoute.LA,
+                            FundingRoute = PolicyModels.FundingRoute.LA,
                             IsContractRequired = true
                         },
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "BBBBB",
                             Name = "test allocation line 2",
                             ShortName = "BB",
-                            FundingRoute = FundingRoute.LA,
+                            FundingRoute = PolicyModels.FundingRoute.LA,
                             IsContractRequired = true
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY", StartDay = 1, StartMonth = 8, EndDay = 31, EndMonth = 7, Name = "period-type" }
                 }
             };
 
@@ -1075,19 +1080,19 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1140,25 +1145,25 @@ namespace CalculateFunding.Services.Results.Services
         {
             IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines();
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1"
                         },
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "BBBBB",
                             Name = "test allocation line 2"
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY" }
                 }
             };
 
@@ -1203,20 +1208,20 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1267,25 +1272,25 @@ namespace CalculateFunding.Services.Results.Services
         {
             IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines();
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1"
                         },
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "BBBBB",
                             Name = "test allocation line 2"
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY" }
                 }
             };
 
@@ -1331,20 +1336,20 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository pliciesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            pliciesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            pliciesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(pliciesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1442,25 +1447,25 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines(calculationresults);
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1"
                         },
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "BBBBB",
                             Name = "test allocation line 2"
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY" }
                 }
             };
 
@@ -1507,20 +1512,20 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1625,25 +1630,25 @@ namespace CalculateFunding.Services.Results.Services
 
             IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines(calculationresults);
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1"
                         },
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "BBBBB",
                             Name = "test allocation line 2"
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY" }
                 }
             };
 
@@ -1695,20 +1700,20 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -1791,30 +1796,30 @@ namespace CalculateFunding.Services.Results.Services
             //Arrange
             IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines();
 
-            IEnumerable<FundingStream> fundingStreams = new[]
+            IEnumerable<PolicyModels.FundingStream> fundingStreams = new[]
             {
-                new FundingStream
+                new PolicyModels.FundingStream
                 {
                     Id = "fs-001",
-                    AllocationLines = new List<AllocationLine>
+                    AllocationLines = new List<PolicyModels.AllocationLine>
                     {
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "AAAAA",
                             Name = "test allocation line 1"
                         },
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "BBBBB",
                             Name = "test allocation line 2"
                         },
-                        new AllocationLine
+                        new PolicyModels.AllocationLine
                         {
                             Id = "CCCCC",
                             Name = "test allocation line 3"
                         }
                     },
-                    PeriodType = new PeriodType{ Id = "AY" }
+                    PeriodType = new PolicyModels.PeriodType{ Id = "AY" }
                 }
             };
 
@@ -1868,19 +1873,19 @@ namespace CalculateFunding.Services.Results.Services
                 },
             };
 
-            Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
+            PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
 
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            policiesRepository
+            policiesApiClient
                 .GetFundingPeriodById(Arg.Is("fp1"))
-                .Returns(fundingPeriod);
+                .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod));
 
-            policiesRepository
-                 .GetFundingStreams()
-                 .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams));
 
-            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesRepository);
+            PublishedProviderResultsAssemblerService assemblerService = CreateAssemblerService(policiesApiClient);
 
             //Act
             IEnumerable<PublishedProviderResult> results = await assemblerService.AssemblePublishedProviderResults(providerResults, author, specification);
@@ -2670,13 +2675,14 @@ namespace CalculateFunding.Services.Results.Services
         }
 
         static PublishedProviderResultsAssemblerService CreateAssemblerService(
-            IPoliciesRepository policiesRepository = null,
+            IPoliciesApiClient policiesApiClient = null,
             ILogger logger = null,
             IVersionRepository<PublishedAllocationLineResultVersion> allocationResultsVersionRepository = null,
             IMapper mapper = null)
         {
             return new PublishedProviderResultsAssemblerService(
-                policiesRepository ?? CreatePoliciesRepository(),
+                policiesApiClient ?? CreatePoliciesApiClient(),
+                ResultsResilienceTestHelper.GenerateTestPolicies(),
                 logger ?? CreateLogger(),
                 allocationResultsVersionRepository ?? CreateAllocationResultsVersionRepository(),
                 mapper ?? CreateRealMapper());
@@ -2692,9 +2698,9 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<ISpecificationsRepository>();
         }
 
-        static IPoliciesRepository CreatePoliciesRepository()
+        static IPoliciesApiClient CreatePoliciesApiClient()
         {
-            return Substitute.For<IPoliciesRepository>();
+            return Substitute.For<IPoliciesApiClient>();
         }
 
         static ILogger CreateLogger()
@@ -2704,7 +2710,11 @@ namespace CalculateFunding.Services.Results.Services
 
         static IMapper CreateRealMapper()
         {
-            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<ResultServiceMappingProfile>());
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => {
+                c.AddProfile<ResultServiceMappingProfile>();
+                c.AddProfile<PolicyMappingProfile>();
+            });
+
             return mapperConfiguration.CreateMapper();
         }
 
@@ -2984,9 +2994,9 @@ namespace CalculateFunding.Services.Results.Services
             return new Reference("authorId", "authorName");
         }
 
-        static Period CreateFundingPeriod(Reference reference)
+        static PolicyModels.Period CreateFundingPeriod(Reference reference)
         {
-            return new Period
+            return new PolicyModels.Period
             {
                 Id = reference.Id,
                 Name = reference.Name,

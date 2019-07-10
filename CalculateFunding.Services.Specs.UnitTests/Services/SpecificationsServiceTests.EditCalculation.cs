@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Specs;
@@ -804,9 +806,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .IsCalculationNameValid(Arg.Is(specification.Id), Arg.Is("Another name"), Arg.Is(CalculationId))
                 .Returns(false);
 
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IMapper mapper = CreateImplementedMapper();
 
-            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(specificationsRepository, calculationsRepository, policiesRepository);
+            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(mapper, specificationsRepository, calculationsRepository, policiesApiClient);
 
             SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
                 calculationEditModelValidator: validator);
@@ -821,11 +824,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         private IValidator<CalculationEditModel> CreateRealEditCalculationValidator(
+            IMapper mapper,
             ISpecificationsRepository specificationsRepository,
             ICalculationsRepository calculationsRepository,
-            IPoliciesRepository policiesRepository)
+            IPoliciesApiClient policiesApiCLient)
         {
-            return new CalculationEditModelValidator(specificationsRepository, calculationsRepository, policiesRepository);
+            return new CalculationEditModelValidator(mapper, specificationsRepository, calculationsRepository, policiesApiCLient);
         }
     }
 }

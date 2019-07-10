@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using AutoMapper;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -17,6 +18,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Models.Policy;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
@@ -41,7 +44,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         private SpecificationsService CreateService(
             IMapper mapper = null,
             ISpecificationsRepository specificationsRepository = null,
-            IPoliciesRepository policiesRepository = null,
+            IPoliciesApiClient policiesApiClient = null,
             ILogger logs = null,
             IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null,
@@ -60,7 +63,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
-                policiesRepository ?? CreatePoliciesRepository(),
+                policiesApiClient ?? CreatePoliciesApiClient(),
                 logs ?? CreateLogger(),
                 policyCreateModelValidator ?? CreatePolicyValidator(),
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(),
@@ -109,7 +112,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
         protected IMapper CreateImplementedMapper()
         {
-            MapperConfiguration mappingConfiguration = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+            MapperConfiguration mappingConfiguration = new MapperConfiguration(
+                c =>
+                {
+                    c.AddProfile<SpecificationsMappingProfile>();
+                    c.AddProfile<PolicyMappingProfile>();
+                }
+            );
             IMapper mapper = mappingConfiguration.CreateMapper();
             return mapper;
         }
@@ -129,14 +138,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             return Substitute.For<ISpecificationsRepository>();
         }
 
+        protected IPoliciesApiClient CreatePoliciesApiClient()
+        {
+            return Substitute.For<IPoliciesApiClient>();
+        }
+
         protected ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
-        }
-
-        protected IPoliciesRepository CreatePoliciesRepository()
-        {
-            return Substitute.For<IPoliciesRepository>();
         }
 
         protected ILogger CreateLogger()

@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common" Version="1.33.0" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient" Version="1.0.15" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient" Version="1.0.16" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="1.0.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.2" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.2" />

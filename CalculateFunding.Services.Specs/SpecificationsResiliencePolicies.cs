@@ -6,5 +6,7 @@ namespace CalculateFunding.Services.Specs
     public class SpecificationsResiliencePolicies : ISpecificationsResiliencePolicies
     {
         public Policy JobsApiClient { get; set; }
+
+        public Policy PoliciesApiClient { get; set; }
     }
 }

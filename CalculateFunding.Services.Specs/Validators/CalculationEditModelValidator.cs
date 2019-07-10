@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Specs.Validators
 {
@@ -13,17 +17,20 @@ namespace CalculateFunding.Services.Specs.Validators
     {
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly ICalculationsRepository _calculationsRepository;
-        private readonly IPoliciesRepository _policiesRepository;
+        private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly IMapper _mapper;
 
-        public CalculationEditModelValidator(ISpecificationsRepository specificationsRepository, ICalculationsRepository calculationsRepository, IPoliciesRepository policiesRepository)
+        public CalculationEditModelValidator(IMapper mapper, ISpecificationsRepository specificationsRepository, ICalculationsRepository calculationsRepository, IPoliciesApiClient policiesApiClient)
         {
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
-            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
 
             _specificationsRepository = specificationsRepository;
             _calculationsRepository = calculationsRepository;
-            _policiesRepository = policiesRepository;
+            _policiesApiClient = policiesApiClient;
+            _mapper = mapper;
 
             RuleFor(model => model.Description)
                .NotEmpty()
@@ -97,7 +104,8 @@ namespace CalculateFunding.Services.Specs.Validators
 
                         if (!string.IsNullOrWhiteSpace(model.SpecificationId) && !string.IsNullOrWhiteSpace(model.AllocationLineId))
                         {
-                            IEnumerable<FundingStream> fundingStreams = await _policiesRepository.GetFundingStreams();
+                            ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = await _policiesApiClient.GetFundingStreams();
+                            IEnumerable<FundingStream> fundingStreams = _mapper.Map<IEnumerable<FundingStream>>(fundingStreamsResponse?.Content);
                             if (fundingStreams == null)
                             {
                                 context.AddFailure("Unable to query funding streams, result returned null");

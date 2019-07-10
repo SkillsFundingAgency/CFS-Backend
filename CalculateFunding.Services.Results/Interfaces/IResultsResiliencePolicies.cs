@@ -29,5 +29,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Policy ProviderCalculationResultsSearchRepository { get; set; }
 
         Policy ProviderVersionsSearchRepository { get; set; }
+
+        Policy PoliciesApiClient { get; set; }
     }
 }

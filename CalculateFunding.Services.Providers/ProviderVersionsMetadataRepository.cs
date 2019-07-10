@@ -71,6 +71,12 @@ namespace CalculateFunding.Services.Providers
             return providerVersionsByDate.Select(x => x.Content).FirstOrDefault();
         }
 
+        public async Task<IEnumerable<ProviderVersion>> GetProviderVersions(string fundingStream)
+        {
+            IEnumerable<DocumentEntity<ProviderVersion>> providerVersions = await _repository.GetAllDocumentsAsync<ProviderVersion>(query: m => m.Content.FundingStream == fundingStream);
+            return providerVersions?.Select(x => x.Content);
+        }
+
         public async Task<bool> Exists(string name, string providerVersionTypeString, int version, string fundingStream)
         {
             IEnumerable<DocumentEntity<ProviderVersion>> results = await _repository

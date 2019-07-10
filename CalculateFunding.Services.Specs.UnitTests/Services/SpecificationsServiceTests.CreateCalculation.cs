@@ -8,6 +8,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy;
@@ -28,6 +30,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -202,6 +205,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             List<FundingStream> fundingStreams = new List<FundingStream>();
 
+            Policy policy = new Policy
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
+
+            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
+
+            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+
             FundingStream fundingStream = new FundingStream
             {
                 AllocationLines = new List<AllocationLine>
@@ -212,12 +229,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             };
 
             fundingStreams.Add(fundingStream);
-
-            Policy policy = new Policy
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
 
             Specification specification = new Specification
             {
@@ -253,14 +264,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            policiesRepository
-               .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-               .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, new List<PolicyModels.FundingStream> { new PolicyModels.FundingStream() }));
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -276,7 +287,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Map<Calculation>(Arg.Any<CalculationCreateModel>())
                 .Returns(calculation);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper, policiesRepository: policiesRepository);
+            mapper
+                .Map<IEnumerable<FundingStream>>(Arg.Any<IEnumerable<PolicyModels.FundingStream>>())
+                .Returns(fundingStreams);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper, policiesApiClient: policiesApiClient);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -310,6 +325,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             List<FundingStream> fundingStreams = new List<FundingStream>();
 
+            Policy policy = new Policy
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
+
+            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
+
+            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+
             FundingStream fundingStream = new FundingStream
             {
                 AllocationLines = new List<AllocationLine>
@@ -320,12 +349,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             };
 
             fundingStreams.Add(fundingStream);
-
-            Policy policy = new Policy
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
 
             Specification specification = CreateSpecification();
             specification.Current.Policies = new[] { policy };
@@ -375,15 +398,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            policiesRepository
-                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-                .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, new List<PolicyModels.FundingStream> { new PolicyModels.FundingStream()}));
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -399,6 +422,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Map<Calculation>(Arg.Any<CalculationCreateModel>())
                 .Returns(calculation);
 
+            mapper
+                .Map<IEnumerable<FundingStream>>(Arg.Any<IEnumerable<PolicyModels.FundingStream>>())
+                .Returns(fundingStreams);
+
             IMessengerService messengerService = CreateMessengerService();
 
             ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
@@ -407,7 +434,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(new List<IndexError>());
 
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.PublishStatus = PublishStatus.Updated;
+            newSpecVersion.PublishStatus = Models.Versioning.PublishStatus.Updated;
             newSpecVersion.Version = 2;
             IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
             mockVersionRepository
@@ -416,7 +443,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
                 mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository,
-                policiesRepository: policiesRepository);
+                policiesApiClient: policiesApiClient);
 
 
             //Act
@@ -464,6 +491,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             List<FundingStream> fundingStreams = new List<FundingStream>();
 
+            Policy policy = new Policy
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
+
+            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
+
+            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+
             FundingStream fundingStream = new FundingStream
             {
                 AllocationLines = new List<AllocationLine>
@@ -474,12 +515,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             };
 
             fundingStreams.Add(fundingStream);
-
-            Policy policy = new Policy
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
 
             Specification specification = CreateSpecification();
             specification.Current.Policies = new[] { policy };
@@ -529,15 +564,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            policiesRepository
-               .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-               .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, new List<PolicyModels.FundingStream> { new PolicyModels.FundingStream() }));
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -553,10 +588,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Map<Calculation>(Arg.Any<CalculationCreateModel>())
                 .Returns(calculation);
 
+            mapper
+                .Map<IEnumerable<FundingStream>>(Arg.Any<IEnumerable<PolicyModels.FundingStream>>())
+                .Returns(fundingStreams);
+
             IMessengerService messengerService = CreateMessengerService();
 
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.PublishStatus = PublishStatus.Updated;
+            newSpecVersion.PublishStatus = Models.Versioning.PublishStatus.Updated;
             newSpecVersion.Version = 2;
 
             IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
@@ -566,7 +605,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
                 mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository,
-                policiesRepository: policiesRepository);
+                policiesApiClient: policiesApiClient);
 
             //Act
             IActionResult result = await service.CreateCalculation(request);
@@ -607,6 +646,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             List<FundingStream> fundingStreams = new List<FundingStream>();
 
+            Policy policy = new Policy
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
+
+            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            {
+                Id = PolicyId,
+                Name = PolicyName,
+            };
+
+            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+
             FundingStream fundingStream = new FundingStream
             {
                 AllocationLines = new List<AllocationLine>
@@ -617,12 +670,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             };
 
             fundingStreams.Add(fundingStream);
-
-            Policy policy = new Policy
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
 
             Specification specification = CreateSpecification();
             specification.Current.Policies = new[] { policy };
@@ -672,15 +719,15 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
             specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns(specification);
 
-            policiesRepository
-                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-                .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, new List<PolicyModels.FundingStream> { new PolicyModels.FundingStream() }));
 
             specificationsRepository
                 .UpdateSpecification(Arg.Is(specification))
@@ -696,6 +743,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Map<Calculation>(Arg.Any<CalculationCreateModel>())
                 .Returns(calculation);
 
+            mapper
+                .Map<IEnumerable<FundingStream>>(Arg.Any<IEnumerable<PolicyModels.FundingStream>>())
+                .Returns(fundingStreams);
+
             IMessengerService messengerService = CreateMessengerService();
 
             ISearchRepository<SpecificationIndex> mockSearchRepository = CreateSearchRepository();
@@ -704,7 +755,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(new List<IndexError>() { new IndexError() { ErrorMessage = errorMessage } });
 
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.PublishStatus = PublishStatus.Updated;
+            newSpecVersion.PublishStatus = Models.Versioning.PublishStatus.Updated;
             newSpecVersion.Version = 2;
             IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
             mockVersionRepository
@@ -713,7 +764,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
                 mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository, searchRepository: mockSearchRepository,
-                policiesRepository: policiesRepository);
+                policiesApiClient: policiesApiClient);
 
 
             //Act

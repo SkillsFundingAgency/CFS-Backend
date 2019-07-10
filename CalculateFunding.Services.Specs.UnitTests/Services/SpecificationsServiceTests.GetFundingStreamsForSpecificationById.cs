@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
@@ -15,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -28,8 +33,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             const string specificationId = "spec1";
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, policiesRepository: policiesRepository);
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+
+            IMapper mapper = CreateImplementedMapper();
+            SpecificationsService specificationsService = CreateService(mapper: mapper, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient);
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
@@ -60,25 +67,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            List<FundingStream> fundingStreams = new List<FundingStream>()
+            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream()
             {
-                new FundingStream()
-                {
-                    Id = "fs1",
-                    Name = "Funding Stream 1",
-                    AllocationLines = new List<AllocationLine>(),
-                },
-                new FundingStream()
-                {
-                    Id = "fs2",
-                    Name = "Funding Stream Two",
-                    AllocationLines = new List<AllocationLine>(),
-                }
+                Id = "fs1",
+                Name = "Funding Stream 1",
+                AllocationLines = new List<PolicyModels.AllocationLine>(),
             };
 
-            policiesRepository
-                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-                .Returns(fundingStreams);
+            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
+
+            policiesApiClient
+                .GetFundingStreamById(Arg.Is<string>(fundingStream.Id))
+                .Returns(fundingStreamResponse);
 
             // Act
             IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
@@ -91,12 +91,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 {
                     Id = "fs1",
                     Name = "Funding Stream 1",
-                    AllocationLines = new List<AllocationLine>(),
-                },
-                new FundingStream()
-                {
-                    Id = "fs2",
-                    Name = "Funding Stream Two",
                     AllocationLines = new List<AllocationLine>(),
                 }
             };
@@ -112,9 +106,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Received(1)
                 .GetSpecificationById(Arg.Is(specificationId));
 
-            await policiesRepository
+            await policiesApiClient
                 .Received(1)
-                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>());
+                .GetFundingStreamById(fundingStream.Id);
         }
 
         [TestMethod]
@@ -194,9 +188,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             const string specificationId = "spec1";
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, policiesRepository: policiesRepository);
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient);
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
@@ -227,11 +221,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            List<FundingStream> fundingStreams = new List<FundingStream>();
+            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, null);
 
-            policiesRepository
-                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-                .Returns(fundingStreams);
+            policiesApiClient
+                .GetFundingStreamById(Arg.Any<string>())
+                .Returns(fundingStreamResponse);
 
             // Act
             IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
@@ -249,9 +243,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Received(1)
                 .GetSpecificationById(Arg.Is(specificationId));
 
-            await policiesRepository
+            await policiesApiClient
                 .Received(1)
-                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>());
+                .GetFundingStreamById(Arg.Any<string>());
         }
 
         [TestMethod]
@@ -261,9 +255,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             const string specificationId = "spec1";
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, policiesRepository: policiesRepository);
+            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient);
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
@@ -290,11 +284,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            List<FundingStream> fundingStreams = new List<FundingStream>();
+            List<PolicyModels.FundingStream> fundingStreams = new List<PolicyModels.FundingStream>();
 
-            policiesRepository
-                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>())
-                .Returns(fundingStreams);
+            ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams);
+
+            policiesApiClient
+                .GetFundingStreams()
+                .Returns(fundingStreamsResponse);
 
             // Act
             IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
@@ -312,9 +308,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Received(1)
                 .GetSpecificationById(Arg.Is(specificationId));
 
-            await policiesRepository
+            await policiesApiClient
                 .Received(0)
-                .GetFundingStreams(Arg.Any<Expression<Func<FundingStream, bool>>>());
+                .GetFundingStreams();
         }
 
     }

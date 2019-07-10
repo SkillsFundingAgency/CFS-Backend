@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
@@ -22,6 +24,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
@@ -34,20 +37,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             const string fundingStreamId = "fs1";
             const string fundingPeriodId = "fp1";
 
-
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
             IMapper mapper = CreateImplementedMapper();
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
 
             SpecificationsService specificationsService = CreateService(
                 specificationsRepository: specificationsRepository,
+                policiesApiClient: policiesApiClient,
                 searchRepository: searchRepository,
                 mapper: mapper,
-                specificationVersionRepository: versionRepository,
-                policiesRepository: policiesRepository);
+                specificationVersionRepository: versionRepository);
 
             SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
             {
@@ -84,26 +86,30 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                 .Returns((Specification)null);
 
-            Period fundingPeriod = new Period()
+            PolicyModels.Period fundingPeriod = new PolicyModels.Period
             {
                 Id = fundingPeriodId,
                 Name = "Funding Period 1"
             };
 
-            policiesRepository
-                .GetPeriodById(Arg.Is(fundingPeriodId))
-                .Returns(fundingPeriod);
+            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
 
-            FundingStream fundingStream = new FundingStream()
+            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = fundingStreamId,
                 Name = "Funding Stream 1",
-                AllocationLines = new List<AllocationLine>(),
+                AllocationLines = new List<PolicyModels.AllocationLine>()
             };
 
-            policiesRepository
+            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
+
+            policiesApiClient
+                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .Returns(fundingPeriodResponse);
+
+            policiesApiClient
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
-                .Returns(fundingStream);
+                .Returns(fundingStreamResponse);
 
             DateTime createdDate = new DateTime(2018, 1, 2, 5, 6, 2);
 
@@ -194,16 +200,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            IPoliciesRepository policiesRepository = CreatePoliciesRepository();
 
             IMapper mapper = CreateImplementedMapper();
 
             SpecificationsService specificationsService = CreateService(
                 specificationsRepository: specificationsRepository,
+                policiesApiClient: policiesApiClient,
                 searchRepository: searchRepository,
-                mapper: mapper,
-                policiesRepository: policiesRepository);
+                mapper: mapper);
 
             SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
             {
@@ -240,30 +246,34 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                 .Returns((Specification)null);
 
-            Period fundingPeriod = new Period()
+            PolicyModels.Period fundingPeriod = new PolicyModels.Period
             {
                 Id = fundingPeriodId,
                 Name = "Funding Period 1"
             };
 
-            policiesRepository
-                .GetPeriodById(Arg.Is(fundingPeriodId))
-                .Returns(fundingPeriod);
+            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
 
-            FundingStream fundingStream = new FundingStream()
+            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = fundingStreamId,
                 Name = "Funding Stream 1",
-                AllocationLines = new List<AllocationLine>(),
+                AllocationLines = new List<PolicyModels.AllocationLine>()
             };
 
-            policiesRepository
-                .GetFundingStreamById(Arg.Is(fundingStreamId))
-                .Returns(fundingStream);
+            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
 
-            policiesRepository
+            policiesApiClient
+                .GetFundingPeriodById(Arg.Is(fundingPeriodId))
+                .Returns(fundingPeriodResponse);
+
+            policiesApiClient
+                .GetFundingStreamById(Arg.Is(fundingStreamId))
+                .Returns(fundingStreamResponse);
+
+            policiesApiClient
                 .GetFundingStreamById(Arg.Is(fundingStreamNotFoundId))
-                .Returns((FundingStream)null);
+                .Returns(new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, null));
 
             // Act
             IActionResult result = await specificationsService.CreateSpecification(request);
@@ -277,11 +287,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .Be("Unable to find funding stream with ID 'notfound'.");
 
-            await policiesRepository
+            await policiesApiClient
                 .Received(1)
                 .GetFundingStreamById(Arg.Is(fundingStreamNotFoundId));
 
-            await policiesRepository
+            await policiesApiClient
                 .Received(1)
                 .GetFundingStreamById(Arg.Is(fundingStreamId));
         }

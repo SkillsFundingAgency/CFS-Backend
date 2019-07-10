@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
-            CalculationService service = CreateCalculationService(repository, logger);
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger);
 
             //Act
             await service.CreateCalculation(message);
@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             IValidator<Calculation> validator = CreateCalculationValidator(validationResult);
 
-            CalculationService service = CreateCalculationService(repository, logger, calcValidator: validator);
+            CalculationService service = CreateCalculationService(calculationsRepository: repository, logger: logger, calcValidator: validator);
 
             //Act
             Func<Task> test = async () => await service.CreateCalculation(message);

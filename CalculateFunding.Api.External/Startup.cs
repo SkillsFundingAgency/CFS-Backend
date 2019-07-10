@@ -325,9 +325,6 @@ namespace CalculateFunding.Api.External
             builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
 
-            builder.AddSingleton<Services.Results.Interfaces.IPoliciesRepository, Services.Results.Repositories.PoliciesRepository>();
-            
-
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
 

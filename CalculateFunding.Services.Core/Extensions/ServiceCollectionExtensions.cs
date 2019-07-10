@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
@@ -200,18 +201,21 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static IServiceCollection AddPoliciesInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
+            builder.AddHttpClient(HttpClientKeys.Policies,
+               c =>
+               {
+                   ApiOptions apiOptions = new ApiOptions();
+
+                   config.Bind("policiesClient", apiOptions);
+
+                   SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+               })
+               .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+               .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
+               .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
+
             builder
-                 .AddSingleton<IPoliciesApiClientProxy, PoliciesApiProxy>((ctx) =>
-                 {
-                     ApiOptions apiOptions = new ApiOptions();
-
-                     config.Bind("policiesClient", apiOptions);
-
-                     ILogger logger = ctx.GetService<ILogger>();
-                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
-
-                     return new PoliciesApiProxy(apiOptions, logger, correlationIdProvider);
-                 });
+                .AddSingleton<IPoliciesApiClient, PoliciesApiClient>();
 
             return builder;
         }

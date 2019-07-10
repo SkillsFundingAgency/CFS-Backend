@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -7,6 +9,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
@@ -24,13 +27,14 @@ namespace CalculateFunding.Services.Calcs.Services
         const string Username = "test-user";
 
         private static CalculationService CreateCalculationService(
+            IMapper mapper = null,
             ICalculationsRepository calculationsRepository = null,
             ILogger logger = null,
             ISearchRepository<CalculationIndex> searchRepository = null,
             IValidator<Calculation> calcValidator = null,
             IBuildProjectsService buildProjectsService = null,
             ISpecificationRepository specificationRepository = null,
-            IPoliciesRepository policiesRepository = null,
+            IPoliciesApiClient policiesApiClient = null,
             ICacheProvider cacheProvider = null,
             ICalcsResiliencePolicies resiliencePolicies = null,
             IVersionRepository<CalculationVersion> calculationVersionRepository = null,
@@ -41,13 +45,14 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = null)
         {
             return new CalculationService
-                (calculationsRepository ?? CreateCalculationsRepository(),
+                (mapper ?? CreateMapper(),
+                calculationsRepository ?? CreateCalculationsRepository(),
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
                 calcValidator ?? CreateCalculationValidator(),
                 buildProjectsService ?? CreateBuildProjectsService(),
                 specificationRepository ?? CreateSpecificationRepository(),
-                policiesRepository ?? CreatePoliciesRepository(),
+                policiesApiClient ?? CreatePoliciesApiClient(),
                 cacheProvider ?? CreateCacheProvider(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 calculationVersionRepository ?? CreateCalculationVersionRepository(),
@@ -98,6 +103,16 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ILogger>();
         }
 
+        private static IMapper CreateMapper()
+        {
+            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<PolicyMappingProfile>();
+            });
+
+            return resultsConfig.CreateMapper();
+        }
+
         private static ISearchRepository<CalculationIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<CalculationIndex>>();
@@ -108,9 +123,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return Substitute.For<ISpecificationRepository>();
         }
 
-        private static IPoliciesRepository CreatePoliciesRepository()
+        private static IPoliciesApiClient CreatePoliciesApiClient()
         {
-            return Substitute.For<IPoliciesRepository>();
+            return Substitute.For<IPoliciesApiClient>();
         }
 
         private static IBuildProjectsRepository CreateBuildProjectsRepository()

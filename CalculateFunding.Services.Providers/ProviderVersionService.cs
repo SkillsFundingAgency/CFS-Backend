@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -116,6 +117,18 @@ namespace CalculateFunding.Services.Providers
             }
 
             return providerVersionByDate;
+        }
+
+        public async Task<IActionResult> GetProviderVersions(string fundingStream)
+        {
+            IEnumerable<ProviderVersion> providerVersions = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.GetProviderVersions(fundingStream));
+
+            if(providerVersions != null)
+            {
+                return new OkObjectResult(providerVersions);
+            }
+
+            return new NotFoundResult();
         }
 
         public async Task<MasterProviderVersion> GetMasterProviderVersion()
@@ -302,7 +315,7 @@ namespace CalculateFunding.Services.Providers
             if (validationResult != null) return validationResult;
 
             ProviderVersion providerVersion = _mapper.Map<ProviderVersion>(providerVersionModel);
-            providerVersion.Id = $"providerVersion-{ providerVersionId }";
+            providerVersion.Id = $"providerVersion-{providerVersionId}";
 
             await UploadProviderVersionBlob(providerVersionId, providerVersion);
 

@@ -1,15 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Services.Specs.Validators;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Validators
 {
@@ -52,7 +58,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
-            CalculationCreateModelValidator validator = CreateValidator(specsRepo);
+            CalculationCreateModelValidator validator = CreateValidator(specsRepository: specsRepo);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -96,7 +102,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 .IsCalculationNameValid(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(false);
 
-            CalculationCreateModelValidator validator = CreateValidator(repository, calculationsRepository);
+            CalculationCreateModelValidator validator = CreateValidator(specsRepository: repository, calculationsRepository: calculationsRepository);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -154,41 +160,41 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 }
             };
 
-            IEnumerable<FundingStream> defaultFundingStreams = new List<FundingStream>
+            IEnumerable<PolicyModels.FundingStream> defaultFundingStreams = new List<PolicyModels.FundingStream>
             {
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Id = "fs1",
                     Name = "Funding Stream 1",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id="al1",
                             Name= "Allocation Line 1",
                         }
                     }
                 },
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Id = "fs2",
                     Name = "Funding Stream 2",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id="al2",
                             Name= "Allocation Line 2",
                         }
                     }
                 },
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Id = "fs3",
                     Name = "Funding Stream 3",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id=allocationLineid,
                             Name= "Allocation Line which should be found",
@@ -270,41 +276,41 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 {
                     CreateModel(_calculationType: calculationType),
                     defaultSpecification,
-                    new List<FundingStream>
+                    new List<PolicyModels.FundingStream>
                     {
-                        new FundingStream
+                        new PolicyModels.FundingStream
                         {
                             Id = "fs1",
                             Name = "Funding Stream 1",
-                            AllocationLines = new List<AllocationLine>()
+                            AllocationLines = new List<PolicyModels.AllocationLine>()
                             {
-                                new AllocationLine()
+                                new PolicyModels.AllocationLine()
                                 {
                                     Id = "al1",
                                     Name = "Allocation Line 1",
                                 }
                             }
                         },
-                        new FundingStream
+                        new PolicyModels.FundingStream
                         {
                             Id = "fs2",
                             Name = "Funding Stream 2",
-                            AllocationLines = new List<AllocationLine>()
+                            AllocationLines = new List<PolicyModels.AllocationLine>()
                             {
-                                new AllocationLine()
+                                new PolicyModels.AllocationLine()
                                 {
                                     Id = "al2",
                                     Name = "Allocation Line 2",
                                 }
                             }
                         },
-                        new FundingStream
+                        new PolicyModels.FundingStream
                         {
                             Id = "fs3",
                             Name = "Funding Stream 3",
-                            AllocationLines = new List<AllocationLine>()
+                            AllocationLines = new List<PolicyModels.AllocationLine>()
                             {
-                                new AllocationLine()
+                                new PolicyModels.AllocationLine()
                                 {
                                     Id = "al3",
                                     Name = "Allocation Line which should be found",
@@ -325,23 +331,24 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         [DynamicData(nameof(ValidateWithSpecificationAndFundingStreamsTestCases), DynamicDataSourceType.Method)]
         public void ValidateWithSpecificationAndFundingStreams_ValidatesAsExpected(CalculationCreateModel model,
             Specification specification,
-            IEnumerable<FundingStream> fundingStreams,
+            IEnumerable<PolicyModels.FundingStream> fundingStreams,
             bool expectedResult,
             IEnumerable<string> expectedErrors)
         {
             //Arrange
             ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
-            IPoliciesRepository policiesRepo = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams);
 
             specsRepo
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
-            policiesRepo
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreams);
+                .Returns(fundingStreamsResponse);
 
-            CalculationCreateModelValidator validator = CreateValidator(specsRepo, policiesRepository: policiesRepo);
+            CalculationCreateModelValidator validator = CreateValidator(specsRepository: specsRepo, policiesApiClient: policiesApiClient);
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -399,22 +406,36 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return repository;
         }
 
-        private static IPoliciesRepository CreatePoliciesRepository()
+        private static IPoliciesApiClient CreatePoliciesApiClient()
         {
-            IPoliciesRepository repository = Substitute.For<IPoliciesRepository>();
+            IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>();
 
-            return repository;
+            return policiesApiClient;
+        }
+
+        private static IMapper CreateMapper()
+        {
+            MapperConfiguration mappingConfiguration = new MapperConfiguration(
+                c =>
+                {
+                    c.AddProfile<PolicyMappingProfile>();
+                }
+            );
+            IMapper mapper = mappingConfiguration.CreateMapper();
+            return mapper;
         }
 
         private static CalculationCreateModelValidator CreateValidator(
+            IMapper mapper = null,
             ISpecificationsRepository specsRepository = null, 
             ICalculationsRepository calculationsRepository = null,
-            IPoliciesRepository policiesRepository = null)
+            IPoliciesApiClient policiesApiClient = null)
         {
             return new CalculationCreateModelValidator(
+                mapper ?? CreateMapper(),
                 specsRepository ?? CreateSpecificationsRepository(),
                 calculationsRepository ?? CreateCalculationsRepository(),
-                policiesRepository ?? CreatePoliciesRepository());
+                policiesApiClient ?? CreatePoliciesApiClient());
         }
 
         private static ICalculationsRepository CreateCalculationsRepository(bool isCalculationNameValid = true)

@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
@@ -52,7 +53,6 @@ namespace CalculateFunding.Functions.Specs
         {
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();
-            builder.AddSingleton<IPoliciesRepository, PoliciesRepository>();
             builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
             builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
@@ -91,7 +91,25 @@ namespace CalculateFunding.Functions.Specs
                 return new VersionRepository<SpecificationVersion>(resultsRepostory);
             });
 
-            MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<SpecificationsMappingProfile>());
+            builder.AddSingleton<ISpecificationsResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                Polly.Policy redisPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy);
+
+                return new SpecificationsResiliencePolicies()
+                {
+                    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+            });
+
+            MapperConfiguration mappingConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<SpecificationsMappingProfile>();
+                c.AddProfile<PolicyMappingProfile>();
+            });
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 

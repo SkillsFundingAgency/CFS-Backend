@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
@@ -37,7 +38,7 @@ namespace CalculateFunding.Services.Results.Services
             ITelemetry telemetry = null,
             ICalculationResultsRepository resultsRepository = null,
             ISpecificationsRepository specificationsRepository = null,
-            IPoliciesRepository policiesRepository = null,
+            IPoliciesApiClient policiesApiClient = null,
             IResultsResiliencePolicies resiliencePolicies = null,
             IPublishedProviderResultsAssemblerService publishedProviderResultsAssemblerService = null,
             IPublishedProviderResultsRepository publishedProviderResultsRepository = null,
@@ -75,7 +76,7 @@ namespace CalculateFunding.Services.Results.Services
                 jobsApiClient ?? CreateJobsApiClient(),
                 publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings(),
                 providerChangesRepository ?? CreateProviderChangesRepository(),
-                providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService(), policiesRepository ?? CreatePoliciesRepository()),
+                providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService(), policiesApiClient ?? CreatePoliciesApiClient()),
                 providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository()
                 );
         }
@@ -87,13 +88,14 @@ namespace CalculateFunding.Services.Results.Services
 
         static IProviderVariationsService CreateProviderVariationsService(
             IProviderVariationAssemblerService providerVariationAssemblerService,
-            IPoliciesRepository policiesRepository,
+            IPoliciesApiClient policiesApiClient = null,
             ILogger logger = null,
             IMapper mapper = null)
         {
             return new ProviderVariationsService(
                 providerVariationAssemblerService,
-                policiesRepository,
+                policiesApiClient ?? CreatePoliciesApiClient(),
+                ResultsResilienceTestHelper.GenerateTestPolicies(),
                 logger ?? CreateLogger(),
                 mapper ?? CreateRealMapper()
                 );
@@ -200,9 +202,9 @@ namespace CalculateFunding.Services.Results.Services
             return Substitute.For<IProviderChangesRepository>();
         }
 
-        static IPoliciesRepository CreatePoliciesRepository()
+        static IPoliciesApiClient CreatePoliciesApiClient()
         {
-            return Substitute.For<IPoliciesRepository>();
+            return Substitute.For<IPoliciesApiClient>();
         }
 
         static IMapper CreateRealMapper()

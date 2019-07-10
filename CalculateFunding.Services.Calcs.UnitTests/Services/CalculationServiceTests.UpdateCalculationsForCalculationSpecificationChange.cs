@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
@@ -24,6 +26,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using Reference = CalculateFunding.Common.Models.Reference;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -265,7 +268,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 SpecificationId = specificationId
             };
@@ -366,7 +369,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId
@@ -486,46 +489,46 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId,
             };
 
-            FundingStream expectedFundingStream = new FundingStream()
+            PolicyModels.FundingStream expectedFundingStream = new PolicyModels.FundingStream()
             {
                 Name = "FundingStream1",
                 Id = "FS1",
-                AllocationLines = new List<AllocationLine>()
+                AllocationLines = new List<PolicyModels.AllocationLine>()
                 {
-                    new AllocationLine()
+                    new PolicyModels.AllocationLine()
                     {
                         Id = allocationLineIdForFs1
                     }
                 }
             };
-            IEnumerable<FundingStream> fundingStreamsToReturn = new List<FundingStream>()
+            IEnumerable<PolicyModels.FundingStream> fundingStreamsToReturn = new List<PolicyModels.FundingStream>()
             {
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS2",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS2"
                         }
                     }
                 },
                 expectedFundingStream,
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS3",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS3"
                         }
@@ -546,15 +549,15 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
-            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient mockPoliciesApiClient = CreatePoliciesApiClient();
 
             mockSpecificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            mockPoliciesRepository
+            mockPoliciesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreamsToReturn);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreamsToReturn));
 
             ICalculationsRepository mockCalculationsRepository = CreateCalculationsRepository();
             mockCalculationsRepository
@@ -583,7 +586,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
-                    policiesRepository: mockPoliciesRepository,
+                    policiesApiClient: mockPoliciesApiClient,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
                     buildProjectsService: buildProjectsService,
@@ -650,46 +653,46 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId,
             };
 
-            FundingStream expectedFundingStream = new FundingStream()
+            PolicyModels.FundingStream expectedFundingStream = new PolicyModels.FundingStream()
             {
                 Name = "FundingStream1",
                 Id = "FS1",
-                AllocationLines = new List<AllocationLine>()
+                AllocationLines = new List<PolicyModels.AllocationLine>()
                 {
-                    new AllocationLine()
+                    new PolicyModels.AllocationLine()
                     {
                         Id = allocationLineIdForFs1
                     }
                 }
             };
-            IEnumerable<FundingStream> fundingStreamsToReturn = new List<FundingStream>()
+            IEnumerable<PolicyModels.FundingStream> fundingStreamsToReturn = new List<PolicyModels.FundingStream>()
             {
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS2",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS2"
                         }
                     }
                 },
                 expectedFundingStream,
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS3",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS3"
                         }
@@ -712,15 +715,15 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProject buildProject = new BuildProject();
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
-            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient mockPoliciesApiClient = CreatePoliciesApiClient();
 
             mockSpecificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            mockPoliciesRepository
+            mockPoliciesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreamsToReturn);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreamsToReturn));
 
             ICalculationsRepository mockCalculationsRepository = CreateCalculationsRepository();
             mockCalculationsRepository
@@ -747,7 +750,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
-                    policiesRepository: mockPoliciesRepository,
+                    policiesApiClient: mockPoliciesApiClient,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
                     buildProjectsService: buildProjectsService,
@@ -822,7 +825,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId,
@@ -954,7 +957,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId,
@@ -1076,7 +1079,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId,
@@ -1189,46 +1192,46 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId
             };
 
-            FundingStream expectedFundingStream = new FundingStream()
+            PolicyModels.FundingStream expectedFundingStream = new PolicyModels.FundingStream()
             {
                 Name = "FundingStream1",
                 Id = "FS1",
-                AllocationLines = new List<AllocationLine>()
+                AllocationLines = new List<PolicyModels.AllocationLine>()
                 {
-                    new AllocationLine()
+                    new PolicyModels.AllocationLine()
                     {
                         Id = allocationLineIdForFs1
                     }
                 }
             };
-            IEnumerable<FundingStream> fundingStreamsToReturn = new List<FundingStream>()
+            IEnumerable<PolicyModels.FundingStream> fundingStreamsToReturn = new List<PolicyModels.FundingStream>()
             {
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS2",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS2"
                         }
                     }
                 },
                 expectedFundingStream,
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS3",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS3"
                         }
@@ -1249,7 +1252,7 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
-            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
             mockSpecificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
@@ -1262,9 +1265,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> mockSearchRepository = CreateSearchRepository();
 
-            mockPoliciesRepository
+            policiesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreamsToReturn);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreamsToReturn));
 
             Build build = new Build
             {
@@ -1286,7 +1289,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
-                    policiesRepository: mockPoliciesRepository,
+                    policiesApiClient: policiesApiClient,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository,
                     sourceCodeService: sourceCodeService,
@@ -1354,32 +1357,32 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId
             };
-            IEnumerable<FundingStream> fundingStreamsToReturn = new List<FundingStream>()
+            IEnumerable<PolicyModels.FundingStream> fundingStreamsToReturn = new List<PolicyModels.FundingStream>()
             {
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS2",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS2"
                         }
                     }
                 },
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS3",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS3"
                         }
@@ -1400,11 +1403,11 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
-            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient mockPoliciesApiClient = CreatePoliciesApiClient();
 
-            mockPoliciesRepository
+            mockPoliciesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreamsToReturn);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreamsToReturn));
 
             mockSpecificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
@@ -1420,7 +1423,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
-                    policiesRepository: mockPoliciesRepository,
+                    policiesApiClient: mockPoliciesApiClient,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository);
 
@@ -1468,32 +1471,32 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId
             };
-            IEnumerable<FundingStream> fundingStreamsToReturn = new List<FundingStream>()
+            IEnumerable<PolicyModels.FundingStream> fundingStreamsToReturn = new List<PolicyModels.FundingStream>()
             {
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS2",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS2"
                         }
                     }
                 },
-                new FundingStream()
+                new PolicyModels.FundingStream()
                 {
                     Name = "FundingStream2",
                     Id = "FS3",
-                    AllocationLines = new List<AllocationLine>()
+                    AllocationLines = new List<PolicyModels.AllocationLine>()
                     {
-                        new AllocationLine()
+                        new PolicyModels.AllocationLine()
                         {
                             Id = "AllocLineFS3"
                         }
@@ -1514,11 +1517,11 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             ISpecificationRepository mockSpecificationRepository = CreateSpecificationRepository();
-            IPoliciesRepository mockPoliciesRepository = CreatePoliciesRepository();
+            IPoliciesApiClient mockPoliciesApiClient = CreatePoliciesApiClient();
 
-            mockPoliciesRepository
+            mockPoliciesApiClient
                 .GetFundingStreams()
-                .Returns(fundingStreamsToReturn);
+                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreamsToReturn));
 
             mockSpecificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
@@ -1534,7 +1537,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service =
                 CreateCalculationService(logger: mockLogger,
                     specificationRepository: mockSpecificationRepository,
-                    policiesRepository: mockPoliciesRepository,
+                    policiesApiClient: mockPoliciesApiClient,
                     calculationsRepository: mockCalculationsRepository,
                     searchRepository: mockSearchRepository);
 
@@ -1580,7 +1583,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId
@@ -1681,7 +1684,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId,
@@ -1846,7 +1849,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
-                    PublishStatus = PublishStatus.Approved
+                    PublishStatus = Models.Versioning.PublishStatus.Approved
                 },
                 CalculationSpecification = new Reference { Id = CalculationId, Name = "name" },
                 SpecificationId = specificationId

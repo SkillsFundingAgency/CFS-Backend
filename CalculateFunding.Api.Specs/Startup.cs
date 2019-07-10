@@ -18,6 +18,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
@@ -73,7 +74,6 @@ namespace CalculateFunding.Api.Specs
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
-            builder.AddSingleton<IPoliciesRepository, PoliciesRepository>();
             builder
                 .AddSingleton<ISpecificationsService, SpecificationsService>()
                 .AddSingleton<IHealthChecker, SpecificationsService>();
@@ -123,6 +123,7 @@ namespace CalculateFunding.Api.Specs
                 c =>
                 {
                     c.AddProfile<SpecificationsMappingProfile>();
+                    c.AddProfile<PolicyMappingProfile>();
                 }
             );
 
@@ -145,6 +146,7 @@ namespace CalculateFunding.Api.Specs
             builder.AddCalcsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
+
             builder.AddPolicySettings(Configuration);
 
             builder.AddSingleton<ISpecificationsResiliencePolicies>((ctx) =>
@@ -157,7 +159,8 @@ namespace CalculateFunding.Api.Specs
 
                 return new SpecificationsResiliencePolicies()
                 {
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

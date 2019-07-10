@@ -25,5 +25,7 @@ namespace CalculateFunding.Services.Calcs
         public Policy SourceFilesRepository { get; set; }
 
         public Policy DatasetsRepository { get; set; }
+
+        public Policy PoliciesApiClient { get; set; }
     }
 }

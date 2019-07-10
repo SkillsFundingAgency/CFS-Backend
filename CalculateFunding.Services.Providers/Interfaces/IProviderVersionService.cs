@@ -12,6 +12,7 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day);
         Task<MasterProviderVersion> GetMasterProviderVersion();
         Task<IActionResult> GetAllMasterProviders();
+        Task<IActionResult> GetProviderVersions(string fundingStream);
         Task<ProviderVersion> GetProvidersByVersion(string providerVersionId, bool useCache = false);
         Task<IActionResult> GetAllProviders(string providerVersionId, bool useCache = false);
         Task<IActionResult> GetAllProviders(int year, int month, int day);

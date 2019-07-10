@@ -8,10 +8,10 @@ namespace CalculateFunding.Models.Specs
 
         public IEnumerable<string> FundingStreamIds { get; set; }
 
+        public string ProviderVersionId { get; set; }
+
         public string Description { get; set; }
 
         public string Name { get; set; }
-
-        public string ProviderVersionId { get; set; }
     }
 }

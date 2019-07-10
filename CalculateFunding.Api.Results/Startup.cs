@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.MappingProfiles;
 using CalculateFunding.Services.Results.Repositories;
 using CalculateFunding.Services.Results.Validators;
 using FluentValidation;
@@ -97,6 +98,7 @@ namespace CalculateFunding.Api.Results
             {
                 c.AddProfile<DatasetsMappingProfile>();
                 c.AddProfile<ResultServiceMappingProfile>();
+                c.AddProfile<PolicyMappingProfile>();
             });
 
             builder
@@ -161,8 +163,7 @@ namespace CalculateFunding.Api.Results
             builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
 
             builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>()
-                .AddSingleton<IPoliciesRepository, PoliciesRepository>();
+                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
@@ -238,6 +239,7 @@ namespace CalculateFunding.Api.Results
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
 

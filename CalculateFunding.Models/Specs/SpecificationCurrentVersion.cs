@@ -28,6 +28,9 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("fundingStreams")]
         public IEnumerable<FundingStream> FundingStreams { get; set; }
 
+        [JsonProperty("providerVersionId")]
+        public string ProviderVersionId { get; set; }
+
         [JsonProperty("publishStatus")]
         public PublishStatus PublishStatus { get; set; }
 

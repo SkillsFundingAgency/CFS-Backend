@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -41,6 +44,7 @@ using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationCurrentVersion = CalculateFunding.Models.Calcs.CalculationCurrentVersion;
 using CalculationType = CalculateFunding.Models.Calcs.CalculationType;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -56,7 +60,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly IValidator<Calculation> _calculationValidator;
         private readonly IBuildProjectsService _buildProjectsService;
         private readonly ISpecificationRepository _specsRepository;
-        private readonly IPoliciesRepository _policiesRepository;
+        private readonly IPoliciesApiClient _policiesApiClient;
+        private readonly Polly.Policy _policiesApiClientPolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _calculationRepositoryPolicy;
         private readonly Polly.Policy _calculationSearchRepositoryPolicy;
@@ -71,15 +76,17 @@ namespace CalculateFunding.Services.Calcs
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly Polly.Policy _buildProjectRepositoryPolicy;
         private readonly ICalculationCodeReferenceUpdate _calculationCodeReferenceUpdate;
+        private readonly IMapper _mapper;
 
         public CalculationService(
+            IMapper mapper,
             ICalculationsRepository calculationsRepository,
             ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository,
             IValidator<Calculation> calculationValidator,
             IBuildProjectsService buildProjectsService,
             ISpecificationRepository specificationRepository,
-            IPoliciesRepository policiesRepository,
+            IPoliciesApiClient policiesApiClient,
             ICacheProvider cacheProvider,
             ICalcsResiliencePolicies resiliencePolicies,
             IVersionRepository<CalculationVersion> calculationVersionRepository,
@@ -89,13 +96,14 @@ namespace CalculateFunding.Services.Calcs
             IBuildProjectsRepository buildProjectsRepository,
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate)
         {
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(calculationValidator, nameof(calculationValidator));
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
-            Guard.ArgumentNotNull(policiesRepository, nameof(policiesRepository));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
@@ -105,12 +113,14 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(calculationCodeReferenceUpdate, nameof(calculationCodeReferenceUpdate));
 
+            _mapper = mapper;
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _searchRepository = searchRepository;
             _calculationValidator = calculationValidator;
             _specsRepository = specificationRepository;
-            _policiesRepository = policiesRepository;
+            _policiesApiClient = policiesApiClient;
+            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _calculationVersionRepository = calculationVersionRepository;
@@ -390,7 +400,7 @@ namespace CalculateFunding.Services.Calcs
 
                 CalculationVersion calculationVersion = new CalculationVersion
                 {
-                    PublishStatus = PublishStatus.Draft,
+                    PublishStatus = Models.Versioning.PublishStatus.Draft,
                     Author = user,
                     Date = DateTimeOffset.Now.ToLocalTime(),
                     Version = 1,
@@ -602,7 +612,8 @@ namespace CalculateFunding.Services.Calcs
 
                 if (!fundingStreamIdsForSpecification.IsNullOrEmpty())
                 {
-                    IEnumerable<FundingStream> allfundingStreams = await _specificationsRepositoryPolicy.ExecuteAsync(() => _policiesRepository.GetFundingStreams());
+                    ApiResponse<IEnumerable<PolicyModels.FundingStream>> allfundingStreamsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreams());
+                    IEnumerable<FundingStream> allfundingStreams = _mapper.Map<IEnumerable<FundingStream>>(allfundingStreamsResponse?.Content);
 
                     foreach (string fundingStreamId in fundingStreamIdsForSpecification)
                     {
@@ -755,7 +766,7 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Date = DateTimeOffset.Now.ToLocalTime(),
                     Author = user,
-                    PublishStatus = PublishStatus.Draft,
+                    PublishStatus = Models.Versioning.PublishStatus.Draft,
                     Version = 1
                 };
             }
@@ -906,7 +917,7 @@ namespace CalculateFunding.Services.Calcs
                 return new OkObjectResult(calculation.Current);
             }
 
-            if ((calculation.Current.PublishStatus == PublishStatus.Approved || calculation.Current.PublishStatus == PublishStatus.Updated) && editStatusModel.PublishStatus == PublishStatus.Draft)
+            if ((calculation.Current.PublishStatus == Models.Versioning.PublishStatus.Approved || calculation.Current.PublishStatus == Models.Versioning.PublishStatus.Updated) && editStatusModel.PublishStatus == Models.Versioning.PublishStatus.Draft)
             {
                 return new BadRequestObjectResult("Publish status can't be changed to Draft from Updated or Approved");
             }
