@@ -645,7 +645,7 @@
     "ehVersion": "2014-09-01",
     "cosmosDBeventHubName": "[concat('evh-cos-',parameters('environmentKey'))]",
     "cosmosdDBEventHubNameSpaceSASKeyName": "[concat('evhns-cos-',parameters('environmentKey'),'-SASKeyName')]",
-    "cosmosDBeventhubListenRuleName": "[concat('evh-  cos-',parameters('environmentKey'),'-ListenRule')]",
+    "cosmosDBeventhubListenRuleName": "[concat('evh-cos-',parameters('environmentKey'),'-ListenRule')]",
     "cosmosDBDiagSettingName": "[concat('cos-',parameters('environmentKey'),'-DiagSettingName')]"
   },
   "resources": [
