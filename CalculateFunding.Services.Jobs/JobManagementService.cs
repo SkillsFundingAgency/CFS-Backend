@@ -629,6 +629,8 @@ namespace CalculateFunding.Services.Jobs
             string data = !string.IsNullOrWhiteSpace(job.MessageBody) ? job.MessageBody : null;
             IDictionary<string, string> messageProperties = job.Properties;
 
+            string sessionId = null;
+
             if (messageProperties == null)
             {
                 messageProperties = new Dictionary<string, string> { { "jobId", job.Id } };
@@ -639,13 +641,26 @@ namespace CalculateFunding.Services.Jobs
                 {
                     messageProperties.Add("jobId", job.Id);
                 }
+
+                if (!string.IsNullOrWhiteSpace(jobDefinition.SessionMessageProperty))
+                {
+                    //Shouldn't happen as already validated
+                    if (!job.Properties.ContainsKey(jobDefinition.SessionMessageProperty))
+                    {
+                        string errorMessage = $"Missing session property on job with id '{job.Id}";
+                        _logger.Error(errorMessage);
+                        throw new Exception(errorMessage);
+                    }
+
+                    sessionId = job.Properties[jobDefinition.SessionMessageProperty];
+                }
             }
 
             try
             {
                 if (!string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue))
                 {
-                    await _messengerService.SendToQueueAsJson(jobDefinition.MessageBusQueue, data, messageProperties);
+                    await _messengerService.SendToQueueAsJson(jobDefinition.MessageBusQueue, data, messageProperties, sessionId: sessionId);
                 }
                 else
                 {

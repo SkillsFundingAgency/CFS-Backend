@@ -8,12 +8,12 @@ namespace CalculateFunding.Services.Core.Interfaces.ServiceBus
     {
         Task<(bool Ok, string Message)> IsHealthOk(string queueName);
 
-        Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false) where T : class;
+        Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class;
 
-        Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false);
+        Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null);
 
-        Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false) where T : class;
+        Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class;
 
-        Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false);
+        Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null);
     }
 }

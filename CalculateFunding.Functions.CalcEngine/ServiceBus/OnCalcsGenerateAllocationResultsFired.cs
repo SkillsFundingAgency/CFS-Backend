@@ -33,7 +33,9 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
         }
 
         [FunctionName("on-calcs-generate-allocations-event")]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(
+            ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
             _logger.Information("Scope created, starting to generate allocations");
 

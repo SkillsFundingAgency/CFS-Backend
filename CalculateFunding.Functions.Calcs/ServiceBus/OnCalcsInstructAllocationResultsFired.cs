@@ -32,7 +32,9 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         }
 
         [FunctionName("on-calcs-instruct-allocations")]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalculationJobInitialiser, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(
+            ServiceBusConstants.QueueNames.CalculationJobInitialiser, 
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
             try
             {

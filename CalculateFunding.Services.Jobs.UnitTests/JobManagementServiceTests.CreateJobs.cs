@@ -1343,6 +1343,252 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
+        public async Task CreateJobs_GivenCreateJobForQueueingToRunInSession_EnsuresMessageIsPlacedOnQueue()
+        {
+            //Arrange
+            const string specificationId = "spec-id-1";
+
+            string jobId = Guid.NewGuid().ToString();
+
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    SpecificationId =specificationId,
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" },
+                        { "specificationId", specificationId }
+                    }
+                }
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId,
+                    SupersedeExistingRunningJobOnEnqueue = true,
+                    MessageBusQueue = "TestQueue",
+                    SessionMessageProperty = "specificationId",
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = jobDefinitionId,
+                SpecificationId = "spec-id-1",
+                Id = jobId,
+                ItemCount = 1000,
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Trigger = new Trigger
+                {
+                    EntityId = "e-1",
+                    EntityType = "e-type",
+                    Message = "test"
+                },
+                Properties = new Dictionary<string, string>
+                {
+                    { "specificationId", specificationId },
+                    { "session-id", specificationId }
+                },
+                MessageBody = "a message"
+            };
+
+            IEnumerable<Job> currentJobs = new[]
+            {
+                new Job {
+                    JobDefinitionId = jobDefinitionId,
+                    SpecificationId = "spec-id-1",
+                    Id = "current-job-1",
+                    ItemCount = 100,
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Trigger = new Trigger
+                    {
+                        EntityId = "e-2",
+                        EntityType = "e-type-1",
+                        Message = "test"
+                    },
+                    RunningStatus = RunningStatus.InProgress
+                },
+                new Job {
+                    JobDefinitionId = jobDefinitionId,
+                    SpecificationId = "spec-id-1",
+                    Id = "current-job-2",
+                    ItemCount = 100,
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    Trigger = new Trigger
+                    {
+                        EntityId = "e-3",
+                        EntityType = "e-type-2",
+                        Message = "test"
+                    },
+                    RunningStatus = RunningStatus.InProgress
+                },
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .CreateJob(Arg.Any<Job>())
+                .Returns(job);
+
+            jobRepository
+                .UpdateJob(Arg.Any<Job>())
+                .Returns(HttpStatusCode.OK);
+
+            jobRepository
+                .GetRunningJobsForSpecificationAndJobDefinitionId(Arg.Is(jobs.First().SpecificationId), Arg.Is(jobDefinitionId))
+                .Returns(currentJobs);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ILogger logger = CreateLogger();
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository,
+                logger: logger, messengerService: messengerService);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .NotBeNull();
+
+            await
+                messengerService
+                    .Received(1)
+                    .SendToQueueAsJson(
+                        Arg.Is("TestQueue"),
+                        Arg.Is("a message"),
+                        Arg.Is<Dictionary<string, string>>(
+                            m => m.ContainsKey("specificationId") &&
+                            m["specificationId"] == specificationId &&
+                            m.ContainsKey("jobId") &&
+                            m["jobId"] == jobId), Arg.Is(false), Arg.Is(specificationId));
+        }
+
+        [TestMethod]
+        public void CreateJobs_GivenShouldRequireSessionIdButSessionPropertyIsMissing_LogsAndThrowsException()
+        {
+            //Arrange
+            const string specificationId = "spec-id-1";
+
+            string jobId = Guid.NewGuid().ToString();
+
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    SpecificationId = specificationId,
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
+                }
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId,
+                    SupersedeExistingRunningJobOnEnqueue = true,
+                    MessageBusQueue = "TestQueue",
+                    SessionMessageProperty = "blah",
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = jobDefinitionId,
+                SpecificationId = "spec-id-1",
+                Id = jobId,
+                ItemCount = 1000,
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Trigger = new Trigger
+                {
+                    EntityId = "e-1",
+                    EntityType = "e-type",
+                    Message = "test"
+                },
+                Properties = new Dictionary<string, string>
+                {
+                    { "specificationId", specificationId }
+                },
+                MessageBody = "a message"
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .CreateJob(Arg.Any<Job>())
+                .Returns(job);
+
+            jobRepository
+                .UpdateJob(Arg.Any<Job>())
+                .Returns(HttpStatusCode.OK);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ILogger logger = CreateLogger();
+
+            string errorMessage = $"Missing session property on job with id '{job.Id}";
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository,
+                logger: logger, messengerService: messengerService);
+
+            //Act
+            Func<Task> test = async () => await jobManagementService.CreateJobs(jobs, request);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be(errorMessage);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is(errorMessage));
+        }
+
+        [TestMethod]
         public async Task CreateJobs_GivenCreateJobForQueueingOnTopic_EnsuresMessageIsPlacedOnTopicQueue()
         {
             //Arrange

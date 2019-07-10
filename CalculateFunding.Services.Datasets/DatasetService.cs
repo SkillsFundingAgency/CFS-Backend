@@ -855,7 +855,8 @@ namespace CalculateFunding.Services.Datasets
                     Properties = new Dictionary<string, string>
                     {
                         { "specification-id", relationship.Specification.Id },
-                        { "relationship-id", relationship.Id }
+                        { "relationship-id", relationship.Id },
+                        { "session-id", relationship.Specification.Id }
                     },
                     SpecificationId = relationship.Specification.Id,
                     Trigger = trigger,

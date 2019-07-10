@@ -32,7 +32,10 @@ namespace CalculateFunding.Functions.Datasets.ServiceBus
         }
 
         [FunctionName("on-dataset-event")]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.ProcessDataset, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(
+            ServiceBusConstants.QueueNames.ProcessDataset, 
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey, 
+            IsSessionsEnabled = true)] Message message)
         {
             try
             {
