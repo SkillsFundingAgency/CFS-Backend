@@ -36,6 +36,12 @@
 
             public const string PublishProviderResultsPoisonedLocal = "publish-provider-results-poison";
 
+            public const string PublishingApproveFunding = "publishing-approvefunding";
+
+            public const string PublishingRefreshFunding = "publishing-refreshfunding";
+
+            public const string PublishingPublishFunding = "publishing-publishfunding";
+
             public const string FetchProviderProfile = "fetch-provider-profile";
 
             public const string FetchProviderProfilePoisoned = "fetch-provider-profile/$DeadLetterQueue";
