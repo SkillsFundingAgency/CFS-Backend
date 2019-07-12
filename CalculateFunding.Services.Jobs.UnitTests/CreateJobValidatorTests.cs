@@ -241,6 +241,58 @@ namespace CalculateFunding.Services.Jobs
         }
 
         [TestMethod]
+        public void CreateJobValidator_GivenDefinitionButMissingSessionProperty_ValidIsFalse()
+        {
+            //Arrange
+            CreateJobValidationModel createJobValidationModel = CreateNewCreateJobValidationModel();
+            createJobValidationModel.JobDefinition.SessionMessageProperty = "prop-3";
+
+            CreateJobValidator validator = new CreateJobValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(createJobValidationModel);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+
+            result
+                .Errors
+                .First()
+                .ErrorMessage
+                .Should()
+                .Be($"Session Message property 'prop-3' is required when using job definition: 'job-def-1'");
+        }
+
+        [TestMethod]
+        public void CreateJobValidator_GivenValidModelWithSessionConfigured_ValidIsTrue()
+        {
+            //Arrange
+            CreateJobValidationModel createJobValidationModel = CreateNewCreateJobValidationModel();
+
+            createJobValidationModel.JobCreateModel.Properties.Add("prop-3", "property 3");
+
+            CreateJobValidator validator = new CreateJobValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(createJobValidationModel);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
         public void CreateJobValidator_GivenValidModel_ValidIsTrue()
         {
             //Arrange
@@ -257,7 +309,6 @@ namespace CalculateFunding.Services.Jobs
                 .Should()
                 .BeTrue();
         }
-
 
         private static CreateJobValidationModel CreateNewCreateJobValidationModel()
         {

@@ -8,7 +8,6 @@ using CalculateFunding.Models;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.UnitTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +17,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     [TestClass]
     public class ProviderCalculationResultsSearchServiceTests

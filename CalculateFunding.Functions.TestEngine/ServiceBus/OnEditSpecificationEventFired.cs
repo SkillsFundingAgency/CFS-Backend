@@ -1,42 +1,51 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 
 namespace CalculateFunding.Functions.TestEngine.ServiceBus
 {
-    public static class OnEditSpecificationEvent
+    public class OnEditSpecificationEvent
     {
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly ITestResultsService _testResultsService;
+
+        public OnEditSpecificationEvent(
+            ILogger logger,
+            ICorrelationIdProvider correlationIdProvider,
+            ITestResultsService testResultsService)
+        {
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(testResultsService, nameof(testResultsService));
+
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _testResultsService = testResultsService;
+        }
+
         [FunctionName("on-edit-specification")]
-        public static async Task Run([ServiceBusTrigger(
+        public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.TopicNames.EditSpecification,
             ServiceBusConstants.TopicSubscribers.UpdateScenarioResultsForEditSpecification,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            var config = ConfigHelper.AddConfig();
-
-            using (var scope = IocConfig.Build(config).CreateScope())
+            try
             {
-                var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                var testResultsService = scope.ServiceProvider.GetService<ITestResultsService>();
-                var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
-
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await testResultsService.UpdateTestResultsForSpecification(message);
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditSpecification}");
-                    throw;
-                }
-
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _testResultsService.UpdateTestResultsForSpecification(message);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.EditSpecification}");
+                throw;
             }
         }
     }

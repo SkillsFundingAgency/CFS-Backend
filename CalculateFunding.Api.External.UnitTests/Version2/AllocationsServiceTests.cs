@@ -82,8 +82,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Arrange
             string allocationResultId = "12345";
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -138,8 +140,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             //Arrange
             string allocationResultId = "12345";
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request

@@ -17,7 +17,7 @@ using System.Linq;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Results.Interfaces;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     public partial class PublishedResultsServiceTests
     {

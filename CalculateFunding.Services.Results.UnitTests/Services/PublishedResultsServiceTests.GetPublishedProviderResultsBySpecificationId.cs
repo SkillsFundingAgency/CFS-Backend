@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     public partial class PublishedResultsServiceTests
     {
@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Results.Services
             //arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                { "specificationId", new StringValues(specificationId) },
+                { "specificationId", new StringValues(specificationId) }
             });
 
             HttpRequest request = Substitute.For<HttpRequest>();

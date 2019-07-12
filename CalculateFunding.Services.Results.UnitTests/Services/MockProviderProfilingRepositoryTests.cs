@@ -8,7 +8,7 @@ using CalculateFunding.Services.Results.Repositories;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     [TestClass]
     public class MockProviderProfilingRepositoryTests

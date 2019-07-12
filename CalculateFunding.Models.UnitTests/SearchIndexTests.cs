@@ -79,7 +79,8 @@ namespace CalculateFunding.Models.UnitTests
 
             IEnumerable<Type> searchIndexTypes = GetTypesWithSearchIndexAttribute();
 
-            IEnumerable<string> indexNames = Directory.GetDirectories(searchIndexDirectoryPath, "*index", SearchOption.TopDirectoryOnly)
+            IEnumerable<string> indexNames = Directory
+                .GetDirectories(searchIndexDirectoryPath, "*index", SearchOption.TopDirectoryOnly)
                 .Select(m => new DirectoryInfo(m).Name);
 
             //Act
@@ -294,8 +295,10 @@ namespace CalculateFunding.Models.UnitTests
 
         private static IEnumerable<Type> GetTypesWithSearchIndexAttribute()
         {
-            Assembly modelsAssembly = AppDomain.CurrentDomain.GetAssemblies().
-             SingleOrDefault(assembly => assembly.GetName().Name == "CalculateFunding.Models");
+            Assembly modelsAssembly = AppDomain
+                .CurrentDomain
+                .GetAssemblies()
+                .SingleOrDefault(assembly => assembly.GetName().Name == "CalculateFunding.Models");
 
             foreach (Type type in modelsAssembly.GetTypes())
             {

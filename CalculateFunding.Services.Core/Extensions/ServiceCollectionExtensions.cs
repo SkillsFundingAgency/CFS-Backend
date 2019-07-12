@@ -342,14 +342,13 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
-        public static IServiceCollection AddApplicationInsightsTelemetryClient(this IServiceCollection builder, IConfiguration config, string serviceName)
+        public static IServiceCollection AddApplicationInsightsTelemetryClient(this IServiceCollection builder, IConfiguration config, string serviceName, TelemetryChannelType channelType = TelemetryChannelType.Default)
         {
             Guard.ArgumentNotNull(config, nameof(config));
 
             ApplicationInsightsOptions appInsightsOptions = new ApplicationInsightsOptions();
 
             config.Bind("ApplicationInsightsOptions", appInsightsOptions);
-
 
             string appInsightsKey = appInsightsOptions.InstrumentationKey;
 
@@ -358,12 +357,18 @@ namespace CalculateFunding.Services.Core.Extensions
                 throw new InvalidOperationException("Unable to lookup Application Insights Configuration key from Configuration Provider. The value returned was empty string");
             }
 
-            TelemetryClient telemetryClient = new TelemetryClient(new TelemetryConfiguration
+            TelemetryConfiguration appInsightsTelemetryConfiguration = TelemetryConfiguration.Active;
+            appInsightsTelemetryConfiguration.InstrumentationKey = appInsightsKey;
+
+            if (channelType == TelemetryChannelType.Sync)
             {
-                InstrumentationKey = appInsightsKey,
-            });
+                appInsightsTelemetryConfiguration.TelemetryChannel = new SyncTelemetryChannel(appInsightsOptions.Url);
+            }
+
+            TelemetryClient telemetryClient = new TelemetryClient(appInsightsTelemetryConfiguration);
 
             telemetryClient.InstrumentationKey = appInsightsKey;
+
             if (!telemetryClient.Context.GlobalProperties.ContainsKey(LoggingConstants.ServiceNamePropertiesName))
             {
                 telemetryClient.Context.GlobalProperties.Add(LoggingConstants.ServiceNamePropertiesName, serviceName);

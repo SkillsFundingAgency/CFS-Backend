@@ -37,15 +37,15 @@ namespace CalculateFunding.Services.CosmosDbScaling
 #endif
         [TestMethod]
         [DataRow(JobConstants.DefinitionNames.CreateInstructAllocationJob,
-            new CosmosRepositoryType[] { CosmosRepositoryType.CalculationProviderResults, CosmosRepositoryType.ProviderSourceDatasets })]
+            new CosmosCollectionType[] { CosmosCollectionType.CalculationProviderResults, CosmosCollectionType.ProviderSourceDatasets })]
         [DataRow(JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob,
-            new CosmosRepositoryType[] { CosmosRepositoryType.ProviderSourceDatasets })]
+            new CosmosCollectionType[] { CosmosCollectionType.ProviderSourceDatasets })]
         [DataRow(JobConstants.DefinitionNames.MapDatasetJob,
-            new CosmosRepositoryType[] { CosmosRepositoryType.ProviderSourceDatasets })]
+            new CosmosCollectionType[] { CosmosCollectionType.ProviderSourceDatasets })]
         [DataRow(JobConstants.DefinitionNames.PublishProviderResultsJob,
-            new CosmosRepositoryType[] { CosmosRepositoryType.CalculationProviderResults, CosmosRepositoryType.PublishedProviderResults })]
+            new CosmosCollectionType[] { CosmosCollectionType.CalculationProviderResults, CosmosCollectionType.PublishedProviderResults })]
         public void BuildRequestModel_GivenJobWithDefinitions_EnsuresCorrectRepositoryTypes(string jobDefinitionId,
-            CosmosRepositoryType[] cosmosRepositoryTypes)
+            CosmosCollectionType[] cosmosRepositoryTypes)
         {
             //Arrange
             JobNotification jobNotification = new JobNotification

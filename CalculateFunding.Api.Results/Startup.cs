@@ -1,7 +1,6 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;

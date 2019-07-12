@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Models.Results;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
 using FluentAssertions;
@@ -10,13 +15,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     public partial class PublishedResultsServiceTests
     {

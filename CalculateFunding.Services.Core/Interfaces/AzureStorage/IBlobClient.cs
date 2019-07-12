@@ -1,7 +1,7 @@
-﻿using Microsoft.Azure.Storage.Blob;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Azure.Storage.Blob;
 
 namespace CalculateFunding.Services.Core.Interfaces.AzureStorage
 {

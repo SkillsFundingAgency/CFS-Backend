@@ -6,7 +6,7 @@ namespace CalculateFunding.Models.CosmosDbScaling
 {
     public class CosmosDbScalingRequestModel
     {
-        public IEnumerable<CosmosRepositoryType> RepositoryTypes { get; set; }
+        public IEnumerable<CosmosCollectionType> RepositoryTypes { get; set; }
 
         public string JobDefinitionId { get; set; }
     }

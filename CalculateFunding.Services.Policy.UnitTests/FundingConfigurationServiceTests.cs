@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Net;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.FundingPolicy.ViewModels;
@@ -10,19 +12,10 @@ using CalculateFunding.Services.Policy.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Policy.UnitTests
 {

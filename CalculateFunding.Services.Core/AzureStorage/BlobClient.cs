@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Nito.AsyncEx;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.AzureStorage
 {
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Core.AzureStorage
             }
         }
 
-        public string GetBlobSasUrl(string blobName, DateTimeOffset finish, 
+        public string GetBlobSasUrl(string blobName, DateTimeOffset finish,
             SharedAccessBlobPermissions permissions)
         {
             ICloudBlob blob = GetBlockBlobReference(blobName);
@@ -108,13 +108,13 @@ namespace CalculateFunding.Services.Core.AzureStorage
             return blob.GetSharedAccessSignature(sasConstraints);
         }
 
-	    async public Task<Stream> GetAsync(string blobName)
-	    {
-		    EnsureBlobClient();
+        async public Task<Stream> GetAsync(string blobName)
+        {
+            EnsureBlobClient();
 
-		    var blob = await _container.Value.GetBlobReferenceFromServerAsync(blobName);
+            var blob = await _container.Value.GetBlobReferenceFromServerAsync(blobName);
 
-		    return await blob.OpenReadAsync(null, null, null);
-	    }
-	}
+            return await blob.OpenReadAsync(null, null, null);
+        }
+    }
 }

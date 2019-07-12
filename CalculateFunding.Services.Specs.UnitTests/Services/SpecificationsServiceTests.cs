@@ -1,26 +1,25 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Specs.Interfaces;
+using CalculateFunding.Services.Specs.MappingProfiles;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Services.Specs.MappingProfiles;
-using CalculateFunding.Models.Policy;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {

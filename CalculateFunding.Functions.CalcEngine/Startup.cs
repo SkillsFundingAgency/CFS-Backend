@@ -4,6 +4,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
@@ -19,38 +20,39 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using FluentValidation;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
 
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.CalcEngine.Startup))]
+
 namespace CalculateFunding.Functions.CalcEngine
 {
-    static public class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            ServiceCollection serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
+            return Register(builder, config);
+        }
+
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder.AddSingleton<OnCalcsGenerateAllocationResults>();
+            builder.AddSingleton<OnCalculationGenerateFailure>();
             builder.AddSingleton<ICalculationEngineService, CalculationEngineService>();
             builder.AddSingleton<ICalculationEngine, CalculationEngine>();
             builder.AddSingleton<IAllocationFactory, AllocationFactory>();
@@ -93,7 +95,14 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
-                return new Services.CalcEngine.ProviderResultsRepository(calcsCosmosRepostory, calculationProviderResultsSearchRepository, specificationsRepository, logger, providerCalculationResultsSearchRepository, featureToggle, engineSettings);
+                return new ProviderResultsRepository(
+                    calcsCosmosRepostory,
+                    calculationProviderResultsSearchRepository,
+                    specificationsRepository,
+                    logger,
+                    providerCalculationResultsSearchRepository,
+                    featureToggle,
+                    engineSettings);
             });
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
@@ -154,6 +163,8 @@ namespace CalculateFunding.Functions.CalcEngine
             builder.AddSingleton<IJobHelperResiliencePolicies>(calcResiliencePolicies);
 
             builder.AddSingleton<IValidator<ICalculatorResiliencePolicies>, CalculatorResiliencePoliciesValidator>();
+
+            return builder.BuildServiceProvider();
         }
 
         private static CalculatorResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)

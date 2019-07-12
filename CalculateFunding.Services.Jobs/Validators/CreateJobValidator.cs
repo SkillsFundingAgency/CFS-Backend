@@ -51,6 +51,14 @@ namespace CalculateFunding.Services.Jobs.Validators
                         }
                     }
 
+                    if (!string.IsNullOrWhiteSpace(model.JobDefinition.SessionMessageProperty))
+                    {
+                        if (!jobCreateModel.Properties.ContainsKey(model.JobDefinition.SessionMessageProperty))
+                        {
+                            context.AddFailure($"Session Message property '{model.JobDefinition.SessionMessageProperty}' is required when using job definition: '{model.JobDefinition.Id}'");
+                        }
+                    }
+
                     if (model.JobDefinition.RequireSpecificationId && string.IsNullOrWhiteSpace(jobCreateModel.SpecificationId))
                     {
                         context.AddFailure($"A specification id is required when using job definition: '{model.JobDefinition.Id}'");

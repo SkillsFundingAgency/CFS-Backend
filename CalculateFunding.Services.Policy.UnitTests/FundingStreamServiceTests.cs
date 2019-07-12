@@ -1,4 +1,11 @@
-﻿using CalculateFunding.Common.Caching;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -10,13 +17,6 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Policy.UnitTests
 {
@@ -79,7 +79,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Returns(fundingStreams.ToArray());
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
-           
+
             FundingStreamService fundingStreamsService = CreateFundingStreamService(logger, cacheProvider, policyRepository);
 
             // Act

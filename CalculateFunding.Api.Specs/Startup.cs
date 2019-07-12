@@ -4,10 +4,8 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
@@ -101,6 +99,8 @@ namespace CalculateFunding.Api.Specs
 
                     return new BlobClient(storageSettings);
                 });
+
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 

@@ -17,12 +17,11 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
-using CalculateFunding.Services.Results.UnitTests;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     [TestClass]
     public partial class PublishedResultsServiceTests

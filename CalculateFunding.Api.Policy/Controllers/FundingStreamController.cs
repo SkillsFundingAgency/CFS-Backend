@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Policy;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 

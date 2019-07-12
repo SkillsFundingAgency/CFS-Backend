@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
@@ -7,42 +8,52 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace CalculateFunding.Functions.CalcEngine.ServiceBus
 {
-    public static class OnCalcsGenerateAllocationResults
+    public class OnCalcsGenerateAllocationResults
     {
-        [FunctionName("on-calcs-generate-allocations-event")]
-        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly ICalculationEngineService _calculationEngineService;
+
+        public OnCalcsGenerateAllocationResults(
+            ILogger logger,
+            ICorrelationIdProvider correlationIdProvider,
+            ICalculationEngineService calculationEngineService)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(calculationEngineService, nameof(calculationEngineService));
 
-            using (IServiceScope scope = IocConfig.Build(config).CreateScope())
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _calculationEngineService = calculationEngineService;
+        }
+
+        [FunctionName("on-calcs-generate-allocations-event")]
+        public async Task Run([ServiceBusTrigger(
+            ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults, 
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        {
+            _logger.Information("Scope created, starting to generate allocations");
+
+            try
             {
-                ILogger logger = scope.ServiceProvider.GetService<ILogger>();
-                logger.Information("Scope created, starting to generate allocations");
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                ICalculationEngineService calculationEngineService = scope.ServiceProvider.GetService<ICalculationEngineService>();
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _calculationEngineService.GenerateAllocations(message);
 
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await calculationEngineService.GenerateAllocations(message);
-
-                    logger.Information("Generate allocations complete");
-                }
-                catch (NonRetriableException nrEx)
-                {
-                    logger.Error(nrEx, $"An error occurred processing message on queue: {ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults}");
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred processing message on queue: {ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults}");
-                    throw;
-                }
+                _logger.Information("Generate allocations complete");
+            }
+            catch (NonRetriableException nrEx)
+            {
+                _logger.Error(nrEx, $"An error occurred processing message on queue: {ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults}");
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred processing message on queue: {ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResults}");
+                throw;
             }
         }
     }

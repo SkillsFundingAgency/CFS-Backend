@@ -6,7 +6,6 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using CalculateFunding.Services.Specs.MappingProfiles;
@@ -427,7 +426,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
         private static CalculationCreateModelValidator CreateValidator(
             IMapper mapper = null,
-            ISpecificationsRepository specsRepository = null, 
+            ISpecificationsRepository specsRepository = null,
             ICalculationsRepository calculationsRepository = null,
             IPoliciesApiClient policiesApiClient = null)
         {

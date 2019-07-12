@@ -5,13 +5,12 @@ using System.Threading.Tasks;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Search;
 using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Results.UnitTests;
 using FluentAssertions;
 using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     [TestClass]
     public class AllocationNotificationsFeedsSearchServiceTests

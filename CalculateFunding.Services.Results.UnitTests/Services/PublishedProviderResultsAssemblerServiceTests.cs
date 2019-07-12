@@ -1,4 +1,9 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
@@ -9,20 +14,14 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.MappingProfiles;
-using CalculateFunding.Services.Results.UnitTests;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     [TestClass]
     public class PublishedProviderResultsAssemblerServiceTests
@@ -1926,9 +1925,9 @@ namespace CalculateFunding.Services.Results.Services
             // Arrange
             PublishedProviderResultsAssemblerService assembler = CreateAssemblerService();
 
-            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult()
                 {
                     ProviderId = "1",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -1954,36 +1953,36 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                },
 
-            publishedProviderResults
-               .Add(new PublishedProviderResult()
-               {
-                   ProviderId = "2",
-                   FundingStreamResult = new PublishedFundingStreamResult()
-                   {
-                       AllocationLineResult = new PublishedAllocationLineResult()
-                       {
-                           AllocationLine = new PublishedAllocationLineDefinition()
-                           {
-                               Id = "AAAAA",
-                               Name = "Allocation Line 1"
-                           },
-                           Current = new PublishedAllocationLineResultVersion()
-                           {
-                               Status = AllocationLineStatus.Held,
-                               Value = 456,
-                               Major = 0,
-                               Minor = 1,
-                               Provider = new ProviderSummary
-                               {
-                                   UKPRN = "2",
-                                   ProviderProfileIdType = "UKPRN"
-                               }
-                           }
-                       }
-                   }
-               });
+                new PublishedProviderResult()
+                {
+                    ProviderId = "2",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = new PublishedAllocationLineDefinition()
+                            {
+                                Id = "AAAAA",
+                                Name = "Allocation Line 1"
+                            },
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 456,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
             List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
 
@@ -2019,9 +2018,9 @@ namespace CalculateFunding.Services.Results.Services
                 Name = "Allocation Line 1"
             };
 
-            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult()
                 {
                     ProviderId = "1",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -2043,49 +2042,51 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                },
 
-            publishedProviderResults
-               .Add(new PublishedProviderResult()
-               {
-                   ProviderId = "2",
-                   FundingStreamResult = new PublishedFundingStreamResult()
-                   {
-                       AllocationLineResult = new PublishedAllocationLineResult()
-                       {
-                           AllocationLine = allocationLine1,
-                           Current = new PublishedAllocationLineResultVersion()
-                           {
-                               Status = AllocationLineStatus.Held,
-                               Value = 789,
-                               Major = 0,
-                               Minor = 1,
-                               Provider = new ProviderSummary
-                               {
-                                   UKPRN = "2",
-                                   ProviderProfileIdType = "UKPRN"
-                               }
-                           }
-                       }
-                   }
-               });
+                new PublishedProviderResult()
+                {
+                    ProviderId = "2",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Held,
+                                Value = 789,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
-            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
-            existingResults.Add(new PublishedProviderResultExisting()
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>
             {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "1",
-                Status = AllocationLineStatus.Held,
-                Value = 123,
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "1",
+                    Status = AllocationLineStatus.Held,
+                    Value = 123,
+                },
 
-            existingResults.Add(new PublishedProviderResultExisting()
-            {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "2",
-                Status = AllocationLineStatus.Held,
-                Value = 456,
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "2",
+                    Status = AllocationLineStatus.Held,
+                    Value = 456,
+                }
+            };
 
             allocationResultsVersionRepository
                 .GetNextVersionNumber(Arg.Any<PublishedAllocationLineResultVersion>(), Arg.Any<int>(), incrementFromCurrentVersion: Arg.Is(true))
@@ -2127,9 +2128,9 @@ namespace CalculateFunding.Services.Results.Services
                 Name = "Allocation Line 1"
             };
 
-            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult()
                 {
                     ProviderId = "1",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -2152,56 +2153,58 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                },
 
-            publishedProviderResults
-               .Add(new PublishedProviderResult()
-               {
-                   ProviderId = "2",
-                   FundingStreamResult = new PublishedFundingStreamResult()
-                   {
-                       AllocationLineResult = new PublishedAllocationLineResult()
-                       {
-                           AllocationLine = allocationLine1,
-                           Current = new PublishedAllocationLineResultVersion()
-                           {
-                               Status = AllocationLineStatus.Approved,
-                               Value = 789,
-                               Major = 0,
-                               Minor = 1,
-                               Provider = new ProviderSummary
-                               {
-                                   Id = "2",
-                                   UKPRN = "2",
-                                   ProviderProfileIdType = "UKPRN"
-                               }
-                           }
-                       }
-                   }
-               });
+                new PublishedProviderResult()
+                {
+                    ProviderId = "2",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Approved,
+                                Value = 789,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    Id = "2",
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
-            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
-            existingResults.Add(new PublishedProviderResultExisting()
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>
             {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "1",
-                Status = AllocationLineStatus.Held,
-                Value = 123,
-                Version = 1,
-                Major = 0,
-                Minor = 1
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "1",
+                    Status = AllocationLineStatus.Held,
+                    Value = 123,
+                    Version = 1,
+                    Major = 0,
+                    Minor = 1
+                },
 
-            existingResults.Add(new PublishedProviderResultExisting()
-            {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "2",
-                Status = AllocationLineStatus.Approved,
-                Value = 456,
-                Version = 1,
-                Major = 0,
-                Minor = 1
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "2",
+                    Status = AllocationLineStatus.Approved,
+                    Value = 456,
+                    Version = 1,
+                    Major = 0,
+                    Minor = 1
+                }
+            };
 
             allocationResultsVersionRepository
                 .GetNextVersionNumber(Arg.Is(publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current), Arg.Is(1), incrementFromCurrentVersion: Arg.Is(true))
@@ -2274,9 +2277,9 @@ namespace CalculateFunding.Services.Results.Services
                 Name = "Allocation Line 3"
             };
 
-            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult()
                 {
                     ProviderId = "1",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -2298,10 +2301,9 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                },
 
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+                new PublishedProviderResult()
                 {
                     ProviderId = "2",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -2324,10 +2326,9 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                },
 
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+                new PublishedProviderResult()
                 {
                     ProviderId = "1",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -2349,10 +2350,9 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                },
 
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+                new PublishedProviderResult()
                 {
                     ProviderId = "2",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -2374,25 +2374,28 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                }
+            };
 
 
-            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
-            existingResults.Add(new PublishedProviderResultExisting()
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>
             {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "1",
-                Status = AllocationLineStatus.Held,
-                Value = 123,
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "1",
+                    Status = AllocationLineStatus.Held,
+                    Value = 123,
+                },
 
-            existingResults.Add(new PublishedProviderResultExisting()
-            {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "2",
-                Status = AllocationLineStatus.Held,
-                Value = 456,
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "2",
+                    Status = AllocationLineStatus.Held,
+                    Value = 456,
+                }
+            };
 
             // Act
             (IEnumerable<PublishedProviderResult> resultsToSave, IEnumerable<PublishedProviderResultExisting> resultsToExclude) = await assembler.GeneratePublishedProviderResultsToSave(publishedProviderResults, existingResults);
@@ -2435,9 +2438,9 @@ namespace CalculateFunding.Services.Results.Services
                 Name = "Allocation Line 1"
             };
 
-            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult()
                 {
                     ProviderId = "1",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -2460,56 +2463,58 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                },
 
-            publishedProviderResults
-               .Add(new PublishedProviderResult()
-               {
-                   ProviderId = "2",
-                   FundingStreamResult = new PublishedFundingStreamResult()
-                   {
-                       AllocationLineResult = new PublishedAllocationLineResult()
-                       {
-                           AllocationLine = allocationLine1,
-                           Current = new PublishedAllocationLineResultVersion()
-                           {
-                               Status = AllocationLineStatus.Approved,
-                               Value = 456,
-                               Major = 0,
-                               Minor = 1,
-                               Provider = new ProviderSummary
-                               {
-                                   Id = "2",
-                                   UKPRN = "2",
-                                   ProviderProfileIdType = "UKPRN"
-                               }
-                           }
-                       }
-                   }
-               });
+                new PublishedProviderResult()
+                {
+                    ProviderId = "2",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Approved,
+                                Value = 456,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    Id = "2",
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
-            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
-            existingResults.Add(new PublishedProviderResultExisting()
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>
             {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "1",
-                Status = AllocationLineStatus.Held,
-                Value = 123,
-                Version = 1,
-                Major = 0,
-                Minor = 1
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "1",
+                    Status = AllocationLineStatus.Held,
+                    Value = 123,
+                    Version = 1,
+                    Major = 0,
+                    Minor = 1
+                },
 
-            existingResults.Add(new PublishedProviderResultExisting()
-            {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "2",
-                Status = AllocationLineStatus.Approved,
-                Value = 456,
-                Version = 1,
-                Major = 0,
-                Minor = 1
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "2",
+                    Status = AllocationLineStatus.Approved,
+                    Value = 456,
+                    Version = 1,
+                    Major = 0,
+                    Minor = 1
+                }
+            };
 
             allocationResultsVersionRepository
                 .GetNextVersionNumber(Arg.Is(publishedProviderResults.ElementAt(1).FundingStreamResult.AllocationLineResult.Current), Arg.Is(1), incrementFromCurrentVersion: Arg.Is(true))
@@ -2562,9 +2567,9 @@ namespace CalculateFunding.Services.Results.Services
                 Name = "Allocation Line 1"
             };
 
-            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
-            publishedProviderResults
-                .Add(new PublishedProviderResult()
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
+            {
+                new PublishedProviderResult()
                 {
                     ProviderId = "1",
                     FundingStreamResult = new PublishedFundingStreamResult()
@@ -2586,42 +2591,44 @@ namespace CalculateFunding.Services.Results.Services
                             }
                         }
                     }
-                });
+                },
 
-            publishedProviderResults
-               .Add(new PublishedProviderResult()
-               {
-                   ProviderId = "2",
-                   FundingStreamResult = new PublishedFundingStreamResult()
-                   {
-                       AllocationLineResult = new PublishedAllocationLineResult()
-                       {
-                           AllocationLine = allocationLine1,
-                           Current = new PublishedAllocationLineResultVersion()
-                           {
-                               Status = AllocationLineStatus.Published,
-                               Value = 789,
-                               Major = 0,
-                               Minor = 1,
-                               Provider = new ProviderSummary
-                               {
-                                   UKPRN = "2",
-                                   ProviderProfileIdType = "UKPRN"
-                               }
-                           }
-                       }
-                   }
-               });
+                new PublishedProviderResult()
+                {
+                    ProviderId = "2",
+                    FundingStreamResult = new PublishedFundingStreamResult()
+                    {
+                        AllocationLineResult = new PublishedAllocationLineResult()
+                        {
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
+                            {
+                                Status = AllocationLineStatus.Published,
+                                Value = 789,
+                                Major = 0,
+                                Minor = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "2",
+                                    ProviderProfileIdType = "UKPRN"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
 
-            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>();
-            existingResults.Add(new PublishedProviderResultExisting()
+            List<PublishedProviderResultExisting> existingResults = new List<PublishedProviderResultExisting>
             {
-                AllocationLineId = allocationLine1.Id,
-                ProviderId = "1",
-                Status = AllocationLineStatus.Published,
-                Value = 123,
-                Published = new PublishedAllocationLineResultVersion()
-            });
+                new PublishedProviderResultExisting()
+                {
+                    AllocationLineId = allocationLine1.Id,
+                    ProviderId = "1",
+                    Status = AllocationLineStatus.Published,
+                    Value = 123,
+                    Published = new PublishedAllocationLineResultVersion()
+                }
+            };
 
             PublishedAllocationLineResultVersion publishedVersion = new PublishedAllocationLineResultVersion()
             {
@@ -2710,7 +2717,8 @@ namespace CalculateFunding.Services.Results.Services
 
         static IMapper CreateRealMapper()
         {
-            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => {
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c =>
+            {
                 c.AddProfile<ResultServiceMappingProfile>();
                 c.AddProfile<PolicyMappingProfile>();
             });
@@ -2720,64 +2728,65 @@ namespace CalculateFunding.Services.Results.Services
 
         static IEnumerable<ProviderResult> CreateProviderResults()
         {
-            IEnumerable<ProviderResult> results = new[] {
-                new ProviderResult
+            IEnumerable<ProviderResult> results = new[]
             {
-                SpecificationId = "spec-id",
-                CalculationResults = new List<CalculationResult>
-                    {
-                        new CalculationResult
+                new ProviderResult
+                {
+                    SpecificationId = "spec-id",
+                    CalculationResults = new List<CalculationResult>
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
-                            Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
-                            Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
-                            AllocationLine = new Reference("AAAAA","test allocation line 1"),
+                            new CalculationResult
+                            {
+                                CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
+                                Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
+                                Value = 123,
+                                CalculationType = Models.Calcs.CalculationType.Funding,
+                                AllocationLine = new Reference("AAAAA","test allocation line 1"),
+                            },
+                            new CalculationResult
+                            {
+                                CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
+                                Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
+                                Value = 10,
+                                CalculationType = Models.Calcs.CalculationType.Number
+                            }
                         },
-                        new CalculationResult
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
-                            Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
-                            Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
+                            AllocationLine = new Reference
+                            {
+                                Id = "AAAAA",
+                                Name = "test allocation line 1"
+                            },
+                            Value = 50
+                        },
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Reference
+                            {
+                                Id = "BBBBB",
+                                Name = "test allocation line 2"
+                            },
+                            Value = 100
                         }
                     },
-                AllocationLineResults = new List<AllocationLineResult>
-                {
-                    new AllocationLineResult
+                    Provider = new ProviderSummary
                     {
-                        AllocationLine = new Reference
-                        {
-                            Id = "AAAAA",
-                            Name = "test allocation line 1"
-                        },
-                        Value = 50
-                    },
-                    new AllocationLineResult
-                    {
-                        AllocationLine = new Reference
-                        {
-                            Id = "BBBBB",
-                            Name = "test allocation line 2"
-                        },
-                        Value = 100
+                        Id = "ukprn-001",
+                        Name = "prov name",
+                        ProviderType = "prov type",
+                        ProviderSubType = "prov sub type",
+                        Authority = "authority",
+                        UKPRN = "ukprn",
+                        UPIN = "upin",
+                        URN = "urn",
+                        EstablishmentNumber = "12345",
+                        DateOpened = DateTime.Now.AddDays(-7),
+                        ProviderProfileIdType = "UKPRN"
                     }
-                },
-                Provider = new ProviderSummary
-                {
-                    Id = "ukprn-001",
-                    Name = "prov name",
-                    ProviderType = "prov type",
-                    ProviderSubType = "prov sub type",
-                    Authority = "authority",
-                    UKPRN = "ukprn",
-                    UPIN = "upin",
-                    URN = "urn",
-                    EstablishmentNumber = "12345",
-                    DateOpened = DateTime.Now.AddDays(-7),
-                    ProviderProfileIdType = "UKPRN"
                 }
-            }
             };
 
             return results;
@@ -2787,20 +2796,21 @@ namespace CalculateFunding.Services.Results.Services
         {
             SpecificationCurrentVersion specification = new SpecificationCurrentVersion();
 
-            List<Policy> policies = new List<Policy>();
-            policies.Add(new Policy()
+            List<Policy> policies = new List<Policy>
             {
-                Id = "p1",
-                Name = "Policy 1",
-                Calculations = new List<Calculation>(),
-                SubPolicies = new List<Policy>(),
-            });
+                new Policy()
+                {
+                    Id = "p1",
+                    Name = "Policy 1",
+                    Calculations = new List<Calculation>(),
+                    SubPolicies = new List<Policy>(),
+                },
 
-            policies.Add(new Policy()
-            {
-                Id = "p2",
-                Name = "Policy 2",
-                Calculations = new List<Calculation>()
+                new Policy()
+                {
+                    Id = "p2",
+                    Name = "Policy 2",
+                    Calculations = new List<Calculation>()
                 {
                      new Calculation()
                      {
@@ -2825,7 +2835,7 @@ namespace CalculateFunding.Services.Results.Services
                          AllocationLine = new Reference("al1", "Allocation Line 1"),
                      },
                 },
-                SubPolicies = new List<Policy>()
+                    SubPolicies = new List<Policy>()
                 {
                     new Policy()
                     {
@@ -2911,7 +2921,8 @@ namespace CalculateFunding.Services.Results.Services
                         }
                     }
                 },
-            });
+                }
+            };
 
             specification.Policies = policies;
             return specification;

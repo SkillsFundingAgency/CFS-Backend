@@ -808,8 +808,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             IMapper mapper = CreateImplementedMapper();
-
-            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(mapper, specificationsRepository, calculationsRepository, policiesApiClient);
+            IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(
+                mapper: mapper,
+                specificationsRepository: specificationsRepository,
+                calculationsRepository: calculationsRepository,
+                policiesApiClient: policiesApiClient);
 
             SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
                 calculationEditModelValidator: validator);
@@ -827,9 +830,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IMapper mapper,
             ISpecificationsRepository specificationsRepository,
             ICalculationsRepository calculationsRepository,
-            IPoliciesApiClient policiesApiCLient)
+            IPoliciesApiClient policiesApiClient)
         {
-            return new CalculationEditModelValidator(mapper, specificationsRepository, calculationsRepository, policiesApiCLient);
+            return new CalculationEditModelValidator(mapper, specificationsRepository, calculationsRepository, policiesApiClient);
         }
     }
 }

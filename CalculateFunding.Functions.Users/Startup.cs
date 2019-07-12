@@ -1,83 +1,56 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Functions.Users.ServiceBus;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Users;
 using CalculateFunding.Services.Users.Interfaces;
 using CalculateFunding.Services.Users.Validators;
 using FluentValidation;
-using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Users.Startup))]
+
 namespace CalculateFunding.Functions.Users
 {
-    public static class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        public static IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            ServiceCollection serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        public static IServiceProvider Build(Message message, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(message, config);
-            }
-
-            IUserProfileProvider userProfileProvider = _serviceProvider.GetService<IUserProfileProvider>();
-
-            Reference user = message.GetUserDetails();
-
-            userProfileProvider.SetUser(user.Id, user.Name);
-
-            return _serviceProvider;
+            return Register(builder, config);
         }
 
-        public static IServiceProvider BuildServiceProvider(Message message, IConfigurationRoot config)
-        {
-            ServiceCollection serviceProvider = new ServiceCollection();
-
-            serviceProvider.AddUserProviderFromMessage(message);
-
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
-        }
-
-        public static void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             builder
-               .AddSingleton<IUserService, UserService>()
-               .AddSingleton<IHealthChecker, UserService>();
+                .AddSingleton<OnEditSpecificationEvent>();
+
+            builder
+              .AddSingleton<IUserService, UserService>()
+              .AddSingleton<IHealthChecker, UserService>();
 
             builder
                .AddSingleton<IFundingStreamPermissionService, FundingStreamPermissionService>()
@@ -146,6 +119,8 @@ namespace CalculateFunding.Functions.Users
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(config);
+
+            return builder.BuildServiceProvider();
         }
     }
 }

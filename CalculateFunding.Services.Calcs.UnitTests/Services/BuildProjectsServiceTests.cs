@@ -885,7 +885,6 @@ namespace CalculateFunding.Services.Calcs.Services
             cacheProvider
                 .ListLengthAsync<ProviderSummary>(Arg.Is(cacheKey))
                 .Returns(10000);
-
             ILogger logger = CreateLogger();
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -910,7 +909,10 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(jobViewModelResponse);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger, cacheProvider: cacheProvider, specificationsRepository: specificationRepository, providersApiClient: providersApiClient);
+                logger: logger,
+                cacheProvider: cacheProvider,
+                specificationsRepository: specificationRepository,
+                providersApiClient: providersApiClient);
 
             //Act
             await buildProjectsService.UpdateAllocations(message);

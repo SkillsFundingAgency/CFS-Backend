@@ -1,32 +1,29 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Results.Search;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.ServiceBus;
+using CalculateFunding.Services.Results.Interfaces;
+using FluentAssertions;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using NSubstitute;
-using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
-using FluentAssertions;
-using System.Net;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Services.Core.Constants;
-using System.Linq;
-using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Models.Results.Messages;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Common.Caching;
 using Newtonsoft.Json;
-using System.Text;
-using CalculateFunding.Services.Core;
-using CalculateFunding.Common.FeatureToggles;
+using NSubstitute;
+using Serilog;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     public partial class PublishedResultsServiceTests
     {
@@ -86,9 +83,9 @@ namespace CalculateFunding.Services.Results.Services
             await
                 jobsApiClient
                     .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>( m =>
-                        m.CompletedSuccessfully == false &&
-                        m.Outcome == "Failed to update allocation line result status - null update model provided"
+                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m =>
+                       m.CompletedSuccessfully == false &&
+                       m.Outcome == "Failed to update allocation line result status - null update model provided"
                     ));
         }
 
@@ -131,7 +128,7 @@ namespace CalculateFunding.Services.Results.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties.Add("jobId", jobId);
-           
+
             ILogger logger = CreateLogger();
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
@@ -284,7 +281,7 @@ namespace CalculateFunding.Services.Results.Services
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties.Add("jobId", jobId);
-           
+
             ILogger logger = CreateLogger();
 
             JobViewModel jobViewModel = new JobViewModel
@@ -335,7 +332,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(publishedProviderResults);
 
             PublishedResultsService publishedResultsService = CreateResultsService(
-                logger, 
+                logger,
                 jobsApiClient: jobsApiClient,
                 publishedProviderResultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
@@ -405,7 +402,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Returns(jobResponse);
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResults();
-          
+
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
                 publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod() };
@@ -692,7 +689,7 @@ namespace CalculateFunding.Services.Results.Services
             string json = JsonConvert.SerializeObject(model);
             Message message = new Message(Encoding.UTF8.GetBytes(json));
             message.UserProperties.Add("jobId", jobId);
-            
+
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
 
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
@@ -759,7 +756,7 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().AllocationLineName == "test allocation line 1" &&
                         m.First().AllocationVersionNumber == 2 &&
                         m.First().AllocationStatus == "Approved" &&
-                        m.First().AllocationAmount == (double)50.0 &&
+                        m.First().AllocationAmount == 50.0 &&
                         m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
                         m.First().ProviderName == "test provider name 1" &&
                         m.First().LaCode == "77777" &&
@@ -816,7 +813,7 @@ namespace CalculateFunding.Services.Results.Services
             message.UserProperties.Add("jobId", jobId);
 
             IEnumerable<PublishedProviderResult> publishedProviderResults = CreatePublishedProviderResultsWithDifferentProviders();
-           
+
             foreach (PublishedProviderResult publishedProviderResult in publishedProviderResults)
             {
                 publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods = new[] { new ProfilingPeriod { Period = "Apr", Year = 2019 } };
@@ -979,7 +976,7 @@ namespace CalculateFunding.Services.Results.Services
 
             string json = JsonConvert.SerializeObject(model);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            
+
             Message message = new Message(byteArray);
             message.UserProperties["jobId"] = jobId;
 
@@ -1050,7 +1047,7 @@ namespace CalculateFunding.Services.Results.Services
                         m.First().AllocationLineName == "test allocation line 1" &&
                         m.First().AllocationVersionNumber == 2 &&
                         m.First().AllocationStatus == "Approved" &&
-                        m.First().AllocationAmount == (double)50.0 &&
+                        m.First().AllocationAmount == 50.0 &&
                         m.First().ProviderProfiling == "[{\"period\":null,\"occurrence\":0,\"periodYear\":0,\"periodType\":null,\"profileValue\":0.0,\"distributionPeriod\":null}]" &&
                         m.First().ProviderName == "test provider name 1" &&
                         m.First().LaCode == "77777" &&

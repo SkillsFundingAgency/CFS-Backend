@@ -18,7 +18,7 @@ namespace CalculateFunding.Functions.Scenarios.UnitTests
             IConfigurationRoot configuration = CreateTestConfiguration();
 
             // Act
-            using (var scope = IocConfig.Build(configuration).CreateScope())
+            using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
             {
                 // Assert
                 scope.ServiceProvider.GetService<IScenariosRepository>().Should().NotBeNull(nameof(IScenariosRepository));

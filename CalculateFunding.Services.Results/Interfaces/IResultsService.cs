@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request);
 
         Task CleanupProviderResultsForSpecification(Message message);
-
+        
         Task<IActionResult> HasCalculationResults(string calculationId);
     }
 }

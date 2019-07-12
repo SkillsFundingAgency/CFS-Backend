@@ -1,11 +1,11 @@
-﻿using CalculateFunding.Api.Providers.Controllers;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Api.Providers.Controllers;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Results.UnitTests.Controllers
 {
@@ -93,7 +93,7 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
         [TestMethod]
         [DataRow("providerVersionId", "providerId")]
         public async Task GetProviderByIdFromProviderVersion_CallsCorrectly(
-               string providerVersionId, 
+               string providerVersionId,
                string providerId)
         {
             IProviderVersionService providerVersionService = Substitute.For<IProviderVersionService>();
@@ -124,7 +124,8 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
                 providerVersionService,
                 providerVersionSearchService);
 
-            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext() {
+            controller.ControllerContext = new Microsoft.AspNetCore.Mvc.ControllerContext()
+            {
                 RouteData = new Microsoft.AspNetCore.Routing.RouteData
                 (
                     new Microsoft.AspNetCore.Routing.RouteValueDictionary

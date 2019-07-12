@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -9,7 +7,6 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
@@ -20,7 +17,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     public partial class PublishedResultsServiceTests
     {

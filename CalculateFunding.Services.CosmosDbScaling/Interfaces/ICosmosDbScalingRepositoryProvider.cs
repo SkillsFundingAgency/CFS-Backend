@@ -8,6 +8,6 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {
     public interface ICosmosDbScalingRepositoryProvider
     {
-        ICosmosDbScalingRepository GetRepository(CosmosRepositoryType repositoryType);
+        ICosmosDbScalingRepository GetRepository(CosmosCollectionType repositoryType);
     }
 }

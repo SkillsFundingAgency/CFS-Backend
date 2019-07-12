@@ -1,7 +1,6 @@
-﻿using CalculateFunding.Models.FundingPolicy.ViewModels;
-using Microsoft.AspNetCore.Http;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Models.FundingPolicy.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Policy.Interfaces
 {

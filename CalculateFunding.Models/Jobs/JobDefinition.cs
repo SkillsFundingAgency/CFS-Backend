@@ -94,5 +94,11 @@ namespace CalculateFunding.Models.Jobs
         /// </summary>
         [JsonProperty("copyOutcomeFromLogWhenSingleLogReported")]
         public bool CopyOutcomeFromLogWhenSingleLogReported { get; set; }
+
+        /// <summary>
+        /// Assigned session message property
+        /// </summary>
+        [JsonProperty("sessionMessageProperty")]
+        public string SessionMessageProperty { get; set; }
     }
 }

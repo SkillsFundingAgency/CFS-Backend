@@ -15,6 +15,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Versioning;
@@ -34,9 +35,8 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Serilog;
-using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
-using CalculateFunding.Models.Policy;
+using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -881,7 +881,7 @@ namespace CalculateFunding.Services.Specs
             }
 
             FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
-            
+
             return new OkObjectResult(new List<FundingStream> { fundingStream });
         }
 
@@ -1194,7 +1194,7 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                Common.ApiClient.Models.ApiResponse<PolicyModels.Period> fundingPeriodResponse =  await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
+                Common.ApiClient.Models.ApiResponse<PolicyModels.Period> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
                 if (fundingPeriodResponse?.Content == null)
                 {
                     return new PreconditionFailedResult($"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
@@ -1693,7 +1693,7 @@ namespace CalculateFunding.Services.Specs
 
                 FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
 
-                
+
                 AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == editModel.AllocationLineId);
                 if (allocationLine != null)
                 {

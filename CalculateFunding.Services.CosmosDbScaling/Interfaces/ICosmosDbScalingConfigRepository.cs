@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Models.CosmosDbScaling;
-using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
@@ -9,10 +8,14 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {
     public interface ICosmosDbScalingConfigRepository
     {
-        Task<CosmosDbScalingConfig> GetConfigByRepositoryType(CosmosRepositoryType cosmosRepositoryType);
+        Task<CosmosDbScalingConfig> GetConfigByRepositoryType(CosmosCollectionType cosmosRepositoryType);
 
         Task<IEnumerable<CosmosDbScalingConfig>> GetAllConfigs();
 
-        Task<HttpStatusCode> UpdateCurrentRequestUnits(CosmosDbScalingConfig config);
+        Task<CosmosDbScalingCollectionSettings> GetCollectionSettingsByRepositoryType(CosmosCollectionType cosmosCollectionType);
+
+        Task<HttpStatusCode> UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings);
+
+        Task<IEnumerable<CosmosDbScalingCollectionSettings>> GetCollectionSettingsIncremented(int previousMinutes);
     }
 }

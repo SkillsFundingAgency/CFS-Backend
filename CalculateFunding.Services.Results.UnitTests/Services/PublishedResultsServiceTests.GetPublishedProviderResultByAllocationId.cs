@@ -1,15 +1,12 @@
-﻿using CalculateFunding.Services.Results.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using NSubstitute;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Models.Results;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FluentAssertions;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Results.Interfaces;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     public partial class PublishedResultsServiceTests
     {
@@ -140,7 +137,7 @@ namespace CalculateFunding.Services.Results.Services
                 .Should()
                 .BeNull();
         }
-        
+
 
         [TestMethod]
         public async Task GetPublishedProviderResultByAllocationResultId_GivenVersionAndFoundInHistory_ReturnsResult()
@@ -165,7 +162,7 @@ namespace CalculateFunding.Services.Results.Services
             {
                 Version = 5
             };
-         
+
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository
                 .GetPublishedProviderResultForIdInPublishedState(Arg.Is(allocationResultId))

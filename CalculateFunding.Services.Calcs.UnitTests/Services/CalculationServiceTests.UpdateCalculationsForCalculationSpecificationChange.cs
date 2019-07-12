@@ -8,12 +8,9 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core;
@@ -25,8 +22,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using Reference = CalculateFunding.Common.Models.Reference;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using Reference = CalculateFunding.Common.Models.Reference;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -1046,7 +1043,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void UpdateCalculationsForCalculationSpecificationChange_GivenIsPublicHasChangedButJobNotCreated_ThrowwsRetriableException()
+        public void UpdateCalculationsForCalculationSpecificationChange_GivenIsPublicHasChangedButJobNotCreated_ThrowsRetriableException()
         {
             //Arrange
             const string specificationId = "spec-id";
@@ -1089,7 +1086,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string json = JsonConvert.SerializeObject(model);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-           
+
             ILogger mockLogger = CreateLogger();
 
             SpecificationSummary specification = new SpecificationSummary
@@ -1139,7 +1136,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     jobsApiClient: jobsApiClient);
 
             //Act
-            Func<Task> test = async () =>await service.UpdateCalculationsForCalculationSpecificationChange(message);
+            Func<Task> test = async () => await service.UpdateCalculationsForCalculationSpecificationChange(message);
 
             //Assert
             test

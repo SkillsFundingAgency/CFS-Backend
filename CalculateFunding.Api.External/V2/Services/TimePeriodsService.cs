@@ -3,8 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Specs.Interfaces;
-using Microsoft.AspNetCore.Http;
+using CalculateFunding.Models.Policy;
 using Microsoft.AspNetCore.Mvc;
 using IPolicyFundingPeriodService = CalculateFunding.Services.Policy.Interfaces.IFundingPeriodService;
 
@@ -24,14 +23,13 @@ namespace CalculateFunding.Api.External.V2.Services
             _mapper = mapper;
         }
 
-
         public async Task<IActionResult> GetFundingPeriods()
         {
             IActionResult actionResult = await _fundingPeriodService.GetFundingPeriods();
 
             if (actionResult is OkObjectResult okObjectResult)
             {
-                IEnumerable<CalculateFunding.Models.Policy.Period> periods = (IEnumerable<CalculateFunding.Models.Policy.Period>)okObjectResult.Value;
+                IEnumerable<Period> periods = (IEnumerable<Period>)okObjectResult.Value;
                 List<Models.Period> mappedPeriods = _mapper.Map<List<Models.Period>>(periods);
                 return new OkObjectResult(mappedPeriods);
             }

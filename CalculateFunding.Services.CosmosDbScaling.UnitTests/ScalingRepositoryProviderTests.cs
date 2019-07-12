@@ -14,10 +14,22 @@ namespace CalculateFunding.Services.CosmosDbScaling
     public class ScalingRepositoryProviderTests
     {
         [TestMethod]
-        public void GetRepository_GivenRepositoryTypeIsCalculationProviderResults_ReturnsInstanceOfCalculationProviderResultsScalingRepository()
+        [DataRow(CosmosCollectionType.CalculationProviderResults, nameof(CalculationProviderResultsScalingRepository))]
+        [DataRow(CosmosCollectionType.ProviderSourceDatasets, nameof(ProviderSourceDatasetsScalingRepository))]
+        [DataRow(CosmosCollectionType.PublishedProviderResults, nameof(PublishedProviderResultsScalingRepository))]
+        [DataRow(CosmosCollectionType.Calculations, nameof(CalculationsScalingRepository))]
+        [DataRow(CosmosCollectionType.Jobs, nameof(JobsScalingRepository))]
+        [DataRow(CosmosCollectionType.DatasetAggregations, nameof(DatasetAggregationsScalingRepository))]
+        [DataRow(CosmosCollectionType.Datasets, nameof(DatasetsScalingRepository))]
+        [DataRow(CosmosCollectionType.Profiling, nameof(ProfilingScalingRepository))]
+        [DataRow(CosmosCollectionType.Specifications, nameof(SpecificationsScalingRepository))]
+        [DataRow(CosmosCollectionType.TestResults, nameof(TestResultsScalingRepository))]
+        [DataRow(CosmosCollectionType.Tests, nameof(TestsScalingRepository))]
+        [DataRow(CosmosCollectionType.Users, nameof(UsersScalingRepository))]
+        public void GetRepository_GivenRepositoryType_ReturnsInstanceOfCorrectRepository(CosmosCollectionType cosmosRepositoryType, string repositoryTypeName)
         {
             //Arrange
-            CosmosRepositoryType repositoryType = CosmosRepositoryType.CalculationProviderResults;
+            CosmosCollectionType repositoryType = cosmosRepositoryType;
 
             IServiceProvider serviceProvider = CreateServiceProvider();
 
@@ -27,54 +39,19 @@ namespace CalculateFunding.Services.CosmosDbScaling
             ICosmosDbScalingRepository scalingRepository = scalingRepositoryProvider.GetRepository(repositoryType);
 
             //Assert
+            //AB: using gettype and name rather than assignable tp because ncrunch throws a wobbly
             scalingRepository
+                .GetType()
+                .Name
                 .Should()
-                .BeOfType<CalculationProviderResultsScalingRepository>();
-        }
-
-        [TestMethod]
-        public void GetRepository_GivenRepositoryTypeIsProviderSourceDatasets_ReturnsInstanceOfProviderSourceDatasetsScalingRepository()
-        {
-            //Arrange
-            CosmosRepositoryType repositoryType = CosmosRepositoryType.ProviderSourceDatasets;
-
-            IServiceProvider serviceProvider = CreateServiceProvider();
-
-            CosmosDbScalingRepositoryProvider scalingRepositoryProvider = new CosmosDbScalingRepositoryProvider(serviceProvider);
-
-            //Act
-            ICosmosDbScalingRepository scalingRepository = scalingRepositoryProvider.GetRepository(repositoryType);
-
-            //Assert
-            scalingRepository
-                .Should()
-                .BeOfType<ProviderSourceDatasetsScalingRepository>();
-        }
-
-        [TestMethod]
-        public void GetRepository_GivenRepositoryTypeIsPublishedProviderResults_ReturnsInstanceOfPublishedProviderResultsScalingRepository()
-        {
-            //Arrange
-            CosmosRepositoryType repositoryType = CosmosRepositoryType.PublishedProviderResults;
-
-            IServiceProvider serviceProvider = CreateServiceProvider();
-
-            CosmosDbScalingRepositoryProvider scalingRepositoryProvider = new CosmosDbScalingRepositoryProvider(serviceProvider);
-
-            //Act
-            ICosmosDbScalingRepository scalingRepository = scalingRepositoryProvider.GetRepository(repositoryType);
-
-            //Assert
-            scalingRepository
-                .Should()
-                .BeOfType<PublishedProviderResultsScalingRepository>();
+                .Be(repositoryTypeName);
         }
 
         [TestMethod]
         public void GetRepository_GivenRepositoryTypeIsNotValid_ThrowsArgumentException()
         {
             //Arrange
-            CosmosRepositoryType repositoryType = (CosmosRepositoryType)42;
+            CosmosCollectionType repositoryType = (CosmosCollectionType)42;
 
             IServiceProvider serviceProvider = CreateServiceProvider();
 
@@ -108,8 +85,44 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Returns(new ProviderSourceDatasetsScalingRepository(cosmosRepository));
 
             serviceProvider
-               .GetService<PublishedProviderResultsScalingRepository>()
-               .Returns(new PublishedProviderResultsScalingRepository(cosmosRepository));
+                .GetService<PublishedProviderResultsScalingRepository>()
+                .Returns(new PublishedProviderResultsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<CalculationsScalingRepository>()
+                .Returns(new CalculationsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<JobsScalingRepository>()
+                .Returns(new JobsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<DatasetAggregationsScalingRepository>()
+                .Returns(new DatasetAggregationsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<DatasetsScalingRepository>()
+                .Returns(new DatasetsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<ProfilingScalingRepository>()
+                .Returns(new ProfilingScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<SpecificationsScalingRepository>()
+                .Returns(new SpecificationsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<TestResultsScalingRepository>()
+                .Returns(new TestResultsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<TestsScalingRepository>()
+                .Returns(new TestsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<UsersScalingRepository>()
+                .Returns(new UsersScalingRepository(cosmosRepository));
 
             return serviceProvider;
         }

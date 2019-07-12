@@ -19,30 +19,30 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 case JobConstants.DefinitionNames.CreateInstructAllocationJob:
                     cosmosDbScalingRequestModel.RepositoryTypes = new[]
                     {
-                        CosmosRepositoryType.CalculationProviderResults,
-                        CosmosRepositoryType.ProviderSourceDatasets
+                        CosmosCollectionType.CalculationProviderResults,
+                        CosmosCollectionType.ProviderSourceDatasets
                     };
                     break;
 
                 case JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob:
                     cosmosDbScalingRequestModel.RepositoryTypes = new[]
                     {
-                        CosmosRepositoryType.ProviderSourceDatasets
+                        CosmosCollectionType.ProviderSourceDatasets
                     };
                     break;
 
                 case JobConstants.DefinitionNames.MapDatasetJob:
                     cosmosDbScalingRequestModel.RepositoryTypes = new[]
                     {
-                        CosmosRepositoryType.ProviderSourceDatasets
+                        CosmosCollectionType.ProviderSourceDatasets
                     };
                     break;
 
                 case JobConstants.DefinitionNames.PublishProviderResultsJob:
                     cosmosDbScalingRequestModel.RepositoryTypes = new[]
                     {
-                        CosmosRepositoryType.CalculationProviderResults,
-                        CosmosRepositoryType.PublishedProviderResults
+                        CosmosCollectionType.CalculationProviderResults,
+                        CosmosCollectionType.PublishedProviderResults
                     };
                     break;
             }

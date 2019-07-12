@@ -5,7 +5,6 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
-using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
@@ -27,7 +26,7 @@ namespace CalculateFunding.Services.Providers
         private readonly IProviderVersionsMetadataRepository _providerVersionMetadataRepository;
         private readonly IProviderVersionService _providerVersionService;
 
-        private FacetFilterType[] Facets = {
+        private readonly FacetFilterType[] Facets = {
             new FacetFilterType("providerType"),
             new FacetFilterType("providerSubType"),
             new FacetFilterType("authority"),
@@ -55,8 +54,8 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
-           
+            (bool Ok, string Message) = await _searchRepository.IsHealthOk();
+
             ServiceHealth providerVersionMetadataRepoHealth = await ((IHealthChecker)_providerVersionMetadataRepository).IsHealthOk();
 
             ServiceHealth providerVersionServiceHealth = await _providerVersionService.IsHealthOk();
@@ -69,7 +68,7 @@ namespace CalculateFunding.Services.Providers
             health.Dependencies.AddRange(providerVersionMetadataRepoHealth.Dependencies);
             health.Dependencies.AddRange(providerVersionServiceHealth.Dependencies);
 
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }

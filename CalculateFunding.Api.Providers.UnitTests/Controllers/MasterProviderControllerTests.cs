@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Api.Providers.Controllers;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Api.Providers.Controllers;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
@@ -6,7 +7,6 @@ using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Results.UnitTests.Controllers
 {

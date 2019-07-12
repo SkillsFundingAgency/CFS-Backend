@@ -64,6 +64,8 @@
 
             //For debug queue only as its on a timer
             public const string ScaleDownCosmosdbCollection = "scale-down-cosmosdb-collection";
+
+            public const string IncrementaScaleDownCosmosdbCollection = "incremental-scale-down-cosmosdb-collection";
         }
 
         public static class TopicNames

@@ -22,7 +22,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     public partial class PublishedResultsServiceTests
     {
@@ -863,30 +863,32 @@ namespace CalculateFunding.Services.Results.Services
                 Name = "Allocation Line 1",
             };
 
-            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>();
-            publishedProviderResults.Add(new PublishedProviderResult()
+            List<PublishedProviderResult> publishedProviderResults = new List<PublishedProviderResult>
             {
-                FundingPeriod = fundingPeriod,
-                ProviderId = providerId,
-                SpecificationId = specificationId,
-                FundingStreamResult = new PublishedFundingStreamResult()
+                new PublishedProviderResult()
                 {
-                    AllocationLineResult = new PublishedAllocationLineResult()
+                    FundingPeriod = fundingPeriod,
+                    ProviderId = providerId,
+                    SpecificationId = specificationId,
+                    FundingStreamResult = new PublishedFundingStreamResult()
                     {
-                        AllocationLine = allocationLine1,
-                        Current = new PublishedAllocationLineResultVersion()
+                        AllocationLineResult = new PublishedAllocationLineResult()
                         {
-                            Author = author,
-                            Status = AllocationLineStatus.Held,
-                            Value = 1,
-                            Provider = new ProviderSummary
+                            AllocationLine = allocationLine1,
+                            Current = new PublishedAllocationLineResultVersion()
                             {
-                                UKPRN = "1234"
+                                Author = author,
+                                Status = AllocationLineStatus.Held,
+                                Value = 1,
+                                Provider = new ProviderSummary
+                                {
+                                    UKPRN = "1234"
+                                }
                             }
                         }
                     }
                 }
-            });
+            };
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))

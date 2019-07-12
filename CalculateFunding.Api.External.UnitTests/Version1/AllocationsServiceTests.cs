@@ -80,8 +80,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             //Arrange
             string allocationResultId = "12345";
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -191,8 +193,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             //Arrange
             string allocationResultId = "12345";
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
 
             HttpRequest request = Substitute.For<HttpRequest>();
             request
@@ -310,7 +314,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                             ProfilingPeriods = new[]
                             {
                                 new ProfilingPeriod()
-                            },
+                            }
                         }
                     }
                 },
@@ -318,8 +322,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 {
                     Id = "Ay12345",
                     Name = "fp-1"
-                },
-
+                }
             };
         }
 
@@ -330,7 +333,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
                 PublishedProviderResult = CreatePublishedProviderResult(),
                 History = new[]
                 {
-
                     new PublishedAllocationLineResultVersion
                     {
                         Value = 50,

@@ -8,11 +8,12 @@
 
   <ItemGroup>
     <Compile Remove="OnSourceUpdated.cs" />
-    <Compile Remove="Storage\DatasetBlobTriggers.cs" />
   </ItemGroup>
 
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="3.1.0-beta3" />
     <PackageReference Include="AutoMapper" Version="8.0.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="5.0.2" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />
@@ -43,10 +44,6 @@
     <None Update="local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Storage\" />
   </ItemGroup>
 
 </Project>

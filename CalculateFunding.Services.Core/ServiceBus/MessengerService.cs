@@ -47,17 +47,18 @@ namespace CalculateFunding.Services.Core.ServiceBus
             });
         }
 
-        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false) where T : class
+        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class
         {
             string json = JsonConvert.SerializeObject(data);
 
-            await SendToQueueAsJson(queueName, json, properties, compressData);
+            await SendToQueueAsJson(queueName, json, properties, compressData, sessionId);
         }
 
-        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false)
+        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null)
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
-            Message message = ConstructMessage(data, compressData);
+
+            Message message = ConstructMessage(data, compressData, sessionId);
 
             foreach (KeyValuePair<string, string> property in properties)
             {
@@ -77,18 +78,18 @@ namespace CalculateFunding.Services.Core.ServiceBus
             });
         }
 
-        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false) where T : class
+        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class
         {
             string json = JsonConvert.SerializeObject(data);
 
-            await SendToTopicAsJson(topicName, json, properties, compressData);
+            await SendToTopicAsJson(topicName, json, properties, compressData, sessionId);
         }
 
-        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false)
+        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null)
         {
             Guard.IsNullOrWhiteSpace(topicName, nameof(topicName));
 
-            Message message = ConstructMessage(data, compressData);
+            Message message = ConstructMessage(data, compressData, sessionId);
 
             foreach (KeyValuePair<string, string> property in properties)
             {
@@ -100,7 +101,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await topicClient.SendAsync(message);
         }
 
-        private static Message ConstructMessage(string data, bool compressData)
+        private static Message ConstructMessage(string data, bool compressData, string sessionId = null)
         {
             Message message = null;
 
@@ -125,6 +126,11 @@ namespace CalculateFunding.Services.Core.ServiceBus
                 {
                     PartitionKey = Guid.NewGuid().ToString()
                 };
+            }
+
+            if (!string.IsNullOrWhiteSpace(sessionId))
+            {
+                message.SessionId = sessionId;
             }
 
             return message;

@@ -3,41 +3,49 @@ using System.Threading.Tasks;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+using Serilog;
+using CalculateFunding.Common.Utility;
 
 namespace CalculateFunding.Functions.Calcs.ServiceBus
 {
-    public static class CalcsAddRelationshipToBuildProject
+    public class CalcsAddRelationshipToBuildProject
     {
-        [FunctionName("on-calcs-add-data-relationship")]
-        public static async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly IBuildProjectsService _buildProjectsService;
+
+        public CalcsAddRelationshipToBuildProject(
+            ILogger logger,
+            ICorrelationIdProvider correlationIdProvider,
+            IBuildProjectsService buildProjectsService)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
 
-            using (var scope = IocConfig.Build(config).CreateScope())
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _buildProjectsService = buildProjectsService;
+        }
+
+        [FunctionName("on-calcs-add-data-relationship")]
+        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        {
+            try
             {
-                var correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                var buildProjectsService = scope.ServiceProvider.GetService<IBuildProjectsService>();
-                var logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
-                ICacheProvider cacheProvider = scope.ServiceProvider.GetService<ICacheProvider>();
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _buildProjectsService.UpdateBuildProjectRelationships(message);
 
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await buildProjectsService.UpdateBuildProjectRelationships(message);
-
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships}");
-                    throw;
-                }
             }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships}");
+                throw;
+            }
+            
         }
     }
 }

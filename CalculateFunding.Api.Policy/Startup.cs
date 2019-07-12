@@ -1,28 +1,28 @@
 using System;
 using System.IO;
 using System.Reflection;
+using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Providers.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Swashbuckle.AspNetCore.Swagger;
 using Polly.Bulkhead;
-using CalculateFunding.Common.Storage;
-using AutoMapper;
-using CalculateFunding.Services.Providers.Validators;
-using FluentValidation;
-using CalculateFunding.Models.FundingPolicy;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace CalculateFunding.Api.Policy
 {

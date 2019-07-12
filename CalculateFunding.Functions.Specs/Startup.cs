@@ -1,11 +1,10 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Functions.Specs.ServiceBus;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
@@ -20,37 +19,37 @@ using CalculateFunding.Services.Specs.MappingProfiles;
 using CalculateFunding.Services.Specs.Validators;
 using CalculateFunding.Services.Validators;
 using FluentValidation;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 
+[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Specs.Startup))]
+
 namespace CalculateFunding.Functions.Specs
 {
-    static public class IocConfig
+    public class Startup : FunctionsStartup
     {
-        private static IServiceProvider _serviceProvider;
-
-        public static IServiceProvider Build(IConfigurationRoot config)
+        public override void Configure(IFunctionsHostBuilder builder)
         {
-            if (_serviceProvider == null)
-            {
-                _serviceProvider = BuildServiceProvider(config);
-            }
-
-            return _serviceProvider;
+            RegisterComponents(builder.Services);
         }
 
-        static public IServiceProvider BuildServiceProvider(IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder)
         {
-            var serviceProvider = new ServiceCollection();
+            IConfigurationRoot config = ConfigHelper.AddConfig();
 
-            RegisterComponents(serviceProvider, config);
-
-            return serviceProvider.BuildServiceProvider();
+            return RegisterComponents(builder, config);
         }
 
-        static public void RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
         {
+            return Register(builder, config);
+        }
+
+        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
+        {
+            builder.AddSingleton<OnAddRelationshipEvent>();
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();
             builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
@@ -141,6 +140,8 @@ namespace CalculateFunding.Functions.Specs
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Specs");
             builder.AddLogging("CalculateFunding.Functions.Specs");
             builder.AddTelemetry();
+
+            return builder.BuildServiceProvider();
         }
     }
 }

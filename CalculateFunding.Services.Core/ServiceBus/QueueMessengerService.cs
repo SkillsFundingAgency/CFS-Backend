@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             }
         }
 
-        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false) where T : class
+        public async Task SendToQueue<T>(string queueName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
 
@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await queue.AddMessageAsync(message);
         }
 
-        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false)
+        public async Task SendToQueueAsJson(string queueName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null)
         {
             Guard.IsNullOrWhiteSpace(queueName, nameof(queueName));
 
@@ -98,12 +98,12 @@ namespace CalculateFunding.Services.Core.ServiceBus
             await queue.AddMessageAsync(message);
         }
 
-        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false) where T : class
+        public async Task SendToTopic<T>(string topicName, T data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null) where T : class
         {
             await SendToQueue<T>(topicName, data, properties, compressData);
         }
 
-        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false)
+        public async Task SendToTopicAsJson(string topicName, string data, IDictionary<string, string> properties, bool compressData = false, string sessionId = null)
         {
             await SendToQueueAsJson(topicName, data, properties, compressData);
         }

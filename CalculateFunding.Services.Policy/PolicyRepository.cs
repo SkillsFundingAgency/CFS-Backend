@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Extensions;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.FundingPolicy;
@@ -26,14 +25,14 @@ namespace CalculateFunding.Services.Policy
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            var (Ok, Message) = await _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(PolicyRepository)
             };
 
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }

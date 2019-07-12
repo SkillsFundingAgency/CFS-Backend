@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -28,13 +27,13 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) cosmosRepoHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = await _cosmosRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(CalculationResultsRepository)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -100,7 +99,7 @@ namespace CalculateFunding.Services.Results.Repositories
 
             await _cosmosRepository.BulkDeleteAsync<ProviderResult>(
                 providerResults.Select(x => new KeyValuePair<string, ProviderResult>(x.Provider.Id, x)),
-                degreeOfParallelism: 15, 
+                degreeOfParallelism: 15,
                 hardDelete: true);
         }
 

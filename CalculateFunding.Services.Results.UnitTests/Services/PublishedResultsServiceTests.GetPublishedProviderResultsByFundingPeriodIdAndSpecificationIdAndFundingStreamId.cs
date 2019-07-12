@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.ResultModels;
 using FluentAssertions;
@@ -16,7 +15,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     public partial class PublishedResultsServiceTests
     {

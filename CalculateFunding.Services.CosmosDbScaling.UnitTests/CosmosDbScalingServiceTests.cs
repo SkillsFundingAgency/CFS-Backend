@@ -1,4 +1,10 @@
-﻿using CalculateFunding.Common.ApiClient.Jobs;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
@@ -6,19 +12,13 @@ using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
-using CalculateFunding.Services.CosmosDbScaling.Repositories;
 using FluentAssertions;
+using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.CosmosDbScaling
 {
@@ -56,7 +56,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 RepositoryTypes = new[]
                 {
-                    CosmosRepositoryType.CalculationProviderResults
+                    CosmosCollectionType.CalculationProviderResults
                 },
                 JobDefinitionId = "job-def-1"
             };
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-           
+
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
@@ -128,7 +128,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 RepositoryTypes = new[]
                {
-                    CosmosRepositoryType.CalculationProviderResults
+                    CosmosCollectionType.CalculationProviderResults
                 },
                 JobDefinitionId = "job-def-1"
             };
@@ -142,12 +142,18 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-                .GetConfigByRepositoryType(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingConfig);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
 
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
             scalingRepository
@@ -156,7 +162,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             ILogger logger = CreateLogger();
@@ -198,7 +204,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 RepositoryTypes = new[]
                 {
-                    CosmosRepositoryType.CalculationProviderResults
+                    CosmosCollectionType.CalculationProviderResults
                 },
                 JobDefinitionId = "job-def-1"
             };
@@ -212,21 +218,27 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-                .GetConfigByRepositoryType(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingConfig);
             cosmosDbScalingConfigRepository
-                .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
+
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
                 .Returns(HttpStatusCode.BadRequest);
 
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
-           
+
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             ILogger logger = CreateLogger();
@@ -251,7 +263,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             logger
                 .Received(1)
-                .Error($"Failed to update cosmos scale config repository type: '{scalingConfig.RepositoryType}' with new request units of '{scalingConfig.CurrentRequestUnits}' with status code: '{HttpStatusCode.BadRequest}'");
+                .Error($"Failed to update cosmos scale config repository type: '{settings.CosmosCollectionType}' with new request units of '{settings.CurrentRequestUnits}' with status code: '{HttpStatusCode.BadRequest}'");
         }
 
         [TestMethod]
@@ -268,7 +280,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 RepositoryTypes = new[]
                 {
-                    CosmosRepositoryType.CalculationProviderResults
+                    CosmosCollectionType.CalculationProviderResults
                 },
                 JobDefinitionId = "job-def-1"
             };
@@ -281,21 +293,26 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Returns(requestModel);
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
-            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-                .GetConfigByRepositoryType(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingConfig);
             cosmosDbScalingConfigRepository
-                .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
                 .Returns(HttpStatusCode.OK);
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
 
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             ILogger logger = CreateLogger();
@@ -333,7 +350,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 RepositoryTypes = new[]
                 {
-                    CosmosRepositoryType.CalculationProviderResults
+                    CosmosCollectionType.CalculationProviderResults
                 },
                 JobDefinitionId = "job-def-1"
             };
@@ -347,22 +364,27 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
-            scalingConfig.CurrentRequestUnits = 100000;
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = 100000;
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-                .GetConfigByRepositoryType(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingConfig);
             cosmosDbScalingConfigRepository
-                .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
                 .Returns(HttpStatusCode.OK);
 
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             ILogger logger = CreateLogger();
@@ -385,7 +407,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await
                 cosmosDbScalingConfigRepository
                 .Received(1)
-                .UpdateCurrentRequestUnits(Arg.Is<CosmosDbScalingConfig>(m => m.CurrentRequestUnits == 150000));
+                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == 150000));
         }
 
         [TestMethod]
@@ -402,7 +424,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 RepositoryTypes = new[]
                {
-                    CosmosRepositoryType.CalculationProviderResults
+                    CosmosCollectionType.CalculationProviderResults
                 },
                 JobDefinitionId = "job-def-1"
             };
@@ -411,15 +433,21 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
-            scalingConfig.CurrentRequestUnits = 180000;
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = 180000;
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-                .GetConfigByRepositoryType(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingConfig);
             cosmosDbScalingConfigRepository
-                .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
+               .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+               .Returns(settings);
+
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
                 .Returns(HttpStatusCode.OK);
 
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
@@ -431,7 +459,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             ILogger logger = CreateLogger();
@@ -449,12 +477,12 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await
                 scalingRepository
                 .Received(1)
-                .SetThroughput(Arg.Is(scalingConfig.MaxRequestUnits));
+                .SetThroughput(Arg.Is(settings.MaxRequestUnits));
 
             await
                 cosmosDbScalingConfigRepository
                 .Received(1)
-                .UpdateCurrentRequestUnits(Arg.Is<CosmosDbScalingConfig>(m => m.CurrentRequestUnits == scalingConfig.MaxRequestUnits));
+                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits));
         }
 
         [TestMethod]
@@ -470,8 +498,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingRequestModel requestModel = new CosmosDbScalingRequestModel
             {
                 RepositoryTypes = new[]
-               {
-                    CosmosRepositoryType.CalculationProviderResults
+                {
+                    CosmosCollectionType.CalculationProviderResults
                 },
                 JobDefinitionId = "job-def-1"
             };
@@ -480,22 +508,27 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
-            scalingConfig.CurrentRequestUnits = scalingConfig.MaxRequestUnits;
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = settings.MaxRequestUnits;
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-                .GetConfigByRepositoryType(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingConfig);
             cosmosDbScalingConfigRepository
-                .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
                 .Returns(HttpStatusCode.OK);
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
 
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             ICosmosDbScalingRequestModelBuilder modelBuilder = CreateReqestModelBuilder();
@@ -518,12 +551,255 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await
                 scalingRepository
                 .Received(1)
-                .SetThroughput(Arg.Is(scalingConfig.MaxRequestUnits));
+                .SetThroughput(Arg.Is(settings.MaxRequestUnits));
 
             await
                 cosmosDbScalingConfigRepository
                 .Received(1)
-                .UpdateCurrentRequestUnits(Arg.Is<CosmosDbScalingConfig>(m => m.CurrentRequestUnits == scalingConfig.MaxRequestUnits));
+                .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m => m.CurrentRequestUnits == settings.MaxRequestUnits));
+        }
+
+        [TestMethod]
+        public async Task ScaleUp_GivenEventsButNoneFilteredForProcessing_DoesNotLogFoundEvents()
+        {
+            //Arrange
+            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
+            cosmosDbThrottledEventsFilter
+                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .Returns(Enumerable.Empty<string>());
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(logger, cosmosDbThrottledEventsFilter: cosmosDbThrottledEventsFilter);
+
+            //Act
+            await cosmosDbScalingService.ScaleUp(Enumerable.Empty<EventData>());
+
+            //Assert
+            logger
+                .DidNotReceive()
+                .Information(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task ScaleUp_GivenEventsFilteredForProcessing_ScalesCollection()
+        {
+            //Arrange
+            const string specsCollection = "specs";
+
+            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
+            cosmosDbThrottledEventsFilter
+                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .Returns(new[] { specsCollection });
+
+            ILogger logger = CreateLogger();
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = 1000;
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.Specifications))
+                .Returns(settings);
+            cosmosDbScalingConfigRepository
+               .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+               .Returns(HttpStatusCode.OK);
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.Specifications))
+                .Returns(scalingRepository);
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingRepositoryProvider,
+                cosmosDbThrottledEventsFilter: cosmosDbThrottledEventsFilter,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository);
+
+            //Act
+            await cosmosDbScalingService.ScaleUp(Enumerable.Empty<EventData>());
+
+            //Assert
+            await
+             cosmosDbScalingConfigRepository
+             .Received(1)
+             .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
+                  m.LastScalingIncrementValue == 10000 &&
+                  m.LastScalingIncrementDateTime.Value.Date == DateTimeOffset.Now.Date &&
+                  m.CurrentRequestUnits == 11000));
+
+            await
+             scalingRepository
+                 .Received(1)
+                 .SetThroughput(Arg.Is(11000));
+        }
+
+        [TestMethod]
+        public async Task ScaleUp_GivenEventsFilteredForProcessingAndIncreasingRequestUnitsWillExceedMaximum_ScalesCollectionToMaximumRequestUnits()
+        {
+            //Arrange
+            const string specsCollection = "specs";
+            const int maxRequestUnits = 200000;
+
+            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
+            cosmosDbThrottledEventsFilter
+                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .Returns(new[] { specsCollection });
+
+            ILogger logger = CreateLogger();
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.Specifications);
+            settings.CurrentRequestUnits = 199000;
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.Specifications))
+                .Returns(settings);
+            cosmosDbScalingConfigRepository
+               .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+               .Returns(HttpStatusCode.OK);
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.Specifications))
+                .Returns(scalingRepository);
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingRepositoryProvider,
+                cosmosDbThrottledEventsFilter: cosmosDbThrottledEventsFilter,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository);
+
+            //Act
+            await cosmosDbScalingService.ScaleUp(Enumerable.Empty<EventData>());
+
+            //Assert
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Found 1 collections to process"));
+
+            await
+              cosmosDbScalingConfigRepository
+              .Received(1)
+              .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
+                   m.LastScalingIncrementValue == 1000 &&
+                   m.LastScalingIncrementDateTime.Value.Date == DateTimeOffset.Now.Date &&
+                   m.CurrentRequestUnits == maxRequestUnits
+              ));
+
+            await
+                scalingRepository
+                    .Received(1)
+                    .SetThroughput(Arg.Is(maxRequestUnits));
+        }
+
+        [TestMethod]
+        public async Task ScaleUp_GivenEventsFilteredForProcessingAndCurrentRequestUnitsAlreadayAtMaximum_DoesNotScaleUp()
+        {
+            //Arrange
+            const string specsCollection = "specs";
+            const int maxRequestUnits = 200000;
+
+            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
+            cosmosDbThrottledEventsFilter
+                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .Returns(new[] { specsCollection });
+
+            ILogger logger = CreateLogger();
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+            scalingRepository
+                .GetCurrentThroughput()
+                .Returns(maxRequestUnits);
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.Specifications))
+                .Returns(scalingRepository);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.Specifications);
+            settings.CurrentRequestUnits = settings.MaxRequestUnits;
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.Specifications))
+                .Returns(settings);
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingRepositoryProvider,
+                cosmosDbThrottledEventsFilter: cosmosDbThrottledEventsFilter,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository);
+
+            string errorMessage = $"The collection '{specsCollection}' throughput is already at the maximum of {maxRequestUnits} RU's";
+
+            //Act
+            await cosmosDbScalingService.ScaleUp(Enumerable.Empty<EventData>());
+
+            //Assert
+            logger
+                .Received(1)
+                .Warning(Arg.Is(errorMessage));
+
+            await
+                scalingRepository
+                    .DidNotReceive()
+                    .SetThroughput(Arg.Any<int>());
+        }
+
+        [TestMethod]
+        public void ScaleUp_GivenEventsFilteredForProcessingButScalingCausesException_ThrowsRetriablEexception()
+        {
+            //Arrange
+            const string specsCollection = "specs";
+
+            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = CreateCosmosDbThrottledEventsFilter();
+            cosmosDbThrottledEventsFilter
+                .GetUniqueCosmosDbCollectionNamesFromEventData(Arg.Any<IEnumerable<EventData>>())
+                .Returns(new[] { specsCollection });
+
+            ILogger logger = CreateLogger();
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+            scalingRepository
+                .GetCurrentThroughput()
+                .Returns(10000);
+
+            scalingRepository
+                .When(x => x.SetThroughput(Arg.Any<int>()))
+                .Do(x => { throw new Exception(); });
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.Specifications))
+                .Returns(scalingRepository);
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingRepositoryProvider,
+                cosmosDbThrottledEventsFilter: cosmosDbThrottledEventsFilter);
+
+            string errorMessage = $"Failed to increase cosmosdb request units on collection '{specsCollection}'";
+
+            //Act
+            Func<Task> test = async () => await cosmosDbScalingService.ScaleUp(Enumerable.Empty<EventData>());
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be(errorMessage);
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is(errorMessage));
         }
 
         [TestMethod]
@@ -542,7 +818,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(logger, jobsApiClient: jobsApiClient);
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleDown();
+            Func<Task> test = async () => await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             test
@@ -559,7 +835,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDown_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButConfigAlreadyAtBaseline_DoesNotUpdateConfig()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButConfigAlreadyAtBaseline_DoesNotUpdateConfig()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -570,7 +846,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 }
             };
 
-            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
+            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
@@ -580,8 +856,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
             jobsApiClient
                 .GetNonCompletedJobsWithinTimeFrame(Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
                 .Returns(jobSummariesResponse);
-
-            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
 
             ILogger logger = CreateLogger();
 
@@ -590,24 +864,32 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .GetAsync<List<CosmosDbScalingConfig>>(Arg.Is(CacheKeys.AllCosmosScalingConfigs))
                 .Returns(configs.ToList());
 
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = settings.MinRequestUnits;
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
+
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
-                logger, 
+                logger,
                 jobsApiClient: jobsApiClient,
                 cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
                 cacheProvider: cacheProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDown();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             await
                 cosmosDbScalingConfigRepository
                 .DidNotReceive()
-                .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>());
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>());
         }
 
         [TestMethod]
-        public void ScaleDown_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToSetThroughput_ThrowsRetriableException()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToSetThroughput_ThrowsRetriableException()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -618,8 +900,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 }
             };
 
-            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
-            cosmosDbScalingConfig.CurrentRequestUnits = cosmosDbScalingConfig.MaxRequestUnits;
+            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = settings.MaxRequestUnits;
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
@@ -636,6 +920,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Returns(configs.ToList());
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
 
             ILogger logger = CreateLogger();
 
@@ -646,7 +933,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
@@ -657,7 +944,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            Func<Task> test = async() => await cosmosDbScalingService.ScaleDown();
+            Func<Task> test = async () => await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             test
@@ -670,7 +957,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDown_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToUpdateConfig_ThrowsRetriableException()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToUpdateConfig_ThrowsRetriableException()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -681,8 +968,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 }
             };
 
-            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
-            cosmosDbScalingConfig.CurrentRequestUnits = cosmosDbScalingConfig.MaxRequestUnits;
+            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = settings.MaxRequestUnits;
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
@@ -700,16 +989,19 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-                .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
                 .Returns(HttpStatusCode.BadRequest);
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
 
             ILogger logger = CreateLogger();
 
             ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
-           
+
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
@@ -720,7 +1012,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleDown();
+            Func<Task> test = async () => await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             test
@@ -734,11 +1026,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await
                 scalingRepository
                 .Received(1)
-                .SetThroughput(Arg.Is(cosmosDbScalingConfig.BaseRequestUnits));
+                .SetThroughput(Arg.Is(settings.MinRequestUnits));
         }
 
         [TestMethod]
-        public async Task ScaleDown_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButAlreadyAtBaseLine_DoesNotSetThroughput()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButAlreadyAtBaseLine_DoesNotSetThroughput()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -749,8 +1041,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 }
             };
 
-            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
-            cosmosDbScalingConfig.CurrentRequestUnits = cosmosDbScalingConfig.BaseRequestUnits;
+            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = settings.MinRequestUnits;
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
@@ -767,6 +1061,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Returns(configs.ToList());
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
 
             ILogger logger = CreateLogger();
 
@@ -774,7 +1071,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
@@ -785,9 +1082,9 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDown();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
-           //Assert
+            //Assert
             await
                 scalingRepository
                 .DidNotReceive()
@@ -795,7 +1092,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDown_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsNotAtBaseline_SetsThroughputAndUpdatesConfig()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsNotAtBaseline_SetsThroughputAndUpdatesConfig()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -806,8 +1103,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 }
             };
 
-            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosRepositoryType.CalculationProviderResults);
-            cosmosDbScalingConfig.CurrentRequestUnits = cosmosDbScalingConfig.MaxRequestUnits;
+            CosmosDbScalingConfig cosmosDbScalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings.CurrentRequestUnits = settings.MaxRequestUnits;
 
             IEnumerable<CosmosDbScalingConfig> configs = new[] { cosmosDbScalingConfig };
 
@@ -825,8 +1124,12 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-               .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
+               .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
                .Returns(HttpStatusCode.OK);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
 
             ILogger logger = CreateLogger();
 
@@ -834,7 +1137,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
@@ -845,13 +1148,21 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDown();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             await
+               cosmosDbScalingConfigRepository
+               .Received(1)
+               .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
+                    m.LastScalingDecrementValue == 190000 &&
+                    m.CurrentRequestUnits == 10000
+               ));
+
+            await
                 scalingRepository
                 .Received(1)
-                .SetThroughput(Arg.Is(cosmosDbScalingConfig.BaseRequestUnits));
+                .SetThroughput(Arg.Is(settings.MinRequestUnits));
 
             await
                 cacheProvider
@@ -860,7 +1171,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDown_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButAllAtBaseline_DoesNotSetThroughputs()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButAllAtBaseline_DoesNotSetThroughputs()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -893,10 +1204,17 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .GetAsync<List<CosmosDbScalingConfig>>(Arg.Is(CacheKeys.AllCosmosScalingConfigs))
                 .Returns(configs.ToList());
 
+            CosmosDbScalingCollectionSettings settings1 = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings1.CurrentRequestUnits = settings1.MinRequestUnits;
+            CosmosDbScalingCollectionSettings settings2 = CreateCollectionSettings(CosmosCollectionType.ProviderSourceDatasets);
+            settings2.CurrentRequestUnits = settings2.MinRequestUnits;
+            CosmosDbScalingCollectionSettings settings3 = CreateCollectionSettings(CosmosCollectionType.PublishedProviderResults);
+            settings3.CurrentRequestUnits = settings3.MinRequestUnits;
+
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-               .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
-               .Returns(HttpStatusCode.OK);
+                .GetCollectionSettingsByRepositoryType(Arg.Any<CosmosCollectionType>())
+                .Returns(settings1, settings2, settings3);
 
             ILogger logger = CreateLogger();
 
@@ -904,7 +1222,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
@@ -915,7 +1233,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDown();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             await
@@ -925,7 +1243,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDown_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButAllOneNotAtBaseline_SetsThroughputForOne()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButOnlyOneNotAtBaseline_SetsThroughputForOne()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -945,7 +1263,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
             };
 
             IEnumerable<CosmosDbScalingConfig> configs = CreateCosmosScalingConfigs();
-            configs.First().CurrentRequestUnits = 50000;
 
             ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.OK, jobSummaries);
 
@@ -959,10 +1276,23 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .GetAsync<List<CosmosDbScalingConfig>>(Arg.Is(CacheKeys.AllCosmosScalingConfigs))
                 .Returns(configs.ToList());
 
+            CosmosDbScalingCollectionSettings settings1 = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            settings1.CurrentRequestUnits = 100000;
+
+            CosmosDbScalingCollectionSettings settings2 = CreateCollectionSettings(CosmosCollectionType.ProviderSourceDatasets);
+            settings2.CurrentRequestUnits = settings2.MinRequestUnits;
+
+            CosmosDbScalingCollectionSettings settings3 = CreateCollectionSettings(CosmosCollectionType.PublishedProviderResults);
+            settings3.CurrentRequestUnits = settings3.MinRequestUnits;
+
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
             cosmosDbScalingConfigRepository
-               .UpdateCurrentRequestUnits(Arg.Any<CosmosDbScalingConfig>())
+               .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
                .Returns(HttpStatusCode.OK);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Any<CosmosCollectionType>())
+                .Returns(settings1, settings2, settings3);
 
             ILogger logger = CreateLogger();
 
@@ -970,7 +1300,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
             cosmosDbScalingRepositoryProvider
-                .GetRepository(Arg.Is(CosmosRepositoryType.CalculationProviderResults))
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
                 .Returns(scalingRepository);
 
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
@@ -981,7 +1311,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDown();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             await
@@ -990,13 +1320,254 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .SetThroughput(Arg.Any<int>());
         }
 
+        [TestMethod]
+        public async Task ScaleDownIncrementally_GivenNoCollectionsToProcess_Exists()
+        {
+            //Arrange
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsIncremented(Arg.Any<int>())
+                .Returns(Enumerable.Empty<CosmosDbScalingCollectionSettings>());
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(logger, cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository);
+
+            //Act
+            await cosmosDbScalingService.ScaleDownIncrementally();
+
+            //Assert
+            logger
+                .DidNotReceive()
+                .Information(Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task ScaleDownIncrementally_GivenOneCollectionsToProcess_ScalesCollection()
+        {
+            //Arrange
+            CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            cosmosDbScalingCollectionSettings.CurrentRequestUnits = 20000;
+            cosmosDbScalingCollectionSettings.LastScalingIncrementValue = 10000;
+
+            IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = new[]
+            {
+                cosmosDbScalingCollectionSettings
+            };
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsIncremented(Arg.Any<int>())
+                .Returns(collectionsToProcess);
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.OK);
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingRepository);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+
+            //Act
+            await cosmosDbScalingService.ScaleDownIncrementally();
+
+            //Assert
+            logger
+                .Received()
+                .Information(Arg.Is($"Found {collectionsToProcess.Count()} collections to scale down"));
+
+            await
+              cosmosDbScalingConfigRepository
+              .Received(1)
+              .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
+                   m.CurrentRequestUnits == 10000 &&
+                   m.LastScalingIncrementValue == 10000 &&
+                   m.LastScalingDecrementDateTime.HasValue
+              ));
+
+            await
+                scalingRepository
+                .Received(1)
+                .SetThroughput(Arg.Is(10000));
+        }
+
+        [TestMethod]
+        public async Task ScaleDownIncrementally_GivenOneCollectionsToProcessAndLastIncremnetWas10000_ScalesCollectionEnsuresCurrentUpdated()
+        {
+            //Arrange
+            CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            cosmosDbScalingCollectionSettings.CurrentRequestUnits = 50000;
+            cosmosDbScalingCollectionSettings.LastScalingIncrementValue = 10000;
+
+            IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = new[]
+            {
+                cosmosDbScalingCollectionSettings
+            };
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsIncremented(Arg.Any<int>())
+                .Returns(collectionsToProcess);
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.OK);
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingRepository);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+
+            //Act
+            await cosmosDbScalingService.ScaleDownIncrementally();
+
+            //Assert
+            logger
+                .Received()
+                .Information(Arg.Is($"Found {collectionsToProcess.Count()} collections to scale down"));
+
+            await
+              cosmosDbScalingConfigRepository
+              .Received(1)
+              .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
+                   m.CurrentRequestUnits == 40000 &&
+                   m.LastScalingIncrementValue == 10000 &&
+                   m.LastScalingDecrementDateTime.HasValue
+              ));
+
+            await
+                scalingRepository
+                .Received(1)
+                .SetThroughput(Arg.Is(40000));
+        }
+
+        [TestMethod]
+        public async Task ScaleDownIncrementally_GivenOneCollectionsToProcessAndLastIncremnetWas10000AndCurrentAt10000_DoesnOtScalecollection()
+        {
+            //Arrange
+            CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            cosmosDbScalingCollectionSettings.CurrentRequestUnits = 10000;
+            cosmosDbScalingCollectionSettings.LastScalingIncrementValue = 10000;
+
+            IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = new[]
+            {
+                cosmosDbScalingCollectionSettings
+            };
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsIncremented(Arg.Any<int>())
+                .Returns(collectionsToProcess);
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.OK);
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingRepository);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+
+            //Act
+            await cosmosDbScalingService.ScaleDownIncrementally();
+
+            //Assert
+            logger
+                .Received()
+                .Information(Arg.Is($"Found {collectionsToProcess.Count()} collections to scale down"));
+
+            await
+                scalingRepository
+                .DidNotReceive()
+                .SetThroughput(Arg.Any<int>());
+        }
+
+        [TestMethod]
+        public void ScaleDownIncrementally_GivenOneCollectionsToProcessButFailsToScale_ThrowsretriableException()
+        {
+            //Arrange
+            CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+            cosmosDbScalingCollectionSettings.CurrentRequestUnits = 20000;
+            cosmosDbScalingCollectionSettings.LastScalingIncrementValue = 10000;
+
+            IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = new[]
+            {
+                cosmosDbScalingCollectionSettings
+            };
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsIncremented(Arg.Any<int>())
+                .Returns(collectionsToProcess);
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.BadRequest);
+
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingRepository);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+
+            //Act
+            Func<Task> test = async () => await cosmosDbScalingService.ScaleDownIncrementally();
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to scale down collection for repository type '{CosmosCollectionType.CalculationProviderResults}'");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to update cosmos scale config repository type: '{CosmosCollectionType.CalculationProviderResults}' with new request units of '10000' with status code: 'BadRequest'"));
+        }
+
+
         private CosmosDbScalingService CreateScalingService(
             ILogger logger = null,
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = null,
             IJobsApiClient jobsApiClient = null,
             ICacheProvider cacheProvider = null,
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = null,
-            ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder = null)
+            ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder = null,
+            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = null)
         {
             return new CosmosDbScalingService(
                 logger ?? CreateLogger(),
@@ -1005,7 +1576,13 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cacheProvider ?? CreateCacheProvider(),
                 cosmosDbScalingConfigRepository ?? CreateCosmosDbScalingConfigRepository(),
                 CosmosDbScalingResilienceTestHelper.GenerateTestPolicies(),
-                cosmosDbScalingRequestModelBuilder ?? CreateReqestModelBuilder());
+                cosmosDbScalingRequestModelBuilder ?? CreateReqestModelBuilder(),
+                cosmosDbThrottledEventsFilter ?? CreateCosmosDbThrottledEventsFilter());
+        }
+
+        private static ICosmosDbThrottledEventsFilter CreateCosmosDbThrottledEventsFilter()
+        {
+            return Substitute.For<ICosmosDbThrottledEventsFilter>();
         }
 
         private static ICosmosDbScalingRequestModelBuilder CreateReqestModelBuilder()
@@ -1043,14 +1620,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
             return Substitute.For<ICosmosDbScalingRepository>();
         }
 
-        private static CosmosDbScalingConfig CreateCosmosScalingConfig(CosmosRepositoryType cosmosRepositoryType)
+        private static CosmosDbScalingConfig CreateCosmosScalingConfig(CosmosCollectionType cosmosRepositoryType)
         {
             return new CosmosDbScalingConfig
             {
                 RepositoryType = cosmosRepositoryType,
-                BaseRequestUnits = 10000,
-                MaxRequestUnits = 200000,
-                CurrentRequestUnits = 10000,
                 Id = "1",
                 JobRequestUnitConfigs = new[]
                 {
@@ -1063,16 +1637,24 @@ namespace CalculateFunding.Services.CosmosDbScaling
             };
         }
 
+        private static CosmosDbScalingCollectionSettings CreateCollectionSettings(CosmosCollectionType collectionType)
+        {
+            return new CosmosDbScalingCollectionSettings
+            {
+                CosmosCollectionType = collectionType,
+                MinRequestUnits = 10000,
+                MaxRequestUnits = 200000,
+                CurrentRequestUnits = 10000,
+            };
+        }
+
         private static IEnumerable<CosmosDbScalingConfig> CreateCosmosScalingConfigs()
         {
             return new[]
             {
                 new CosmosDbScalingConfig
                 {
-                    RepositoryType = CosmosRepositoryType.CalculationProviderResults,
-                    BaseRequestUnits = 10000,
-                    MaxRequestUnits = 200000,
-                    CurrentRequestUnits = 10000,
+                    RepositoryType = CosmosCollectionType.CalculationProviderResults,
                     Id = "1",
                     JobRequestUnitConfigs = new[]
                     {
@@ -1085,10 +1667,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 },
                 new CosmosDbScalingConfig
                 {
-                    RepositoryType = CosmosRepositoryType.ProviderSourceDatasets,
-                    BaseRequestUnits = 2000,
-                    MaxRequestUnits = 50000,
-                    CurrentRequestUnits = 2000,
+                    RepositoryType = CosmosCollectionType.ProviderSourceDatasets,
                     Id = "1",
                     JobRequestUnitConfigs = new[]
                     {
@@ -1101,10 +1680,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 },
                 new CosmosDbScalingConfig
                 {
-                    RepositoryType = CosmosRepositoryType.PublishedProviderResults,
-                    BaseRequestUnits = 5000,
-                    MaxRequestUnits = 100000,
-                    CurrentRequestUnits = 5000,
+                    RepositoryType = CosmosCollectionType.PublishedProviderResults,
                     Id = "1",
                     JobRequestUnitConfigs = new[]
                     {

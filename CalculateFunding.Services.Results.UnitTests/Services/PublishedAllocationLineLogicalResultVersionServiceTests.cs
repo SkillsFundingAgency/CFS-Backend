@@ -1,15 +1,12 @@
 ﻿using CalculateFunding.Models.Results;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace CalculateFunding.Services.Results.Services
+namespace CalculateFunding.Services.Results.UnitTests.Services
 {
     [TestClass]
     public class PublishedAllocationLineLogicalResultVersionServiceTests
-    { 
+    {
         [TestMethod]
         public void SetVersion_GivenResultHasBeenSetToPublish_IncreasesMajorVesionandSetsMinorToZero()
         {

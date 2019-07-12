@@ -11,48 +11,48 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
     [TestClass]
     public class ExternalApiMappingProfileTests
     {
-	    [TestMethod]
-	    public void Mapper_IsConfigurationValid()
-	    {
-		    // Arrange
-		    MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<MappingProfiles.ExternalApiMappingProfile>());
+        [TestMethod]
+        public void Mapper_IsConfigurationValid()
+        {
+            // Arrange
+            MapperConfiguration config = new MapperConfiguration(c => c.AddProfile<ExternalApiMappingProfile>());
 
-		    //Act
-			Action action = () =>
-		    {
-			    config.AssertConfigurationIsValid();
-		    };
+            //Act
+            Action action = () =>
+            {
+                config.AssertConfigurationIsValid();
+            };
 
-		    //Assert
-		    action.Should().NotThrow();
-		}
+            //Assert
+            action.Should().NotThrow();
+        }
 
-	    [TestMethod]
-	    public void Mapper_FundingPeriodToPeriod_ShouldReturnCorrectPeriod()
-	    {
-			// Arrange
-			Mapper.Reset();
-		    MapperConfigurationExpression mappings = new MapperConfigurationExpression();
-			mappings.AddProfile<ExternalApiMappingProfile>();
-			Mapper.Initialize(mappings);
-		    IMapper mapperUnderTest = Mapper.Instance;
+        [TestMethod]
+        public void Mapper_FundingPeriodToPeriod_ShouldReturnCorrectPeriod()
+        {
+            // Arrange
+            Mapper.Reset();
+            MapperConfigurationExpression mappings = new MapperConfigurationExpression();
+            mappings.AddProfile<ExternalApiMappingProfile>();
+            Mapper.Initialize(mappings);
+            IMapper mapperUnderTest = Mapper.Instance;
 
             Models.Policy.Period fundingPeriod = new Models.Policy.Period()
-		    {
-			    Name = "Name",
-			    Id = "Id",
-			    StartDate = DateTimeOffset.MinValue,
-			    EndDate = DateTimeOffset.MaxValue
-		    };
+            {
+                Name = "Name",
+                Id = "Id",
+                StartDate = DateTimeOffset.MinValue,
+                EndDate = DateTimeOffset.MaxValue
+            };
 
             // Act
             V1.Models.Period mappedPeriod = mapperUnderTest.Map<V1.Models.Period>(fundingPeriod);
 
-			// Assert
-		    mappedPeriod.Should().NotBeNull();
-		    mappedPeriod.StartYear.Should().Be(fundingPeriod.StartYear);
-		    mappedPeriod.EndYear.Should().Be(fundingPeriod.EndYear);
-		    mappedPeriod.Id.Should().Be(fundingPeriod.Id);
+            // Assert
+            mappedPeriod.Should().NotBeNull();
+            mappedPeriod.StartYear.Should().Be(fundingPeriod.StartYear);
+            mappedPeriod.EndYear.Should().Be(fundingPeriod.EndYear);
+            mappedPeriod.Id.Should().Be(fundingPeriod.Id);
             mappedPeriod.Name.Should().Be(fundingPeriod.Name);
         }
 
@@ -111,9 +111,9 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
             mappedFundingStream.PeriodType.EndDay.Should().Be(31);
             mappedFundingStream.PeriodType.EndMonth.Should().Be(7);
             mappedFundingStream.AllocationLines.Should().Contain(
-                a => a.Id == allocationLineId && 
-                a.Name == allocationLineName && a.ShortName == 
-                allocationLineShortName && 
+                a => a.Id == allocationLineId &&
+                a.Name == allocationLineName && a.ShortName ==
+                allocationLineShortName &&
                 a.FundingRoute == "LA" &&
                 a.ContractRequired == "Y")
                 .Should().NotBeNull();

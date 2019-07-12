@@ -1,4 +1,10 @@
-﻿using CalculateFunding.Common.Caching;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -10,13 +16,6 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Policy.UnitTests
 {
@@ -351,7 +350,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             ILogger logger = CreateLogger();
 
-            
+
             IPolicyRepository policyRepository = CreatePolicyRepository();
             policyRepository
                 .When(x => x.SaveFundingPeriods(Arg.Any<Period[]>()))
@@ -404,7 +403,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             ILogger logger = CreateLogger();
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
-           
+
             FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository);
 
             //Act

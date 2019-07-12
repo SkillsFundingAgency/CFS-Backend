@@ -8,36 +8,46 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
+using Serilog;
+using CalculateFunding.Common.Utility;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {
-    public static class OnProviderResultsSpecificationCleanup
+    public class OnProviderResultsSpecificationCleanup
     {
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly IResultsService _resultsService;
+
+        public OnProviderResultsSpecificationCleanup(
+            ILogger logger,
+            IResultsService resultsService,
+            ICorrelationIdProvider correlationIdProvider)
+        {
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(resultsService, nameof(resultsService));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _resultsService = resultsService;
+        }
+
         [FunctionName("on-provider-results-specification-cleanup")]
-        public static async Task Run([ServiceBusTrigger(
+        public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup,
             ServiceBusConstants.TopicSubscribers.CleanupCalculationResultsForSpecificationProviders,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
-            using (var scope = IocConfig.Build(config).CreateScope())
+            try
             {
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                IResultsService resultsService = scope.ServiceProvider.GetService<IResultsService>();
-                Serilog.ILogger logger = scope.ServiceProvider.GetService<Serilog.ILogger>();
-
-                try
-                {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await resultsService.CleanupProviderResultsForSpecification(message);
-                }
-                catch (Exception exception)
-                {
-                    logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup}");
-                    throw;
-                }
-
+                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                await _resultsService.CleanupProviderResultsForSpecification(message);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception, $"An error occurred getting message from topic: {ServiceBusConstants.TopicNames.ProviderSourceDatasetCleanup}");
+                throw;
             }
         }
     }

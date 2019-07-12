@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
+using CalculateFunding.Functions.Specs.ServiceBus;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.ServiceBus;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace CalculateFunding.Functions.DebugQueue
 {
@@ -14,11 +14,16 @@ namespace CalculateFunding.Functions.DebugQueue
         [FunctionName("on-add-relationship-event")]
         public static async Task Run([QueueTrigger(ServiceBusConstants.QueueNames.AddDefinitionRelationshipToSpecification, Connection = "AzureConnectionString")]string item, ILogger log)
         {
-            Message message = Helpers.ConvertToMessage<AssignDefinitionRelationshipMessage>(item);
+            using (IServiceScope scope = Functions.Specs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<AssignDefinitionRelationshipMessage>(item);
 
-            await Functions.Specs.ServiceBus.OnAddRelatioshipEvent.Run(message);
+                OnAddRelationshipEvent function = scope.ServiceProvider.GetService<OnAddRelationshipEvent>();
 
-            log.LogInformation($"C# Queue trigger function processed: {item}");
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
         }
     }
 }

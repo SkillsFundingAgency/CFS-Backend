@@ -199,7 +199,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             {
                 Name = name,
                 ProviderVersionTypeString = providerVersion,
-                Version = version, 
+                Version = version,
                 FundingStream = fundingStream
             };
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -13,36 +14,47 @@ using Serilog;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.ServiceBus
 {
-    public static class OnScaleUpCosmosdbCollection
+    public class OnScaleUpCosmosDbCollection
     {
+        private readonly ILogger _logger;
+        private readonly ICorrelationIdProvider _correlationIdProvider;
+        private readonly ICosmosDbScalingService _scalingService;
+        private readonly IFeatureToggle _featureToggle;
+
+        public OnScaleUpCosmosDbCollection(
+           ILogger logger,
+           ICorrelationIdProvider correlationIdProvider,
+           ICosmosDbScalingService scalingService,
+           IFeatureToggle featureToggle)
+        {
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
+            Guard.ArgumentNotNull(scalingService, nameof(scalingService));
+            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+
+            _logger = logger;
+            _correlationIdProvider = correlationIdProvider;
+            _scalingService = scalingService;
+            _featureToggle = featureToggle;
+        }
+
         [FunctionName("on-scale-up-cosmosdb-collection")]
-        public static async Task Run([ServiceBusTrigger(
+        public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.TopicNames.JobNotifications,
             ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            IConfigurationRoot config = ConfigHelper.AddConfig();
-
-            using (var scope = IocConfig.Build(config).CreateScope())
+           
+            if (_featureToggle.IsCosmosDynamicScalingEnabled())
             {
-                ICorrelationIdProvider correlationIdProvider = scope.ServiceProvider.GetService<ICorrelationIdProvider>();
-                IFeatureToggle featureToggle = scope.ServiceProvider.GetService<IFeatureToggle>();
-                ILogger logger = scope.ServiceProvider.GetService<ILogger>();
-                ICosmosDbScalingService scalingService = scope.ServiceProvider.GetService<ICosmosDbScalingService>();
-
-                if (!featureToggle.IsCosmosDynamicScalingEnabled())
-                {
-                    return;
-                }
-
                 try
                 {
-                    correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-                    await scalingService.ScaleUp(message);
+                    _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
+                    await _scalingService.ScaleUp(message);
                 }
                 catch (Exception exception)
                 {
-                    logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection}");
+                    _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.TopicSubscribers.ScaleUpCosmosdbCollection}");
                     throw;
                 }
             }

@@ -56,7 +56,10 @@ namespace CalculateFunding.Services.Datasets.Services
             // Assert
             await jobsApiClient
                 .Received(1)
-                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == "MapDatasetJob"));
+                .CreateJob(Arg.Is<JobCreateModel>(j => 
+                j.JobDefinitionId == "MapDatasetJob" && 
+                j.Properties.ContainsKey("session-id") && 
+                j.Properties["session-id"] == SpecificationId));
         }
     }
 }

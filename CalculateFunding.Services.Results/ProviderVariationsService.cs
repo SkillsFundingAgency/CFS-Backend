@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Results
             IProviderVariationAssemblerService providerVariationAssemblerService,
             IPoliciesApiClient policiesApiClient,
             IResultsResiliencePolicies resiliencePolicies,
-            ILogger logger, 
+            ILogger logger,
             IMapper mapper)
         {
             Guard.ArgumentNotNull(providerVariationAssemblerService, nameof(providerVariationAssemblerService));

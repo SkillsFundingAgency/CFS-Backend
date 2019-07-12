@@ -14,6 +14,7 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.EventHubs;
 using Polly;
 using Serilog;
 
@@ -31,6 +32,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
         private readonly Policy _scalingRepositoryPolicy;
         private readonly Policy _cacheProviderPolicy;
         private readonly Policy _scalingConfigRepositoryPolicy;
+        private readonly ICosmosDbThrottledEventsFilter _cosmosDbThrottledEventsFilter;
+
+        private const int scaleUpIncrementValue = 10000;
+        private const int previousMinutestoCheckForScaledCollections = 45;
 
         public CosmosDbScalingService(
             ILogger logger,
@@ -39,7 +44,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             ICacheProvider cacheProvider,
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository,
             ICosmosDbScalingResiliencePolicies cosmosDbScalingResiliencePolicies,
-            ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder)
+            ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder,
+            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cosmosDbScalingRepositoryProvider, nameof(cosmosDbScalingRepositoryProvider));
@@ -48,6 +54,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             Guard.ArgumentNotNull(cosmosDbScalingRepositoryProvider, nameof(cosmosDbScalingRepositoryProvider));
             Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies, nameof(cosmosDbScalingResiliencePolicies));
             Guard.ArgumentNotNull(cosmosDbScalingRequestModelBuilder, nameof(cosmosDbScalingRequestModelBuilder));
+            Guard.ArgumentNotNull(cosmosDbThrottledEventsFilter, nameof(cosmosDbThrottledEventsFilter));
 
             _logger = logger;
             _cosmosDbScalingRepositoryProvider = cosmosDbScalingRepositoryProvider;
@@ -59,6 +66,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
             _cacheProviderPolicy = cosmosDbScalingResiliencePolicies.CacheProvider;
             _scalingConfigRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingConfigRepository;
             _jobsApiClientPolicy = cosmosDbScalingResiliencePolicies.JobsApiClient;
+            _scalingRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingRepository;
+            _cacheProviderPolicy = cosmosDbScalingResiliencePolicies.CacheProvider;
+            _scalingConfigRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingConfigRepository;
+            _jobsApiClientPolicy = cosmosDbScalingResiliencePolicies.JobsApiClient;
+            _cosmosDbThrottledEventsFilter = cosmosDbThrottledEventsFilter;
         }
 
         public async Task ScaleUp(Message message)
@@ -81,7 +93,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 return;
             }
 
-            foreach (CosmosRepositoryType cosmosRepositoryType in requestModel.RepositoryTypes)
+            foreach (CosmosCollectionType cosmosRepositoryType in requestModel.RepositoryTypes)
             {
                 try
                 {
@@ -101,7 +113,70 @@ namespace CalculateFunding.Services.CosmosDbScaling
             await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CosmosDbScalingConfig>>(CacheKeys.AllCosmosScalingConfigs));
         }
 
-        public async Task ScaleDown()
+        public async Task ScaleUp(IEnumerable<EventData> events)
+        {
+            Guard.ArgumentNotNull(events, nameof(events));
+
+            IEnumerable<string> collectionsToProcess = _cosmosDbThrottledEventsFilter.GetUniqueCosmosDbCollectionNamesFromEventData(events);
+
+            if (collectionsToProcess.IsNullOrEmpty())
+            {
+                return;
+            }
+
+            _logger.Information($"Found {collectionsToProcess.Count()} collections to process");
+
+            foreach(string collectionName in collectionsToProcess)
+            {
+                try
+                {
+                    CosmosCollectionType cosmosRepositoryType = collectionName.GetEnumValueFromDescription<CosmosCollectionType>();
+
+                    CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
+                        _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosRepositoryType));
+
+                    int currentThroughput = settings.CurrentRequestUnits;
+
+                    if(settings.AvailableRequestUnits == 0)
+                    {
+                        string errorMessage = $"The collection '{collectionName}' throughput is already at the maximum of {settings.MaxRequestUnits} RU's";
+                        _logger.Warning(errorMessage);
+                        continue;
+                    }
+
+                    int incrementalRequestUnitsValue = scaleUpIncrementValue;
+
+                    int increasedRequestUnits = currentThroughput + incrementalRequestUnitsValue;
+
+                    if(incrementalRequestUnitsValue > settings.AvailableRequestUnits)
+                    {
+                        increasedRequestUnits = settings.MaxRequestUnits;
+
+                        incrementalRequestUnitsValue = settings.AvailableRequestUnits;
+                    }
+
+                    settings.CurrentRequestUnits = increasedRequestUnits;
+
+                    await ScaleCollection(cosmosRepositoryType, increasedRequestUnits);
+
+                    await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
+                }
+                catch(NonRetriableException)
+                {
+                    throw;
+                }
+                catch(Exception ex)
+                {
+                    string errorMessage = $"Failed to increase cosmosdb request units on collection '{collectionName}'";
+
+                    _logger.Error(ex, errorMessage);
+
+                    throw new RetriableException(errorMessage, ex);
+                }
+            }
+        }
+
+        public async Task ScaleDownForJobConfiguration()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             DateTimeOffset hourAgo = now.AddHours(-1);
@@ -122,41 +197,96 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             IEnumerable<CosmosDbScalingConfig> cosmosDbScalingConfigs = await GetAllConfigs();
 
-            IList<CosmosDbScalingConfig> configsToUpdate = new List<CosmosDbScalingConfig>();
+            IList<CosmosDbScalingCollectionSettings> settingsToUpdate = new List<CosmosDbScalingCollectionSettings>();
 
             foreach (CosmosDbScalingConfig cosmosDbScalingConfig in cosmosDbScalingConfigs)
             {
-                bool proceed = !configsToUpdate.Any(m => m.Id == cosmosDbScalingConfig.Id);
+                CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
+                    _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosDbScalingConfig.RepositoryType));
+
+                bool proceed = !settingsToUpdate.Any(m => m.Id == cosmosDbScalingConfig.Id);
 
                 if (proceed)
                 {
-                    if (!cosmosDbScalingConfig.IsAtBaseLine)
+                    if (!settings.IsAtBaseLine)
                     {
-                        cosmosDbScalingConfig.CurrentRequestUnits = cosmosDbScalingConfig.BaseRequestUnits;
-
-                        configsToUpdate.Add(cosmosDbScalingConfig);
+                        settingsToUpdate.Add(settings);
                     }
                 }
             }
 
-            if (!configsToUpdate.IsNullOrEmpty())
+            if (!settingsToUpdate.IsNullOrEmpty())
             {
-                foreach (CosmosDbScalingConfig cosmosDbScalingConfig in configsToUpdate)
-                {
+                foreach (CosmosDbScalingCollectionSettings settings in settingsToUpdate)
+                { 
                     try
                     {
-                        await ScaleCollection(cosmosDbScalingConfig);
+                        await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits);
 
-                        await UpdateScaleConfig(cosmosDbScalingConfig);
+                        int decrementValue = settings.CurrentRequestUnits - settings.MinRequestUnits;
+
+                        settings.CurrentRequestUnits = settings.MinRequestUnits;
+
+                        await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Down, decrementValue);
                     }
                     catch (Exception ex)
                     {
-                        throw new RetriableException($"Failed to scale down collection for repository type '{cosmosDbScalingConfig.RepositoryType}'", ex);
+                        throw new RetriableException($"Failed to scale down collection for repository type '{settings.CosmosCollectionType}'", ex);
                     }
                 }
 
                 await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CosmosDbScalingConfig>>(CacheKeys.AllCosmosScalingConfigs));
             }
+        }
+
+        public async Task ScaleDownIncrementally()
+        {
+            IList<CosmosDbScalingCollectionSettings> settingsToUpdate = new List<CosmosDbScalingCollectionSettings>();
+
+            IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
+                    _cosmosDbScalingConfigRepository.GetCollectionSettingsIncremented(previousMinutestoCheckForScaledCollections));
+
+            if (collectionsToProcess.IsNullOrEmpty())
+            {
+                return;
+            }
+
+           _logger.Information($"Found {collectionsToProcess.Count()} collections to scale down");
+
+            foreach (CosmosDbScalingCollectionSettings settings in collectionsToProcess)
+            {
+                try
+                {
+                    int requestUnitsToDecrement;
+
+                    if((settings.CurrentRequestUnits - settings.LastScalingIncrementValue) < settings.MinRequestUnits)
+                    {
+                        requestUnitsToDecrement = (settings.CurrentRequestUnits - settings.MinRequestUnits);
+
+                        if(requestUnitsToDecrement <= 0)
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        requestUnitsToDecrement = settings.LastScalingIncrementValue;
+                    }
+
+                    int requestUnits = settings.CurrentRequestUnits - requestUnitsToDecrement;
+
+                    settings.CurrentRequestUnits = requestUnits;
+
+                    await ScaleCollection(settings.CosmosCollectionType, requestUnits);
+
+                    await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Down, requestUnitsToDecrement);
+                }
+                catch (Exception ex)
+                {
+                    throw new RetriableException($"Failed to scale down collection for repository type '{settings.CosmosCollectionType}'", ex);
+                }
+            }
+            
         }
 
         private async Task ScaleUpCollection(CosmosDbScalingConfig cosmosDbScalingConfig, string jobDefinitionId)
@@ -178,47 +308,73 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 throw new NonRetriableException(errorMessage);
             }
 
-            if (cosmosDbScalingConfig.IsAtBaseLine)
+            CosmosDbScalingCollectionSettings settings = await _scalingConfigRepositoryPolicy.ExecuteAsync(() => 
+                _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(cosmosDbScalingConfig.RepositoryType));
+
+            if (settings == null)
             {
-                cosmosDbScalingConfig.CurrentRequestUnits = cosmosDbScalingJobConfig.JobRequestUnits;
+                string errorMessage = $"A collections settings file does not exist for settings collection type: '{cosmosDbScalingConfig.RepositoryType}'";
+
+                _logger.Error(errorMessage);
+                throw new RetriableException(errorMessage);
+            }
+
+            int currentRequestUnits = settings.CurrentRequestUnits;
+
+            if (settings.IsAtBaseLine)
+            {
+                settings.CurrentRequestUnits = cosmosDbScalingJobConfig.JobRequestUnits;
             }
             else
             {
-                cosmosDbScalingConfig.CurrentRequestUnits =
-                    cosmosDbScalingConfig.AvailableRequestUnits >= cosmosDbScalingJobConfig.JobRequestUnits ?
-                    (cosmosDbScalingConfig.CurrentRequestUnits + cosmosDbScalingJobConfig.JobRequestUnits) :
-                    cosmosDbScalingConfig.MaxRequestUnits;
+                settings.CurrentRequestUnits =
+                    settings.AvailableRequestUnits >= cosmosDbScalingJobConfig.JobRequestUnits ?
+                    (settings.CurrentRequestUnits + cosmosDbScalingJobConfig.JobRequestUnits) :
+                    settings.MaxRequestUnits;
             }
 
-            await ScaleCollection(cosmosDbScalingConfig);
+            await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits);
 
-            await UpdateScaleConfig(cosmosDbScalingConfig);
+            int incrementalRequestUnitsValue = currentRequestUnits - settings.CurrentRequestUnits;
+
+            await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
         }
 
-        private async Task UpdateScaleConfig(CosmosDbScalingConfig cosmosDbScalingConfig)
+        private async Task UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings, CosmosDbScalingDirection direction, int requestUnits)
         {
+            if(direction == CosmosDbScalingDirection.Up)
+            {
+                settings.LastScalingIncrementDateTime = DateTimeOffset.Now;
+                settings.LastScalingIncrementValue = requestUnits;
+            }
+            else
+            {
+                settings.LastScalingDecrementDateTime = DateTimeOffset.Now;
+                settings.LastScalingDecrementValue = requestUnits;
+            }
+
             HttpStatusCode statusCode = await _scalingConfigRepositoryPolicy.ExecuteAsync(
-               () => _cosmosDbScalingConfigRepository.UpdateCurrentRequestUnits(cosmosDbScalingConfig));
+               () => _cosmosDbScalingConfigRepository.UpdateCollectionSettings(settings));
 
             if (!statusCode.IsSuccess())
             {
-                string errorMessage = $"Failed to update cosmos scale config repository type: '{cosmosDbScalingConfig.RepositoryType}' with new request units of '{cosmosDbScalingConfig.CurrentRequestUnits}' with status code: '{statusCode}'";
+                string errorMessage = $"Failed to update cosmos scale config repository type: '{settings.CosmosCollectionType}' with new request units of '{settings.CurrentRequestUnits}' with status code: '{statusCode}'";
                 _logger.Error(errorMessage);
                 throw new RetriableException(errorMessage);
             }
         }
 
-        private async Task ScaleCollection(CosmosDbScalingConfig cosmosDbScalingConfig)
+        private async Task ScaleCollection(CosmosCollectionType cosmosRepositoryType, int requestUnits)
         {
-            ICosmosDbScalingRepository cosmosDbScalingRepository = _cosmosDbScalingRepositoryProvider.GetRepository(cosmosDbScalingConfig.RepositoryType);
+            ICosmosDbScalingRepository cosmosDbScalingRepository = _cosmosDbScalingRepositoryProvider.GetRepository(cosmosRepositoryType);
 
             try
             {
-                await _scalingRepositoryPolicy.ExecuteAsync(() => cosmosDbScalingRepository.SetThroughput(cosmosDbScalingConfig.CurrentRequestUnits));
+                await _scalingRepositoryPolicy.ExecuteAsync(() => cosmosDbScalingRepository.SetThroughput(requestUnits));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, $"Failed to set throughput on repository type '{cosmosDbScalingConfig.RepositoryType}' with '{cosmosDbScalingConfig.CurrentRequestUnits}' request units");
+                _logger.Error(ex, $"Failed to set throughput on repository type '{cosmosRepositoryType}' with '{requestUnits}' request units");
 
                 throw;
             }

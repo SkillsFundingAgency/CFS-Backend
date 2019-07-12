@@ -1,7 +1,4 @@
-﻿using CalculateFunding.Models.Providers.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 
 namespace CalculateFunding.Repositories.Common.Search.Results
 {
