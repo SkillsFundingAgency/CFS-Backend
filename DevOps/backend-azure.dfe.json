@@ -546,6 +546,29 @@
         "description": "The number provider calculations results to write into cosmos in parallel. This is the balance of CPU and network IO wait. A single document is written to cosmos per provider."
       },
       "defaultValue": 30
+    },
+    "eventhubNameSpaceSku": {
+      "type": "string",
+      "allowedValues": [
+        "Basic",
+        "Standard"
+      ],
+      "defaultValue": "Basic",
+      "metadata": {
+        "description": "The messaging tier for Event Hub namespace"
+      }
+    },
+    "eventhubNameSpaceskuCapacity": {
+      "type": "int",
+      "allowedValues": [
+        1,
+        2,
+        4
+      ],
+      "defaultValue": 1,
+      "metadata": {
+        "description": "MessagingUnits for namespace"
+      }
     }
   },
   "variables": {
@@ -587,7 +610,14 @@
     "storageAccountid": "[concat(resourceGroup().id,'/providers/','Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
     "storageFirewallOptions": "{\"bypass\": \"AzureServices\",\r\n                \"virtualNetworkRules\": [],\r\n                \"ipRules\": [\r\n                    {\r\n                        \"value\": \"213.123.63.150\",\r\n                        \"action\": \"Allow\"\r\n                    },\r\n                    {\r\n                        \"value\": \"86.188.174.157\",\r\n                        \"action\": \"Allow\"\r\n                    }\r\n                ],\r\n                \"defaultAction\": \"Deny\"}",
     "cosmosFirewallOptions": "104.42.195.92,40.76.54.131,52.176.6.30,52.169.50.45,52.187.184.26,0.0.0.0",
-    "signalRName": "[concat('sr-', parameters('environmentKey'), '-cfs')]"
+    "signalRName": "[concat('sr-', parameters('environmentKey'), '-cfs')]",
+    "eventHubNamespace": "[concat('evhns-',parameters('environmentKey'))]",
+    "cosmosDBStreamAuthRuleResourceId": "[resourceId('Microsoft.EventHub/namespaces/authorizationRules',  variables('eventHubNamespace'), variables('cosmosdDBEventHubNameSpaceSASKeyName'))]",
+    "ehVersion": "2014-09-01",
+    "cosmosDBeventHubName": "[concat('evh-cos-',parameters('environmentKey'))]",
+    "cosmosdDBEventHubNameSpaceSASKeyName": "[concat('evhns-cos-',parameters('environmentKey'),'-SASKeyName')]",
+    "cosmosDBeventhubListenRuleName": "[concat('evh-cos-',parameters('environmentKey'),'-ListenRule')]",
+    "cosmosDBDiagSettingName": "[concat('cos-',parameters('environmentKey'),'-DiagSettingName')]"
   },
   "resources": [
     {
@@ -604,6 +634,9 @@
       "type": "Microsoft.DocumentDB/databaseAccounts",
       "name": "[variables('documentDatabaseName')]",
       "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespace'),'/eventhubs/',variables('cosmosDBeventHubName'))]"
+      ],
       "properties": {
         "name": "[variables('documentDatabaseName')]",
         "databaseAccountOfferType": "[variables('offerType')]",
@@ -614,7 +647,50 @@
           }
         ],
         "ipRangeFilter": "[if(parameters('cosmosFirewallEnabled'), variables('cosmosFirewallOptions'), '')]"
-      }
+      },
+      "resources": [
+        {
+          "type": "providers/diagnosticSettings",
+          "apiVersion": "2017-05-01-preview",
+          "name": "[concat('Microsoft.Insights/', variables('cosmosDBDiagSettingName'))]",
+          "dependsOn": [
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('documentDatabaseName'))]"
+          ],
+          "properties": {
+            "name": "[variables('cosmosDBDiagSettingName')]",
+            "eventHubAuthorizationRuleId": "[variables('cosmosDBStreamAuthRuleResourceId')]",
+            "eventHubName": "[variables('cosmosDBeventHubName')]",
+            "logs": [
+              {
+                "category": "DataPlaneRequests",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 0,
+                  "enabled": false
+                }
+              },
+              {
+                "category": "QueryRuntimeStatistics",
+                "enabled": true,
+                "retentionPolicy": {
+                  "days": 0,
+                  "enabled": false
+                }
+              }
+            ],
+            "metrics": [
+              {
+                "category": "Requests",
+                "enabled": true,
+                "retentionPolicy": {
+                  "enabled": false,
+                  "days": 0
+                }
+              }
+            ]
+          }
+        }
+      ]
     },
     {
       "apiVersion": "2015-02-28",
@@ -2966,6 +3042,10 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "CosmosDBEventHubSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/eventhubs/authorizationRules'),variables('eventHubNamespace'),variables('cosmosDBeventHubName'),variables('cosmosDBeventhubListenRuleName')),'2017-04-01').primaryConnectionString]"
             }
           ]
         }
@@ -4650,6 +4730,60 @@
       "name": "[variables('signalRName')]",
       "apiVersion": "[providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]]",
       "location": "[resourceGroup().location]"
+    },
+    {
+      "type": "Microsoft.EventHub/namespaces",
+      "apiVersion": "[variables('ehVersion')]",
+      "name": "[variables('eventHubNamespace')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[parameters('eventhubNameSpaceSku')]",
+        "tier": "[parameters('eventhubNameSpaceSku')]",
+        "capacity": "[parameters('eventhubNameSpaceskuCapacity')]"
+      },
+      "resources": [
+        {
+          "type": "eventHubs",
+          "apiVersion": "[variables('ehVersion')]",
+          "name": "[variables('cosmosDBeventHubName')]",
+          "dependsOn": [
+            "[concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespace'))]"
+          ],
+          "properties": {
+            "path": "[variables('cosmosDBeventHubName')]"
+          },
+          "resources": [
+            {
+              "type": "authorizationRules",
+              "apiVersion": "2017-04-01",
+              "name": "[variables('cosmosDBeventhubListenRuleName')]",
+              "dependsOn": [
+                "[concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespace'),'/eventhubs/',variables('cosmosDBeventHubName'))]"
+              ],
+              "properties": {
+                "rights": [
+                  "Listen"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "type": "authorizationRules",
+          "apiVersion": "2017-04-01",
+          "name": "[variables('cosmosdDBEventHubNameSpaceSASKeyName')]",
+          "dependsOn": [
+            "[concat('Microsoft.EventHub/namespaces/', variables('eventHubNamespace'))]"
+          ],
+          "properties": {
+            "rights": [
+              "Manage",
+              "Send",
+              "Listen"
+            ]
+          }
+        }
+      ]
     }
   ],
   "outputs": {
