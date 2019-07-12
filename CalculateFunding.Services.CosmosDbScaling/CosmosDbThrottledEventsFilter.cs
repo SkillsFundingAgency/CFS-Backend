@@ -16,9 +16,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             foreach (EventData eventData in events)
             {
-                if(eventData.Properties["statusCode"] != null && Convert.ToInt32(eventData.Properties["statusCode"]) == 429)
+                if(eventData.Properties.ContainsKey("statusCode") &&
+                    eventData.Properties["statusCode"] != null && 
+                    Convert.ToInt32(eventData.Properties["statusCode"]) == 429)
                 {
-                    collections.Add(eventData.Properties["collection"].ToString());
+                    if (eventData.Properties.ContainsKey("collection"))
+                    {
+                        collections.Add(eventData.Properties["collection"].ToString());
+                    }
                 }
 
             }
