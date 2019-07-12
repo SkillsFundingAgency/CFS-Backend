@@ -23,8 +23,6 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(c => c.DefinitionId, opt => opt.Ignore())
                 .ForMember(c => c.Version, opt => opt.Ignore());
 
-
-
             CreateMap<Dataset, DatasetViewModel>()
                 .ForMember(m => m.Versions, opt => opt.MapFrom(s => s.History));
 
