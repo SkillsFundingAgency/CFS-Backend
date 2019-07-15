@@ -4967,6 +4967,10 @@
               "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountid'),'2015-05-01-preview').key1)]"
             },
             {
+              "name": "CommonStorageSettings:ConnectionString",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName'), ';AccountKey=', listKeys(variables('cfsStorageAccountid'),'2015-05-01-preview').key1)]"
+            },
+            {
               "name": "apiKeyMiddleware:apiKey",
               "value": "[parameters('ApiKeyPolicy')]"
             }
