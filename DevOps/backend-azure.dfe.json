@@ -4353,11 +4353,11 @@
               "value": "[concat('https://app-', parameters('environmentKey'), '-publishing.azurewebsites.net/api/')]"
             },
             {
-              "name": "policyClient:ApiKey",
+              "name": "policiesClient:ApiKey",
               "value": "[parameters('apiKeyPolicy')]"
             },
             {
-              "name": "policyClient:ApiEndpoint",
+              "name": "policiesClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-policy.azurewebsites.net/api/')]"
             }
           ]
