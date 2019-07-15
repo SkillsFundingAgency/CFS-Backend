@@ -4335,6 +4335,30 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "providersClient:ApiKey",
+              "value": "[parameters('apiKeyProviders')]"
+            },
+            {
+              "name": "providersClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-providers.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "publishingClient:ApiKey",
+              "value": "[parameters('apiKeyPublishing')]"
+            },
+            {
+              "name": "publishingClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-publishing.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "policyClient:ApiKey",
+              "value": "[parameters('apiKeyPolicy')]"
+            },
+            {
+              "name": "policyClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-policy.azurewebsites.net/api/')]"
             }
           ]
         }
