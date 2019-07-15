@@ -1,0 +1,31 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentKey": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment key for this particular environment eg t1dv"
+      }
+    }
+  },
+  "variables": {
+    "cfsStorageAccountName": {
+      "name": "[concat('strg', parameters('environmentKey'), 'cfs')]"
+    },
+    "storageAccountresourceId": "[resourceId('Microsoft.Storage/storageAccounts', variables('cfsStorageAccountName').name)]",
+    "storageApiVersion": "[providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]]"
+  },
+  "resources": [
+  ],
+  "outputs": {
+    "storageAccountKey": {
+      "type": "string",
+      "value": "[listKeys(variables('storageAccountresourceId'), variables('storageApiVersion')).keys[0].value]"
+    },
+    "storageAccountEndpoint": {
+      "type": "string",
+      "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('cfsStorageAccountName').name, ';AccountKey=', listKeys(variables('storageAccountresourceId'), variables('storageApiVersion')).keys[0].value, ';EndpointSuffix=core.windows.net')]"
+    }
+  }
+}
