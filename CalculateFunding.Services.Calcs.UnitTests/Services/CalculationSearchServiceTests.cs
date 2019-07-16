@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(7)
+                    .Received(6)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -249,7 +249,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(7)
+                    .Received(6)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -299,7 +299,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(5)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -317,7 +317,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "policySpecificationNames", new string []{ "test" } }
+                    { "status", new string []{ "test" } }
                 },
                 SearchTerm = "testTerm",
             };
@@ -352,7 +352,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(5)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -370,7 +370,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 IncludeFacets = true,
                 Filters = new Dictionary<string, string[]>()
                 {
-                    { "policySpecificationNames", new string []{ "test", "test2" } }
+                    { "status", new string []{ "test1", "test2" } }
                 },
                 SearchTerm = "testTerm",
             };
@@ -405,7 +405,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(5)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -458,7 +458,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(5)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -511,7 +511,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                .Received(6)
+                .Received(5)
                     .Search(model.SearchTerm, Arg.Is<SearchParameters>(c =>
                         model.Filters.Keys.All(f => c.Filter.Contains(f))
                         && !string.IsNullOrWhiteSpace(c.Filter)
@@ -704,7 +704,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(7)
+                    .Received(6)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 

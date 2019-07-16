@@ -25,7 +25,6 @@ namespace CalculateFunding.Services.Calcs
 
         private FacetFilterType[] Facets = {
             new FacetFilterType("allocationLineName"),
-            new FacetFilterType("policySpecificationNames", true),
             new FacetFilterType("status"),
             new FacetFilterType("specificationName"),
             new FacetFilterType("fundingPeriodName"),
