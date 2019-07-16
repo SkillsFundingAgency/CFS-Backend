@@ -1,6 +1,6 @@
 {
   "name": "providersindexer",
-  "dataSourceName": "providerversionsdatasource",
+  "dataSourceName": "providersdatasource",
   "targetIndexName": "providersindex",
   "schedule": { "interval": "PT2H" },
   "fieldMappings": [
