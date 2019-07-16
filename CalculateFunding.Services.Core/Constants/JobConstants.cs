@@ -23,6 +23,8 @@
             public const string PublishProviderResultsJob = "PublishProviderResultsJob";
 
             public const string FetchProviderProfileJob = "FetchProviderProfileJob";
+
+            public const string CreateRefreshFundingjob = "CreateRefreshFundingJob";
         }
 
         public static class NotificationChannels

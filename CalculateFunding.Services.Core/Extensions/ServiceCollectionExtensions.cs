@@ -7,6 +7,7 @@ using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
@@ -135,6 +136,24 @@ namespace CalculateFunding.Services.Core.Extensions
 
                      return new SpecificationsApiProxy(apiOptions, logger, correlationIdProvider);
                  });
+
+            //extended to handle both api client and legacy proxy until rest of legacy proxy use is deprecated
+
+            builder.AddHttpClient(HttpClientKeys.Specifications,
+                    c =>
+                    {
+                        ApiOptions apiOptions = new ApiOptions();
+
+                        config.Bind("specificationsApiClient", apiOptions);
+
+                        SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+                    })
+                .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+                .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
+                .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
+
+            builder
+                .AddSingleton<ISpecificationsApiClient, SpecificationsApiClient>();
 
             return builder;
         }

@@ -1,17 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Calcs;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Calcs.IoC;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Publishing.IoC;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Publishing
 {
@@ -32,7 +36,8 @@ namespace CalculateFunding.Api.Publishing
             RegisterComponents(services);
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app,
+            IHostingEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -60,12 +65,14 @@ namespace CalculateFunding.Api.Publishing
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");
             builder.AddTelemetry();
-
-            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
-
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot) Configuration);
+            builder.AddPolicySettings(Configuration);
             builder.AddHttpContextAccessor();
-
             builder.AddHealthCheckMiddleware();
+            builder.AddPublishingServices();
+            builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddJobsInterServiceClient(Configuration);
+            builder.AddCalcsResiliencePolicies();
         }
     }
 }

@@ -13,7 +13,8 @@ namespace CalculateFunding.Services.Core.Proxies
 {
     public class SpecificationsApiProxy : ApiClientProxy, ISpecificationsApiClientProxy
     {
-        public SpecificationsApiProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider) : base(options, logger, correlationIdProvider)
+        public SpecificationsApiProxy(ApiOptions options, ILogger logger, ICorrelationIdProvider correlationIdProvider) 
+            : base(options, logger, correlationIdProvider)
         {
         }
     }

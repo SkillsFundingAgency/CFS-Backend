@@ -21,6 +21,11 @@ namespace CalculateFunding.Services.Core.Extensions
             return null;
         }
 
+        public static  BadRequestObjectResult AsBadRequest(this ValidationResult validationResult)
+        {
+            return validationResult.PopulateModelState();
+        }
+
         public static IDictionary<string, string> GetResultDictionary(this ValidationResult validationResult)
         {
             Dictionary<string, string> result = new Dictionary<string, string>();
