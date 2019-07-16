@@ -10,14 +10,8 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("calculationSpecification")]
         public Reference CalculationSpecification { get; set; }
 
-        [JsonProperty("policy")]
-        public PolicySummary Policy { get; set; }
-
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
-
-        [JsonProperty("parentPolicy")]
-        public PolicySummary ParentPolicy { get; set; }
 
         [JsonProperty("isPublic")]
         public bool IsPublic { get; set; }

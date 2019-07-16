@@ -298,44 +298,6 @@ namespace CalculateFunding.Services.Calcs.Validators
         }
 
         [TestMethod]
-        async public Task ValidateAsync_WhenPoliciesIsNull_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.Policies = null;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenPoliciesIsempty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.Policies = new List<Reference>();
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
         async public Task ValidateAsync_WhenGivenValidModel_ValidIsTrue()
         {
             //Arrange
@@ -374,10 +336,6 @@ namespace CalculateFunding.Services.Calcs.Validators
                 {
                     Id = Guid.NewGuid().ToString(),
                     Name = "test alloc name"
-                },
-                Policies = new List<Reference>
-                {
-                    new Reference()
                 },
                 FundingStream = new Reference
                 {

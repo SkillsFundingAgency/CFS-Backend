@@ -35,10 +35,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request);
 
-        Task<IActionResult> GetPolicyByName(HttpRequest request);
-
-        Task<IActionResult> CreatePolicy(HttpRequest request);
-
         Task<IActionResult> CreateCalculation(HttpRequest request);
 
         Task<IActionResult> GetCalculationByName(HttpRequest request);
@@ -54,8 +50,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> ReIndex();
 
         Task<IActionResult> EditSpecification(HttpRequest request);
-
-        Task<IActionResult> EditPolicy(HttpRequest request);
 
         Task<IActionResult> EditSpecificationStatus(HttpRequest request);
 

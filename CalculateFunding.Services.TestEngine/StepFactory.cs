@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.TestRunner
 
         private bool ValidateCalculation(string argument, SpecificationCurrentVersion specification)
         {
-            return specification.GetCalculations().SingleOrDefault(x => x.Name == argument) != null;
+            return specification.Calculations?.SingleOrDefault(x => x.Name == argument) != null;
         }
 
 

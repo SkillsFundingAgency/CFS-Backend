@@ -198,39 +198,6 @@ namespace CalculateFunding.Services.Results
             return (publishedProviderResultsToSaveList, existingRecordsExclude);
         }
 
-        private (Policy policy, Policy parentPolicy, Calculation calculation) FindPolicy(string calculationSpecificationId, IEnumerable<Policy> policies)
-        {
-            foreach (Policy policy in policies)
-            {
-                if (policy != null)
-                {
-                    if (policy.Calculations != null)
-                    {
-                        Calculation calc = policy.Calculations.FirstOrDefault(c => c.Id == calculationSpecificationId);
-                        if (calc != null)
-                        {
-                            return (policy, null, calc);
-                        }
-                    }
-
-                    if (policy.SubPolicies != null)
-                    {
-                        foreach (Policy subpolicy in policy.SubPolicies)
-                        {
-                            Calculation calc = subpolicy.Calculations.FirstOrDefault(c => c.Id == calculationSpecificationId);
-
-                            if (subpolicy.Calculations.Any(c => c.Id == calculationSpecificationId))
-                            {
-                                return (subpolicy, policy, calc);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return (null, null, null);
-        }
-
         private PublishedCalculationType ConvertCalculationType(Models.Calcs.CalculationType calculationType)
         {
             switch (calculationType)
@@ -267,8 +234,8 @@ namespace CalculateFunding.Services.Results
 
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
-                    (Policy policy, Policy parentPolicy, Calculation calculation) = FindPolicy(calculationResult.CalculationSpecification?.Id, specificationCurrentVersion.Policies);
-
+                    Calculation calculation = specificationCurrentVersion.Calculations.FirstOrDefault(m => m.Id == calculationResult.CalculationSpecification?.Id);
+                   
                     if (calculation == null)
                     {
                         throw new NonRetriableException($"Calculation specification not found in specification. Calculation Spec Id ='{calculationResult?.CalculationSpecification?.Id}'");
@@ -288,16 +255,6 @@ namespace CalculateFunding.Services.Results
                         Value = calculationResult.Value,
                         CalculationVersion = calculationResult.Version
                     };
-
-                    if (policy != null)
-                    {
-                        publishedProviderCalculationResult.Policy = new PolicySummary(policy.Id, policy.Name, policy.Description);
-                    }
-
-                    if (parentPolicy != null)
-                    {
-                        publishedProviderCalculationResult.ParentPolicy = new PolicySummary(parentPolicy.Id, parentPolicy.Name, parentPolicy.Description);
-                    }
 
                     publishedProviderCalculationResults.Add(publishedProviderCalculationResult);
                 }

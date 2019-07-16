@@ -449,7 +449,7 @@ namespace CalculateFunding.Services.Calcs
                 throw new InvalidModelException(nameof(Models.Specs.SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
             }
 
-            if (specificationVersionComparison.HasNoChanges && !specificationVersionComparison.HasNameChange && !specificationVersionComparison.HasPolicyChanges)
+            if (specificationVersionComparison.HasNoChanges && !specificationVersionComparison.HasNameChange && !specificationVersionComparison.HasCalculationChanges)
             {
                 _logger.Information("No changes detected");
                 return;
@@ -477,16 +477,6 @@ namespace CalculateFunding.Services.Calcs
                 {
                     calculation.FundingStream = null;
                     calculation.AllocationLine = null;
-                }
-
-                if (!calculation.Policies.IsNullOrEmpty())
-                {
-                    Models.Specs.Policy policy = Models.Specs.ExtensionMethods.GetPolicy(specificationVersionComparison.Current, calculation.Policies.First().Id);
-
-                    if (policy != null)
-                    {
-                        calculation.Policies.First().Name = policy.Name;
-                    }
                 }
 
                 calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersionComparison.Current.Name));
@@ -1128,8 +1118,6 @@ namespace CalculateFunding.Services.Calcs
                 FundingPeriodName = calculation.FundingPeriod.Name,
                 AllocationLineId = calculation.AllocationLine == null ? string.Empty : calculation.AllocationLine.Id,
                 AllocationLineName = calculation.AllocationLine != null ? calculation.AllocationLine.Name : "No allocation line set",
-                PolicySpecificationIds = calculation.Policies.Select(m => m.Id).ToArraySafe(),
-                PolicySpecificationNames = calculation.Policies.Select(m => m.Name).ToArraySafe(),
                 SourceCode = calculation.Current.SourceCode,
                 Status = calculation.Current.PublishStatus.ToString(),
                 FundingStreamId = calculation.FundingStream == null ? string.Empty : calculation.FundingStream.Id,

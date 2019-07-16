@@ -222,9 +222,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = new[] { new FinancialEnvelope() };
                 result.FundingStreamResult.AllocationLineResult.Current.Calculations = new[]
                 {
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1"), Policy = new PolicySummary("policy-id-1", "policy1", "desc")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2"), Policy = new PolicySummary("policy-id-1", "policy1", "desc")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3"), Policy = new PolicySummary("policy-id-2", "policy2", "desc")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3")},
                 };
             }
 
@@ -325,8 +325,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             feedResult.AllocationLineContractRequired.Should().Be(true);
             feedResult.AllocationLineFundingRoute.Should().Be("LA");
             feedResult.AllocationLineShortName.Should().Be("tal1");
-            feedResult.PolicySummaries.Should().Be("[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]");
-            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]");
+            feedResult.PolicySummaries.Should().BeEmpty();
+            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"}]");
         }
 
         [TestMethod]
@@ -461,9 +461,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = new[] { new FinancialEnvelope() };
                 result.FundingStreamResult.AllocationLineResult.Current.Calculations = new[]
                 {
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1"), Policy = new PolicySummary("policy-id-1", "policy1", "desc")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2"), Policy = new PolicySummary("policy-id-1", "policy1", "desc")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3"), Policy = new PolicySummary("policy-id-2", "policy2", "desc")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3")},
                 };
             }
 
@@ -567,8 +567,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             feedResult.AllocationLineContractRequired.Should().Be(true);
             feedResult.AllocationLineFundingRoute.Should().Be("LA");
             feedResult.AllocationLineShortName.Should().Be("tal1");
-            feedResult.PolicySummaries.Should().Be("[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]");
-            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]");
+            feedResult.PolicySummaries.Should().BeEmpty();
+            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"}]");
             feedResult.OpenReason.Should().Be(reasonForOpening);
             feedResult.Predecessors.SequenceEqual(predecessors).Should().BeTrue();
             feedResult.VariationReasons.SequenceEqual(new[] { "LegalNameFieldUpdated", "LACodeFieldUpdated" }).Should().BeTrue();
@@ -593,9 +593,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = new[] { new FinancialEnvelope() };
                 result.FundingStreamResult.AllocationLineResult.Current.Calculations = new[]
                 {
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1"), Policy = new PolicySummary("policy-id-1", "policy1", "desc")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2"), Policy = new PolicySummary("policy-id-1", "policy1", "desc")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3"), Policy = new PolicySummary("policy-id-2", "policy2", "desc")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2")},
+                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3")},
                 };
             }
 
@@ -694,8 +694,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             feedResult.AllocationLineContractRequired.Should().Be(true);
             feedResult.AllocationLineFundingRoute.Should().Be("LA");
             feedResult.AllocationLineShortName.Should().Be("tal1");
-            feedResult.PolicySummaries.Should().Be("[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"policy-1\",\"name\":\"policy one\"},\"policies\":[{\"policy\":{\"description\":\"test decscription\",\"parentPolicyId\":null,\"id\":\"subpolicy-1\",\"name\":\"sub policy one\"},\"policies\":[],\"calculations\":[]}],\"calculations\":[]}]");
-            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-1\",\"policyName\":\"policy1\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\",\"policyId\":\"policy-id-2\",\"policyName\":\"policy2\"}]");
+            feedResult.PolicySummaries.Should().BeEmpty();
+            feedResult.Calculations.Should().Be("[{\"calculationName\":\"calc1\",\"calculationDisplayName\":\"calc1\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"},{\"calculationName\":\"calc2\",\"calculationDisplayName\":\"calc2\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"},{\"calculationName\":\"calc3\",\"calculationDisplayName\":\"calc3\",\"calculationVersion\":0,\"calculationType\":\"Number\",\"calculationAmount\":null,\"allocationLineId\":\"AAAAA\"}]");
             feedResult.OpenReason.Should().BeNull();
             feedResult.CloseReason.Should().BeNull();
             feedResult.Predecessors.Should().BeNull();

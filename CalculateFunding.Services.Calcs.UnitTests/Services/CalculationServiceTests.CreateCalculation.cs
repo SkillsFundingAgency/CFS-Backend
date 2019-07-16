@@ -325,8 +325,6 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.First().FundingPeriodName == "2018/2019" &&
                         m.First().AllocationLineId == "test-alloc-id" &&
                         m.First().AllocationLineName == "test-alloc-name" &&
-                        m.First().PolicySpecificationIds.First() == "policy-id" &&
-                        m.First().PolicySpecificationNames.First() == "policy-name" &&
                         m.First().FundingStreamId == "funding stream-id" &&
                         m.First().FundingStreamName == "funding-stream-name"
                   ));
@@ -440,9 +438,7 @@ namespace CalculateFunding.Services.Calcs.Services
                         m.First().FundingStreamId == string.Empty &&
                         m.First().FundingStreamName == "No funding stream set" &&
                         m.First().AllocationLineId == "test-alloc-id" &&
-                        m.First().AllocationLineName == "test-alloc-name" &&
-                        m.First().PolicySpecificationIds.First() == "policy-id" &&
-                        m.First().PolicySpecificationNames.First() == "policy-name"
+                        m.First().AllocationLineName == "test-alloc-name"
                   ));
         }
 

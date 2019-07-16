@@ -21,11 +21,5 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("allocationLineId")]
         public string AllocationLineId { get; set; }
-
-        [JsonProperty("policyId")]
-        public string PolicyId { get; set; }
-
-        [JsonProperty("policyName")]
-        public string PolicyName { get; set; }
     }
 }

@@ -95,20 +95,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Current = new SpecificationVersion()
                 {
-                    Policies = new List<Policy>()
-                    {
-                        new Policy()
-                        {
-                            Id = "pol1",
-                            Name = "Policy 1",
-                        },
-                        new Policy()
-                        {
-                            Id="pol2",
-                            Name = "Pol2",
-                            Calculations = new List<Calculation>(),
-                        }
-                    }
+                    
+                    Calculations = new List<Calculation>()
                 }
             };
 
@@ -156,44 +144,23 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Current = new SpecificationVersion()
                 {
-                    Policies = new List<Policy>()
+                    Calculations = new List<Calculation>()
                     {
-                        new Policy()
+                        new Calculation()
                         {
-                            Id = "emptyPolicy",
-                                Name = "Empty Calculations Policy",
+                            Id = "calc2",
+                            Name = "Calc On Policy 1",
+                            CalculationType = CalculationType.Number,
+                            Description = "Testing",
+                            AllocationLine = new Reference("al2", "Allocation Line 2"),
                         },
-                        new Policy()
+                            new Calculation()
                         {
-                            Id = "pol1",
-                            Name = "Policy 1",
-                            Calculations = new List<Calculation>()
-                            {
-                                new Calculation()
-                                {
-                                    Id = "calc2",
-                                    Name = "Calc On Policy 1",
-                                    CalculationType = CalculationType.Number,
-                                    Description = "Testing",
-                                    AllocationLine = new Reference("al2", "Allocation Line 2"),
-                                }
-                            },
-                        },
-                        new Policy()
-                        {
-                            Id="pol2",
-                            Name = "Pol2",
-                            Calculations = new List<Calculation>()
-                            {
-                                new Calculation()
-                                {
-                                    Id = CalculationId,
-                                    Name = "Calc Name",
-                                    CalculationType =CalculationType.Funding,
-                                    Description = "Test",
-                                    AllocationLine = new Reference("al1", "Allocation Line 1"),
-                                }
-                            }
+                            Id = CalculationId,
+                            Name = "Calc Name",
+                            CalculationType =CalculationType.Funding,
+                            Description = "Test",
+                            AllocationLine = new Reference("al1", "Allocation Line 1")
                         }
                     }
                 }
@@ -229,8 +196,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .Should().BeEquivalentTo<CalculationCurrentVersion>(new CalculationCurrentVersion()
                 {
-                    PolicyName = "Pol2",
-                    PolicyId = "pol2",
                     Id = CalculationId,
                     AllocationLine = new Reference("al1", "Allocation Line 1"),
                     Description = "Test",

@@ -120,27 +120,6 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.EditSpecificationStatus(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/policy-by-name")]
-        [HttpPost]
-        public async Task<IActionResult> RunPolicyByName()
-        {
-            return await _specService.GetPolicyByName(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/policies")]
-        [HttpPost]
-        public async Task<IActionResult> RunCreatePolicy()
-        {
-            return await _specService.CreatePolicy(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/policies")]
-        [HttpPut]
-        public async Task<IActionResult> RunEditPolicy()
-        {
-            return await _specService.EditPolicy(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/specs/calculation-by-name")]
         [HttpPost]
         public async Task<IActionResult> RunCalculationByName()

@@ -75,8 +75,6 @@ namespace CalculateFunding.Api.Specs
             builder
                 .AddSingleton<ISpecificationsService, SpecificationsService>()
                 .AddSingleton<IHealthChecker, SpecificationsService>();
-            builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
-            builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
             builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();

@@ -24,13 +24,11 @@ namespace CalculateFunding.Services.Core.Extensions
                 Current = new Models.Specs.SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" },
-                    Name = "any-name",
-                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy2" } }
+                    Name = "any-name"
                 },
                 Previous = new Models.Specs.SpecificationVersion
                 {
-                    FundingPeriod = new Reference { Id = "fp1" },
-                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy1" } }
+                    FundingPeriod = new Reference { Id = "fp1" }
                 }
             };
 
@@ -59,13 +57,11 @@ namespace CalculateFunding.Services.Core.Extensions
                 Current = new Models.Specs.SpecificationVersion
                 {
                     FundingPeriod = new Reference { Id = "fp1" },
-                    Name = "any-name",
-                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy2" } }
+                    Name = "any-name"
                 },
                 Previous = new Models.Specs.SpecificationVersion
                 {
-                    FundingPeriod = new Reference { Id = "fp1" },
-                    Policies = new[] { new Models.Specs.Policy { Id = "pol-id", Name = "policy1" } }
+                    FundingPeriod = new Reference { Id = "fp1" }
                 }
             };
 

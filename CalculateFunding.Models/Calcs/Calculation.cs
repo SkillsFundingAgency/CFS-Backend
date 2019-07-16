@@ -12,9 +12,6 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 
-        [JsonProperty("policies")]
-        public List<Reference> Policies { get; set; }
-
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
 

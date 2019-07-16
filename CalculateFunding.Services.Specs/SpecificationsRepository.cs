@@ -144,35 +144,21 @@ namespace CalculateFunding.Services.Specs
         {
             var specification = await GetSpecificationById(specificationId);
 
-            return specification?.Current.GetCalculations().FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
+            return specification?.Current.Calculations?.FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
         }
 
         public async Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId)
         {
             var specification = await GetSpecificationById(specificationId);
 
-            return specification?.Current.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
+            return specification?.Current.Calculations?.FirstOrDefault(m => m.Id == calculationId);
         }
 
         public async Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
         {
             var specification = await GetSpecificationById(specificationId);
 
-            return specification?.Current.GetCalculations();
-        }
-
-        public async Task<Policy> GetPolicyBySpecificationIdAndPolicyName(string specificationId, string policyByName)
-        {
-            var specification = await GetSpecificationById(specificationId);
-
-            return specification?.Current.GetPolicyByName(policyByName);
-        }
-
-        public async Task<Policy> GetPolicyBySpecificationIdAndPolicyId(string specificationId, string policyId)
-        {
-            var specification = await GetSpecificationById(specificationId);
-
-            return specification?.Current.GetPolicy(policyId);
+            return specification?.Current.Calculations;
         }
 
         public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)

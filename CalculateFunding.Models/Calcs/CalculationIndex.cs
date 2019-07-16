@@ -52,14 +52,6 @@ namespace CalculateFunding.Models.Calcs
         [IsRetrievable(true)]
         public string AllocationLineId{ get; set; }
 
-        [JsonProperty("policySpecificationIds")]
-        [IsRetrievable(true)]
-        public string[] PolicySpecificationIds { get; set; }
-
-        [IsFilterable,IsFacetable, IsSearchable, IsRetrievable(true)]
-        [JsonProperty("policySpecificationNames")]
-        public string[] PolicySpecificationNames { get; set; }
-
         [IsSearchable, IsRetrievable(true)]
         [JsonProperty("sourceCode")]
         public string SourceCode { get; set; }

@@ -695,7 +695,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task EditSpecification_GivenChangesAndSpecContainsPoliciesAndCalculations_UpdatesSearchAndSendsMessage()
+        public async Task EditSpecification_GivenChangesAndSpecContainsCalculations_UpdatesSearchAndSendsMessage()
         {
             //Arrange
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
@@ -753,16 +753,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification specification = CreateSpecification();
             specification
                 .Current
-                .Policies = new[]
-                {
-                    new Policy
+                .Calculations = new[]
                     {
-                        Calculations = new[]
-                        {
-                            new Calculation { AllocationLine = new AllocationLine { Id = "oldallocationlineid"} }
-                        }
-                    }
-                };
+                        new Calculation { AllocationLine = new AllocationLine { Id = "oldallocationlineid"} }
+                    };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();

@@ -403,10 +403,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 new Reference("Spec1", "SpecOne"),
                 new Reference("Spec2", "SpecTwo")
             };
-            List<Reference> policySpecificationsForNumberCalc = new List<Reference>()
-            {
-                new Reference("Spec1", "SpecOne"),
-            };
+           
             Reference allocationLineReturned = new Reference("allocationLine", "allocation line for Funding Calc and number calc");
 
             Reference fundingCalcReference = new Reference("CalcF1", "Funding calc 1");
@@ -421,7 +418,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = fundingCalcReference,
                 AllocationLine = allocationLineReturned,
                 CalculationSpecification = fundingCalcSpecificationReference,
-                PolicySpecifications = policySpecificationsForFundingCalc,
                 Value = 10000
             };
             CalculationResult fundingCalcReturned2 = new CalculationResult()
@@ -430,7 +426,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = numbercalcReference,
                 AllocationLine = allocationLineReturned,
                 CalculationSpecification = numbercalcSpecificationReference,
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = 20000
             };
 
@@ -491,7 +486,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             fundingCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned.CalculationType);
             fundingCalcResult.AllocationLine.Should().BeEquivalentTo(allocationLineReturned);
             fundingCalcResult.CalculationSpecification.Should().BeEquivalentTo(fundingCalcSpecificationReference);
-            fundingCalcResult.PolicySpecifications.Should().BeEquivalentTo(policySpecificationsForFundingCalc);
             fundingCalcResult.Value.Should().Be(fundingCalcReturned.Value.Value);
 
             CalculationResult numberCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == numbercalcReference.Id);
@@ -499,7 +493,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             numberCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned2.CalculationType);
             numberCalcResult.AllocationLine.Should().BeEquivalentTo(allocationLineReturned);
             numberCalcResult.CalculationSpecification.Should().BeEquivalentTo(numbercalcSpecificationReference);
-            numberCalcResult.PolicySpecifications.Should().BeEquivalentTo(policySpecificationsForNumberCalc);
             numberCalcResult.Value.Should().Be(fundingCalcReturned2.Value.Value);
 
             CalculationResult nonMatchingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == "Non matching calculation");
@@ -507,7 +500,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             nonMatchingCalcResult.CalculationType.Should().BeEquivalentTo(nonMatchingCalculationModel.CalculationType);
             nonMatchingCalcResult.AllocationLine.Should().BeNull();
             nonMatchingCalcResult.CalculationSpecification.Should().BeNull();
-            nonMatchingCalcResult.PolicySpecifications.Should().BeNull();
             nonMatchingCalcResult.Value.Should().BeNull();
         }
 
@@ -534,7 +526,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc1", "Calc 1"),
                 AllocationLine = allocationLine1,
                 CalculationSpecification = new Reference("FSpect", "FundingSpecification"),
-                PolicySpecifications = policySpecificationsForFundingCalc,
                 Value = 10000
             };
             CalculationResult calc2 = new CalculationResult()
@@ -543,7 +534,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc2", "Calc 2"),
                 AllocationLine = allocationLine1,
                 CalculationSpecification = new Reference("FSpec2", "FundingSpecification2"),
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = 20000
             };
             CalculationResult calc3 = new CalculationResult()
@@ -552,7 +542,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc3", "Calc 3"),
                 AllocationLine = allocationLine2,
                 CalculationSpecification = new Reference("calc3", "Calc 3"),
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = 67
             };
             CalculationResult calc4 = new CalculationResult()
@@ -561,7 +550,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc4", "Calc 4"),
                 AllocationLine = allocationLine3,
                 CalculationSpecification = new Reference("calc4", "Calc 4"),
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = null,
             };
             CalculationResult calc5 = new CalculationResult()
@@ -570,7 +558,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc5", "Calc 5"),
                 AllocationLine = allocationLine3,
                 CalculationSpecification = new Reference("calc5", "Calc 5"),
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = 50,
             };
             CalculationResult calc6 = new CalculationResult()
@@ -579,7 +566,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc6", "Calc 6"),
                 AllocationLine = allocationLine3,
                 CalculationSpecification = new Reference("calc6", "Calc 6"),
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = 8,
             };
 
@@ -697,7 +683,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc1", "Calc 1"),
                 AllocationLine = allocationLine1,
                 CalculationSpecification = new Reference("FSpect", "FundingSpecification"),
-                PolicySpecifications = policySpecificationsForFundingCalc,
                 Value = 10000
             };
             CalculationResult calc2 = new CalculationResult()
@@ -706,7 +691,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc2", "Calc 2"),
                 AllocationLine = allocationLine1,
                 CalculationSpecification = new Reference("FSpec2", "FundingSpecification2"),
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = 20000
             };
             CalculationResult calc3 = new CalculationResult()
@@ -715,7 +699,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc3", "Calc 3"),
                 AllocationLine = allocationLine2,
                 CalculationSpecification = new Reference("calc3", "Calc 3"),
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = 67
             };
             CalculationResult calc4 = new CalculationResult()
@@ -724,7 +707,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Calculation = new Reference("calc4", "Calc 4"),
                 AllocationLine = allocationLine3,
                 CalculationSpecification = new Reference("calc4", "Calc 4"),
-                PolicySpecifications = policySpecificationsForNumberCalc,
                 Value = null,
             };
 

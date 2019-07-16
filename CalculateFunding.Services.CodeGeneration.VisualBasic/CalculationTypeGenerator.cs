@@ -107,15 +107,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine($"<AllocationLine(Id := \"{calc.AllocationLine.Id}\", Name := \"{calc.AllocationLine.Name}\")>");
             }
 
-            if (calc.Policies != null)
-            {
-                // Add attributes for policies
-                foreach (Common.Models.Reference policySpecification in calc.Policies)
-                {
-                    builder.AppendLine($"<PolicySpecification(Id := \"{policySpecification.Id}\", Name := \"{policySpecification.Name}\")>");
-                }
-            }
-
             // Add attribute for calculation description
             if (!string.IsNullOrWhiteSpace(calc.Description))
             {

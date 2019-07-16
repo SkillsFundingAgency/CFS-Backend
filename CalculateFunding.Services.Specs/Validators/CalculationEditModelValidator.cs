@@ -53,10 +53,6 @@ namespace CalculateFunding.Services.Specs.Validators
                    }
                });
 
-            RuleFor(model => model.PolicyId)
-               .NotEmpty()
-               .WithMessage("You must select a policy or a sub policy");
-
             RuleFor(model => model.CalculationType)
                 .IsInEnum()
                 .WithMessage("You must specify a valid calculation type");
@@ -149,7 +145,12 @@ namespace CalculateFunding.Services.Specs.Validators
                                     return;
                                 }
 
-                                bool existingBaselineSpecification = specification.Current.GetAllCalculations().Any(c => c.CalculationType == CalculationType.Baseline && string.Equals(c.AllocationLine?.Id, model.AllocationLineId, StringComparison.InvariantCultureIgnoreCase) && !string.Equals(model.CalculationId, c.Id, StringComparison.InvariantCultureIgnoreCase));
+                                bool existingBaselineSpecification = !specification.Current.Calculations.IsNullOrEmpty() &&
+                                    specification.Current.Calculations.Any(c => 
+                                        c.CalculationType == CalculationType.Baseline && 
+                                        string.Equals(c.AllocationLine?.Id, model.AllocationLineId, StringComparison.InvariantCultureIgnoreCase) && 
+                                        !string.Equals(model.CalculationId, c.Id, StringComparison.InvariantCultureIgnoreCase));
+
                                 if (existingBaselineSpecification)
                                 {
                                     context.AddFailure("This specification already has an existing Baseline calculation associated with it. Please choose a different allocation line ID to create a Baseline calculation for.");

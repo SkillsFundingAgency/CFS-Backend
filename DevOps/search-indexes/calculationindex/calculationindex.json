@@ -132,32 +132,6 @@
 			"indexAnalyzer": null
 		},
 		{
-			"name": "policySpecificationIds",
-			"type": "Collection(Edm.String)",
-			"key": false,
-			"facetable": false,
-			"filterable": false,
-			"retrievable": true,
-			"searchable": false,
-			"sortable": false,
-			"analyzer": null,
-			"searchAnalyzer": null,
-			"indexAnalyzer": null
-		},
-		{
-			"name": "policySpecificationNames",
-			"type": "Collection(Edm.String)",
-			"key": false,
-			"facetable": true,
-			"filterable": true,
-			"retrievable": true,
-			"searchable": true,
-			"sortable": false,
-			"analyzer": null,
-			"searchAnalyzer": null,
-			"indexAnalyzer": null
-		},
-		{
 			"name": "sourceCode",
 			"type": "Edm.String",
 			"key": false,

@@ -261,7 +261,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     Name = "calc spec name"
                 },
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -362,7 +361,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -482,7 +480,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -646,7 +643,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -818,7 +814,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -950,7 +945,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -1072,7 +1066,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -1185,7 +1178,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -1350,7 +1342,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -1464,7 +1455,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Funding,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -1576,7 +1566,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Number,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -1677,7 +1666,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Number,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
@@ -1708,7 +1696,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     SpecificationId = specificationId,
                     CalculationSpecification = new Reference { Id = "calc1", Name = "noreference" },
                     FundingPeriod = new Reference { Id = "fp1", Name = "FP One" },
-                    Policies = new List<Reference>(),
                     Current = new CalculationVersion { SourceCode = "return 10" } // No match
                 },
                 new Models.Calcs.Calculation
@@ -1717,7 +1704,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     SpecificationId = specificationId,
                     CalculationSpecification = new Reference { Id = "calc2", Name = "areference" },
                     FundingPeriod = new Reference { Id = "fp1", Name = "FP One" },
-                    Policies = new List<Reference>(),
                     Current = new CalculationVersion { SourceCode = "dim result as Decimal? = TestCalc()" } // A match
                 },
                 specCalculation
@@ -1842,7 +1828,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = Models.Calcs.CalculationType.Number,
                 Id = CalculationId,
                 FundingPeriod = new Reference { Id = "fp1", Name = "fp 1" },
-                Policies = new List<Reference> { new Reference { Id = "pol1", Name = "pol2" } },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",

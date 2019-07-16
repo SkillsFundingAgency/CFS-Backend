@@ -63,7 +63,6 @@ namespace CalculateFunding.Services.CalcEngine
                         Calculation = GetReference(attributes, "Calculation"),
                         CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
                         AllocationLine = GetReference(attributes, "AllocationLine"),
-                        PolicySpecifications = GetReferences(attributes, "PolicySpecification").ToList()
                     };
 
                     _funcs.Add(new Tuple<FieldInfo, CalculationResult>(executeFunc, result));

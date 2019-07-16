@@ -297,8 +297,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Name = "new calc name",
                 CalculationType = CalculationType.Funding,
-                Description = "test description",
-                PolicyId = "policy-id-2"
+                Description = "test description"
             };
 
             string json = JsonConvert.SerializeObject(policyEditModel);
@@ -329,10 +328,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification specification = CreateSpecification();
             specification
                 .Current
-                .Policies = new[] {
-                    new Policy { Id = PolicyId, Name = PolicyName, Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } },
-                    new Policy { Id = "policy-id-2", Name = PolicyName }
-            };
+                .Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -366,8 +362,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Name = "new calc name",
                 CalculationType = CalculationType.Funding,
-                Description = "test description",
-                PolicyId = "policy-id-2"
+                Description = "test description"
             };
 
             string json = JsonConvert.SerializeObject(policyEditModel);
@@ -398,10 +393,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification specification = CreateSpecification();
             specification
                 .Current
-                .Policies = new[] {
-                    new Policy { Id = PolicyId, Name = PolicyName, Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } },
-                    new Policy { Id = "policy-id-2", Name = PolicyName }
-                };
+                .Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -417,7 +409,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IMessengerService messengerService = CreateMessengerService();
 
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.Policies.ElementAt(1).Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
+            newSpecVersion.Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
 
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
@@ -442,8 +434,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             specification
                 .Current
-                .Policies
-                .ElementAt(1)
                 .Calculations
                 .First()
                 .Name
@@ -469,109 +459,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task EditCalculation_WhenCalcInSubPolicyButNotTopLevelPolicyUpdatesCosmos_SendsMessageReturnsOk()
-        {
-            // Arrange
-            CalculationEditModel policyEditModel = new CalculationEditModel
-            {
-                Name = "new calc name",
-                CalculationType = CalculationType.Funding,
-                Description = "test description",
-                PolicyId = "policy-id-2"
-            };
-
-            string json = JsonConvert.SerializeObject(policyEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-                { "calculationId", new StringValues(CalculationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            Specification specification = CreateSpecification();
-            specification
-                .Current
-                .Policies = new[] {
-                    new Policy { Id = PolicyId, Name = PolicyName, SubPolicies = new[] { new Policy { Id = "policy-id-2", Name = "sub-policy", Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } } }
-                } };
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Is(specification))
-                .Returns(HttpStatusCode.OK);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.Policies.First().SubPolicies.First().Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
-
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-                .Returns(newSpecVersion);
-
-            SpecificationsService specificationsService = CreateService(specificationsRepository: specificationsRepository,
-                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
-
-            // Act
-            IActionResult result = await specificationsService.EditCalculation(request);
-
-            // Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>();
-
-            specification
-                .Current
-                .Policies
-                .First()
-                .SubPolicies
-                .First()
-                .Calculations
-                .First()
-                .Name
-                .Should()
-                .Be("new calc name");
-
-            await
-               messengerService
-                   .Received(1)
-                   .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditCalculation),
-                               Arg.Is<CalculationVersionComparisonModel>(
-                                   m => m.CalculationId == CalculationId &&
-                                        m.SpecificationId == SpecificationId
-                                   ), Arg.Any<IDictionary<string, string>>());
-
-            await
-              versionRepository
-               .Received(1)
-               .SaveVersion(Arg.Is(newSpecVersion));
-        }
-
-        [TestMethod]
         public void EditCalculation_WhenSomethingGoesWrongDuringIndexing_ShouldThrowException()
         {
             // Arrange
@@ -581,8 +468,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Name = "new calc name",
                 CalculationType = CalculationType.Funding,
-                Description = "test description",
-                PolicyId = "policy-id-2"
+                Description = "test description"
             };
 
             string json = JsonConvert.SerializeObject(policyEditModel);
@@ -613,10 +499,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification specification = CreateSpecification();
             specification
                 .Current
-                .Policies = new[] {
-                    new Policy { Id = PolicyId, Name = PolicyName, Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } },
-                    new Policy { Id = "policy-id-2", Name = PolicyName }
-                };
+                .Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -632,7 +515,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IMessengerService messengerService = CreateMessengerService();
 
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.Policies.ElementAt(1).Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
+            newSpecVersion.Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
 
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
@@ -668,8 +551,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Name = "new calc name",
                 CalculationType = CalculationType.Funding,
-                Description = "test description",
-                PolicyId = "policy-id-2"
+                Description = "test description"
             };
 
             string json = JsonConvert.SerializeObject(policyEditModel);
@@ -700,9 +582,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification specification = CreateSpecification();
             specification
                 .Current
-                .Policies = new[] {
-                    new Policy { Id = PolicyId, Name = PolicyName, SubPolicies = new[] { new Policy { Id = "policy-id-2", Name = "sub-policy", Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } } } }
-                } };
+                .Calculations = new[] { new Calculation { Id = CalculationId, Name = "Old name" } };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
@@ -714,7 +594,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(HttpStatusCode.OK);
 
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.Policies.First().SubPolicies.First().Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
+            newSpecVersion.Calculations = new[] { new Calculation { Id = CalculationId, Name = "new calc name" } };
 
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
@@ -751,8 +631,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Name = "Another name",
                 CalculationType = CalculationType.Funding,
-                Description = "test description",
-                PolicyId = "policy-id-2"
+                Description = "test description"
             };
 
             string json = JsonConvert.SerializeObject(policyEditModel);
@@ -783,18 +662,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification specification = CreateSpecification();
             specification
                 .Current
-                .Policies = new[] {
-                    new Policy
-                    {
-                        Id = PolicyId,
-                        Name = PolicyName,
-                        Calculations = new[] 
+                .Calculations = new[]
                         {
                             new Calculation { Id = CalculationId, Name = "Old name" },
                             new Calculation { Id = "calc2", Name = "Another name" }
-                        }
-                    }
-                };
+                        };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository

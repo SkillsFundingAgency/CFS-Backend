@@ -52,8 +52,6 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<OnAddRelationshipEvent>();
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();
-            builder.AddSingleton<IValidator<PolicyCreateModel>, PolicyCreateModelValidator>();
-            builder.AddSingleton<IValidator<PolicyEditModel>, PolicyEditModelValidator>();
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
             builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
@@ -100,7 +98,8 @@ namespace CalculateFunding.Functions.Specs
 
                 return new SpecificationsResiliencePolicies()
                 {
-                    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
@@ -131,6 +130,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddCalcsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
             builder.AddPoliciesInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

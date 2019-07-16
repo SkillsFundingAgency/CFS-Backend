@@ -18,9 +18,6 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 
-        [JsonProperty("policySpecifications")]
-        public List<Reference> PolicySpecifications { get; set; }
-
         [JsonProperty("value")]
         public decimal? Value { get; set; }
 

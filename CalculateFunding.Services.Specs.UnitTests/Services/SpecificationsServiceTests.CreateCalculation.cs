@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -10,11 +9,9 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
@@ -138,63 +135,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidModelButNoPolicyFound_ReturnsPreconditionFailed()
-        {
-            //Arrange
-            Specification specification = new Specification()
-            {
-                Current = new SpecificationVersion(),
-            };
-
-            CalculationCreateModel model = new CalculationCreateModel
-            {
-                SpecificationId = SpecificationId,
-                PolicyId = PolicyId
-            };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            Calculation calculation = new Calculation();
-            IMapper mapper = CreateMapper();
-            mapper
-                .Map<Calculation>(model)
-                .Returns(calculation);
-
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository, mapper: mapper);
-
-            //Act
-            IActionResult result = await service.CreateCalculation(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<PreconditionFailedResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Policy not found for policy id 'dda8ccb3-eb8e-4658-8b3f-f1e4c3a8f322'");
-
-            logger
-                .Received(1)
-                .Warning($"Policy not found for policy id '{PolicyId}'");
-        }
-
-        [TestMethod]
-        public async Task CreateCalculation_GivenValidModelAndPolicyFoundButAddingCalcCausesBadRequest_ReturnsBadRequest()
+        public async Task CreateCalculation_GivenValidModelButAddingCalcCausesBadRequest_ReturnsBadRequest()
         {
             //Arrange
             AllocationLine allocationLine = new AllocationLine
@@ -205,11 +146,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             List<FundingStream> fundingStreams = new List<FundingStream>();
 
-            Policy policy = new Policy
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
 
             PolicyModels.Period fundingPeriod = new PolicyModels.Period
             {
@@ -234,10 +170,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Current = new SpecificationVersion()
                 {
-                    Policies = new[]
-                    {
-                        policy,
-                    },
                     FundingStreams = new List<Reference>()
                     {
                         new Reference { Id = FundingStreamId }
@@ -248,7 +180,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             CalculationCreateModel model = new CalculationCreateModel
             {
                 SpecificationId = SpecificationId,
-                PolicyId = PolicyId,
                 AllocationLineId = AllocationLineId
             };
 
@@ -314,7 +245,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidModelAndPolicyFoundAndUpdated_ReturnsOK()
+        public async Task CreateCalculation_GivenValidModelUpdated_ReturnsOK()
         {
             //Arrange
             AllocationLine allocationLine = new AllocationLine
@@ -324,12 +255,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             };
 
             List<FundingStream> fundingStreams = new List<FundingStream>();
-
-            Policy policy = new Policy
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
 
             PolicyModels.Period fundingPeriod = new PolicyModels.Period
             {
@@ -351,7 +276,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             fundingStreams.Add(fundingStream);
 
             Specification specification = CreateSpecification();
-            specification.Current.Policies = new[] { policy };
             specification.Current.FundingStreams = new List<Reference>()
             {
                 new Reference {Id = FundingStreamId}
@@ -360,7 +284,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             CalculationCreateModel model = new CalculationCreateModel
             {
                 SpecificationId = SpecificationId,
-                PolicyId = PolicyId,
                 AllocationLineId = AllocationLineId
             };
 
@@ -480,159 +403,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task CreateCalculation_GivenValidModelForSubPolicyAndSubPolicyFoundAndUpdated_ReturnsOK()
-        {
-            //Arrange
-            AllocationLine allocationLine = new AllocationLine
-            {
-                Id = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345",
-                Name = "test alloctaion"
-            };
-
-            List<FundingStream> fundingStreams = new List<FundingStream>();
-
-            Policy policy = new Policy
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
-
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
-
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
-
-            FundingStream fundingStream = new FundingStream
-            {
-                AllocationLines = new List<AllocationLine>
-                {
-                    allocationLine
-                },
-                Id = FundingStreamId
-            };
-
-            fundingStreams.Add(fundingStream);
-
-            Specification specification = CreateSpecification();
-            specification.Current.Policies = new[] { policy };
-            specification.Current.FundingStreams = new List<Reference>()
-            {
-                new Reference {Id = FundingStreamId}
-            };
-
-            CalculationCreateModel model = new CalculationCreateModel
-            {
-                SpecificationId = SpecificationId,
-                PolicyId = PolicyId,
-                AllocationLineId = AllocationLineId
-            };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary
-                .Add("sfa-correlationId", new StringValues(SfaCorrelationId));
-
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            ILogger logger = CreateLogger();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingStreams()
-                .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, new List<PolicyModels.FundingStream> { new PolicyModels.FundingStream() }));
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Is(specification))
-                .Returns(HttpStatusCode.OK);
-
-            Calculation calculation = new Calculation
-            {
-                AllocationLine = new Reference()
-            };
-
-            IMapper mapper = CreateMapper();
-            mapper
-                .Map<Calculation>(Arg.Any<CalculationCreateModel>())
-                .Returns(calculation);
-
-            mapper
-                .Map<IEnumerable<FundingStream>>(Arg.Any<IEnumerable<PolicyModels.FundingStream>>())
-                .Returns(fundingStreams);
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.PublishStatus = Models.Versioning.PublishStatus.Updated;
-            newSpecVersion.Version = 2;
-
-            IVersionRepository<SpecificationVersion> mockVersionRepository = CreateVersionRepository();
-            mockVersionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-                .Returns(newSpecVersion);
-
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository,
-                mapper: mapper, messengerService: messengerService, specificationVersionRepository: mockVersionRepository,
-                policiesApiClient: policiesApiClient);
-
-            //Act
-            IActionResult result = await service.CreateCalculation(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>();
-
-            await
-                messengerService
-                    .Received(1)
-                    .SendToQueue(Arg.Is("calc-events-create-draft"),
-                        Arg.Is<Models.Calcs.Calculation>(m =>
-                            m.CalculationSpecification.Id == calculation.Id &&
-                            m.CalculationSpecification.Name == calculation.Name &&
-                            m.Name == calculation.Name &&
-                            !string.IsNullOrEmpty(m.Id) &&
-                            m.AllocationLine.Id == allocationLine.Id &&
-                            m.AllocationLine.Name == allocationLine.Name),
-                        Arg.Is<IDictionary<string, string>>(m =>
-                            m["user-id"] == UserId &&
-                            m["user-name"] == Username &&
-                            m["sfa-correlationId"] == SfaCorrelationId));
-        }
-
-        [TestMethod]
         public void CreateCalculation_WhenSomethingGoesWrongDuringIndexing_ShouldThrowException()
         {
             //Arrange
@@ -646,12 +416,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             List<FundingStream> fundingStreams = new List<FundingStream>();
 
-            Policy policy = new Policy
-            {
-                Id = PolicyId,
-                Name = PolicyName,
-            };
-
             PolicyModels.Period fundingPeriod = new PolicyModels.Period
             {
                 Id = PolicyId,
@@ -672,7 +436,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             fundingStreams.Add(fundingStream);
 
             Specification specification = CreateSpecification();
-            specification.Current.Policies = new[] { policy };
             specification.Current.FundingStreams = new List<Reference>()
             {
                 new Reference {Id = FundingStreamId}
@@ -681,7 +444,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             CalculationCreateModel model = new CalculationCreateModel
             {
                 SpecificationId = SpecificationId,
-                PolicyId = PolicyId,
                 AllocationLineId = AllocationLineId
             };
 
@@ -789,7 +551,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             CalculationCreateModel model = new CalculationCreateModel
             {
                 SpecificationId = SpecificationId,
-                PolicyId = PolicyId,
                 Name = "calc1",
                 CalculationType = CalculationType.Number
             };

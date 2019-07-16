@@ -471,10 +471,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     Description = "test calc",
                     AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
                     CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
-                    Policies = new List<Common.Models.Reference>
-                    {
-                        new Common.Models.Reference{ Id = "policy1", Name="policy one"}
-                    },
                     Current = new CalculationVersion
                     {
                          SourceCode = "return 10"

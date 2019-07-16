@@ -23,7 +23,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         private const string calculationId = "calculationId";
         private const string specificationId = "specId";
         private const string allocationLineid = "allocationLineId";
-        private const string policyId = "policyId";
         private const string description = "A test description";
         private const string name = "A test name";
 
@@ -33,7 +32,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             yield return new object[] { CreateModel(_calculationId: string.Empty), false, new[] { "Calculation ID not specified on the model" } };
             yield return new object[] { CreateModel(_specificationId: string.Empty), false, new[] { "Null or empty specification Id provided" } };
             yield return new object[] { CreateModel(_allocationLineId: string.Empty), true, new string[0] };
-            yield return new object[] { CreateModel(_policyId: string.Empty), false, new[] { "You must select a policy or a sub policy" } };
             yield return new object[] { CreateModel(_description: string.Empty), false, new[] { "You must give a description for the calculation" } };
             yield return new object[] { CreateModel(_name: string.Empty), false, new[] { "You must give a unique calculation name" } };
             yield return new object[] { CreateModel(_calculationType: (CalculationType)5222), false, new[] { "You must specify a valid calculation type" } };
@@ -142,13 +140,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             {
                 Current = new SpecificationVersion
                 {
-                    Policies = new List<Policy>
-                    {
-                        new Policy
-                        {
-                            Id = "pol1",
-                            Name = "Policy 1",
-                            Calculations = new List<Calculation>
+                     Calculations = new List<Calculation>
                             {
                                 new Calculation
                                 {
@@ -165,8 +157,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                                     CalculationType = CalculationType.Baseline,
                                 },
                             }
-                        }
-                    }
                 }
             };
 
@@ -263,13 +253,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                     {
                         Current = new SpecificationVersion
                         {
-                            Policies = new List<Policy>
-                            {
-                                new Policy
-                                {
-                                    Id = "pol1",
-                                    Name = "Policy 1",
-                                    Calculations = new List<Calculation>
+                             Calculations = new List<Calculation>
                                     {
                                         new Calculation
                                         {
@@ -286,8 +270,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                                             CalculationType = CalculationType.Baseline,
                                         },
                                     }
-                                }
-                            }
                         }
                     },
                     defaultFundingStreams,
@@ -392,7 +374,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         static CalculationEditModel CreateModel(string _calculationId = null,
             string _specificationId = null,
             string _allocationLineId = null,
-            string _policyId = null,
             string _description = null,
             string _name = null,
             CalculationType _calculationType = CalculationType.Funding)
@@ -402,7 +383,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 CalculationId = _calculationId ?? calculationId,
                 SpecificationId = _specificationId ?? specificationId,
                 AllocationLineId = _allocationLineId ?? allocationLineid,
-                PolicyId = _policyId ?? policyId,
                 Description = _description ?? description,
                 Name = _name ?? name,
                 CalculationType = _calculationType

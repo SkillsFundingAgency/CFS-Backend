@@ -28,9 +28,7 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.ApprovalStatus, opt => opt.MapFrom(p => p.Current.PublishStatus))
                 .ForMember(m => m.ProviderVersionId, opt => opt.MapFrom(p => p.Current.ProviderVersionId));
 
-            CreateMap<Calculation, CalculationCurrentVersion>()
-                .ForMember(m => m.PolicyId, opt => opt.Ignore())
-                .ForMember(m => m.PolicyName, opt => opt.Ignore());
+            CreateMap<Calculation, CalculationCurrentVersion>();
         }
     }
 }

@@ -183,8 +183,7 @@ namespace CalculateFunding.Services.Calcs.Services
                      SpecificationId = specificationId,
                      CalculationSpecification = new Reference("calc-spac-id", "calc spec name"),
                      FundingPeriod = new Reference("fp1", "fp 1"),
-                     FundingStream = new Reference("fs1", "fs 1"),
-                     Policies = new List<Reference>{ new Reference { Id = "policy-1", Name = "policy 1" } }
+                     FundingStream = new Reference("fs1", "fs 1")
                 }
             };
 

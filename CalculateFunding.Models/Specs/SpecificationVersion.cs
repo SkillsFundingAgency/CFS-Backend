@@ -39,59 +39,14 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("description")]
         public string Description { get; set; }
 
-        [JsonProperty("policies")]
-        public IEnumerable<Policy> Policies { get; set; } = Enumerable.Empty<Policy>();
+        [JsonProperty("calculations")]
+        public IEnumerable<Calculation> Calculations { get; set; } = Enumerable.Empty<Calculation>();
 
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
 
 		[JsonProperty("variationDate")]
 		public DateTimeOffset? VariationDate { get; set; }
-
-        /// <summary>
-        /// Gets all calculations - from top level policies and subpolicies in a flat list
-        /// </summary>
-        /// <returns>IEnumerable of Calculations for the specification</returns>
-        public IEnumerable<Calculation> GetAllCalculations()
-        {
-            List<Calculation> calculations = new List<Calculation>();
-
-            if (Policies != null)
-            {
-                foreach (Policy policy in Policies)
-                {
-                    if (policy != null && policy.Calculations != null)
-                    {
-                        foreach (Calculation calculation in policy.Calculations)
-                        {
-                            if (calculation != null)
-                            {
-                                calculations.Add(calculation);
-                            }
-                        }
-                    }
-
-                    if (policy != null && policy.SubPolicies != null)
-                    {
-                        foreach (Policy subPolicy in policy.SubPolicies)
-                        {
-                            if (subPolicy != null && subPolicy.Calculations != null)
-                            {
-                                foreach (Calculation calculation in subPolicy.Calculations)
-                                {
-                                    if (calculation != null)
-                                    {
-                                        calculations.Add(calculation);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return calculations;
-        }
 
         public override VersionedItem Clone()
         {

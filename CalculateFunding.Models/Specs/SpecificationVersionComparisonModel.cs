@@ -52,15 +52,15 @@ namespace CalculateFunding.Models.Specs
         }
 
         [JsonIgnore]
-        public bool HasPolicyChanges
+        public bool HasCalculationChanges
         {
             get
             {
-                string currentPolicies = JsonConvert.SerializeObject(Current.Policies);
+                string currentCalculations = JsonConvert.SerializeObject(Current.Calculations);
 
-                string previousPolicies = JsonConvert.SerializeObject(Previous.Policies);
+                string previousCalculations = JsonConvert.SerializeObject(Previous.Calculations);
 
-                return !string.Equals(currentPolicies, previousPolicies);
+                return !string.Equals(currentCalculations, previousCalculations);
             }
         }
     }

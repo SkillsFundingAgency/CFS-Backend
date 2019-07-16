@@ -83,7 +83,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
-                Policies = new List<Reference>(),
                 Current = new CalculationVersion
                 {
                     SourceCode = originalCodeIgnore,
@@ -103,7 +102,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
-                Policies = new List<Reference>(),
                 Current = new CalculationVersion
                 {
                     SourceCode = originalCodeUpdate,
@@ -240,7 +238,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
-                Policies = new List<Reference>(),
                 Current = new CalculationVersion
                 {
                     SourceCode = originalCodeIgnore,
@@ -260,7 +257,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationType = CalculationType.Funding,
                 Description = "Calculation Description",
                 BuildProjectId = "bpC1",
-                Policies = new List<Reference>(),
                 Current = new CalculationVersion
                 {
                     SourceCode = originalCodeUpdate,
@@ -396,7 +392,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     CalculationType = CalculationType.Funding,
                     Description = "Calculation Description",
                     BuildProjectId = "bpC1",
-                    Policies = new List<Reference>(),
                     Current = new CalculationVersion
                     {
                         SourceCode = "Return 10",
@@ -413,7 +408,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     CalculationType = CalculationType.Funding,
                     Description = "Calculation Description",
                     BuildProjectId = "bpC1",
-                    Policies = new List<Reference>(),
                     Current = new CalculationVersion
                     {
                         SourceCode = "Return 50",

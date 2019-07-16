@@ -47,7 +47,6 @@ namespace CalculateFunding.Services.Specs
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly Polly.Policy _policiesApiClientPolicy;
         private readonly ILogger _logger;
-        private readonly IValidator<PolicyCreateModel> _policyCreateModelValidator;
         private readonly IValidator<SpecificationCreateModel> _specificationCreateModelvalidator;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
         private readonly IMessengerService _messengerService;
@@ -55,7 +54,6 @@ namespace CalculateFunding.Services.Specs
         private readonly IValidator<AssignDefinitionRelationshipMessage> _assignDefinitionRelationshipMessageValidator;
         private readonly IValidator<SpecificationEditModel> _specificationEditModelValidator;
         private readonly ICacheProvider _cacheProvider;
-        private readonly IValidator<PolicyEditModel> _policyEditModelValidator;
         private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
         private readonly IResultsRepository _resultsRepository;
         private readonly IVersionRepository<SpecificationVersion> _specificationVersionRepository;
@@ -69,7 +67,6 @@ namespace CalculateFunding.Services.Specs
             ISpecificationsRepository specificationsRepository,
             IPoliciesApiClient policiesApiClient,
             ILogger logger,
-            IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelValidator,
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IMessengerService messengerService,
@@ -77,19 +74,18 @@ namespace CalculateFunding.Services.Specs
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
             ICacheProvider cacheProvider,
             IValidator<SpecificationEditModel> specificationEditModelValidator,
-            IValidator<PolicyEditModel> policyEditModelValidator,
             IValidator<CalculationEditModel> calculationEditModelValidator,
             IResultsRepository resultsRepository,
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
             IFeatureToggle featureToggle,
-            ISpecificationsResiliencePolicies resiliencePolicies)
+            ISpecificationsResiliencePolicies resiliencePolicies,
+            IJobsApiClient jobsApiClient)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(policyCreateModelValidator, nameof(policyCreateModelValidator));
             Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
             Guard.ArgumentNotNull(calculationCreateModelValidator, nameof(calculationCreateModelValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -97,17 +93,16 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(assignDefinitionRelationshipMessageValidator, nameof(assignDefinitionRelationshipMessageValidator));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
-            Guard.ArgumentNotNull(policyEditModelValidator, nameof(policyEditModelValidator));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
             _policiesApiClient = policiesApiClient;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _logger = logger;
-            _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelValidator;
             _calculationCreateModelValidator = calculationCreateModelValidator;
             _messengerService = messengerService;
@@ -115,11 +110,12 @@ namespace CalculateFunding.Services.Specs
             _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
             _cacheProvider = cacheProvider;
             _specificationEditModelValidator = specificationEditModelValidator;
-            _policyEditModelValidator = policyEditModelValidator;
             _calculationEditModelValidator = calculationEditModelValidator;
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
             _featureToggle = featureToggle;
+            _jobsApiClient = jobsApiClient;
+            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
         }
 
         // Ctor for use from API
@@ -168,7 +164,6 @@ namespace CalculateFunding.Services.Specs
             _policiesApiClient = policiesApiClient;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _logger = logger;
-            _policyCreateModelValidator = policyCreateModelValidator;
             _specificationCreateModelvalidator = specificationCreateModelValidator;
             _calculationCreateModelValidator = calculationCreateModelValidator;
             _messengerService = messengerService;
@@ -176,7 +171,6 @@ namespace CalculateFunding.Services.Specs
             _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
             _cacheProvider = cacheProvider;
             _specificationEditModelValidator = specificationEditModelValidator;
-            _policyEditModelValidator = policyEditModelValidator;
             _calculationEditModelValidator = calculationEditModelValidator;
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
@@ -606,46 +600,6 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications.FirstOrDefault());
         }
 
-        public async Task<IActionResult> GetPolicyByName(HttpRequest request)
-        {
-            string json = await request.GetRawBodyStringAsync();
-
-            PolicyGetModel model = JsonConvert.DeserializeObject<PolicyGetModel>(json);
-
-            if (string.IsNullOrWhiteSpace(model.SpecificationId))
-            {
-                _logger.Error("No specification id was provided to GetPolicyByName");
-                return new BadRequestObjectResult("Null or empty specification id provided");
-            }
-
-            if (string.IsNullOrWhiteSpace(model.Name))
-            {
-                _logger.Error("No policy name was provided to GetPolicyByName");
-                return new BadRequestObjectResult("Null or empty policy name provided");
-            }
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(model.SpecificationId);
-
-            if (specification == null)
-            {
-                _logger.Error($"No specification was found for specification id {model.SpecificationId}");
-                return new StatusCodeResult(412);
-            }
-
-            Policy policy = specification.Current.GetPolicyByName(model.Name);
-
-            if (policy != null)
-            {
-                _logger.Information($"A policy was found for specification id {model.SpecificationId} and name {model.Name}");
-
-                return new OkObjectResult(policy);
-            }
-
-            _logger.Information($"A policy was not found for specification id {model.SpecificationId} and name {model.Name}");
-
-            return new NotFoundResult();
-        }
-
         public async Task<IActionResult> GetCalculationByName(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
@@ -690,39 +644,16 @@ namespace CalculateFunding.Services.Specs
 
             List<CalculationCurrentVersion> baselineCalculations = new List<CalculationCurrentVersion>();
 
-            if (specification.Current != null && specification.Current.Policies != null)
+            if (specification.Current != null)
             {
-                foreach (Policy policy in specification.Current.Policies)
+               
+                foreach (Calculation calculation in specification.Current.Calculations)
                 {
-                    if (policy.Calculations != null)
+                    if (calculation.CalculationType == CalculationType.Baseline)
                     {
-                        foreach (Calculation calculation in policy.Calculations)
-                        {
-                            if (calculation.CalculationType == CalculationType.Baseline)
-                            {
 
-                                baselineCalculations.Add(GenerateCalculationCurrentVersion(specificationId, policy, calculation));
-                            }
-                        }
+                        baselineCalculations.Add(GenerateCalculationCurrentVersion(specificationId, calculation));
                     }
-
-                    if (policy.SubPolicies != null)
-                    {
-                        foreach (Policy subPolicy in policy.SubPolicies)
-                        {
-                            if (subPolicy.Calculations != null)
-                            {
-                                foreach (Calculation calculation in subPolicy.Calculations)
-                                {
-                                    if (calculation.CalculationType == CalculationType.Baseline)
-                                    {
-                                        baselineCalculations.Add(GenerateCalculationCurrentVersion(specificationId, subPolicy, calculation));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
                 }
             }
 
@@ -759,38 +690,17 @@ namespace CalculateFunding.Services.Specs
                 return new PreconditionFailedResult("Specification not found");
             }
 
-            if (specification.Current != null && specification.Current.Policies != null)
+            if (specification.Current != null)
             {
-                foreach (Policy policy in specification.Current.Policies)
+                if (specification.Current != null)
                 {
-                    if (policy.Calculations != null)
+                    foreach (Calculation calculation in specification.Current.Calculations)
                     {
-                        foreach (Calculation calculation in policy.Calculations)
+                        if (calculation.Id == calculationId)
                         {
-                            if (calculation.Id == calculationId)
-                            {
-                                return GenerateCalculationCurrentVersionActionResult(specificationId, policy, calculation);
-                            }
+                            return GenerateCalculationCurrentVersionActionResult(specificationId, calculation);
                         }
                     }
-
-                    if (policy.SubPolicies != null)
-                    {
-                        foreach (Policy subPolicy in policy.SubPolicies)
-                        {
-                            if (subPolicy.Calculations != null)
-                            {
-                                foreach (Calculation calculation in subPolicy.Calculations)
-                                {
-                                    if (calculation.Id == calculationId)
-                                    {
-                                        return GenerateCalculationCurrentVersionActionResult(specificationId, subPolicy, calculation);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
                 }
             }
 
@@ -799,24 +709,21 @@ namespace CalculateFunding.Services.Specs
             return new NotFoundObjectResult("Calculation not found");
         }
 
-        private CalculationCurrentVersion GenerateCalculationCurrentVersion(string specificationId, Policy policy, Calculation calculation)
+        private CalculationCurrentVersion GenerateCalculationCurrentVersion(string specificationId, Calculation calculation)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.ArgumentNotNull(policy, nameof(policy));
             Guard.ArgumentNotNull(calculation, nameof(calculation));
 
             CalculationCurrentVersion calculationCurrentVersion = _mapper.Map<CalculationCurrentVersion>(calculation);
-            calculationCurrentVersion.PolicyId = policy.Id;
-            calculationCurrentVersion.PolicyName = policy.Name;
 
             _logger.Information($"A calculation was found for specification id {specificationId} and calculation id {calculation.Id}");
 
             return calculationCurrentVersion;
         }
 
-        private IActionResult GenerateCalculationCurrentVersionActionResult(string specificationId, Policy policy, Calculation calculation)
+        private IActionResult GenerateCalculationCurrentVersionActionResult(string specificationId, Calculation calculation)
         {
-            return new OkObjectResult(GenerateCalculationCurrentVersion(specificationId, policy, calculation));
+            return new OkObjectResult(GenerateCalculationCurrentVersion(specificationId, calculation));
         }
 
         public async Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request)
@@ -885,163 +792,6 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(new List<FundingStream> { fundingStream });
         }
 
-        public async Task<IActionResult> CreatePolicy(HttpRequest request)
-        {
-            string json = await request.GetRawBodyStringAsync();
-
-            PolicyCreateModel createModel = JsonConvert.DeserializeObject<PolicyCreateModel>(json);
-
-            if (createModel == null)
-            {
-                return new BadRequestObjectResult("Null policy create model provided");
-            }
-
-            BadRequestObjectResult validationResult = (await _policyCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
-
-            if (validationResult != null)
-            {
-                return validationResult;
-            }
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(createModel.SpecificationId);
-
-            if (specification == null)
-            {
-                return new NotFoundResult();
-            }
-
-            Policy policy = _mapper.Map<Policy>(createModel);
-
-            policy.LastUpdated = DateTimeOffset.Now;
-
-            SpecificationVersion previousSpecificationVersion = specification.Current;
-
-            SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
-
-            if (!string.IsNullOrWhiteSpace(createModel.ParentPolicyId))
-            {
-                Policy parentPolicy = specificationVersion.GetPolicy(createModel.ParentPolicyId);
-
-                parentPolicy.SubPolicies = (parentPolicy.SubPolicies == null
-                    ? new[] { policy }
-                    : parentPolicy.SubPolicies.Concat(new[] { policy }));
-            }
-            else
-            {
-                specificationVersion.Policies = (specificationVersion.Policies == null
-                   ? new[] { policy }
-                   : specificationVersion.Policies.Concat(new[] { policy }));
-            }
-
-            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
-
-            if (statusCode != HttpStatusCode.OK)
-            {
-                return new StatusCodeResult((int)statusCode);
-            }
-
-            await ReindexSpecification(specification);
-
-            return new OkObjectResult(policy);
-        }
-
-        public async Task<IActionResult> EditPolicy(HttpRequest request)
-        {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specification Id was provided to EditPolicy");
-                return new BadRequestObjectResult("Null or empty specification Id provided");
-            }
-
-            request.Query.TryGetValue("policyId", out StringValues polId);
-
-            string policyId = polId.FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(policyId))
-            {
-                _logger.Error("No policy Id was provided to EditPolicy");
-                return new BadRequestObjectResult("Null or empty policy Id provided");
-            }
-
-            string json = await request.GetRawBodyStringAsync();
-
-            PolicyEditModel editModel = JsonConvert.DeserializeObject<PolicyEditModel>(json);
-
-            if (editModel == null)
-            {
-                _logger.Error("Null edit modeld was provided to EditPolicy");
-                return new BadRequestObjectResult("Null policy edit model provided");
-            }
-
-            editModel.PolicyId = policyId;
-            editModel.SpecificationId = specificationId;
-
-            BadRequestObjectResult validationResult = (await _policyEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
-
-            if (validationResult != null)
-            {
-                return validationResult;
-            }
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-
-            if (specification == null)
-            {
-                return new PreconditionFailedResult($"Failed to find specification for id: {specificationId}");
-            }
-
-            SpecificationVersion previousSpecificationVersion = specification.Current;
-
-            SpecificationVersion specificationVersion = previousSpecificationVersion.Clone() as SpecificationVersion;
-
-            Policy policy = specificationVersion.GetPolicy(policyId);
-
-            if (policy == null)
-            {
-                return new NotFoundObjectResult($"Failed to find policy for policy id: {policyId}");
-            }
-
-            policy.Name = editModel.Name;
-            policy.Description = editModel.Description;
-            policy.LastUpdated = DateTimeOffset.Now;
-
-            Policy parentPolicy = specificationVersion.GetParentPolicy(policyId);
-
-            if (parentPolicy != null && string.IsNullOrWhiteSpace(editModel.ParentPolicyId))
-            {
-                parentPolicy.SubPolicies = parentPolicy.SubPolicies.Where(m => m.Id != policyId);
-
-                specificationVersion.Policies = specificationVersion.Policies.Concat(new[] { policy });
-            }
-            else if (parentPolicy != null && editModel.ParentPolicyId != parentPolicy.Id)
-            {
-                parentPolicy.SubPolicies = parentPolicy.SubPolicies.Where(m => m.Id != policyId);
-
-                Policy newParentPolicy = specificationVersion.GetPolicy(editModel.ParentPolicyId);
-
-                newParentPolicy.SubPolicies = newParentPolicy.SubPolicies.Concat(new[] { policy });
-            }
-
-            HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
-
-            if (statusCode != HttpStatusCode.OK)
-            {
-                return new StatusCodeResult((int)statusCode);
-            }
-
-            await ReindexSpecification(specification);
-
-            // INFO: Specification summary in cache does not need updating as it does not contain policies
-            // Remove Specification Current Version from cache
-            await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
-
-            await SendSpecificationComparisonModelMessageToTopic(specification.Id, ServiceBusConstants.TopicNames.EditSpecification, specificationVersion, previousSpecificationVersion, request);
-
-            return new OkObjectResult(policy);
-        }
-
         public async Task<IActionResult> CreateSpecification(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
@@ -1077,7 +827,6 @@ namespace CalculateFunding.Services.Specs
                 ProviderVersionId = createModel.ProviderVersionId,
                 FundingPeriod = new Reference(fundingPeriod.Id, fundingPeriod.Name),
                 Description = createModel.Description,
-                Policies = new List<Policy>(),
                 DataDefinitionRelationshipIds = new List<string>(),
                 Author = user,
                 SpecificationId = specification.Id,
@@ -1233,7 +982,7 @@ namespace CalculateFunding.Services.Specs
 
                     specificationVersion.FundingStreams = fundingStreamReferences;
 
-                    RemoveMissingAllocationLineAssociations(allocationLines, specificationVersion.Policies);
+                    RemoveMissingAllocationLineAssociations(allocationLines, specificationVersion.Calculations);
                 }
             }
 
@@ -1471,27 +1220,19 @@ namespace CalculateFunding.Services.Specs
         /// </summary>
         /// <param name="allocationLines">Valid allocation lines</param>
         /// <param name="policies">Policies</param>
-        private static void RemoveMissingAllocationLineAssociations(Dictionary<string, bool> allocationLines, IEnumerable<Policy> policies)
+        private static void RemoveMissingAllocationLineAssociations(Dictionary<string, bool> allocationLines, IEnumerable<Calculation> calculations)
         {
-            if (policies == null || allocationLines.IsNullOrEmpty())
+            if (calculations.IsNullOrEmpty() || allocationLines.IsNullOrEmpty())
             {
                 return;
             }
 
-            foreach (Policy policy in policies)
+            foreach (Calculation calculation in calculations)
             {
-                if (!policy.Calculations.IsNullOrEmpty())
+                if (calculation.AllocationLine != null && !allocationLines.ContainsKey(calculation.AllocationLine.Id))
                 {
-                    foreach (Calculation calculation in policy.Calculations)
-                    {
-                        if (calculation.AllocationLine != null && !allocationLines.ContainsKey(calculation.AllocationLine.Id))
-                        {
-                            calculation.AllocationLine = null;
-                        }
-                    }
+                    calculation.AllocationLine = null;
                 }
-
-                RemoveMissingAllocationLineAssociations(allocationLines, policy.SubPolicies);
             }
         }
 
@@ -1520,14 +1261,6 @@ namespace CalculateFunding.Services.Specs
             SpecificationVersion previousSpecificationVersion = specification.Current;
 
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
-
-            Policy policy = specificationVersion.GetPolicy(createModel.PolicyId);
-
-            if (policy == null)
-            {
-                _logger.Warning($"Policy not found for policy id '{createModel.PolicyId}'");
-                return new PreconditionFailedResult($"Policy not found for policy id '{createModel.PolicyId}'");
-            }
 
             Calculation calculation = _mapper.Map<Calculation>(createModel);
             calculation.LastUpdated = DateTimeOffset.Now;
@@ -1563,9 +1296,9 @@ namespace CalculateFunding.Services.Specs
                 }
             }
 
-            policy.Calculations = (policy.Calculations == null
+            specificationVersion.Calculations = (specificationVersion.Calculations == null
                 ? new[] { calculation }
-                : policy.Calculations.Concat(new[] { calculation }));
+                : specificationVersion.Calculations.Concat(new[] { calculation }));
 
             HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
             if (statusCode != HttpStatusCode.OK)
@@ -1586,10 +1319,6 @@ namespace CalculateFunding.Services.Specs
                     CalculationSpecification = new Reference(calculation.Id, calculation.Name),
                     AllocationLine = calculation.AllocationLine,
                     CalculationType = (Models.Calcs.CalculationType)calculation.CalculationType,
-                    Policies = new List<Reference>
-                    {
-                        new Reference( policy.Id, policy.Name )
-                    },
                     SpecificationId = specification.Id,
                     FundingPeriod = specificationVersion.FundingPeriod,
                     FundingStream = currentFundingStream,
@@ -1651,7 +1380,7 @@ namespace CalculateFunding.Services.Specs
 
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
 
-            Calculation calculation = specificationVersion.GetCalculations().FirstOrDefault(m => m.Id == calculationId);
+            Calculation calculation = specificationVersion.Calculations?.FirstOrDefault(m => m.Id == calculationId);
 
             if (calculation == null)
             {
@@ -1704,33 +1433,6 @@ namespace CalculateFunding.Services.Specs
                 if (currentFundingStream == null)
                 {
                     return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {editModel.AllocationLineId}");
-                }
-            }
-
-            Policy parentPolicy = specificationVersion.GetCalculationParentPolicy(calculationId);
-
-            if (parentPolicy != null)
-            {
-                if (editModel.PolicyId != parentPolicy.Id)
-                {
-                    parentPolicy.Calculations = parentPolicy.Calculations.Where(m => m.Id != calculationId);
-
-                    Policy newParentPolicy = specificationVersion.GetPolicy(editModel.PolicyId);
-
-                    if (newParentPolicy == null)
-                    {
-                        _logger.Warning($"Policy not found for policy id '{editModel.PolicyId}'");
-                        return new PreconditionFailedResult($"Policy not found for policy id '{editModel.PolicyId}'");
-                    }
-                    else
-                    {
-                        if (newParentPolicy.Calculations == null)
-                        {
-                            newParentPolicy.Calculations = new List<Calculation>();
-                        }
-
-                        newParentPolicy.Calculations = newParentPolicy.Calculations.Concat(new[] { calculation });
-                    }
                 }
             }
 
@@ -2027,7 +1729,7 @@ WHERE   s.documentType = @DocumentType",
                 UpdateCacheWithCalculationStarted(specificationId);
                 await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 string error = $"Failed to queue publishing of provider results for specification id: {specificationId}";
                 UpdateCacheWithCalculationError(specificationId, error);
@@ -2158,7 +1860,7 @@ WHERE   s.documentType = @DocumentType",
                 Id = specification.Content.Id,
                 LastUpdatedDate = specification.UpdatedAt,
                 Name = specification.Content.Name,
-                Policies = specification.Content.Current.Policies,
+                Calculations = specification.Content.Current.Calculations,
                 ProviderVersionId = specification.Content.Current.ProviderVersionId,
                 FundingStreams = fundingStreams,
                 PublishStatus = specification.Content.Current.PublishStatus,

@@ -16,8 +16,8 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("description")]
         public string Description { get; set; }
 
-        [JsonProperty("policies")]
-        public IEnumerable<Policy> Policies { get; set; } = Enumerable.Empty<Policy>();
+        [JsonProperty("calculations")]
+        public IEnumerable<Calculation> Calculations { get; set; } = Enumerable.Empty<Calculation>();
 
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }

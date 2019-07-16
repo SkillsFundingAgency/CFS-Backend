@@ -5327,15 +5327,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                             Name = "PE & Sport"
                         }
                     },
-                    Policies = new List<Policy>
+                    Calculations = new List<Calculation>
                     {
-                        new Policy
-                        {
-                            Calculations = new List<Calculation>
-                            {
-                                new Calculation { CalculationType = CalculationType.Funding, Id = "calcspec1" }
-                            }
-                        }
+                        new Calculation { CalculationType = CalculationType.Funding, Id = "calcspec1" }
                     }
                 });
 

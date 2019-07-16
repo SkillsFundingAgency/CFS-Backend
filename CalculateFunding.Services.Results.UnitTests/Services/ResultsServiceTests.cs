@@ -1100,41 +1100,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             return new SpecificationCurrentVersion
             {
                 Id = specificationId,
-                Policies = new[]
+                Calculations = new[]
                 {
-                    new Policy
+                    new Models.Specs.Calculation
                     {
-                        Id = "policy-1",
-                        Name = "policy one",
-                        Description = "test decscription",
-                        Calculations = new[]
-                        {
-                            new Models.Specs.Calculation
-                            {
-                                Id = "calc-1"
-                            },
-                             new Models.Specs.Calculation
-                            {
-                                Id = "calc-2"
-                            }
-                        },
-                        SubPolicies = new[]
-                        {
-                            new Policy
-                            {
-                                Id = "subpolicy-1",
-                                Name = "sub policy one",
-                                Description = "test decscription",
-                                Calculations = new[]
-                                {
-                                    new Models.Specs.Calculation
-                                    {
-                                        Id = "calc-3"
-                                    }
-
-                                }
-                            }
-                        }
+                        Id = "calc-1"
+                    },
+                        new Models.Specs.Calculation
+                    {
+                        Id = "calc-2"
+                    },
+                        new Models.Specs.Calculation
+                    {
+                        Id = "calc-3"
                     }
                 }
             };

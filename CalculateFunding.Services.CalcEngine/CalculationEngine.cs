@@ -120,8 +120,6 @@ namespace CalculateFunding.Services.CalcEngine
                             result.AllocationLine = calculationResult.AllocationLine;
                         }
 
-                        result.PolicySpecifications = calculationResult.PolicySpecifications;
-
                         // The default for the calculation is to return Decimal.MinValue - if this is the case, then subsitute a 0 value as the result, instead of the negative number.
                         if (calculationResult.Value != decimal.MinValue)
                         {

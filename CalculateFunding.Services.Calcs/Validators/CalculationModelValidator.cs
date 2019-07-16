@@ -28,10 +28,6 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .Must(m => m != null && !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Name))
                 .WithMessage("Invalid period provided");
 
-            RuleFor(calc => calc.Policies)
-            .NotEmpty()
-            .WithMessage("No policies were provided");
-
             RuleFor(calc => calc.FundingStream)
                .Must(m => m == null || ( m != null && !string.IsNullOrWhiteSpace(m.Id) && !string.IsNullOrWhiteSpace(m.Name)))
                .WithMessage("Invalid funding stream provided");

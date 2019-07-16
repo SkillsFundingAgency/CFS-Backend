@@ -30,7 +30,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         private static IEnumerable<object[]> ValidateTestCases()
         {
             yield return new object[] { CreateModel(_allocationLineId: string.Empty), true, new string[0] };
-            yield return new object[] { CreateModel(_policyId: string.Empty), false, new[] { "You must select a policy or a sub policy" } };
             yield return new object[] { CreateModel(_specificationId: string.Empty), false, new[] { "Null or empty specification Id provided" } };
             yield return new object[] { CreateModel(_description: string.Empty), false, new[] { "You must give a description for the calculation" } };
             yield return new object[] { CreateModel(_name: string.Empty), false, new[] { "You must give a unique calculation name" } };
@@ -131,30 +130,22 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             {
                 Current = new SpecificationVersion()
                 {
-                    Policies = new List<Policy>()
+                    Calculations = new List<Calculation>()
                     {
-                        new Policy()
+                        new Calculation()
                         {
-                            Id = "pol1",
-                            Name = "Policy 1",
-                            Calculations = new List<Calculation>()
-                            {
-                                new Calculation()
-                                {
-                                    Id = "fundingCalc1",
-                                    Name = "Funding Calculation",
-                                    AllocationLine = new Reference(allocationLineid, "Allocation Name"),
-                                    CalculationType = CalculationType.Funding,
-                                },
-                                new Calculation()
-                                {
-                                    Id = "fundingCalc1",
-                                    Name = "Funding Calculation",
-                                    AllocationLine = new Reference("existingBaselineAllocationLineId", "Baseline"),
-                                    CalculationType = CalculationType.Baseline,
-                                },
-                            }
-                        }
+                            Id = "fundingCalc1",
+                            Name = "Funding Calculation",
+                            AllocationLine = new Reference(allocationLineid, "Allocation Name"),
+                            CalculationType = CalculationType.Funding,
+                        },
+                        new Calculation()
+                        {
+                            Id = "fundingCalc1",
+                            Name = "Funding Calculation",
+                            AllocationLine = new Reference("existingBaselineAllocationLineId", "Baseline"),
+                            CalculationType = CalculationType.Baseline,
+                        },
                     }
                 }
             };
@@ -218,30 +209,22 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
                 {
                     Current = new SpecificationVersion()
                     {
-                        Policies = new List<Policy>()
+                        Calculations = new List<Calculation>()
                         {
-                            new Policy()
+                            new Calculation()
                             {
-                                Id = "pol1",
-                                Name = "Policy 1",
-                                Calculations = new List<Calculation>()
-                                {
-                                    new Calculation()
-                                    {
-                                        Id = "fundingCalc1",
-                                        Name = "Funding Calculation",
-                                        AllocationLine = new Reference(allocationLineid, "Allocation Name"),
-                                        CalculationType = CalculationType.Funding,
-                                    },
-                                    new Calculation()
-                                    {
-                                        Id = "baselineCalculation1",
-                                        Name = "Baseline Calculation 1",
-                                        AllocationLine = new Reference("al1", "Baseline"),
-                                        CalculationType = CalculationType.Baseline,
-                                    },
-                                }
-                            }
+                                Id = "fundingCalc1",
+                                Name = "Funding Calculation",
+                                AllocationLine = new Reference(allocationLineid, "Allocation Name"),
+                                CalculationType = CalculationType.Funding,
+                            },
+                            new Calculation()
+                            {
+                                Id = "baselineCalculation1",
+                                Name = "Baseline Calculation 1",
+                                AllocationLine = new Reference("al1", "Baseline"),
+                                CalculationType = CalculationType.Baseline,
+                            },
                         }
                     }
                 },
@@ -378,7 +361,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
         static CalculationCreateModel CreateModel(string _specificationId = null,
             string _allocationLineId = null,
-            string _policyId = null,
             string _description = null,
             string _name = null,
             CalculationType _calculationType = CalculationType.Funding)
@@ -387,7 +369,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             {
                 SpecificationId = _specificationId ?? specificationId,
                 AllocationLineId = _allocationLineId ?? allocationLineid,
-                PolicyId = _policyId ?? policyId,
                 Description = _description ?? description,
                 Name = _name ?? name,
                 CalculationType = _calculationType,

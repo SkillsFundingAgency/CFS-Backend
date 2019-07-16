@@ -176,14 +176,6 @@ namespace CalculateFunding.Services.Calcs.Services
                     Id = "test-alloc-id",
                     Name = "test-alloc-name"
                 },
-                Policies = new List<Reference>
-                {
-                    new Reference
-                    {
-                        Id = "policy-id",
-                        Name = "policy-name"
-                    }
-                },
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",

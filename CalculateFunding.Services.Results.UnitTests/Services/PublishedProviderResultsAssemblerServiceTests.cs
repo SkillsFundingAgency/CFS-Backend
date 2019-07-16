@@ -250,40 +250,33 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         }
                     },
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-4",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-5",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-6",
-                           },
-                       },
-                   },
-                },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-4",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-5",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-6",
+                    },
+                }
             };
 
             PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -448,39 +441,32 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         }
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-4",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-5",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-6",
-                           },
-                       }
-                   },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-4",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-5",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-6",
+                    },
                 }
             };
 
@@ -632,40 +618,33 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         }
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-4",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-5",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-6",
-                           },
-                       },
-                   },
-                },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-4",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-5",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-6",
+                    },
+                }
             };
 
             PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -815,40 +794,33 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         }
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-4",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-5",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-6",
-                           },
-                       },
-                   },
-                },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-4",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-5",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-6",
+                    },
+                }
             };
 
             PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -1043,39 +1015,32 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         }
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-4",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-5",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-6",
-                           },
-                       }
-                   }
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-4",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-5",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-6",
+                    }
                 }
             };
 
@@ -1180,31 +1145,24 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Name = "fs one"
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                               CalculationType = CalculationType.Funding
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                               CalculationType = CalculationType.Number
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                               CalculationType = CalculationType.Funding
-                           }
-                       },
-                   },
-                },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                        CalculationType = CalculationType.Funding
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                        CalculationType = CalculationType.Number
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                        CalculationType = CalculationType.Funding
+                    }
+                }
             };
 
             PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -1307,32 +1265,25 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Name = "fs one"
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                               CalculationType = CalculationType.Funding
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                               CalculationType = CalculationType.Number,
-                               IsPublic = true
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                               CalculationType = CalculationType.Funding
-                           }
-                       },
-                   },
-                },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                        CalculationType = CalculationType.Funding
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                        CalculationType = CalculationType.Number,
+                        IsPublic = true
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                        CalculationType = CalculationType.Funding
+                    }
+                }
             };
 
             PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -1482,33 +1433,26 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Name = "fs one"
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                               CalculationType = CalculationType.Funding
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                               CalculationType = CalculationType.Number,
-                               AllocationLine = new Reference("AAAAA", "test allocation line 1"),
-                               IsPublic = true
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                               CalculationType = CalculationType.Funding
-                           }
-                       },
-                   },
-                },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                        CalculationType = CalculationType.Funding
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                        CalculationType = CalculationType.Number,
+                        AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+                        IsPublic = true
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                        CalculationType = CalculationType.Funding
+                    }
+                }
             };
 
             PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -1665,38 +1609,31 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Name = "fs one"
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                               CalculationType = CalculationType.Funding
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                               CalculationType = CalculationType.Number,
-                               AllocationLine = new Reference("AAAAA", "test allocation line 1"),
-                               IsPublic = true
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                               CalculationType = CalculationType.Funding
-                           },
-                            new Calculation()
-                           {
-                               Id = "calc-spec-id-4",
-                               CalculationType = CalculationType.Baseline
-                           }
-                       },
-                   },
-                },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                        CalculationType = CalculationType.Funding
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                        CalculationType = CalculationType.Number,
+                        AllocationLine = new Reference("AAAAA", "test allocation line 1"),
+                        IsPublic = true
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                        CalculationType = CalculationType.Funding
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-4",
+                        CalculationType = CalculationType.Baseline
+                    }
+                }
             };
 
             PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -1836,40 +1773,33 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Name = "fs one"
                     }
                 },
-                Policies = new List<Policy>()
+                Calculations = new List<Calculation>()
                 {
-                   new Policy()
-                   {
-                       Id = "policy1",
-                       Calculations = new List<Calculation>()
-                       {
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-1",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-2",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-3",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-4",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-5",
-                           },
-                           new Calculation()
-                           {
-                               Id = "calc-spec-id-6",
-                           },
-                       },
-                   },
-                },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-1",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-2",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-3",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-4",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-5",
+                    },
+                    new Calculation()
+                    {
+                        Id = "calc-spec-id-6",
+                    },
+                }
             };
 
             PolicyModels.Period fundingPeriod = CreateFundingPeriod(new Reference("fp1", "funding period 1"));
@@ -2790,142 +2720,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             };
 
             return results;
-        }
-
-        private static SpecificationCurrentVersion GenerateSpecificationWithPoliciesAndSubpolicies()
-        {
-            SpecificationCurrentVersion specification = new SpecificationCurrentVersion();
-
-            List<Policy> policies = new List<Policy>
-            {
-                new Policy()
-                {
-                    Id = "p1",
-                    Name = "Policy 1",
-                    Calculations = new List<Calculation>(),
-                    SubPolicies = new List<Policy>(),
-                },
-
-                new Policy()
-                {
-                    Id = "p2",
-                    Name = "Policy 2",
-                    Calculations = new List<Calculation>()
-                {
-                     new Calculation()
-                     {
-                         Id = "calc1",
-                         Name = "Calculation 1 - Policy 2",
-                         CalculationType = CalculationType.Funding,
-                         AllocationLine = new Reference("al1", "Allocation Line 1"),
-                     },
-                     new Calculation()
-                     {
-                         Id = "calc2",
-                         Name = "Calculation 2 - Policy 2",
-                         CalculationType = CalculationType.Funding,
-                         AllocationLine = new Reference("al2", "Allocation Line 2"),
-                     },
-                     new Calculation()
-                     {
-                         Id = "calc3",
-                         Name = "Calculation 3 - Policy 2",
-                         CalculationType = CalculationType.Number,
-                         IsPublic = true,
-                         AllocationLine = new Reference("al1", "Allocation Line 1"),
-                     },
-                },
-                    SubPolicies = new List<Policy>()
-                {
-                    new Policy()
-                    {
-                        Id = "subpolicy1",
-                        Name = "SubPolicy 1",
-                        Calculations = new List<Calculation>()
-                        {
-                            new Calculation()
-                            {
-                                Id="subpolicy1Calc1",
-                                Name = "Subpolicy 1 Calculation 1",
-                                CalculationType = CalculationType.Funding,
-                            },
-                            new Calculation()
-                            {
-                                Id="subpolicy1Calc2",
-                                Name = "Subpolicy 1 Calculation 2",
-                                CalculationType = CalculationType.Funding,
-                            },
-                            new Calculation()
-                            {
-                                Id="subpolicy1Calc3",
-                                Name = "Subpolicy 1 Calculation 3",
-                                CalculationType = CalculationType.Number,
-                                IsPublic = false,
-                            },
-                            new Calculation()
-                            {
-                                Id="subpolicy1Calc4",
-                                Name = "Subpolicy 1 Calculation 4",
-                                CalculationType = CalculationType.Number,
-                                IsPublic = true,
-                            }
-                        }
-                    },
-                    new Policy()
-                    {
-                        Id = "subpolicy2",
-                        Name = "SubPolicy 2",
-                        Calculations = new List<Calculation>()
-                        {
-                            new Calculation()
-                            {
-                                Id="subpolicy2Calc1",
-                                Name = "Subpolicy 2 Calculation 1",
-                                CalculationType = CalculationType.Funding,
-                            },
-                            new Calculation()
-                            {
-                                Id="subpolicy2Calc2",
-                                Name = "Subpolicy 2 Calculation 2",
-                                CalculationType = CalculationType.Funding,
-                            },
-                            new Calculation()
-                            {
-                                Id="subpolicy2Calc3",
-                                Name = "Subpolicy 2 Calculation 3",
-                                CalculationType = CalculationType.Number,
-                                IsPublic = false,
-                            },
-                            new Calculation()
-                            {
-                                Id="subpolicy2Calc4",
-                                Name = "Subpolicy 2 Calculation 4",
-                                CalculationType = CalculationType.Number,
-                                IsPublic = true,
-                            }
-                        }
-                    },
-                    new Policy()
-                    {
-                        Id = "subpolicy3",
-                        Name = "SubPolicy 3",
-                        Calculations = new List<Calculation>()
-                        {
-                            new Calculation()
-                            {
-                                Id="subpolicy3Calc1",
-                                Name = "Subpolicy 3 Calculation 1",
-                                CalculationType = CalculationType.Number,
-                                IsPublic = true,
-                            }
-                        }
-                    }
-                },
-                }
-            };
-
-            specification.Policies = policies;
-            return specification;
         }
 
         private static IEnumerable<ProviderResult> CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines(List<CalculationResult> calculationResults = null)

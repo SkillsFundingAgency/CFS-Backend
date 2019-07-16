@@ -2216,9 +2216,7 @@ namespace CalculateFunding.Services.Results
                     NavVendorNo = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.NavVendorNo,
                     DfeEstablishmentNumber = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.DfeEstablishmentNumber,
                     ProviderStatus = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Provider.Status,
-                    PolicySummaries = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations != null
-                        ? JsonConvert.SerializeObject(CreatePolicySummaries(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations, specification))
-                        : string.Empty,
+                    PolicySummaries = string.Empty,
                     Calculations = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations != null
                         ? JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations.Select(m =>
                            new PublishedProviderCalculationResultSummary
@@ -2228,9 +2226,7 @@ namespace CalculateFunding.Services.Results
                                CalculationVersion = m.CalculationVersion,
                                CalculationType = m.CalculationType.ToString(),
                                CalculationAmount = m.Value,
-                               AllocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id,
-                               PolicyId = m.Policy.Id,
-                               PolicyName = m.Policy.Name
+                               AllocationLineId = publishedProviderResult.FundingStreamResult.AllocationLineResult.AllocationLine.Id
                            }))
                         : string.Empty,
                     FinancialEnvelopes = publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes != null
@@ -2262,36 +2258,6 @@ namespace CalculateFunding.Services.Results
             }
 
             return notifications;
-        }
-
-        private IEnumerable<PublishedProviderResultsPolicySummary> CreatePolicySummaries(IEnumerable<PublishedProviderCalculationResult> calculationResults, SpecificationCurrentVersion specification)
-        {
-            IList<PublishedProviderResultsPolicySummary> policySummaries = new List<PublishedProviderResultsPolicySummary>();
-
-            foreach (Models.Specs.Policy policy in specification.Policies)
-            {
-                PublishedProviderResultsPolicySummary publishedProviderResultsPolicySummary = new PublishedProviderResultsPolicySummary
-                {
-                    Policy = new PolicySummary(policy.Id, policy.Name, policy.Description),
-                    Calculations = AddCalculationSummaries(policy, calculationResults).ToArraySafe(),
-                };
-
-                foreach (Models.Specs.Policy subPolicy in policy.SubPolicies)
-                {
-                    PublishedProviderResultsPolicySummary publishedProviderResultsSubPolicySummary = new PublishedProviderResultsPolicySummary
-                    {
-                        Policy = new PolicySummary(subPolicy.Id, subPolicy.Name, subPolicy.Description),
-                        Calculations = AddCalculationSummaries(subPolicy, calculationResults).ToArraySafe(),
-                    };
-
-                    publishedProviderResultsPolicySummary.Policies = publishedProviderResultsPolicySummary.Policies.Concat(new[] { publishedProviderResultsSubPolicySummary }).ToArraySafe();
-                }
-
-                policySummaries.Add(publishedProviderResultsPolicySummary);
-
-            }
-
-            return policySummaries;
         }
 
         private IEnumerable<PublishedProviderResultsCalculationSummary> AddCalculationSummaries(Policy policy, IEnumerable<PublishedProviderCalculationResult> calculationResults)
