@@ -124,7 +124,7 @@
   "parameters": {
     "configuration": {
       "parsingMode": "jsonArray",
-      "documentRoot": "/Providers"
+      "documentRoot": "/providers"
     }
   }
 }
