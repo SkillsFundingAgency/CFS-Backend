@@ -2,6 +2,8 @@
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -36,9 +38,16 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<OnRefreshFunding>();
             builder.AddSingleton<OnApproveFunding>();
             builder.AddSingleton<OnPublishFunding>();
+            builder.AddSingleton<OnRefreshFundingFailure>();
+            builder.AddSingleton<OnApproveFundingFailure>();
+            builder.AddSingleton<OnPublishFundingFailure>();
+
             builder.AddSingleton<IRefreshService, RefreshService>();
             builder.AddSingleton<IApproveService, ApproveService>();
             builder.AddSingleton<IPublishService, PublishService>();
+
+            builder.AddSingleton<IJobHelperService, JobHelperService>();
+
             builder.AddApplicationInsights(config, "CalculateFunding.Functions.Publishing");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Publishing");
 

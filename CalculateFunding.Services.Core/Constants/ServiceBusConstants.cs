@@ -38,9 +38,21 @@
 
             public const string PublishingApproveFunding = "publishing-approvefunding";
 
+            public const string PublishingApproveFundingPoisoned = "publishing-approvefunding-poison/$DeadLetterQueue";
+
+            public const string PublishingApproveFundingPoisonedLocal = "publishing-approvefunding-poison";
+
             public const string PublishingRefreshFunding = "publishing-refreshfunding";
 
+            public const string PublishingRefreshFundingPoisoned = "publishing-refreshfunding-poison/$DeadLetterQueue";
+
+            public const string PublishingRefreshFundingPoisonedLocal = "publishing-refreshfunding-poison";
+
             public const string PublishingPublishFunding = "publishing-publishfunding";
+
+            public const string PublishingPublishFundingPoisoned = "publishing-publishfunding-posion/$DeadLetterQueue";
+
+            public const string PublishingPublishFundingPoisonedLocal = "publishing-publishfunding-posion";
 
             public const string FetchProviderProfile = "fetch-provider-profile";
 
