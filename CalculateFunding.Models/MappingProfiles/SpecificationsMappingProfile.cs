@@ -8,13 +8,6 @@ namespace CalculateFunding.Models.MappingProfiles
     {
         public SpecificationsMappingProfile()
         {
-            CreateMap<PolicyCreateModel, Specs.Policy>()
-                .AfterMap((src, dest) => { dest.Id = Guid.NewGuid().ToString(); })
-                .ForMember(m => m.Id, opt => opt.Ignore())
-                .ForMember(m => m.Calculations, opt => opt.Ignore())
-                .ForMember(m => m.SubPolicies, opt => opt.Ignore())
-                .ForMember(m => m.LastUpdated, opt => opt.Ignore());
-
             CreateMap<CalculationCreateModel, Calculation>()
                 .AfterMap((src, dest) => { dest.Id = Guid.NewGuid().ToString(); })
                 .ForMember(m => m.Id, opt => opt.Ignore())

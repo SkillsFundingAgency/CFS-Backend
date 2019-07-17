@@ -124,7 +124,6 @@ namespace CalculateFunding.Services.Specs
             ISpecificationsRepository specificationsRepository,
             IPoliciesApiClient policiesApiClient,
             ILogger logger,
-            IValidator<PolicyCreateModel> policyCreateModelValidator,
             IValidator<SpecificationCreateModel> specificationCreateModelValidator,
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IMessengerService messengerService,
@@ -132,7 +131,6 @@ namespace CalculateFunding.Services.Specs
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
             ICacheProvider cacheProvider,
             IValidator<SpecificationEditModel> specificationEditModelValidator,
-            IValidator<PolicyEditModel> policyEditModelValidator,
             IValidator<CalculationEditModel> calculationEditModelValidator,
             IResultsRepository resultsRepository,
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
@@ -144,7 +142,6 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(policyCreateModelValidator, nameof(policyCreateModelValidator));
             Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
             Guard.ArgumentNotNull(calculationCreateModelValidator, nameof(calculationCreateModelValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -152,7 +149,6 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(assignDefinitionRelationshipMessageValidator, nameof(assignDefinitionRelationshipMessageValidator));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
-            Guard.ArgumentNotNull(policyEditModelValidator, nameof(policyEditModelValidator));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));

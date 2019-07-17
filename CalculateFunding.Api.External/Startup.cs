@@ -141,8 +141,6 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<V1.Interfaces.IAllocationNotificationFeedsService, V1.Services.AllocationNotificationFeedsService>();
             builder
-               .AddSingleton<V1.Interfaces.IProviderResultsService, V1.Services.ProviderResultsService>();
-            builder
                 .AddSingleton<V1.Interfaces.IAllocationsService, V1.Services.AllocationsService>();
             builder
                 .AddSingleton<V1.Interfaces.ITimePeriodsService, V1.Services.TimePeriodsService>();
@@ -152,8 +150,6 @@ namespace CalculateFunding.Api.External
             // Register v2 services
             builder
                 .AddSingleton<V2.Interfaces.IAllocationNotificationFeedsService, V2.Services.AllocationNotificationFeedsService>();
-            builder
-               .AddSingleton<V2.Interfaces.IProviderResultsService, V2.Services.ProviderResultsService>();
             builder
                 .AddSingleton<V2.Interfaces.IAllocationsService, V2.Services.AllocationsService>();
             builder

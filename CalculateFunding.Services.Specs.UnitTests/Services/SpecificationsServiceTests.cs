@@ -45,7 +45,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ISpecificationsRepository specificationsRepository = null,
             IPoliciesApiClient policiesApiClient = null,
             ILogger logs = null,
-            IValidator<PolicyCreateModel> policyCreateModelValidator = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null,
             IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
             IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null,
@@ -53,7 +52,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null,
             ICacheProvider cacheProvider = null,
             IValidator<SpecificationEditModel> specificationEditModelValidator = null,
-            IValidator<PolicyEditModel> policyEditModelValidator = null,
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             IResultsRepository resultsRepository = null,
             IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
@@ -64,7 +62,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationsRepository ?? CreateSpecificationsRepository(),
                 policiesApiClient ?? CreatePoliciesApiClient(),
                 logs ?? CreateLogger(),
-                policyCreateModelValidator ?? CreatePolicyValidator(),
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(),
                 calculationCreateModelValidator ?? CreateCalculationValidator(),
                 messengerService ?? CreateMessengerService(),
@@ -72,7 +69,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator(),
                 cacheProvider ?? CreateCacheProvider(),
                 specificationEditModelValidator ?? CreateEditSpecificationValidator(),
-                policyEditModelValidator ?? CreateEditPolicyValidator(),
                 calculationEditModelValidator ?? CreateEditCalculationValidator(),
                 resultsRepository ?? CreateResultsRepository(),
                 specificationVersionRepository ?? CreateVersionRepository(),
@@ -155,38 +151,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected ISearchRepository<SpecificationIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<SpecificationIndex>>();
-        }
-
-        protected IValidator<PolicyCreateModel> CreatePolicyValidator(ValidationResult validationResult = null)
-        {
-            if (validationResult == null)
-            {
-                validationResult = new ValidationResult();
-            }
-
-            IValidator<PolicyCreateModel> validator = Substitute.For<IValidator<PolicyCreateModel>>();
-
-            validator
-               .ValidateAsync(Arg.Any<PolicyCreateModel>())
-               .Returns(validationResult);
-
-            return validator;
-        }
-
-        protected IValidator<PolicyEditModel> CreateEditPolicyValidator(ValidationResult validationResult = null)
-        {
-            if (validationResult == null)
-            {
-                validationResult = new ValidationResult();
-            }
-
-            IValidator<PolicyEditModel> validator = Substitute.For<IValidator<PolicyEditModel>>();
-
-            validator
-               .ValidateAsync(Arg.Any<PolicyEditModel>())
-               .Returns(validationResult);
-
-            return validator;
         }
 
         protected IValidator<SpecificationCreateModel> CreateSpecificationValidator(ValidationResult validationResult = null)

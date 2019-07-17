@@ -2,7 +2,6 @@
 using System.Text;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Specs;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Results.Migration
@@ -27,17 +26,11 @@ namespace CalculateFunding.Services.Results.Migration
         [JsonProperty("calculationSpecification")]
         public Reference CalculationSpecification { get; set; }
 
-        [JsonProperty("policy")]
-        public PolicySummary Policy { get; set; }
-
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 
         [JsonProperty("fundingPeriod")]
         public Reference FundingPeriod { get; set; }
-
-        [JsonProperty("parentPolicy")]
-        public PolicySummary ParentPolicy { get; set; }
 
         [JsonProperty("isPublic")]
         public bool IsPublic { get; set; }

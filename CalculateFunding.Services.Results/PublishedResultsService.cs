@@ -2260,42 +2260,6 @@ namespace CalculateFunding.Services.Results
             return notifications;
         }
 
-        private IEnumerable<PublishedProviderResultsCalculationSummary> AddCalculationSummaries(Policy policy, IEnumerable<PublishedProviderCalculationResult> calculationResults)
-        {
-            IEnumerable<PublishedProviderResultsCalculationSummary> calculationSummaries = Enumerable.Empty<PublishedProviderResultsCalculationSummary>();
-
-            if (policy.Calculations.IsNullOrEmpty())
-            {
-                return calculationSummaries;
-            }
-
-            foreach (Calculation calculation in policy.Calculations)
-            {
-                if (calculation.CalculationType == CalculationType.Number && calculation.IsPublic == false)
-                {
-                    continue;
-                }
-
-                PublishedProviderCalculationResult publishedProviderCalculationResult = calculationResults.FirstOrDefault(m => m.CalculationSpecification.Id == calculation.Id);
-
-                if (publishedProviderCalculationResult == null)
-                {
-                    continue;
-                }
-
-                PublishedProviderResultsCalculationSummary calculationSummary = new PublishedProviderResultsCalculationSummary
-                {
-                    Amount = publishedProviderCalculationResult.Value.HasValue ? publishedProviderCalculationResult.Value.Value : 0,
-                    CalculationType = publishedProviderCalculationResult.CalculationType,
-                    Name = publishedProviderCalculationResult.CalculationSpecification.Name,
-                };
-
-                calculationSummaries = calculationSummaries.Concat(new[] { calculationSummary });
-            }
-
-            return calculationSummaries;
-        }
-
         private void UpdateCacheForSegmentDone(string specificationId, int percentageToSetTo, CalculationProgressStatus progressStatus, string message = null, DateTimeOffset? publishedResultsRefreshedAt = null, IEnumerable<PublishedProviderResult> publishedProviderResults = null)
         {
             // Only update the cache if not using the job service - UI will get job notifications instead to monitor progress
