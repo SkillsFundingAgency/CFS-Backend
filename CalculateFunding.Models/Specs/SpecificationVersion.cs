@@ -48,6 +48,9 @@ namespace CalculateFunding.Models.Specs
 		[JsonProperty("variationDate")]
 		public DateTimeOffset? VariationDate { get; set; }
 
+        [JsonProperty("templateId")]
+        public string TemplateId { get; set; }
+
         public override VersionedItem Clone()
         {
             // Serialise to perform a deep copy
