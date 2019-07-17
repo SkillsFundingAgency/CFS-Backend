@@ -1,50 +1,38 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
-using PollyPolicy = Polly.Policy;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 
-namespace CalculateFunding.Services.Publishing
+namespace CalculateFunding.Services.Publishing.Specifications
 {
-    public class SpecificationPublishingService : ISpecificationPublishingService
+    public class SpecificationPublishingService : SpecificationPublishingBase, ISpecificationPublishingService
     {
-        private readonly IPublishSpecificationValidator _validator;
-        private readonly ISpecificationsApiClient _specifications;
-        private readonly ICreateRefreshFundingJobs _refreshFundingJobs;
-        private readonly ICalcsResiliencePolicies _calcsResiliencePolicies;
+        private readonly ICreateRefreshFundingJobs _jobs;
 
         public SpecificationPublishingService(IPublishSpecificationValidator validator,
             ISpecificationsApiClient specifications,
-            ICalcsResiliencePolicies calcsResiliencePolicies,
-            ICreateRefreshFundingJobs refreshFundingJobs)
+            IPublishingResiliencePolicies resiliencePolicies,
+            ICreateRefreshFundingJobs jobs) : base(validator, specifications, resiliencePolicies)
         {
-            Guard.ArgumentNotNull(validator, nameof(validator));
-            Guard.ArgumentNotNull(specifications, nameof(specifications));
-            Guard.ArgumentNotNull(calcsResiliencePolicies, nameof(calcsResiliencePolicies));
-            Guard.ArgumentNotNull(refreshFundingJobs, nameof(refreshFundingJobs));
+            Guard.ArgumentNotNull(jobs, nameof(jobs));
 
-            _validator = validator;
-            _specifications = specifications;
-            _calcsResiliencePolicies = calcsResiliencePolicies;
-            _refreshFundingJobs = refreshFundingJobs;
+            _jobs = jobs;
         }
 
         public async Task<IActionResult> CreatePublishJob(string specificationId,
             Reference user,
             string correlationId)
         {
-            ValidationResult validationResult = _validator.Validate(specificationId);
+            ValidationResult validationResult = Validator.Validate(specificationId);
 
             if (!validationResult.IsValid)
             {
@@ -52,7 +40,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             ApiResponse<ApiSpecificationSummary> specificationIdResponse =
-                await ResiliencePolicy.ExecuteAsync(() => _specifications.GetSpecificationSummaryById(specificationId));
+                await ResiliencePolicy.ExecuteAsync(() => Specifications.GetSpecificationSummaryById(specificationId));
 
             ApiSpecificationSummary specificationSummary = specificationIdResponse.Content;
 
@@ -67,7 +55,7 @@ namespace CalculateFunding.Services.Publishing
                 $"SpecificationSummary {specificationId} has no funding period id");
 
             ApiResponse<IEnumerable<ApiSpecificationSummary>> fundingPeriodIdResponse =
-                await ResiliencePolicy.ExecuteAsync(() => _specifications.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodId));
+                await ResiliencePolicy.ExecuteAsync(() => Specifications.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodId));
 
             IEnumerable<ApiSpecificationSummary> specificationsInFundingPeriod = fundingPeriodIdResponse.Content;
 
@@ -77,7 +65,7 @@ namespace CalculateFunding.Services.Publishing
                 return new ConflictResult();
             }
 
-            ApiJob refreshFundingJob = await _refreshFundingJobs.CreateJob(specificationId, user, correlationId);
+            ApiJob refreshFundingJob = await _jobs.CreateJob(specificationId, user, correlationId);
 
             Guard.ArgumentNotNull(refreshFundingJob, nameof(refreshFundingJob), "Failed to create RefreshFundingJob");
 
@@ -90,7 +78,5 @@ namespace CalculateFunding.Services.Publishing
         {
             return specificationsInFundingPeriod.Any(_ => fundingStreams.Intersect(_.FundingStreams.Select(fs => fs.Id)).Any());
         }
-
-        private PollyPolicy ResiliencePolicy => _calcsResiliencePolicies.SpecificationsRepositoryPolicy;
     }
 }

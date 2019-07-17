@@ -4,8 +4,8 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -13,29 +13,26 @@ using NSubstitute.ExceptionExtensions;
 using Serilog;
 using Policy = Polly.Policy;
 
-namespace CalculateFunding.Services.Publishing.UnitTests
+namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
-    [TestClass]
-    public class RefreshFundingJobCreationTests : SpecificationPublishingServiceTestsBase
+    public abstract class JobCreationForSpecificationTestBase
     {
-        private IJobsApiClient _jobs;
-        private ICalcsResiliencePolicies _resiliencePolicies;
-        private ILogger _logger;
+        protected IJobsApiClient Jobs;
+        protected IPublishingResiliencePolicies ResiliencePolicies;
+        protected ILogger Logger;
+        protected ICreateJobsForSpecifications JobCreation;
 
-        private RefreshFundingJobCreation _jobCreation;
+        protected string JobDefinitionId;
+        protected string TriggerMessage;
 
         [TestInitialize]
-        public void SetUp()
+        public void JobCreationForSpecificationTestBaseSetUp()
         {
-            _jobs = Substitute.For<IJobsApiClient>();
-            _resiliencePolicies = Substitute.For<ICalcsResiliencePolicies>();
-            _logger = Substitute.For<ILogger>();
+            Jobs = Substitute.For<IJobsApiClient>();
+            ResiliencePolicies = Substitute.For<IPublishingResiliencePolicies>();
+            Logger = Substitute.For<ILogger>();
 
-            _resiliencePolicies.JobsApiClient.Returns(Policy.NoOpAsync());
-
-            _jobCreation = new RefreshFundingJobCreation(_jobs,
-                _resiliencePolicies,
-                _logger);
+            ResiliencePolicies.JobsApiClient.Returns(Policy.NoOpAsync());
         }
 
         [TestMethod]
@@ -48,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             GivenTheJobCreatedForDetails(specificationId, correlationId, user, expectedJob);
 
-            Job actualJob = await WhenTheRefreshFundingJobIsCreated(specificationId, user, correlationId);
+            Job actualJob = await WhenTheSpecificationsJobIsCreated(specificationId, user, correlationId);
 
             actualJob
                 .Should()
@@ -62,7 +59,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             string specificationId = NewRandomString();
             Func<Task<Job>> invocation
-                = () => WhenTheRefreshFundingJobIsCreated(specificationId,
+                = () => WhenTheSpecificationsJobIsCreated(specificationId,
                     NewUser(),
                     NewRandomString());
 
@@ -73,16 +70,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     _.Message == $"Failed to queue publishing of specification with id: {specificationId}");
         }
 
-        private async Task<Job> WhenTheRefreshFundingJobIsCreated(string specificationId,
+        private async Task<Job> WhenTheSpecificationsJobIsCreated(string specificationId,
             Reference user,
             string correlationId)
         {
-            return await _jobCreation.CreateJob(specificationId, user, correlationId);
+            return await JobCreation.CreateJob(specificationId, user, correlationId);
         }
 
         private void GivenTheCreateJobThrowsException(Exception exception)
         {
-            _jobs.CreateJob(Arg.Any<JobCreateModel>())
+            Jobs.CreateJob(Arg.Any<JobCreateModel>())
                 .Throws(exception);
         }
 
@@ -91,10 +88,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             Reference user,
             Job job)
         {
-            _jobs.CreateJob(Arg.Is<JobCreateModel>(_ =>
+            Jobs.CreateJob(Arg.Is<JobCreateModel>(_ =>
                     _.CorrelationId == correlationId &&
                     _.SpecificationId == specificationId &&
-                    _.JobDefinitionId == JobConstants.DefinitionNames.RefreshFundingJob &&
+                    _.JobDefinitionId == JobDefinitionId &&
                     _.InvokerUserId == user.Id &&
                     _.InvokerUserDisplayName == user.Name &&
                     _.Properties != null &&
@@ -103,8 +100,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     _.Trigger != null &&
                     _.Trigger.EntityId == specificationId &&
                     _.Trigger.EntityType == nameof(Specification) &&
-                    _.Trigger.Message == "Requesting publication of specification"))
+                    _.Trigger.Message == TriggerMessage))
                 .Returns(job);
+        }
+
+        protected string NewRandomString()
+        {
+            return new RandomString();
+        }
+
+        protected Reference NewUser(Action<UserBuilder> setUp = null)
+        {
+            UserBuilder userBuilder = new UserBuilder();
+
+            setUp?.Invoke(userBuilder);
+
+            return userBuilder.Build();
+        }
+
+        protected Job NewJob(Action<JobBuilder> setUp = null)
+        {
+            JobBuilder jobBuilder = new JobBuilder();
+
+            setUp?.Invoke(jobBuilder);
+
+            return jobBuilder.Build();
         }
     }
 }

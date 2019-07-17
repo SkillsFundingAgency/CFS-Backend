@@ -10,7 +10,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private string _id;
         private string _fundingPeriodId;
+        private bool? _isSelectedForFunding;
         private IEnumerable<string> _fundingStreamIds = Enumerable.Empty<string>();
+
+        public SpecificationSummaryBuilder WithIsSelectedForFunding(bool isSelectedForFunding)
+        {
+            _isSelectedForFunding = isSelectedForFunding;
+
+            return this;
+        }
 
         public SpecificationSummaryBuilder WithId(string id)
         {
@@ -40,6 +48,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 Id = _id ?? NewRandomString(),
                 FundingPeriod = new Reference(_fundingPeriodId ?? NewRandomString(), NewRandomString()),
+                IsSelectedForFunding = _isSelectedForFunding.GetValueOrDefault(NewRandomFlag()),
                 FundingStreams = _fundingStreamIds.Select(_ => new FundingStream
                 {
                     Id = _

@@ -1,6 +1,6 @@
-﻿using CalculateFunding.Services.Publishing.Interfaces;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
 {

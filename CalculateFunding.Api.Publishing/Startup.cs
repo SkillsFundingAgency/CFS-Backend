@@ -1,14 +1,11 @@
-﻿using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.WebApi.Extensions;
+﻿using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Calcs;
-using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calcs.IoC;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -72,7 +69,18 @@ namespace CalculateFunding.Api.Publishing
             builder.AddPublishingServices();
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
-            builder.AddCalcsResiliencePolicies();
+            builder.AddSingleton<IPublishingResiliencePolicies>(ctx =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new ResiliencePolicies
+                {
+                    SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+            });
         }
     }
 }

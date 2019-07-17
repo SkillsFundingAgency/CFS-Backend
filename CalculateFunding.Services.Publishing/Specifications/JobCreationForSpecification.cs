@@ -6,31 +6,40 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
 using Policy = Polly.Policy;
 
-namespace CalculateFunding.Services.Publishing
+namespace CalculateFunding.Services.Publishing.Specifications
 {
-    public class RefreshFundingJobCreation : ICreateRefreshFundingJobs
+    public abstract class JobCreationForSpecification
     {
         private readonly IJobsApiClient _jobs;
-        private readonly ICalcsResiliencePolicies _resiliencePolicies;
+        private readonly IPublishingResiliencePolicies _resiliencePolicies;
         private readonly ILogger _logger;
+        private readonly string _triggerMessage;
+        private readonly string _jobDefinitionId;
 
-        public RefreshFundingJobCreation(IJobsApiClient jobs,
-            ICalcsResiliencePolicies resiliencePolicies,
-            ILogger logger)
+        protected JobCreationForSpecification(IJobsApiClient jobs,
+            IPublishingResiliencePolicies resiliencePolicies,
+            ILogger logger,
+            string triggerMessage,
+            string jobDefinitionId)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.IsNullOrWhiteSpace(jobDefinitionId, nameof(jobDefinitionId));
+            Guard.IsNullOrWhiteSpace(triggerMessage, nameof(triggerMessage));
 
             _jobs = jobs;
             _resiliencePolicies = resiliencePolicies;
             _logger = logger;
+            _triggerMessage = triggerMessage;
+            _jobDefinitionId = jobDefinitionId;
         }
+
+        private Policy JobsPolicy => _resiliencePolicies.JobsApiClient;
 
         public async Task<Job> CreateJob(string specificationId,
             Reference user,
@@ -42,7 +51,7 @@ namespace CalculateFunding.Services.Publishing
                 {
                     InvokerUserDisplayName = user.Name,
                     InvokerUserId = user.Id,
-                    JobDefinitionId = JobConstants.DefinitionNames.RefreshFundingJob,
+                    JobDefinitionId = _jobDefinitionId,
                     Properties = new Dictionary<string, string>
                     {
                         {"specification-id", specificationId}
@@ -52,7 +61,7 @@ namespace CalculateFunding.Services.Publishing
                     {
                         EntityId = specificationId,
                         EntityType = nameof(Specification),
-                        Message = "Requesting publication of specification"
+                        Message = _triggerMessage
                     },
                     CorrelationId = correlationId
                 }));
@@ -66,7 +75,5 @@ namespace CalculateFunding.Services.Publishing
                 throw new Exception(error);
             }
         }
-
-        private Policy JobsPolicy => _resiliencePolicies.JobsApiClient;
     }
 }

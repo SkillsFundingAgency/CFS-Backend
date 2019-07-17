@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
-using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Models;
 
-namespace CalculateFunding.Services.Publishing
+namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface ICreateRefreshFundingJobs
+    public interface ICreateJobsForSpecifications
     {
         Task<Job> CreateJob(string specificationId,
             Reference user,

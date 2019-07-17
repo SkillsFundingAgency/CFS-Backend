@@ -1,60 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Publishing.Interfaces;
-using FluentAssertions;
-using FluentValidation.Results;
+using CalculateFunding.Services.Publishing.Specifications;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Polly;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 
-namespace CalculateFunding.Services.Publishing.UnitTests
+namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class SpecificationPublishingServiceTests : SpecificationPublishingServiceTestsBase
+    public class SpecificationPublishingServiceTests : SpecificationPublishingServiceTestsBase<ICreateRefreshFundingJobs>
     {
-        private ISpecificationsApiClient _specifications;
-        private ICreateRefreshFundingJobs _jobs;
         private SpecificationPublishingService _service;
-        private ValidationResult _validationResult;
-        private IActionResult _actionResult;
-
-        private string _specificationId;
-        private string _correlationId;
-        private Reference _user;
 
         [TestInitialize]
         public void SetUp()
         {
-            _validationResult = new ValidationResult();
-            _specificationId = NewRandomString();
-            _correlationId = NewRandomString();
-            _user = NewUser();
+            Jobs = Substitute.For<ICreateRefreshFundingJobs>();
 
-            IPublishSpecificationValidator validator = Substitute.For<IPublishSpecificationValidator>();
-
-            validator.Validate(_specificationId)
-                .Returns(_validationResult);
-
-            _specifications = Substitute.For<ISpecificationsApiClient>();
-            _jobs = Substitute.For<ICreateRefreshFundingJobs>();
-
-            _service = new SpecificationPublishingService(validator,
-                _specifications,
-                new CalculateFunding.Services.Calcs.ResiliencePolicies
-                {
-                    SpecificationsRepositoryPolicy = Policy.NoOpAsync()
-                },
-                _jobs);
+            _service = new SpecificationPublishingService(Validator,
+                Specifications,
+                ResiliencePolicies,
+                Jobs);
         }
 
         [TestMethod]
@@ -117,7 +88,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
             AndTheApiResponseDetailsForTheFundingPeriodId(fundingPeriodId);
-            AndTheApiResponseDetailsForTheRefreshFundingJob(refreshFundingJob);
+            AndTheApiResponseDetailsForSpecificationsJob(refreshFundingJob);
 
             await WhenTheSpecificationIsPublished();
 
@@ -125,64 +96,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                                         ReferenceEquals(_.Value, refreshFundingJob));
         }
 
-        private void ThenTheResponseShouldBe<TActionResult>(Expression<Func<TActionResult, bool>> matcher = null)
-            where TActionResult : IActionResult
-        {
-            _actionResult
-                .Should()
-                .BeOfType<TActionResult>();
-
-            if (matcher == null)
-            {
-                return;
-            }
-
-            ((TActionResult) _actionResult)
-                .Should()
-                .Match(matcher);
-        }
-
         private async Task WhenTheSpecificationIsPublished()
         {
-            _actionResult = await _service.CreatePublishJob(_specificationId, _user, _correlationId);
-        }
-
-        private void GivenTheValidationErrors(params string[] errors)
-        {
-            foreach (string error in errors)
-            {
-                _validationResult.Errors.Add(new ValidationFailure(error, error));
-            }
-        }
-
-        private void GivenTheApiResponseDetailsForTheSuppliedId(ApiSpecificationSummary specificationSummary,
-            HttpStatusCode statusCode = HttpStatusCode.OK)
-        {
-            _specifications.GetSpecificationSummaryById(_specificationId)
-                .Returns(new ApiResponse<ApiSpecificationSummary>(statusCode,
-                    specificationSummary));
+            ActionResult = await _service.CreatePublishJob(SpecificationId, User, CorrelationId);
         }
 
         private void AndTheApiResponseDetailsForTheFundingPeriodId(string fundingPeriodId,
             params ApiSpecificationSummary[] specificationSummaries)
         {
-            _specifications.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodId)
+            Specifications.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodId)
                 .Returns(new ApiResponse<IEnumerable<ApiSpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
-        }
-
-        private void AndTheApiResponseDetailsForTheRefreshFundingJob(ApiJob job)
-        {
-            _jobs.CreateJob(_specificationId, _user, _correlationId)
-                .Returns(job);
-        }
-
-        private ApiSpecificationSummary NewApiSpecificationSummary(Action<SpecificationSummaryBuilder> setUp = null)
-        {
-            SpecificationSummaryBuilder builder = new SpecificationSummaryBuilder();
-
-            setUp?.Invoke(builder);
-
-            return builder.Build();
         }
     }
 }

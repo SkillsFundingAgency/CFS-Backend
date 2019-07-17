@@ -6,5 +6,9 @@ namespace CalculateFunding.Services.Publishing
     public class ResiliencePolicies : IPublishingResiliencePolicies
     {
         public Policy ResultsRepository { get; set; }
+
+        public Policy SpecificationsRepositoryPolicy { get; set; }
+
+        public Policy JobsApiClient { get; set; }
     }
 }

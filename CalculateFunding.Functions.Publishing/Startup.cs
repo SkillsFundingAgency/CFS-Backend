@@ -1,4 +1,5 @@
 ﻿using System;
+using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Services.Core.AspNet;
@@ -15,7 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 
-[assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Publishing.Startup))]
+[assembly: FunctionsStartup(typeof(Startup))]
 
 namespace CalculateFunding.Functions.Publishing
 {
@@ -33,12 +34,14 @@ namespace CalculateFunding.Functions.Publishing
             return RegisterComponents(builder, config);
         }
 
-        public static IServiceProvider RegisterComponents(IServiceCollection builder, IConfigurationRoot config)
+        public static IServiceProvider RegisterComponents(IServiceCollection builder,
+            IConfigurationRoot config)
         {
             return Register(builder, config);
         }
 
-        private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
+        private static IServiceProvider Register(IServiceCollection builder,
+            IConfigurationRoot config)
         {
             builder.AddSingleton<OnRefreshFunding>();
             builder.AddSingleton<OnApproveFunding>();

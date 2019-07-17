@@ -25,6 +25,8 @@
             public const string FetchProviderProfileJob = "FetchProviderProfileJob";
 
             public const string RefreshFundingJob = "RefreshFundingJob";
+
+            public const string PublishProviderFundingJob = "PublishProviderFundingJob";
         }
 
         public static class NotificationChannels
