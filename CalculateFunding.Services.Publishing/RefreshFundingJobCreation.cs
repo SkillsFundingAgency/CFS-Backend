@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.Publishing
                 {
                     InvokerUserDisplayName = user.Name,
                     InvokerUserId = user.Id,
-                    JobDefinitionId = JobConstants.DefinitionNames.CreateRefreshFundingjob,
+                    JobDefinitionId = JobConstants.DefinitionNames.RefreshFundingJob,
                     Properties = new Dictionary<string, string>
                     {
                         {"specification-id", specificationId}

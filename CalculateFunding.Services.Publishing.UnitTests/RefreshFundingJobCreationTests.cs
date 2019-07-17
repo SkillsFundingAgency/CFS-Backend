@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _jobs.CreateJob(Arg.Is<JobCreateModel>(_ =>
                     _.CorrelationId == correlationId &&
                     _.SpecificationId == specificationId &&
-                    _.JobDefinitionId == JobConstants.DefinitionNames.CreateRefreshFundingjob &&
+                    _.JobDefinitionId == JobConstants.DefinitionNames.RefreshFundingJob &&
                     _.InvokerUserId == user.Id &&
                     _.InvokerUserDisplayName == user.Name &&
                     _.Properties != null &&
