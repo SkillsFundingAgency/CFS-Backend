@@ -1,14 +1,19 @@
 ﻿using System;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Repositories;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly.Bulkhead;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Publishing.Startup))]
 
@@ -46,6 +51,22 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IApproveService, ApproveService>();
             builder.AddSingleton<IPublishService, PublishService>();
 
+            builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "calculationresults";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new CalculationResultsRepository(calcsCosmosRepostory);
+            });
+
+            builder.AddSingleton<IPublishedResultService, PublishedResultService>();
+
+
             builder.AddSingleton<IJobHelperService, JobHelperService>();
 
             builder.AddApplicationInsights(config, "CalculateFunding.Functions.Publishing");
@@ -55,7 +76,24 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddTelemetry();
 
+            PolicySettings policySettings = builder.GetPolicySettings(config);
+            ResiliencePolicies publishingResiliencePolicies = CreateResiliencePolicies(policySettings);
+
+            builder.AddSingleton<IPublishingResiliencePolicies>(publishingResiliencePolicies);
+
             return builder.BuildServiceProvider();
+        }
+
+        private static ResiliencePolicies CreateResiliencePolicies(PolicySettings policySettings)
+        {
+            BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+            ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
+            {
+                ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+            };
+
+            return resiliencePolicies;
         }
     }
 }

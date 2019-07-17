@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _service = new SpecificationPublishingService(validator,
                 _specifications,
-                new ResiliencePolicies
+                new CalculateFunding.Services.Calcs.ResiliencePolicies
                 {
                     SpecificationsRepositoryPolicy = Policy.NoOpAsync()
                 },

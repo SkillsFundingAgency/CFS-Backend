@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Functions.Publishing.UnitTests
 {
@@ -23,8 +24,21 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
                 scope.ServiceProvider.GetService<IPublishService>().Should().NotBeNull(nameof(IPublishService));
                 scope.ServiceProvider.GetService<IApproveService>().Should().NotBeNull(nameof(IApproveService));
                 scope.ServiceProvider.GetService<IRefreshService>().Should().NotBeNull(nameof(IRefreshService));
-                
+                scope.ServiceProvider.GetService<IPublishedResultService>().Should().NotBeNull(nameof(IPublishedResultService));
+                scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));
             }
+        }
+
+        protected override Dictionary<string, string> AddToConfiguration()
+        {
+            Dictionary<string, string> configData = new Dictionary<string, string>
+            {
+                { "CosmosDbSettings:DatabaseName", "calculate-funding" },
+                { "CosmosDbSettings:CollectionName", "calcs" },
+                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
+            };
+
+            return configData;
         }
     }
 }
