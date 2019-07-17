@@ -5,6 +5,7 @@ using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.FundingPolicy;
@@ -23,6 +24,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Swashbuckle.AspNetCore.Swagger;
+using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 namespace CalculateFunding.Api.Policy
 {
@@ -169,6 +171,17 @@ namespace CalculateFunding.Api.Policy
                     FundingSchemaRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     FundingTemplateRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
+            });
+
+            builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
+            {
+                TemplateMetadataResolver resolver = ctx.GetService<TemplateMetadataResolver>();
+
+                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = ctx.GetService<TemplateMetadataSchema10.TemplateMetadataGenerator>();
+
+                resolver.Register("1.0", schema10Generator);
+
+                return resolver;
             });
 
             builder.AddSingleton<IValidator<FundingConfiguration>, SaveFundingConfigurationValidator>();

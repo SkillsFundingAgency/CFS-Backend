@@ -17,7 +17,7 @@
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="1.0.25" />
     <PackageReference Include="CalculateFunding.Common.WebApi" Version="1.0.2" />
     <PackageReference Include="Collector.Serilog.Enrichers.Correlation" Version="2.0.2" />
-    <PackageReference Include="FluentValidation" Version="7.6.104" />
+    <PackageReference Include="FluentValidation" Version="8.4.0" />
     <PackageReference Include="Microsoft.ApplicationInsights" Version="2.9.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.ServiceBus" Version="3.4.0" />

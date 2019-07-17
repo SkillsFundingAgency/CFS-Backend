@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -12,6 +13,7 @@ using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 namespace CalculateFunding.Functions.Policy
 {
@@ -68,6 +70,17 @@ namespace CalculateFunding.Functions.Policy
                     PolicyRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProvider = redisPolicy
                 };
+            });
+
+            builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
+            {
+                TemplateMetadataResolver resolver = ctx.GetService<TemplateMetadataResolver>();
+
+                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = ctx.GetService<TemplateMetadataSchema10.TemplateMetadataGenerator>();
+
+                resolver.Register("1.0", schema10Generator);
+
+                return resolver;
             });
 
             builder.AddPolicySettings(config);

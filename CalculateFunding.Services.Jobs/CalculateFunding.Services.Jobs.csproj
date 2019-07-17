@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.CosmosDb" Version="1.0.25" />
     <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.2" />
-    <PackageReference Include="FluentValidation" Version="7.6.104" />
+    <PackageReference Include="FluentValidation" Version="8.4.0" />
   </ItemGroup>
 
   <ItemGroup>

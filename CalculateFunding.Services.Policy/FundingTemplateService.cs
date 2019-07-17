@@ -1,12 +1,16 @@
 ﻿using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -24,19 +28,22 @@ namespace CalculateFunding.Services.Policy
         private readonly IFundingTemplateValidationService _fundingTemplateValidationService;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _cacheProviderPolicy;
+        private readonly ITemplateMetadataResolver _templateMetadataResolver;
 
         public FundingTemplateService(
             ILogger logger, 
             IFundingTemplateRepository fundingTemplateRepository,
             IPolicyResiliencePolicies policyResiliencePolicies,
             IFundingTemplateValidationService fundingTemplateValidationService,
-            ICacheProvider cacheProvider)
+            ICacheProvider cacheProvider,
+            ITemplateMetadataResolver templateMetadataResolver)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(fundingTemplateRepository, nameof(fundingTemplateRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
             Guard.ArgumentNotNull(fundingTemplateValidationService, nameof(fundingTemplateValidationService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(templateMetadataResolver, nameof(templateMetadataResolver));
 
             _logger = logger;
             _fundingTemplateRepository = fundingTemplateRepository;
@@ -44,6 +51,7 @@ namespace CalculateFunding.Services.Policy
             _fundingTemplateValidationService = fundingTemplateValidationService;
             _cacheProvider = cacheProvider;
             _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
+            _templateMetadataResolver = templateMetadataResolver;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -81,6 +89,15 @@ namespace CalculateFunding.Services.Policy
             if (!validationResult.IsValid)
             {
                 return new BadRequestObjectResult(validationResult.ValidationState);
+            }
+
+            ITemplateMetadataGenerator templateMetadataGenerator = _templateMetadataResolver.GetService(validationResult.Version);
+
+            ValidationResult validationGeneratorResult = templateMetadataGenerator.Validate(template);
+
+            if (!validationGeneratorResult.IsValid)
+            {
+                return validationGeneratorResult.PopulateModelState();
             }
 
             string blobName = $"{validationResult.FundingStreamId}/{validationResult.Version}.json";
