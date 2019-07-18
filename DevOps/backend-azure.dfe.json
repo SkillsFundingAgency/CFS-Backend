@@ -3350,6 +3350,10 @@
               "value": "calculate-funding"
             },
             {
+              "name": "specificationsClient:ApiKey",
+              "value": "[parameters('ApiKeySpecs')]"
+            },
+            {
               "name": "specificationsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-specs.azurewebsites.net/api/')]"
             },
