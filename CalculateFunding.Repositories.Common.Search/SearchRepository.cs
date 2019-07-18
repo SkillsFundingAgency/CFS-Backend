@@ -13,7 +13,6 @@ namespace CalculateFunding.Repositories.Common.Search
     {
         public string SearchServiceName { get; set; }
         public string SearchKey { get; set; }
-
     }
 
     public class SearchRepository<T> : ISearchRepository<T>, IDisposable where T : class
@@ -151,7 +150,6 @@ namespace CalculateFunding.Repositories.Common.Search
             {
                 throw new FailedToQuerySearchException("Failed to query search", ex);
             }
-
         }
 
         public async Task<T> SearchById(string id, SearchParameters searchParameters = null, string IdFieldOverride = "")
@@ -248,6 +246,4 @@ namespace CalculateFunding.Repositories.Common.Search
             }
         }
     }
-
-
 }

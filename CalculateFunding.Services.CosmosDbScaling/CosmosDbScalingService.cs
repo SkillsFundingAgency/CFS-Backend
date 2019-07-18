@@ -172,7 +172,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             }
         }
 
-        public async Task ScaleDowmForJobConfiguration()
+        public async Task ScaleDownForJobConfiguration()
         {
             DateTimeOffset now = DateTimeOffset.UtcNow;
             DateTimeOffset hourAgo = now.AddHours(-1);
@@ -235,7 +235,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             }
         }
 
-        public async Task ScaleDowmIncrementally()
+        public async Task ScaleDownIncrementally()
         {
             IList<CosmosDbScalingCollectionSettings> settingsToUpdate = new List<CosmosDbScalingCollectionSettings>();
 
@@ -281,8 +281,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     throw new RetriableException($"Failed to scale down collection for repository type '{settings.CosmosCollectionType}'", ex);
                 }
-            }
-            
+            }            
         }
 
         private async Task ScaleUpCollection(CosmosDbScalingConfig cosmosDbScalingConfig, string jobDefinitionId)

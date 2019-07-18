@@ -9,6 +9,8 @@ namespace CalculateFunding.Functions.Jobs.ServiceBus
 {
     public class OnCheckForJobTimeout
     {
+        private const string Every30Minutes = "0 */30 * * * *";
+
         private readonly ILogger _logger;
         private readonly IJobManagementService _jobManagementService;
 
@@ -30,7 +32,7 @@ namespace CalculateFunding.Functions.Jobs.ServiceBus
         /// <param name="myTimer"></param>
         /// <param name="log"></param>
         [FunctionName("check-job-timeout")]
-        public async Task Run([TimerTrigger("0 */30 * * * *")]TimerInfo timer)
+        public async Task Run([TimerTrigger(Every30Minutes)]TimerInfo timer)
         {
             try
             {

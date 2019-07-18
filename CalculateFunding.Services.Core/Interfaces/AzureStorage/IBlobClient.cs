@@ -21,5 +21,7 @@ namespace CalculateFunding.Services.Core.Interfaces.AzureStorage
         Task<Stream> DownloadToStreamAsync(ICloudBlob blob);
 
         void Initialize();
+
+        Task UploadAsync(ICloudBlob blob, string data);
     }
 }

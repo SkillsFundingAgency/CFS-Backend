@@ -187,6 +187,5 @@ namespace CalculateFunding.Services.Core.Proxies
                 _httpClient?.Dispose();
             }
         }
-
     }
 }

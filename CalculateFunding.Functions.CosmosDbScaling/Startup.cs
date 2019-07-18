@@ -43,7 +43,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
 
             builder.AddSingleton<OnScaleUpCosmosDbCollection>();
 
-            builder.AddSingleton<OnIncrementa1ScaleDownCosmosDbCollection>();
+            builder.AddSingleton<OnIncrementalScaleDownCosmosDbCollection>();
 
             builder.AddSingleton<OnScaleDownCosmosDbCollection>();
 

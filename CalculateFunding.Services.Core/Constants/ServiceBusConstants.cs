@@ -62,10 +62,14 @@
 
             public const string ReIndexCalculationResultsIndex = "reindex-calculation-results-index";
 
+            public const string CalculationResultsCsvGeneration = "calculation-results-csv-generation";
+
             //For debug queue only as its on a timer
             public const string ScaleDownCosmosdbCollection = "scale-down-cosmosdb-collection";
 
-            public const string IncrementaScaleDownCosmosdbCollection = "incremental-scale-down-cosmosdb-collection";
+            public const string IncrementalScaleDownCosmosdbCollection = "incremental-scale-down-cosmosdb-collection";
+
+            public const string CalculationResultsCsvGenerationTimer = "calculation-results-csv-generation-timer";
         }
 
         public static class TopicNames

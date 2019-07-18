@@ -8,13 +8,15 @@ using Serilog;
 
 namespace CalculateFunding.Functions.CosmosDbScaling.Timer
 {
-    public class OnIncrementa1ScaleDownCosmosDbCollection
+    public class OnIncrementalScaleDownCosmosDbCollection
     {
+        private const string Every15Minutes = "*/15 * * * *";
+
         private readonly ILogger _logger;
         private readonly ICosmosDbScalingService _scalingService;
         private readonly IFeatureToggle _featureToggle;
 
-        public OnIncrementa1ScaleDownCosmosDbCollection(
+        public OnIncrementalScaleDownCosmosDbCollection(
            ILogger logger,
            ICosmosDbScalingService scalingService,
            IFeatureToggle featureToggle)
@@ -29,7 +31,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.Timer
         }
 
         [FunctionName("on-incremental-scale-down-cosmosdb-collection")]
-        public async Task Run([TimerTrigger("*/15 * * * *")]TimerInfo timer)
+        public async Task Run([TimerTrigger(Every15Minutes)]TimerInfo timer)
         {
             if (!_featureToggle.IsCosmosDynamicScalingEnabled())
             {
@@ -38,7 +40,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling.Timer
 
             try
             {
-                await _scalingService.ScaleDowmIncrementally();
+                await _scalingService.ScaleDownIncrementally();
             }
             catch (Exception exception)
             {

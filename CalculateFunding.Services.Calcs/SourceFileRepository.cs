@@ -1,9 +1,8 @@
-﻿using CalculateFunding.Common.Storage;
-using CalculateFunding.Models.Calcs;
+﻿using System.IO;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Calcs.Interfaces;
 using Microsoft.Azure.Storage.Blob;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs
 {

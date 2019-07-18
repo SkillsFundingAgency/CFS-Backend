@@ -240,7 +240,7 @@ namespace CalculateFunding.Services.Calcs
 
                 calculation = GetCurrentVersionFromCalculation(repoCalculation);
 
-                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync<CalculationCurrentVersion>(cacheKey, calculation, TimeSpan.FromDays(7), true));
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculation, TimeSpan.FromDays(7), true));
             }
 
             return new OkObjectResult(calculation);
@@ -305,7 +305,7 @@ namespace CalculateFunding.Services.Calcs
                     calculations.Add(GetCurrentVersionFromCalculation(calculation));
                 }
 
-                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<CalculationCurrentVersion>>(cacheKey, calculations, TimeSpan.FromDays(7), true));
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculations, TimeSpan.FromDays(7), true));
             }
 
             return new OkObjectResult(calculations);
@@ -343,7 +343,7 @@ namespace CalculateFunding.Services.Calcs
                     calculations.Add(GetCalculationSummaryFromCalculation(calculation));
                 }
 
-                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<CalculationSummaryModel>>(cacheKey, calculations, TimeSpan.FromDays(7), true));
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, calculations, TimeSpan.FromDays(7), true));
             }
 
             return new OkObjectResult(calculations);
@@ -368,7 +368,7 @@ namespace CalculateFunding.Services.Calcs
                     throw new InvalidModelException(GetType().ToString(), validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
                 }
 
-                Models.Specs.SpecificationSummary specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId));
+                SpecificationSummary specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId));
                 if (specificationSummary == null)
                 {
                     throw new InvalidModelException(typeof(CalculationService).ToString(), new[] { $"Specification with ID '{calculation.SpecificationId}' not found" });
@@ -425,13 +425,13 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task UpdateCalculationsForSpecification(Message message)
         {
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<Models.Specs.SpecificationVersionComparisonModel>();
+            SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
 
             if (specificationVersionComparison == null || specificationVersionComparison.Current == null)
             {
                 _logger.Error("A null specificationVersionComparison was provided to UpdateCalculationsForSpecification");
 
-                throw new InvalidModelException(nameof(Models.Specs.SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
+                throw new InvalidModelException(nameof(SpecificationVersionComparisonModel), new[] { "Null or invalid model provided" });
             }
 
             if (specificationVersionComparison.HasNoChanges && !specificationVersionComparison.HasNameChange && !specificationVersionComparison.HasPolicyChanges)
@@ -1381,7 +1381,7 @@ namespace CalculateFunding.Services.Calcs
             await _cachePolicy.ExecuteAsync(() => _cacheProvider.KeyDeleteAsync<List<CalculationCurrentVersion>>($"{CacheKeys.CurrentCalculationsForSpecification}{calculation.SpecificationId}"));
 
             // Set current version in cache
-            await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync<CalculationCurrentVersion>($"{CacheKeys.CurrentCalculation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true));
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.CurrentCalculation}{calculation.Id}", currentVersion, TimeSpan.FromDays(7), true));
         }
 
         private async Task<HttpStatusCode> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, CalculationVersion previousVersion)

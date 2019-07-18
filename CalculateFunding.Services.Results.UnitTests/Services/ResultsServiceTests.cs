@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,8 +13,11 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
@@ -25,6 +29,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Microsoft.Azure.Storage.Blob;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -682,14 +687,7 @@ namespace CalculateFunding.Services.Results.Services
             //Assert
             actionResult
                 .Should()
-                .BeOfType<StatusCodeResult>();
-
-            StatusCodeResult statusCodeResult = actionResult as StatusCodeResult;
-
-            statusCodeResult
-                .StatusCode
-                .Should()
-                .Be(500);
+                .BeOfType<InternalServerErrorResult>();
 
             logger
                 .Received(1)
@@ -2066,6 +2064,184 @@ namespace CalculateFunding.Services.Results.Services
                 .Be(true);
         }
 
+        [TestMethod]
+        [DataRow(true, 1)]
+        [DataRow(false, 0)]
+        public async Task QueueCsvGenerationMessage_RunsAsExpected(bool hasResults, int expectedOperations)
+        {
+            //Arrange
+            string specificationId = "12345";
+
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+            calculationResultsRepository
+                .CheckHasNewResultsForSpecificationIdAndTimePeriod(Arg.Any<string>(), Arg.Any<DateTimeOffset>(), Arg.Any<DateTimeOffset>())
+                .Returns(hasResults);
+
+            ILogger logger = CreateLogger();
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ResultsService resultsService = CreateResultsService(logger: logger,
+                resultsRepository: calculationResultsRepository,
+                messengerService: messengerService);
+
+            //Act
+            await resultsService.QueueCsvGenerationMessage(specificationId);
+
+            //Assert
+            await calculationResultsRepository
+                .Received(1)
+                .CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId,
+                    Arg.Is<DateTimeOffset>(x => Math.Abs((DateTimeOffset.UtcNow.AddDays(-1) - x).TotalSeconds) < 3),
+                    Arg.Is<DateTimeOffset>(x => Math.Abs((DateTimeOffset.UtcNow.AddDays(1) - x).TotalSeconds) < 3));
+
+            logger
+                .Received(expectedOperations)
+                .Information($"Found new calculation results for specification id '{specificationId}'");
+
+            await messengerService
+                .Received(expectedOperations)
+                .SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
+                   string.Empty,
+                   Arg.Is<Dictionary<string, string>>(x => x.Count(y => y.Key == "specification-id" && y.Value == specificationId) == 1));
+        }
+
+        [TestMethod]
+        public async Task GenerateCalculationResultsCsv_MessageHasNoSpecificationId_ThrowsException()
+        {
+            //Arrange
+            string errorMessage = "Specification id missing";
+
+            Message msg = new Message();
+
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            ILogger logger = CreateLogger();
+
+            ResultsService resultsService = CreateResultsService(logger: logger,
+                resultsRepository: calculationResultsRepository,
+                blobClient: blobClient);
+
+            //Act
+            Func<Task> test = async () => await resultsService.GenerateCalculationResultsCsv(msg);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<NonRetriableException>()
+                .WithMessage(errorMessage);
+
+            logger
+                .Received(1)
+                .Error(errorMessage);
+
+            await calculationResultsRepository
+                .Received(0)
+                .GetProviderResultsBySpecificationId(Arg.Any<string>(), Arg.Any<int>());
+
+            await blobClient
+                .Received(0)
+                .GetBlobReferenceFromServerAsync(Arg.Any<string>());
+
+            await blobClient
+                .Received(0)
+                .UploadAsync(Arg.Any<ICloudBlob>(), Arg.Any<string>());
+        }
+
+        [TestMethod]
+        public async Task GenerateCalculationResultsCsv_InputIsValid_RunsCorrectly()
+        {
+            //Arrange
+            string specificationId = "123";
+            string expectedCsv = "\"UKPRN\",\"ProviderName\",\"Mary\"\r\n\"42\",\"William\",\"3\"\r\n";
+
+            Message msg = new Message();
+            msg.UserProperties.Add("specification-id", specificationId);
+
+            IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    Provider = new ProviderSummary { UKPRN = "42", Name = "William" },
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult{Calculation = new Reference { Name = "Mary"}, Value = 3 }
+                    }
+                }
+            };
+
+            ILogger logger = CreateLogger();
+
+            ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
+            calculationResultsRepository
+                .GetProviderResultsBySpecificationId(specificationId, Arg.Any<int>())
+                .Returns(providerResults);
+
+            ICloudBlob cloudBlob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .Returns(cloudBlob);
+
+            ResultsService resultsService = CreateResultsService(logger: logger,
+                resultsRepository: calculationResultsRepository,
+                blobClient: blobClient);
+
+            //Act
+            await resultsService.GenerateCalculationResultsCsv(msg);
+
+            //Assert
+            logger
+               .Received(0)
+               .Error(Arg.Any<string>());
+
+            await calculationResultsRepository
+                .Received(1)
+                .GetProviderResultsBySpecificationId(specificationId, Arg.Any<int>());
+
+            await blobClient
+                .Received(1)
+                .GetBlobReferenceFromServerAsync($"calculation-results-{specificationId}");
+
+            await blobClient
+                .Received(1)
+                .UploadAsync(cloudBlob, expectedCsv);
+        }
+
+#if NCRUNCH
+        [Ignore]
+#endif
+        [TestMethod]
+        [DynamicData(nameof(ProcessProviderResultsForCsvOutputTestCases), DynamicDataSourceType.Method)]
+        public void ProcessProviderResultsForCsvOutput_ProcessesCorrectly(IEnumerable<ProviderResult> results, IEnumerable<dynamic> expectedOutput)
+        {
+            //Arrange
+            ResultsService resultsService = CreateResultsService();
+
+            //Act
+            IEnumerable<dynamic> output = resultsService.ProcessProviderResultsForCsvOutput(results);
+
+            //Assert
+            expectedOutput.Count()
+                .Should()
+                .Be(output.Count());
+
+            foreach (dynamic item in output)
+            {
+                expectedOutput
+                    .Count(x => x.UKPRN == item.UKPRN
+                        && x.ProviderName == item.ProviderName
+                        && x.Bob == item.Bob
+                        && x.Carol == item.Carol)
+                    .Should()
+                    .Be(1);
+            }
+        }
+
+        #region "Dependency creation"
         static ResultsService CreateResultsService(ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
             IMapper mapper = null,
@@ -2079,7 +2255,8 @@ namespace CalculateFunding.Services.Results.Services
             ICacheProvider cacheProvider = null,
             IMessengerService messengerService = null,
             ICalculationsRepository calculationsRepository = null,
-            IValidator<MasterProviderModel> validatorForMasterProvider = null)
+            IValidator<MasterProviderModel> validatorForMasterProvider = null,
+            IBlobClient blobClient = null)
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
             featureToggle.IsExceptionMessagesEnabled().Returns(true);
@@ -2098,7 +2275,13 @@ namespace CalculateFunding.Services.Results.Services
                 cacheProvider ?? CreateCacheProvider(),
                 messengerService ?? CreateMessengerService(),
                 calculationsRepository ?? CreateCalculationsRepository(),
-                validatorForMasterProvider ?? CreateMasterProviderModelValidator());
+                validatorForMasterProvider ?? CreateMasterProviderModelValidator(),
+                blobClient ?? CreateBlobClient());
+        }
+
+        private static IBlobClient CreateBlobClient()
+        {
+            return Substitute.For<IBlobClient>();
         }
 
         static ISearchRepository<AllocationNotificationFeedIndex> CreateAllocationNotificationFeedSearchRepository()
@@ -2175,7 +2358,9 @@ namespace CalculateFunding.Services.Results.Services
 
             return mockValidator;
         }
+        #endregion "Dependency creation"
 
+        #region "Test data"
         static SpecificationCurrentVersion CreateSpecification(string specificationId)
         {
             return new SpecificationCurrentVersion
@@ -2674,5 +2859,55 @@ namespace CalculateFunding.Services.Results.Services
                 }
             };
         }
+
+        private static IEnumerable<object[]> ProcessProviderResultsForCsvOutputTestCases()
+        {
+            dynamic alice = new ExpandoObject();
+            alice.UKPRN = "12345";
+            alice.ProviderName = "Alice";
+            alice.Bob = "42";
+            alice.Carol = "3";
+
+            dynamic norman = new ExpandoObject();
+            norman.UKPRN = "67890";
+            norman.ProviderName = "Norman";
+            norman.Bob = "3.142";
+            norman.Carol = "2.718";
+
+            yield return new object[]
+            {
+                new ProviderResult[]
+                {
+                    new ProviderResult
+                    {
+                        Provider = new ProviderSummary
+                        {
+                            UKPRN = "12345",
+                            Name = "Alice"
+                        },
+                        CalculationResults = new List<CalculationResult>
+                        {
+                            new CalculationResult { Calculation = new Calculation { Name = "Bob" }, Value = 42M },
+                            new CalculationResult { Calculation = new Calculation { Name = "Carol" }, Value = 3M }
+                        }
+                    },
+                    new ProviderResult
+                    {
+                        Provider = new ProviderSummary
+                        {
+                            UKPRN = "67890",
+                            Name = "Norman"
+                        },
+                        CalculationResults = new List<CalculationResult>
+                        {
+                            new CalculationResult { Calculation = new Calculation { Name = "Bob" }, Value = 3.142M },
+                            new CalculationResult { Calculation = new Calculation { Name = "Carol" }, Value = 2.718M }
+                        }
+                    }
+
+                },
+                new ExpandoObject[] { alice, norman } };
+        }
+        #endregion "Test data"
     }
 }

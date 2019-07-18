@@ -26,13 +26,13 @@ namespace CalculateFunding.Functions.DebugQueue
         }
 
         [FunctionName("on-incremental-scale-down-cosmosdb-collection")]
-        public static async Task RunOnIncrementalScaleDownCosmosdbCollection([QueueTrigger(ServiceBusConstants.QueueNames.IncrementaScaleDownCosmosdbCollection, Connection = "AzureConnectionString")] string item, ILogger log)
+        public static async Task RunOnIncrementalScaleDownCosmosdbCollection([QueueTrigger(ServiceBusConstants.QueueNames.IncrementalScaleDownCosmosdbCollection, Connection = "AzureConnectionString")] string item, ILogger log)
         {
             using (IServiceScope scope = Functions.CosmosDbScaling.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
                 TimerInfo timerInfo = new TimerInfo(null, new ScheduleStatus());
 
-                OnIncrementa1ScaleDownCosmosDbCollection function = scope.ServiceProvider.GetService<OnIncrementa1ScaleDownCosmosDbCollection>();
+                OnIncrementalScaleDownCosmosDbCollection function = scope.ServiceProvider.GetService<OnIncrementalScaleDownCosmosDbCollection>();
 
                 await function.Run(timerInfo);
 

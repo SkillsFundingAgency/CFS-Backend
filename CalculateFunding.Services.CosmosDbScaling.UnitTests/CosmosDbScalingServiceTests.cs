@@ -803,7 +803,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public void ScaleDowmForJobConfiguration_WhenFailingToFecthJobSummaries_ThrowsNewRetriableException()
+        public void ScaleDownForJobConfiguration_WhenFailingToFecthJobSummaries_ThrowsNewRetriableException()
         {
             //Arrange
             ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.BadRequest);
@@ -818,7 +818,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(logger, jobsApiClient: jobsApiClient);
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleDowmForJobConfiguration();
+            Func<Task> test = async () => await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             test
@@ -835,7 +835,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButConfigAlreadyAtBaseline_DoesNotUpdateConfig()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButConfigAlreadyAtBaseline_DoesNotUpdateConfig()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -879,7 +879,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cacheProvider: cacheProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmForJobConfiguration();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             await
@@ -889,7 +889,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public void ScaleDowmForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToSetThroughput_ThrowsRetriableException()
+        public void ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToSetThroughput_ThrowsRetriableException()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -944,7 +944,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            Func<Task> test = async() => await cosmosDbScalingService.ScaleDowmForJobConfiguration();
+            Func<Task> test = async() => await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             test
@@ -957,7 +957,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToUpdateConfig_ThrowsRetriableException()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButFailsToUpdateConfig_ThrowsRetriableException()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -1012,7 +1012,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleDowmForJobConfiguration();
+            Func<Task> test = async () => await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             test
@@ -1030,7 +1030,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButAlreadyAtBaseLine_DoesNotSetThroughput()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheButAlreadyAtBaseLine_DoesNotSetThroughput()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -1082,7 +1082,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmForJobConfiguration();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
            //Assert
             await
@@ -1092,7 +1092,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsNotAtBaseline_SetsThroughputAndUpdatesConfig()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsNotAtBaseline_SetsThroughputAndUpdatesConfig()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -1148,7 +1148,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmForJobConfiguration();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             await
@@ -1171,7 +1171,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButAllAtBaseline_DoesNotSetThroughputs()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButAllAtBaseline_DoesNotSetThroughputs()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -1233,7 +1233,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmForJobConfiguration();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             await
@@ -1243,7 +1243,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButOnlyOneNotAtBaseline_SetsThroughputForOne()
+        public async Task ScaleDownForJobConfiguration_WhenJobSummariesReturnedAndConfigsReturnedFromCacheAndCurrentRequestsButOnlyOneNotAtBaseline_SetsThroughputForOne()
         {
             //Arrange
             IEnumerable<JobSummary> jobSummaries = new[]
@@ -1309,7 +1309,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmForJobConfiguration();
+            await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
             //Assert
             await
@@ -1319,7 +1319,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmIncrementally_GivenNoCollectionsToProcess_Exists()
+        public async Task ScaleDownIncrementally_GivenNoCollectionsToProcess_Exists()
         {
             //Arrange
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
@@ -1332,7 +1332,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(logger, cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmIncrementally();
+            await cosmosDbScalingService.ScaleDownIncrementally();
 
             //Assert
             logger
@@ -1341,7 +1341,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmIncrementally_GivenOneCollectionsToProcess_ScalesCollection()
+        public async Task ScaleDownIncrementally_GivenOneCollectionsToProcess_ScalesCollection()
         {
             //Arrange
             CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
@@ -1376,7 +1376,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmIncrementally();
+            await cosmosDbScalingService.ScaleDownIncrementally();
 
             //Assert
             logger
@@ -1399,7 +1399,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmIncrementally_GivenOneCollectionsToProcessAndLastIncremnetWas10000_ScalesCollectionEnsuresCurrentUpdated()
+        public async Task ScaleDownIncrementally_GivenOneCollectionsToProcessAndLastIncremnetWas10000_ScalesCollectionEnsuresCurrentUpdated()
         {
             //Arrange
             CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
@@ -1434,7 +1434,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmIncrementally();
+            await cosmosDbScalingService.ScaleDownIncrementally();
 
             //Assert
             logger
@@ -1457,7 +1457,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public async Task ScaleDowmIncrementally_GivenOneCollectionsToProcessAndLastIncremnetWas10000AndCurrentAt10000_DoesnOtScalecollection()
+        public async Task ScaleDownIncrementally_GivenOneCollectionsToProcessAndLastIncremnetWas10000AndCurrentAt10000_DoesnOtScalecollection()
         {
             //Arrange
             CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
@@ -1492,7 +1492,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            await cosmosDbScalingService.ScaleDowmIncrementally();
+            await cosmosDbScalingService.ScaleDownIncrementally();
 
             //Assert
             logger
@@ -1506,7 +1506,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public void ScaleDowmIncrementally_GivenOneCollectionsToProcessButFailsToScale_ThrowsretriableException()
+        public void ScaleDownIncrementally_GivenOneCollectionsToProcessButFailsToScale_ThrowsretriableException()
         {
             //Arrange
             CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
@@ -1541,7 +1541,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
 
             //Act
-            Func<Task> test = async () => await cosmosDbScalingService.ScaleDowmIncrementally();
+            Func<Task> test = async () => await cosmosDbScalingService.ScaleDownIncrementally();
 
             //Assert
             test

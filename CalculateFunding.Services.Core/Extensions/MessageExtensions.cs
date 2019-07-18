@@ -14,19 +14,12 @@ namespace CalculateFunding.Services.Core.Extensions
     {
         public static Reference GetUserDetails(this Message message)
         {
-            string userId = "8bcd2782-e8cb-4643-8803-951d715fc201";
-            string userName = "system";
+            string userId = message.GetUserProperty<string>("user-id");
+            string userName = message.GetUserProperty<string>("user-name");
 
-            if (message.UserProperties.ContainsKey("user-id") && !string.IsNullOrWhiteSpace(message.UserProperties["user-id"]?.ToString()))
-            {
-                userId = message.UserProperties["user-id"].ToString();
-            }
-
-            if (message.UserProperties.ContainsKey("user-name") && !string.IsNullOrWhiteSpace(message.UserProperties["user-name"]?.ToString()))
-            {
-                userName = message.UserProperties["user-name"].ToString();
-            }
-
+            if(string.IsNullOrWhiteSpace(userId)) userId = "8bcd2782-e8cb-4643-8803-951d715fc201";
+            if(string.IsNullOrWhiteSpace(userName)) userName = "system";
+            
             return new Reference(userId, userName);
         }
 
@@ -49,39 +42,18 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static string GetCorrelationId(this Message message)
         {
-            string correlationId = Guid.NewGuid().ToString();
+            string correlationId = message.GetUserProperty<string>("sfa-correlationId");
 
-            if (message.UserProperties.ContainsKey("sfa-correlationId") && message.UserProperties["sfa-correlationId"] != null)
-            {
-                correlationId = message.UserProperties["sfa-correlationId"].ToString();
-            }
-
-            return correlationId;
+            return string.IsNullOrWhiteSpace(correlationId) 
+                ? Guid.NewGuid().ToString()
+                : correlationId;
         }
 
-        public static IDictionary<string, string> BuildMessageProperties(this Message message)
+        private static IDictionary<string, string> MessagePropertiesInternal(string correlationId, Reference user)
         {
-            Reference user = message.GetUserDetails();
-
-            IDictionary<string, string> properties = new Dictionary<string, string>();
-            properties.Add("sfa-correlationId", message.GetCorrelationId());
-
-            if (user != null)
-            {
-                properties.Add("user-id", user.Id);
-                properties.Add("user-name", user.Name);
-            }
-
-            return properties;
-        }
-
-        public static IDictionary<string, string> BuildMessageProperties(this HttpRequest request)
-        {
-            Reference user = request.GetUser();
-
             IDictionary<string, string> properties = new Dictionary<string, string>
             {
-                { "sfa-correlationId", request.GetCorrelationId() }
+                { "sfa-correlationId", correlationId }
             };
 
             if (user != null)
@@ -91,6 +63,16 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             return properties;
+        }
+
+        public static IDictionary<string, string> BuildMessageProperties(this Message message)
+        {
+            return MessagePropertiesInternal(message.GetCorrelationId(), message.GetUserDetails());
+        }
+
+        public static IDictionary<string, string> BuildMessageProperties(this HttpRequest request)
+        {
+            return MessagePropertiesInternal(request.GetCorrelationId(), request.GetUser());
         }
 
         public static string GetMessageBodyStringFromMessage(Message message)
@@ -116,6 +98,13 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             return json;
+        }
+
+        public static T GetUserProperty<T>(this Message message, string key) 
+        {
+            return (!message.UserProperties.ContainsKey(key) || message.UserProperties[key] == null)
+                ? default(T)
+                : (T)message.UserProperties[key];
         }
     }
 }

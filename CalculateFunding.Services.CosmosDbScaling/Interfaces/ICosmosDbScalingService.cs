@@ -11,8 +11,8 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 
         Task ScaleUp(IEnumerable<EventData> events);
 
-        Task ScaleDowmForJobConfiguration();
+        Task ScaleDownForJobConfiguration();
 
-        Task ScaleDowmIncrementally();
+        Task ScaleDownIncrementally();
     }
 }
