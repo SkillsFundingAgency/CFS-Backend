@@ -5,17 +5,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class RefreshFundingJobCreationTests : JobCreationForSpecificationTestBase
+    public class RefreshFundingJobCreationTests : JobCreationForSpecificationTestBase<RefreshFundingJobDefinition>
     {
-        [TestInitialize]
-        public void SetUp()
+        public RefreshFundingJobCreationTests()
         {
-            JobDefinitionId = JobConstants.DefinitionNames.RefreshFundingJob;
-            TriggerMessage = "Requesting publication of specification";
-
-            JobCreation = new RefreshFundingJobCreation(Jobs,
-                ResiliencePolicies,
-                Logger);
+            JobDefinition = new RefreshFundingJobDefinition();
         }
     }
 }

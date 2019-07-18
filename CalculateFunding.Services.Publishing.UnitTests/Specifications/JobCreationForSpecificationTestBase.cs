@@ -6,6 +6,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Specifications;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -15,24 +16,26 @@ using Policy = Polly.Policy;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
-    public abstract class JobCreationForSpecificationTestBase
+    public abstract class JobCreationForSpecificationTestBase<TJobDefinition> where TJobDefinition : IJobDefinition
     {
-        protected IJobsApiClient Jobs;
-        protected IPublishingResiliencePolicies ResiliencePolicies;
-        protected ILogger Logger;
-        protected ICreateJobsForSpecifications JobCreation;
-
-        protected string JobDefinitionId;
-        protected string TriggerMessage;
+        protected IJobsApiClient Jobs { get; private set; }
+        protected ICreateJobsForSpecifications<TJobDefinition> JobCreation { get; private set; }
+        protected IPublishingResiliencePolicies ResiliencePolicies { get; private set; }
+        protected ILogger Logger { get; private set; }
+        protected IJobDefinition JobDefinition { get; set; }
 
         [TestInitialize]
         public void JobCreationForSpecificationTestBaseSetUp()
         {
             Jobs = Substitute.For<IJobsApiClient>();
-            ResiliencePolicies = Substitute.For<IPublishingResiliencePolicies>();
             Logger = Substitute.For<ILogger>();
 
-            ResiliencePolicies.JobsApiClient.Returns(Policy.NoOpAsync());
+            ResiliencePolicies = new ResiliencePolicies
+            {
+                JobsApiClient = Policy.NoOpAsync()
+            };
+
+            JobCreation = new JobCreationForSpecification<TJobDefinition>(Jobs, ResiliencePolicies, Logger, JobDefinition);
         }
 
         [TestMethod]
@@ -91,7 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             Jobs.CreateJob(Arg.Is<JobCreateModel>(_ =>
                     _.CorrelationId == correlationId &&
                     _.SpecificationId == specificationId &&
-                    _.JobDefinitionId == JobDefinitionId &&
+                    _.JobDefinitionId == JobDefinition.Id &&
                     _.InvokerUserId == user.Id &&
                     _.InvokerUserDisplayName == user.Name &&
                     _.Properties != null &&
@@ -100,7 +103,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     _.Trigger != null &&
                     _.Trigger.EntityId == specificationId &&
                     _.Trigger.EntityType == nameof(Specification) &&
-                    _.Trigger.Message == TriggerMessage))
+                    _.Trigger.Message == JobDefinition.TriggerMessage))
                 .Returns(job);
         }
 

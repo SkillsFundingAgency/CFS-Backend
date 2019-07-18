@@ -27,6 +27,8 @@
             public const string RefreshFundingJob = "RefreshFundingJob";
 
             public const string PublishProviderFundingJob = "PublishProviderFundingJob";
+
+            public const string ApproveFunding = "ApproveFunding";
         }
 
         public static class NotificationChannels

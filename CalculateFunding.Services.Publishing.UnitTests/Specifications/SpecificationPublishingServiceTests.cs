@@ -9,23 +9,37 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using System.IO;
+using System.Text;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Common.Caching;
+using FluentAssertions;
+using System.Linq;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class SpecificationPublishingServiceTests : SpecificationPublishingServiceTestsBase<ICreateRefreshFundingJobs>
+    public class SpecificationPublishingServiceTests : SpecificationPublishingServiceTestsBase<RefreshFundingJobDefinition>
     {
         private SpecificationPublishingService _service;
+        private ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approvalJobs;
+        private ICacheProvider _cacheProvider;
+        private bool _cacheCalled;
 
         [TestInitialize]
         public void SetUp()
         {
-            Jobs = Substitute.For<ICreateRefreshFundingJobs>();
+            _approvalJobs = Substitute.For<ICreateJobsForSpecifications<ApproveFundingJobDefinition>>();
+            _cacheProvider = Substitute.For<ICacheProvider>();
 
             _service = new SpecificationPublishingService(Validator,
                 Specifications,
                 ResiliencePolicies,
-                Jobs);
+                _cacheProvider,
+                Jobs,
+                _approvalJobs);
         }
 
         [TestMethod]
@@ -96,9 +110,111 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                                                         ReferenceEquals(_.Value, refreshFundingJob));
         }
 
+        [TestMethod]
+        public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidationForApproval()
+        {
+            string[] expectedErrors = { NewRandomString(), NewRandomString() };
+
+            GivenTheValidationErrors(expectedErrors);
+
+            await WhenTheSpecificationIsApproved();
+
+            ThenTheResponseShouldBe<BadRequestObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsNotFoundResultIfNoSpecificationLocatedWithTheSuppliedIdForApproval()
+        {
+            GivenTheApiResponseDetailsForTheSuppliedId(null, HttpStatusCode.NotFound);
+
+            await WhenTheSpecificationIsApproved();
+
+            ThenTheResponseShouldBe<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsPreConditionFailedResultIfNotSelectedForFundingForSuppliedSpecificationId()
+        {
+            ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(false));
+
+            string approveFundingJobId = NewRandomString();
+            ApiJob approveFundingJob = NewJob(_ => _.WithId(approveFundingJobId));
+
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+            AndTheApiResponseDetailsForApprovalJob(approveFundingJob);
+
+            await WhenTheSpecificationIsApproved();
+
+            ThenTheResponseShouldBe<PreconditionFailedResult>();
+        }
+
+        [TestMethod]
+        public async Task ReturnsInternalServerErrorResultIfJobNotCreatedForSuppliedSpecificationId()
+        {
+            ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true));
+
+            string approveFundingJobId = NewRandomString();
+
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+
+            await WhenTheSpecificationIsApproved();
+
+            ThenTheResponseShouldBe<InternalServerErrorResult>();
+        }
+
+        [TestMethod]
+        public async Task ApproveFundingJobForSuppliedSpecificationId()
+        {
+            ApiSpecificationSummary specificationSummary = NewApiSpecificationSummary(_ =>
+                _.WithIsSelectedForFunding(true));
+
+            string approveFundingJobId = NewRandomString();
+            ApiJob approveFundingJob = NewJob(_ => _.WithId(approveFundingJobId));
+
+            GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
+            AndTheApiResponseDetailsForApprovalJob(approveFundingJob);
+            AndTheProvidersShouldBeCached();
+
+            await WhenTheSpecificationIsApproved();
+
+            _cacheCalled
+                .Should()
+                .Be(true);
+
+            ThenTheResponseShouldBe<AcceptedAtActionResult>(_ => _.RouteValues["specificationId"].ToString() == SpecificationId && ReferenceEquals(_.Value, approveFundingJob));
+        }
+
         private async Task WhenTheSpecificationIsPublished()
         {
             ActionResult = await _service.CreatePublishJob(SpecificationId, User, CorrelationId);
+        }
+
+        private void AndTheProvidersShouldBeCached()
+        {
+            _cacheProvider.When(x => x.CreateListAsync<string>(Arg.Is<IEnumerable<string>>(providers => providers.SequenceEqual(CreateApprovalModel.Providers)), Arg.Any<string>()))
+                .Do(y => _cacheCalled = true);
+        }
+
+        private void AndTheApiResponseDetailsForApprovalJob(ApiJob job)
+        {
+            _approvalJobs.CreateJob(SpecificationId, User, CorrelationId, Arg.Is<Dictionary<string, string>>(x => x["fundingStreamId"] == CreateApprovalModel.FundingStreamId) , JsonConvert.SerializeObject(CreateApprovalModel))
+                .Returns(job);
+        }
+
+        private async Task WhenTheSpecificationIsApproved()
+        {
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            
+            byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(CreateApprovalModel));
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            request.Body
+                .Returns(stream);
+
+            ActionResult = await _service.ApproveSpecification("", "", SpecificationId, request, User, CorrelationId);
         }
 
         private void AndTheApiResponseDetailsForTheFundingPeriodId(string fundingPeriodId,

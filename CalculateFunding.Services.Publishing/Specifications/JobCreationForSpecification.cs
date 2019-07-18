@@ -12,59 +12,74 @@ using Policy = Polly.Policy;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
-    public abstract class JobCreationForSpecification
+    public class JobCreationForSpecification<TJobDefinition> : ICreateJobsForSpecifications<TJobDefinition> 
+        where TJobDefinition : IJobDefinition
     {
         private readonly IJobsApiClient _jobs;
         private readonly IPublishingResiliencePolicies _resiliencePolicies;
         private readonly ILogger _logger;
-        private readonly string _triggerMessage;
-        private readonly string _jobDefinitionId;
+        private readonly IJobDefinition _jobDefinition;
 
-        protected JobCreationForSpecification(IJobsApiClient jobs,
+        public JobCreationForSpecification(IJobsApiClient jobs,
             IPublishingResiliencePolicies resiliencePolicies,
             ILogger logger,
-            string triggerMessage,
-            string jobDefinitionId)
+            IJobDefinition jobDefinition)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.IsNullOrWhiteSpace(jobDefinitionId, nameof(jobDefinitionId));
-            Guard.IsNullOrWhiteSpace(triggerMessage, nameof(triggerMessage));
+            Guard.ArgumentNotNull(jobDefinition, nameof(jobDefinition));
 
             _jobs = jobs;
             _resiliencePolicies = resiliencePolicies;
             _logger = logger;
-            _triggerMessage = triggerMessage;
-            _jobDefinitionId = jobDefinitionId;
+            _jobDefinition = jobDefinition;
         }
 
         private Policy JobsPolicy => _resiliencePolicies.JobsApiClient;
 
         public async Task<Job> CreateJob(string specificationId,
             Reference user,
-            string correlationId)
+            string correlationId,
+            Dictionary<string, string> properties = null,
+            string messageBody = null)
         {
+            Dictionary<string, string> messageProperties = 
+                properties ?? new Dictionary<string, string> ();
+
+            messageProperties.Add("specification-id", specificationId);
+
             try
             {
-                return await JobsPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
+                Job job = await JobsPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
                 {
                     InvokerUserDisplayName = user.Name,
                     InvokerUserId = user.Id,
-                    JobDefinitionId = _jobDefinitionId,
-                    Properties = new Dictionary<string, string>
-                    {
-                        {"specification-id", specificationId}
-                    },
+                    JobDefinitionId = _jobDefinition.Id,
+                    Properties = messageProperties,
+                    MessageBody = messageBody ?? string.Empty,
                     SpecificationId = specificationId,
                     Trigger = new Trigger
                     {
                         EntityId = specificationId,
                         EntityType = nameof(Specification),
-                        Message = _triggerMessage
+                        Message = _jobDefinition.TriggerMessage
                     },
                     CorrelationId = correlationId
                 }));
+
+                if (job != null)
+                {
+                    _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
+                }
+                else
+                {
+                    string errorMessage = $"Failed to create job of type '{job.JobDefinitionId}' on specification '{specificationId}'";
+
+                    _logger.Error(errorMessage);
+                }
+
+                return job;
             }
             catch (Exception ex)
             {

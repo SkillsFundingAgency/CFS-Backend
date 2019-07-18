@@ -43,6 +43,7 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddCaching(config);
             builder.AddSingleton<OnRefreshFunding>();
             builder.AddSingleton<OnApproveFunding>();
             builder.AddSingleton<OnPublishFunding>();

@@ -14,12 +14,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class ProviderFundingPublishingService : SpecificationPublishingBase, IProviderFundingPublishingService
     {
-        private readonly ICreatePublishFundingJobs _jobs;
+        private readonly ICreateJobsForSpecifications<PublishProviderFundingJobDefinition> _jobs;
 
         public ProviderFundingPublishingService(IPublishSpecificationValidator validator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
-            ICreatePublishFundingJobs jobs) : base(validator, specifications, resiliencePolicies)
+            ICreateJobsForSpecifications<PublishProviderFundingJobDefinition> jobs) : base(validator, specifications, resiliencePolicies)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
 

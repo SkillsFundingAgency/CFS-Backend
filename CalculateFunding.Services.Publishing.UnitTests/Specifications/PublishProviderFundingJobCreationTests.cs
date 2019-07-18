@@ -5,17 +5,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class PublishProviderFundingJobCreationTests : JobCreationForSpecificationTestBase
+    public class PublishProviderFundingJobCreationTests : JobCreationForSpecificationTestBase<PublishProviderFundingJobDefinition>
     {
-        [TestInitialize]
-        public void SetUp()
+        public PublishProviderFundingJobCreationTests()
         {
-            JobDefinitionId = JobConstants.DefinitionNames.PublishProviderFundingJob;
-            TriggerMessage = "Requesting publication of provider funding";
-
-            JobCreation = new PublishProviderFundingJobCreation(Jobs,
-                ResiliencePolicies,
-                Logger);
+            JobDefinition = new PublishProviderFundingJobDefinition();
         }
     }
 }

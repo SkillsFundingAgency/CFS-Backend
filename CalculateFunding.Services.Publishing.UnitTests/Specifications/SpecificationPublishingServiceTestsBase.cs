@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -8,27 +9,31 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Specifications;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 using Polly;
+using SpecModels = CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
-    public abstract class SpecificationPublishingServiceTestsBase<TJobCreation>
-        where TJobCreation : ICreateJobsForSpecifications
+    public abstract class SpecificationPublishingServiceTestsBase<TJobDefinition>
+        where TJobDefinition : IJobDefinition
     {
-        protected ISpecificationsApiClient Specifications;
-        protected TJobCreation Jobs;
-        protected ValidationResult ValidationResult;
-        protected IActionResult ActionResult;
-        protected string SpecificationId;
-        protected string CorrelationId;
-        protected Reference User;
-        protected IPublishSpecificationValidator Validator;
-        protected ResiliencePolicies ResiliencePolicies;
+        protected ISpecificationsApiClient Specifications { get; private set; }
+        protected ICreateJobsForSpecifications<TJobDefinition> Jobs { get; private set; }
+        protected ValidationResult ValidationResult { get; private set; }
+        protected IActionResult ActionResult { get; set; }
+        protected string SpecificationId { get; private set; }
+        protected string CorrelationId { get; private set; }
+        protected Reference User { get; private set; }
+        protected IPublishSpecificationValidator Validator { get; private set; }
+        protected ResiliencePolicies ResiliencePolicies { get; private set; }
+        protected SpecModels.SpecificationApprovalModel CreateApprovalModel { get; private set; }
 
         [TestInitialize]
         public void TestBaseSetUp()
@@ -37,6 +42,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             SpecificationId = NewRandomString();
             CorrelationId = NewRandomString();
             User = NewUser();
+            Jobs = Substitute.For<ICreateJobsForSpecifications<TJobDefinition>>();
+
+            CreateApprovalModel = new SpecModels.SpecificationApprovalModel { FundingStreamId = NewRandomString(), Providers = new List<string> { NewRandomString(), NewRandomString() } };
 
             Validator = Substitute.For<IPublishSpecificationValidator>();
 

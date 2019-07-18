@@ -11,21 +11,36 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
+using CalculateFunding.Models.Specs;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
+using System;
+using CalculateFunding.Services.Core.Constants;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Services.Core.Caching;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class SpecificationPublishingService : SpecificationPublishingBase, ISpecificationPublishingService
     {
-        private readonly ICreateRefreshFundingJobs _jobs;
+        private readonly ICreateJobsForSpecifications<RefreshFundingJobDefinition> _jobs;
+        private readonly ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approveFundingJobs;
+        private readonly ICacheProvider _cacheProvider;
 
         public SpecificationPublishingService(IPublishSpecificationValidator validator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
-            ICreateRefreshFundingJobs jobs) : base(validator, specifications, resiliencePolicies)
+            ICacheProvider cacheProvider,
+            ICreateJobsForSpecifications<RefreshFundingJobDefinition> jobs,
+            ICreateJobsForSpecifications<ApproveFundingJobDefinition> approveFundingJobs) : base(validator, specifications, resiliencePolicies)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
+            Guard.ArgumentNotNull(approveFundingJobs, nameof(approveFundingJobs));
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
 
             _jobs = jobs;
+            _cacheProvider = cacheProvider;
+            _approveFundingJobs = approveFundingJobs;
         }
 
         public async Task<IActionResult> CreatePublishJob(string specificationId,
@@ -70,6 +85,60 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.ArgumentNotNull(refreshFundingJob, nameof(refreshFundingJob), "Failed to create RefreshFundingJob");
 
             return new CreatedResult($"api/jobs/{refreshFundingJob.Id}", refreshFundingJob);
+        }
+
+        public async Task<IActionResult> ApproveSpecification(string action,
+            string controller,
+            string specificationId,
+            HttpRequest request,
+            Reference user,
+            string correlationId)
+        {
+            ValidationResult validationResult = Validator.Validate(specificationId);
+
+            if (!validationResult.IsValid)
+            {
+                return validationResult.AsBadRequest();
+            }
+
+            ApiResponse<ApiSpecificationSummary> specificationIdResponse = await Specifications.GetSpecificationSummaryById(specificationId);
+
+            ApiSpecificationSummary specificationSummary = specificationIdResponse.Content;
+
+            if(specificationSummary == null)
+            {
+                return new NotFoundResult();
+            }
+
+            string json = await request.GetRawBodyStringAsync();
+
+            SpecificationApprovalModel approvalModel = JsonConvert.DeserializeObject<SpecificationApprovalModel>(json);
+
+            Guard.IsNullOrWhiteSpace(approvalModel.FundingStreamId, nameof(approvalModel.FundingStreamId));
+
+            if (!specificationSummary.IsSelectedForFunding)
+            {
+                return new PreconditionFailedResult($"Specification with id : {specificationId} has not been selected for funding");
+            }
+
+            string cacheKey = $"{CacheKeys.ApproveFundingForSpecification}{specificationId}:{Guid.NewGuid()}";
+
+            await _cacheProvider.CreateListAsync<string>(approvalModel.Providers, cacheKey);
+
+            Dictionary<string, string> properties = new Dictionary<string, string> { { "fundingStreamId", approvalModel.FundingStreamId }, { "cacheKey", cacheKey } };
+
+            ApiJob job = await _approveFundingJobs.CreateJob(specificationId, user, correlationId, properties, json);
+
+            if (job != null)
+            {
+                return new AcceptedAtActionResult(action, controller, new { specificationId = specificationId }, job);
+            }
+            else
+            {
+                string errorMessage = $"Failed to create job of type '{JobConstants.DefinitionNames.ApproveFunding}' on specification '{specificationId}'";
+
+                return new InternalServerErrorResult(errorMessage);
+            }
         }
 
         private static bool AnySpecificationsInThisPeriodShareFundingStreams(

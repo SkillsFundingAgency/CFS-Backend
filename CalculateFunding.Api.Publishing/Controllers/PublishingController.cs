@@ -47,5 +47,25 @@ namespace CalculateFunding.Api.Publishing.Controllers
         {
             return Request.GetCorrelationId();
         }
+
+        [Route("api/publishedspecifications/{specificationId}/approve")]
+        [HttpPost]
+        public async Task<IActionResult> ApproveSpecification([FromRoute]string specificationId)
+        {
+            string controllerName = string.Empty;
+
+            if (this.ControllerContext.RouteData.Values.ContainsKey("controller"))
+            {
+                controllerName = (string)this.ControllerContext.RouteData.Values["controller"];
+            }
+
+            return await _specificationPublishingService.ApproveSpecification(
+                nameof(ApproveSpecification),
+                controllerName,
+                specificationId,
+                ControllerContext.HttpContext.Request,
+                GetUser(),
+                GetCorrelationId());
+        }
     }
 }

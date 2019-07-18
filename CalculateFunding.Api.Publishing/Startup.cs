@@ -58,6 +58,7 @@ namespace CalculateFunding.Api.Publishing
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddCaching(Configuration);
             builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");

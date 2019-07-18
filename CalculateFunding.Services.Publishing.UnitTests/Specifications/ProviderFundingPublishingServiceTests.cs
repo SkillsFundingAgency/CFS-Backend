@@ -11,15 +11,13 @@ using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
     [TestClass]
-    public class ProviderFundingPublishingServiceTests : SpecificationPublishingServiceTestsBase<ICreatePublishFundingJobs>
+    public class ProviderFundingPublishingServiceTests : SpecificationPublishingServiceTestsBase<PublishProviderFundingJobDefinition>
     {
-        private ProviderFundingPublishingService _service;
+        private ProviderFundingPublishingService _service; 
 
         [TestInitialize]
         public void SetUp()
         {
-            Jobs = Substitute.For<ICreatePublishFundingJobs>();
-
             _service = new ProviderFundingPublishingService(Validator,
                 Specifications,
                 ResiliencePolicies,
