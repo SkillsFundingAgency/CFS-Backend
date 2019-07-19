@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Validators;
@@ -19,8 +20,14 @@ namespace CalculateFunding.Services.Publishing.IoC
 
         private static void RegisterSpecificationServiceComponents(IServiceCollection serviceCollection)
         {
-            serviceCollection.AddTransient<ISpecificationPublishingService, SpecificationPublishingService>();
-            serviceCollection.AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>();
+            serviceCollection
+                .AddSingleton<ISpecificationPublishingService, SpecificationPublishingService>()
+                .AddSingleton<IHealthChecker, SpecificationPublishingService>();
+
+            serviceCollection
+                .AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>()
+                .AddSingleton<IHealthChecker, SpecificationPublishingService>();
+
             serviceCollection.AddTransient<IPublishSpecificationValidator, PublishSpecificationValidator>();
             serviceCollection.AddTransient<ICreateJobsForSpecifications<RefreshFundingJobDefinition>>(ctx =>
             {
@@ -43,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.IoC
                     ctx.GetService<ILogger>(),
                     new ApproveFundingJobDefinition());
             });
-            serviceCollection.AddTransient<ISpecificationsApiClient, SpecificationsApiClient>();
+            serviceCollection.AddSingleton<ISpecificationsApiClient, SpecificationsApiClient>();
         }
     }
 }

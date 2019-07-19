@@ -13,7 +13,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
-    public class PublishedFundingRepository : IPublishedFundingRepository, IHealthChecker
+    public class PublishedFundingRepository : IPublishedFundingRepository
     {
         readonly ICosmosRepository _repository;
 

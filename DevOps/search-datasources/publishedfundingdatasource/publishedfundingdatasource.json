@@ -1,0 +1,9 @@
+{
+  "name": "publishedfundingdatasource",
+  "type": "azureblob",
+  "credentials": { "connectionString": "" },
+  "container": {
+    "name": "publishedfunding"
+  },
+  "dataDeletionDetectionPolicy" : { "@odata.type" : "#Microsoft.Azure.Search.SoftDeleteColumnDeletionDetectionPolicy", "softDeleteColumnName" : "deleted", "softDeleteMarkerValue" : "true" } 
+}

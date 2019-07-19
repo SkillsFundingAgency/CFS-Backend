@@ -1,0 +1,59 @@
+{
+  "name": "publishedfundingindex",
+  "fields": [
+    {
+      "name": "id",
+      "type": "Edm.String",
+      "key": true,
+      "searchable":true,
+      "retrievable":true
+    },
+    {
+      "name": "statusChangedDate",
+      "type": "Edm.DateTimeOffset",
+      "retrievable":true,
+      "sortable":true
+    },
+    {
+      "name": "fundingStreamId",
+      "type": "Edm.String",
+      "filterable":true,
+      "retrievable":true
+    },
+    {
+      "name": "fundingPeriodId",
+      "type": "Edm.String",
+      "filterable":true,
+      "retrievable":true
+    },
+    {
+      "name": "groupingType",
+      "type": "Edm.String",
+      "filterable":true,
+      "retrievable":true
+    },
+    {
+      "name": "identifierType",
+      "type": "Edm.String",
+      "filterable":true,
+      "retrievable":true
+    },
+    {
+      "name": "identifierCode",
+      "type": "Edm.String",
+      "filterable":true,
+      "retrievable":true
+    },
+    {
+      "name": "version",
+      "type": "Edm.String",
+      "filterable":true,
+      "retrievable":true
+    },
+    {
+      "name": "documentPath",
+      "type": "Edm.String",
+      "retrievable":true
+    }
+  ]
+}

@@ -18,10 +18,11 @@ using System;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
-    public class SpecificationPublishingService : SpecificationPublishingBase, ISpecificationPublishingService
+    public class SpecificationPublishingService : SpecificationPublishingBase, ISpecificationPublishingService, IHealthChecker
     {
         private readonly ICreateJobsForSpecifications<RefreshFundingJobDefinition> _jobs;
         private readonly ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approveFundingJobs;
@@ -41,6 +42,20 @@ namespace CalculateFunding.Services.Publishing.Specifications
             _jobs = jobs;
             _cacheProvider = cacheProvider;
             _approveFundingJobs = approveFundingJobs;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(SpecificationPublishingService)
+            };
+
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = cacheRepoHealth.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
+
+            return health;
         }
 
         public async Task<IActionResult> CreatePublishJob(string specificationId,

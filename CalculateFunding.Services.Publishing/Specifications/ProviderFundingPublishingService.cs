@@ -4,6 +4,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
@@ -29,6 +30,20 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             _jobs = jobs;
             _publishedFundingRepository = publishedFundingRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth publishedFundingRepoHealth = await _publishedFundingRepository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(ProviderFundingPublishingService)
+            };
+
+            health.Dependencies.AddRange(publishedFundingRepoHealth.Dependencies);
+            
+            return health;
         }
 
         public async Task<IActionResult> PublishProviderFunding(string specificationId,

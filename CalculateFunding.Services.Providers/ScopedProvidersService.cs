@@ -49,11 +49,11 @@ namespace CalculateFunding.Services.Providers
             ServiceHealth providerVersionServiceHealth = await _providerVersionService.IsHealthOk();
             (bool Ok, string Message) cacheRepoHealth = await _cacheProvider.IsHealthOk();
 
-
             ServiceHealth health = new ServiceHealth()
             {
-                Name = nameof(ProviderVersionService)
+                Name = nameof(ScopedProvidersService)
             };
+
             health.Dependencies.AddRange(providerVersionServiceHealth.Dependencies);
             health.Dependencies.Add(new DependencyHealth { HealthOk = cacheRepoHealth.Ok, DependencyName = cacheRepoHealth.GetType().GetFriendlyName(), Message = cacheRepoHealth.Message });
 

@@ -1,0 +1,44 @@
+{
+  "name": "publishedfundingindexer",
+  "dataSourceName": "publishedfundingdatasource",
+  "targetIndexName": "publishedfundingindex",
+  "schedule": { "interval": "PT2H" },
+  "fieldMappings": [
+    {
+      "sourceFieldName": "/id",
+      "targetFieldName": "id"
+    },
+    {
+      "sourceFieldName": "/statusChangedDate",
+      "targetFieldName": "statusChangedDate" 
+    },
+    {
+      "sourceFieldName": "/fundingStreamId",
+      "targetFieldName": "fundingStreamId"
+    },
+    {
+      "sourceFieldName": "/fundingPeriodId",
+      "targetFieldName": "fundingPeriodId"
+    },
+    {
+      "sourceFieldName": "/groupingType",
+      "targetFieldName": "groupingType"
+    },
+    {
+      "sourceFieldName": "/identifierType",
+      "targetFieldName": "identifierType"
+    },
+    {
+      "sourceFieldName": "/identifierCode",
+      "targetFieldName": "identifierCode"
+    },
+    {
+      "sourceFieldName": "/version",
+      "targetFieldName": "version"
+    },
+    {
+      "sourceFieldName": "/documentPath",
+      "targetFieldName": "documentPath"
+    }
+  ]
+}
