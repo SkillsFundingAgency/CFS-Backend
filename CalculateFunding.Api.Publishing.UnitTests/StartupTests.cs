@@ -22,13 +22,17 @@ namespace CalculateFunding.Api.Publishing.UnitTests
 
             // Assert
             ResolveType<PublishingController>().Should().NotBeNull(nameof(PublishingController));
+            ResolveType<PublishedProvidersController>().Should().NotBeNull(nameof(PublishedProvidersController));
+
         }
 
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>
             {
-               
+               { "CosmosDbSettings:CollectionName", "publishedfunding" },
+               { "CosmosDbSettings:DatabaseName", "calculate-funding" },
+               { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
             };
 
             return configData;

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Api.Publishing.Controllers
 {
+    [ApiController]
     public class PublishingController : Controller
     {
         private readonly ISpecificationPublishingService _specificationPublishingService;
@@ -22,34 +23,40 @@ namespace CalculateFunding.Api.Publishing.Controllers
             _providerFundingPublishingService = providerFundingPublishingService;
         }
 
+        /// <summary>
+        /// Publish specification
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("api/publishedspecifications/{specificationId}")]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> PublishSpecification([FromRoute] string specificationId)
         {
             return await _specificationPublishingService.CreatePublishJob(specificationId,
-                GetUser(),
-                GetCorrelationId());
+                Request.GetUser(),
+                Request.GetCorrelationId());
         }
 
+        /// <summary>
+        /// Publish provider funding
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/publish")]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> PublishProviderFunding([FromRoute] string specificationId)
         {
             return await _providerFundingPublishingService.PublishProviderFunding(specificationId,
-                GetUser(),
-                GetCorrelationId());
+                Request.GetUser(),
+                Request.GetCorrelationId());
         }
 
-        private Reference GetUser()
-        {
-            return Request.GetUser();
-        }
-
-        private string GetCorrelationId()
-        {
-            return Request.GetCorrelationId();
-        }
-
-        [Route("api/publishedspecifications/{specificationId}/approve")]
-        [HttpPost]
+        /// <summary>
+        /// Approve specification
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <returns></returns>
+        [HttpPost("api/specifications/{specificationId}/approve")]
+        [ProducesResponseType(201)]
         public async Task<IActionResult> ApproveSpecification([FromRoute]string specificationId)
         {
             string controllerName = string.Empty;
@@ -64,8 +71,8 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 controllerName,
                 specificationId,
                 ControllerContext.HttpContext.Request,
-                GetUser(),
-                GetCorrelationId());
+                Request.GetUser(),
+                Request.GetCorrelationId());
         }
     }
 }

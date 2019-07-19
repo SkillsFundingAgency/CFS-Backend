@@ -10,5 +10,7 @@ namespace CalculateFunding.Services.Publishing
         public Policy SpecificationsRepositoryPolicy { get; set; }
 
         public Policy JobsApiClient { get; set; }
+
+        public Policy PublishedFundingRepoository { get; set; }
     }
 }

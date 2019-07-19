@@ -9,5 +9,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> PublishProviderFunding(string specificationId,
             Reference user,
             string correlationId);
+
+        Task<IActionResult> GetPublishedProviderVersion(string fundingStreamId,
+                string fundingPeriodId,
+                string providerId,
+                string version);
     }
 }

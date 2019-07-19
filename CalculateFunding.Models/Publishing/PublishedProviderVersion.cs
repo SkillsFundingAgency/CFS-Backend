@@ -9,7 +9,7 @@ namespace CalculateFunding.Models.Publishing
     public class PublishedProviderVersion : VersionedItem
     {
         [JsonProperty("id")]
-        public override string Id => $"publishedprovider_{ProviderId}_{FundingPeriodId}_{FundingStreamId}_{Version}";
+        public override string Id => $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{Version}";
 
         [JsonProperty("fundingStreamId")]
         public string FundingStreamId { get; set; }
@@ -26,7 +26,7 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("entityId")]
         public override string EntityId
         {
-            get { return $"publishedprovider_{ProviderId}_{FundingPeriodId}_{FundingStreamId}"; }
+            get { return $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{Version}"; }
         }
 
         [JsonProperty("status")]
@@ -36,7 +36,7 @@ namespace CalculateFunding.Models.Publishing
         public string ProviderId { get; set; }
 
         [JsonProperty("partitionKey")]
-        public string PartitionKey => $"publishedprovider_{ProviderId}_{FundingPeriodId}_{FundingStreamId}";
+        public string PartitionKey => $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}";
 
         public override VersionedItem Clone()
         {

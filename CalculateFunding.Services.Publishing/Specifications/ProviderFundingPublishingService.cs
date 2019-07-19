@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentValidation.Results;
@@ -15,15 +16,19 @@ namespace CalculateFunding.Services.Publishing.Specifications
     public class ProviderFundingPublishingService : SpecificationPublishingBase, IProviderFundingPublishingService
     {
         private readonly ICreateJobsForSpecifications<PublishProviderFundingJobDefinition> _jobs;
+        private readonly IPublishedFundingRepository _publishedFundingRepository;
 
         public ProviderFundingPublishingService(IPublishSpecificationValidator validator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
-            ICreateJobsForSpecifications<PublishProviderFundingJobDefinition> jobs) : base(validator, specifications, resiliencePolicies)
+            ICreateJobsForSpecifications<PublishProviderFundingJobDefinition> jobs,
+            IPublishedFundingRepository publishedFundingRepository) : base(validator, specifications, resiliencePolicies)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
+            Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
 
             _jobs = jobs;
+            _publishedFundingRepository = publishedFundingRepository;
         }
 
         public async Task<IActionResult> PublishProviderFunding(string specificationId,
@@ -58,6 +63,29 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 "Failed to create PublishProviderFundingJob");
 
             return new CreatedResult($"api/jobs/{publishProviderFundingJob.Id}", publishProviderFundingJob);
+        }
+
+        public async Task<IActionResult> GetPublishedProviderVersion(string fundingStreamId,
+                string fundingPeriodId,
+                string providerId,
+                string version)
+        {
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
+            Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
+            Guard.IsNullOrWhiteSpace(version, nameof(version));
+
+            PublishedProviderVersion providerVersion = await ResiliencePolicy.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderVersion(fundingStreamId,
+                fundingPeriodId,
+                providerId,
+                version));
+
+            if (providerVersion == null)
+            {
+                return new NotFoundResult();
+            }
+
+            return new OkObjectResult(providerVersion);
         }
     }
 }

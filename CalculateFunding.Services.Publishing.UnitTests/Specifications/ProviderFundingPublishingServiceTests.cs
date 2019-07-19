@@ -1,5 +1,7 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Specifications;
@@ -13,15 +15,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
     [TestClass]
     public class ProviderFundingPublishingServiceTests : SpecificationPublishingServiceTestsBase<PublishProviderFundingJobDefinition>
     {
-        private ProviderFundingPublishingService _service; 
+        private ProviderFundingPublishingService _service;
+        private IPublishedFundingRepository _publishedFundingRepository;
 
         [TestInitialize]
         public void SetUp()
         {
+            _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
+
             _service = new ProviderFundingPublishingService(Validator,
                 Specifications,
                 ResiliencePolicies,
-                Jobs);
+                Jobs,
+                _publishedFundingRepository);
         }
 
         [TestMethod]
@@ -72,6 +78,56 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             ThenTheResponseShouldBe<CreatedResult>(_ => _.Location == $"api/jobs/{publishFundingJobId}" &&
                                                         ReferenceEquals(_.Value, publishFundingJob));
+        }
+
+        [TestMethod]
+        public async Task ReturnsNotFoundResultIfNoPublishedProviderVersionLocatedWithTheSuppliedMetadata()
+        {
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => _.WithDefaults(version: 1));
+
+            AndTheApiResponseDetailsForPublishedVersionMetaSupplied(null);
+
+            await WhenGetPublishedProviderVersionIsCalled(publishedProviderVersion);
+
+            ThenTheResponseShouldBe<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetsPublishedProviderVersionForSuppliedVersionMetadata()
+        {
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => _.WithDefaults(version: 1));
+
+            AndTheApiResponseDetailsForPublishedVersionMetaSupplied(publishedProviderVersion);
+
+            await WhenGetPublishedProviderVersionIsCalled(publishedProviderVersion);
+
+            ThenTheResponseShouldBe<OkObjectResult>(_ => ReferenceEquals(_.Value, publishedProviderVersion));
+        }
+
+        protected void AndTheApiResponseDetailsForPublishedVersionMetaSupplied(PublishedProviderVersion publishedProviderVersion)
+        {
+            _publishedFundingRepository.GetPublishedProviderVersion(publishedProviderVersion?.FundingStreamId, 
+                publishedProviderVersion?.FundingPeriodId, 
+                publishedProviderVersion?.ProviderId, 
+                publishedProviderVersion?.Version.ToString())
+                .Returns(publishedProviderVersion);
+        }
+
+        protected async Task WhenGetPublishedProviderVersionIsCalled(PublishedProviderVersion publishedProviderVersion)
+        {
+            ActionResult = await _service.GetPublishedProviderVersion(publishedProviderVersion.FundingStreamId,
+                publishedProviderVersion.FundingPeriodId,
+                publishedProviderVersion.ProviderId,
+                publishedProviderVersion.Version.ToString());
+        }
+
+        protected PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
+        {
+            PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
+
+            setUp?.Invoke(publishedProviderVersionBuilder);
+
+            return publishedProviderVersionBuilder.Build();
         }
 
         private async Task WhenTheProviderFundingIsPublished()
