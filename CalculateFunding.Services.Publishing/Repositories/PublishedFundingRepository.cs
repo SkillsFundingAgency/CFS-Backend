@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 
@@ -22,6 +19,15 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
 
             _repository = cosmosRepository;
+        }
+
+        public Task<IEnumerable<PublishedProvider>> GetLatestPublishedProvidersBySpecification(
+            string specificationId)
+        {
+            return Task.FromResult(_repository.Query<PublishedProvider>(true)
+                .Where(_ => _.Current.SpecificationId == specificationId)
+                .AsEnumerable());
+
         }
 
         public async Task<ServiceHealth> IsHealthOk()

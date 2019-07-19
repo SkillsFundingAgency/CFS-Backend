@@ -1,34 +1,44 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Validators;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing.IoC
 {
     public static class PublishingServiceIoCRegistrations
     {
-        public static IServiceCollection AddPublishingServices(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddPublishingServices(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            RegisterSpecificationServiceComponents(serviceCollection);
+            RegisterSpecificationServiceComponents(serviceCollection, configuration);
 
             return serviceCollection;
         }
 
-        private static void RegisterSpecificationServiceComponents(IServiceCollection serviceCollection)
+        private static void RegisterSpecificationServiceComponents(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection
-                .AddSingleton<ISpecificationPublishingService, SpecificationPublishingService>()
-                .AddSingleton<IHealthChecker, SpecificationPublishingService>();
+            serviceCollection.AddTransient<ISpecificationPublishingService, SpecificationPublishingService>();
+            serviceCollection.AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>();
+            serviceCollection.AddTransient<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();
+            serviceCollection.AddSingleton<IPublishedProviderFundingService, PublishedProviderFundingService>();
+            serviceCollection.AddTransient<IPublishedFundingRepository, PublishedFundingRepository>();
+            
+            serviceCollection.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>(serviceProvider =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+               
+                configuration.Bind("CosmosDbSettings", cosmosDbSettings);
 
-            serviceCollection
-                .AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>()
-                .AddSingleton<IHealthChecker, SpecificationPublishingService>();
+                cosmosDbSettings.CollectionName = "calculationresults";
 
-            serviceCollection.AddTransient<IPublishSpecificationValidator, PublishSpecificationValidator>();
+                return new PublishedFundingRepository(new CosmosRepository(cosmosDbSettings));
+            });
+            
             serviceCollection.AddTransient<ICreateJobsForSpecifications<RefreshFundingJobDefinition>>(ctx =>
             {
                 return new JobCreationForSpecification<RefreshFundingJobDefinition>(ctx.GetService<IJobsApiClient>(), 
@@ -50,7 +60,7 @@ namespace CalculateFunding.Services.Publishing.IoC
                     ctx.GetService<ILogger>(),
                     new ApproveFundingJobDefinition());
             });
-            serviceCollection.AddSingleton<ISpecificationsApiClient, SpecificationsApiClient>();
+            serviceCollection.AddTransient<ISpecificationsApiClient, SpecificationsApiClient>();
         }
     }
 }

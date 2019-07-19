@@ -7,12 +7,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
 {
     public abstract class SpecificationPublishingBase
     {
-        protected IPublishSpecificationValidator Validator { get; private set; }
+        protected ISpecificationIdServiceRequestValidator Validator { get; private set; }
         protected ISpecificationsApiClient Specifications { get; private set; }
 
         private readonly IPublishingResiliencePolicies _resiliencePolicies;
 
-        protected SpecificationPublishingBase(IPublishSpecificationValidator validator,
+        protected SpecificationPublishingBase(ISpecificationIdServiceRequestValidator validator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies)
         {

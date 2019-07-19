@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approveFundingJobs;
         private readonly ICacheProvider _cacheProvider;
 
-        public SpecificationPublishingService(IPublishSpecificationValidator validator,
+        public SpecificationPublishingService(ISpecificationIdServiceRequestValidator validator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             ICacheProvider cacheProvider,

@@ -12,15 +12,19 @@ namespace CalculateFunding.Api.Publishing.Controllers
     {
         private readonly ISpecificationPublishingService _specificationPublishingService;
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
+        private readonly IPublishedProviderFundingService _publishedProviderFundingService;
 
         public PublishingController(ISpecificationPublishingService specificationPublishingService,
-            IProviderFundingPublishingService providerFundingPublishingService)
+            IProviderFundingPublishingService providerFundingPublishingService,
+            IPublishedProviderFundingService publishedProviderFundingService)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
+            Guard.ArgumentNotNull(publishedProviderFundingService, nameof(publishedProviderFundingService));
 
             _specificationPublishingService = specificationPublishingService;
             _providerFundingPublishingService = providerFundingPublishingService;
+            _publishedProviderFundingService = publishedProviderFundingService;
         }
 
         /// <summary>
@@ -46,10 +50,18 @@ namespace CalculateFunding.Api.Publishing.Controllers
         public async Task<IActionResult> PublishProviderFunding([FromRoute] string specificationId)
         {
             return await _providerFundingPublishingService.PublishProviderFunding(specificationId,
-                Request.GetUser(),
-                Request.GetCorrelationId());
+                GetUser(),
+                GetCorrelationId());
         }
-
+        
+        [HttpGet("api/specifications/{specificationId}/publishedproviders")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> PublishedProviders([FromRoute] string specificationId)
+        {
+            return await _publishedProviderFundingService
+                .GetLatestPublishedProvidersForSpecificationId(specificationId);
+        }
+        
         /// <summary>
         /// Approve specification
         /// </summary>
@@ -57,14 +69,12 @@ namespace CalculateFunding.Api.Publishing.Controllers
         /// <returns></returns>
         [HttpPost("api/specifications/{specificationId}/approve")]
         [ProducesResponseType(201)]
-        public async Task<IActionResult> ApproveSpecification([FromRoute]string specificationId)
+        public async Task<IActionResult> ApproveSpecification([FromRoute] string specificationId)
         {
-            string controllerName = string.Empty;
+            var controllerName = string.Empty;
 
-            if (this.ControllerContext.RouteData.Values.ContainsKey("controller"))
-            {
-                controllerName = (string)this.ControllerContext.RouteData.Values["controller"];
-            }
+            if (ControllerContext.RouteData.Values.ContainsKey("controller"))
+                controllerName = (string) ControllerContext.RouteData.Values["controller"];
 
             return await _specificationPublishingService.ApproveSpecification(
                 nameof(ApproveSpecification),
@@ -73,6 +83,16 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 ControllerContext.HttpContext.Request,
                 Request.GetUser(),
                 Request.GetCorrelationId());
+        }
+
+        private Reference GetUser()
+        {
+            return Request.GetUser();
+        }
+
+        private string GetCorrelationId()
+        {
+            return Request.GetCorrelationId();
         }
     }
 }

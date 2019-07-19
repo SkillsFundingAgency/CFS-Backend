@@ -3,7 +3,7 @@ using FluentValidation.Results;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IPublishSpecificationValidator
+    public interface ISpecificationIdServiceRequestValidator
     {
         ValidationResult Validate(string specificationId);
     }

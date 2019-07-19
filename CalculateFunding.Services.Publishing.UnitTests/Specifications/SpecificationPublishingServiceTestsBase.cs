@@ -9,12 +9,10 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Specifications;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Polly;
 using SpecModels = CalculateFunding.Models.Specs;
@@ -24,32 +22,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
     public abstract class SpecificationPublishingServiceTestsBase<TJobDefinition>
         where TJobDefinition : IJobDefinition
     {
+        private ValidationResult _validationResult;
+        
         protected ISpecificationsApiClient Specifications { get; private set; }
         protected ICreateJobsForSpecifications<TJobDefinition> Jobs { get; private set; }
-        protected ValidationResult ValidationResult { get; private set; }
         protected IActionResult ActionResult { get; set; }
         protected string SpecificationId { get; private set; }
         protected string CorrelationId { get; private set; }
         protected Reference User { get; private set; }
-        protected IPublishSpecificationValidator Validator { get; private set; }
+        protected ISpecificationIdServiceRequestValidator Validator { get; private set; }
         protected ResiliencePolicies ResiliencePolicies { get; private set; }
         protected SpecModels.SpecificationApprovalModel CreateApprovalModel { get; private set; }
 
         [TestInitialize]
         public void TestBaseSetUp()
         {
-            ValidationResult = new ValidationResult();
+            _validationResult = new ValidationResult();
             SpecificationId = NewRandomString();
             CorrelationId = NewRandomString();
             User = NewUser();
             Jobs = Substitute.For<ICreateJobsForSpecifications<TJobDefinition>>();
 
-            CreateApprovalModel = new SpecModels.SpecificationApprovalModel { FundingStreamId = NewRandomString(), Providers = new List<string> { NewRandomString(), NewRandomString() } };
+            CreateApprovalModel = new SpecModels.SpecificationApprovalModel
+            {
+                FundingStreamId = NewRandomString(), Providers = new List<string> {NewRandomString(), NewRandomString()}
+            };
 
-            Validator = Substitute.For<IPublishSpecificationValidator>();
+            Validator = Substitute.For<ISpecificationIdServiceRequestValidator>();
 
             Validator.Validate(SpecificationId)
-                .Returns(ValidationResult);
+                .Returns(_validationResult);
 
             Specifications = Substitute.For<ISpecificationsApiClient>();
 
@@ -64,7 +66,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             return new RandomString();
         }
 
-        protected Reference NewUser(Action<UserBuilder> setUp = null)
+        private Reference NewUser(Action<UserBuilder> setUp = null)
         {
             UserBuilder userBuilder = new UserBuilder();
 
@@ -101,10 +103,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         protected void GivenTheValidationErrors(params string[] errors)
         {
-            foreach (string error in errors)
-            {
-                ValidationResult.Errors.Add(new ValidationFailure(error, error));
-            }
+            foreach (var error in errors) _validationResult.Errors.Add(new ValidationFailure(error, error));
         }
 
         protected void ThenTheResponseShouldBe<TActionResult>(Expression<Func<TActionResult, bool>> matcher = null)
@@ -114,10 +113,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .Should()
                 .BeOfType<TActionResult>();
 
-            if (matcher == null)
-            {
-                return;
-            }
+            if (matcher == null) return;
 
             ((TActionResult) ActionResult)
                 .Should()

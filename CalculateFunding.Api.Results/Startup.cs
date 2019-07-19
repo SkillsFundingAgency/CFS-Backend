@@ -104,17 +104,17 @@ namespace CalculateFunding.Api.Results
                 .AddSingleton(resultsConfig.CreateMapper());
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
-            {
-                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
-
-                Configuration.Bind("CosmosDbSettings", calssDbSettings);
-
-                calssDbSettings.CollectionName = "calculationresults";
-
-                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
-
-                return new CalculationResultsRepository(calcsCosmosRepostory);
-            });
+                           {
+                               CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+               
+                               Configuration.Bind("CosmosDbSettings", calssDbSettings);
+               
+                               calssDbSettings.CollectionName = "calculationresults";
+               
+                               CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+               
+                               return new CalculationResultsRepository(calcsCosmosRepostory);
+                           });
 
             builder.AddSingleton<IProviderSourceDatasetRepository, ProviderSourceDatasetRepository>((ctx) =>
             {

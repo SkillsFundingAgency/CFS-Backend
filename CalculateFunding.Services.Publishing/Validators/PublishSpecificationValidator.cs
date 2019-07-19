@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace CalculateFunding.Services.Publishing.Validators
 {
-    public class PublishSpecificationValidator : AbstractValidator<string>, IPublishSpecificationValidator
+    public class PublishSpecificationValidator : AbstractValidator<string>, ISpecificationIdServiceRequestValidator
     {
         public PublishSpecificationValidator()
         {

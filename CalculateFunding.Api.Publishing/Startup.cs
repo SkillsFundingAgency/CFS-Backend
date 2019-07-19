@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
 using CalculateFunding.Common.CosmosDb;
@@ -11,7 +11,6 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
-using CalculateFunding.Services.Publishing.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -60,11 +59,13 @@ namespace CalculateFunding.Api.Publishing
             else
             {
                 app.UseHsts();
-
+                
                 app.UseMiddleware<LoggedInUserMiddleware>();
 
                 app.UseMiddleware<ApiKeyMiddleware>();
             }
+        
+           app.UseHttpsRedirection();
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
@@ -95,33 +96,21 @@ namespace CalculateFunding.Api.Publishing
             builder.AddPolicySettings(Configuration);
             builder.AddHttpContextAccessor();
             builder.AddHealthCheckMiddleware();
-            builder.AddPublishingServices();
+            builder.AddPublishingServices(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
-            builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>(
-                ctx =>
-                {
-                    CosmosDbSettings publishedFundingRepoDbSettings = new CosmosDbSettings();
-
-                    Configuration.Bind("CosmosDbSettings", publishedFundingRepoDbSettings);
-
-                    publishedFundingRepoDbSettings.CollectionName = "publishedfunding";
-
-                    CosmosRepository cosmosRepository = new CosmosRepository(publishedFundingRepoDbSettings);
-
-                    return new PublishedFundingRepository(cosmosRepository);
-                });
             builder.AddSingleton<IPublishingResiliencePolicies>(ctx =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-
+                
                 return new ResiliencePolicies
                 {
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    PublishedFundingRepoository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                    PublishedFundingRepoository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    PublishedFundingRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }
