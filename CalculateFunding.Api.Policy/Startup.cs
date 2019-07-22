@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using Serilog;
 using Swashbuckle.AspNetCore.Swagger;
 using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
@@ -175,9 +176,9 @@ namespace CalculateFunding.Api.Policy
 
             builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
             {
-                TemplateMetadataResolver resolver = ctx.GetService<TemplateMetadataResolver>();
+                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
 
-                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = ctx.GetService<TemplateMetadataSchema10.TemplateMetadataGenerator>();
+                TemplateMetadataSchema10.TemplateMetadataGenerator schema10Generator = new TemplateMetadataSchema10.TemplateMetadataGenerator(ctx.GetService<ILogger>());
 
                 resolver.Register("1.0", schema10Generator);
 
