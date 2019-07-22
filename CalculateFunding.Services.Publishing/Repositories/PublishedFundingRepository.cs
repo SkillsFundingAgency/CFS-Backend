@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,7 +5,6 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 
@@ -14,7 +12,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
 {
     public class PublishedFundingRepository : IPublishedFundingRepository
     {
-        readonly ICosmosRepository _repository;
+        private readonly ICosmosRepository _repository;
 
         public PublishedFundingRepository(ICosmosRepository cosmosRepository)
         {
@@ -23,34 +21,37 @@ namespace CalculateFunding.Services.Publishing.Repositories
             _repository = cosmosRepository;
         }
 
-        public async Task<ServiceHealth> IsHealthOk()
-        {
-            var cosmosRepoHealth = await _repository.IsHealthOk();
-
-            ServiceHealth health = new ServiceHealth()
-            {
-                Name = nameof(PublishedFundingRepository)
-            };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _repository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
-
-            return health;
-        }
-
-
         public Task<IEnumerable<PublishedProvider>> GetLatestPublishedProvidersBySpecification(
             string specificationId)
         {
             return Task.FromResult(_repository.Query<PublishedProvider>(true)
                 .Where(_ => _.Current.SpecificationId == specificationId)
                 .AsEnumerable());
-
         }
 
-      
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) cosmosRepoHealth = await _repository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth
+            {
+                Name = nameof(PublishedFundingRepository)
+            };
+            
+            health.Dependencies.Add(new DependencyHealth
+            {
+                HealthOk = cosmosRepoHealth.Ok,
+                DependencyName = _repository.GetType().GetFriendlyName(),
+                Message = cosmosRepoHealth.Message
+            });
+
+            return health;
+        }
+
         public async Task<PublishedProviderVersion> GetPublishedProviderVersion(string fundingStreamId,
-                string fundingPeriodId,
-                string providerId,
-                string version)
+            string fundingPeriodId,
+            string providerId,
+            string version)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
@@ -58,7 +59,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(version, nameof(version));
 
 
-            string id = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}-{version}";
+            var id = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}-{version}";
 
             return (await _repository.ReadAsync<PublishedProviderVersion>(id, true))?.Content;
         }

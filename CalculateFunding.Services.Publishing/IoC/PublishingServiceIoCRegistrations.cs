@@ -1,6 +1,7 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
@@ -22,11 +23,13 @@ namespace CalculateFunding.Services.Publishing.IoC
 
         private static void RegisterSpecificationServiceComponents(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection.AddTransient<ISpecificationPublishingService, SpecificationPublishingService>();
+            serviceCollection.AddSingleton<ISpecificationPublishingService, SpecificationPublishingService>();
             serviceCollection.AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>();
-            serviceCollection.AddTransient<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();
+            serviceCollection.AddSingleton<IHealthChecker, ProviderFundingPublishingService>();
+            serviceCollection.AddSingleton<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();
             serviceCollection.AddSingleton<IPublishedProviderFundingService, PublishedProviderFundingService>();
-            serviceCollection.AddTransient<IPublishedFundingRepository, PublishedFundingRepository>();
+            serviceCollection.AddSingleton<IHealthChecker, PublishedProviderFundingService>();
+            serviceCollection.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>();
             
             serviceCollection.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>(serviceProvider =>
             {

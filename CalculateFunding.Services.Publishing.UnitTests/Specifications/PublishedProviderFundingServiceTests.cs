@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Specifications;
@@ -82,6 +84,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                     thirdExpectedVersion
                 }));
         }
+        
+        [TestMethod]
+        public async Task HealthCheckCollectsStatusFromRepository()
+        {
+            DependencyHealth firstExpectedDependency = new DependencyHealth();
+            DependencyHealth secondExpectedDependency = new DependencyHealth();
+            DependencyHealth thirdExpectedDependency = new DependencyHealth();
+
+            GivenTheRepositoryServiceHealth(firstExpectedDependency,
+                secondExpectedDependency,
+                thirdExpectedDependency);
+
+            ServiceHealth isHealthOk = await _service.IsHealthOk();
+
+            isHealthOk
+                .Should()
+                .NotBeNull();
+
+            isHealthOk
+                .Name
+                .Should()
+                .Be(nameof(PublishedProviderFundingService));
+
+            isHealthOk
+                .Dependencies
+                .Should()
+                .BeEquivalentTo(firstExpectedDependency, secondExpectedDependency, thirdExpectedDependency);
+        }
 
         private async Task WhenThePublishedProvidersAreQueried()
         {
@@ -135,6 +165,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             setUp?.Invoke(builder);
 
             return builder.Build();
+        }
+        
+        private void GivenTheRepositoryServiceHealth(params DependencyHealth[] dependencies)
+        {
+            ServiceHealth serviceHealth = new ServiceHealth();
+
+            serviceHealth.Dependencies.AddRange(dependencies);
+
+            _publishedFunding.IsHealthOk().Returns(serviceHealth);
         }
     }
 }

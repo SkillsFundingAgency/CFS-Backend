@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -39,6 +40,18 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 _publishedFunding.GetLatestPublishedProvidersBySpecification(specificationId));
 
             return new OkObjectResult(publishedProviders.Select(_ => _.Current).ToArray());
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            ServiceHealth health = new ServiceHealth
+            {
+                Name = nameof(PublishedProviderFundingService)
+            };
+
+            health.Dependencies.AddRange((await _publishedFunding.IsHealthOk()).Dependencies);
+
+            return health;
         }
     }
 }

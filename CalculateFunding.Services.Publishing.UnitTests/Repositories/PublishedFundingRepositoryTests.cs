@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Repositories;
@@ -30,6 +31,35 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .Returns(_providers.AsQueryable());
 
             _repository = new PublishedFundingRepository(_cosmosRepository);
+        }
+
+        [TestMethod]
+        public async Task IsHealthOkChecksCosmosRepository()
+        {
+            RandomBoolean expectedIsOkFlag = new RandomBoolean();
+            RandomString expectedMessage = new RandomString();
+
+            GivenTheRepositoryServiceHealth(expectedIsOkFlag, expectedMessage);
+
+            ServiceHealth isHealthOk = await _repository.IsHealthOk();
+
+            isHealthOk
+                .Should()
+                .NotBeNull();
+
+            isHealthOk
+                .Name
+                .Should()
+                .Be(nameof(PublishedFundingRepository));
+
+            DependencyHealth dependencyHealth = isHealthOk
+                .Dependencies
+                .FirstOrDefault();
+
+            dependencyHealth
+                .Should()
+                .Match<DependencyHealth>(_ => _.HealthOk == expectedIsOkFlag &&
+                                              _.Message == expectedMessage);
         }
 
         [TestMethod]
@@ -78,6 +108,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             setUp?.Invoke(builder);
 
             return builder.Build();
+        }
+
+        private void GivenTheRepositoryServiceHealth(bool expectedIsOkFlag, string expectedMessage)
+        {
+            _cosmosRepository.IsHealthOk().Returns((expectedIsOkFlag, expectedMessage));
         }
     }
 }

@@ -1,11 +1,14 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CalculateFunding.Services.Publishing.Specifications
@@ -31,15 +34,13 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth publishedFundingRepoHealth = await _publishedFundingRepository.IsHealthOk();
-
-            ServiceHealth health = new ServiceHealth()
+            ServiceHealth health = new ServiceHealth
             {
                 Name = nameof(ProviderFundingPublishingService)
             };
 
-            health.Dependencies.AddRange(publishedFundingRepoHealth.Dependencies);
-            
+            health.Dependencies.AddRange((await _publishedFundingRepository.IsHealthOk()).Dependencies);
+
             return health;
         }
 
@@ -47,21 +48,21 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Reference user,
             string correlationId)
         {
-            var validationResult = Validator.Validate(specificationId);
+            ValidationResult validationResult = Validator.Validate(specificationId);
 
             if (!validationResult.IsValid) return validationResult.AsBadRequest();
 
             var specificationIdResponse =
                 await ResiliencePolicy.ExecuteAsync(() => Specifications.GetSpecificationSummaryById(specificationId));
 
-            var specificationSummary = specificationIdResponse.Content;
+            SpecificationSummary specificationSummary = specificationIdResponse.Content;
 
             if (specificationSummary == null) return new NotFoundResult();
 
             if (!specificationSummary.IsSelectedForFunding)
                 return new PreconditionFailedResult("The Specification must be selected for funding");
 
-            var publishProviderFundingJob = await _jobs.CreateJob(specificationId, user, correlationId);
+            Job publishProviderFundingJob = await _jobs.CreateJob(specificationId, user, correlationId);
 
             Guard.ArgumentNotNull(publishProviderFundingJob, nameof(publishProviderFundingJob),
                 "Failed to create PublishProviderFundingJob");
@@ -70,24 +71,22 @@ namespace CalculateFunding.Services.Publishing.Specifications
         }
 
         public async Task<IActionResult> GetPublishedProviderVersion(string fundingStreamId,
-                string fundingPeriodId,
-                string providerId,
-                string version)
+            string fundingPeriodId,
+            string providerId,
+            string version)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
             Guard.IsNullOrWhiteSpace(providerId, nameof(providerId));
             Guard.IsNullOrWhiteSpace(version, nameof(version));
 
-            PublishedProviderVersion providerVersion = await ResiliencePolicy.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProviderVersion(fundingStreamId,
-                fundingPeriodId,
-                providerId,
-                version));
+            PublishedProviderVersion providerVersion = await ResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.GetPublishedProviderVersion(fundingStreamId,
+                    fundingPeriodId,
+                    providerId,
+                    version));
 
-            if (providerVersion == null)
-            {
-                return new NotFoundResult();
-            }
+            if (providerVersion == null) return new NotFoundResult();
 
             return new OkObjectResult(providerVersion);
         }

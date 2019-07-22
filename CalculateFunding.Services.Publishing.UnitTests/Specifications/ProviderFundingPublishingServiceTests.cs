@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Specifications;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -28,6 +30,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 ResiliencePolicies,
                 Jobs,
                 _publishedFundingRepository);
+        }
+
+        [TestMethod]
+        public async Task HealthCheckCollectsStatusFromRepository()
+        {
+            DependencyHealth firstExpectedDependency = new DependencyHealth();
+            DependencyHealth secondExpectedDependency = new DependencyHealth();
+            DependencyHealth thirdExpectedDependency = new DependencyHealth();
+
+            GivenTheRepositoryServiceHealth(firstExpectedDependency,
+                secondExpectedDependency,
+                thirdExpectedDependency);
+
+            ServiceHealth isHealthOk = await _service.IsHealthOk();
+
+            isHealthOk
+                .Should()
+                .NotBeNull();
+
+            isHealthOk
+                .Name
+                .Should()
+                .Be(nameof(ProviderFundingPublishingService));
+
+            isHealthOk
+                .Dependencies
+                .Should()
+                .BeEquivalentTo(firstExpectedDependency, secondExpectedDependency, thirdExpectedDependency);
         }
 
         [TestMethod]
@@ -67,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task CreatesPublishFundingJobForSpecificationWithSuppliedId()
         {
-            string publishFundingJobId = NewRandomString();
+            var publishFundingJobId = NewRandomString();
             ApiJob publishFundingJob = NewJob(_ => _.WithId(publishFundingJobId));
 
             GivenTheApiResponseDetailsForTheSuppliedId(NewApiSpecificationSummary(_ =>
@@ -83,7 +113,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task ReturnsNotFoundResultIfNoPublishedProviderVersionLocatedWithTheSuppliedMetadata()
         {
-            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => _.WithDefaults(version: 1));
+            PublishedProviderVersion publishedProviderVersion =
+                NewPublishedProviderVersion(_ => _.WithDefaults(version: 1));
 
             AndTheApiResponseDetailsForPublishedVersionMetaSupplied(null);
 
@@ -95,7 +126,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task GetsPublishedProviderVersionForSuppliedVersionMetadata()
         {
-            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion(_ => _.WithDefaults(version: 1));
+            PublishedProviderVersion publishedProviderVersion =
+                NewPublishedProviderVersion(_ => _.WithDefaults(version: 1));
 
             AndTheApiResponseDetailsForPublishedVersionMetaSupplied(publishedProviderVersion);
 
@@ -104,16 +136,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             ThenTheResponseShouldBe<OkObjectResult>(_ => ReferenceEquals(_.Value, publishedProviderVersion));
         }
 
-        protected void AndTheApiResponseDetailsForPublishedVersionMetaSupplied(PublishedProviderVersion publishedProviderVersion)
+        private void AndTheApiResponseDetailsForPublishedVersionMetaSupplied(
+            PublishedProviderVersion publishedProviderVersion)
         {
-            _publishedFundingRepository.GetPublishedProviderVersion(publishedProviderVersion?.FundingStreamId, 
-                publishedProviderVersion?.FundingPeriodId, 
-                publishedProviderVersion?.ProviderId, 
-                publishedProviderVersion?.Version.ToString())
+            _publishedFundingRepository.GetPublishedProviderVersion(publishedProviderVersion?.FundingStreamId,
+                    publishedProviderVersion?.FundingPeriodId,
+                    publishedProviderVersion?.ProviderId,
+                    publishedProviderVersion?.Version.ToString())
                 .Returns(publishedProviderVersion);
         }
 
-        protected async Task WhenGetPublishedProviderVersionIsCalled(PublishedProviderVersion publishedProviderVersion)
+        private async Task WhenGetPublishedProviderVersionIsCalled(PublishedProviderVersion publishedProviderVersion)
         {
             ActionResult = await _service.GetPublishedProviderVersion(publishedProviderVersion.FundingStreamId,
                 publishedProviderVersion.FundingPeriodId,
@@ -121,7 +154,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 publishedProviderVersion.Version.ToString());
         }
 
-        protected PublishedProviderVersion NewPublishedProviderVersion(Action<PublishedProviderVersionBuilder> setUp = null)
+        private PublishedProviderVersion NewPublishedProviderVersion(
+            Action<PublishedProviderVersionBuilder> setUp = null)
         {
             PublishedProviderVersionBuilder publishedProviderVersionBuilder = new PublishedProviderVersionBuilder();
 
@@ -133,6 +167,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private async Task WhenTheProviderFundingIsPublished()
         {
             ActionResult = await _service.PublishProviderFunding(SpecificationId, User, CorrelationId);
+        }
+
+        private void GivenTheRepositoryServiceHealth(params DependencyHealth[] dependencies)
+        {
+            ServiceHealth serviceHealth = new ServiceHealth();
+
+            serviceHealth.Dependencies.AddRange(dependencies);
+
+            _publishedFundingRepository.IsHealthOk().Returns(serviceHealth);
         }
     }
 }
