@@ -5,40 +5,49 @@
   "schedule": { "interval": "PT2H" },
   "fieldMappings": [
     {
-      "sourceFieldName": "/id",
+      "sourceFieldName": "/funding/id",
       "targetFieldName": "id"
     },
     {
-      "sourceFieldName": "/statusChangedDate",
+      "sourceFieldName": "/funding/statusChangedDate",
       "targetFieldName": "statusChangedDate" 
     },
     {
-      "sourceFieldName": "/fundingStreamId",
+      "sourceFieldName": "/funding/fundingStream/id",
       "targetFieldName": "fundingStreamId"
     },
     {
-      "sourceFieldName": "/fundingPeriodId",
+      "sourceFieldName": "/funding/fundingPeriod/id",
       "targetFieldName": "fundingPeriodId"
     },
     {
-      "sourceFieldName": "/groupingType",
+      "sourceFieldName": "/funding/groupingReason",
       "targetFieldName": "groupingType"
     },
     {
-      "sourceFieldName": "/identifierType",
+      "sourceFieldName": "/funding/organisationGroup/mainIdentifierType",
       "targetFieldName": "identifierType"
     },
     {
-      "sourceFieldName": "/identifierCode",
+      "sourceFieldName": "/funding/organisationGroup/mainIdentifierCode",
       "targetFieldName": "identifierCode"
     },
     {
-      "sourceFieldName": "/version",
+      "sourceFieldName": "/funding/fundingVersion",
       "targetFieldName": "version"
     },
     {
-      "sourceFieldName": "/documentPath",
+      "sourceFieldName": "metadata_storage_path",
       "targetFieldName": "documentPath"
+    },
+    {
+      "sourceFieldName": "/deleted",
+      "targetFieldName": "deleted"
     }
-  ]
+  ],
+  "parameters": {
+    "configuration": {
+      "parsingMode": "json"
+    }
+  }
 }

@@ -54,6 +54,10 @@
       "name": "documentPath",
       "type": "Edm.String",
       "retrievable":true
+    },
+    {
+      "name": "deleted",
+      "type": "Edm.Boolean"
     }
   ]
 }

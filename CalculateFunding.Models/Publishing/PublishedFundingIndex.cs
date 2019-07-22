@@ -55,5 +55,8 @@ namespace CalculateFunding.Models.Publishing
         [IsRetrievable(true)]
         [JsonProperty("documentPath")]
         public string DocumentPath { get; set; }
+
+        [JsonProperty("deleted")]
+        public bool Deleted { get; set; }
     }
 }
