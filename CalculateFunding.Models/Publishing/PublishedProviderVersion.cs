@@ -1,8 +1,5 @@
 ﻿using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Publishing
 {
@@ -30,7 +27,7 @@ namespace CalculateFunding.Models.Publishing
         }
 
         [JsonProperty("status")]
-        public PublishedProviderStatus Status { get; set; }
+        public PublishedProviderStatus Status { get; set;}
 
         [JsonProperty("providerId")]
         public string ProviderId { get; set; }

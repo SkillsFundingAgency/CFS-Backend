@@ -1,4 +1,4 @@
-using CalculateFunding.Common.Models;
+﻿using CalculateFunding.Common.Models;
 
 namespace CalculateFunding.Models.Publishing
 {

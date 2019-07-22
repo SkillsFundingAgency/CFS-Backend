@@ -15,6 +15,10 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Services.Publishing.IoC;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -43,6 +47,20 @@ namespace CalculateFunding.Functions.Publishing
         private static IServiceProvider Register(IServiceCollection builder,
             IConfigurationRoot config)
         {
+            builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "publishedfunding";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new PublishedFundingRepository(calcsCosmosRepostory);
+            });
+
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddCaching(config);
             builder.AddSingleton<OnRefreshFunding>();
             builder.AddSingleton<OnApproveFunding>();
@@ -54,6 +72,28 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IRefreshService, RefreshService>();
             builder.AddSingleton<IApproveService, ApproveService>();
             builder.AddSingleton<IPublishService, PublishService>();
+
+            builder
+                .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>()
+                .AddSingleton<IHealthChecker, PublishedProviderVersioningService>();
+
+            builder
+                .AddSingleton<IPublishedProviderStatusUpdateService, PublishedProviderStatusUpdateService>()
+                .AddSingleton<IHealthChecker, PublishedProviderStatusUpdateService>();
+
+            builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
+            {
+                CosmosDbSettings publishedProviderVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", publishedProviderVersioningDbSettings);
+
+                publishedProviderVersioningDbSettings.CollectionName = "publishedfunding";
+
+                CosmosRepository resultsRepostory = new CosmosRepository(publishedProviderVersioningDbSettings);
+
+                return new VersionRepository<PublishedProviderVersion>(resultsRepostory);
+            }).AddSingleton<IHealthChecker, VersionRepository<PublishedProviderVersion>>();
+
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
             {
@@ -83,6 +123,8 @@ namespace CalculateFunding.Functions.Publishing
             PolicySettings policySettings = builder.GetPolicySettings(config);
             ResiliencePolicies publishingResiliencePolicies = CreateResiliencePolicies(policySettings);
 
+            builder.AddPublishingServices(config);
+
             builder.AddSingleton<IPublishingResiliencePolicies>(publishingResiliencePolicies);
 
             return builder.BuildServiceProvider();
@@ -94,7 +136,9 @@ namespace CalculateFunding.Functions.Publishing
 
             ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
             {
-                ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;

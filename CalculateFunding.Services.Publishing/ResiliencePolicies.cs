@@ -13,6 +13,8 @@ namespace CalculateFunding.Services.Publishing
         
         public Policy PublishedFundingRepositoryPolicy { get; set; }
 
-        public Policy PublishedFundingRepoository { get; set; }
+        public Policy PublishedFundingRepository { get; set; }
+
+        public Policy PublishedProviderVersionRepository { get; set; }
     }
 }

@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Versioning;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Core.Services
 {
-    public class VersionRepository<T> : IVersionRepository<T> where T : VersionedItem
+    public class VersionRepository<T> : IHealthChecker, IVersionRepository<T> where T : VersionedItem
     {
         private readonly ICosmosRepository _cosmosRepository;
 
@@ -19,6 +21,19 @@ namespace CalculateFunding.Services.Core.Services
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
 
             _cosmosRepository = cosmosRepository;
+        }
+
+        public async Task<ServiceHealth> IsHealthOk()
+        {
+            (bool Ok, string Message) = await _cosmosRepository.IsHealthOk();
+
+            ServiceHealth health = new ServiceHealth()
+            {
+                Name = nameof(VersionRepository<T>)
+            };
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message });
+
+            return health;
         }
 
         public async Task SaveVersion(T newVersion)

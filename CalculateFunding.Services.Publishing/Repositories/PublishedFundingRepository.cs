@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -21,15 +23,6 @@ namespace CalculateFunding.Services.Publishing.Repositories
             _repository = cosmosRepository;
         }
 
-        public Task<IEnumerable<PublishedProvider>> GetLatestPublishedProvidersBySpecification(
-            string specificationId)
-        {
-            return Task.FromResult(_repository.Query<PublishedProvider>(true)
-                .Where(_ => _.Current.SpecificationId == specificationId)
-                .AsEnumerable());
-
-        }
-
         public async Task<ServiceHealth> IsHealthOk()
         {
             var cosmosRepoHealth = await _repository.IsHealthOk();
@@ -43,6 +36,17 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return health;
         }
 
+
+        public Task<IEnumerable<PublishedProvider>> GetLatestPublishedProvidersBySpecification(
+            string specificationId)
+        {
+            return Task.FromResult(_repository.Query<PublishedProvider>(true)
+                .Where(_ => _.Current.SpecificationId == specificationId)
+                .AsEnumerable());
+
+        }
+
+      
         public async Task<PublishedProviderVersion> GetPublishedProviderVersion(string fundingStreamId,
                 string fundingPeriodId,
                 string providerId,
