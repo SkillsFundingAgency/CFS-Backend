@@ -17,6 +17,10 @@ namespace CalculateFunding.Api.Providers
                 {
                     ConfigHelper.LoadConfiguration(config);
                 })
+                 .ConfigureKestrel((context, options) =>
+                 {
+                     options.Limits.MaxRequestBodySize = 104857600;
+                 })
                 .UseStartup<Startup>()
                 .Build();
     }
