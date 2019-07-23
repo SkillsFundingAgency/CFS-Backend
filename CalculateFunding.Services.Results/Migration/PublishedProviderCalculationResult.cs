@@ -32,9 +32,6 @@ namespace CalculateFunding.Services.Results.Migration
         [JsonProperty("fundingPeriod")]
         public Reference FundingPeriod { get; set; }
 
-        [JsonProperty("isPublic")]
-        public bool IsPublic { get; set; }
-
         [JsonProperty("status")]
         public PublishStatus Status { get; set; }
 

@@ -15,9 +15,6 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
 
-        [JsonProperty("isPublic")]
-        public bool IsPublic { get; set; }
-
         [JsonProperty("lastUpdated")]
         public DateTimeOffset LastUpdated { get; set; }
 

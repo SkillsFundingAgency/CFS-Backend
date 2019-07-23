@@ -9,9 +9,6 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
 
-        [JsonProperty("isPublic")]
-        public bool IsPublic { get; set; }
-
         [JsonProperty("status")]
         public PublishStatus Status { get; set; }
 

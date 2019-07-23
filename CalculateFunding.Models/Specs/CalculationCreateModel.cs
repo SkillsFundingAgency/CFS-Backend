@@ -11,7 +11,5 @@
         public string Name { get; set; }
 
         public CalculationType CalculationType { get; set; }
-
-        public bool IsPublic { get; set; }
     }
 }

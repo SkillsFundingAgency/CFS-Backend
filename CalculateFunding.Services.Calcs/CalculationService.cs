@@ -581,7 +581,6 @@ namespace CalculateFunding.Services.Calcs
 
             calculation.Name = calculationVersionComparison.Current.Name;
             calculation.Description = calculationVersionComparison.Current.Description;
-            calculation.IsPublic = calculationVersionComparison.Current.IsPublic;
             calculation.AllocationLine = calculationVersionComparison.Current.AllocationLine;
 
             if ((int)calculation.CalculationType != (int)calculationVersionComparison.Current.CalculationType)
@@ -651,31 +650,6 @@ namespace CalculateFunding.Services.Calcs
             IEnumerable<IndexError> indexingResults = await _calculationSearchRepositoryPolicy.ExecuteAsync(() => _searchRepository.Index(indexes));
 
             await UpdateBuildProject(specificationId);
-
-            Reference user = message.GetUserDetails();
-
-            if (calculationVersionComparison.RequiresCalculationRun)
-            {
-                Job job = await SendInstructAllocationsToJobService(specificationId, user.Id, user.Name, new Trigger
-                {
-                    EntityId = calculation.Id,
-                    EntityType = nameof(Calculation),
-                    Message = $"Calculation IsPublic changed: '{calculationId}' for specification: '{calculation.SpecificationId}'"
-                }, message.GetCorrelationId());
-
-                if (job != null)
-                {
-                    _logger.Information($"New job of type '{job.JobDefinitionId}' created with id: '{job.Id}'");
-                }
-                else
-                {
-                    string errorMessage = $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{calculation.SpecificationId}'";
-
-                    _logger.Error(errorMessage);
-
-                    throw new RetriableException(errorMessage);
-                }
-            }
         }
 
         public async Task<IEnumerable<Calculation>> UpdateCalculationCodeOnCalculationSpecificationChange(CalculationVersionComparisonModel comparison, Reference user)
@@ -1333,7 +1307,6 @@ namespace CalculateFunding.Services.Calcs
                 Id = calculation.Id,
                 Name = calculation.Name,
                 CalculationType = calculation.CalculationType,
-                IsPublic = calculation.IsPublic,
                 Status = calculation.Current.PublishStatus,
                 Version = calculation.Current.Version
             };

@@ -1391,19 +1391,6 @@ namespace CalculateFunding.Services.Specs
             calculation.LastUpdated = DateTimeOffset.Now;
             calculation.CalculationType = editModel.CalculationType;
 
-            if (calculation.CalculationType == CalculationType.Number)
-            {
-                calculation.IsPublic = editModel.IsPublic;
-            }
-            else if (calculation.CalculationType == CalculationType.Baseline)
-            {
-                calculation.IsPublic = true;
-            }
-            else
-            {
-                calculation.IsPublic = false;
-            }
-
             FundingStream currentFundingStream = null;
             if (!string.IsNullOrWhiteSpace(editModel.AllocationLineId))
             {

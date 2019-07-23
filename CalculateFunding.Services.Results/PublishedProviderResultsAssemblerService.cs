@@ -241,16 +241,10 @@ namespace CalculateFunding.Services.Results
                         throw new NonRetriableException($"Calculation specification not found in specification. Calculation Spec Id ='{calculationResult?.CalculationSpecification?.Id}'");
                     }
 
-                    if (calculation.CalculationType == CalculationType.Number && !calculation.IsPublic)
-                    {
-                        continue;
-                    }
-
                     PublishedProviderCalculationResult publishedProviderCalculationResult = new PublishedProviderCalculationResult()
                     {
                         CalculationSpecification = calculationResult.CalculationSpecification,
                         AllocationLine = calculationResult.AllocationLine,
-                        IsPublic = calculation.IsPublic,
                         CalculationType = ConvertCalculationType(calculationResult.CalculationType),
                         Value = calculationResult.Value,
                         CalculationVersion = calculationResult.Version

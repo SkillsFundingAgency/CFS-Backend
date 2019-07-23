@@ -13,9 +13,6 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 
-        [JsonProperty("isPublic")]
-        public bool IsPublic { get; set; }
-
         [JsonProperty("status")]
         public PublishStatus Status { get; set; }
 

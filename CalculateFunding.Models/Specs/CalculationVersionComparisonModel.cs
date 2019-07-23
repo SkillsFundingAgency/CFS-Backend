@@ -13,19 +13,10 @@ namespace CalculateFunding.Models.Specs
         public Calculation Previous { get; set; }
 
         [JsonIgnore]
-        public bool RequiresCalculationRun => Current.IsPublic != Previous.IsPublic;
-
-        [JsonIgnore]
-        public bool HasChanges
-        {
-            get
-            {
-                return (Current.Name != Previous.Name) 
-                    || (Current.Description != Previous.Description) 
-                    || (Current.CalculationType != Previous.CalculationType)
-                    || (Current.IsPublic != Previous.IsPublic)
-                    || (Current.AllocationLine?.Id != Previous.AllocationLine?.Id);
-            }
-        }
+        public bool HasChanges =>
+            (Current.Name != Previous.Name) 
+            || (Current.Description != Previous.Description) 
+            || (Current.CalculationType != Previous.CalculationType)
+            || (Current.AllocationLine?.Id != Previous.AllocationLine?.Id);
     }
 }

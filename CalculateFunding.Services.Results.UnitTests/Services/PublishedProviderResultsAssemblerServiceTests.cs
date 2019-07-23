@@ -1205,7 +1205,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             allocationLine1
                 .Calculations
                 .Should()
-                .HaveCount(1);
+                .HaveCount(2);
 
             PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
 
@@ -1221,11 +1221,11 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             allocationLine2
                 .Calculations
                 .Should()
-                .HaveCount(1);
+                .HaveCount(2);
         }
 
         [TestMethod]
-        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithThreeCalcsAndNumberIsPublic_EnsuresTwoResultsAssembledWithOneFundingCalcAndOneNumberCalcPerAllocation()
+        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithThreeCalcs_EnsuresTwoResultsAssembledWithOneFundingCalcAndOneNumberCalcPerAllocation()
         {
             IEnumerable<ProviderResult> providerResults = CreateProviderResultsWithTwoCalcsReturningTwoAllocationLines();
 
@@ -1276,7 +1276,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         Id = "calc-spec-id-2",
                         CalculationType = CalculationType.Number,
-                        IsPublic = true
                     },
                     new Calculation()
                     {
@@ -1365,7 +1364,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithThreeCalcsAndNumberIsPublicAndAssociatedToAllocationLine_EnsuresTwoResultsAssembledWithOneFundingEachAndOneNumberForOneAllocation()
+        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithThreeCalcsAndAssociatedToAllocationLine_EnsuresTwoResultsAssembledWithOneFundingEachAndOneNumberForOneAllocation()
         {
             List<CalculationResult> calculationresults = new List<CalculationResult>
             {
@@ -1445,7 +1444,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Id = "calc-spec-id-2",
                         CalculationType = CalculationType.Number,
                         AllocationLine = new Reference("AAAAA", "test allocation line 1"),
-                        IsPublic = true
                     },
                     new Calculation()
                     {
@@ -1534,7 +1532,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithFourCalcsAndNumberIsPublicAndAssociatedToAllocationLineAndOneIsBaseline_EnsuresTwoResultsAssembledWithOneFundingEachAndOneBaselineForEachAndOneNumberForOneAllocation()
+        public async Task AssemblePublishedProviderResults_TwoAllocationLineFoundForFundingStreamWithFourCalcsAndAssociatedToAllocationLineAndOneIsBaseline_EnsuresTwoResultsAssembledWithOneFundingEachAndOneBaselineForEachAndOneNumberForOneAllocation()
         {
             List<CalculationResult> calculationresults = new List<CalculationResult>
             {
@@ -1621,7 +1619,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Id = "calc-spec-id-2",
                         CalculationType = CalculationType.Number,
                         AllocationLine = new Reference("AAAAA", "test allocation line 1"),
-                        IsPublic = true
                     },
                     new Calculation()
                     {
