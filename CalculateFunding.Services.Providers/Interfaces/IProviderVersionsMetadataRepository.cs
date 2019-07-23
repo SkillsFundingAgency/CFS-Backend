@@ -8,7 +8,7 @@ namespace CalculateFunding.Services.Providers.Interfaces
     public interface IProviderVersionsMetadataRepository
     {
         Task<HttpStatusCode> UpsertProviderVersionByDate(ProviderVersionByDate providerVersionByDate);
-        Task<HttpStatusCode> CreateProviderVersion(ProviderVersion providerVersion);
+        Task<HttpStatusCode> CreateProviderVersion(ProviderVersionMetadata providerVersion);
         Task<HttpStatusCode> UpsertMaster(MasterProviderVersion providerVersionMetadataViewModel);
         Task<MasterProviderVersion> GetMasterProviderVersion();
         Task<IEnumerable<ProviderVersion>> GetProviderVersions(string fundingStream);

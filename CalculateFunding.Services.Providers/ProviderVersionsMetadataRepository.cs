@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Providers
             return await _repository.UpsertAsync(providerVersionMetadataViewModel);
         }
 
-        public async Task<HttpStatusCode> CreateProviderVersion(ProviderVersion providerVersion)
+        public async Task<HttpStatusCode> CreateProviderVersion(ProviderVersionMetadata providerVersion)
         {
             Guard.ArgumentNotNull(providerVersion, nameof(providerVersion));
 

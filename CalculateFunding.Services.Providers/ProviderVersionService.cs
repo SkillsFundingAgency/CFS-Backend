@@ -319,7 +319,11 @@ namespace CalculateFunding.Services.Providers
 
             await UploadProviderVersionBlob(providerVersionId, providerVersion);
 
-            await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.CreateProviderVersion(providerVersion));
+            providerVersion.Providers = null;
+
+            ProviderVersionMetadata providerVersionMetadata = providerVersion as ProviderVersionMetadata;
+
+            await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.CreateProviderVersion(providerVersionMetadata));
 
             return new CreatedAtActionResult(actionName, controller, new { providerVersionId = providerVersionId }, providerVersionId);
         }

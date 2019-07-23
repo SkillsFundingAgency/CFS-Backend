@@ -1,15 +1,19 @@
 ﻿using System;
+using CalculateFunding.Common.Models;
 using Microsoft.Azure.Search;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Providers
 {
-    abstract public class ProviderVersionMetadata
+    public class ProviderVersionMetadata : IIdentifiable
     {
         public ProviderVersionMetadata()
         {
             Created = DateTimeOffset.Now;
         }
+
+        [JsonProperty("id")]
+        public string Id => ProviderVersionId;
 
         [JsonProperty("providerVersionId")]
         public string ProviderVersionId { get; set; }
