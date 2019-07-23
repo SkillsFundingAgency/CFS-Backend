@@ -1,8 +1,6 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,12 +10,17 @@ namespace CalculateFunding.Api.Publishing.Controllers
     public class PublishedProvidersController : Controller
     {
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
+        private readonly IPublishedProviderVersionService _publishedProviderVersionService;
 
-        public PublishedProvidersController(IProviderFundingPublishingService providerFundingPublishingService)
+        public PublishedProvidersController(
+            IProviderFundingPublishingService providerFundingPublishingService,
+            IPublishedProviderVersionService publishedProviderVersionService)
         {
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
+            Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
 
             _providerFundingPublishingService = providerFundingPublishingService;
+            _publishedProviderVersionService = publishedProviderVersionService;
         }
 
         /// <summary>
@@ -32,6 +35,17 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 fundingPeriodId,
                 providerId,
                 version);
+        }
+
+        /// <summary>
+        /// Get published provider version body
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("api/publishedproviderversion/{publishedProviderVersionId}/body")]
+        [ProducesResponseType(200, Type = typeof(PublishedProviderVersion))]
+        public async Task<IActionResult> GetPublishedProviderVersionBody([FromRoute] string publishedProviderVersionId)
+        {
+            return await _publishedProviderVersionService.GetPublishedProviderVersionBody(publishedProviderVersionId);
         }
     }
 }

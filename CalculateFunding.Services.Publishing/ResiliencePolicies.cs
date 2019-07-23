@@ -16,5 +16,7 @@ namespace CalculateFunding.Services.Publishing
         public Policy PublishedFundingRepository { get; set; }
 
         public Policy PublishedProviderVersionRepository { get; set; }
+
+        public Policy BlobClient { get; set; }
     }
 }

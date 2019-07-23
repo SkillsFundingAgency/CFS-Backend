@@ -1,6 +1,4 @@
-﻿
-using CalculateFunding.Services.Publishing;
-using CalculateFunding.Services.Publishing.Interfaces;
+﻿using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -12,7 +10,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new ResiliencePolicies()
             {
                 PublishedProviderVersionRepository = Policy.NoOpAsync(),
-                JobsApiClient = Policy.NoOpAsync()
+                JobsApiClient = Policy.NoOpAsync(),
+                BlobClient = Policy.NoOpAsync()
             };
         }
     }

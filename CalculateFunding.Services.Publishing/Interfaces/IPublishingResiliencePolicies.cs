@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Policy JobsApiClient { get; set; }
         Policy PublishedFundingRepositoryPolicy { get; set; }
         Policy PublishedProviderVersionRepository { get; set; }
-
         Policy PublishedFundingRepository { get; set; }
+        Policy BlobClient { get; set; }
     }
 }

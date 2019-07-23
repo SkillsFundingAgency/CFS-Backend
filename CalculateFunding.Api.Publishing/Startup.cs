@@ -5,8 +5,10 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -87,6 +89,20 @@ namespace CalculateFunding.Api.Publishing
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>();
+
+            builder
+                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
+                {
+                    AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                    Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "publishedproviderversions";
+
+                    return new BlobClient(storageSettings);
+                });
+
             builder.AddCaching(Configuration);
             builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
@@ -111,7 +127,8 @@ namespace CalculateFunding.Api.Publishing
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    PublishedFundingRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                    PublishedFundingRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }
