@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
@@ -36,7 +37,9 @@ using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
 using Serilog;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
+using PublishStatus = CalculateFunding.Models.Versioning.PublishStatus;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
+using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -1603,7 +1606,7 @@ WHERE   s.documentType = @DocumentType",
         {
             request.Query.TryGetValue("specificationId", out StringValues specId);
 
-            string specificationId = specId.FirstOrDefault();
+            var specificationId = specId.FirstOrDefault();
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -1622,9 +1625,15 @@ WHERE   s.documentType = @DocumentType",
 
             if (specification.IsSelectedForFunding)
             {
-                _logger.Warning($"Attempt to mark specification with id: {specificationId} selected when alreday selected");
+                _logger.Warning(
+                    $"Attempt to mark specification with id: {specificationId} selected when alreday selected");
 
                 return new NoContentResult();
+            }
+
+            if (await SharesFundingStreamWithAnyOtherSpecificationSelectedForFundingInTheSamePeriod(specification))
+            {
+                return new ConflictResult();
             }
 
             specification.IsSelectedForFunding = true;
@@ -1637,24 +1646,28 @@ WHERE   s.documentType = @DocumentType",
 
                 if (!statusCode.IsSuccess())
                 {
-                    string error = $"Failed to set IsSelectedForFunding on specification for id: {specificationId} with status code: {statusCode.ToString()}";
+                    var error =
+                        $"Failed to set IsSelectedForFunding on specification for id: {specificationId} with status code: {statusCode.ToString()}";
                     _logger.Error(error);
                     return new InternalServerErrorResult(error);
                 }
 
                 specificationIndex = CreateSpecificationIndex(specification);
 
-                IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
+                var errors = await _searchRepository.Index(new List<SpecificationIndex> {specificationIndex});
 
                 if (errors.Any())
                 {
-                    string error = $"Failed to index search for specification {specificationId} with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
+                    var error =
+                        $"Failed to index search for specification {specificationId} with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
                     _logger.Error(error);
                     throw new Exception(error);
                 }
 
-                await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
+                await _cacheProvider.RemoveAsync<SpecificationSummary>(
+                    $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>(
+                    $"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
 
                 await PublishProviderResults(request, specificationId, "Selecting specification for funding");
             }
@@ -1666,11 +1679,13 @@ WHERE   s.documentType = @DocumentType",
 
                 await TaskHelper.WhenAllAndThrow(
                     _specificationsRepository.UpdateSpecification(specification),
-                    _searchRepository.Index(new[] { specificationIndex })
+                    _searchRepository.Index(new[] {specificationIndex})
                 );
 
-                await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
+                await _cacheProvider.RemoveAsync<SpecificationSummary>(
+                    $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
+                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>(
+                    $"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
 
                 _logger.Error(ex, ex.Message);
 
@@ -1678,6 +1693,36 @@ WHERE   s.documentType = @DocumentType",
             }
 
             return new NoContentResult();
+        }
+
+        private async Task<bool> SharesFundingStreamWithAnyOtherSpecificationSelectedForFundingInTheSamePeriod(
+                Specification specification)
+        {
+            string fundingPeriodId = specification.Current?.FundingPeriod?.Id;
+
+            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId),
+                $"Specification {specification.Id} has no funding period id");
+
+            IEnumerable<Specification> specificationsInFundingPeriod =
+                await _specificationsRepository.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodId);
+
+            if (specificationsInFundingPeriod == null)
+            {
+                _logger.Warning($"Specifications selected for publishing in funding period {fundingPeriodId} returned null");
+
+                return false;
+            }
+
+            return AnySpecificationsInThisPeriodShareFundingStreams(specificationsInFundingPeriod,
+                specification.Current.FundingStreams?.Select(_ => _.Id) ?? new string[0]);
+        }
+        
+        private static bool AnySpecificationsInThisPeriodShareFundingStreams(
+            IEnumerable<Specification> specificationsInFundingPeriod,
+            IEnumerable<string> fundingStreams)
+        {
+            return specificationsInFundingPeriod.Any(_ =>
+                fundingStreams.Intersect(_.Current?.FundingStreams?.Select(fs => fs.Id)).Any());
         }
 
         private async Task PublishProviderResults(HttpRequest request, string specificationId, string triggerMessage)

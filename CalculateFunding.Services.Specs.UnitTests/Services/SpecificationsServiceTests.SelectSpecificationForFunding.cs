@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -18,12 +19,78 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 using Serilog;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
+        [TestMethod]
+        public async Task SelectSpecificationForFunding_GivenNoFundingPeriodOnSpecification_ThrowsException()
+        {
+            HttpRequest request = Substitute.For<HttpRequest>();
+            
+            request.Query = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+            });
+
+            ILogger logger = CreateLogger();
+            Specification specification = CreateSpecification();
+            specification.Current.FundingPeriod = null;
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(SpecificationId)
+                .Returns(specification);
+
+            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+
+            Func<Task<IActionResult>> invocation = () => service.SelectSpecificationForFunding(request);
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>();
+        }
+        
+        [TestMethod]
+        public async Task SelectSpecificationForFunding_GivenNoFundingStreamAlreadySelectedInPeriod_ReturnsConflict()
+        {
+            HttpRequest request = Substitute.For<HttpRequest>();
+            
+            request.Query = new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+            });
+
+            Specification specification = CreateSpecification();
+            Specification specificationWithFundingStreamClash = CreateSpecification();
+
+            SpecificationVersion currentVersionOfSpecification = specification.Current;
+            
+            string commonFundingStreamId = currentVersionOfSpecification.FundingStreams.First().Id;
+            
+            specificationWithFundingStreamClash.Current.FundingStreams.First().Id = commonFundingStreamId;
+
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            specificationsRepository
+                .GetSpecificationById(SpecificationId)
+                .Returns(specification);
+            specificationsRepository
+                .GetSpecificationsSelectedForFundingByPeriod(currentVersionOfSpecification.FundingPeriod.Id)
+                .Returns(new [] { specificationWithFundingStreamClash });
+
+            IActionResult result = await CreateService(
+                logs: CreateLogger(), 
+                specificationsRepository: specificationsRepository)
+                .SelectSpecificationForFunding(request);
+
+            result
+                .Should()
+                .BeOfType<ConflictResult>();
+        }
+        
         [TestMethod]
         public async Task SelectSpecificationForFunding_GivenNoSpecificationId_ReturnsBadRequestObject()
         {
