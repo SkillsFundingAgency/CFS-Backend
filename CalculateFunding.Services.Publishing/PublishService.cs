@@ -9,6 +9,7 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
+using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -17,17 +18,27 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly Policy _publishingResiliencePolicy;
+        private readonly ISpecificationService _specificationService;
 
         public PublishService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
-            IPublishedFundingRepository publishedFundingRepository, IPublishingResiliencePolicies publishingResiliencePolicies)
+            IPublishedFundingRepository publishedFundingRepository,
+            IPublishingResiliencePolicies publishingResiliencePolicies,
+            ISpecificationService specificationService)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(specificationService, nameof(specificationService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
+            _specificationService = specificationService;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
+        }
+
+        public async Task<ApiSpecificationSummary> GetSpecificationSummaryById(string specificationId)
+        {
+            return await _specificationService.GetSpecificationSummaryById(specificationId);
         }
 
         public async Task PublishResults(Message message)
@@ -42,14 +53,14 @@ namespace CalculateFunding.Services.Publishing
 
             Reference author = message.GetUserDetails();
 
-            string specificationId = "";
+            var specificationId = "";
 
-            IEnumerable<PublishedProvider> publishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
+            IEnumerable<PublishedProvider> publishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
 
             if (publishedProviders.IsNullOrEmpty())
-            {
-                throw new RetriableException($"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to released");
-            }
+                throw new RetriableException(
+                    $"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to released");
 
             await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Released);
         }

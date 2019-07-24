@@ -19,6 +19,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Publishing.IoC;
+using CalculateFunding.Services.Publishing.Specifications;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -69,6 +70,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<OnApproveFundingFailure>();
             builder.AddSingleton<OnPublishFundingFailure>();
 
+            builder.AddSingleton<ISpecificationService, SpecificationService>();
             builder.AddSingleton<IRefreshService, RefreshService>();
             builder.AddSingleton<IApproveService, ApproveService>();
             builder.AddSingleton<IPublishService, PublishService>();
@@ -127,6 +129,8 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishingResiliencePolicies>(publishingResiliencePolicies);
 
+            builder.AddSpecificationsInterServiceClient(config);
+
             return builder.BuildServiceProvider();
         }
 
@@ -138,7 +142,8 @@ namespace CalculateFunding.Functions.Publishing
             {
                 ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;

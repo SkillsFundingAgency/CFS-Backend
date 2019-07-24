@@ -9,6 +9,7 @@ using Polly;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -17,17 +18,27 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly Policy _publishingResiliencePolicy;
+        private readonly ISpecificationService _specificationService;
 
         public ApproveService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService, 
-            IPublishedFundingRepository publishedFundingRepository, IPublishingResiliencePolicies publishingResiliencePolicies)
+            IPublishedFundingRepository publishedFundingRepository, 
+            IPublishingResiliencePolicies publishingResiliencePolicies, 
+            ISpecificationService specificationService)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(specificationService, nameof(specificationService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
+            _specificationService = specificationService;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
+        }
+        
+        public async Task<ApiSpecificationSummary> GetSpecificationSummaryById(string specificationId)
+        {
+            return await _specificationService.GetSpecificationSummaryById(specificationId);
         }
 
         public async Task ApproveResults(Message message)

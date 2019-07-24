@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
@@ -16,18 +17,28 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
+        private readonly ISpecificationService _specificationService;
         private readonly Policy _publishingResiliencePolicy;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
-            IPublishedFundingRepository publishedFundingRepository, IPublishingResiliencePolicies publishingResiliencePolicies)
+            IPublishedFundingRepository publishedFundingRepository,
+            IPublishingResiliencePolicies publishingResiliencePolicies,
+            ISpecificationService specificationService)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(specificationService, nameof(specificationService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
+            _specificationService = specificationService;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
+        }
+
+        public async Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId)
+        {
+            return await _specificationService.GetSpecificationSummaryById(specificationId);
         }
 
         public async Task RefreshResults(Message message)
@@ -42,14 +53,14 @@ namespace CalculateFunding.Services.Publishing
 
             Reference author = message.GetUserDetails();
 
-            string specificationId = "";
+            var specificationId = "";
 
-            IEnumerable<PublishedProvider> publishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
+            IEnumerable<PublishedProvider> publishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() =>
+                _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
 
             if (publishedProviders.IsNullOrEmpty())
-            {
-                throw new RetriableException($"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to updated");
-            }
+                throw new RetriableException(
+                    $"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to updated");
 
             await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Updated);
         }

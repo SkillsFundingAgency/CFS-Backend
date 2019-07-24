@@ -1,12 +1,10 @@
-﻿using Microsoft.Azure.ServiceBus;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
-    public interface IPublishService
+    public interface ISpecificationService
     {
-        Task PublishResults(Message message);
         Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId);
     }
 }
