@@ -14,20 +14,16 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
     public class OnTestExecution
     {
         private readonly ILogger _logger;
-        private readonly ICorrelationIdProvider _correlationIdProvider;
         private readonly ITestEngineService _testEngineService;
 
         public OnTestExecution(
             ILogger logger,
-            ICorrelationIdProvider correlationIdProvider,
             ITestEngineService testEngineService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
             Guard.ArgumentNotNull(testEngineService, nameof(testEngineService));
 
             _logger = logger;
-            _correlationIdProvider = correlationIdProvider;
             _testEngineService = testEngineService;
         }
 
@@ -36,7 +32,6 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
         {
             try
             {
-                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
                 await _testEngineService.RunTests(message);
             }
             catch (Exception exception)

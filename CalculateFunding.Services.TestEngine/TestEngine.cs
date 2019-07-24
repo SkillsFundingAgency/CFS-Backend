@@ -90,7 +90,6 @@ namespace CalculateFunding.Services.TestRunner
                                     TestScenario = new Reference(testResult.Scenario.Id, testResult.Scenario.Name),
                                     Provider = new Reference(providerResult.Provider.Id, providerResult.Provider.Name)
                                 });
-
                             }
                         }
                     }

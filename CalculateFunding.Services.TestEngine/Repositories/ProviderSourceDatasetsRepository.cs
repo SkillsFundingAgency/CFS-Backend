@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         public ProviderSourceDatasetsRepository(ICosmosRepository cosmosRepository, EngineSettings engineSettings)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
-            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));  
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
 
             _cosmosRepository = cosmosRepository;
             _engineSettings = engineSettings;
@@ -31,10 +31,10 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+            (bool Ok, string Message) = await _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(ProviderSourceDatasetsRepository);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = GetType().Name, Message = Message });
 
             return health;
         }
@@ -62,7 +62,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                         {
                             SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
                             {
-                                QueryText =  @"SELECT *
+                                QueryText = @"SELECT *
                                             FROM    Root r
                                             WHERE   r.documentType = @DocumentType 
                                                     AND r.content.specificationId = @SpecificationId 
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                                 }
                             };
 
-                            IEnumerable<ProviderSourceDataset> providerSourceDatasetResults = 
+                            IEnumerable<ProviderSourceDataset> providerSourceDatasetResults =
                                 await _cosmosRepository.QueryPartitionedEntity<ProviderSourceDataset>(sqlQuerySpec, partitionEntityId: providerId);
 
                             foreach (ProviderSourceDataset repoResult in providerSourceDatasetResults)

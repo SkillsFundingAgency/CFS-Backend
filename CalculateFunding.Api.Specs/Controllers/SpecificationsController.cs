@@ -1,8 +1,7 @@
-﻿using CalculateFunding.Common.Utility;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Api.Specs.Controllers
 {

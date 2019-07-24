@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Results
         private readonly Policy _searchRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
 
-        private FacetFilterType[] Facets = {
+        private readonly FacetFilterType[] Facets = {
             new FacetFilterType("calculationId", true),
             new FacetFilterType("calculationName", true),
             new FacetFilterType("specificationName"),
@@ -54,13 +54,13 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(ProviderCalculationResultsSearchService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -95,7 +95,9 @@ namespace CalculateFunding.Services.Results
         {
             string calculationId = (searchModel.Filters != null &&
                                         searchModel.Filters.ContainsKey("calculationId") &&
-                                        searchModel.Filters["calculationId"].FirstOrDefault() != null) ? searchModel.Filters["calculationId"].FirstOrDefault() : "";
+                                        searchModel.Filters["calculationId"].FirstOrDefault() != null)
+                ? searchModel.Filters["calculationId"].FirstOrDefault() 
+                : "";
 
             IEnumerable<Task<SearchResults<ProviderCalculationResultsIndex>>> searchTasks = BuildSearchTasks(searchModel, calculationId);
 

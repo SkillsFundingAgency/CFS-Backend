@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ISearchRepository<TestScenarioResultIndex> _searchRepository;
         private readonly Policy _searchRepositoryPolicy;
 
-        private FacetFilterType[] Facets = {
+        private readonly FacetFilterType[] Facets = {
             new FacetFilterType("testResult"),
             new FacetFilterType("testScenarioId"),
             new FacetFilterType("specificationName"),
@@ -50,13 +50,13 @@ namespace CalculateFunding.Services.TestRunner.Services
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(TestResultsSearchService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }

@@ -379,17 +379,11 @@ namespace CalculateFunding.Services.Results
                                 }
                             }
 
-                            if (successorResult != null)
-                            {
-                                break;
-                            }
+                            if (successorResult != null) break;
                         }
                     }
 
-                    if (successorResult != null)
-                    {
-                        break;
-                    }
+                    if (successorResult != null) break;
                 }
             }
 
@@ -625,7 +619,10 @@ namespace CalculateFunding.Services.Results
             FundingStream fundingStream = GetFundingStream(specification, providerChangeItem);
             PublishedFundingStreamDefinition fundingStreamDefinition = _mapper.Map<PublishedFundingStreamDefinition>(fundingStream);
 
-            AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(a => a.ProviderLookups.Any(l => l.ProviderType == providerChangeItem.SuccessorProvider.ProviderType && l.ProviderSubType == providerChangeItem.SuccessorProvider.ProviderSubType));
+            AllocationLine allocationLine = fundingStream.AllocationLines
+                .FirstOrDefault(a => a.ProviderLookups
+                    .Any(l => l.ProviderType == providerChangeItem.SuccessorProvider.ProviderType 
+                              && l.ProviderSubType == providerChangeItem.SuccessorProvider.ProviderSubType));
             PublishedAllocationLineDefinition publishedAllocationLine = _mapper.Map<PublishedAllocationLineDefinition>(allocationLine);
 
             PublishedProviderResult successorResult = new PublishedProviderResult

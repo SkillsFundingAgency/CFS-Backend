@@ -30,13 +30,13 @@ namespace CalculateFunding.Services.Results.Repositories
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) cosmosRepoHealth = await _cosmosRepo.IsHealthOk();
+            (bool Ok, string Message) = await _cosmosRepo.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(ProviderSourceDatasetRepository)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _cosmosRepo.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepo.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -72,7 +72,6 @@ namespace CalculateFunding.Services.Results.Repositories
                     }));
             }
             await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
-
         }
     }
 }

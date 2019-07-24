@@ -7,6 +7,7 @@ using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -157,8 +158,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             result
                  .Should()
-                 .BeOfType<StatusCodeResult>()
-                 .Which.StatusCode.Should().Be(500);
+                 .BeOfType<InternalServerErrorResult>();
         }
 
         [TestMethod]

@@ -1,4 +1,7 @@
-﻿using CalculateFunding.Common.FeatureToggles;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Results;
@@ -13,14 +16,7 @@ using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Results
 {
@@ -39,7 +35,7 @@ namespace CalculateFunding.Services.Results
         private readonly IMessengerService _messengerService;
 
         public ProviderCalculationResultsReIndexerService(
-            ILogger logger, 
+            ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
             ISpecificationsRepository specificationsRepository,
             ICalculationResultsRepository resultsRepository,
@@ -89,7 +85,8 @@ namespace CalculateFunding.Services.Results
 
             foreach (SpecificationSummary specification in specifications)
             {
-                await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.ProviderResultsBatchProcessing(specification.Id, async (x) => {
+                await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.ProviderResultsBatchProcessing(specification.Id, async (x) =>
+                {
 
                     IList<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
 

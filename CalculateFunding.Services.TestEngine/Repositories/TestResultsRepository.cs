@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -39,10 +38,10 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cosmosHealth = await _cosmosRepository.IsHealthOk();
+            var (Ok, Message) = await _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(TestResultsRepository);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = GetType().Name, Message = Message });
 
             return health;
         }
@@ -52,7 +51,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             Guard.ArgumentNotNull(testScenarioResults, nameof(testScenarioResults));
 
             await _cosmosRepository.BulkDeleteAsync<TestScenarioResult>(
-                entities: testScenarioResults.Select(x => new KeyValuePair<string, TestScenarioResult>(x.Provider.Id, x)), 
+                entities: testScenarioResults.Select(x => new KeyValuePair<string, TestScenarioResult>(x.Provider.Id, x)),
                 degreeOfParallelism: 15,
                 hardDelete: true
             );
@@ -63,10 +62,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
             Guard.ArgumentNotNull(providerIds, nameof(providerIds));
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            if (providerIds.IsNullOrEmpty())
-            {
-                return Enumerable.Empty<TestScenarioResult>();
-            }
+            if (providerIds.IsNullOrEmpty()) return Enumerable.Empty<TestScenarioResult>();
 
             ConcurrentBag<TestScenarioResult> results = new ConcurrentBag<TestScenarioResult>();
 
@@ -84,10 +80,10 @@ namespace CalculateFunding.Services.TestRunner.Repositories
                                         AND r.content.specification.id = @SpecificationId
                                         AND r.deleted = false",
                         Parameters = new SqlParameterCollection
-                    {
-                        new SqlParameter("@DocumentType", nameof(TestScenarioResult)),
-                        new SqlParameter("@SpecificationId", specificationId)
-                    }
+                        {
+                            new SqlParameter("@DocumentType", nameof(TestScenarioResult)),
+                            new SqlParameter("@SpecificationId", specificationId)
+                        }
                     };
 
                     IEnumerable<TestScenarioResult> testScenarioResults = await _cosmosRepository.QueryPartitionedEntity<TestScenarioResult>(sqlQuerySpec, partitionEntityId: providerId);
@@ -109,8 +105,6 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             return results.AsEnumerable();
         }
-
-
 
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
         {

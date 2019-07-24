@@ -45,8 +45,8 @@ namespace CalculateFunding.Services.Core.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        private static TimeSpan[] retryTimeSpans = new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) };
-        private static int numberOfExceptionsBeforeCircuitBreaker = 100;
+        private static readonly TimeSpan[] retryTimeSpans = new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) };
+        private static readonly int numberOfExceptionsBeforeCircuitBreaker = 100;
         private static TimeSpan circuitBreakerFailurePeriod = TimeSpan.FromMinutes(1);
 
         public static IServiceCollection AddCosmosDb(this IServiceCollection builder, IConfiguration config, string collectionNameOverride = null)
@@ -78,9 +78,8 @@ namespace CalculateFunding.Services.Core.Extensions
                     config.Bind("calcsClient", apiOptions);
 
                     ILogger logger = ctx.GetService<ILogger>();
-                    ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                    return new CalcsApiProxy(apiOptions, logger, correlationIdProvider);
+                    return new CalcsApiProxy(apiOptions, logger);
                 });
 
             return builder;
@@ -96,9 +95,8 @@ namespace CalculateFunding.Services.Core.Extensions
                     config.Bind("datasetsClient", apiOptions);
 
                     ILogger logger = ctx.GetService<ILogger>();
-                    ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                    return new DatasetsApiProxy(apiOptions, logger, correlationIdProvider);
+                    return new DatasetsApiProxy(apiOptions, logger);
                 });
 
             return builder;
@@ -114,9 +112,8 @@ namespace CalculateFunding.Services.Core.Extensions
                      config.Bind("scenariosClient", apiOptions);
 
                      ILogger logger = ctx.GetService<ILogger>();
-                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     return new ScenariosApiProxy(apiOptions, logger, correlationIdProvider);
+                     return new ScenariosApiProxy(apiOptions, logger);
                  });
 
             return builder;
@@ -132,9 +129,8 @@ namespace CalculateFunding.Services.Core.Extensions
                      config.Bind("specificationsClient", apiOptions);
 
                      ILogger logger = ctx.GetService<ILogger>();
-                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     return new SpecificationsApiProxy(apiOptions, logger, correlationIdProvider);
+                     return new SpecificationsApiProxy(apiOptions, logger);
                  });
 
             //extended to handle both api client and legacy proxy until rest of legacy proxy use is deprecated
@@ -168,9 +164,8 @@ namespace CalculateFunding.Services.Core.Extensions
                      config.Bind("resultsClient", apiOptions);
 
                      ILogger logger = ctx.GetService<ILogger>();
-                     ICorrelationIdProvider correlationIdProvider = ctx.GetService<ICorrelationIdProvider>();
 
-                     return new ResultsApiProxy(apiOptions, logger, correlationIdProvider);
+                     return new ResultsApiProxy(apiOptions, logger);
                  });
 
             return builder;
@@ -325,9 +320,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static IServiceCollection AddLogging(this IServiceCollection builder, string serviceName, IConfigurationRoot config = null)
         {
-            builder.AddSingleton<ICorrelationIdProvider, CorrelationIdProvider>();
-
-            builder.AddSingleton<Serilog.ILogger>((ctx) =>
+            builder.AddSingleton<ILogger>((ctx) =>
             {
                 TelemetryClient client = ctx.GetService<TelemetryClient>();
 
@@ -342,9 +335,6 @@ namespace CalculateFunding.Services.Core.Extensions
 
                 return loggerConfiguration.CreateLogger();
             });
-
-            //builder.AddSingleton(logger);
-            //builder.AddSingleton<Serilog.ILogger>(c => GetLoggerConfiguration(c.GetService<ICorrelationIdProvider>(), appInsightsOptions, serviceName).CreateLogger());
 
             return builder;
         }
@@ -384,9 +374,10 @@ namespace CalculateFunding.Services.Core.Extensions
                 appInsightsTelemetryConfiguration.TelemetryChannel = new SyncTelemetryChannel(appInsightsOptions.Url);
             }
 
-            TelemetryClient telemetryClient = new TelemetryClient(appInsightsTelemetryConfiguration);
-
-            telemetryClient.InstrumentationKey = appInsightsKey;
+            TelemetryClient telemetryClient = new TelemetryClient(appInsightsTelemetryConfiguration)
+            {
+                InstrumentationKey = appInsightsKey
+            };
 
             if (!telemetryClient.Context.GlobalProperties.ContainsKey(LoggingConstants.ServiceNamePropertiesName))
             {
@@ -400,11 +391,7 @@ namespace CalculateFunding.Services.Core.Extensions
 
         public static IServiceScope CreateHttpScope(this IServiceProvider serviceProvider, HttpRequest request)
         {
-            ICorrelationIdProvider correlationIdProvider = serviceProvider.GetService<ICorrelationIdProvider>();
-
             string correlationId = request.GetCorrelationId();
-
-            correlationIdProvider.SetCorrelationId(correlationId);
 
             if (!request.HttpContext.Response.Headers.ContainsKey("sfa-correlationId"))
             {
@@ -438,10 +425,6 @@ namespace CalculateFunding.Services.Core.Extensions
             Guard.IsNullOrWhiteSpace(serviceName, nameof(serviceName));
 
             return new LoggerConfiguration()
-            //.Enrich.With(new ILogEventEnricher[]
-            //{
-            //    new CorrelationIdLogEnricher(correlationIdProvider)
-            //})
             .Enrich.With(new ILogEventEnricher[]
             {
                 new ServiceNameLogEnricher(serviceName)
@@ -553,8 +536,7 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             IServiceProvider serviceProvider = services.BuildServiceProvider();
-
-
+            
             httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
             httpClient.DefaultRequestHeaders?.Add(ApiClientHeaders.ApiKey, options.ApiKey);
 

@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 

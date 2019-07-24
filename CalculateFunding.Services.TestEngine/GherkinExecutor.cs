@@ -41,10 +41,10 @@ namespace CalculateFunding.Services.TestRunner
         {
             ServiceHealth health = new ServiceHealth();
 
-            (bool Ok, string Message) cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) = await _cacheProvider.IsHealthOk();
 
             health.Name = nameof(GherkinExecutor);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = this.GetType().Name, Message = cacheHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = GetType().Name, Message = Message });
 
             return health;
         }
@@ -78,10 +78,7 @@ namespace CalculateFunding.Services.TestRunner
                     {
                         GherkinParseResult result = action.Execute(providerResult, datasets);
 
-                        if (result.Abort)
-                        {
-                            break;
-                        }
+                        if (result.Abort) break;
 
                         if (!result.Dependencies.IsNullOrEmpty())
                         {

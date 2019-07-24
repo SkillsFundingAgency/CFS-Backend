@@ -126,13 +126,7 @@ namespace CalculateFunding.Services.Results
                     if (!string.IsNullOrWhiteSpace(coreProvider.Successor))
                     {
                         ProviderSummary successorCoreProvider = coreProviderData.FirstOrDefault(p => p.Id == coreProvider.Successor);
-
-                        if (successorCoreProvider == null)
-                        {
-                            throw new NonRetriableException($"Could not find provider successor in core provider data for provider '{providerResult.Provider.Id}' and successor '{coreProvider.Successor}'");
-                        }
-
-                        changeItem.SuccessorProvider = successorCoreProvider;
+                        changeItem.SuccessorProvider = successorCoreProvider ?? throw new NonRetriableException($"Could not find provider successor in core provider data for provider '{providerResult.Provider.Id}' and successor '{coreProvider.Successor}'");
                     }
 
                     changeItem.VariationReasons = variationReasons;

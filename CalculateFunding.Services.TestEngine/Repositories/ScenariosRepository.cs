@@ -31,10 +31,10 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         {
             ServiceHealth health = new ServiceHealth();
 
-            var cacheHealth = await _cacheProvider.IsHealthOk();
+            (bool Ok, string Message) = await _cacheProvider.IsHealthOk();
 
             health.Name = nameof(ScenariosRepository);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = this.GetType().GetFriendlyName(), Message = cacheHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }

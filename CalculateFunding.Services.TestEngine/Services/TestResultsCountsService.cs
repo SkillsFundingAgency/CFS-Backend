@@ -183,7 +183,6 @@ namespace CalculateFunding.Services.TestRunner.Services
                     SpecificationTestScenarioResultCounts scenarioResultCounts = await _testResultsRepository.GetSpecificationCounts(specificationId);
 
                     scenarioCountModels.Add(scenarioResultCounts);
-
                 }));
             }
 

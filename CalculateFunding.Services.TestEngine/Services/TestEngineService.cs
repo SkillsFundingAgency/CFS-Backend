@@ -1,27 +1,27 @@
-﻿using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Results;
-using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Interfaces.Logging;
-using CalculateFunding.Services.TestRunner.Interfaces;
-using CalculateFunding.Services.TestRunner.Testing;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
-using Polly;
-using Newtonsoft.Json;
-using Serilog;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Services.Core.Caching;
-using System;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Results;
+using CalculateFunding.Models.Scenarios;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.TestEngine.Interfaces;
+using CalculateFunding.Services.TestRunner.Interfaces;
+using CalculateFunding.Services.TestRunner.Testing;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
+using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
@@ -39,12 +39,12 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ITelemetry _telemetry;
         private readonly ICalculationsRepository _calculationsRepository;
 
-        private readonly Polly.Policy _cacheProviderPolicy;
-        private readonly Polly.Policy _specificationRepositoryPolicy;
-        private readonly Polly.Policy _scenariosRepositoryPolicy;
-        private readonly Polly.Policy _providerSourceDatasetsRepositoryPolicy;
-        private readonly Polly.Policy _testResultsRepositoryPolicy;
-        private readonly Polly.Policy _builProjectsRepositoryPolicy;
+        private readonly Policy _cacheProviderPolicy;
+        private readonly Policy _specificationRepositoryPolicy;
+        private readonly Policy _scenariosRepositoryPolicy;
+        private readonly Policy _providerSourceDatasetsRepositoryPolicy;
+        private readonly Policy _testResultsRepositoryPolicy;
+        private readonly Policy _builProjectsRepositoryPolicy;
 
         public TestEngineService(
             ICacheProvider cacheProvider,
@@ -256,7 +256,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             string specificationId = buildProject.SpecificationId;
 
             IEnumerable<ProviderResult> providerResults = testExecutionModel.ProviderResults;
-           
+
             if (providerResults.IsNullOrEmpty())
             {
                 _logger.Error("No provider results were provided");
@@ -264,11 +264,11 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             IEnumerable<TestScenario> testScenarios = await _scenariosRepository.GetTestScenariosBySpecificationId(specificationId);
-           
+
             if (testScenarios.IsNullOrEmpty())
             {
                 _logger.Warning($"No test scenarios found for specification id: {specificationId}");
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult(string.Empty);
             }
 
             SpecificationSummary specification = await _specificationRepository.GetSpecificationSummaryById(specificationId);
@@ -276,7 +276,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             if (specification == null)
             {
                 _logger.Error($"No specification found for specification id: {specificationId}");
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult(string.Empty);
             }
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
@@ -287,19 +287,18 @@ namespace CalculateFunding.Services.TestRunner.Services
             if (sourceDatasets.IsNullOrEmpty())
             {
                 _logger.Error($"No source datasets found for specification id: {specificationId}");
-                return new StatusCodeResult(412);
+                return new PreconditionFailedResult(string.Empty);
             }
 
             IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsRepository.GetCurrentTestResults(providerIds, specificationId);
 
             IEnumerable<TestScenarioResult> results = await _testEngine.RunTests(testScenarios, providerResults, sourceDatasets, testScenarioResults.ToList(), specification, buildProject);
 
-          
+
             if (results.Any())
             {
-               
                 HttpStatusCode status = await _testResultsService.SaveTestProviderResults(results, providerResults);
-                
+
                 if (!status.IsSuccess())
                 {
                     _logger.Error($"Failed to save test results with status code: {status.ToString()}");

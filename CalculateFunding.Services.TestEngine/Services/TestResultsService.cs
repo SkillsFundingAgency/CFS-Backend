@@ -22,8 +22,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using Serilog;
-using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 using ApiClientModels = CalculateFunding.Common.ApiClient.Models;
+using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
@@ -141,14 +141,13 @@ namespace CalculateFunding.Services.TestRunner.Services
                 _logger.Error($"SaveTestProviderResults index error {{key}}: {indexError.ErrorMessage}", indexError.Key);
             }
 
-            if (repositoryUpdateStatusCode == default(HttpStatusCode))
+            if (repositoryUpdateStatusCode == default)
             {
                 _logger.Error("SaveTestProviderResults repository failed with no response code");
             }
             else
             {
                 _logger.Error("SaveTestProviderResults repository failed with response code: {repositoryUpdateStatusCode}", repositoryUpdateStatusCode);
-
             }
 
             return HttpStatusCode.InternalServerError;
@@ -166,7 +165,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
                 ApiClientModels.ApiResponse<IEnumerable<ApiClientProviders.Models.ProviderSummary>> summariesApi = await _providersApiClient.FetchCoreProviderData(testScenarioResult.Specification.Id);
 
-                if(summariesApi?.Content == null)
+                if (summariesApi?.Content == null)
                 {
                     return new NoContentResult();
                 }
@@ -210,7 +209,7 @@ namespace CalculateFunding.Services.TestRunner.Services
 
                 if (errors.Any())
                 {
-                    return new StatusCodeResult(500);
+                    return new InternalServerErrorResult(string.Empty);
                 }
             }
 
@@ -280,7 +279,7 @@ namespace CalculateFunding.Services.TestRunner.Services
         {
             string specificationId = message.UserProperties["specificationId"].ToString();
 
-            Models.Results.SpecificationProviders specificationProviders = message.GetPayloadAsInstanceOf<Models.Results.SpecificationProviders>();
+            SpecificationProviders specificationProviders = message.GetPayloadAsInstanceOf<SpecificationProviders>();
 
             IEnumerable<TestScenarioResult> testScenarioResults = await _testResultsPolicy
                 .ExecuteAsync(() => _testResultsRepository.GetCurrentTestResults(specificationProviders.Providers, specificationId)
@@ -294,7 +293,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     _testResultsRepository.DeleteCurrentTestScenarioTestResults(testScenarioResults));
 
                 SearchResults<TestScenarioResultIndex> indexItems = await _testResultsSearchPolicy
-                    .ExecuteAsync(() => _searchRepository.Search(string.Empty, 
+                    .ExecuteAsync(() => _searchRepository.Search(string.Empty,
                             new SearchParameters
                             {
                                 Top = testScenarioResults.Count(),

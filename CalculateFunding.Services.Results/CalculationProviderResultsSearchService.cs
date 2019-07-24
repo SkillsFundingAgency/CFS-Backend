@@ -8,7 +8,6 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +24,7 @@ namespace CalculateFunding.Services.Results
         private readonly ISearchRepository<CalculationProviderResultsIndex> _searchRepository;
         private readonly Policy _searchRepositoryPolicy;
 
-        private FacetFilterType[] Facets = {
+        private readonly FacetFilterType[] Facets = {
             new FacetFilterType("calculationId"),
             new FacetFilterType("calculationSpecificationId"),
             new FacetFilterType("specificationName"),
@@ -51,13 +50,13 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) searchRepoHealth = await _searchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _searchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(CalculationProviderResultsSearchService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _searchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -84,7 +83,7 @@ namespace CalculateFunding.Services.Results
             {
                 _logger.Error(exception, $"Failed to query search with term: {searchModel.SearchTerm}");
 
-                return new StatusCodeResult(500);
+                return new InternalServerErrorResult(string.Empty);
             }
         }
 

@@ -1,33 +1,27 @@
+using System;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
-using System;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.CalcEngine.ServiceBus
 {
     public class OnCalculationGenerateFailure
     {
         private readonly ILogger _logger;
-        private readonly ICorrelationIdProvider _correlationIdProvider;
         private readonly IJobHelperService _jobHelperService;
 
         public OnCalculationGenerateFailure(
             ILogger logger,
-            ICorrelationIdProvider correlationIdProvider,
             IJobHelperService jobHelperService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
             Guard.ArgumentNotNull(jobHelperService, nameof(jobHelperService));
 
             _logger = logger;
-            _correlationIdProvider = correlationIdProvider;
             _jobHelperService = jobHelperService;
         }
 
@@ -43,7 +37,6 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
 
             try
             {
-                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
                 await _jobHelperService.ProcessDeadLetteredMessage(message);
 
                 _logger.Information("Proccessed generate allocations dead lettered message complete");
@@ -53,7 +46,6 @@ namespace CalculateFunding.Functions.CalcEngine.ServiceBus
                 _logger.Error(exception, $"An error occurred processing message on queue: {ServiceBusConstants.QueueNames.CalcEngineGenerateAllocationResultsPoisoned}");
                 throw;
             }
-
         }
     }
 }

@@ -2,8 +2,6 @@ using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
@@ -15,20 +13,16 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
     public class OnApproveFunding
     {
         private readonly ILogger _logger;
-        private readonly ICorrelationIdProvider _correlationIdProvider;
         private readonly IApproveService _approveService;
 
         public OnApproveFunding(
             ILogger logger,
-            ICorrelationIdProvider correlationIdProvider,
             ApproveService approveService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
             Guard.ArgumentNotNull(approveService, nameof(approveService));
 
             _logger = logger;
-            _correlationIdProvider = correlationIdProvider;
             _approveService = approveService;
         }
 
@@ -37,8 +31,6 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             ServiceBusConstants.QueueNames.PublishingApproveFunding,
             Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
         {
-            _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
-
             try
             {
                 await _approveService.ApproveResults(message);

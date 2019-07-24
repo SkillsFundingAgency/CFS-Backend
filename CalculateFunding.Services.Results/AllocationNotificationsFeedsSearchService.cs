@@ -34,13 +34,13 @@ namespace CalculateFunding.Services.Results
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            (bool Ok, string Message) searchRepoHealth = await _allocationNotificationsSearchRepository.IsHealthOk();
+            (bool Ok, string Message) = await _allocationNotificationsSearchRepository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(CalculationProviderResultsSearchService)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = searchRepoHealth.Ok, DependencyName = _allocationNotificationsSearchRepository.GetType().GetFriendlyName(), Message = searchRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _allocationNotificationsSearchRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
@@ -140,27 +140,28 @@ namespace CalculateFunding.Services.Results
             return searchFeedResult;
         }
 
-
         public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetFeeds(string providerId, int startYear, int endYear, IEnumerable<string> customFilters)
         {
-            IList<string> filters = new List<string>();
-
-            filters.Add($"fundingPeriodStartYear eq {startYear}");
-            filters.Add($"fundingPeriodEndYear eq {endYear}");
-            filters.Add($"providerId eq '{providerId}'");
-            filters.Add($"allocationStatus eq 'Published'");
+            IList<string> filters = new List<string>
+            {
+                $"fundingPeriodStartYear eq {startYear}",
+                $"fundingPeriodEndYear eq {endYear}",
+                $"providerId eq '{providerId}'",
+                $"allocationStatus eq 'Published'"
+            };
 
             return await SearchFeeds(startYear, endYear, filters, customFilters);
         }
 
         public async Task<SearchFeed<AllocationNotificationFeedIndex>> GetLocalAuthorityFeeds(string laCode, int startYear, int endYear, IEnumerable<string> customFilters)
         {
-            IList<string> filters = new List<string>();
-
-            filters.Add($"fundingPeriodStartYear eq {startYear}");
-            filters.Add($"fundingPeriodEndYear eq {endYear}");
-            filters.Add($"laCode eq '{laCode}'");
-            filters.Add("allocationStatus eq 'Published'");
+            IList<string> filters = new List<string>
+            {
+                $"fundingPeriodStartYear eq {startYear}",
+                $"fundingPeriodEndYear eq {endYear}",
+                $"laCode eq '{laCode}'",
+                "allocationStatus eq 'Published'"
+            };
 
             return await SearchFeeds(startYear, endYear, filters, customFilters);
         }
@@ -184,7 +185,15 @@ namespace CalculateFunding.Services.Results
             };
         }
 
-        private static void AddFiltersForNotification(int? startYear, int? endYear, IEnumerable<string> ukprns, IEnumerable<string> laCodes, bool? isAllocationLineContractRequired, IEnumerable<string> statuses, IEnumerable<string> fundingStreamIds, IEnumerable<string> allocationLineIds, FilterHelper filterHelper)
+        private static void AddFiltersForNotification(int? startYear,
+            int? endYear, 
+            IEnumerable<string> ukprns, 
+            IEnumerable<string> laCodes, 
+            bool? isAllocationLineContractRequired, 
+            IEnumerable<string> statuses, 
+            IEnumerable<string> fundingStreamIds, 
+            IEnumerable<string> allocationLineIds,
+            FilterHelper filterHelper)
         {
             if (!statuses.IsNullOrEmpty())
             {

@@ -14,20 +14,16 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
     public class OnTestSpecificationProviderResultsCleanup
     {
         private readonly ILogger _logger;
-        private readonly ICorrelationIdProvider _correlationIdProvider;
         private readonly ITestResultsService _testResultsService;
 
         public OnTestSpecificationProviderResultsCleanup(
             ILogger logger,
-            ICorrelationIdProvider correlationIdProvider,
             ITestResultsService testResultsService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(correlationIdProvider, nameof(correlationIdProvider));
             Guard.ArgumentNotNull(testResultsService, nameof(testResultsService));
 
             _logger = logger;
-            _correlationIdProvider = correlationIdProvider;
             _testResultsService = testResultsService;
         }
 
@@ -39,7 +35,6 @@ namespace CalculateFunding.Functions.TestEngine.ServiceBus
         {
             try
             {
-                _correlationIdProvider.SetCorrelationId(message.GetCorrelationId());
                 await _testResultsService.CleanupTestResultsForSpecificationProviders(message);
             }
             catch (Exception exception)

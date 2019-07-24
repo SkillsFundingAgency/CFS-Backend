@@ -95,7 +95,6 @@ namespace CalculateFunding.Services.Results
             return publishedProviderResults;
         }
 
-
         public async Task<(IEnumerable<PublishedProviderResult>, IEnumerable<PublishedProviderResultExisting>)> GeneratePublishedProviderResultsToSave(IEnumerable<PublishedProviderResult> providerResults, IEnumerable<PublishedProviderResultExisting> existingResults)
         {
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));
