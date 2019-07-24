@@ -25,13 +25,18 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            var cosmosRepoHealth = await _repository.IsHealthOk();
+            (bool Ok, string Message) = await _repository.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth()
             {
                 Name = nameof(ProviderVersionsMetadataRepository)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosRepoHealth.Ok, DependencyName = _repository.GetType().GetFriendlyName(), Message = cosmosRepoHealth.Message });
+            health.Dependencies.Add(new DependencyHealth
+                {
+                    HealthOk = Ok,
+                    DependencyName = _repository.GetType().GetFriendlyName(),
+                    Message = Message
+                });
 
             return health;
         }

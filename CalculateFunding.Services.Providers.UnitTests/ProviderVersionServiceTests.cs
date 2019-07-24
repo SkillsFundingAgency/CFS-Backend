@@ -33,7 +33,21 @@ namespace CalculateFunding.Services.Providers.UnitTests
         public async Task UploadProviderVersion_WhenAllPropertiesPopulated()
         {
             // Arrange
+            string id = "1";
+            string providerVersionId = "2";
+            string actionName = "Action";
+            string controller = "Fat";
+            string description = "Hello, world!";
+            string inputProviderVersionId = "3";
+
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                Id = id,
+                ProviderVersionId = providerVersionId,
+                Description = description   
+            };
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             providerVersionViewModel.VersionType = ProviderVersionType.Custom;
@@ -45,12 +59,49 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IBlobClient blobClient = CreateBlobClient();
             blobClient.GetBlockBlobReference(Arg.Any<string>()).Returns(cloudBlob);
 
+            IMapper mapper = Substitute.For<IMapper>();
+            mapper
+                .Map<ProviderVersion>(providerVersionViewModel)
+                .Returns(providerVersion);
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient,
                 providerVersionModelValidator: uploadProviderVersionValidator,
-                cacheProvider: cacheProvider);
+                cacheProvider: cacheProvider,
+                mapper: mapper,
+                providerVersionMetadataRepository: providerVersionsMetadataRepository);
 
             // Act
-            await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult result = await providerService.UploadProviderVersion(actionName,
+                controller,
+                inputProviderVersionId, 
+                providerVersionViewModel);
+
+            //Assert
+            result.Should().BeOfType<CreatedAtActionResult>();
+
+            CreatedAtActionResult typedResult = result as CreatedAtActionResult;
+            typedResult.ActionName
+                .Should()
+                .Be(actionName);
+
+            typedResult.ControllerName
+                .Should()
+                .Be(controller);
+
+            typedResult.RouteValues.Count.Should().Be(1);
+            typedResult.RouteValues.Single().Key
+                .Should()
+                .Be("providerVersionId");
+
+            typedResult.RouteValues.Single().Value
+                .Should()
+                .Be(inputProviderVersionId);
+
+            typedResult.Value
+                .Should()
+                .Be(inputProviderVersionId);
 
             blobClient
                 .Received(1)
@@ -59,6 +110,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await cloudBlob
                 .Received(1)
                 .UploadFromStreamAsync(Arg.Any<MemoryStream>());
+
+            await providerVersionsMetadataRepository
+                .Received(1)
+                .CreateProviderVersion(Arg.Is<ProviderVersionMetadata>(x =>
+                    x.ProviderVersionId==providerVersionId
+                    && x.Description == description));
         }
 
         [TestMethod]
