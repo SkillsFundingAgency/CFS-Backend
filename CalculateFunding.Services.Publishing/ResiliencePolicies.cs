@@ -13,11 +13,13 @@ namespace CalculateFunding.Services.Publishing
         
         public Policy ProvidersApiClient { get; set; }
 
-        public Policy PublishedFundingRepositoryPolicy { get; set; }
-
         public Policy PublishedFundingRepository { get; set; }
 
         public Policy PublishedProviderVersionRepository { get; set; }
+
+        public Policy FundingFeedSearchRepository { get; set; }
+
+        public Policy PublishedFundingBlobRepository { get; set; }
 
         public Policy BlobClient { get; set; }
     }

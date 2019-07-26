@@ -1,0 +1,101 @@
+{
+  "$schema": "http://example.org/#schema",
+  "schemaVersion": "1.0",
+  "deleted": "false",
+  "funding": {
+    "templateVersion": "PES-0.9",
+    "id": "PESports-AY1920-LocalAuthority-202-1-0",
+    "fundingVersion": "1.0",
+    "status": "Released",
+    "fundingStream": {
+      "code": "PESports",
+      "name": "PE + Sport Premium"
+    },
+    "fundingPeriod": {
+      "id": "AY-AY1920",
+      "period": "AY1920",
+      "name": "Academic year 2019-20",
+      "type": "AY",
+      "startDate": "2019-09-01T00:00:00+00:00",
+      "endDate": "2020-08-31T00:00:00+00:00"
+    },
+    "organisationGroup": {
+      "mainIdentifierType": "LocalAuthority",
+      "mainIdentifierCode": "202",
+      "name": "Camden",
+      "searchableName": "Camden",
+      "identifiers": [
+        {
+          "type": "LACode",
+          "value": "203"
+        },
+        {
+          "type": "UKPRN",
+          "value": "12345678"
+        }
+      ]
+    },
+    "fundingValue": {
+      "totalValue": 2400,
+      "fundingLines": [
+        {
+          "name": "Total funding line",
+          "fundingLineCode": "TotalFundingLine",
+          "value": 1400,
+          "templateLineId": 1,
+          "type": "Payment",
+          "profilePeriods": [
+            {
+              "type": "CalendarMonth",
+              "typeValue": "October",
+              "year": 2019,
+              "occurence": 1,
+              "profiledValue": 1400,
+              "periodCode": "FY1920"
+            }
+          ],
+          "distributionPeriods": null,
+          "calculations": [
+            {
+              "name": "Number of pupils",
+              "templateCalculationId": 1,
+              "value": "456",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 0,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "distributionPeriods": [
+        {
+          "value": 1400,
+          "distributionPeriodCode": "FY1920"
+        },
+        {
+          "value": 1000,
+          "distributionPeriodCode": "FY2021"
+        }
+      ]
+    },
+    "providerFundings": [
+      "PESports_AY1920_12345678_1.0",
+      "PESports_AY1920_12345679_2.0",
+      "PESports_AY1920_12345680_1.0"
+    ],
+    "groupingReason": "Payment",
+    "statusChangedDate": "2019-07-18T20:36:41.3766383+00:00",
+    "externalPublicationDate": "2019-08-31T23:00:00+00:00",
+    "paymentDate": "2019-07-18T20:36:41.3766355+00:00"
+  }
+}

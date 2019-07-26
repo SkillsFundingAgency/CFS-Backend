@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             _service = new PublishedProviderFundingService(new ResiliencePolicies
                 {
-                    PublishedFundingRepositoryPolicy = Policy.NoOpAsync()
+                    PublishedFundingRepository = Policy.NoOpAsync()
                 },
                 _publishedFunding,
                 _validator);

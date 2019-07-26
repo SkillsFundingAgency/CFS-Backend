@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\PE.json" />
     <None Remove="Swagger\DocsTopContents.txt" />
   </ItemGroup>
 
@@ -16,6 +17,10 @@
     <Content Include="Swagger\DocsTopContents.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\PE.json" />
   </ItemGroup>
 
   <ItemGroup>

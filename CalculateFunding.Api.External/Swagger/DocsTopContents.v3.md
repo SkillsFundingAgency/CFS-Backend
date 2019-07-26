@@ -1,14 +1,8 @@
 ﻿# Calculate Funding Service
 # Service Context
 ### Purpose of the Service
-The Calculate Funding Service manages the specification, calculation, testing and publishing of provider allocations. It's main responsibilities include:
-
-* Specifying funding policies, linked to funding streams and allocation lines
-* Defining calculations that implement specified policies
-* Defining and importing datasets that provider source data required by the calculations
-* Supporting the creation and execution of test scenarios that validate the calculation results
-* Supporting the publishing of correct allocations through viewing the results of tests and calculations
-* Providing an API that allows external systems to obtain details of published allocations
+The Calculate Funding Service manages the specification, calculation, testing and publishing of funding. It's main responsibilities include:
+* Providing an API that allows external systems to obtain details of published funding
 
     
 ## Governance
@@ -38,11 +32,11 @@ The following table lists the media types used by the service:
 | ------------- |-------------| 
 | application/xml | An allocation in XML format |
 | application/json | An allocation in JSON format  |
-| application/atom+xml | An atom feed representing a stream of allocations in XML format. Each content item in the feed will be the AllocationModel |
-| application/atom+json | An atom feed representing a stream of allocations in JSON format.* Each content item in the feed will be the AllocationModel  |
+| application/atom+xml | An atom feed representing a stream of funding in XML format. Each content item in the feed will be the PublishedProviderVersion |
+| application/atom+json | An atom feed representing a stream of funding in JSON format.* Each content item in the feed will be the PublishedProviderVersion  |
 
 * This not a part of the ATOM standard but is a convenience feature for native JSON clients.
-The media Type above conform to the Accept Header specification. In simple terms that states that the media Type is vendor specific, is a given representation (sfa.allocation and version) and delivered in a particular wire format (JSON or XML).
+The media Type above conform to the Accept Header specification. In simple terms that states that the media Type is vendor specific, is a given representation (sfa.funding and version) and delivered in a particular wire format (JSON or XML).
 
 ## Request Headers
 The following HTTP headers are supported by the service.

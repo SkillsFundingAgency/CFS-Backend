@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using CalculateFunding.Api.External.Swagger.Helpers.Readers;
+using CalculateFunding.Api.External.Swagger.OperationFilters;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,8 +61,10 @@ namespace CalculateFunding.Api.External.Swagger
                     Name = "x-api-key",
                     In = "header"
                 });
+
+                c.AddSecurityRequirement(new Dictionary<string, IEnumerable<string>> { { "apiKey", new string[] { } } });
+
                 c.OperationFilter<AddResponseHeadersFilter>();
-                //c.OperationFilter<AddRequiredHeaderParameters>();
 
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);

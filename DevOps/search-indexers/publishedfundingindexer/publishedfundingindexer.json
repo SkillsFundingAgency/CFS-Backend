@@ -13,7 +13,7 @@
       "targetFieldName": "statusChangedDate" 
     },
     {
-      "sourceFieldName": "/funding/fundingStream/id",
+      "sourceFieldName": "/funding/fundingStream/code",
       "targetFieldName": "fundingStreamId"
     },
     {

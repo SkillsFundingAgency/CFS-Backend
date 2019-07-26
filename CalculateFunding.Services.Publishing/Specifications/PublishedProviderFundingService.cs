@@ -20,12 +20,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
             IPublishedFundingRepository publishedFunding,
             ISpecificationIdServiceRequestValidator validator)
         {
-            Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepositoryPolicy,
-                nameof(resiliencePolicies.PublishedFundingRepositoryPolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.PublishedFundingRepository,
+                nameof(resiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
             Guard.ArgumentNotNull(validator, nameof(validator));
 
-            _resiliencePolicy = resiliencePolicies.PublishedFundingRepositoryPolicy;
+            _resiliencePolicy = resiliencePolicies.PublishedFundingRepository;
             _publishedFunding = publishedFunding;
             _validator = validator;
         }

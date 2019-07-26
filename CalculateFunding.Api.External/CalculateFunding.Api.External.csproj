@@ -14,10 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="local.settings.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="StoreExport\allocation-lines.csv" />
     <None Remove="StoreExport\budgets.csv" />
     <None Remove="StoreExport\periods.csv" />
@@ -90,6 +86,7 @@
     <ProjectReference Include="..\CalculateFunding.Services.External\CalculateFunding.Services.External.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Policy\CalculateFunding.Services.Policy.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Providers\CalculateFunding.Services.Providers.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Publishing\CalculateFunding.Services.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
   </ItemGroup>

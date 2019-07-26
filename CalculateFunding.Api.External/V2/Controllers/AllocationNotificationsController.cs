@@ -11,7 +11,6 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.V2.Controllers
 {
-
     [Authorize(Roles = Constants.ExecuteApiRole)]
     [ApiVersion("2.0")]
     [Route("api/v{version:apiVersion}/allocations/notifications")]

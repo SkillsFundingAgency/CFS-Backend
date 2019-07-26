@@ -35,6 +35,8 @@ namespace CalculateFunding.Api.External.UnitTests
             ResolveType<V2.Controllers.TimePeriodsController>().Should().NotBeNull(nameof(V2.Controllers.TimePeriodsController));
 
             // Assert v3
+            ResolveType<V3.Controllers.FundingFeedController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedController));
+            ResolveType<V3.Controllers.FundingController>().Should().NotBeNull(nameof(V3.Controllers.FundingController));
             ResolveType<V3.Controllers.ProviderFundingVersionController>().Should().NotBeNull(nameof(V3.Controllers.ProviderFundingVersionController));
         }
 
