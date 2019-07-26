@@ -33,6 +33,9 @@ namespace CalculateFunding.Api.External.UnitTests
             ResolveType<V2.Controllers.AllocationNotificationsController>().Should().NotBeNull(nameof(V2.Controllers.AllocationNotificationsController));
             ResolveType<V2.Controllers.FundingStreamController>().Should().NotBeNull(nameof(V2.Controllers.FundingStreamController));
             ResolveType<V2.Controllers.TimePeriodsController>().Should().NotBeNull(nameof(V2.Controllers.TimePeriodsController));
+
+            // Assert v3
+            ResolveType<V3.Controllers.ProviderFundingVersionController>().Should().NotBeNull(nameof(V3.Controllers.ProviderFundingVersionController));
         }
 
         [TestMethod]
@@ -64,6 +67,7 @@ namespace CalculateFunding.Api.External.UnitTests
                 { "CosmosDbSettings:CollectionName", "providerresults" },
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
+                { "AzureStorageSettings:ConnectionString", "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AccountKey=dGVzdA==;EndpointSuffix=core.windows.net" },
                 { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
                 { "specificationsClient:ApiKey", "Local" },
                 { "resultsClient:ApiEndpoint", "https://localhost:7005/api/" },

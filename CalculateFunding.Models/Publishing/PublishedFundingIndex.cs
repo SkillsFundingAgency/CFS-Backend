@@ -56,7 +56,9 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("documentPath")]
         public string DocumentPath { get; set; }
 
+
         [JsonProperty("deleted")]
         public bool Deleted { get; set; }
+
     }
 }

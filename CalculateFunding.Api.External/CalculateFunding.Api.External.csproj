@@ -14,6 +14,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="local.settings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="StoreExport\allocation-lines.csv" />
     <None Remove="StoreExport\budgets.csv" />
     <None Remove="StoreExport\periods.csv" />
@@ -32,6 +36,7 @@
     <None Remove="StoreExport\sbs-split-sites.csv" />
     <None Remove="StoreExport\sbs-totals.csv" />
     <None Remove="Swagger\DocsTopContents.v2.md" />
+    <None Remove="Swagger\DocsTopContents.v3.md" />
     <None Remove="Swagger\Helpers\DocsTopContents.txt" />
   </ItemGroup>
 
@@ -53,6 +58,9 @@
     <EmbeddedResource Include="StoreExport\sbs-sparsity.csv" />
     <EmbeddedResource Include="StoreExport\sbs-split-sites.csv" />
     <EmbeddedResource Include="StoreExport\sbs-totals.csv" />
+    <Content Include="Swagger\DocsTopContents.v3.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Swagger\DocsTopContents.v2.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -81,6 +89,7 @@
     <ProjectReference Include="..\CalculateFunding.Services.Core\CalculateFunding.Services.Core.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.External\CalculateFunding.Services.External.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Policy\CalculateFunding.Services.Policy.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Services.Providers\CalculateFunding.Services.Providers.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Specs\CalculateFunding.Services.Specs.csproj" />
   </ItemGroup>

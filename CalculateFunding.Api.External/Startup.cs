@@ -45,6 +45,10 @@ using IPolicyFundingStreamService = CalculateFunding.Services.Policy.Interfaces.
 using PolicyFundingStreamService = CalculateFunding.Services.Policy.FundingStreamService;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Core.AzureStorage;
 
 namespace CalculateFunding.Api.External
 {
@@ -157,7 +161,15 @@ namespace CalculateFunding.Api.External
             builder
                 .AddSingleton<V2.Interfaces.IFundingStreamService, V2.Services.FundingStreamService>();
 
+            // Register v3 services
+            builder
+                .AddSingleton<V3.Interfaces.IProviderFundingVersionService, V3.Services.ProviderFundingVersionService>();
+
             // Register dependencies
+            builder
+                .AddSingleton<IProviderFundingVersionService, ProviderFundingVersionService>();
+                
+
             builder
                 .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>()
                 .AddSingleton<IHealthChecker, AllocationNotificationsFeedsSearchService>();
@@ -185,6 +197,18 @@ namespace CalculateFunding.Api.External
 
             builder
                 .AddSingleton(resultsConfig.CreateMapper());
+
+            builder
+               .AddSingleton<IBlobClient, BlobClient>((ctx) =>
+               {
+                   AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                   Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                   storageSettings.ContainerName = "publishedproviderversions";
+
+                   return new BlobClient(storageSettings);
+               });
 
             builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
             {
@@ -380,6 +404,21 @@ namespace CalculateFunding.Api.External
                     FundingSchemaRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
+
+            builder.AddSingleton<IProvidersResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new ProvidersResiliencePolicies()
+                {
+                    ProviderVersionsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                    ProviderVersionMetadataRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+            });
+
             builder.AddHealthCheckMiddleware();
             builder.AddTransient<ContentTypeCheckMiddleware>();
 
