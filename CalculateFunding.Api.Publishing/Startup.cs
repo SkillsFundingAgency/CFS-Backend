@@ -114,6 +114,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddHealthCheckMiddleware();
             builder.AddPublishingServices(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
+            builder.AddProvidersInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddSingleton<IPublishingResiliencePolicies>(ctx =>
             {
@@ -124,6 +125,7 @@ namespace CalculateFunding.Api.Publishing
                 return new ResiliencePolicies
                 {
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),

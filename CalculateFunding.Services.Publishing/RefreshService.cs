@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -18,22 +19,31 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ISpecificationService _specificationService;
+        private readonly IProviderService _providerService;
         private readonly Policy _publishingResiliencePolicy;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
-            ISpecificationService specificationService)
+            ISpecificationService specificationService, 
+            IProviderService providerService)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
+            Guard.ArgumentNotNull(providerService, nameof(providerService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
             _specificationService = specificationService;
+            _providerService = providerService;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
+        }
+
+        public async Task<IEnumerable<Provider>> GetProvidersByProviderVersionId(string providerVersionId)
+        {
+            return await _providerService.GetProvidersByProviderVersionsId(providerVersionId);
         }
 
         public async Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId)

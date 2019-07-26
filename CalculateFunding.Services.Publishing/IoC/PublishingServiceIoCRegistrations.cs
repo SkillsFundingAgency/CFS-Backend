@@ -3,6 +3,7 @@ using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Validators;
@@ -30,6 +31,8 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IPublishedProviderFundingService, PublishedProviderFundingService>();
             serviceCollection.AddSingleton<IHealthChecker, PublishedProviderFundingService>();
             serviceCollection.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>();
+            serviceCollection.AddSingleton<ISpecificationService, SpecificationService>();
+            serviceCollection.AddSingleton<IProviderService, ProviderService>();
             
             serviceCollection.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>(serviceProvider =>
             {
@@ -63,7 +66,6 @@ namespace CalculateFunding.Services.Publishing.IoC
                     ctx.GetService<ILogger>(),
                     new ApproveFundingJobDefinition());
             });
-            serviceCollection.AddTransient<ISpecificationsApiClient, SpecificationsApiClient>();
         }
     }
 }
