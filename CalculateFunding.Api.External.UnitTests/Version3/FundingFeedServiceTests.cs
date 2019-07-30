@@ -379,7 +379,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                          Id = "id-1",
                          FundingStreamId = "PES",
                          FundingPeriodId = "ABC",
-                         IdentifierType = "LocalAuthority",
+                         GroupTypeIdentifier = "LocalAuthority",
                          StatusChangedDate = DateTime.Now.AddDays(-1)
                     },
                     new PublishedFundingIndex
@@ -387,7 +387,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                          Id = "id-2",
                          FundingStreamId = "PES1",
                          FundingPeriodId = "ABC1",
-                         IdentifierType = "LocalAuthority",
+                         GroupTypeIdentifier = "LocalAuthority",
                          StatusChangedDate = DateTime.Now.AddDays(-2)
                     },
                     new PublishedFundingIndex
@@ -395,7 +395,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                          Id = "id-3",
                          FundingStreamId = "PES2",
                          FundingPeriodId = "ABC2",
-                         IdentifierType = "LocalAuthority",
+                         GroupTypeIdentifier = "LocalAuthority",
                          StatusChangedDate = DateTime.Now.AddDays(-3)
                     }
                 };

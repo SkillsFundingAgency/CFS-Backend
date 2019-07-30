@@ -1,11 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoMapper;
-using AutoMapper.Configuration;
-using CalculateFunding.Api.External.MappingProfiles;
-using CalculateFunding.Api.External.V2.Models;
-using CalculateFunding.Api.External.V2.Services;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +34,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .BeOfType<OkObjectResult>()
                 .Subject;
 
-           
+
         }
 
         [TestMethod]
@@ -49,7 +42,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         {
             // Arrange
             string providerFundingVersionId = "unknown";
-           
+
 
             IPolicyProviderFundingVersionService mockProviderFundingVersionService = Substitute.For<IPolicyProviderFundingVersionService>();
 

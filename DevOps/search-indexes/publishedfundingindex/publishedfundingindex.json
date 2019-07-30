@@ -33,13 +33,13 @@
       "retrievable":true
     },
     {
-      "name": "identifierType",
+      "name": "groupTypeIdentifier",
       "type": "Edm.String",
       "filterable":true,
       "retrievable":true
     },
     {
-      "name": "identifierCode",
+      "name": "identifierValue",
       "type": "Edm.String",
       "filterable":true,
       "retrievable":true

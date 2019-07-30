@@ -25,12 +25,12 @@
       "targetFieldName": "groupingType"
     },
     {
-      "sourceFieldName": "/funding/organisationGroup/mainIdentifierType",
-      "targetFieldName": "identifierType"
+      "sourceFieldName": "/funding/organisationGroup/groupTypeIdentifier",
+      "targetFieldName": "groupTypeIdentifier"
     },
     {
-      "sourceFieldName": "/funding/organisationGroup/mainIdentifierCode",
-      "targetFieldName": "identifierCode"
+      "sourceFieldName": "/funding/organisationGroup/identifierValue",
+      "targetFieldName": "identifierValue"
     },
     {
       "sourceFieldName": "/funding/fundingVersion",

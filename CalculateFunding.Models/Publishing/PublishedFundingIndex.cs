@@ -36,13 +36,13 @@ namespace CalculateFunding.Models.Publishing
 
         [IsFilterable]
         [IsRetrievable(true)]
-        [JsonProperty("identifierType")]
-        public string IdentifierType { get; set; }
+        [JsonProperty("groupTypeIdentifier")]
+        public string GroupTypeIdentifier { get; set; }
 
         [IsFilterable]
         [IsRetrievable(true)]
-        [JsonProperty("identifierCode")]
-        public string IdentifierCode { get; set; }
+        [JsonProperty("identifierValue")]
+        public string IdentifierValue { get; set; }
 
         [IsFilterable]
         [IsRetrievable(true)]

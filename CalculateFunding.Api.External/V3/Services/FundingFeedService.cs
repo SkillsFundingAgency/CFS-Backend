@@ -95,7 +95,7 @@ namespace CalculateFunding.Api.External.V3.Services
                         {
                             feedIndex.FundingStreamId,
                             feedIndex.FundingPeriodId,
-                            feedIndex.IdentifierType
+                            feedIndex.GroupTypeIdentifier
                         }
                 });
             }
