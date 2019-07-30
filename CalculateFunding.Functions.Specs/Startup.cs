@@ -1,6 +1,8 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Functions.Specs.ServiceBus;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
@@ -23,6 +25,8 @@ using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using Serilog;
+using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Specs.Startup))]
 
@@ -62,6 +66,17 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
+
+            builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
+            {
+                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+
+                TemplateMetadataGenerator schema10Generator = new TemplateMetadataGenerator(ctx.GetService<ILogger>());
+
+                resolver.Register("1.0", schema10Generator);
+
+                return resolver;
+            });
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>

@@ -43,6 +43,9 @@ namespace CalculateFunding.Models.Specs
 		[JsonProperty("variationDate")]
 		public DateTimeOffset? VariationDate { get; set; }
 
+        [JsonProperty("templateId")]
+        public string TemplateId { get; set; }
+
         [JsonProperty("lastCalculationUpdatedAt")]
         public DateTimeOffset? LastCalculationUpdatedAt { get; set; }
 

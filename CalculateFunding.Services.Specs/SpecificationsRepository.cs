@@ -165,5 +165,26 @@ namespace CalculateFunding.Services.Specs
         {
             return Task.FromResult(_repository.QueryDocuments<Specification>().Where(c => c.Id == specificationId).AsEnumerable().FirstOrDefault());
         }
+
+        public async Task<TemplateMapping> GetTemplateMappingForSpecificationId(string specificationId)
+        {
+            TemplateMapping templateMapping = new TemplateMapping
+            {
+                TemplateMappingItems = new List<TemplateMappingItem>()
+            };
+
+            IEnumerable<Calculation> calculations = await GetCalculationsBySpecificationId(specificationId);
+
+            templateMapping.TemplateMappingItems.AddRange(
+                calculations
+                    .Select(calculation => new TemplateMappingItem
+                    {
+                        EntityType = TemplateMappingEntityType.Calculation,
+                        Name = calculation.Name,
+                        CalculationSpecificationId = specificationId
+                    }));
+
+            return templateMapping;
+        }
     }
 }

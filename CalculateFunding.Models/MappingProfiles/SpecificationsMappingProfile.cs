@@ -19,7 +19,8 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.FundingPeriod, opt => opt.MapFrom(s => s.Current.FundingPeriod))
                 .ForMember(m => m.FundingStreams, opt => opt.MapFrom(s => s.Current.FundingStreams))
                 .ForMember(m => m.ApprovalStatus, opt => opt.MapFrom(p => p.Current.PublishStatus))
-                .ForMember(m => m.ProviderVersionId, opt => opt.MapFrom(p => p.Current.ProviderVersionId));
+                .ForMember(m => m.ProviderVersionId, opt => opt.MapFrom(p => p.Current.ProviderVersionId))
+                .ForMember(m => m.TemplateId, opt => opt.MapFrom(p => p.Current.TemplateId));
 
             CreateMap<Calculation, CalculationCurrentVersion>();
         }

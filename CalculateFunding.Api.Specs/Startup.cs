@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.TemplateMetadata;
+using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
@@ -26,6 +28,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using Serilog;
+using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 namespace CalculateFunding.Api.Specs
 {
@@ -85,6 +89,17 @@ namespace CalculateFunding.Api.Specs
                 .AddSingleton<IHealthChecker, SpecificationsSearchService>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
+
+            builder.AddSingleton<ITemplateMetadataResolver>((ctx) =>
+            {
+                TemplateMetadataResolver resolver = new TemplateMetadataResolver();
+
+                TemplateMetadataGenerator schema10Generator = new TemplateMetadataGenerator(ctx.GetService<ILogger>());
+
+                resolver.Register("1.0", schema10Generator);
+
+                return resolver;
+            });
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>

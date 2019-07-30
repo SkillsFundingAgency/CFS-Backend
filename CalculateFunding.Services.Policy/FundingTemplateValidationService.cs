@@ -107,7 +107,7 @@ namespace CalculateFunding.Services.Policy
 
             return fundingTemplateValidationResult;
         }
-
+    
         private async Task ValidateAgainstSchema(string blobName, JObject parsedFundingTemplate, FundingTemplateValidationResult fundingTemplateValidationResult)
         {
             string fundingSchemaJson = await _fundingSchemaRepositoryPolicy.ExecuteAsync(() => _fundingSchemaRepository.GetFundingSchemaVersion(blobName));

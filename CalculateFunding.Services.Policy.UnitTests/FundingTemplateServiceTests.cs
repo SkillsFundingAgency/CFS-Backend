@@ -331,7 +331,7 @@ namespace CalculateFunding.Services.Policy
             FundingTemplateService fundingTemplateService = CreateFundingTemplateService(cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplate(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
 
             //Assert
             result
@@ -369,7 +369,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplate(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
 
             //Assert
             result
@@ -413,7 +413,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplate(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
 
             //Assert
             result
@@ -461,7 +461,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplate(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
 
             //Assert
             result
@@ -513,7 +513,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplate(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
 
             //Assert
             result
@@ -565,7 +565,7 @@ namespace CalculateFunding.Services.Policy
                 fundingTemplateRepository: fundingTemplateRepository);
 
             //Act
-            IActionResult result = await fundingTemplateService.GetFundingTemplate(fundingStreamId, templateVersion);
+            IActionResult result = await fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
 
             //Assert
             result

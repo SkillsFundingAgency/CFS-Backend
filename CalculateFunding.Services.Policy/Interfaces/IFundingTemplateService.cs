@@ -8,6 +8,8 @@ namespace CalculateFunding.Services.Policy.Interfaces
     {
         Task<IActionResult> SaveFundingTemplate(string actionName, string controllerName, HttpRequest request);
 
+        Task<IActionResult> GetFundingTemplateSourceFile(string fundingStreamId, string templateVersion);
+        Task<IActionResult> GetFundingTemplateContents(string fundingStreamId, string templateVersion);
         Task<IActionResult> GetFundingTemplate(string fundingStreamId, string templateVersion);
     }
 }

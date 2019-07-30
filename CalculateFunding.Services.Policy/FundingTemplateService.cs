@@ -1,22 +1,26 @@
-﻿using CalculateFunding.Common.Caching;
+﻿using System;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
-using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Serilog;
-using System;
-using System.Text;
-using System.Threading.Tasks;
+using TemplateMetadataModels = CalculateFunding.Common.TemplateMetadata.Models;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -31,7 +35,7 @@ namespace CalculateFunding.Services.Policy
         private readonly ITemplateMetadataResolver _templateMetadataResolver;
 
         public FundingTemplateService(
-            ILogger logger, 
+            ILogger logger,
             IFundingTemplateRepository fundingTemplateRepository,
             IPolicyResiliencePolicies policyResiliencePolicies,
             IFundingTemplateValidationService fundingTemplateValidationService,
@@ -106,6 +110,8 @@ namespace CalculateFunding.Services.Policy
             {
                 byte[] templateFileBytes = Encoding.UTF8.GetBytes(template);
 
+                await _cacheProvider.RemoveAsync<FundingTemplateContents>($"{CacheKeys.FundingTemplateContents}{validationResult.FundingStreamId}:{validationResult.Version}");
+
                 await SaveFundingTemplateVersion(blobName, templateFileBytes);
 
                 string cacheKey = $"{CacheKeys.FundingTemplatePrefix}{validationResult.FundingStreamId}-{validationResult.Version}";
@@ -122,7 +128,7 @@ namespace CalculateFunding.Services.Policy
             }
         }
 
-        public async Task<IActionResult> GetFundingTemplate(string fundingStreamId, string templateVersion)
+        public async Task<IActionResult> GetFundingTemplateSourceFile(string fundingStreamId, string templateVersion)
         {
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
@@ -203,6 +209,114 @@ namespace CalculateFunding.Services.Policy
             {
                 throw new NonRetriableException($"Failed to get funding template version: '{blobName}' from blob storage", ex);
             }
+        }
+
+        public async Task<IActionResult> GetFundingTemplateContents(string fundingStreamId, string templateVersion)
+        {
+            IActionResult getFundingTemplateMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, templateVersion);
+            if(!(getFundingTemplateMetadataResult is OkObjectResult))
+            {
+                return getFundingTemplateMetadataResult;
+            }
+            TemplateMetadataContents fundingTemplateContents = (getFundingTemplateMetadataResult as OkObjectResult).Value as TemplateMetadataContents;
+
+            return new OkObjectResult(fundingTemplateContents);
+        }
+
+        public async Task<IActionResult> GetFundingTemplate(string fundingStreamId, string templateVersion)
+        {
+            IActionResult getFundingTemplateContentResult = await GetFundingTemplateContentsInner(fundingStreamId, templateVersion);
+            if (!(getFundingTemplateContentResult is OkObjectResult))
+            {
+                return getFundingTemplateContentResult;
+            }
+            FundingTemplateContents fundingTemplateContents = (getFundingTemplateContentResult as OkObjectResult).Value as FundingTemplateContents;
+
+            return new OkObjectResult(fundingTemplateContents);
+        }
+
+        private async Task<IActionResult> GetFundingTemplateContentMetadata(string fundingStreamId, string templateVersion)
+        {
+            TemplateMetadataContents fundingTemplateContentMetadata = await _cacheProvider.GetAsync<TemplateMetadataContents>($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{templateVersion}");
+            if (fundingTemplateContentMetadata == null)
+            {
+                IActionResult fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+
+                if (!(fundingTemplateContentSourceFileResult is OkObjectResult))
+                {
+                    return fundingTemplateContentSourceFileResult;
+                }
+                string fundingTemplateContentSourceFile = (fundingTemplateContentSourceFileResult as OkObjectResult).Value as string;
+
+                IActionResult fundingTemplateValidationResult = GetFundingTemplateSchemaVersion(fundingTemplateContentSourceFile);
+                if (!(fundingTemplateValidationResult is OkObjectResult))
+                {
+                    return fundingTemplateValidationResult;
+                }
+                string fundingTemplateSchemaVersion = (fundingTemplateValidationResult as OkObjectResult).Value as string;
+
+                bool templateMetadataGeneratorRetrieved = _templateMetadataResolver.TryGetService(fundingTemplateSchemaVersion, out ITemplateMetadataGenerator templateMetadataGenerator);
+                if (!templateMetadataGeneratorRetrieved)
+                {
+                    string message = $"Template metadata generator with given schema {fundingTemplateSchemaVersion} could not be retrieved.";
+                    _logger.Error(message);
+
+                    return new PreconditionFailedResult(message);
+                }
+                fundingTemplateContentMetadata = templateMetadataGenerator.GetMetadata(fundingTemplateContentSourceFile);
+                await _cacheProvider.SetAsync($"{CacheKeys.FundingTemplateContentMetadata}{fundingStreamId}:{templateVersion}", fundingTemplateContentMetadata);
+            }
+
+            return new OkObjectResult(fundingTemplateContentMetadata);
+        }
+
+        private async Task<IActionResult> GetFundingTemplateContentsInner(string fundingStreamId, string templateVersion)
+        {
+            IActionResult fundingTemplateContentSourceFileResult = await GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+            if (!(fundingTemplateContentSourceFileResult is OkObjectResult))
+            {
+                return fundingTemplateContentSourceFileResult;
+            }
+            string fundingTemplateContentSourceFile = (fundingTemplateContentSourceFileResult as OkObjectResult).Value as string;
+
+            IActionResult fundingTemplateContentMetadataResult = await GetFundingTemplateContentMetadata(fundingStreamId, templateVersion);
+            if (!(fundingTemplateContentMetadataResult is OkObjectResult))
+            {
+                return fundingTemplateContentMetadataResult;
+            }
+            TemplateMetadataContents fundingTemplateContentMetadata = (fundingTemplateContentMetadataResult as OkObjectResult).Value as TemplateMetadataContents;
+
+            FundingTemplateContents fundingTemplateContents = new FundingTemplateContents
+            {
+                TemplateFileContents = fundingTemplateContentSourceFile,
+                Metadata = fundingTemplateContentMetadata
+            };
+
+            return new OkObjectResult(fundingTemplateContents);
+        }
+
+        private IActionResult GetFundingTemplateSchemaVersion(string fundingTemplateContent)
+        {
+            Guard.IsNullOrWhiteSpace(fundingTemplateContent, nameof(fundingTemplateContent));
+
+            JObject parsedFundingTemplate;
+
+            try
+            {
+                parsedFundingTemplate = JObject.Parse(fundingTemplateContent);
+            }
+            catch (JsonReaderException jre)
+            {
+                return new PreconditionFailedResult(jre.Message);
+            }
+
+            if (parsedFundingTemplate["schemaVersion"] == null ||
+                string.IsNullOrWhiteSpace(parsedFundingTemplate["schemaVersion"].Value<string>()))
+            {
+                return new PreconditionFailedResult("Missing schema version from funding template.");
+            }
+
+            return new OkObjectResult(parsedFundingTemplate["schemaVersion"].Value<string>());
         }
     }
 }

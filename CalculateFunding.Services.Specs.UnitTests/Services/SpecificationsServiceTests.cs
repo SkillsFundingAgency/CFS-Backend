@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
@@ -151,6 +152,16 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected ISearchRepository<SpecificationIndex> CreateSearchRepository()
         {
             return Substitute.For<ISearchRepository<SpecificationIndex>>();
+        }
+
+        protected ITemplateMetadataGenerator CreateTemplateMetadataGenerator()
+        {
+            return Substitute.For<ITemplateMetadataGenerator>();
+        }
+
+        protected IVersionRepository<SpecificationVersion> CreateSpecificationVersionRepository()
+        {
+            return Substitute.For<IVersionRepository<SpecificationVersion>>();
         }
 
         protected IValidator<SpecificationCreateModel> CreateSpecificationValidator(ValidationResult validationResult = null)

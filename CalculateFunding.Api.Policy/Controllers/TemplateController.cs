@@ -1,6 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,11 +18,43 @@ namespace CalculateFunding.Api.Policy.Controllers
             _fundingTemplateService = fundingTemplateService;
         }
 
+        /// <summary>
+        /// Gets source file and metadata of a template
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID</param>
+        /// <param name="templateVersion">Template Version</param>
+        /// <returns></returns>
         [HttpGet("api/templates/{fundingStreamId}/{templateVersion}")]
-        [Produces("application/json")]
+        [Produces(typeof(FundingTemplateContents))]
         public async Task<IActionResult> GetFundingTemplate([FromRoute]string fundingStreamId, [FromRoute]string templateVersion)
         {
             return await _fundingTemplateService.GetFundingTemplate(fundingStreamId, templateVersion);
+        }
+
+        /// <summary>
+        /// Gets source file of a template, the original file uploaded
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID</param>
+        /// <param name="templateVersion">Template Version</param>
+        /// <returns></returns>
+        [HttpGet("api/templates/{fundingStreamId}/{templateVersion}/sourcefile")]
+        [Produces("application/json")]
+        public async Task<IActionResult> GetFundingTemplateSourceFile([FromRoute]string fundingStreamId, [FromRoute]string templateVersion)
+        {
+            return await _fundingTemplateService.GetFundingTemplateSourceFile(fundingStreamId, templateVersion);
+        }
+
+        /// <summary>
+        /// Gets contents for a template in the common metadata output
+        /// </summary>
+        /// <param name="fundingStreamId">Funding stream ID</param>
+        /// <param name="templateVersion">Template Version</param>
+        /// <returns></returns>
+        [HttpGet("api/templates/{fundingStreamId}/{templateVersion}/metadata")]
+        [ProducesResponseType(200, Type = typeof(TemplateMetadataContents))]
+        public async Task<IActionResult> GetFundingTemplateContents([FromRoute]string fundingStreamId, [FromRoute]string templateVersion)
+        {
+            return await _fundingTemplateService.GetFundingTemplateContents(fundingStreamId, templateVersion);
         }
 
         /// <summary>

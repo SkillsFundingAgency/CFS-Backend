@@ -16,6 +16,8 @@ namespace CalculateFunding.Services.Policy.Models
 
         public ModelState ValidationState { get; set; }
 
+        public string SchemaVersion { get; set; }
+
         public bool IsValid => ValidationState.Errors.IsNullOrEmpty();
     }
 }

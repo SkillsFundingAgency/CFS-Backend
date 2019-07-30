@@ -70,5 +70,9 @@
         public static string ProviderVersion { get; set; } = "provider-version:";
 
         public static string ProviderVersionByDate { get; set; } = "provider-version-by-date:";
+
+        public static string FundingTemplateContents { get; set; } = "funding-template-contents:";
+
+        public static string FundingTemplateContentMetadata { get; set; } = "funding-template-content-metadata:";
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -44,6 +45,8 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request);
 
         Task<IActionResult> GetBaselineCalculations(string specificationId, HttpRequest request);
+
+        Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateId, string fundingStreamId);
 
         Task AssignDataDefinitionRelationship(Message message);
 
