@@ -751,12 +751,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
 
             Specification specification = CreateSpecification();
-            specification
-                .Current
-                .Calculations = new[]
-                    {
-                        new Calculation { AllocationLine = new AllocationLine { Id = "oldallocationlineid"} }
-                    };
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();

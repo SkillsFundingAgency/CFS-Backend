@@ -36,64 +36,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         {
             //Arrange
             Calculation calculation = CreateCalculation();
-            calculation.Name = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenCalculationSpecificationIsNull_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.CalculationSpecification = null;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenCalculationSpecificationIdIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.CalculationSpecification.Id = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenCalculationSpecificationNameIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.CalculationSpecification.Name = string.Empty;
+            calculation.Current.Name = string.Empty;
 
             CalculationModelValidator validator = new CalculationModelValidator();
 
@@ -145,157 +88,6 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .BeFalse();
         }
 
-        [TestMethod]
-        async public Task ValidateAsync_WhenPeriodIsNull_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.FundingPeriod = null;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenPeriodIdIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.FundingPeriod.Id = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenPeriodNameIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.FundingPeriod.Name = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenFundingStreamIsNull_ValidIsTrue()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.FundingStream = null;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeTrue();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenFundingStreamIsHasValue_ValidIsTrue()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.FundingStream = new Reference("fsid", "Funding Stream Name");
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeTrue();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenFundingStreamIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.FundingStream.Name = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenFundingStreamIdIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.FundingStream.Id = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        async public Task ValidateAsync_WhenFundingStreamNameIsEmpty_ValidIsFalse()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.FundingStream.Name = string.Empty;
-
-            CalculationModelValidator validator = new CalculationModelValidator();
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(calculation);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
 
         [TestMethod]
         async public Task ValidateAsync_WhenGivenValidModel_ValidIsTrue()
@@ -320,28 +112,11 @@ namespace CalculateFunding.Services.Calcs.Validators
             return new Calculation
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "test name",
-                CalculationSpecification = new Reference
+                Current = new CalculationVersion
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "test name"
+                    Name = "test name",
                 },
                 SpecificationId = "test spec name",
-                FundingPeriod = new Reference
-                {
-                    Id = "18/19",
-                    Name = "2018/2019"
-                },
-                AllocationLine = new Reference
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "test alloc name"
-                },
-                FundingStream = new Reference
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    Name = "funding stream name"
-                }
             };
         }
     }

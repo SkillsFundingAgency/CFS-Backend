@@ -8,12 +8,6 @@ namespace CalculateFunding.Models.MappingProfiles
     {
         public SpecificationsMappingProfile()
         {
-            CreateMap<CalculationCreateModel, Calculation>()
-                .AfterMap((src, dest) => { dest.Id = Guid.NewGuid().ToString(); })
-                .ForMember(m => m.Id, opt => opt.Ignore())
-                .ForMember(m => m.AllocationLine, opt => opt.Ignore())
-                .ForMember(m => m.LastUpdated, opt => opt.Ignore());
-
             CreateMap<Specification, SpecificationSummary>()
                 .ForMember(m => m.Description, opt => opt.MapFrom(s => s.Current.Description))
                 .ForMember(m => m.FundingPeriod, opt => opt.MapFrom(s => s.Current.FundingPeriod))
@@ -21,8 +15,6 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.ApprovalStatus, opt => opt.MapFrom(p => p.Current.PublishStatus))
                 .ForMember(m => m.ProviderVersionId, opt => opt.MapFrom(p => p.Current.ProviderVersionId))
                 .ForMember(m => m.TemplateId, opt => opt.MapFrom(p => p.Current.TemplateId));
-
-            CreateMap<Calculation, CalculationCurrentVersion>();
         }
     }
 }

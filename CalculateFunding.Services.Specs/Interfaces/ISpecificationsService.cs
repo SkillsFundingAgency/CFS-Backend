@@ -20,8 +20,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetSpecificationSummaries(HttpRequest request);
 
-        Task<IActionResult> EditCalculation(HttpRequest request);
-
         Task<IActionResult> GetSpecificationById(HttpRequest request);
 
         Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request);
@@ -36,19 +34,9 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request);
 
-        Task<IActionResult> CreateCalculation(HttpRequest request);
-
-        Task<IActionResult> GetCalculationByName(HttpRequest request);
-
-        Task<IActionResult> GetCalculationBySpecificationIdAndCalculationId(HttpRequest request);
-
-        Task<IActionResult> GetCalculationsBySpecificationId(HttpRequest request);
-
-        Task<IActionResult> GetBaselineCalculations(string specificationId, HttpRequest request);
+        Task AssignDataDefinitionRelationship(Message message);
 
         Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateId, string fundingStreamId);
-
-        Task AssignDataDefinitionRelationship(Message message);
 
         Task<IActionResult> ReIndex();
 

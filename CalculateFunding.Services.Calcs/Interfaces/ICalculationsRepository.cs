@@ -20,10 +20,10 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task UpdateCalculations(IEnumerable<Calculation> calculations);
 
-        Task<Calculation> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
-
         Task<StatusCounts> GetStatusCounts(string specificationId);
 
         Task<CompilerOptions> GetCompilerOptions(string specificationId);
+
+        Task<Calculation> GetCalculationsBySpecificationIdAndCalculationName(string specificationId, string calculationName);
     }
 }

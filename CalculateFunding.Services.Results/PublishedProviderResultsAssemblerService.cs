@@ -201,12 +201,9 @@ namespace CalculateFunding.Services.Results
         {
             switch (calculationType)
             {
-                case Models.Calcs.CalculationType.Funding:
+                case Models.Calcs.CalculationType.Template:
                     return PublishedCalculationType.Funding;
-                case Models.Calcs.CalculationType.Number:
-                    return PublishedCalculationType.Number;
-                case Models.Calcs.CalculationType.Baseline:
-                    return PublishedCalculationType.Baseline;
+               
                 default:
                     throw new NonRetriableException($"Unknown CalculationType: {calculationType}");
             }
@@ -233,16 +230,8 @@ namespace CalculateFunding.Services.Results
 
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
-                    Calculation calculation = specificationCurrentVersion.Calculations.FirstOrDefault(m => m.Id == calculationResult.CalculationSpecification?.Id);
-                   
-                    if (calculation == null)
-                    {
-                        throw new NonRetriableException($"Calculation specification not found in specification. Calculation Spec Id ='{calculationResult?.CalculationSpecification?.Id}'");
-                    }
-
                     PublishedProviderCalculationResult publishedProviderCalculationResult = new PublishedProviderCalculationResult()
                     {
-                        CalculationSpecification = calculationResult.CalculationSpecification,
                         AllocationLine = calculationResult.AllocationLine,
                         CalculationType = ConvertCalculationType(calculationResult.CalculationType),
                         Value = calculationResult.Value,
@@ -254,7 +243,7 @@ namespace CalculateFunding.Services.Results
 
                 IEnumerable<IGrouping<string, CalculationResult>> allocationLineGroups = providerResult
                     .CalculationResults
-                    .Where(c => c.CalculationType == Models.Calcs.CalculationType.Funding && c.Value.HasValue && c.AllocationLine != null && !string.IsNullOrWhiteSpace(c.AllocationLine.Id))
+                    .Where(c => c.CalculationType == Models.Calcs.CalculationType.Template && c.Value.HasValue && c.AllocationLine != null && !string.IsNullOrWhiteSpace(c.AllocationLine.Id))
                     .GroupBy(m => m.AllocationLine.Id);
 
                 foreach (IGrouping<string, CalculationResult> allocationLineResultGroup in allocationLineGroups)

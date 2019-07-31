@@ -16,9 +16,6 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("description")]
         public string Description { get; set; }
 
-        [JsonProperty("calculations")]
-        public IEnumerable<Calculation> Calculations { get; set; } = Enumerable.Empty<Calculation>();
-
         [JsonProperty("dataDefinitionRelationshipIds")]
         public IEnumerable<string> DataDefinitionRelationshipIds { get; set; }
 

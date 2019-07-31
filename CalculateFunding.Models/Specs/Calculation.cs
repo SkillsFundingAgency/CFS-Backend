@@ -12,9 +12,6 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 
-        [JsonProperty("calculationType")]
-        public CalculationType CalculationType { get; set; }
-
         [JsonProperty("lastUpdated")]
         public DateTimeOffset LastUpdated { get; set; }
 

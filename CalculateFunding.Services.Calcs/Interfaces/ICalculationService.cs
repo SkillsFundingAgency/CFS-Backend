@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Models.Datasets.ViewModels;
+﻿using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Models.Datasets.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -9,8 +11,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface ICalculationService
     {
-        Task CreateCalculation(Message message);
-
         Task<IActionResult> GetCalculationById(HttpRequest request);
 
         Task<IActionResult> GetCurrentCalculationsForSpecification(HttpRequest request);
@@ -33,16 +33,16 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task UpdateCalculationsForSpecification(Message message);
 
-        Task UpdateCalculationsForCalculationSpecificationChange(Message message);
-
         Task<IActionResult> GetCalculationStatusCounts(HttpRequest request);
-
-        Task<IActionResult> GetCalculationByCalculationSpecificationId(string calculationSpecificationId);
 
         Task<IActionResult> IsCalculationNameValid(string specificationId, string calculationName, string existingCalculationId);
 
         Task<IActionResult> DuplicateCalcNamesMigration();
 
         Task ResetCalculationForFieldDefinitionChanges(IEnumerable<DatasetSpecificationRelationshipViewModel> relationships, string specificationId, IEnumerable<string> currentFieldDefinitionNames);
+
+        Task<IActionResult> GetCalculationByName(CalculationGetModel model);
+
+        Task<IActionResult> CreateAdditionalCalculation(CalculationCreateModel model, Reference author);
     }
 }

@@ -22,9 +22,14 @@ namespace CalculateFunding.Services.Calcs.Services
     [TestClass]
     public partial class CalculationServiceTests
     {
-        const string UserId = "8bcd2782-e8cb-4643-8803-951d715fc202";
-        const string CalculationId = "3abc2782-e8cb-4643-8803-951d715fci23";
-        const string Username = "test-user";
+        private const string UserId = "8bcd2782-e8cb-4643-8803-951d715fc202";
+        private const string CalculationId = "3abc2782-e8cb-4643-8803-951d715fci23";
+        private const string Username = "test-user";
+        private const string SpecificationId = "spec-id-1";
+        private const string CalculationName = "calc-name-1";
+        private const string FundingStreamId = "fs-1";
+        private const string DefaultSourceCode = "return 0";
+        private const string Description = "test description";
 
         private static CalculationService CreateCalculationService(
             IMapper mapper = null,
@@ -42,7 +47,8 @@ namespace CalculateFunding.Services.Calcs.Services
             ISourceCodeService sourceCodeService = null,
             IFeatureToggle featureToggle = null,
             IBuildProjectsRepository buildProjectsRepository = null,
-            ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = null)
+            ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = null,
+            IValidator<CalculationCreateModel> calculationCreateModelValidator = null)
         {
             return new CalculationService
                 (mapper ?? CreateMapper(),
@@ -60,7 +66,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService ?? CreateSourceCodeService(),
                 featureToggle ?? CreateFeatureToggle(),
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
-                calculationCodeReferenceUpdate ?? CreateCalculationCodeReferenceUpdate());
+                calculationCodeReferenceUpdate ?? CreateCalculationCodeReferenceUpdate(),
+                calculationCreateModelValidator ?? CreateCalculationCreateModelValidator());
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
@@ -149,6 +156,22 @@ namespace CalculateFunding.Services.Calcs.Services
             return validator;
         }
 
+        private static IValidator<CalculationCreateModel> CreateCalculationCreateModelValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<CalculationCreateModel> validator = Substitute.For<IValidator<CalculationCreateModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<CalculationCreateModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
         private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
@@ -159,34 +182,36 @@ namespace CalculateFunding.Services.Calcs.Services
             return new Calculation
             {
                 Id = CalculationId,
-                Name = "Test Calc Name",
-                CalculationSpecification = new Reference
-                {
-                    Id = "any-calc-id",
-                    Name = "Test Calc Name",
-                },
+
                 SpecificationId = "any-spec-id",
-                FundingPeriod = new Reference
-                {
-                    Id = "18/19",
-                    Name = "2018/2019"
-                },
-                AllocationLine = new Reference
-                {
-                    Id = "test-alloc-id",
-                    Name = "test-alloc-name"
-                },
+
                 Current = new CalculationVersion
                 {
                     SourceCode = "source code",
                     PublishStatus = PublishStatus.Draft,
+                    Description = "description",
+                    Name = "Test Calc Name"
                 },
-                FundingStream = new Reference
-                {
-                    Id = "funding stream-id",
-                    Name = "funding-stream-name"
-                }
+                FundingStreamId = "funding stream-id"
             };
+        }
+
+        private static CalculationCreateModel CreateCalculationCreateModel()
+        {
+            return new CalculationCreateModel
+            {
+                SpecificationId = SpecificationId,
+                FundingStreamId = FundingStreamId,
+                Name = CalculationName,
+                ValueType = CalculationValueType.Currency,
+                SourceCode = DefaultSourceCode,
+                Description = Description
+            };
+        }
+
+        private static Reference CreateAuthor()
+        {
+            return new Reference(UserId, Username);
         }
     }
 }

@@ -23,15 +23,8 @@ namespace CalculateFunding.Services.Calcs
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
 
-        private FacetFilterType[] Facets = {
-            new FacetFilterType("allocationLineName"),
-            new FacetFilterType("status"),
-            new FacetFilterType("specificationName"),
-            new FacetFilterType("fundingPeriodName"),
-            new FacetFilterType("fundingStreamName")
-        };
 
-        private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
+        private IEnumerable<string> DefaultOrderBy = new[] { "name" };
 
         public CalculationSearchService(ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository)
@@ -53,7 +46,7 @@ namespace CalculateFunding.Services.Calcs
             return health;
         }
 
-        async public Task<IActionResult> SearchCalculations(HttpRequest request)
+        public async Task<IActionResult> SearchCalculations(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();
 
@@ -65,23 +58,15 @@ namespace CalculateFunding.Services.Calcs
 
                 return new BadRequestObjectResult("An invalid search model was provided");
             } 
-            
-            if(searchModel.FacetCount < 0 || searchModel.FacetCount > 1000)
-            {
-                return new BadRequestObjectResult("An invalid facet count was specified");
-            }
-			
-            IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = BuildSearchTasks(searchModel);
 
             try
             {
-				await TaskHelper.WhenAllAndThrow(searchTasks.ToArraySafe());
-	            CalculationSearchResults results = new CalculationSearchResults();
+                SearchResults<CalculationIndex> items = await BuildItemsSearchTask(searchModel);
+                CalculationSearchResults results = new CalculationSearchResults();
 
-	            foreach (var searchTask in searchTasks)
-	            {
-		            ProcessSearchResults(searchTask.Result, results);
-	            }
+	           
+		       ProcessSearchResults(items, results);
+	            
 
 	            return new OkObjectResult(results);
             }
@@ -93,71 +78,7 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        IDictionary<string,string> BuildFacetDictionary(SearchModel searchModel)
-        {
-            if (searchModel.Filters == null)
-                searchModel.Filters = new Dictionary<string, string[]>();
-
-            searchModel.Filters = searchModel.Filters.ToList().Where(m => !m.Value.IsNullOrEmpty())
-                .ToDictionary(m => m.Key, m => m.Value);
-
-            IDictionary<string, string> facetDictionary = new Dictionary<string, string>();
-
-            foreach (var facet in Facets)
-            {
-                string filter = "";
-                if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name].AnyWithNullCheck())
-                {
-                    if (facet.IsMulti)
-                        filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x}'"))}))";
-                    else
-                        filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
-                }
-                facetDictionary.Add(facet.Name, filter);
-            }
-
-            return facetDictionary;
-        }
-
-        IEnumerable<Task<SearchResults<CalculationIndex>>> BuildSearchTasks(SearchModel searchModel)
-        {
-            IDictionary<string, string> facetDictionary = BuildFacetDictionary(searchModel);
-
-            IEnumerable<Task<SearchResults<CalculationIndex>>> searchTasks = new Task<SearchResults<CalculationIndex>>[0];
-
-            if (searchModel.IncludeFacets)
-            {
-                foreach (var filterPair in facetDictionary)
-                {
-                    searchTasks = searchTasks.Concat(new[]
-                    {
-                        Task.Run(() =>
-                        {
-                            var s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
-
-                            return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
-                            {
-                                Facets = new[]{ $"{filterPair.Key},count:{searchModel.FacetCount}" },
-                                SearchMode = (SearchMode)searchModel.SearchMode,
-                                SearchFields = new List<string>{ "name" },
-                                IncludeTotalResultCount = true,
-                                Filter = string.Join(" and ", facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value)),
-                                QueryType = QueryType.Full
-                            });
-                        })
-                    });
-                }
-            }
-
-            searchTasks = searchTasks.Concat(new[]
-            {
-                BuildItemsSearchTask(facetDictionary, searchModel)
-            });
-
-            return searchTasks;
-        }
-
-        Task<SearchResults<CalculationIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
+        Task<SearchResults<CalculationIndex>> BuildItemsSearchTask(SearchModel searchModel)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
 			return Task.Run(() =>
@@ -169,8 +90,8 @@ namespace CalculateFunding.Services.Calcs
 					SearchMode = (SearchMode)searchModel.SearchMode,
 					SearchFields = new List<string> { "name" },
 					IncludeTotalResultCount = true,
-					Filter = string.Join(" and ", facetDictionary.Values.Where(x => !string.IsNullOrWhiteSpace(x))),
-					OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
+                    Filter = searchModel.Filters != null ? string.Join(" and ", searchModel.Filters.Values.Where(x => !string.IsNullOrWhiteSpace(x.FirstOrDefault()))) : string.Empty,
+                    OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
 					QueryType = QueryType.Full
 				});
 			});
@@ -189,11 +110,13 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Id = m.Result.Id,
                     Name = m.Result.Name,
-                    FundingPeriodName = m.Result.FundingPeriodName,
-                    SpecificationName = m.Result.SpecificationName,
-                    Status = m.Result.Status,
+                    FundingStreamId = m.Result.FundingStreamId,
+                    SpecificationId = m.Result.SpecificationId,
+                    ValueType = m.Result.ValueType,
                     CalculationType = m.Result.CalculationType,
-                    LastUpdatedDate = m.Result.LastUpdatedDate.ToNullableLocal()
+                    Namespace = m.Result.Namespace,
+                    WasTemplateCalculation = m.Result.WasTemplateCalculation,
+                    Description = m.Result.Description
                 });
             }
         }

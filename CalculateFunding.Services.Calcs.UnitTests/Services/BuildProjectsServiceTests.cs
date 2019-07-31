@@ -1600,17 +1600,17 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     new Models.Calcs.Calculation
                     {
-                        Name = "Calc 1",
                         Current = new CalculationVersion
                         {
+                             Name = "Calc 1",
                             SourceCode = "return Sum(Calc2)"
                         }
                     },
                     new Models.Calcs.Calculation
                     {
-                        Name = "Calc 2",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 2",
                             SourceCode = "return 1000"
                         }
                     }
@@ -1756,35 +1756,35 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(new[]
                 {
-                    new Models.Calcs.Calculation
+                    new Calculation
                     {
-                        Name = "Calc 1",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 1",
                             SourceCode = "return Sum(Calc2)"
                         }
                     },
-                    new Models.Calcs.Calculation
+                    new Calculation
                     {
-                        Name = "Calc 2",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 2",
                             SourceCode = "return 1000"
                         }
                     },
-                    new Models.Calcs.Calculation
+                    new Calculation
                     {
-                        Name = "Calc 3",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 3",
                             SourceCode = "return Sum(Calc4)"
                         }
                     },
-                    new Models.Calcs.Calculation
+                    new Calculation
                     {
-                        Name = "Calc 4",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 4",
                             SourceCode = "return 1000"
                         }
                     }
@@ -1907,35 +1907,35 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(new[]
                 {
-                    new Models.Calcs.Calculation
+                    new Calculation
                     {
-                        Name = "Calc 1",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 1",
                             SourceCode = "return Sum(Calc2)"
                         }
                     },
-                    new Models.Calcs.Calculation
+                    new Calculation
                     {
-                        Name = "Calc 2",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 2",
                             SourceCode = "return 1000"
                         }
                     },
-                    new Models.Calcs.Calculation
+                    new Calculation
                     {
-                        Name = "Calc 3",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 3",
                             SourceCode = "return Sum(Calc4)"
                         }
                     },
-                    new Models.Calcs.Calculation
+                    new Calculation
                     {
-                        Name = "Calc 4",
                         Current = new CalculationVersion
                         {
+                            Name = "Calc 4",
                             SourceCode = "return 1000"
                         }
                     }

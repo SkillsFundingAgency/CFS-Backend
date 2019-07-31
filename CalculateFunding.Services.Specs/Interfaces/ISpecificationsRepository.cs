@@ -18,13 +18,10 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
         Task<IEnumerable<Specification>> GetSpecifications();
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);
-        Task<HttpStatusCode> UpdateSpecification(Specification specification);
-        Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName);
-        Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId);
+        Task<HttpStatusCode> UpdateSpecification(Specification specification);   
         [Obsolete]
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec);
-        Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
         Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
         Task<TemplateMapping> GetTemplateMappingForSpecificationId(string specificationId);
     }

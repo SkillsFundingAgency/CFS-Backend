@@ -79,9 +79,7 @@ namespace CalculateFunding.Api.Specs
             builder
                 .AddSingleton<ISpecificationsService, SpecificationsService>()
                 .AddSingleton<IHealthChecker, SpecificationsService>();
-            builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
-            builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder

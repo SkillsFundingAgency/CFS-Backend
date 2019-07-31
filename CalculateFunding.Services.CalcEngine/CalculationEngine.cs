@@ -114,7 +114,8 @@ namespace CalculateFunding.Services.CalcEngine
 
                     if (providerCalResults.TryGetValue(calculation.Id, out CalculationResult calculationResult))
                     {
-                        result.CalculationSpecification = calculationResult.CalculationSpecification;
+                        result.Calculation.Id = calculationResult.Calculation?.Id;
+
                         if (calculationResult.AllocationLine != null)
                         {
                             result.AllocationLine = calculationResult.AllocationLine;
@@ -140,7 +141,7 @@ namespace CalculateFunding.Services.CalcEngine
 
             providerResult.CalculationResults = results.ToList();
 
-            providerResult.AllocationLineResults = results.Where(x => x.CalculationType == CalculationType.Funding && x.AllocationLine != null)
+            providerResult.AllocationLineResults = results.Where(x => x.CalculationType == CalculationType.Template && x.AllocationLine != null)
                 .GroupBy(x => x.AllocationLine).Select(x => new AllocationLineResult
                 {
                     AllocationLine = x.Key,

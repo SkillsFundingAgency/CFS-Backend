@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CalculateFunding.Models.Calcs;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -6,6 +7,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 {
     public interface IPreviewService
     {
-        Task<IActionResult> Compile(HttpRequest request);
+        Task<IActionResult> Compile(PreviewRequest previewRequest);
     }
 }

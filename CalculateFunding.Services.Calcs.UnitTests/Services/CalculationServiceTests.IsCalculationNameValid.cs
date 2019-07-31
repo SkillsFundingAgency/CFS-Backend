@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using FluentAssertions;
@@ -87,7 +88,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
-                .Returns(new List<Models.Calcs.Calculation>());
+                .Returns(new List<Calculation>());
 
             CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
 
@@ -112,14 +113,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(new SpecificationSummary { Id = specificationId });
 
-            List<Models.Calcs.Calculation> existingCalcs = new List<Models.Calcs.Calculation>
+            List<Calculation> existingCalcs = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
-                    Name = calcName,
-                    SourceCodeName = calcName,
-                    Id = "calc-id-1",
-                    CalculationSpecification = new Common.Models.Reference { Id = "calc-spec-id" }
+                    Current = new CalculationVersion
+                    {
+                        Name = calcName,
+                        SourceCodeName = calcName
+                    },
+                    Id = "calc-id-1"
                 }
             };
 
@@ -151,14 +154,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(new SpecificationSummary { Id = specificationId });
 
-            List<Models.Calcs.Calculation> existingCalcs = new List<Models.Calcs.Calculation>
+            List<Calculation> existingCalcs = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
-                    Name = calcName.ToUpperInvariant(),
-                    SourceCodeName = calcName.ToUpperInvariant(),
-                    Id = "calc-id-1",
-                    CalculationSpecification = new Common.Models.Reference { Id = "calc-spec-1" }
+                    Current = new CalculationVersion
+                    {
+                        Name = calcName.ToUpperInvariant(),
+                        SourceCodeName = calcName.ToUpperInvariant()
+                    },
+                    Id = "calc-id-1"
                 }
             };
 
@@ -190,14 +195,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(new SpecificationSummary { Id = specificationId });
 
-            List<Models.Calcs.Calculation> existingCalcs = new List<Models.Calcs.Calculation>
+            List<Calculation> existingCalcs = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
-                    Name = "calc+1",
-                    SourceCodeName = "calc1",
-                    Id = "calc-id-1",
-                    CalculationSpecification = new Common.Models.Reference { Id = "calc-spec-1" }
+                    Current = new CalculationVersion
+                    {
+                        Name =  "calc+1",
+                        SourceCodeName = "calc1"
+                    },
+                    Id = "calc-id-1"
                 }
             };
 
@@ -229,14 +236,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(new SpecificationSummary { Id = specificationId });
 
-            List<Models.Calcs.Calculation> existingCalcs = new List<Models.Calcs.Calculation>
+            List<Calculation> existingCalcs = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
-                    Name = "calc 1",
-                    SourceCodeName = "calc1",
-                    Id = "calc-id-1",
-                    CalculationSpecification = new Common.Models.Reference { Id = "calc-spec-1" }
+                    Current = new CalculationVersion
+                    {
+                        Name =  "calc 1",
+                        SourceCodeName = "calc1"
+                    },
+                    Id = "calc-id-1"
                 }
             };
 
@@ -262,21 +271,24 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             string specificationId = "spec1";
             string calcName = "calc1";
-            string calcSpecId = "calc-spec-id-1";
+            string calcSpecId = "calc-1";
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             specificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
                 .Returns(new SpecificationSummary { Id = specificationId });
 
-            List<Models.Calcs.Calculation> existingCalcs = new List<Models.Calcs.Calculation>
+            List<Calculation> existingCalcs = new List<Calculation>
             {
-                new Models.Calcs.Calculation
+                new Calculation
                 {
-                    Name = calcName,
-                    SourceCodeName = calcName,
-                    Id = "calc-1",
-                    CalculationSpecification = new Common.Models.Reference { Id = calcSpecId }
+                    Current = new CalculationVersion
+                    {
+                        Name = calcName,
+                        SourceCodeName = calcName
+                    },
+                   
+                    Id = "calc-1"
                 }
             };
 

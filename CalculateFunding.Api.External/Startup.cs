@@ -340,10 +340,8 @@ namespace CalculateFunding.Api.External
 
             builder.AddSingleton<IPolicyFundingStreamService, PolicyFundingStreamService>();
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
-            builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
-            builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
             builder.AddSingleton<IResultsRepository, ResultsRepository>();
 
             builder.AddResultsInterServiceClient(Configuration);

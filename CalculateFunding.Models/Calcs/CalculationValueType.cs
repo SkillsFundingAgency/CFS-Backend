@@ -4,9 +4,10 @@ using Newtonsoft.Json.Converters;
 namespace CalculateFunding.Models.Calcs
 {
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum CalculationType
+    public enum CalculationValueType
     {
-        Additional,
-        Template
+        Number,
+        Percentage,
+        Currency,
     }
 }

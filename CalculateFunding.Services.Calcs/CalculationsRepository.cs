@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -52,11 +55,14 @@ namespace CalculateFunding.Services.Calcs
             return Task.FromResult(calculations.AsEnumerable());
         }
 
-        public Task<Calculation> GetCalculationByCalculationSpecificationId(string calculationSpecificationId)
+        public async Task<Calculation> GetCalculationsBySpecificationIdAndCalculationName(string specificationId, string calculationName)
         {
-            IQueryable<Calculation> calculations = _cosmosRepository.Query<Calculation>().Where(x => x.CalculationSpecification.Id == calculationSpecificationId);
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(calculationName, nameof(calculationName));
 
-            return Task.FromResult(calculations.AsEnumerable().FirstOrDefault());
+            IQueryable<Calculation> calculations = _cosmosRepository.Query<Calculation>().Where(m => m.SpecificationId == specificationId && m.Current.Name == calculationName);
+
+            return (await GetCalculationsBySpecificationId(specificationId)).FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
         }
 
         public async Task<HttpStatusCode> UpdateCalculation(Calculation calculation)

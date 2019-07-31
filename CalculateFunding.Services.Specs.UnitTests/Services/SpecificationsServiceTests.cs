@@ -47,13 +47,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IPoliciesApiClient policiesApiClient = null,
             ILogger logs = null,
             IValidator<SpecificationCreateModel> specificationCreateModelvalidator = null,
-            IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
             IMessengerService messengerService = null, ServiceBusSettings EventHubSettings = null,
             ISearchRepository<SpecificationIndex> searchRepository = null,
             IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator = null,
             ICacheProvider cacheProvider = null,
             IValidator<SpecificationEditModel> specificationEditModelValidator = null,
-            IValidator<CalculationEditModel> calculationEditModelValidator = null,
             IResultsRepository resultsRepository = null,
             IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
             IFeatureToggle featureToggle = null,
@@ -64,13 +62,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 policiesApiClient ?? CreatePoliciesApiClient(),
                 logs ?? CreateLogger(),
                 specificationCreateModelvalidator ?? CreateSpecificationValidator(),
-                calculationCreateModelValidator ?? CreateCalculationValidator(),
                 messengerService ?? CreateMessengerService(),
                 searchRepository ?? CreateSearchRepository(),
                 assignDefinitionRelationshipMessageValidator ?? CreateAssignDefinitionRelationshipMessageValidator(),
                 cacheProvider ?? CreateCacheProvider(),
                 specificationEditModelValidator ?? CreateEditSpecificationValidator(),
-                calculationEditModelValidator ?? CreateEditCalculationValidator(),
                 resultsRepository ?? CreateResultsRepository(),
                 specificationVersionRepository ?? CreateVersionRepository(),
                 featureToggle ?? CreateFeatureToggle(),
@@ -191,38 +187,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             validator
                .ValidateAsync(Arg.Any<SpecificationEditModel>())
-               .Returns(validationResult);
-
-            return validator;
-        }
-
-        protected IValidator<CalculationCreateModel> CreateCalculationValidator(ValidationResult validationResult = null)
-        {
-            if (validationResult == null)
-            {
-                validationResult = new ValidationResult();
-            }
-
-            IValidator<CalculationCreateModel> validator = Substitute.For<IValidator<CalculationCreateModel>>();
-
-            validator
-               .ValidateAsync(Arg.Any<CalculationCreateModel>())
-               .Returns(validationResult);
-
-            return validator;
-        }
-
-        protected IValidator<CalculationEditModel> CreateEditCalculationValidator(ValidationResult validationResult = null)
-        {
-            if (validationResult == null)
-            {
-                validationResult = new ValidationResult();
-            }
-
-            IValidator<CalculationEditModel> validator = Substitute.For<IValidator<CalculationEditModel>>();
-
-            validator
-               .ValidateAsync(Arg.Any<CalculationEditModel>())
                .Returns(validationResult);
 
             return validator;

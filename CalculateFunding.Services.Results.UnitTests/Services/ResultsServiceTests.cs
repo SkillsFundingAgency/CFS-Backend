@@ -8,6 +8,7 @@ using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
@@ -1285,22 +1286,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         {
             return new SpecificationCurrentVersion
             {
-                Id = specificationId,
-                Calculations = new[]
-                {
-                    new Models.Specs.Calculation
-                    {
-                        Id = "calc-1"
-                    },
-                        new Models.Specs.Calculation
-                    {
-                        Id = "calc-2"
-                    },
-                        new Models.Specs.Calculation
-                    {
-                        Id = "calc-3"
-                    }
-                }
+                Id = specificationId
             };
         }
 
@@ -1316,17 +1302,15 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding
+                            CalculationType = Models.Calcs.CalculationType.Template
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
+                            CalculationType = Models.Calcs.CalculationType.Template
                         }
                     },
                     Provider = new ProviderSummary
@@ -1359,10 +1343,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Funding
+                            CalculationType = Models.Calcs.CalculationType.Template
                         }
                     },
                     Provider = new ProviderSummary
@@ -1785,8 +1768,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         },
                         CalculationResults = new List<CalculationResult>
                         {
-                            new CalculationResult { Calculation = new Calculation { Name = "Bob" }, Value = 42M },
-                            new CalculationResult { Calculation = new Calculation { Name = "Carol" }, Value = 3M }
+                            new CalculationResult { Calculation = new Reference { Name = "Bob" }, Value = 42M },
+                            new CalculationResult { Calculation = new Reference { Name = "Carol" }, Value = 3M }
                         }
                     },
                     new ProviderResult
@@ -1798,8 +1781,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         },
                         CalculationResults = new List<CalculationResult>
                         {
-                            new CalculationResult { Calculation = new Calculation { Name = "Bob" }, Value = 3.142M },
-                            new CalculationResult { Calculation = new Calculation { Name = "Carol" }, Value = 2.718M }
+                            new CalculationResult { Calculation = new Reference { Name = "Bob" }, Value = 3.142M },
+                            new CalculationResult { Calculation = new Reference { Name = "Carol"}, Value = 2.718M }
                         }
                     }
 

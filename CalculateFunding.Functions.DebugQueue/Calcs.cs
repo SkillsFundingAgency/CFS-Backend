@@ -11,21 +11,6 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Calcs
     {
-        [FunctionName("on-calc-events-create-draft")]
-        public static async Task RunOnCalcsCreateDraftEvent([QueueTrigger(ServiceBusConstants.QueueNames.CreateDraftCalculation, Connection = "AzureConnectionString")] string item, ILogger log)
-        {
-            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<Calculation>(item);
-
-                OnCalcsCreateDraftEvent function = scope.ServiceProvider.GetService<OnCalcsCreateDraftEvent>();
-
-                await function.Run(message);
-
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
-        }
-
         [FunctionName("on-calcs-add-data-relationship")]
         public static async Task RunCalcsAddRelationshipToBuildProject([QueueTrigger(ServiceBusConstants.QueueNames.UpdateBuildProjectRelationships, Connection = "AzureConnectionString")] string item, ILogger log)
         {

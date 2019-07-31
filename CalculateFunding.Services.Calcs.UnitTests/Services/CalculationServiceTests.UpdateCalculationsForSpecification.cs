@@ -110,103 +110,6 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationsForSpecification_GivenModelHasChangedFundingStreams_SetsTheAllocationLineAndFundingStreamToNull()
-        {
-            //Arrange
-            const string specificationId = "spec-id";
-
-            Models.Specs.SpecificationVersionComparisonModel specificationVersionComparison = new Models.Specs.SpecificationVersionComparisonModel()
-            {
-                Id = specificationId,
-                Current = new Models.Specs.SpecificationVersion
-                {
-                    FundingPeriod = new Reference { Id = "fp1" },
-                    Name = "any-name",
-                    FundingStreams = new List<Reference> { new Reference { Id = "fs2" } }
-                },
-                Previous = new Models.Specs.SpecificationVersion
-                {
-                    FundingPeriod = new Reference { Id = "fp1" },
-                    FundingStreams = new List<Reference> { new Reference { Id = "fs1" } }
-                }
-            };
-
-            string json = JsonConvert.SerializeObject(specificationVersionComparison);
-
-            Message message = new Message(Encoding.UTF8.GetBytes(json));
-
-            ILogger logger = CreateLogger();
-
-            IEnumerable<Calculation> calcs = new[]
-            {
-                new Calculation
-                {
-                    SpecificationId =  "spec-id",
-                    Name = "any name",
-                    Id = "any-id",
-                    CalculationSpecification = new Reference("any name", "any-id"),
-                    FundingPeriod = new Reference("18/19", "2018/2019"),
-                    CalculationType = CalculationType.Number,
-                    FundingStream = new Reference("fs1","fs1-111"),
-                    Current = new CalculationVersion
-                    {
-                        Author = new Reference(UserId, Username),
-                        Date = DateTimeOffset.Now,
-                        PublishStatus = PublishStatus.Draft,
-                        SourceCode = "source code",
-                        Version = 1
-                    }
-                }
-            };
-
-            BuildProject buildProject = new BuildProject();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationsBySpecificationId(Arg.Is(specificationId))
-                .Returns(calcs);
-
-            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
-            buildProjectsService
-                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
-                .Returns(buildProject);
-
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
-                .Returns(new Job { Id = "job-id-1" });
-
-            IMapper mapper = Substitute.For<IMapper>();
-
-            CalculationService service = CreateCalculationService(mapper, calculationsRepository, logger, buildProjectsService: buildProjectsService, searchRepository: searchRepository, jobsApiClient: jobsApiClient);
-
-            //Act
-            await service.UpdateCalculationsForSpecification(message);
-
-            //Assert
-            calcs
-                .First()
-                .FundingStream
-                .Should()
-                .BeNull();
-
-            calcs
-               .First()
-               .AllocationLine
-               .Should()
-               .BeNull();
-
-            await searchRepository
-                .Received(1)
-                .Index(Arg.Is<IEnumerable<CalculationIndex>>(c =>
-                    c.First().Id == calcs.First().Id &&
-                    c.First().FundingStreamId == "" &&
-                    c.First().FundingStreamName == "No funding stream set"));
-        }
-
-        [TestMethod]
         public async Task UpdateCalculationsForSpecification_GivenModelHasChangedPolicyName_SavesChangesEnsuresJobCreated()
         {
             // Arrange
@@ -239,19 +142,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 new Calculation
                 {
                     SpecificationId =  "spec-id",
-                    Name = "any name",
                     Id = "any-id",
-                    CalculationSpecification = new Reference("any name", "any-id"),
-                    FundingPeriod = new Reference("18/19", "2018/2019"),
-                    CalculationType = CalculationType.Number,
-                    FundingStream = new Reference("fp1","fs1-111"),
                     Current = new CalculationVersion
                     {
                         Author = new Reference(UserId, Username),
                         Date = DateTimeOffset.Now,
                         PublishStatus = PublishStatus.Draft,
                         SourceCode = "source code",
-                        Version = 1
+                        Version = 1,
+                        Name = "any name",
+                        CalculationType = CalculationType.Template,
                     }
                 }
             };
@@ -345,19 +245,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 new Calculation
                 {
                     SpecificationId =  "spec-id",
-                    Name = "any name",
                     Id = "any-id",
-                    CalculationSpecification = new Reference("any name", "any-id"),
-                    FundingPeriod = new Reference("18/19", "2018/2019"),
-                    CalculationType = CalculationType.Number,
-                    FundingStream = new Reference("fp1","fs1-111"),
                     Current = new CalculationVersion
                     {
                         Author = new Reference(UserId, Username),
                         Date = DateTimeOffset.Now,
                         PublishStatus = PublishStatus.Draft,
                         SourceCode = "source code",
-                        Version = 1
+                        Version = 1,
+                        Name = "any name",
+                        CalculationType = CalculationType.Template
                     }
                 }
             };
@@ -459,19 +356,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 new Calculation
                 {
                     SpecificationId =  "spec-id",
-                    Name = "any name",
                     Id = "any-id",
-                    CalculationSpecification = new Reference("any name", "any-id"),
-                    FundingPeriod = new Reference("18/19", "2018/2019"),
-                    CalculationType = CalculationType.Number,
-                    FundingStream = new Reference("fp1","fs1-111"),
                     Current = new CalculationVersion
                     {
                         Author = new Reference(UserId, Username),
                         Date = DateTimeOffset.Now,
                         PublishStatus = PublishStatus.Draft,
                         SourceCode = "return Min(calc1)",
-                        Version = 1
+                        Version = 1,
+                        Name = "any name",
+                        CalculationType = CalculationType.Template
                     }
                 }
             };

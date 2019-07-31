@@ -32,16 +32,6 @@ namespace CalculateFunding.Services.Calcs
             return _apiClient.GetAsync<SpecificationSummary>(url);
         }
 
-        public Task<IEnumerable<Calculation>> GetCalculationSpecificationsForSpecification(string specificationId)
-        {
-            if (string.IsNullOrWhiteSpace(specificationId))
-                throw new ArgumentNullException(nameof(specificationId));
-
-            string url = $"specs/calculations-by-specificationid?specificationId={specificationId}";
-
-            return _apiClient.GetAsync<IEnumerable<Calculation>>(url);
-        }
-
         public async Task<HttpStatusCode> UpdateCalculationLastUpdatedDate(string specificationId)
         {
             string url = $"specs/update-Calculation-Last-Updated-Date?specificationId={specificationId}";

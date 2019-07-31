@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Specs
+namespace CalculateFunding.Models.Calcs
 {
     public class CalculationVersionComparisonModel
     {
@@ -14,9 +14,7 @@ namespace CalculateFunding.Models.Specs
 
         [JsonIgnore]
         public bool HasChanges =>
-            (Current.Name != Previous.Name) 
-            || (Current.Description != Previous.Description) 
-            || (Current.CalculationType != Previous.CalculationType)
-            || (Current.AllocationLine?.Id != Previous.AllocationLine?.Id);
+            (Current.Name != Previous.Name)
+            || (Current.Current.Description != Previous.Current.Description);
     }
 }

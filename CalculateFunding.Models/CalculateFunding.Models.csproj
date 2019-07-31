@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Remove="Results\Search\AllocationNotificationFeedIndexTemp.cs" />
+    <Compile Remove="Specs\Calculation.cs" />
   </ItemGroup>
 
   <ItemGroup>

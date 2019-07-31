@@ -110,7 +110,7 @@ namespace CalculateFunding.Services.CalcEngine
             {
                 if (!providerResult.CalculationResults.IsNullOrEmpty())
                 {
-                    foreach (CalculationResult calculationResult in providerResult.CalculationResults.Where(m => m.CalculationSpecification != null))
+                    foreach (CalculationResult calculationResult in providerResult.CalculationResults.Where(m => m.Calculation != null))
                     {
                         SpecificationSummary specification = specifications[providerResult.SpecificationId];
 
@@ -118,10 +118,8 @@ namespace CalculateFunding.Services.CalcEngine
                         {
                             SpecificationId = providerResult.SpecificationId,
                             SpecificationName = specification?.Name,
-                            CalculationSpecificationId = calculationResult.CalculationSpecification?.Id,
-                            CalculationSpecificationName = calculationResult.CalculationSpecification?.Name,
-                            CalculationName = calculationResult.Calculation?.Name,
-                            CalculationId = calculationResult.Calculation?.Id,
+                            CalculationName = calculationResult.Calculation.Name,
+                            CalculationId = calculationResult.Calculation.Id,
                             CalculationType = calculationResult.CalculationType.ToString(),
                             ProviderId = providerResult.Provider?.Id,
                             ProviderName = providerResult.Provider?.Name,

@@ -296,18 +296,16 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 {
                     new CalculationResult
                     {
-                        CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                         Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                         Value = 123,
-                        CalculationType = Models.Calcs.CalculationType.Funding,
+                        CalculationType = Models.Calcs.CalculationType.Template,
                         ExceptionType = "Exception"
                     },
                     new CalculationResult
                     {
-                        CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                         Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                         Value = 10,
-                        CalculationType = Models.Calcs.CalculationType.Number
+                        CalculationType = Models.Calcs.CalculationType.Template
                     }
                 },
                 Provider = new ProviderSummary

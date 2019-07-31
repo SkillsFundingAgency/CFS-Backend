@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
@@ -91,9 +92,9 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
         [Route("api/calcs/compile-preview")]
         [HttpPost]
-        public Task<IActionResult> RunCompilePreview()
+        public Task<IActionResult> RunCompilePreview([FromBody] PreviewRequest previewRequest)
         {
-            return _previewService.Compile(ControllerContext.HttpContext.Request);
+            return _previewService.Compile(previewRequest);
         }
 
         [Route("api/calcs/get-buildproject-by-specification-id")]
@@ -148,13 +149,6 @@ namespace CalculateFunding.Api.Calcs.Controllers
             return new OkResult();
         }
 
-        [Route("api/calcs/{calcSpecId}/calculation")]
-        [HttpGet]
-        public async Task<IActionResult> GetCalculationByCalculationSpecificationId(string calcSpecId)
-        {
-            return await _calcsService.GetCalculationByCalculationSpecificationId(calcSpecId);
-        }
-
         [Route("api/calcs/{specificationId}/assembly")]
         [HttpGet]
         public Task<IActionResult> GetAssemblyBySpecificationId(string specificationId)
@@ -202,6 +196,20 @@ namespace CalculateFunding.Api.Calcs.Controllers
         public async Task<IActionResult> SaveSourceFilesDiagnostics([FromRoute]string specificationId)
         {
             return await _buildProjectsService.GenerateAndSaveSourceProject(specificationId, SourceCodeType.Diagnostics);
+        }
+
+        [Route("api/calcs/calculation-by-name")]
+        [HttpPost]
+        public async Task<IActionResult> GetCalculationByName([FromBody]CalculationGetModel model)
+        {
+            return await _calcsService.GetCalculationByName(model);
+        }
+
+        [Route("api/calcs/additional")]
+        [HttpPost]
+        public async Task<IActionResult> CreateAdditionalCalculation([FromBody]CalculationCreateModel model)
+        {
+            return await _calcsService.CreateAdditionalCalculation(model, ControllerContext.HttpContext.Request.GetUser());
         }
     }
 }

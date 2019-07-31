@@ -222,9 +222,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = new[] { new FinancialEnvelope() };
                 result.FundingStreamResult.AllocationLineResult.Current.Calculations = new[]
                 {
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3")},
+                    new PublishedProviderCalculationResult { Id = "calc-id-1", Name = "calc1" },
+                    new PublishedProviderCalculationResult { Id = "calc-id-2", Name = "calc2" },
+                    new PublishedProviderCalculationResult { Id = "calc-id-3", Name = "calc3" }
                 };
             }
 
@@ -461,9 +461,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = new[] { new FinancialEnvelope() };
                 result.FundingStreamResult.AllocationLineResult.Current.Calculations = new[]
                 {
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3")},
+                    new PublishedProviderCalculationResult { Id = "calc-id-1", Name = "calc1" },
+                    new PublishedProviderCalculationResult { Id = "calc-id-2", Name = "calc2" },
+                    new PublishedProviderCalculationResult { Id = "calc-id-3", Name = "calc3" }
                 };
             }
 
@@ -593,9 +593,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 result.FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes = new[] { new FinancialEnvelope() };
                 result.FundingStreamResult.AllocationLineResult.Current.Calculations = new[]
                 {
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-1", "calc1")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-2", "calc2")},
-                    new PublishedProviderCalculationResult { CalculationSpecification = new Common.Models.Reference ("calc-id-3", "calc3")},
+                    new PublishedProviderCalculationResult { Id = "calc-id-1", Name = "calc1" },
+                    new PublishedProviderCalculationResult { Id = "calc-id-2", Name = "calc2" },
+                    new PublishedProviderCalculationResult { Id = "calc-id-3", Name = "calc3" }
                 };
             }
 

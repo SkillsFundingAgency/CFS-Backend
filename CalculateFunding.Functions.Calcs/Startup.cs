@@ -59,13 +59,10 @@ namespace CalculateFunding.Functions.Calcs
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
             builder.AddSingleton<CalcsAddRelationshipToBuildProject>();
-            builder.AddSingleton<OnCalcsCreateDraftEvent>();
             builder.AddSingleton<OnCalcsInstructAllocationResultsFailure>();
             builder.AddSingleton<OnCalcsInstructAllocationResults>();
             builder.AddSingleton<OnCalculationAggregationsJobCompleted>();
             builder.AddSingleton<OnDataDefinitionChanges>();
-            builder.AddSingleton<OnEditCalculationSpecificationEvent>();
-            builder.AddSingleton<OnEditSpecificationEvent>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<ICalculationService, CalculationService>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
@@ -91,6 +88,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<IJobHelperService, JobHelperService>();
             builder
                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
+
+            builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>(ctx =>
             {

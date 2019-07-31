@@ -232,7 +232,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderCalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
+                    Id = "calc-1",
+                    Name = "calc1" 
                 }
             };
 
@@ -324,7 +325,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderCalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
+                    Id = "calc-1",
+                    Name = "calc1" 
                 }
             };
 
@@ -389,7 +391,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
              {
                 new PublishedProviderCalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
+                    Id = "calc-1",
+                    Name = "calc1" 
                 }
             };
 
@@ -913,8 +916,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc1", Name = "Alloc 1" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -3224,8 +3226,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -3244,8 +3245,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 24
                         }
                     },
@@ -3405,8 +3405,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -3425,8 +3424,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 24
                         }
                     },
@@ -3586,8 +3584,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -3606,8 +3603,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 24
                         }
                     },
@@ -3739,8 +3735,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -3759,8 +3754,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 24
                         }
                     },
@@ -3911,8 +3905,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -3931,8 +3924,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 24
                         }
                     },
@@ -4081,8 +4073,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -4196,8 +4187,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -4311,8 +4301,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -4499,8 +4488,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -4782,8 +4770,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 12
                         }
                     },
@@ -4802,8 +4789,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc2", Name = "Alloc 2" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 24
                         }
                     },
@@ -5210,8 +5196,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             AllocationLine = new Reference { Id = "alloc1", Name = "Alloc 1" },
                             Calculation = new Reference { Id = "calc1", Name = "Calc 1" },
-                            CalculationSpecification = new Reference { Id = "calcspec1", Name = "Calc 1" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = value
                         }
                     },
@@ -5325,10 +5310,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                             Id = "PSG",
                             Name = "PE & Sport"
                         }
-                    },
-                    Calculations = new List<Calculation>
-                    {
-                        new Calculation { CalculationType = CalculationType.Funding, Id = "calcspec1" }
                     }
                 });
 

@@ -2221,8 +2221,8 @@ namespace CalculateFunding.Services.Results
                         ? JsonConvert.SerializeObject(publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.Calculations.Select(m =>
                            new PublishedProviderCalculationResultSummary
                            {
-                               CalculationName = m.CalculationSpecification.Name,
-                               CalculationDisplayName = m.CalculationType == PublishedCalculationType.Baseline ? m.CalculationType.ToString() : m.CalculationSpecification.Name,
+                               CalculationName = m.Name,
+                               CalculationDisplayName = m.CalculationType == PublishedCalculationType.Baseline ? m.CalculationType.ToString() : m.Name,
                                CalculationVersion = m.CalculationVersion,
                                CalculationType = m.CalculationType.ToString(),
                                CalculationAmount = m.Value,

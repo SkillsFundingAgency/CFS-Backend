@@ -225,17 +225,17 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 new CalculationSummaryModel()
                 {
                     Id = CalculationId,
-                     CalculationType= CalculationType.Funding,
+                     CalculationType= CalculationType.Template,
                 },
                 new CalculationSummaryModel()
                 {
                     Id = "calc2",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = CalculationType.Template,
                 },
                 new CalculationSummaryModel()
                 {
                     Id = "calc3",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = CalculationType.Template,
                 }
             };
 
@@ -351,7 +351,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
 
             List<CalculationSummaryModel> models = new List<CalculationSummaryModel>
             {
-                new CalculationSummaryModel(){CalculationType = CalculationType.Number, Name = "Test", Id = "Test"}
+                new CalculationSummaryModel(){CalculationType = CalculationType.Template, Name = "Test", Id = "Test"}
             };
 
             ProviderSummary provider = new ProviderSummary();
@@ -407,25 +407,21 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             Reference allocationLineReturned = new Reference("allocationLine", "allocation line for Funding Calc and number calc");
 
             Reference fundingCalcReference = new Reference("CalcF1", "Funding calc 1");
-            Reference fundingCalcSpecificationReference = new Reference("FSpect", "FundingSpecification");
-
+           
             Reference numbercalcReference = new Reference("CalcF2", "Funding calc 2");
-            Reference numbercalcSpecificationReference = new Reference("FSpec2", "FundingSpecification2");
 
             CalculationResult fundingCalcReturned = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = fundingCalcReference,
                 AllocationLine = allocationLineReturned,
-                CalculationSpecification = fundingCalcSpecificationReference,
                 Value = 10000
             };
             CalculationResult fundingCalcReturned2 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = numbercalcReference,
                 AllocationLine = allocationLineReturned,
-                CalculationSpecification = numbercalcSpecificationReference,
                 Value = 20000
             };
 
@@ -447,7 +443,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             {
                 Id = "Non matching calculation",
                 Name = "Non matching calculation",
-                CalculationType = CalculationType.Funding
+                CalculationType = CalculationType.Template
             };
             IEnumerable<CalculationSummaryModel> calculationSummaryModels = new[]
             {
@@ -455,13 +451,13 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 {
                     Id = fundingCalcReference.Id,
                     Name = fundingCalcReference.Name,
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                 new CalculationSummaryModel()
                 {
                     Id = numbercalcReference.Id,
                     Name = numbercalcReference.Name,
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                 nonMatchingCalculationModel
             };
@@ -485,21 +481,18 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             fundingCalcResult.Calculation.Should().BeEquivalentTo(fundingCalcReference);
             fundingCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned.CalculationType);
             fundingCalcResult.AllocationLine.Should().BeEquivalentTo(allocationLineReturned);
-            fundingCalcResult.CalculationSpecification.Should().BeEquivalentTo(fundingCalcSpecificationReference);
             fundingCalcResult.Value.Should().Be(fundingCalcReturned.Value.Value);
 
             CalculationResult numberCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == numbercalcReference.Id);
             numberCalcResult.Calculation.Should().BeEquivalentTo(numbercalcReference);
             numberCalcResult.CalculationType.Should().BeEquivalentTo(fundingCalcReturned2.CalculationType);
             numberCalcResult.AllocationLine.Should().BeEquivalentTo(allocationLineReturned);
-            numberCalcResult.CalculationSpecification.Should().BeEquivalentTo(numbercalcSpecificationReference);
             numberCalcResult.Value.Should().Be(fundingCalcReturned2.Value.Value);
 
             CalculationResult nonMatchingCalcResult = result.CalculationResults.First(cr => cr.Calculation.Id == "Non matching calculation");
             nonMatchingCalcResult.Calculation.Should().BeEquivalentTo(new Reference(nonMatchingCalculationModel.Id, nonMatchingCalculationModel.Name));
             nonMatchingCalcResult.CalculationType.Should().BeEquivalentTo(nonMatchingCalculationModel.CalculationType);
             nonMatchingCalcResult.AllocationLine.Should().BeNull();
-            nonMatchingCalcResult.CalculationSpecification.Should().BeNull();
             nonMatchingCalcResult.Value.Should().BeNull();
         }
 
@@ -522,50 +515,44 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
 
             CalculationResult calc1 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc1", "Calc 1"),
                 AllocationLine = allocationLine1,
-                CalculationSpecification = new Reference("FSpect", "FundingSpecification"),
                 Value = 10000
             };
             CalculationResult calc2 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc2", "Calc 2"),
                 AllocationLine = allocationLine1,
-                CalculationSpecification = new Reference("FSpec2", "FundingSpecification2"),
                 Value = 20000
             };
             CalculationResult calc3 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc3", "Calc 3"),
                 AllocationLine = allocationLine2,
-                CalculationSpecification = new Reference("calc3", "Calc 3"),
                 Value = 67
             };
             CalculationResult calc4 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc4", "Calc 4"),
                 AllocationLine = allocationLine3,
-                CalculationSpecification = new Reference("calc4", "Calc 4"),
                 Value = null,
             };
             CalculationResult calc5 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc5", "Calc 5"),
                 AllocationLine = allocationLine3,
-                CalculationSpecification = new Reference("calc5", "Calc 5"),
                 Value = 50,
             };
             CalculationResult calc6 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc6", "Calc 6"),
                 AllocationLine = allocationLine3,
-                CalculationSpecification = new Reference("calc6", "Calc 6"),
                 Value = 8,
             };
 
@@ -594,37 +581,37 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 {
                     Id = "calc1",
                     Name = "Calc 1",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                 new CalculationSummaryModel()
                 {
                     Id = "calc2",
                     Name = "Calc 2",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                 new CalculationSummaryModel()
                 {
                     Id = "calc3",
                     Name = "Calc 3",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                 new CalculationSummaryModel()
                 {
                     Id = "calc4",
                     Name = "Calc 4",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                  new CalculationSummaryModel()
                 {
                     Id = "calc5",
                     Name = "Calc 5",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                   new CalculationSummaryModel()
                 {
                     Id = "calc6",
                     Name = "Calc 6",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
             };
 
@@ -679,34 +666,30 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
 
             CalculationResult calc1 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc1", "Calc 1"),
                 AllocationLine = allocationLine1,
-                CalculationSpecification = new Reference("FSpect", "FundingSpecification"),
                 Value = 10000
             };
             CalculationResult calc2 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc2", "Calc 2"),
                 AllocationLine = allocationLine1,
-                CalculationSpecification = new Reference("FSpec2", "FundingSpecification2"),
                 Value = 20000
             };
             CalculationResult calc3 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc3", "Calc 3"),
                 AllocationLine = allocationLine2,
-                CalculationSpecification = new Reference("calc3", "Calc 3"),
                 Value = 67
             };
             CalculationResult calc4 = new CalculationResult()
             {
-                CalculationType = CalculationType.Funding,
+                CalculationType = CalculationType.Template,
                 Calculation = new Reference("calc4", "Calc 4"),
                 AllocationLine = allocationLine3,
-                CalculationSpecification = new Reference("calc4", "Calc 4"),
                 Value = null,
             };
 
@@ -733,25 +716,25 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 {
                     Id = "calc1",
                     Name = "Calc 1",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                 new CalculationSummaryModel()
                 {
                     Id = "calc2",
                     Name = "Calc 2",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                 new CalculationSummaryModel()
                 {
                     Id = "calc3",
                     Name = "Calc 3",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
                 new CalculationSummaryModel()
                 {
                     Id = "calc4",
                     Name = "Calc 4",
-                    CalculationType = CalculationType.Funding
+                    CalculationType = CalculationType.Template
                 },
             };
 

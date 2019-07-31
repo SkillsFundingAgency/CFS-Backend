@@ -132,9 +132,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Version = 1,
                 Name = "any name",
                 Id = CalculationId,
-                CalculationSpecification = new Reference("any name", "any-id"),
                 FundingPeriodName = "2018/2019",
-                FundingPeriodId = "18/19",
+                FundingStreamId = "18/19",
                 CalculationType = "Number",
                 SpecificationId = specificationId,
             };
@@ -178,9 +177,8 @@ namespace CalculateFunding.Services.Calcs.Services
                     Version = 1,
                     Name = "any name",
                     Id = CalculationId,
-                    CalculationSpecification = new Reference("any name", "any-id"),
                     FundingPeriodName = "2018/2019",
-                    FundingPeriodId = "18/19",
+                    FundingStreamId = "18/19",
                     CalculationType = "Number",
                     SpecificationId = specificationId,
                 });
@@ -210,13 +208,12 @@ namespace CalculateFunding.Services.Calcs.Services
                     Date = lastModifiedDate,
                     PublishStatus = PublishStatus.Draft,
                     SourceCode = "source code",
-                    Version = 1
+                    Version = 1,
+                    Name = "any name",
+                    CalculationType = CalculationType.Template
                 },
-                Name = "any name",
-                Id = CalculationId,
-                CalculationSpecification = new Reference("any name", "any-id"),
-                FundingPeriod = new Reference("18/19", "2018/2019"),
-                CalculationType = CalculationType.Number
+                
+                Id = CalculationId
             };
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -260,10 +257,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     Version = 1,
                     Name = "any name",
                     Id = CalculationId,
-                    CalculationSpecification = new Reference("any name", "any-id"),
-                    FundingPeriodName = "2018/2019",
-                    FundingPeriodId = "18/19",
-                    CalculationType = "Number",
+                    CalculationType = "Template",
                     SpecificationId = specificationId,
                     PublishStatus = PublishStatus.Draft,
                 });

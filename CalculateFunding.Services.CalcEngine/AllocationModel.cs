@@ -61,7 +61,6 @@ namespace CalculateFunding.Services.CalcEngine
                     CalculationResult result = new CalculationResult
                     {
                         Calculation = GetReference(attributes, "Calculation"),
-                        CalculationSpecification = GetReference(attributes, "CalculationSpecification"),
                         AllocationLine = GetReference(attributes, "AllocationLine"),
                     };
 

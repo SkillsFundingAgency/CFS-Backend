@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Gherkin;
@@ -21,7 +22,8 @@ namespace CalculateFunding.Services.TestRunner
 
         public IEnumerable<GherkinError> Validate(Step step, SpecificationCurrentVersion specification,
             List<DefinitionSpecificationRelationship> dataRelationships,
-            List<DatasetDefinition> dataDefinitions)
+            List<DatasetDefinition> dataDefinitions,
+            IEnumerable<Calculation> calculations)
         {
             foreach (var stepAction in StepsAction)
             {
@@ -62,7 +64,7 @@ namespace CalculateFunding.Services.TestRunner
                                     }
                                     break;
                                 case StepArgumentType.CalculationName:
-                                    if (!ValidateCalculation(argument, specification))
+                                    if (!ValidateCalculation(argument, calculations))
                                     {
                                         yield return new GherkinError($"'{argument} is not a valid calculation name'", step.Location.Line, step.Location.Column);
                                         propertyInfo.SetValue(instance, argument);
@@ -90,9 +92,9 @@ namespace CalculateFunding.Services.TestRunner
             return datasets.Any();
         }
 
-        private bool ValidateCalculation(string argument, SpecificationCurrentVersion specification)
+        private bool ValidateCalculation(string argument, IEnumerable<Calculation> calculations)
         {
-            return specification.Calculations?.SingleOrDefault(x => x.Name == argument) != null;
+            return calculations?.SingleOrDefault(x => x.Name == argument) != null;
         }
 
 

@@ -20,6 +20,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
+//using Calculation = CalculateFunding.Models.Calcs.Calculation;
 
 namespace CalculateFunding.Services.Results.UnitTests.Services
 {
@@ -249,33 +250,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                             Id = "AY"
                         }
                     },
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-4",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-5",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-6",
-                    },
                 }
             };
 
@@ -347,19 +321,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
+                            CalculationType = Models.Calcs.CalculationType.Template
                         }
                     },
                 AllocationLineResults = new List<AllocationLineResult>
@@ -440,33 +412,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                             Id = "AY"
                         }
                     }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-4",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-5",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-6",
-                    },
                 }
             };
 
@@ -506,35 +451,31 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
+                            CalculationType = Models.Calcs.CalculationType.Template
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
                             Calculation = new Reference { Id = "calc-id-3", Name = "calc name 3" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-4", Name = "calc spec name 4"},
                             Calculation = new Reference { Id = "calc-id-4", Name = "calc name 4" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
@@ -617,33 +558,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                             Id = "AY"
                         }
                     }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-4",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-5",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-6",
-                    },
                 }
             };
 
@@ -683,35 +597,31 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
+                            CalculationType = Models.Calcs.CalculationType.Template
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
                             Calculation = new Reference { Id = "calc-id-3", Name = "calc name 3" },
                             Value = 25,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-4", Name = "calc spec name 4"},
                             Calculation = new Reference { Id = "calc-id-4", Name = "calc name 4" },
                             Value = 27,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
@@ -793,33 +703,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                             Id = "AY"
                         }
                     }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-4",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-5",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-6",
-                    },
                 }
             };
 
@@ -877,53 +760,47 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
+                            CalculationType = Models.Calcs.CalculationType.Template
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
                             Calculation = new Reference { Id = "calc-id-3", Name = "calc name 3" },
                             Value = 12345,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("BBBBB", "test allocation line 2"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-4", Name = "calc spec name 4"},
                             Calculation = new Reference { Id = "calc-id-4", Name = "calc name 4" },
                             Value = 27,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-5", Name = "calc spec name 5"},
                             Calculation = new Reference { Id = "calc-id-5", Name = "calc name 5" },
                             Value = 27,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA", "test allocation line 1"),
 
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-6", Name = "calc spec name 6"},
                             Calculation = new Reference { Id = "calc-id-6", Name = "calc name 6" },
                             Value = 79,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("BBBBB", "test allocation line 2"),
 
                         },
@@ -1013,33 +890,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             Id = "AY"
                         }
-                    }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-4",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-5",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-6",
                     }
                 }
             };
@@ -1144,24 +994,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Id = "fs-001",
                         Name = "fs one"
                     }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                        CalculationType = CalculationType.Funding
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                        CalculationType = CalculationType.Number
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                        CalculationType = CalculationType.Funding
-                    }
                 }
             };
 
@@ -1264,24 +1096,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Id = "fs-001",
                         Name = "fs one"
                     }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                        CalculationType = CalculationType.Funding
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                        CalculationType = CalculationType.Number,
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                        CalculationType = CalculationType.Funding
-                    }
                 }
             };
 
@@ -1326,13 +1140,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Calculations
                 .Where(m => m.CalculationType == PublishedCalculationType.Funding)
                 .Should()
-                .HaveCount(1);
-
-            allocationLine1
-               .Calculations
-               .Where(m => m.CalculationType == PublishedCalculationType.Number)
-               .Should()
-               .HaveCount(1);
+                .HaveCount(2);
 
             PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
 
@@ -1354,13 +1162,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Calculations
                 .Where(m => m.CalculationType == PublishedCalculationType.Funding)
                 .Should()
-                .HaveCount(1);
-
-            allocationLine2
-               .Calculations
-               .Where(m => m.CalculationType == PublishedCalculationType.Number)
-               .Should()
-               .HaveCount(1);
+                .HaveCount(2);
         }
 
         [TestMethod]
@@ -1370,26 +1172,23 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new CalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                     Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                     Value = 123,
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = Models.Calcs.CalculationType.Template,
                     AllocationLine = new Reference("AAAAA","test allocation line 1"),
                 },
                 new CalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                     Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                     Value = 10,
-                    CalculationType = Models.Calcs.CalculationType.Number,
+                    CalculationType = Models.Calcs.CalculationType.Template,
                     AllocationLine = new Reference("AAAAA","test allocation line 1")
                 },
                 new CalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
                     Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                     Value = 10,
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = Models.Calcs.CalculationType.Template,
                     AllocationLine = new Reference("BBBBB","test allocation line 2"),
                 }
             };
@@ -1431,25 +1230,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Id = "fs-001",
                         Name = "fs one"
                     }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                        CalculationType = CalculationType.Funding
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                        CalculationType = CalculationType.Number,
-                        AllocationLine = new Reference("AAAAA", "test allocation line 1"),
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                        CalculationType = CalculationType.Funding
-                    }
                 }
             };
 
@@ -1488,19 +1268,13 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             allocationLine1
                 .Value
                 .Should()
-                .Be(123);
+                .Be(133);
 
             allocationLine1
                 .Calculations
                 .Where(m => m.CalculationType == PublishedCalculationType.Funding)
                 .Should()
-                .HaveCount(1);
-
-            allocationLine1
-               .Calculations
-               .Where(m => m.CalculationType == PublishedCalculationType.Number)
-               .Should()
-               .HaveCount(1);
+                .HaveCount(2);
 
             PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
 
@@ -1538,34 +1312,30 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new CalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                     Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                     Value = 123,
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = Models.Calcs.CalculationType.Template,
                     AllocationLine = new Reference("AAAAA","test allocation line 1"),
                 },
                 new CalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                     Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                     Value = 10,
-                    CalculationType = Models.Calcs.CalculationType.Number,
+                    CalculationType = Models.Calcs.CalculationType.Template,
                     AllocationLine = new Reference("AAAAA","test allocation line 1")
                 },
                 new CalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
                     Calculation = new Reference { Id = "calc-id-3", Name = "calc name 3" },
                     Value = 10,
-                    CalculationType = Models.Calcs.CalculationType.Funding,
+                    CalculationType = Models.Calcs.CalculationType.Template,
                     AllocationLine = new Reference("BBBBB","test allocation line 2"),
                 },
                 new CalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-spec-id-4", Name = "calc spec name 4"},
                     Calculation = new Reference { Id = "calc-id-4", Name = "calc name 4" },
                     Value = 90,
-                    CalculationType = Models.Calcs.CalculationType.Baseline,
+                    CalculationType = Models.Calcs.CalculationType.Template,
                 }
             };
 
@@ -1606,30 +1376,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Id = "fs-001",
                         Name = "fs one"
                     }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                        CalculationType = CalculationType.Funding
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                        CalculationType = CalculationType.Number,
-                        AllocationLine = new Reference("AAAAA", "test allocation line 1"),
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                        CalculationType = CalculationType.Funding
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-4",
-                        CalculationType = CalculationType.Baseline
-                    }
                 }
             };
 
@@ -1668,25 +1414,13 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             allocationLine1
                 .Value
                 .Should()
-                .Be(123);
+                .Be(133);
 
             allocationLine1
                 .Calculations
                 .Where(m => m.CalculationType == PublishedCalculationType.Funding)
                 .Should()
-                .HaveCount(1);
-
-            allocationLine1
-               .Calculations
-               .Where(m => m.CalculationType == PublishedCalculationType.Number)
-               .Should()
-               .HaveCount(1);
-
-            allocationLine1
-              .Calculations
-              .Where(m => m.CalculationType == PublishedCalculationType.Baseline)
-              .Should()
-              .HaveCount(1);
+                .HaveCount(3);
 
             PublishedAllocationLineResultVersion allocationLine2 = results.Where(f => f.FundingStreamResult.AllocationLineResult.AllocationLine.Id == "BBBBB").Select(c => c.FundingStreamResult.AllocationLineResult.Current).SingleOrDefault();
 
@@ -1708,19 +1442,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Calculations
                 .Where(m => m.CalculationType == PublishedCalculationType.Funding)
                 .Should()
-                .HaveCount(1);
-
-            allocationLine2
-               .Calculations
-               .Where(m => m.CalculationType == PublishedCalculationType.Number)
-               .Should()
-               .HaveCount(0);
-
-            allocationLine2
-               .Calculations
-               .Where(m => m.CalculationType == PublishedCalculationType.Baseline)
-               .Should()
-               .HaveCount(1);
+                .HaveCount(2);
         }
 
         [TestMethod]
@@ -1769,33 +1491,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         Id = "fs-001",
                         Name = "fs one"
                     }
-                },
-                Calculations = new List<Calculation>()
-                {
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-1",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-2",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-3",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-4",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-5",
-                    },
-                    new Calculation()
-                    {
-                        Id = "calc-spec-id-6",
-                    },
                 }
             };
 
@@ -2664,18 +2359,16 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         {
                             new CalculationResult
                             {
-                                CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                                 Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                                 Value = 123,
-                                CalculationType = Models.Calcs.CalculationType.Funding,
+                                CalculationType = Models.Calcs.CalculationType.Template,
                                 AllocationLine = new Reference("AAAAA","test allocation line 1"),
                             },
                             new CalculationResult
                             {
-                                CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                                 Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                                 Value = 10,
-                                CalculationType = Models.Calcs.CalculationType.Number
+                                CalculationType = Models.Calcs.CalculationType.Template
                             }
                         },
                     AllocationLineResults = new List<AllocationLineResult>
@@ -2730,25 +2423,22 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("AAAAA","test allocation line 1"),
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
+                            CalculationType = Models.Calcs.CalculationType.Template
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-3", Name = "calc spec name 3"},
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             AllocationLine = new Reference("BBBBB","test allocation line 2"),
                         }
                     },

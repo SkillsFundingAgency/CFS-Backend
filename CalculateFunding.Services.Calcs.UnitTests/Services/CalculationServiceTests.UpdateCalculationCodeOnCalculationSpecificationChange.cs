@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationCodeOnCalculationSpecificationChange_WhenCalculationsFoundReferencingCalculationToBeUpdated_ThenSourceCodeUpdated()
+        public async Task UpdateCalculationCodeOnCalculationChange_WhenCalculationsFoundReferencingCalculationToBeUpdated_ThenSourceCodeUpdated()
         {
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -52,20 +52,24 @@ namespace CalculateFunding.Services.Calcs.Services
             const string originalCodeUpdate = "Return OriginalName()";
             const string originalCodeIgnore = "Return 10";
 
-            Models.Specs.CalculationVersionComparisonModel comparison = new Models.Specs.CalculationVersionComparisonModel()
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
                 CalculationId = calculationId,
-                Current = new Models.Specs.Calculation
+                Current = new Calculation
                 {
                     Id = "calcSpec1",
-                    Name = "Calculation To Update",
-                    CalculationType = Models.Specs.CalculationType.Funding,
+                    Current = new CalculationVersion
+                    {
+                        Name = "Calculation To Update"
+                    }
                 },
-                Previous = new Models.Specs.Calculation
+                Previous = new Calculation
                 {
                     Id = "calcSpec1",
-                    Name = "Original Name",
-                    CalculationType = Models.Specs.CalculationType.Funding,
+                    Current = new CalculationVersion
+                    {
+                        Name = "Original Name"
+                    }
                 },
                 SpecificationId = specificationId,
             };
@@ -76,17 +80,13 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calc1 = new Calculation
             {
                 Id = calculationId,
-                Name = "Calculation to Update",
                 SpecificationId = specificationId,
-                FundingPeriod = new Reference("fp1", "Funding Period"),
-                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
-                CalculationType = CalculationType.Funding,
-                Description = "Calculation Description",
-                BuildProjectId = "bpC1",
                 Current = new CalculationVersion
                 {
                     SourceCode = originalCodeIgnore,
-                    DecimalPlaces = 6,
+                    Name = "Calculation to Update",
+                    CalculationType = CalculationType.Template,
+                    Description = "Calculation Description"
                 }
             };
 
@@ -95,17 +95,13 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calc2 = new Calculation
             {
                 Id = "referenceCalc",
-                Name = "Calling Calculation To Update",
                 SpecificationId = specificationId,
-                FundingPeriod = new Reference("fp1", "Funding Period"),
-                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
-                CalculationType = CalculationType.Funding,
-                Description = "Calculation Description",
-                BuildProjectId = "bpC1",
                 Current = new CalculationVersion
                 {
                     SourceCode = originalCodeUpdate,
-                    DecimalPlaces = 6,
+                    Name = "Calling Calculation To Update",
+                    CalculationType = CalculationType.Template,
+                    Description = "Calculation Description"
                 }
             };
 
@@ -144,7 +140,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(calculationVersion);
 
             // Act
-            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationChange(comparison, user);
 
             // Assert
             updatedCalculations
@@ -186,7 +182,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationCodeOnCalculationSpecificationChange_WhenCalculationsFoundReferencingCalculationToBeUpdatedHasDifferentNameCasing_ThenSourceCodeUpdated()
+        public async Task UpdateCalculationCodeOnCalculationChange_WhenCalculationsFoundReferencingCalculationToBeUpdatedHasDifferentNameCasing_ThenSourceCodeUpdated()
         {
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -204,20 +200,24 @@ namespace CalculateFunding.Services.Calcs.Services
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
 
-            Models.Specs.CalculationVersionComparisonModel comparison = new Models.Specs.CalculationVersionComparisonModel()
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
                 CalculationId = calculationId,
-                Current = new Models.Specs.Calculation()
+                Current = new Calculation
                 {
                     Id = "calcSpec1",
-                    Name = "Calculation to update",
-                    CalculationType = Models.Specs.CalculationType.Funding,
+                    Current = new CalculationVersion
+                    {
+                        Name = "Calculation To Update"
+                    }
                 },
-                Previous = new Models.Specs.Calculation()
+                Previous = new Calculation
                 {
                     Id = "calcSpec1",
-                    Name = "Original Name",
-                    CalculationType = Models.Specs.CalculationType.Funding,
+                    Current = new CalculationVersion
+                    {
+                        Name = "Original Name"
+                    }
                 },
                 SpecificationId = specificationId,
             };
@@ -231,17 +231,13 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calc1 = new Calculation
             {
                 Id = calculationId,
-                Name = "Calculation to Update",
                 SpecificationId = specificationId,
-                FundingPeriod = new Reference("fp1", "Funding Period"),
-                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
-                CalculationType = CalculationType.Funding,
-                Description = "Calculation Description",
-                BuildProjectId = "bpC1",
                 Current = new CalculationVersion
                 {
                     SourceCode = originalCodeIgnore,
-                    DecimalPlaces = 6,
+                    Name = "Calculation to Update",
+                    CalculationType = CalculationType.Template,
+                    Description = "Calculation Description"
                 }
             };
 
@@ -250,17 +246,13 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calc2 = new Calculation()
             {
                 Id = "referenceCalc",
-                Name = "Calling Calculation To Update",
                 SpecificationId = specificationId,
-                FundingPeriod = new Reference("fp1", "Funding Period"),
-                CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
-                CalculationType = CalculationType.Funding,
-                Description = "Calculation Description",
-                BuildProjectId = "bpC1",
                 Current = new CalculationVersion
                 {
                     SourceCode = originalCodeUpdate,
-                    DecimalPlaces = 6,
+                    Name = "Calling Calculation To Update",
+                    CalculationType = CalculationType.Template,
+                    Description = "Calculation Description",
                 }
             };
 
@@ -299,7 +291,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(calculationVersion);
 
             // Act
-            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationChange(comparison, user);
 
             // Assert
             updatedCalculations
@@ -344,7 +336,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task UpdateCalculationCodeOnCalculationSpecificationChange_WhenNoCalculationsFoundReferencingCalculationToBeUpdated_ThenNoCalculationsUpdated()
+        public async Task UpdateCalculationCodeOnCalculationChange_WhenNoCalculationsFoundReferencingCalculationToBeUpdated_ThenNoCalculationsUpdated()
         {
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -360,20 +352,24 @@ namespace CalculateFunding.Services.Calcs.Services
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
 
-            Models.Specs.CalculationVersionComparisonModel comparison = new Models.Specs.CalculationVersionComparisonModel()
+            CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
                 CalculationId = calculationId,
-                Current = new Models.Specs.Calculation
+                Current = new Calculation
                 {
                     Id = "calcSpec1",
-                    Name = "Calculation to update",
-                    CalculationType = Models.Specs.CalculationType.Funding,
+                    Current = new CalculationVersion
+                    {
+                        Name = "Calculation To Update"
+                    }
                 },
-                Previous = new Models.Specs.Calculation
+                Previous = new Calculation
                 {
                     Id = "calcSpec1",
-                    Name = "Original Name",
-                    CalculationType = Models.Specs.CalculationType.Funding,
+                    Current = new CalculationVersion
+                    {
+                        Name = "Original Name"
+                    }
                 },
                 SpecificationId = specificationId,
             };
@@ -385,33 +381,25 @@ namespace CalculateFunding.Services.Calcs.Services
                 new Calculation
                 {
                     Id = calculationId,
-                    Name = "Calculation to Update",
                     SpecificationId = specificationId,
-                    FundingPeriod = new Reference("fp1", "Funding Period"),
-                    CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
-                    CalculationType = CalculationType.Funding,
-                    Description = "Calculation Description",
-                    BuildProjectId = "bpC1",
                     Current = new CalculationVersion
                     {
                         SourceCode = "Return 10",
-                        DecimalPlaces = 6,
+                        Name = "Calculation to Update",
+                        CalculationType = CalculationType.Template,
+                        Description = "Calculation Description"
                     }
                 },
                 new Calculation
                 {
                     Id = "referenceCalc",
-                    Name = "Calling Calculation To Update",
                     SpecificationId = specificationId,
-                    FundingPeriod = new Reference("fp1", "Funding Period"),
-                    CalculationSpecification = new Reference("calcSpec1", "Calculation to Update"),
-                    CalculationType = CalculationType.Funding,
-                    Description = "Calculation Description",
-                    BuildProjectId = "bpC1",
                     Current = new CalculationVersion
                     {
                         SourceCode = "Return 50",
-                        DecimalPlaces = 6,
+                        Name = "Calling Calculation To Update",
+                        CalculationType = CalculationType.Template,
+                        Description = "Calculation Description",
                     }
                 }
             };
@@ -449,7 +437,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(calculationVersion);
 
             // Act
-            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationSpecificationChange(comparison, user);
+            IEnumerable<Calculation> updatedCalculations = await service.UpdateCalculationCodeOnCalculationChange(comparison, user);
 
             // Assert
             updatedCalculations

@@ -216,22 +216,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         {
             return new SpecificationCurrentVersion
             {
-                Id = specificationId,
-                Calculations = new[]
-                {
-                    new Models.Specs.Calculation
-                    {
-                        Id = "calc-1"
-                    },
-                        new Models.Specs.Calculation
-                    {
-                        Id = "calc-2"
-                    },
-                    new Models.Specs.Calculation
-                    {
-                        Id = "calc-3"
-                    }
-                }
+                Id = specificationId
             };
         }
 
@@ -247,17 +232,15 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = 123,
-                            CalculationType = Models.Calcs.CalculationType.Funding
+                            CalculationType = Models.Calcs.CalculationType.Template
                         },
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-2", Name = "calc spec name 2"},
                             Calculation = new Reference { Id = "calc-id-2", Name = "calc name 2" },
                             Value = 10,
-                            CalculationType = Models.Calcs.CalculationType.Number
+                            CalculationType = Models.Calcs.CalculationType.Template
                         }
                     },
                     Provider = new ProviderSummary
@@ -290,10 +273,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     {
                         new CalculationResult
                         {
-                            CalculationSpecification = new Reference { Id = "calc-spec-id-1", Name = "calc spec name 1"},
                             Calculation = new Reference { Id = "calc-id-1", Name = "calc name 1" },
                             Value = null,
-                            CalculationType = Models.Calcs.CalculationType.Funding
+                            CalculationType = Models.Calcs.CalculationType.Template
                         }
                     },
                     Provider = new ProviderSummary

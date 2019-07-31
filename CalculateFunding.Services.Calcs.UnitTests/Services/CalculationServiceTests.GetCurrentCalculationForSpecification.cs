@@ -62,8 +62,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     SourceCode = "Return 10",
                     PublishStatus = PublishStatus.Draft,
                     Author = new Reference("userId", "User Name"),
-                    CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
-                    CalculationType = "Funding",
+                    CalculationType = "Template",
                     Version = 1,
                 },
                 new CalculationCurrentVersion()
@@ -73,8 +72,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     SourceCode = "Return 50",
                     PublishStatus = PublishStatus.Approved,
                     Author = new Reference("userId", "User Name"),
-                    CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
-                    CalculationType = "Number",
+                    CalculationType = "Template",
                     Version = 5,
                 }
             };
@@ -114,8 +112,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .BeAssignableTo<IEnumerable<CalculationCurrentVersion>>()
                 .Which
                 .Should()
-                    .Contain(m => m.Id == "one" && m.Name == "Calculation Name" && m.SourceCode == "Return 10" && m.CalculationType == "Funding" && m.Version == 1 && m.PublishStatus == PublishStatus.Draft)
-                    .And.Contain(m => m.Id == "two" && m.Name == "Calculation Name Two" && m.SourceCode == "Return 50" && m.PublishStatus == PublishStatus.Approved && m.CalculationType == "Number" && m.Version == 5);
+                    .Contain(m => m.Id == "one" && m.Name == "Calculation Name" && m.SourceCode == "Return 10" && m.CalculationType == "Template" && m.Version == 1 && m.PublishStatus == PublishStatus.Draft)
+                    .And.Contain(m => m.Id == "two" && m.Name == "Calculation Name Two" && m.SourceCode == "Return 50" && m.PublishStatus == PublishStatus.Approved && m.CalculationType == "Template" && m.Version == 5);
 
             await calculationsRepository
                 .Received(0)
@@ -140,7 +138,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 new Calculation()
                 {
                     Id ="one",
-                    Name ="Calculation Name",
                     Current = new CalculationVersion()
                     {
                         SourceCode = "Return 10",
@@ -148,16 +145,14 @@ namespace CalculateFunding.Services.Calcs.Services
                         Author = new Reference("userId", "User Name"),
                         Version = 1,
                         Date = calc1DateTime,
+                        Name ="Calculation Name",
+                        CalculationType = CalculationType.Template,
                     },
-                    CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
-                    CalculationType = CalculationType.Funding,
-                    FundingPeriod = new Reference("fp1", "Funding Period 1"),
                     SpecificationId = specificationId,
                 },
                 new Calculation()
                 {
                     Id ="two",
-                    Name ="Calculation Name Two",
                     Current = new CalculationVersion()
                     {
                         SourceCode = "Return 50",
@@ -165,10 +160,9 @@ namespace CalculateFunding.Services.Calcs.Services
                         Author = new Reference("userId", "User Name"),
                         Version = 5,
                         Date= calc2DateTime,
+                        Name ="Calculation Name Two",
+                        CalculationType = CalculationType.Template,
                     },
-                    CalculationSpecification = new Reference("specId", "Calculation Specification ID"),
-                    CalculationType = CalculationType.Number,
-                    FundingPeriod = new Reference("fp2", "Funding Period Two"),
                     SpecificationId = specificationId,
                 }
             };
@@ -212,8 +206,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .BeAssignableTo<IEnumerable<CalculationCurrentVersion>>()
                 .Which
                 .Should()
-                    .Contain(m => m.Id == "one" && m.Name == "Calculation Name" && m.SourceCode == "Return 10" && m.CalculationType == "Funding" && m.Version == 1 && m.FundingPeriodId == "fp1" && m.FundingPeriodName == "Funding Period 1" && m.Date == calc1DateTime && m.SpecificationId == specificationId && m.PublishStatus == PublishStatus.Draft)
-                    .And.Contain(m => m.Id == "two" && m.Name == "Calculation Name Two" && m.SourceCode == "Return 50" && m.CalculationType == "Number" && m.Version == 5 && m.FundingPeriodId == "fp2" && m.FundingPeriodName == "Funding Period Two" && m.Date == calc2DateTime && m.SpecificationId == specificationId && m.PublishStatus == PublishStatus.Approved);
+                    .Contain(m => m.Id == "one" && m.Name == "Calculation Name" && m.SourceCode == "Return 10" && m.CalculationType == "Template" && m.Version == 1 && m.Date == calc1DateTime && m.SpecificationId == specificationId && m.PublishStatus == PublishStatus.Draft)
+                    .And.Contain(m => m.Id == "two" && m.Name == "Calculation Name Two" && m.SourceCode == "Return 50" && m.CalculationType == "Template" && m.Version == 5 && m.Date == calc2DateTime && m.SpecificationId == specificationId && m.PublishStatus == PublishStatus.Approved);
 
             await calculationsRepository
                 .Received(1)

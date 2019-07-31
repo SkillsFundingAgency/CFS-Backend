@@ -180,18 +180,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 new Calculation
                 {
                      Current = calculationVersion,
-                     SpecificationId = specificationId,
-                     CalculationSpecification = new Reference("calc-spac-id", "calc spec name"),
-                     FundingPeriod = new Reference("fp1", "fp 1"),
-                     FundingStream = new Reference("fs1", "fs 1")
-                }
-            };
-
-            IEnumerable<Models.Specs.Calculation> calculationSpecifications = new[]
-            {
-                new Models.Specs.Calculation
-                {
-                    Id = "calc-spec-id"
+                     SpecificationId = specificationId
                 }
             };
 
@@ -213,9 +202,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(HttpStatusCode.OK);
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetCalculationSpecificationsForSpecification(Arg.Is(specificationId))
-                .Returns(calculationSpecifications);
 
             specificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))

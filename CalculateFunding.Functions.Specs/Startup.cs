@@ -56,9 +56,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddSingleton<OnAddRelationshipEvent>();
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
             builder.AddSingleton<ISpecificationsService, SpecificationsService>();
-            builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
             builder.AddSingleton<IValidator<SpecificationCreateModel>, SpecificationCreateModelValidator>();
-            builder.AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
             builder.AddSingleton<IValidator<SpecificationEditModel>, SpecificationEditModelValidator>();
             builder.AddSingleton<IValidator<AssignDefinitionRelationshipMessage>, AssignDefinitionRelationshipMessageValidator>();
             builder.AddSingleton<ISpecificationsSearchService, SpecificationsSearchService>();

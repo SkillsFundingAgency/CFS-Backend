@@ -27,6 +27,8 @@ namespace CalculateFunding.Services.Calcs
         public const string DoubleToNullableDecimalErrorMessage = "Option Strict On disallows implicit conversions from 'Double' to 'Decimal?'.";
         public const string NullableDoubleToDecimalErrorMessage = "Option Strict On disallows implicit conversions from 'Double?' to 'Decimal?'.";
         public const string DoubleToDecimalErrorMessage = "Option Strict On disallows implicit conversions from 'Double' to 'Decimal'.";
+        public const string TempCalculationId = "temp-calc-id";
+        public const string TempCalculationName = "Temp Calc";
 
         private readonly ILogger _logger;
         private readonly IBuildProjectsService _buildProjectsService;
@@ -73,18 +75,27 @@ namespace CalculateFunding.Services.Calcs
             return health;
         }
 
-        public async Task<IActionResult> Compile(HttpRequest request)
+        public async Task<IActionResult> Compile(PreviewRequest previewRequest)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            var previewRequest = JsonConvert.DeserializeObject<PreviewRequest>(json);
-
             if (previewRequest == null)
             {
                 _logger.Error("A null preview request was supplied");
 
                 return new BadRequestObjectResult("A null preview request was provided");
             }
+
+            Calculation tempCalculation = new Calculation
+            {
+                SpecificationId = previewRequest.SpecificationId,
+                Id = !string.IsNullOrWhiteSpace(previewRequest.CalculationId) ? previewRequest.CalculationId : TempCalculationId,
+                Current = new CalculationVersion
+                {
+                    Name = !string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName,
+                    CalculationId = !string.IsNullOrWhiteSpace(previewRequest.CalculationId) ? previewRequest.CalculationId : TempCalculationId,
+                    SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(!string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName),
+                    SourceCode = previewRequest.SourceCode
+                }
+            };
 
             var validationResult = await _previewRequestValidator.ValidateAsync(previewRequest);
 
@@ -114,12 +125,12 @@ namespace CalculateFunding.Services.Calcs
 
             List<Calculation> calculations = new List<Calculation>(calculationsTask.Result);
 
+
             Calculation calculation = calculations.FirstOrDefault(m => m.Id == previewRequest.CalculationId);
+
             if (calculation == null)
             {
-                string message = $"Calculation ('{previewRequest.CalculationId}') could not be found for specification Id '{previewRequest.SpecificationId}'";
-                _logger.Warning(message);
-                return new PreconditionFailedResult(message);
+                calculation = tempCalculation;
             }
 
             calculation.Current.SourceCode = previewRequest.SourceCode;
@@ -235,15 +246,15 @@ namespace CalculateFunding.Services.Calcs
         {
             string sourceCode = calculationToPreview.Current.SourceCode;
 
-            if (sourceCode.Contains(calculationToPreview.SourceCodeName, StringComparison.InvariantCultureIgnoreCase))
+            if (sourceCode.Contains(calculationToPreview.Current.SourceCodeName, StringComparison.InvariantCultureIgnoreCase))
             {
                 if (_tokenChecker.CheckIsToken(sourceCode,
-                    calculationToPreview.SourceCodeName,
-                    sourceCode.IndexOf(calculationToPreview.SourceCodeName)))
+                    calculationToPreview.Current.SourceCodeName,
+                    sourceCode.IndexOf(calculationToPreview.Current.SourceCodeName)))
                 {
                     compilerOutput.CompilerMessages.Add(new CompilerMessage
                     {
-                        Message = $"Circular reference detected - Calculation '{calculationToPreview.SourceCodeName}' calls itself",
+                        Message = $"Circular reference detected - Calculation '{calculationToPreview.Current.SourceCodeName}' calls itself",
                         Severity = Severity.Error
                     });
                     compilerOutput.Success = false;

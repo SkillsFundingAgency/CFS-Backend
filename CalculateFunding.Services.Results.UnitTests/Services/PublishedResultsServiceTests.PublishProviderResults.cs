@@ -201,7 +201,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderCalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
+                    Id = "calc-1",
+                    Name = "calc1" 
                 }
             };
 
@@ -300,7 +301,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderCalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
+                    Id = "calc-1",
+                    Name = "calc1" 
                 }
             };
 
@@ -368,7 +370,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
              {
                 new PublishedProviderCalculationResult
                 {
-                    CalculationSpecification = new Reference { Id = "calc-1", Name = "calc1" }
+                    Id = "calc-1",
+                    Name = "calc1" 
                 }
             };
 

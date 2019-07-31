@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
@@ -117,25 +118,11 @@ namespace CalculateFunding.Services.Specs
             return Task.FromResult(specifications.AsEnumerable());
         }
 
-        public async Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)
+        public Task<IEnumerable<Period>> GetPeriods()
         {
-            var specification = await GetSpecificationById(specificationId);
+            var fundingPeriods = _repository.Query<Period>();
 
-            return specification?.Current.Calculations?.FirstOrDefault(m => string.Equals(m.Name.RemoveAllSpaces(), calculationName.RemoveAllSpaces(), StringComparison.CurrentCultureIgnoreCase));
-        }
-
-        public async Task<Calculation> GetCalculationBySpecificationIdAndCalculationId(string specificationId, string calculationId)
-        {
-            var specification = await GetSpecificationById(specificationId);
-
-            return specification?.Current.Calculations?.FirstOrDefault(m => m.Id == calculationId);
-        }
-
-        public async Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId)
-        {
-            var specification = await GetSpecificationById(specificationId);
-
-            return specification?.Current.Calculations;
+            return Task.FromResult(fundingPeriods.ToList().AsEnumerable());
         }
 
         public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)
@@ -150,7 +137,7 @@ namespace CalculateFunding.Services.Specs
                 TemplateMappingItems = new List<TemplateMappingItem>()
             };
 
-            IEnumerable<Calculation> calculations = await GetCalculationsBySpecificationId(specificationId);
+            IEnumerable<Calculation> calculations = null; // await GetCalculationsBySpecificationId(specificationId);
 
             templateMapping.TemplateMappingItems.AddRange(
                 calculations

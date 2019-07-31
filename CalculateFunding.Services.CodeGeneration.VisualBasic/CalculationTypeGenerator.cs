@@ -90,27 +90,17 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         private StatementSyntax CreateCalculationVariables(Calculation calc)
         {
-            if (string.IsNullOrWhiteSpace(calc.SourceCodeName)) throw new InvalidOperationException($"Calculation source code name is not populated for calc {calc.Id }");
+            if (string.IsNullOrWhiteSpace(calc.Current?.SourceCodeName)) throw new InvalidOperationException($"Calculation source code name is not populated for calc {calc.Id }");
 
             StringBuilder builder = new StringBuilder();
 
             // Add attributes to describe calculation and calculation specification
             builder.AppendLine($"<Calculation(Id := \"{calc.Id}\", Name := \"{calc.Name}\")>");
-            if (calc.CalculationSpecification != null)
-            {
-                builder.AppendLine($"<CalculationSpecification(Id := \"{calc.CalculationSpecification.Id}\", Name := \"{calc.CalculationSpecification.Name}\")>");
-            }
-
-            if (calc.AllocationLine != null)
-            {
-                // Add attribute for allocation line
-                builder.AppendLine($"<AllocationLine(Id := \"{calc.AllocationLine.Id}\", Name := \"{calc.AllocationLine.Name}\")>");
-            }
 
             // Add attribute for calculation description
-            if (!string.IsNullOrWhiteSpace(calc.Description))
+            if (!string.IsNullOrWhiteSpace(calc.Current?.Description))
             {
-                builder.AppendLine($"<Description(Description := \"{calc.Description?.Replace("\"", "\"\"")}\")>");
+                builder.AppendLine($"<Description(Description := \"{calc.Current?.Description.Replace("\"", "\"\"")}\")>");
             }
 
             if (!string.IsNullOrWhiteSpace(calc.Current?.SourceCode))
@@ -118,7 +108,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 calc.Current.SourceCode = QuoteAggregateFunctionCalls(calc.Current.SourceCode);
             }
 
-            builder.AppendLine($"Dim {calc.SourceCodeName} As Func(Of decimal?) = nothing");
+            builder.AppendLine($"Dim {calc.Current.SourceCodeName} As Func(Of decimal?) = nothing");
 
             builder.AppendLine();
 
@@ -152,7 +142,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             {
                 builder.AppendLine();
 
-                builder.AppendLine($"{calc.SourceCodeName} = Function() As decimal?");
+                builder.AppendLine($"{calc.Current.SourceCodeName} = Function() As decimal?");
 
                 builder.AppendLine($"Dim existingCacheItem as String() = Nothing");
                 builder.AppendLine($"If dictionary.TryGetValue(\"{calc.Id}\", existingCacheItem) Then");
@@ -222,7 +212,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 // Reset baseline stack frame count before executing calc
                 builder.AppendLine("stackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
 
-                builder.AppendLine($"{calc.SourceCodeName}()");
+                builder.AppendLine($"{calc.Current.SourceCodeName}()");
 
                 builder.AppendLine();
 

@@ -119,55 +119,6 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.EditSpecificationStatus(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/calculation-by-name")]
-        [HttpPost]
-        public async Task<IActionResult> RunCalculationByName()
-        {
-            return await _specService.GetCalculationByName(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/calculation-by-id")]
-        [HttpGet]
-        public async Task<IActionResult> RunCalculationBySpecificationIdAndCalculationId()
-        {
-            return await _specService.GetCalculationBySpecificationIdAndCalculationId(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/calculations-by-specificationid")]
-        [HttpGet]
-        public async Task<IActionResult> RunCalculationsBySpecificationId()
-        {
-            return await _specService.GetCalculationsBySpecificationId(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/specifications/{specificationId}/baseline-calculations")]
-        [HttpGet]
-        public async Task<IActionResult> RunGetBaselineCalculations([FromRoute]string specificationId)
-        {
-            return await _specService.GetBaselineCalculations(specificationId, ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/specifications/{specificationId}/{fundingStreamId}/template")]
-        [HttpPut]
-        public async Task<IActionResult> RunAssociateTemplateIdWithSpecification([FromRoute]string specificationId, [FromRoute]string fundingStreamId, [FromBody] string templateId)
-        {
-            return await _specService.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
-        }
-
-        [Route("api/specs/calculations")]
-        [HttpPost]
-        public async Task<IActionResult> RunCreateCalculation()
-        {
-            return await _specService.CreateCalculation(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/calculations")]
-        [HttpPut]
-        public async Task<IActionResult> RunEditCalculation()
-        {
-            return await _specService.EditCalculation(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/specs/get-fundingstreams-for-specification")]
         [HttpGet]
         public async Task<IActionResult> RunGetFundingStreamsForSpecificationById()

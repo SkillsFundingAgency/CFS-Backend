@@ -4,8 +4,8 @@ namespace CalculateFunding.Models.Calcs
     {
         public string SpecificationId { get; set; }
         public string CalculationId { get; set; }
-        public decimal? DecimalPlaces { get; set; }
         public string SourceCode { get; set; }
+        public string Name { get; set; }
     }
 }
 

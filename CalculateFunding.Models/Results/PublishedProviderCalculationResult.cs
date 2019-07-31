@@ -4,11 +4,8 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
-    public class PublishedProviderCalculationResult
+    public class PublishedProviderCalculationResult : Reference
     {
-        [JsonProperty("calculationSpecification")]
-        public Reference CalculationSpecification { get; set; }
-
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 

@@ -69,8 +69,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                         {
                             AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 1112.3M
                         }
                     },
@@ -132,8 +131,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                         {
                             AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 1112.3M
                         }
                     },
@@ -164,8 +162,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r =>
                 r.First().SpecificationId == results.First().SpecificationId &&
                 r.First().SpecificationName == "Specification 1" &&
-                r.First().CalculationSpecificationId == results.First().CalculationResults.First().CalculationSpecification.Id &&
-                r.First().CalculationSpecificationName == results.First().CalculationResults.First().CalculationSpecification.Name &&
                 r.First().CalculationName == results.First().CalculationResults.First().Calculation.Name &&
                 r.First().CalculationId == results.First().CalculationResults.First().Calculation.Id &&
                 r.First().CalculationType == results.First().CalculationResults.First().CalculationType.ToString() &&
@@ -213,8 +209,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                         {
                             AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = null
                         }
                     },
@@ -276,8 +271,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                         {
                             AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = null
                         }
                     },
@@ -308,8 +302,6 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r =>
                 r.First().SpecificationId == results.First().SpecificationId &&
                 r.First().SpecificationName == "Specification 1" &&
-                r.First().CalculationSpecificationId == results.First().CalculationResults.First().CalculationSpecification.Id &&
-                r.First().CalculationSpecificationName == results.First().CalculationResults.First().CalculationSpecification.Name &&
                 r.First().CalculationName == results.First().CalculationResults.First().Calculation.Name &&
                 r.First().CalculationId == results.First().CalculationResults.First().Calculation.Id &&
                 r.First().CalculationType == results.First().CalculationResults.First().CalculationType.ToString() &&
@@ -362,8 +354,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                         {
                             AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 1112.3M
                         }
                     },
@@ -447,8 +438,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                         {
                             AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationSpecification = new Reference { Id = "calc1", Name = "calculation one" },
-                            CalculationType = Models.Calcs.CalculationType.Funding,
+                            CalculationType = Models.Calcs.CalculationType.Template,
                             Value = null
                         }
                     },

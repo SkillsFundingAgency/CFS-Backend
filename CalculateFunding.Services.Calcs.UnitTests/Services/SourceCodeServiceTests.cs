@@ -37,10 +37,11 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = calculationId,
-                BuildProjectId = buildProjectId,
-                Current = new CalculationVersion(),
+                Current = new CalculationVersion
+                {
+                    Name = "TestFunction"
+                },
                 SpecificationId = specificationId,
-                Name = "TestFunction"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -268,10 +269,11 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = calculationId,
-                BuildProjectId = buildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = specificationId,
-                Name = "TestFunction"
+                Current = new CalculationVersion
+                {
+                    Name = "TestFunction"
+                },
+                SpecificationId = specificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -466,14 +468,12 @@ namespace CalculateFunding.Services.Calcs.Services
                 new Calculation
                 {
                     Id = "calcId1",
-                    Name = "calc 1",
-                    SourceCodeName = "differentCalcName",
-                    Description = "test calc",
-                    AllocationLine = new Common.Models.Reference { Id = "alloc1", Name = "alloc one" },
-                    CalculationSpecification = new Common.Models.Reference{ Id = "calcSpec1", Name = "calc spec 1" },
                     Current = new CalculationVersion
                     {
-                         SourceCode = "return 10"
+                        SourceCode = "return 10",
+                        Name = "calc 1",
+                        SourceCodeName = "differentCalcName",
+                        Description = "test calc",
                     }
                 }
             };

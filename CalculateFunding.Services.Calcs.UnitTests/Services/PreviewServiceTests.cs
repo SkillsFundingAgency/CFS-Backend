@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
@@ -15,10 +13,8 @@ using CalculateFunding.Services.Core.Extensions;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using Severity = CalculateFunding.Models.Calcs.Severity;
@@ -37,14 +33,14 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task Compile_GivenNullPreviewRequest_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
+            PreviewRequest previewRequest = null;
 
             ILogger logger = CreateLogger();
 
             PreviewService service = CreateService(logger: logger);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(previewRequest);
 
             //Assert
             result
@@ -61,15 +57,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             PreviewRequest model = new PreviewRequest();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
+          
             ValidationResult validationResult = new ValidationResult(new[]{
                     new ValidationFailure("prop1", "oh no an error!!!")
                 });
@@ -81,7 +69,7 @@ namespace CalculateFunding.Services.Calcs.Services
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -91,61 +79,6 @@ namespace CalculateFunding.Services.Calcs.Services
             logger
                 .Received(1)
                 .Warning(Arg.Is("The preview request failed to validate with errors: oh no an error!!!"));
-        }
-
-        [TestMethod]
-        public async Task Compile_GivenPreviewRequestButCalculationDoesNotExists_ReturnsPreConditionFailed()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId,
-                SpecificationId = SpecificationId,
-            };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns((Calculation)null);
-
-            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
-
-            BuildProject buildProject = new BuildProject();
-
-            buildProjectsService
-                .GetBuildProjectForSpecificationId(Arg.Is(SpecificationId))
-                .Returns(buildProject);
-
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsService: buildProjectsService);
-
-            //Act
-            IActionResult result = await service.Compile(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<PreconditionFailedResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"Calculation ('{CalculationId}') could not be found for specification Id '{SpecificationId}'");
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"Calculation ('{CalculationId}') could not be found for specification Id '{SpecificationId}'"));
         }
 
         [TestMethod]
@@ -164,15 +97,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationId = CalculationId,
                 SpecificationId = SpecificationId,
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -193,7 +117,7 @@ namespace CalculateFunding.Services.Calcs.Services
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsService: buildProjectsService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -226,15 +150,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 CalculationId = CalculationId
             };
 
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
             ValidationResult validationResult = new ValidationResult();
             validationResult.Errors.Add(new ValidationFailure("specificationId", "Specification ID is null"));
 
@@ -250,7 +165,7 @@ namespace CalculateFunding.Services.Calcs.Services
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -279,19 +194,9 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId,
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -310,7 +215,7 @@ namespace CalculateFunding.Services.Calcs.Services
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsService: buildProjectsService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -327,67 +232,6 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task Compile_GivenBuildProjectWasFoundButCalculationsNotFound_ReturnsPreConditionFailed()
-        {
-            //Arrange
-            PreviewRequest model = new PreviewRequest
-            {
-                CalculationId = CalculationId,
-                SpecificationId = SpecificationId,
-            };
-
-            Calculation calculation = new Calculation
-            {
-                Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-            };
-            BuildProject buildProject = new BuildProject();
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
-
-            IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
-
-            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
-            buildProjectsService
-                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
-                .Returns(buildProject);
-
-            PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository, buildProjectsService: buildProjectsService);
-
-            // Act
-            IActionResult result = await service.Compile(request);
-
-            // Assert
-            result
-                .Should()
-                .BeOfType<PreconditionFailedResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("Calculation ('2d30bb44-0862-4524-a2f6-381c5534027a') could not be found for specification Id 'b13cd3ba-bdf8-40a8-9ec4-af48eb8a4386'");
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"Calculation ('2d30bb44-0862-4524-a2f6-381c5534027a') could not be found for specification Id 'b13cd3ba-bdf8-40a8-9ec4-af48eb8a4386'"));
-        }
-
-        [TestMethod]
         public async Task Compile_GivenSourceFileGeneratorCreatedFilesButCodeDidNotSucceed_ReturnsOK()
         {
             //Arrange
@@ -401,10 +245,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
+
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace"
+                },
                 SpecificationId = SpecificationId,
-                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -413,15 +259,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -471,7 +308,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -523,11 +360,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-                Name = "Alice",
-                SourceCodeName = "Christopher Robin"
+                Current = new CalculationVersion
+                {
+                    Name = "Alice",
+                    SourceCodeName = "Christopher Robin"
+                },
+                SpecificationId = SpecificationId
             };
 
             CompilerOptions compilerOptions = new CompilerOptions
@@ -541,15 +379,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -615,7 +444,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -716,11 +545,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace",
+                    Name = "Test Function"
+                },
                 SpecificationId = SpecificationId,
-                SourceCodeName = "Horace",
-                Name = "Test Function"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -729,15 +559,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -801,7 +622,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -847,11 +668,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-                Name = "TestFunction",
-                SourceCodeName = "Horace"
+                Current = new CalculationVersion
+                {
+                    Name = "TestFunction",
+                    SourceCodeName = "Horace"
+                },
+                SpecificationId = SpecificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -860,15 +682,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -922,7 +735,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -968,11 +781,13 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace",
+                    Name = "TestFunction"
+                },
                 SpecificationId = SpecificationId,
-                SourceCodeName = "Horace",
-                Name = "TestFunction"
+               
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -981,15 +796,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -1046,7 +852,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -1083,7 +889,6 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId
             };
@@ -1091,15 +896,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
             BuildProject buildProject = new BuildProject();
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -1140,7 +936,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -1193,7 +989,6 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId
             };
@@ -1201,15 +996,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
             BuildProject buildProject = new BuildProject();
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -1257,7 +1043,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository: datasetRepository);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -1317,7 +1103,6 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId
             };
@@ -1325,15 +1110,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
 
             BuildProject buildProject = new BuildProject();
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -1376,7 +1152,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository: datasetRepository, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -1449,7 +1225,6 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
                 Current = new CalculationVersion(),
                 SpecificationId = SpecificationId
             };
@@ -1457,15 +1232,6 @@ namespace CalculateFunding.Services.Calcs.Services
             IEnumerable<Calculation> calculations = new List<Calculation> { calculation };
 
             BuildProject buildProject = new BuildProject();
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -1508,7 +1274,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository: datasetRepository, cacheProvider: cacheProvider);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -1569,11 +1335,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-                Name = "TestFunction",
-                SourceCodeName = "Horace"
+                Current = new CalculationVersion
+                {
+                    Name = "TestFunction",
+                    SourceCodeName = "Horace"
+                },
+                SpecificationId = SpecificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation> { calculation };
@@ -1582,15 +1349,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -1645,7 +1403,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsService: buildProjectsService, datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -1682,11 +1440,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
+                Current = new CalculationVersion
+                {
+                    Name = "TestFunction",
+                    SourceCodeName = "Horace"
+                },
                 SpecificationId = SpecificationId,
-                Name = "TestFunction",
-                SourceCodeName = "Horace"
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -1695,15 +1454,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -1760,7 +1510,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -1806,11 +1556,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-                Name = "Calc2",
-                SourceCodeName = "Horace"
+                Current = new CalculationVersion
+                {
+                    Name = "Calc2",
+                    SourceCodeName = "Horace"
+                },
+                SpecificationId = SpecificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -1819,15 +1570,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -1884,7 +1626,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 datasetRepository: datasetRepository, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -1933,11 +1675,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-                SourceCodeName = "Horace",
-                Name = "Test Function"
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace",
+                    Name = "Test Function"
+                },
+                SpecificationId = SpecificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -1946,15 +1689,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -2009,7 +1743,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -2055,10 +1789,11 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-                SourceCodeName = "Horace"
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace"
+                },
+                SpecificationId = SpecificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -2067,15 +1802,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -2130,7 +1856,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -2184,10 +1910,11 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-                SourceCodeName = "Horace"
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = "Horace"
+                },
+                SpecificationId = SpecificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation> { calculation };
@@ -2196,15 +1923,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -2260,7 +1978,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             result
@@ -2312,11 +2030,12 @@ namespace CalculateFunding.Services.Calcs.Services
             Calculation calculation = new Calculation
             {
                 Id = CalculationId,
-                BuildProjectId = BuildProjectId,
-                Current = new CalculationVersion(),
-                SpecificationId = SpecificationId,
-                SourceCodeName = calculationName,
-                Name = "Alice"
+                Current = new CalculationVersion
+                {
+                    SourceCodeName = calculationName,
+                    Name = "Alice"
+                },
+                SpecificationId = SpecificationId
             };
 
             IEnumerable<Calculation> calculations = new List<Calculation>() { calculation };
@@ -2325,15 +2044,6 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId
             };
-
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Body
-                .Returns(stream);
 
             IValidator<PreviewRequest> validator = CreatePreviewRequestValidator();
 
@@ -2407,7 +2117,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 tokenChecker: tokenChecker);
 
             //Act
-            IActionResult result = await service.Compile(request);
+            IActionResult result = await service.Compile(model);
 
             //Assert
             OkObjectResult okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -2513,7 +2223,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IEnumerable<object[]> LogMessagesTestCases()
         {
             BuildProject buildProject = new BuildProject { SpecificationId = "Esme" };
-            Calculation calculation = new Calculation { Id = "Gytha", Name = "Magrat" };
+            Calculation calculation = new Calculation { Id = "Gytha", Current = new CalculationVersion { Name = "Magrat" } };
             yield return new object[] { new CompilerMessage[0], buildProject, calculation, new string[] { } };
 
             IEnumerable<dynamic[]> messages = new List<dynamic[]>

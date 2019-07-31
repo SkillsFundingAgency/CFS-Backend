@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 new CalculationSummaryModel()
                 {
                     Name = "TestCalc",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = CalculationType.Template,
                     Id = "CalcId"
                 }
             };

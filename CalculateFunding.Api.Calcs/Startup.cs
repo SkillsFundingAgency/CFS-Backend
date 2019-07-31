@@ -97,6 +97,9 @@ namespace CalculateFunding.Api.Calcs
                 .AddSingleton<IValidator<Calculation>, CalculationModelValidator>();
 
             builder
+               .AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
+
+            builder
                 .AddSingleton<IPreviewService, PreviewService>()
                 .AddSingleton<IHealthChecker, PreviewService>();
            

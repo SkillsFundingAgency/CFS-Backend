@@ -556,11 +556,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .PublishStatus
                 .Should()
                 .Be(PublishStatus.Approved);
-
-            await
-                searchRepository
-                .Received(1)
-                .Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.First().Status == "Approved"));
         }
 
         [TestMethod]
@@ -757,11 +752,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .PublishStatus
                 .Should()
                 .Be(PublishStatus.Updated);
-
-            await
-                searchRepository
-                .Received(1)
-                .Index(Arg.Is<IEnumerable<CalculationIndex>>(m => m.First().Status == "Updated"));
         }
     }
 }

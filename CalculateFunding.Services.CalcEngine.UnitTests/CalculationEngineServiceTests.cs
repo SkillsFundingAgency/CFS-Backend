@@ -1430,13 +1430,13 @@ namespace CalculateFunding.Services.Calculator
                 new CalculationSummaryModel()
                 {
                     Name = "TestCalc1",
-                    CalculationType = CalculationType.Funding,
+                    CalculationType = CalculationType.Template,
                     Id = "TC1"
                 },
                 new CalculationSummaryModel()
                 {
                     Name = "TestCalc2",
-                    CalculationType = CalculationType.Number,
+                    CalculationType = CalculationType.Template,
                     Id = "TC2"
                 }
             };

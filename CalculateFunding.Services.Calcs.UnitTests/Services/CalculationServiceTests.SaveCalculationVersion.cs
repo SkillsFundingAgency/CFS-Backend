@@ -531,8 +531,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string buildProjectId = Guid.NewGuid().ToString();
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
-
+           
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
                 SourceCode = "source code"
@@ -657,8 +656,7 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProject buildProject = new BuildProject();
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
-
+            
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
                 SourceCode = "source code"
@@ -782,24 +780,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string specificationId = "789";
 
-            List<Models.Specs.Calculation> specCalculations = new List<Models.Specs.Calculation>();
-
-            Models.Specs.Calculation specCalculation = new Models.Specs.Calculation()
-            {
-                Id = "1234",
-                Name = "Calculation Name",
-                Description = "Calculation Description"
-            };
-
-            specCalculations.Add(specCalculation);
-
             List<Calculation> calcCalculations = new List<Calculation>();
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
             calculation.SpecificationId = specificationId;
-            calculation.CalculationSpecification.Id = specCalculation.Id;
-            calculation.CalculationSpecification.Name = specCalculation.Name;
 
             calcCalculations.Add(calculation);
 
@@ -847,10 +831,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(buildProject);
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetCalculationSpecificationsForSpecification(specificationId)
-                .Returns(specCalculations.AsEnumerable());
-
+           
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -916,7 +897,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await calculationsRepository
                 .Received(1)
-                .UpdateCalculation(Arg.Is<Calculation>(c => c.Description == specCalculation.Description));
+                .UpdateCalculation(Arg.Is<Calculation>(c => c.Current.Description == calculation.Current.Description));
 
             await
               versionRepository
@@ -944,42 +925,17 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string specificationId = "789";
 
-            List<Models.Specs.Calculation> specCalculations = new List<Models.Specs.Calculation>();
-
-            Models.Specs.Calculation specCalculation1 = new Models.Specs.Calculation()
-            {
-                Id = "121",
-                Name = "Calculation One",
-                Description = "Calculation Description One"
-            };
-
-            specCalculations.Add(specCalculation1);
-
-            Models.Specs.Calculation specCalculation2 = new Models.Specs.Calculation()
-            {
-                Id = "122",
-                Name = "Calculation Two",
-                Description = "Calculation Description Two"
-            };
-
-            specCalculations.Add(specCalculation2);
-
             List<Calculation> calcCalculations = new List<Calculation>();
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
             calculation.SpecificationId = specificationId;
-            calculation.CalculationSpecification.Id = specCalculation1.Id;
-            calculation.CalculationSpecification.Name = specCalculation1.Name;
+
 
             calcCalculations.Add(calculation);
 
             Calculation calculation2 = CreateCalculation();
             calculation2.Id = "12555";
-            calculation2.BuildProjectId = buildProjectId;
             calculation2.SpecificationId = specificationId;
-            calculation2.CalculationSpecification.Id = specCalculation2.Id;
-            calculation2.CalculationSpecification.Name = specCalculation2.Name;
 
             calcCalculations.Add(calculation2);
 
@@ -1027,10 +983,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(buildProject);
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetCalculationSpecificationsForSpecification(specificationId)
-                .Returns(specCalculations.AsEnumerable());
-
+           
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -1093,7 +1046,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await calculationsRepository
                 .Received(1)
-                .UpdateCalculation(Arg.Is<Calculation>(c => c.Description == specCalculation1.Description));
+                .UpdateCalculation(Arg.Is<Calculation>(c => c.Current.Description == calculation.Current.Description));
 
             await
               versionRepository
@@ -1110,7 +1063,6 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProject buildProject = new BuildProject();
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
 
             SaveSourceCodeVersion model = new SaveSourceCodeVersion
             {
@@ -1462,11 +1414,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Be(PublishStatus.Updated);
 
             await
-                searchRepository
-                .Received(1)
-                .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
-
-            await
               versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(calculationVersion));
@@ -1491,7 +1438,6 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -1598,11 +1544,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Be(PublishStatus.Updated);
 
             await
-                searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
-
-            await
               versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(calculationVersion));
@@ -1628,7 +1569,6 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -1749,11 +1689,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Be(PublishStatus.Updated);
 
             await
-                searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
-
-            await
                 jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(
@@ -1792,7 +1727,6 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -1904,11 +1838,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Be(PublishStatus.Updated);
 
             await
-                searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
-
-            await
                 jobsApiClient
                     .Received(1)
                     .CreateJob(Arg.Is<JobCreateModel>(
@@ -1942,7 +1871,6 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -2093,7 +2021,6 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -2200,7 +2127,6 @@ namespace CalculateFunding.Services.Calcs.Services
             };
 
             Calculation calculation = CreateCalculation();
-            calculation.BuildProjectId = buildProjectId;
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
@@ -2326,11 +2252,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .PublishStatus
                 .Should()
                 .Be(PublishStatus.Updated);
-
-            await
-                searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IList<CalculationIndex>>(m => m.First().Status == "Updated"));
 
             await
                 jobsApiClient

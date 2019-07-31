@@ -62,21 +62,6 @@ namespace CalculateFunding.Functions.DebugQueue
         {
             Message message = Helpers.ConvertToMessage<SpecificationVersionComparisonModel>(item);
 
-            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                try
-                {
-                    Functions.Calcs.ServiceBus.OnEditSpecificationEvent function = scope.ServiceProvider.GetService<Functions.Calcs.ServiceBus.OnEditSpecificationEvent>();
-
-                    await function.Run(message);
-
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Error while executing Calcs {nameof(RunOnEditSpecificationEvent)}");
-                }
-            }
-
             using (IServiceScope scope = Functions.TestEngine.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
             {
                 try
@@ -107,41 +92,6 @@ namespace CalculateFunding.Functions.DebugQueue
             logger.LogInformation($"C# Queue trigger function processed: {item}");
         }
 
-        [FunctionName("on-edit-calculation")]
-        public static async Task OnEditCalculation([QueueTrigger(ServiceBusConstants.TopicNames.EditCalculation, Connection = "AzureConnectionString")] string item, ILogger logger)
-        {
-            Message message = Helpers.ConvertToMessage<CalculationVersionComparisonModel>(item);
-
-            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                try
-                {
-                    OnEditCalculationSpecificationEvent function = scope.ServiceProvider.GetService<OnEditCalculationSpecificationEvent>();
-
-                    await function.Run(message);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Error while executing Calcs {nameof(OnEditCalculation)}");
-                }
-            }
-
-            using (IServiceScope scope = Scenarios.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                try
-                {
-                    OnEditCaluclationEvent function = scope.ServiceProvider.GetService<OnEditCaluclationEvent>();
-
-                    await function.Run(message);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, $"Error while executing Scenarios {nameof(OnEditCalculation)}");
-                }
-            }
-
-            logger.LogInformation($"C# Queue trigger function processed: {item}");
-        }
 
         [FunctionName("on-data-definition-changes")]
         public static async Task OnDataDefinitionChanges([QueueTrigger(ServiceBusConstants.TopicNames.DataDefinitionChanges, Connection = "AzureConnectionString")] string item, ILogger logger)

@@ -51,17 +51,5 @@ namespace CalculateFunding.Models.Specs
             }
         }
 
-        [JsonIgnore]
-        public bool HasCalculationChanges
-        {
-            get
-            {
-                string currentCalculations = JsonConvert.SerializeObject(Current.Calculations);
-
-                string previousCalculations = JsonConvert.SerializeObject(Previous.Calculations);
-
-                return !string.Equals(currentCalculations, previousCalculations);
-            }
-        }
     }
 }
