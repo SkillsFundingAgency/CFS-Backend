@@ -721,7 +721,6 @@
         }
       ]
     },
-
     {
       "apiVersion": "2015-02-28",
       "name": "[variables('azureSearchName')]",
@@ -811,25 +810,6 @@
             "path": "edit-specification"
           },
           "resources": [
-            {
-              "apiVersion": "2017-04-01",
-              "name": "calculation-update",
-              "type": "Subscriptions",
-              "dependsOn": [
-                "edit-specification"
-              ],
-              "properties": {
-                "lockDuration": "PT5M",
-                "requiresSession": false,
-                "defaultMessageTimeToLive": "P14D",
-                "deadLetteringOnMessageExpiration": false,
-                "deadLetteringOnFilterEvaluationExceptions": true,
-                "maxDeliveryCount": 10,
-                "status": "Active",
-                "enableBatchedOperations": true
-              },
-              "resources": []
-            },
             {
               "apiVersion": "2017-04-01",
               "name": "users-update",
@@ -3166,25 +3146,8 @@
     },
     {
       "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites/slots",
-      "name": "[concat(variables('datasetsApiAppName'), '/', 'Staging')]",
-      "kind": "app",
-      "location": "[resourceGroup().location]",
-      "comments": "This specifies the web app Staging slot.",
-      "tags": {
-        "displayName": "WebAppStagingSlots"
-      },
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/Sites', variables('datasetsApiAppName'))]"
-      ]
-    },
-    {
-      "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
-      "name": "[variables('calcsApiAppName')]",
+      "name": "[variables('publishingFunctionAppName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
@@ -3482,23 +3445,6 @@
           ]
         }
       }
-    },
-    {
-      "apiVersion": "2016-08-01",
-      "type": "Microsoft.Web/sites/slots",
-      "name": "[concat(variables('calcsApiAppName'), '/', 'Staging')]",
-      "kind": "app",
-      "location": "[resourceGroup().location]",
-      "comments": "This specifies the web app Staging slot.",
-      "tags": {
-        "displayName": "WebAppStagingSlots"
-      },
-      "properties": {
-        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Web/Sites', variables('calcsApiAppName'))]"
-      ]
     },
     {
       "apiVersion": "2016-08-01",
@@ -4582,6 +4528,30 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "providersClient:ApiKey",
+              "value": "[parameters('apiKeyProviders')]"
+            },
+            {
+              "name": "providersClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-providers.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "publishingClient:ApiKey",
+              "value": "[parameters('apiKeyPublishing')]"
+            },
+            {
+              "name": "publishingClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-publishing.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "policiesClient:ApiKey",
+              "value": "[parameters('apiKeyPolicy')]"
+            },
+            {
+              "name": "policiesClient:ApiEndpoint",
+              "value": "[concat('https://app-', parameters('environmentKey'), '-policy.azurewebsites.net/api/')]"
             }
           ]
         }
