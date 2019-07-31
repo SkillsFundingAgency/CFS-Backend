@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -14,8 +15,11 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
@@ -24,7 +28,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
+using Microsoft.Azure.Storage.Blob;
 using Serilog;
 
 namespace CalculateFunding.Services.Results
@@ -47,6 +51,7 @@ namespace CalculateFunding.Services.Results
         private readonly Polly.Policy _calculationsRepositoryPolicy;
         private readonly IValidator<MasterProviderModel> _masterProviderModelValidator;
         private readonly IFeatureToggle _featureToggle;
+        private readonly IBlobClient _blobClient;
 
         public ResultsService(ILogger logger,
             IFeatureToggle featureToggle,
@@ -60,7 +65,8 @@ namespace CalculateFunding.Services.Results
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
             ICalculationsRepository calculationRepository,
-            IValidator<MasterProviderModel> masterProviderModelValidator)
+            IValidator<MasterProviderModel> masterProviderModelValidator,
+            IBlobClient blobClient)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -74,6 +80,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
             Guard.ArgumentNotNull(masterProviderModelValidator, nameof(masterProviderModelValidator));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
+            Guard.ArgumentNotNull(blobClient, nameof(blobClient));
 
             _logger = logger;
             _resultsRepository = resultsRepository;
@@ -91,6 +98,7 @@ namespace CalculateFunding.Services.Results
             _masterProviderModelValidator = masterProviderModelValidator;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _featureToggle = featureToggle;
+            _blobClient = blobClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -112,8 +120,8 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetProviderResults(HttpRequest request)
         {
-            string providerId = GetParameter(request, "providerId");
-            string specificationId = GetParameter(request, "specificationId");
+            string providerId = request.GetParameter("providerId");
+            string specificationId = request.GetParameter("specificationId");
 
             if (string.IsNullOrWhiteSpace(providerId))
             {
@@ -141,9 +149,10 @@ namespace CalculateFunding.Services.Results
             return new NotFoundResult();
         }
 
+        #region "GetProviderResultsBySpecificationId"
         public async Task<IActionResult> GetProviderResultsBySpecificationId(HttpRequest request)
         {
-            string specificationId = GetParameter(request, "specificationId");
+            string specificationId = request.GetParameter("specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -151,46 +160,71 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            IEnumerable<ProviderResult> providerResults = null;
+            string top = request.GetParameter("top");
 
-            string top = GetParameter(request, "top");
+            return new OkObjectResult(await ProviderResultsBySpecificationId(specificationId, top));
+        }
+
+        public async Task<IEnumerable<ProviderResult>> ProviderResultsBySpecificationId(string specificationId, string top)
+        {
+            IEnumerable<ProviderResult> providerResults = null;
 
             if (!string.IsNullOrWhiteSpace(top))
             {
-                int maxResults;
-
-                if (int.TryParse(top, out maxResults))
+                if (int.TryParse(top, out int maxResults))
                 {
-                    providerResults = await GetProviderResultsBySpecificationId(specificationId, maxResults);
+                    providerResults = await ProviderResultsBySpecificationId(specificationId, maxResults);
 
-                    return new OkObjectResult(providerResults);
+                    return providerResults;
                 }
             }
 
-            providerResults = await GetProviderResultsBySpecificationId(specificationId);
+            providerResults = await ProviderResultsBySpecificationId(specificationId);
 
-            return new OkObjectResult(providerResults);
+            return providerResults;
         }
 
+        public async Task<IEnumerable<ProviderResult>> ProviderResultsBySpecificationId(string specificationId, int maxResults = -1)
+        {
+            return await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId, maxResults));
+        }
+        #endregion
+
+        #region "GetProviderSpecifications"
+        /// <summary>
+        /// Returns distinct specificationIds where there are results for this provider
+        /// </summary>
         public async Task<IActionResult> GetProviderSpecifications(HttpRequest request)
         {
-            string providerId = GetParameter(request, "providerId");
+            string providerId = request.GetParameter("providerId");
             if (string.IsNullOrWhiteSpace(providerId))
             {
                 _logger.Error("No provider Id was provided to GetProviderSpecifications");
                 return new BadRequestObjectResult("Null or empty provider Id provided");
             }
 
-            // Returns distinct specificationIds where there are results for this provider
+            return await GetProviderSpecifications(providerId);
+        }
+
+        /// <summary>
+        /// Returns distinct specificationIds where there are results for this provider
+        /// </summary>
+        /// <param name="providerId"></param>
+        /// <returns></returns>
+        public async Task<IActionResult> GetProviderSpecifications(string providerId)
+        {
             List<string> result = new List<string>();
 
             IEnumerable<ProviderResult> providerResults = (await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSpecificationResults(providerId))).ToList();
 
             if (!providerResults.IsNullOrEmpty())
             {
-                _logger.Information($"Results was found for provider id {providerId}");
+                _logger.Information($"Results was found for provider id '{providerId}'");
 
-                result.AddRange(providerResults.Where(m => !string.IsNullOrWhiteSpace(m.SpecificationId)).Select(s => s.SpecificationId).Distinct());
+                result.AddRange(providerResults
+                    .Where(m => !string.IsNullOrWhiteSpace(m.SpecificationId))
+                    .Select(s => s.SpecificationId)
+                    .Distinct());
             }
             else
             {
@@ -198,14 +232,12 @@ namespace CalculateFunding.Services.Results
             }
 
             return new OkObjectResult(result);
-
         }
+        #endregion
 
-        async public Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request)
+        public async Task<IActionResult> GetFundingCalculationResultsForSpecifications(HttpRequest request)
         {
-            string json = await request.GetRawBodyStringAsync();
-
-            SpecificationListModel specifications = JsonConvert.DeserializeObject<SpecificationListModel>(json);
+            SpecificationListModel specifications = await request.ReadBodyJson<SpecificationListModel>();
 
             if (specifications == null)
             {
@@ -246,7 +278,7 @@ namespace CalculateFunding.Services.Results
             }
             catch (Exception ex)
             {
-                return new InternalServerErrorResult($"An error occurred when obtaining calculation totals with the follwing message: \n {ex.Message}");
+                return new InternalServerErrorResult($"An error occurred when obtaining calculation totals with the following message: \n {ex.Message}");
             }
 
             return new OkObjectResult(totalsModels);
@@ -254,7 +286,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetProviderSourceDatasetsByProviderIdAndSpecificationId(HttpRequest request)
         {
-            string specificationId = GetParameter(request, "specificationId");
+            string specificationId = request.GetParameter("specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -262,7 +294,7 @@ namespace CalculateFunding.Services.Results
                 return new BadRequestObjectResult("Null or empty specification Id provided");
             }
 
-            string providerId = GetParameter(request, "providerId");
+            string providerId = request.GetParameter("providerId");
 
             if (string.IsNullOrWhiteSpace(providerId))
             {
@@ -277,7 +309,7 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> GetScopedProviderIdsBySpecificationId(HttpRequest request)
         {
-            string specificationId = GetParameter(request, "specificationId");
+            string specificationId = request.GetParameter("specificationId");
 
             if (string.IsNullOrWhiteSpace(specificationId))
             {
@@ -298,9 +330,9 @@ namespace CalculateFunding.Services.Results
 
             Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
 
-            foreach (DocumentEntity<ProviderResult> documentEnity in providerResults)
+            foreach (DocumentEntity<ProviderResult> documentEntity in providerResults)
             {
-                ProviderResult providerResult = documentEnity.Content;
+                ProviderResult providerResult = documentEntity.Content;
 
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
@@ -331,7 +363,7 @@ namespace CalculateFunding.Services.Results
                         ProviderType = providerResult.Provider.ProviderType,
                         ProviderSubType = providerResult.Provider.ProviderSubType,
                         LocalAuthority = providerResult.Provider.Authority,
-                        LastUpdatedDate = documentEnity.UpdatedAt,
+                        LastUpdatedDate = documentEntity.UpdatedAt,
                         UKPRN = providerResult.Provider.UKPRN,
                         URN = providerResult.Provider.URN,
                         UPIN = providerResult.Provider.UPIN,
@@ -360,9 +392,12 @@ namespace CalculateFunding.Services.Results
                 }
             }
 
-            for (int i = 0; i < searchItems.Count; i += 500)
+            const int partitionSize = 500;
+            for (int i = 0; i < searchItems.Count; i += partitionSize)
             {
-                IEnumerable<ProviderCalculationResultsIndex> partitionedResults = searchItems.Skip(i).Take(500);
+                IEnumerable<ProviderCalculationResultsIndex> partitionedResults = searchItems
+                    .Skip(i)
+                    .Take(partitionSize);
 
                 IEnumerable<IndexError> errors = await _resultsSearchRepositoryPolicy.ExecuteAsync(() => _calculationProviderResultsSearchRepository.Index(partitionedResults));
 
@@ -370,7 +405,7 @@ namespace CalculateFunding.Services.Results
                 {
                     _logger.Error($"Failed to index calculation provider result documents with errors: { string.Join(";", errors.Select(m => m.ErrorMessage)) }");
 
-                    return new StatusCodeResult(500);
+                    return new InternalServerErrorResult(null);
                 }
             }
 
@@ -381,7 +416,7 @@ namespace CalculateFunding.Services.Results
         {
             string specificationId = message.UserProperties["specificationId"].ToString();
 
-            Models.Results.SpecificationProviders specificationProviders = message.GetPayloadAsInstanceOf<Models.Results.SpecificationProviders>();
+            SpecificationProviders specificationProviders = message.GetPayloadAsInstanceOf<SpecificationProviders>();
 
             IEnumerable<ProviderResult> providerResults = await _resultsRepositoryPolicy
                 .ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationIdAndProviders(specificationProviders.Providers, specificationId)
@@ -423,7 +458,6 @@ namespace CalculateFunding.Services.Results
 
                 return new NotFoundObjectResult($"Calculation could not be found for calculation id '{calculationId}'");
             }
-            bool hasCalculationsResults = false;
 
             ProviderResult providerResult = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetSingleProviderResultBySpecificationId(calculation.SpecificationId));
 
@@ -433,25 +467,98 @@ namespace CalculateFunding.Services.Results
 
                 if (calculationResult != null)
                 {
-                    hasCalculationsResults = true;
+                    return new OkObjectResult(true);
                 }
             }
 
-            return new OkObjectResult(hasCalculationsResults);
+            return new OkObjectResult(false);
         }
 
-        private static string GetParameter(HttpRequest request, string name)
+        public async Task QueueCsvGenerationMessages()
         {
-            if (request.Query.TryGetValue(name, out Microsoft.Extensions.Primitives.StringValues parameter))
+            IEnumerable<SpecificationSummary> specificationSummaries = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
+
+            if (specificationSummaries.IsNullOrEmpty())
             {
-                return parameter.FirstOrDefault();
+                string errorMessage = "No specification summaries found to generate calculation results csv.";
+
+                _logger.Error(errorMessage);
+
+                throw new RetriableException(errorMessage);
             }
-            return null;
+
+            foreach (SpecificationSummary specificationSummary in specificationSummaries)
+            {
+                await QueueCsvGenerationMessage(specificationSummary.Id);
+            }
         }
 
-        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxResults = -1)
+        public async Task QueueCsvGenerationMessage(string specificationId)
         {
-            return _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId, maxResults));
+            bool hasNewResults = await _resultsRepositoryPolicy.ExecuteAsync(
+                () => _resultsRepository.CheckHasNewResultsForSpecificationIdAndTimePeriod(specificationId, DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1)));
+
+            if (hasNewResults)
+            {
+                _logger.Information($"Found new calculation results for specification id '{specificationId}'");
+
+                await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration,
+                    string.Empty,
+                    new Dictionary<string, string>
+                    {
+                        { "specification-id", specificationId }
+                    });
+            }
+        }
+
+        public async Task GenerateCalculationResultsCsv(Message message)
+        {
+            string specificationId = message.GetUserProperty<string>("specification-id");
+
+            if (specificationId == null)
+            {
+                string error = "Specification id missing";
+
+                _logger.Error(error);
+                throw new NonRetriableException(error);
+            }
+
+            IEnumerable<ProviderResult> results = await ProviderResultsBySpecificationId(specificationId);
+
+            IEnumerable<ExpandoObject> resultsForOutput = ProcessProviderResultsForCsvOutput(results).ToList();
+
+            string csv = new CsvUtils().CreateCsvExpando(resultsForOutput);
+
+            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync($"calculation-results-{specificationId}");
+
+            await _blobClient.UploadAsync(blob, csv);
+        }
+
+        public IEnumerable<ExpandoObject> ProcessProviderResultsForCsvOutput(IEnumerable<ProviderResult> results)
+        {
+            var calculationNames = results
+                .SelectMany(x => x.CalculationResults)
+                .Select(x => x.Calculation.Name)
+                .ToArray();
+
+            foreach (ProviderResult result in results)
+            {
+                dynamic csvRow = new ExpandoObject();
+                IDictionary<string, object> csvDict = csvRow as IDictionary<string, object>;
+
+                csvDict["UKPRN"] = result.Provider.UKPRN;
+                csvDict["ProviderName"] = result.Provider.Name;
+
+                foreach (string calculationName in calculationNames)
+                {
+                    csvDict[calculationName] = result.CalculationResults
+                        .Where(x => x.Calculation.Name == calculationName)
+                        .Select(x => x.Value.ToString())
+                        .FirstOrDefault();
+                }
+
+                yield return csvRow;
+            }
         }
     }
 }

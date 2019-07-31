@@ -152,7 +152,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
             IEnumerable<PolicyModels.FundingStream> defaultFundingStreams = new List<PolicyModels.FundingStream>
             {
-                new PolicyModels.FundingStream()
+                new PolicyModels.FundingStream
                 {
                     Id = "fs1",
                     Name = "Funding Stream 1",
@@ -319,12 +319,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         {
             //Arrange
             ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-            ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams);
 
             specsRepo
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
+
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams);
 
             policiesApiClient
                 .GetFundingStreams()
@@ -361,6 +362,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
         static CalculationCreateModel CreateModel(string _specificationId = null,
             string _allocationLineId = null,
+            string _policyId = null,
             string _description = null,
             string _name = null,
             CalculationType _calculationType = CalculationType.Funding)

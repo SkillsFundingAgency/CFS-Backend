@@ -16,22 +16,12 @@ namespace CalculateFunding.Models.Results
         public string ProviderId { get; set; }
 
         [JsonProperty("summary")]
-        public string Summary
-        {
-            get
-            {
-                return $"{FundingStreamResult.AllocationLineResult.Current.Provider.ProviderProfileIdType}: {FundingStreamResult.AllocationLineResult.Current.Provider.Id}, version {FundingStreamResult.AllocationLineResult.Current.VersionNumber}";
-            }
-        }
+        public string Summary => 
+             $"{FundingStreamResult.AllocationLineResult.Current.Provider.ProviderProfileIdType}: {FundingStreamResult.AllocationLineResult.Current.Provider.Id}, version {FundingStreamResult.AllocationLineResult.Current.VersionNumber}";
 
         [JsonProperty("id")]
-        public string Id
-        {
-            get
-            {
-                return Convert.ToBase64String(Encoding.UTF8.GetBytes($"{SpecificationId}{ProviderId}{FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
-            }
-        }
+        public string Id =>
+            Convert.ToBase64String(Encoding.UTF8.GetBytes($"{SpecificationId}{ProviderId}{FundingStreamResult.AllocationLineResult.AllocationLine.Id}"));
 
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }

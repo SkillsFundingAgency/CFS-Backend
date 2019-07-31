@@ -101,7 +101,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
             Message message = new Message(Encoding.UTF8.GetBytes(json));
 
-
             CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
                 cosmosDbScalingRequestModelBuilder: modelBuilder);
 
@@ -803,7 +802,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         [TestMethod]
-        public void ScaleDown_WhenFailingToFecthJobSummaries_ThrowsNewRetriableException()
+        public void ScaleDownForJobConfiguration_WhenFailingToFecthJobSummaries_ThrowsNewRetriableException()
         {
             //Arrange
             ApiResponse<IEnumerable<JobSummary>> jobSummariesResponse = new ApiResponse<IEnumerable<JobSummary>>(HttpStatusCode.BadRequest);
@@ -1084,7 +1083,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             //Act
             await cosmosDbScalingService.ScaleDownForJobConfiguration();
 
-            //Assert
+           //Assert
             await
                 scalingRepository
                 .DidNotReceive()
@@ -1559,7 +1558,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Error(Arg.Is($"Failed to update cosmos scale config repository type: '{CosmosCollectionType.CalculationProviderResults}' with new request units of '10000' with status code: 'BadRequest'"));
         }
 
-
         private CosmosDbScalingService CreateScalingService(
             ILogger logger = null,
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = null,
@@ -1625,6 +1623,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             return new CosmosDbScalingConfig
             {
                 RepositoryType = cosmosRepositoryType,
+             
                 Id = "1",
                 JobRequestUnitConfigs = new[]
                 {

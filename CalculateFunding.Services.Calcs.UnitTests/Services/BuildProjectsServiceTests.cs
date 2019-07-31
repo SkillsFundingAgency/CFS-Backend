@@ -909,8 +909,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(jobViewModelResponse);
 
             BuildProjectsService buildProjectsService = CreateBuildProjectsService(jobsApiClient: jobsApiClient,
-                logger: logger,
-                cacheProvider: cacheProvider,
+                logger: logger, 
+                cacheProvider: cacheProvider, 
                 specificationsRepository: specificationRepository,
                 providersApiClient: providersApiClient);
 

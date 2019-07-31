@@ -5121,8 +5121,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IPublishedAllocationLineLogicalResultVersionService versionService = CreateRealPublishedAllocationLineLogicalResultVersionService();
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, policiesApiClient, logger);
 
-            return CreateResultsService(
-                jobsApiClient: jobsApiClient,
+            return CreateResultsService(jobsApiClient: jobsApiClient,
                 resultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: providerResultsAssembler,
@@ -5335,7 +5334,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             return specificationsRepository;
         }
-
+        
         private static IPoliciesApiClient InitialisePoliciesApiClient()
         {
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();

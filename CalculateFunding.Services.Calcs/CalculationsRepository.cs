@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Calcs
             (bool Ok, string Message) cosmosHealth = await _cosmosRepository.IsHealthOk();
 
             health.Name = nameof(CalculationsRepository);
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = this.GetType().Name, Message = cosmosHealth.Message });
+            health.Dependencies.Add(new DependencyHealth { HealthOk = cosmosHealth.Ok, DependencyName = GetType().Name, Message = cosmosHealth.Message });
 
             return health;
         }
@@ -104,13 +104,7 @@ namespace CalculateFunding.Services.Calcs
         {
             Common.Models.DocumentEntity<CompilerOptions> options = await _cosmosRepository.ReadAsync<CompilerOptions>(specificationId);
 
-            if (options == null)
-            {
-                // Couldn't find any compiler options so create the default
-                return new CompilerOptions();
-            }
-
-            return options.Content;
+            return options?.Content ?? new CompilerOptions();
         }
 
         private IQueryable<int> QueryStatus(string specificationId, string publishStatus)
@@ -125,7 +119,7 @@ namespace CalculateFunding.Services.Calcs
             };
 
             SqlParameter[] sqlParameters =
-        {
+            {
                 new SqlParameter("@PublishStatus", publishStatus),
                 new SqlParameter("@SpecificationId", specificationId)
             };

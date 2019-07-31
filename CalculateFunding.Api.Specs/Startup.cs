@@ -119,6 +119,8 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
+
             builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
             {
                 CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();

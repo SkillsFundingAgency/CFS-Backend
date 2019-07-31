@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -218,6 +219,29 @@ namespace CalculateFunding.Services.Results.Repositories
             IQueryable<decimal> result = _cosmosRepository.RawQuery<decimal>(sqlQuerySpec, 1, true);
 
             return Task.FromResult(result.AsEnumerable().First());
+        }
+
+        public async Task<bool> CheckHasNewResultsForSpecificationIdAndTimePeriod(string specificationId, DateTimeOffset dateFrom, DateTimeOffset dateTo)
+        {
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT c.id 
+                            FROM calculationresults c
+                            WHERE c.content.specificationId = @SpecificationId
+                            AND c.documentType = 'ProviderResult'
+                            AND (c.createdAt >= @DateFrom AND c.createdAt < @DateTo)",
+
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationId", specificationId),
+                    new SqlParameter("@DateFrom", dateFrom),
+                    new SqlParameter("@DateTo", dateTo)
+                }
+            };
+
+            IEnumerable<dynamic> result = await _cosmosRepository.QueryDynamic(sqlQuerySpec, true, 1);
+
+            return result.FirstOrDefault() != null;
         }
 
         public async Task<ProviderResult> GetSingleProviderResultBySpecificationId(string specificationId)

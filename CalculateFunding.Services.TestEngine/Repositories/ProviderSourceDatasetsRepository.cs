@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
         public ProviderSourceDatasetsRepository(ICosmosRepository cosmosRepository, EngineSettings engineSettings)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
-            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
+            Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));  
 
             _cosmosRepository = cosmosRepository;
             _engineSettings = engineSettings;

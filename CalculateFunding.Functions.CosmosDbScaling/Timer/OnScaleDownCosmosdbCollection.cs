@@ -16,6 +16,8 @@ namespace CalculateFunding.Functions.CosmosDbScaling.Timer
 
     public class OnScaleDownCosmosDbCollection
     {
+        private const string Every15Minutes = "*/15 * * * *";
+
         private readonly ILogger _logger;
         private readonly ICosmosDbScalingService _scalingService;
         private readonly IFeatureToggle _featureToggle;
@@ -35,21 +37,19 @@ namespace CalculateFunding.Functions.CosmosDbScaling.Timer
         }
 
         [FunctionName("on-scale-down-cosmosdb-collection")]
-        public async Task Run([TimerTrigger("*/15 * * * *")]TimerInfo timer)
+        public async Task Run([TimerTrigger(Every15Minutes)]TimerInfo timer)
         {
-            if (!_featureToggle.IsCosmosDynamicScalingEnabled())
+            if (_featureToggle.IsCosmosDynamicScalingEnabled())
             {
-                return;
-            }
-
-            try
-            {
-                await _scalingService.ScaleDownForJobConfiguration();
-            }
-            catch (Exception exception)
-            {
-                _logger.Error(exception, "An error occurred getting message from timer job: on-scale-down-cosmosdb-collection");
-                throw;
+	            try
+	            {
+	                await _scalingService.ScaleDownForJobConfiguration();
+	            }
+	            catch (Exception exception)
+	            {
+	                _logger.Error(exception, "An error occurred getting message from timer job: on-scale-down-cosmosdb-collection");
+	                throw;
+	            }
             }
         }
     }

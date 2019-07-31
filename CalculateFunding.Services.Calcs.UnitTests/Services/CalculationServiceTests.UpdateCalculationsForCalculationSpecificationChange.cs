@@ -53,7 +53,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void UpdateCalculationsForCalculationSpecificationChange_GivenModelButCurrentIsNull_LogsDoesNotSave()
         {
             //Arrange
-            Models.Specs.CalculationVersionComparisonModel model = new Models.Specs.CalculationVersionComparisonModel();
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel();
 
             string json = JsonConvert.SerializeObject(model);
 
@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public void UpdateCalculationsForCalculationSpecificationChange_GivenModelButPreviousIsNull_LogsDoesNotSave()
         {
             //Arrange
-            Models.Specs.CalculationVersionComparisonModel model = new Models.Specs.CalculationVersionComparisonModel
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
             {
                 Current = new Models.Specs.Calculation()
             };
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task UpdateCalculationsForCalculationSpecificationChange_GivenNoChanges_LogsAndReturns()
         {
             //Arrange
-            Models.Specs.CalculationVersionComparisonModel model = new Models.Specs.CalculationVersionComparisonModel
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
             {
                 CalculationId = "calc-id",
                 SpecificationId = "spec-id",
@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             const string specificationId = "spec-id";
 
-            Models.Specs.CalculationVersionComparisonModel model = new Models.Specs.CalculationVersionComparisonModel
+            CalculationVersionComparisonModel model = new CalculationVersionComparisonModel
             {
                 Current = new Models.Specs.Calculation
                 {
@@ -1055,7 +1055,7 @@ namespace CalculateFunding.Services.Calcs.Services
                     searchRepository: mockSearchRepository);
 
             //Act
-            Func<Task> updateCalculationsFunction = () => service.UpdateCalculationsForCalculationSpecificationChange(message);
+            Task updateCalculationsFunction() => service.UpdateCalculationsForCalculationSpecificationChange(message);
 
             //Assert
             Assert.ThrowsExceptionAsync<InvalidOperationException>(updateCalculationsFunction);

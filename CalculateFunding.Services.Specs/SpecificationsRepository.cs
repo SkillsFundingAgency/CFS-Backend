@@ -38,22 +38,6 @@ namespace CalculateFunding.Services.Specs
             return health;
         }
 
-        public async Task<FundingStream> GetFundingStreamById(string fundingStreamId)
-        {
-            IEnumerable<FundingStream> fundingStreams = await GetFundingStreams(m => m.Id == fundingStreamId);
-
-            return fundingStreams.FirstOrDefault();
-        }
-
-        public Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null)
-        {
-            var fundingStreams = query == null 
-                ? _repository.Query<FundingStream>() 
-                : _repository.Query<FundingStream>().Where(query);
-
-            return Task.FromResult(fundingStreams.AsEnumerable());
-        }
-
         public Task<DocumentEntity<Specification>> CreateSpecification(Specification specification)
         {
             return _repository.CreateDocumentAsync(specification);
@@ -131,13 +115,6 @@ namespace CalculateFunding.Services.Specs
             var specifications = _repository.RawQuery<T>(sqlQuerySpec);
 
             return Task.FromResult(specifications.AsEnumerable());
-        }
-
-        public Task<IEnumerable<Period>> GetPeriods()
-        {
-            var fundingPeriods = _repository.Query<Period>();
-
-            return Task.FromResult(fundingPeriods.ToList().AsEnumerable());
         }
 
         public async Task<Calculation> GetCalculationBySpecificationIdAndCalculationName(string specificationId, string calculationName)

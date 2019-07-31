@@ -852,16 +852,16 @@ namespace CalculateFunding.Services.Specs
 
             IEnumerable<Calculation> calculations = await _specificationsRepository.GetCalculationsBySpecificationId(specificationId);
 
-            if (calculations != null)
+            if (calculations == null)
             {
-                _logger.Verbose("Calculations were found for specification id {specificationId}", specificationId);
+                _logger.Error("No calculations could be retrieved found for specification id {specificationId}", specificationId);
 
-                return new OkObjectResult(calculations);
+                return new NotFoundObjectResult("No calculations could be retrieved");
             }
 
-            _logger.Error("No calculations could be retrieved found for specification id {specificationId}", specificationId);
+            _logger.Verbose("Calculations were found for specification id {specificationId}", specificationId);
 
-            return new NotFoundObjectResult("No calculations could be retrieved");
+            return new OkObjectResult(calculations);
         }
 
         public async Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request)

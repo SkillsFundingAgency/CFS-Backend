@@ -173,6 +173,8 @@ namespace CalculateFunding.Services.Jobs
                 .Be("An entity id is required when using job definition: 'job-def-1'");
         }
 
+     
+
         [TestMethod]
         public void CreateJobValidator_GivenDefinitionRequiresMessagePropertiesButNoneWereSet_ValidIsFalse()
         {
@@ -277,6 +279,7 @@ namespace CalculateFunding.Services.Jobs
         {
             //Arrange
             CreateJobValidationModel createJobValidationModel = CreateNewCreateJobValidationModel();
+            createJobValidationModel.JobDefinition.SessionMessageProperty = "prop-3";
 
             createJobValidationModel.JobCreateModel.Properties.Add("prop-3", "property 3");
 

@@ -66,10 +66,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
             _cacheProviderPolicy = cosmosDbScalingResiliencePolicies.CacheProvider;
             _scalingConfigRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingConfigRepository;
             _jobsApiClientPolicy = cosmosDbScalingResiliencePolicies.JobsApiClient;
-            _scalingRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingRepository;
-            _cacheProviderPolicy = cosmosDbScalingResiliencePolicies.CacheProvider;
-            _scalingConfigRepositoryPolicy = cosmosDbScalingResiliencePolicies.ScalingConfigRepository;
-            _jobsApiClientPolicy = cosmosDbScalingResiliencePolicies.JobsApiClient;
             _cosmosDbThrottledEventsFilter = cosmosDbThrottledEventsFilter;
         }
 

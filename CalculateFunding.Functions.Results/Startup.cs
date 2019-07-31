@@ -9,10 +9,10 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Functions.Results.ServiceBus;
+using CalculateFunding.Functions.Results.Timer;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
@@ -20,6 +20,7 @@ using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -30,12 +31,12 @@ using CalculateFunding.Services.Results.Repositories;
 using CalculateFunding.Services.Results.Validators;
 using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Bulkhead;
 using Serilog;
+using AzureStorage = CalculateFunding.Services.Core.AzureStorage;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Results.Startup))]
 
@@ -79,6 +80,21 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<OnProviderResultsSpecificationCleanup>();
             builder.AddSingleton<OnReIndexAllocationNotificationFeeds>();
             builder.AddSingleton<OnReIndexCalculationResults>();
+            builder.AddSingleton<OnCreateAllocationLineResultStatusUpdates>();
+            builder.AddSingleton<OnCreateAllocationLineResultStatusUpdatesFailure>();
+            builder.AddSingleton<OnCreateInstructAllocationLineResultStatusUpdates>();
+            builder.AddSingleton<OnCreateInstructAllocationLineResultStatusUpdatesFailure>();
+            builder.AddSingleton<OnFetchProviderProfileEvent>();
+            builder.AddSingleton<OnFetchProviderProfileFailure>();
+            builder.AddSingleton<OnMigrateFeedIndexIdEvent>();
+            builder.AddSingleton<OnMigrateResultVersionsEvent>();
+            builder.AddSingleton<OnProviderResultsPublishedEvent>();
+            builder.AddSingleton<OnProviderResultsPublishedFailure>();
+            builder.AddSingleton<OnProviderResultsSpecificationCleanup>();
+            builder.AddSingleton<OnReIndexAllocationNotificationFeeds>();
+            builder.AddSingleton<OnReIndexCalculationResults>();
+            builder.AddSingleton<OnCalculationResultsCsvGeneration>();
+            builder.AddSingleton<OnCalculationResultsCsvGenerationTimer>();
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IPublishedResultsService, PublishedResultsService>();
@@ -195,6 +211,18 @@ namespace CalculateFunding.Functions.Results
 
                 return new VersionRepository<PublishedAllocationLineResultVersion>(resultsRepostory);
             });
+
+            builder
+                .AddSingleton<IBlobClient, AzureStorage.BlobClient>((ctx) =>
+                {
+                    AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                    config.Bind("AzureStorageSettings", storageSettings);
+
+                    storageSettings.ContainerName = "datasets";
+
+                    return new AzureStorage.BlobClient(storageSettings);
+                });
 
             builder.AddSearch(config);
 

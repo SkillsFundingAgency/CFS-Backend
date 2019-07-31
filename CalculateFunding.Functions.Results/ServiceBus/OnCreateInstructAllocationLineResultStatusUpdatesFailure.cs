@@ -6,6 +6,8 @@ using CalculateFunding.Services.Core.Interfaces.Services;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.WebJobs;
 using Serilog;
+using System;
+using System.Threading.Tasks;
 
 namespace CalculateFunding.Functions.Results.ServiceBus
 {

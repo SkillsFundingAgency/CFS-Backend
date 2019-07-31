@@ -140,7 +140,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             {
                 Current = new SpecificationVersion
                 {
-                     Calculations = new List<Calculation>
+                    Calculations = new List<Calculation>
                             {
                                 new Calculation
                                 {
@@ -294,18 +294,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         {
             //Arrange
             ISpecificationsRepository specsRepo = CreateSpecificationsRepository(false);
-            IPoliciesApiClient policiesApiCLient = CreatePoliciesApiClient();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, fundingStreams);
 
             specsRepo
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
 
-            policiesApiCLient
+            policiesApiClient
                 .GetFundingStreams()
                 .Returns(fundingStreamsResponse);
 
-            CalculationEditModelValidator validator = CreateValidator(specsRepository: specsRepo, policiesApiClient: policiesApiCLient);
+            CalculationEditModelValidator validator = CreateValidator(specsRepository: specsRepo,
+                policiesApiClient: policiesApiClient);
 
             // Act
             ValidationResult result = validator.Validate(calculationEditModel);
@@ -400,6 +401,19 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return repository;
         }
 
+        private static CalculationEditModelValidator CreateValidator(
+            IMapper mapper = null,
+            ISpecificationsRepository specsRepository = null,
+            ICalculationsRepository calculationsRepository = null,
+            IPoliciesApiClient policiesApiClient = null)
+        {
+            return new CalculationEditModelValidator(
+                mapper ?? CreateMapper(),
+                specsRepository ?? CreateSpecificationsRepository(),
+                calculationsRepository ?? CreateCalculationsRepository(),
+                policiesApiClient ?? CreatePoliciesApiClient());
+        }
+
         private static IPoliciesApiClient CreatePoliciesApiClient()
         {
             IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>();
@@ -417,19 +431,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             );
             IMapper mapper = mappingConfiguration.CreateMapper();
             return mapper;
-        }
-
-        private static CalculationEditModelValidator CreateValidator(
-            IMapper mapper = null,
-            ISpecificationsRepository specsRepository = null,
-            ICalculationsRepository calculationsRepository = null,
-            IPoliciesApiClient policiesApiClient = null)
-        {
-            return new CalculationEditModelValidator(
-                mapper ?? CreateMapper(),
-                specsRepository ?? CreateSpecificationsRepository(),
-                calculationsRepository ?? CreateCalculationsRepository(),
-                policiesApiClient ?? CreatePoliciesApiClient());
         }
 
         private static ICalculationsRepository CreateCalculationsRepository(bool isCalculationNameValid = true)

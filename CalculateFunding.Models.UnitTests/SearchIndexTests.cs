@@ -169,7 +169,7 @@ namespace CalculateFunding.Models.UnitTests
             IEnumerable<string> indexNames = Directory
                 .GetDirectories(searchIndexDirectoryPath, "*index", SearchOption.TopDirectoryOnly)
                 .Select(m => new DirectoryInfo(m).Name);
-
+            
             //Act
             foreach (string indexName in indexNames)
             {

@@ -3155,18 +3155,37 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
+            },
+            {
+              "name": "CosmosDBEventHubSettings:ConnectionString",
+              "value": "[listKeys(resourceId(concat('Microsoft.EventHub/namespaces/eventhubs/authorizationRules'),variables('eventHubNamespace'),variables('cosmosDBeventHubName'),variables('cosmosDBeventhubListenRuleName')),'2017-04-01').primaryConnectionString]"
             }
           ]
         }
       }
-
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites/slots",
+      "name": "[concat(variables('datasetsApiAppName'), '/', 'Staging')]",
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "comments": "This specifies the web app Staging slot.",
+      "tags": {
+        "displayName": "WebAppStagingSlots"
+      },
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/Sites', variables('datasetsApiAppName'))]"
+      ]
     },
     {
       "apiVersion": "2016-08-01",
       "type": "Microsoft.Web/sites",
-      "name": "[variables('publishingFunctionAppName')]",
+      "name": "[variables('calcsApiAppName')]",
       "location": "[resourceGroup().location]",
-      "kind": "functionapp",
       "dependsOn": [
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
@@ -3463,6 +3482,23 @@
           ]
         }
       }
+    },
+    {
+      "apiVersion": "2016-08-01",
+      "type": "Microsoft.Web/sites/slots",
+      "name": "[concat(variables('calcsApiAppName'), '/', 'Staging')]",
+      "kind": "app",
+      "location": "[resourceGroup().location]",
+      "comments": "This specifies the web app Staging slot.",
+      "tags": {
+        "displayName": "WebAppStagingSlots"
+      },
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/Sites', variables('calcsApiAppName'))]"
+      ]
     },
     {
       "apiVersion": "2016-08-01",
@@ -4546,30 +4582,6 @@
             {
               "name": "jobsClient:ApiEndpoint",
               "value": "[concat('https://app-', parameters('environmentKey'), '-jobs.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "providersClient:ApiKey",
-              "value": "[parameters('apiKeyProviders')]"
-            },
-            {
-              "name": "providersClient:ApiEndpoint",
-              "value": "[concat('https://app-', parameters('environmentKey'), '-providers.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "publishingClient:ApiKey",
-              "value": "[parameters('apiKeyPublishing')]"
-            },
-            {
-              "name": "publishingClient:ApiEndpoint",
-              "value": "[concat('https://app-', parameters('environmentKey'), '-publishing.azurewebsites.net/api/')]"
-            },
-            {
-              "name": "policiesClient:ApiKey",
-              "value": "[parameters('apiKeyPolicy')]"
-            },
-            {
-              "name": "policiesClient:ApiEndpoint",
-              "value": "[concat('https://app-', parameters('environmentKey'), '-policy.azurewebsites.net/api/')]"
             }
           ]
         }

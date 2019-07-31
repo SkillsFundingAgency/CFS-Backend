@@ -680,6 +680,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             IMapper mapper = CreateImplementedMapper();
+			
             IValidator<CalculationEditModel> validator = CreateRealEditCalculationValidator(
                 mapper: mapper,
                 specificationsRepository: specificationsRepository,

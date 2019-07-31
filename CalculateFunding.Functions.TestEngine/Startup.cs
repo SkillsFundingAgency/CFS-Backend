@@ -99,6 +99,8 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
+            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
+
             builder.AddSingleton<IProviderSourceDatasetsRepository, ProviderSourceDatasetsRepository>((ctx) =>
             {
                 CosmosDbSettings providersDbSettings = new CosmosDbSettings();

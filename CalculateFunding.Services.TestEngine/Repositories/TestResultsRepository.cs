@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
@@ -105,7 +106,7 @@ namespace CalculateFunding.Services.TestRunner.Repositories
 
             return results.AsEnumerable();
         }
-
+        
         public async Task<HttpStatusCode> SaveTestProviderResults(IEnumerable<TestScenarioResult> providerResult)
         {
             Guard.ArgumentNotNull(providerResult, nameof(providerResult));
