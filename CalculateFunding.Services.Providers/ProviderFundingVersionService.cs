@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
-using System.Text;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
@@ -15,14 +15,13 @@ using Serilog;
 
 namespace CalculateFunding.Services.Providers
 {
-    public class ProviderFundingVersionService: IProviderFundingVersionService
+    public class ProviderFundingVersionService : IProviderFundingVersionService
     {
         private const int CACHE_DURATION = 7;
         private readonly ICacheProvider _cacheProvider;
         private readonly IBlobClient _blobClient;
         private readonly Policy _blobClientPolicy;
-        private readonly ILogger _logger;          
-       
+        private readonly ILogger _logger;
 
         public ProviderFundingVersionService(ICacheProvider cacheProvider,
             IBlobClient blobClient,
@@ -42,7 +41,7 @@ namespace CalculateFunding.Services.Providers
 
         }
 
-        public async Task<IActionResult> GetProviderFundingVersions(string providerFundingVersion)
+        public async Task<IActionResult> GetProviderFundingVersion(string providerFundingVersion)
         {
             if (string.IsNullOrWhiteSpace(providerFundingVersion))
             {
@@ -60,8 +59,6 @@ namespace CalculateFunding.Services.Providers
                 return new NotFoundResult();
             }
 
-            string template = string.Empty;
-
             try
             {
                 ICloudBlob blob = await _blobClientPolicy.ExecuteAsync(() => _blobClient.GetBlobReferenceFromServerAsync(blobName));
@@ -70,7 +67,8 @@ namespace CalculateFunding.Services.Providers
                 {
                     using (StreamReader streamReader = new StreamReader(blobStream))
                     {
-                        template = await streamReader.ReadToEndAsync();
+                        string template = await streamReader.ReadToEndAsync();
+                        return new ContentResult() { Content = template, ContentType = "application/json", StatusCode = (int)HttpStatusCode.OK };
                     }
                 }
             }
@@ -82,8 +80,6 @@ namespace CalculateFunding.Services.Providers
 
                 return new InternalServerErrorResult(errorMessage);
             }
-
-            return new OkObjectResult(template);
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -93,10 +89,13 @@ namespace CalculateFunding.Services.Providers
 
             ServiceHealth health = new ServiceHealth()
             {
-                Name = nameof(ProviderFundingVersionService)
+                Name = nameof(ProviderFundingVersionService),
+                Dependencies =
+                {
+                    new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message },
+                    new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message }
+                }
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = blobHealth.Ok, DependencyName = _blobClient.GetType().GetFriendlyName(), Message = blobHealth.Message });
-            health.Dependencies.Add(new DependencyHealth { HealthOk = cacheHealth.Ok, DependencyName = _cacheProvider.GetType().GetFriendlyName(), Message = cacheHealth.Message });
 
             return health;
         }

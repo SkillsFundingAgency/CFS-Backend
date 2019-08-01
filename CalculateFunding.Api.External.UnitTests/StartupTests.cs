@@ -36,7 +36,7 @@ namespace CalculateFunding.Api.External.UnitTests
 
             // Assert v3
             ResolveType<V3.Controllers.FundingFeedController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedController));
-            ResolveType<V3.Controllers.FundingController>().Should().NotBeNull(nameof(V3.Controllers.FundingController));
+            ResolveType<V3.Controllers.FundingFeedItemController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedItemController));
             ResolveType<V3.Controllers.ProviderFundingVersionController>().Should().NotBeNull(nameof(V3.Controllers.ProviderFundingVersionController));
         }
 

@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +16,7 @@ namespace CalculateFunding.Api.External.V3.Controllers
         public ProviderFundingVersionController(IProviderFundingVersionService providerFundingVersionService)
         {
             Guard.ArgumentNotNull(providerFundingVersionService, nameof(providerFundingVersionService));
+
             _providerFundingVersionService = providerFundingVersionService;
         }
 
@@ -26,9 +27,9 @@ namespace CalculateFunding.Api.External.V3.Controllers
         /// <returns>Provider Version contents</returns>
         [HttpGet("{providerFundingVersion}")]
         [Produces(typeof(object))]
-        public async Task<IActionResult> GetFunding([FromQuery] string providerFundingVersion)
+        public async Task<IActionResult> GetFunding([FromRoute] string providerFundingVersion)
         {
-            return await _providerFundingVersionService.GetFunding(providerFundingVersion);           
+            return await _providerFundingVersionService.GetProviderFundingVersion(providerFundingVersion);
         }
     }
 }

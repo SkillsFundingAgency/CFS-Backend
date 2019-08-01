@@ -4,10 +4,12 @@ using AutoMapper;
 using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -19,6 +21,13 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
+using CalculateFunding.Services.Policy;
+using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Providers;
+using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Publishing;
+using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publising.Interfaces;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
 using CalculateFunding.Services.Results.Repositories;
@@ -39,20 +48,10 @@ using Newtonsoft.Json;
 using Polly.Bulkhead;
 using Serilog;
 using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
-using ISpecificationsRepository = CalculateFunding.Services.Results.Interfaces.ISpecificationsRepository;
-using SpecificationsRepository = CalculateFunding.Services.Results.Repositories.SpecificationsRepository;
 using IPolicyFundingStreamService = CalculateFunding.Services.Policy.Interfaces.IFundingStreamService;
+using ISpecificationsRepository = CalculateFunding.Services.Results.Interfaces.ISpecificationsRepository;
 using PolicyFundingStreamService = CalculateFunding.Services.Policy.FundingStreamService;
-using CalculateFunding.Services.Policy.Interfaces;
-using CalculateFunding.Services.Policy;
-using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.AzureStorage;
-using CalculateFunding.Services.Publising.Interfaces;
-using CalculateFunding.Services.Publishing;
-using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Providers.Interfaces;
-using CalculateFunding.Services.Providers;
+using SpecificationsRepository = CalculateFunding.Services.Results.Repositories.SpecificationsRepository;
 
 namespace CalculateFunding.Api.External
 {
@@ -172,14 +171,44 @@ namespace CalculateFunding.Api.External
                 .AddSingleton<V3.Interfaces.IFundingFeedService, V3.Services.FundingFeedService>();
 
             builder
-                .AddSingleton<V3.Interfaces.IFundingService, V3.Services.FundingService>();
+               .AddSingleton<V3.Interfaces.IFundingFeedItemByIdService, V3.Services.FundingFeedItemByIdService>();
 
-            builder
-                .AddSingleton<V3.Interfaces.IProviderFundingVersionService, V3.Services.ProviderFundingVersionService>();
+            builder.AddSingleton<V3.Interfaces.IPublishedFundingRetrievalService>((ctx) =>
+            {
+                BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                storageSettings.ContainerName = "publishedfunding";
+
+                IBlobClient blobClient = new BlobClient(storageSettings);
+
+                IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new V3.Services.PublishedFundingRetrievalService(blobClient, publishingResiliencePolicies, logger);
+            });
 
             // Register dependencies
             builder
                 .AddSingleton<IProviderFundingVersionService, ProviderFundingVersionService>();
+
+            builder.AddSingleton<IProviderFundingVersionService>((ctx) =>
+            {
+                BlobStorageOptions storageSettings = new BlobStorageOptions();
+
+                Configuration.Bind("AzureStorageSettings", storageSettings);
+
+                storageSettings.ContainerName = "publishedproviderversions";
+
+                IBlobClient blobClient = new BlobClient(storageSettings);
+
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+                IProvidersResiliencePolicies publishingResiliencePolicies = ctx.GetService<IProvidersResiliencePolicies>();
+                ILogger logger = ctx.GetService<ILogger>();
+
+                return new ProviderFundingVersionService(cacheProvider, blobClient, logger, publishingResiliencePolicies);
+            });
 
             builder
                 .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>()
@@ -367,18 +396,6 @@ namespace CalculateFunding.Api.External
             builder.AddHttpContextAccessor();
 
             builder.AddJobsInterServiceClient(Configuration);
-
-            builder
-                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
-                {
-                    AzureStorageSettings storageSettings = new AzureStorageSettings();
-
-                    Configuration.Bind("AzureStorageSettings", storageSettings);
-
-                    storageSettings.ContainerName = "publishedfunding";
-
-                    return new BlobClient(storageSettings);
-                });
 
             builder.AddLogging("CalculateFunding.Api.External");
 

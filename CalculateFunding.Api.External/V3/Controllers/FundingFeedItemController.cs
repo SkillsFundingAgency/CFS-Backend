@@ -1,25 +1,22 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Api.External.Swagger.OperationFilters;
 using CalculateFunding.Api.External.V3.Interfaces;
-using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Common.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Examples;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace CalculateFunding.Api.External.V3.Controllers
 {
     [Authorize(Roles = Constants.ExecuteApiRole)]
     [ApiVersion("3.0")]
     [Route("api/v{version:apiVersion}/funding")]
-    public class FundingController : Controller
+    public class FundingFeedItemController : Controller
     {
-        private readonly IFundingService _fundingService;
+        private readonly IFundingFeedItemByIdService _fundingService;
 
-        public FundingController(IFundingService fundingService)
+        public FundingFeedItemController(IFundingFeedItemByIdService fundingService)
         {
             Guard.ArgumentNotNull(fundingService, nameof(fundingService));
+
             _fundingService = fundingService;
         }
 

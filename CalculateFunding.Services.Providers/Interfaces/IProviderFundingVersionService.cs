@@ -8,6 +8,6 @@ namespace CalculateFunding.Services.Providers.Interfaces
 {
     public interface IProviderFundingVersionService
     {
-        Task<IActionResult> GetProviderFundingVersions(string providerFundingVersion);
+        Task<IActionResult> GetProviderFundingVersion(string providerFundingVersion);
     }
 }

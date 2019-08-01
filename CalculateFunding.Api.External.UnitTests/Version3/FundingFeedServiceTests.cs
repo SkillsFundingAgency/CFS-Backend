@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
@@ -161,42 +162,65 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         public async Task GetNotifications_GivenAQueryStringForWhichThereAreResults_ReturnsAtomFeedWithCorrectLinks()
         {
             //Arrange
+            string fundingFeedDocument = JsonConvert.SerializeObject(new
+            {
+                FundingStreamId = "PES"
+            });
+
+            int pageRef = 2;
+            int pageSize = 3;
+
+            List<PublishedFundingIndex> searchFeedEntries = CreateFeedIndexes().ToList();
             SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>
             {
-                PageRef = 2,
+                PageRef = pageRef,
                 Top = 2,
                 TotalCount = 8,
-                Entries = CreateFeedIndexes()
+                Entries = searchFeedEntries
             };
             PublishedFundingIndex firstFeedItem = feeds.Entries.ElementAt(0);
 
             IFundingFeedSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
-                .GetFeedsV3(Arg.Is(2), Arg.Is(2))
+                .GetFeedsV3(Arg.Is(pageRef), Arg.Is(pageSize))
                 .ReturnsForAnyArgs(feeds);
 
-            FundingFeedService service = CreateService(feedsSearchService);
+            IPublishedFundingRetrievalService publishedFundingRetrievalService = Substitute.For<IPublishedFundingRetrievalService>();
+            publishedFundingRetrievalService
+                .GetFundingFeedDocument(Arg.Any<string>())
+                .Returns(fundingFeedDocument);
 
-            IHeaderDictionary headerDictionary = new HeaderDictionary();
-            headerDictionary.Add("Accept", new StringValues("application/json"));
+            FundingFeedService service = CreateService(
+                searchService: feedsSearchService,
+                publishedFundingRetrievalService: publishedFundingRetrievalService);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "Accept", new StringValues("application/json") }
+            };
 
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
             {
-                { "pageRef", new StringValues("2") },
+                { "pageRef", new StringValues(pageRef.ToString()) },
                 { "allocationStatuses", new StringValues("Published,Approved") },
-                { "pageSize", new StringValues("2") }
+                { "pageSize", new StringValues(pageSize.ToString()) }
             });
 
+            string scheme = "https";
+            string path = "/api/v3/fundings/notifications";
+            string host = "wherever.naf:12345";
+            string queryString = "?pageSize=2";
+
             HttpRequest request = Substitute.For<HttpRequest>();
-            request.Scheme.Returns("https");
-            request.Path.Returns(new PathString("/api/v3/fundings/notifications"));
-            request.Host.Returns(new HostString("wherever.naf:12345"));
-            request.QueryString.Returns(new QueryString("?pageSize=2"));
+            request.Scheme.Returns(scheme);
+            request.Path.Returns(new PathString(path));
+            request.Host.Returns(new HostString(host));
+            request.QueryString.Returns(new QueryString(queryString));
             request.Headers.Returns(headerDictionary);
             request.Query.Returns(queryStringValues);
 
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: 2, pageSize: 2);
+            IActionResult result = await service.GetFunding(request, pageRef: pageRef, pageSize: pageSize);
 
             //Assert
             result
@@ -206,8 +230,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             ContentResult contentResult = result as ContentResult;
             AtomFeed<AtomEntry> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AtomEntry>>(contentResult.Content);
 
-
-
             atomFeed
                 .Should()
                 .NotBeNull();
@@ -215,23 +237,40 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             atomFeed.Id.Should().NotBeEmpty();
             atomFeed.Title.Should().Be("Calculate Funding Service Funding Feed");
             atomFeed.Author.Name.Should().Be("Calculate Funding Service");
-            atomFeed.Link.First(m => m.Rel == "next-archive").Href.Should().Be("https://wherever.naf:12345/api/v3/fundings/notifications/3?pageSize=2");
-            atomFeed.Link.First(m => m.Rel == "prev-archive").Href.Should().Be("https://wherever.naf:12345/api/v3/fundings/notifications/1?pageSize=2");
-            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v3/fundings/notifications?pageSize=2");
-            atomFeed.Link.First(m => m.Rel == "current").Href.Should().Be("https://wherever.naf:12345/api/v3/fundings/notifications/2?pageSize=2");
+            atomFeed.Link.First(m => m.Rel == "next-archive").Href.Should().Be($"{scheme}://{host}{path}/3{queryString}");
+            atomFeed.Link.First(m => m.Rel == "prev-archive").Href.Should().Be($"{scheme}://{host}{path}/1{queryString}");
+            atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be($"{scheme}://{host}{path}{queryString}");
+            atomFeed.Link.First(m => m.Rel == "current").Href.Should().Be($"{scheme}://{host}{path}/2{queryString}");
+
             atomFeed.AtomEntry.Count.Should().Be(3);
-            atomFeed.AtomEntry.ElementAt(0).Id.Should().Be("https://wherever.naf:12345/api/v3/fundings/byId/id-1");
-            atomFeed.AtomEntry.ElementAt(0).Title.Should().Be("id-1");
-            atomFeed.AtomEntry.ElementAt(0).Summary.Should().Be("id-1");
+
+            for (int i = 0; i < 3; i++)
+            {
+                string text = $"id-{i + 1}";
+                atomFeed.AtomEntry.ElementAt(i).Id.Should().Be($"{scheme}://{host}/api/v3/fundings/byId/{text}");
+                atomFeed.AtomEntry.ElementAt(i).Title.Should().Be(text);
+                atomFeed.AtomEntry.ElementAt(i).Summary.Should().Be(text);
+                atomFeed.AtomEntry.ElementAt(i).Content.Should().NotBeNull();
+            }
+
             JObject content = atomFeed.AtomEntry.ElementAt(0).Content as JObject;
             content.TryGetValue("FundingStreamId", out JToken token);
             ((JValue)token).Value<string>().Should().Be("PES");
-            atomFeed.AtomEntry.ElementAt(1).Id.Should().Be("https://wherever.naf:12345/api/v3/fundings/byId/id-2");
-            atomFeed.AtomEntry.ElementAt(1).Title.Should().Be("id-2");
-            atomFeed.AtomEntry.ElementAt(1).Summary.Should().Be("id-2");
-			atomFeed.AtomEntry.ElementAt(2).Id.Should().Be("https://wherever.naf:12345/api/v3/fundings/byId/id-3");
-            atomFeed.AtomEntry.ElementAt(2).Title.Should().Be("id-3");
-            atomFeed.AtomEntry.ElementAt(2).Summary.Should().Be("id-3");
+
+            await feedsSearchService
+                .Received(1)
+                .GetFeedsV3(pageRef, pageSize, null, null, null);
+
+            await publishedFundingRetrievalService
+                .Received(searchFeedEntries.Count)
+                .GetFundingFeedDocument(Arg.Any<string>());
+
+            foreach (PublishedFundingIndex index in searchFeedEntries)
+            {
+                await publishedFundingRetrievalService
+                    .Received(1)
+                    .GetFundingFeedDocument(index.DocumentPath);
+            }
         }
 
         [TestMethod]
@@ -290,9 +329,12 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         public async Task GetNotifications_GivenAcceptHeaderNotSupplied_ReturnsBadRequest()
         {
             //Arrange
+            int pageRef = 3;
+            int maxRecords = 499;
+
             SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>
             {
-                PageRef = 3,
+                PageRef = pageRef,
                 Top = 500,
                 TotalCount = 3,
                 Entries = CreateFeedIndexes()
@@ -300,7 +342,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
 
             IFundingFeedSearchService feedsSearchService = CreateSearchService();
             feedsSearchService
-                .GetFeedsV3(Arg.Is(3), Arg.Is(500))
+                .GetFeedsV3(Arg.Is(pageRef), Arg.Is(500))
                 .ReturnsForAnyArgs(feeds);
 
             FundingFeedService service = CreateService(feedsSearchService);
@@ -312,7 +354,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             request.QueryString.Returns(new QueryString("?allocationStatuses=Published,Approved"));
 
             //Act
-            IActionResult result = await service.GetFunding(request, pageRef: 3);
+            IActionResult result = await service.GetFunding(request,
+                pageRef: pageRef,
+                pageSize: maxRecords);
 
             //Assert
             result
@@ -354,20 +398,30 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             //Assert
             await feedsSearchService
                 .Received(1)
-                .GetFeedsV3(Arg.Is(1), Arg.Is(2), 
+                .GetFeedsV3(Arg.Is(1), Arg.Is(2),
                 Arg.Is<IEnumerable<string>>(s => s.Count() == 1 && s.Contains("10070703")),
                 Arg.Any<IEnumerable<string>>(), Arg.Any<IEnumerable<string>>());
 
         }
 
-        private static FundingFeedService CreateService(IFundingFeedSearchService searchService = null)
+        private static FundingFeedService CreateService(
+            IFundingFeedSearchService searchService = null,
+            IPublishedFundingRetrievalService publishedFundingRetrievalService = null)
         {
-            return new FundingFeedService(searchService ?? CreateSearchService());
+            return new FundingFeedService(
+                searchService ?? CreateSearchService(),
+                publishedFundingRetrievalService ?? CreatePublishedFundingRetrievalService()
+                );
         }
 
         private static IFundingFeedSearchService CreateSearchService()
         {
             return Substitute.For<IFundingFeedSearchService>();
+        }
+
+        private static IPublishedFundingRetrievalService CreatePublishedFundingRetrievalService()
+        {
+            return Substitute.For<IPublishedFundingRetrievalService>();
         }
 
         private static IEnumerable<PublishedFundingIndex> CreateFeedIndexes()
@@ -380,7 +434,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                          FundingStreamId = "PES",
                          FundingPeriodId = "ABC",
                          GroupTypeIdentifier = "LocalAuthority",
-                         StatusChangedDate = DateTime.Now.AddDays(-1)
+                         StatusChangedDate = DateTime.Now.AddDays(-1),
+                         DocumentPath = "a"
                     },
                     new PublishedFundingIndex
                     {
@@ -388,7 +443,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                          FundingStreamId = "PES1",
                          FundingPeriodId = "ABC1",
                          GroupTypeIdentifier = "LocalAuthority",
-                         StatusChangedDate = DateTime.Now.AddDays(-2)
+                         StatusChangedDate = DateTime.Now.AddDays(-2),
+                         DocumentPath = "b"
                     },
                     new PublishedFundingIndex
                     {
@@ -396,9 +452,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                          FundingStreamId = "PES2",
                          FundingPeriodId = "ABC2",
                          GroupTypeIdentifier = "LocalAuthority",
-                         StatusChangedDate = DateTime.Now.AddDays(-3)
+                         StatusChangedDate = DateTime.Now.AddDays(-3),
+                         DocumentPath = "c"
                     }
                 };
         }
-	}
+    }
 }

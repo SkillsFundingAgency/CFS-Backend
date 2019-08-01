@@ -14,9 +14,9 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Controllers
         {
             string id = "1234";
 
-            IFundingService fundingService = Substitute.For<IFundingService>();
+            IFundingFeedItemByIdService fundingService = Substitute.For<IFundingFeedItemByIdService>();
 
-            FundingController controller = new FundingController(
+            FundingFeedItemController controller = new FundingFeedItemController(
                 fundingService);
 
             await controller.GetFunding(id);

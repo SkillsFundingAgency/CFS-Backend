@@ -50,15 +50,17 @@ namespace CalculateFunding.Models.Publishing
         public string Version { get; set; }
 
         /// <summary>
-        /// Document path in azure blob storage
+        /// Document path in azure blob storage. This is populated by the indexer and is a full URL, eg https://strgt1dvprovcfs.blob.core.windows.net/publishedfunding/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json
         /// </summary>
         [IsRetrievable(true)]
         [JsonProperty("documentPath")]
         public string DocumentPath { get; set; }
 
-
+        /// <summary>
+        /// Is this entry deleted in blob storage
+        /// </summary>
         [JsonProperty("deleted")]
-        public bool Deleted { get; set; }
+        public bool? Deleted { get; set; }
 
     }
 }

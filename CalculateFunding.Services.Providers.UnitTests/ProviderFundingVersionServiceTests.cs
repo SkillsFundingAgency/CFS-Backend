@@ -1,11 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
@@ -20,7 +22,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
     {
         private const string providerFundingVersion = "id1";
 
-        private string blobName = $"{providerFundingVersion}.json";
+        private readonly string blobName = $"{providerFundingVersion}.json";
 
         [TestMethod]
         public async Task GetProviderFundingVersionsBody_GivenNullOrEmptyId_ReturnsBadRequest()
@@ -31,7 +33,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ProviderFundingVersionService service = CreateProviderFundingVersionService();
 
             //Act
-            IActionResult result = await service.GetProviderFundingVersions(id);
+            IActionResult result = await service.GetProviderFundingVersion(id);
 
             //Assert
             result
@@ -55,10 +57,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .BlobExistsAsync(Arg.Is(blobName))
                 .Returns(false);
 
-            ProviderFundingVersionService service = CreateProviderFundingVersionService(cacheProvider,logger, blobClient);
+            ProviderFundingVersionService service = CreateProviderFundingVersionService(cacheProvider, logger, blobClient);
 
             //Act
-            IActionResult result = await service.GetProviderFundingVersions(providerFundingVersion);
+            IActionResult result = await service.GetProviderFundingVersion(providerFundingVersion);
 
             //Assert
             result
@@ -91,7 +93,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ProviderFundingVersionService service = CreateProviderFundingVersionService(cacheProvider, logger, blobClient);
 
             //Act
-            IActionResult result = await service.GetProviderFundingVersions(providerFundingVersion);
+            IActionResult result = await service.GetProviderFundingVersion(providerFundingVersion);
 
             //Assert
             result
@@ -108,7 +110,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task GetProviderFundingVersionsBody_GivenReturnsFromBlobStorage_returnsOK()
+        public async Task GetProviderFundingVersionsBody_GivenReturnsFromBlobStorage_ReturnsOK()
         {
             //Arrange
             string template = "just a string";
@@ -134,19 +136,76 @@ namespace CalculateFunding.Services.Providers.UnitTests
                   .DownloadToStreamAsync(Arg.Is(cloudBlob))
                   .Returns(memoryStream);
 
-            ProviderFundingVersionService service = CreateProviderFundingVersionService(cacheProvider,logger, blobClient);
+            ProviderFundingVersionService service = CreateProviderFundingVersionService(cacheProvider, logger, blobClient);
 
             //Act
-            IActionResult result = await service.GetProviderFundingVersions(providerFundingVersion);
+            IActionResult result = await service.GetProviderFundingVersion(providerFundingVersion);
 
             //Assert
             result
                 .Should()
-                .BeAssignableTo<OkObjectResult>()
-                .Which
-                .Value
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+
+            contentResult
+                .ContentType
+                .Should()
+                .Be("application/json");
+
+            contentResult
+                .StatusCode
+                .Should()
+                .Be((int)HttpStatusCode.OK);
+
+            contentResult
+                .Content
                 .Should()
                 .Be(template);
+        }
+
+        [TestMethod]
+        [DataRow(false, "No", true, "Yes")]
+        [DataRow(false, "Yes", true, "No")]
+        [DataRow(true, "OK", false, "Cancel")]
+        [DataRow(true, "Perhaps", false, "Maybe")]
+        [DataRow(true, "OK", true, "Yes")]
+        [DataRow(false, "Perhaps", false, "Maybe")]
+        public async Task IsHealthOk_ReturnsAsExpected(bool blobOk, string blobMessage, bool cacheOk, string cacheMessage)
+        {
+            //Arrange
+            IBlobClient blobClient = Substitute.For<IBlobClient>();
+            blobClient
+                .IsHealthOk()
+                .Returns((blobOk, blobMessage));
+
+            ICacheProvider cacheProvider = Substitute.For<ICacheProvider>();
+            cacheProvider
+                .IsHealthOk()
+                .Returns((cacheOk, cacheMessage));
+
+            ProviderFundingVersionService providerFundingVersionService = CreateProviderFundingVersionService(
+                cacheProvider: cacheProvider,
+                blobClient: blobClient);
+
+            ServiceHealth health = await providerFundingVersionService.IsHealthOk();
+
+            health.Name
+                .Should()
+                .Be(nameof(ProviderFundingVersionService));
+
+            health.Dependencies.Count.Should().Be(2);
+
+            health
+                .Dependencies
+                .Count(x => x.HealthOk == blobOk && x.Message == blobMessage)
+                .Should()
+                .Be(1);
+            health
+                .Dependencies
+                .Count(x => x.HealthOk == cacheOk && x.Message == cacheMessage)
+                .Should()
+                .Be(1);
         }
 
         private static ProviderFundingVersionService CreateProviderFundingVersionService(
@@ -157,7 +216,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             return new ProviderFundingVersionService(
                 cacheProvider ?? CacheProvider(),
                 blobClient ?? CreateBlobClient(),
-                logger ?? CreateLogger(),               
+                logger ?? CreateLogger(),
                 ProviderResilienceTestHelper.GenerateTestPolicies());
         }
 
