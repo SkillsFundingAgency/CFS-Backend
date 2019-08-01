@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -72,7 +72,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Providers
             Provider fourthExpectedProvider = NewProvider();
             Provider fifthExpectedProvider = NewProvider();
 
-            RandomString providerVersionId = NewRandomString();
+            string providerVersionId = NewRandomString();
 
             GivenTheApiResponseProviderVersionContainsTheProviders(providerVersionId,
                 firstExpectedProvider,

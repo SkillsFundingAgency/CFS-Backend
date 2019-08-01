@@ -2,6 +2,7 @@ using CalculateFunding.Models.Publishing;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {

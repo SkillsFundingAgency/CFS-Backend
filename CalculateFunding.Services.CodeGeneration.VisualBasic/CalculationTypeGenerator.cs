@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using Microsoft.CodeAnalysis;
@@ -14,7 +12,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public class CalculationTypeGenerator : VisualBasicTypeGenerator
     {
-        private CompilerOptions _compilerOptions;
+        private readonly CompilerOptions _compilerOptions;
 
         public CalculationTypeGenerator(CompilerOptions compilerOptions)
         {
@@ -33,7 +31,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             SyntaxList<ImportsStatementSyntax> standardImports = StandardImports();
 
-            string identifier = GenerateIdentifier("Calculations");
+            string identifier = GenerateIdentifier("CalculationContext");
 
             SyntaxTokenList modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
 
@@ -45,8 +43,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 ? SyntaxFactory.ParseTypeName("LegacyBaseCalculation")
                 : SyntaxFactory.ParseTypeName("BaseCalculation")));
 
-            IEnumerable<StatementSyntax> methods = CreateMethods(calculations);
-
+            IEnumerable<StatementSyntax> methods = CreateMembers(calculations);
+            
             ClassBlockSyntax classBlock = SyntaxFactory.ClassBlock(classStatement,
                 inherits,
                 new SyntaxList<ImplementsStatementSyntax>(),
@@ -58,6 +56,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             CompilationUnitSyntax syntaxTree = SyntaxFactory.CompilationUnit().WithOptions(optionsList);
             syntaxTree = syntaxTree.WithImports(standardImports);
             syntaxTree = syntaxTree.WithMembers(members);
+            
             try
             {
                 syntaxTree = syntaxTree.NormalizeWhitespace();
@@ -72,130 +71,57 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             yield return new SourceFile { FileName = "Calculations.vb", SourceCode = sourceCode };
         }
 
-        private IEnumerable<StatementSyntax> CreateMethods(IEnumerable<Calculation> calculations)
+        private IEnumerable<StatementSyntax> CreateMembers(IEnumerable<Calculation> calculations)
         {
-            yield return CreateDatasetProperties();
-            yield return CreateProviderProperties();
+            yield return ParseSourceCodeToStatementSyntax("Public StackFrameStartingCount As Integer = 0");
+            yield return ParseSourceCodeToStatementSyntax("Public Property Dictionary As Dictionary(Of String, String()) = New Dictionary(Of String, String())(2)");
+            yield return ParseSourceCodeToStatementSyntax("Public Property DictionaryValues As Dictionary(Of String, Decimal?) = New Dictionary(Of String, Decimal?)(2)");
 
-            if (calculations != null)
+            if (calculations == null) yield break;
+
+            NamespaceBuilderResult namespaceBuilderResult = new CalculationNamespaceBuilder(_compilerOptions)
+                .BuildNamespacesForCalculations(calculations);
+
+            foreach (StatementSyntax propertiesDefinition in namespaceBuilderResult.PropertiesDefinitions)
             {
-                foreach (Calculation calc in calculations)
-                {
-                    yield return CreateCalculationVariables(calc);
-                }
-
-                yield return CreateMainMethod(calculations);
+                yield return propertiesDefinition;
             }
+
+            IEnumerable<NamespaceClassDefinition> namespaceClassDefinitions = 
+                namespaceBuilderResult.InnerClasses;
+
+            foreach (NamespaceClassDefinition namespaceClassDefinition in namespaceClassDefinitions)
+            {
+                yield return namespaceClassDefinition.ClassBlockSyntax;
+            }
+
+            yield return CreateMainMethod(calculations,namespaceClassDefinitions);
         }
 
-        private StatementSyntax CreateCalculationVariables(Calculation calc)
-        {
-            if (string.IsNullOrWhiteSpace(calc.Current?.SourceCodeName)) throw new InvalidOperationException($"Calculation source code name is not populated for calc {calc.Id }");
-
-            StringBuilder builder = new StringBuilder();
-
-            // Add attributes to describe calculation and calculation specification
-            builder.AppendLine($"<Calculation(Id := \"{calc.Id}\", Name := \"{calc.Name}\")>");
-
-            // Add attribute for calculation description
-            if (!string.IsNullOrWhiteSpace(calc.Current?.Description))
-            {
-                builder.AppendLine($"<Description(Description := \"{calc.Current?.Description.Replace("\"", "\"\"")}\")>");
-            }
-
-            if (!string.IsNullOrWhiteSpace(calc.Current?.SourceCode))
-            {
-                calc.Current.SourceCode = QuoteAggregateFunctionCalls(calc.Current.SourceCode);
-            }
-
-            builder.AppendLine($"Dim {calc.Current.SourceCodeName} As Func(Of decimal?) = nothing");
-
-            builder.AppendLine();
-
-            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
-
-            return tree
-                .GetRoot()
-                .DescendantNodes()
-                .OfType<StatementSyntax>()
-                .FirstOrDefault();
-        }
-
-        private StatementSyntax CreateMainMethod(IEnumerable<Calculation> calcs)
+        private StatementSyntax CreateMainMethod(IEnumerable<Calculation> calcs, 
+            IEnumerable<NamespaceClassDefinition> namespaceDefinitions)
         {
             StringBuilder builder = new StringBuilder();
 
             builder.AppendLine();
-            builder.AppendLine($"Public Function MainCalc As Dictionary(Of String, String())");
+            builder.AppendLine("Public Function MainCalc As Dictionary(Of String, String())");
             builder.AppendLine();
-            builder.AppendLine("Dim stackFrameStartingCount as integer = 0");
 
             if (_compilerOptions.UseDiagnosticsMode)
             {
                 builder.AppendLine("Dim sw As New System.Diagnostics.Stopwatch()");
             }
 
-            builder.AppendLine($"Dim dictionary as new Dictionary(Of String, String())({calcs.Count()})");
-            builder.AppendLine($"Dim dictionaryValues as new Dictionary(Of String, Decimal?)({calcs.Count()})");
-
-            foreach (Calculation calc in calcs)
+            foreach (NamespaceClassDefinition namespaceDefinition in namespaceDefinitions)
             {
-                builder.AppendLine();
-
-                builder.AppendLine($"{calc.Current.SourceCodeName} = Function() As decimal?");
-
-                builder.AppendLine($"Dim existingCacheItem as String() = Nothing");
-                builder.AppendLine($"If dictionary.TryGetValue(\"{calc.Id}\", existingCacheItem) Then");
-                builder.AppendLine($"Dim existingCalculationResultDecimal As Decimal? = Nothing");
-                builder.AppendLine($"   If dictionaryValues.TryGetValue(\"{calc.Id}\", existingCalculationResultDecimal) Then");
-                builder.AppendLine($"        Return existingCalculationResultDecimal");
-                builder.AppendLine("    End If");
-
-                builder.AppendLine("    If existingCacheItem.Length > 2 Then");
-                builder.AppendLine($"       Dim exceptionType as String = existingCacheItem(1)");
-                builder.AppendLine("        If Not String.IsNullOrEmpty(exceptionType) then");
-                builder.AppendLine("            Dim exceptionMessage as String = existingCacheItem(2)");
-                builder.AppendLine($"           Throw New ReferencedCalculationFailedException(\"{calc.Name} failed due to exception type:\" + exceptionType  + \" with message: \" + exceptionMessage)");
-                builder.AppendLine("        End If");
-                builder.AppendLine("    End If");
-                builder.AppendLine("End If");
-
-
-                builder.AppendLine("Dim userCalculationCodeImplementation As Func(Of Decimal?) = Function() as Decimal?");
-                //builder.AppendLine("Throw New System.Exception(New System.Diagnostics.StackTrace().FrameCount.ToString() + \" started with\")");
-
-                builder.AppendLine("Dim frameCount = New System.Diagnostics.StackTrace().FrameCount");
-                builder.AppendLine("If frameCount > stackFrameStartingCount + 40 Then");
-                builder.AppendLine($"   Throw New CalculationStackOverflowException(\"The system detected a stackoverflow from {calc.Name}, this is probably due to recursive methods stuck in an infinite loop\")");
-                builder.AppendLine("End If");
-
-                builder.AppendLine($"#ExternalSource(\"{calc.Id}|{calc.Name}\", 1)");
-                builder.AppendLine();
-                builder.Append(calc.Current?.SourceCode ?? CodeGenerationConstants.VisualBasicDefaultSourceCode);
-                builder.AppendLine();
-                builder.AppendLine("#End ExternalSource");
-
-                builder.AppendLine("End Function");
-                builder.AppendLine();
-
-                builder.AppendLine("Try");
-
-                builder.AppendLine("Dim executedUserCodeCalculationResult As Nullable(Of Decimal) = userCalculationCodeImplementation()");
-                builder.AppendLine();
-                builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(executedUserCodeCalculationResult.HasValue, executedUserCodeCalculationResult.ToString(), \"\")}})");
-                builder.AppendLine($"dictionaryValues.Add(\"{calc.Id}\", executedUserCodeCalculationResult)");
-                builder.AppendLine("Return executedUserCodeCalculationResult");
-                builder.AppendLine("Catch ex as System.Exception");
-                builder.AppendLine($"   dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message}})");
-                builder.AppendLine("    Throw");
-                builder.AppendLine("End Try");
-                builder.AppendLine();
-
-                builder.AppendLine("End Function");
+                builder.AppendLine($"{namespaceDefinition.Namespace} = New {namespaceDefinition.ClassName}()");
             }
 
-            builder.AppendLine();
-
+            foreach (NamespaceClassDefinition namespaceDefinition in namespaceDefinitions)
+            {
+                builder.AppendLine($"{namespaceDefinition.Namespace}.Initialise(Me)");
+            }
+            
             foreach (Calculation calc in calcs)
             {
                 if (_compilerOptions.UseDiagnosticsMode)
@@ -210,9 +136,9 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 builder.AppendLine();
 
                 // Reset baseline stack frame count before executing calc
-                builder.AppendLine("stackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
+                builder.AppendLine("StackFrameStartingCount = New System.Diagnostics.StackTrace().FrameCount");
 
-                builder.AppendLine($"{calc.Current.SourceCodeName}()");
+                builder.AppendLine($"{calc.Namespace}.{calc.Current.SourceCodeName}()");
 
                 builder.AppendLine();
 
@@ -223,67 +149,21 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 if (_compilerOptions.UseDiagnosticsMode)
                 {
                     builder.AppendLine("    sw.stop()");
-                    builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\"),\"\", \"\", sw.Elapsed.ToString()}})");
+                    builder.AppendLine($"Dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\"),\"\", \"\", sw.Elapsed.ToString()}})");
                     builder.AppendLine("Catch ex as System.Exception");
                     builder.AppendLine("    sw.stop()");
-                    builder.AppendLine($"dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message, sw.Elapsed.ToString() }})");
+                    builder.AppendLine($"Dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message, sw.Elapsed.ToString() }})");
                     builder.AppendLine("End Try");
-                }
-                else
-                {
-
                 }
 
                 builder.AppendLine();
             }
 
-            builder.AppendLine("return dictionary");
+            builder.AppendLine("return Dictionary");
             builder.AppendLine("End Function");
             builder.AppendLine();
-            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(builder.ToString());
 
-            return tree.GetRoot().DescendantNodes().OfType<StatementSyntax>()
-               .FirstOrDefault();
-        }
-
-        private static StatementSyntax CreateDatasetProperties()
-        {
-            return SyntaxFactory.PropertyStatement(GenerateIdentifier("Datasets"))
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .WithAsClause(
-                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Datasets"))));
-        }
-
-        private static StatementSyntax CreateProviderProperties()
-        {
-            return SyntaxFactory.PropertyStatement(GenerateIdentifier("Provider"))
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .WithAsClause(
-                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier("Provider"))));
-        }
-
-        public static string QuoteAggregateFunctionCalls(string sourceCode)
-        {
-            Regex x = new Regex(@"(\b(?<!Math.)Min\b|\b(?<!Math.)Avg\b|\b(?<!Math.)Max\b|\b(?<!Math.)Sum\b)()(.*?\))");
-
-            foreach (Match match in x.Matches(sourceCode))
-            {
-                string strippedText = Regex.Replace(match.Value, @"\s+", string.Empty);
-
-                string result = strippedText
-                    .Replace("Sum(", "Sum(\"")
-                    .Replace("Max(", "Max(\"")
-                    .Replace("Min(", "Min(\"")
-                    .Replace("Avg(", "Avg(\"")
-                    .Replace(")", "\")");
-
-                if (match.Success)
-                {
-                    sourceCode = sourceCode.Replace(match.Value, result);
-                }
-            }
-
-            return sourceCode;
+            return ParseSourceCodeToStatementSyntax(builder);
         }
     }
 }

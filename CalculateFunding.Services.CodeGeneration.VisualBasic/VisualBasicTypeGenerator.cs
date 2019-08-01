@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using CalculateFunding.Models.Datasets.Schema;
 using Microsoft.CodeAnalysis;
@@ -11,7 +12,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 {
     public abstract class VisualBasicTypeGenerator
     {
-        private static IEnumerable<string> exemptValues = new string[] { "Nullable(Of Decimal)", "Nullable(Of Integer)" };
+        private static readonly IEnumerable<string> exemptValues = new[] { "Nullable(Of Decimal)", "Nullable(Of Integer)" };
 
         public static string GenerateIdentifier(string value)
         {
@@ -107,12 +108,60 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
         protected static SyntaxList<ImportsStatementSyntax> StandardImports()
         {
-            var imports = SyntaxFactory.List(new[] {
-                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System")))),
-                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System.Collections.Generic")))),
-                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Microsoft.VisualBasic.CompilerServices"))))
+            return SyntaxFactory.List(new[] {
+                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(
+                    SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System")))),
+                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(
+                    SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("System.Collections.Generic")))),
+                SyntaxFactory.ImportsStatement(SyntaxFactory.SingletonSeparatedList<ImportsClauseSyntax>(
+                    SyntaxFactory.SimpleImportsClause(SyntaxFactory.ParseName("Microsoft.VisualBasic.CompilerServices"))))
             });
-            return imports;
+        }
+
+        protected static StatementSyntax ParseSourceCodeToStatementSyntax(string sourceCode)
+        {
+            return SyntaxFactory.ParseSyntaxTree(sourceCode)
+                .GetRoot()
+                .DescendantNodes()
+                .OfType<StatementSyntax>()
+                .FirstOrDefault();     
+        }
+        
+        protected static StatementSyntax ParseSourceCodeToStatementSyntax(StringBuilder sourceCode)
+        {
+            return ParseSourceCodeToStatementSyntax(sourceCode.ToString());
+        }
+
+        public static string QuoteAggregateFunctionCalls(string sourceCode)
+        {
+            Regex x = new Regex(@"(\b(?<!Math.)Min\b|\b(?<!Math.)Avg\b|\b(?<!Math.)Max\b|\b(?<!Math.)Sum\b)()(.*?\))");
+
+            foreach (Match match in x.Matches(sourceCode))
+            {
+                string strippedText = Regex.Replace(match.Value, @"\s+", string.Empty);
+
+                string result = strippedText
+                    .Replace("Sum(", "Sum(\"")
+                    .Replace("Max(", "Max(\"")
+                    .Replace("Min(", "Min(\"")
+                    .Replace("Avg(", "Avg(\"")
+                    .Replace(")", "\")");
+
+                if (match.Success)
+                {
+                    sourceCode = sourceCode.Replace(match.Value, result);
+                }
+            }
+
+            return sourceCode;
+        }
+
+        protected static StatementSyntax CreateProperty(string name, string type = null)
+        {
+            return SyntaxFactory.PropertyStatement(GenerateIdentifier(name))
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithAsClause(
+                    SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier(type ?? name))));
         }
     }
 }

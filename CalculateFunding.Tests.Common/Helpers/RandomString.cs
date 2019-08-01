@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace CalculateFunding.Services.Core.Helpers
+namespace CalculateFunding.Tests.Common.Helpers
 {
     public class RandomString
     {

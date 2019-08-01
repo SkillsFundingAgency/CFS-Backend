@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 
 </Project>

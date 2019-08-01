@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestMethod]
         public async Task SpecificationQueryMethodDelegatesToSpecificationService()
         {
-            RandomString specificationId = new RandomString();
+            string specificationId = new RandomString();
             SpecificationSummary expectedSpecificationSummary = new SpecificationSummary();
 
             GivenTheSpecificationSummaryForId(specificationId, expectedSpecificationSummary);

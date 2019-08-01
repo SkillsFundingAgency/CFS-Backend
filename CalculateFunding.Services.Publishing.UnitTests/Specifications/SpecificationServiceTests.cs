@@ -4,8 +4,8 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Specifications;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -47,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task QueryMethodDelegatesToApiClientAndReturnsContentFromResponse()
         {
-            RandomString specificationId = new RandomString();
+            string specificationId = new RandomString();
             ApiSpecificationSummary expectedSpecificationSummary = new ApiSpecificationSummary();
 
             GivenTheApiResponseContentForTheSpecificationId(expectedSpecificationSummary, specificationId);

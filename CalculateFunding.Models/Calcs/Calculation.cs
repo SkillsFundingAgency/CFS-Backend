@@ -16,5 +16,7 @@ namespace CalculateFunding.Models.Calcs
 
         [JsonProperty("name")]
         public new string Name => Current?.Name;
+        
+        [JsonIgnore] public string Namespace => Current.Namespace == CalculationNamespace.Additional ? "Calculations" : FundingStreamId;
     }
 }

@@ -496,8 +496,8 @@ namespace CalculateFunding.Services.Calcs.Services
             build.Success.Should().BeTrue();
 
             string calcSourceCode = build.SourceFiles.First(s => s.FileName == "Calculations.vb").SourceCode;
-            calcSourceCode.Should().Contain($"Dim differentCalcName As Func(Of decimal?) = nothing");
-            calcSourceCode.Should().NotContain($"Dim calc1 As Func(Of decimal?) = nothing");
+            calcSourceCode.Should().Contain($"Public differentCalcName As Func(Of decimal?) = Nothing");
+            calcSourceCode.Should().NotContain($"Public calc1 As Func(Of decimal?) = Nothing");
             calcSourceCode.Should().Contain($"differentCalcName()");
             calcSourceCode.Should().NotContain($"calc1()");
         }

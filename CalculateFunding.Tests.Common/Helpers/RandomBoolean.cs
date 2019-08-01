@@ -1,4 +1,6 @@
-namespace CalculateFunding.Services.Core.Helpers
+using System.Collections.Generic;
+
+namespace CalculateFunding.Tests.Common.Helpers
 {
     public class RandomBoolean
     {

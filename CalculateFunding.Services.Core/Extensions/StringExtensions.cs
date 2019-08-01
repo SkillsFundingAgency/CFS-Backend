@@ -13,6 +13,16 @@ namespace System
         {
             return Regex.Replace(text, "E[+|-](\\d)+", replaceWith);
         }
+        
+        public static bool IsNotNullOrWhitespace(this string text)
+        {
+            return !text.IsNullOrWhitespace();
+        }
+
+        public static bool IsNullOrWhitespace(this string text)
+        {
+            return string.IsNullOrWhiteSpace(text);
+        }
 
         public static string EmptyIfNull(this string text)
         {

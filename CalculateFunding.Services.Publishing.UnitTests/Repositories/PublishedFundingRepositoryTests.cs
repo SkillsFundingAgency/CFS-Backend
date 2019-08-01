@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Repositories;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -36,8 +36,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         [TestMethod]
         public async Task IsHealthOkChecksCosmosRepository()
         {
-            RandomBoolean expectedIsOkFlag = new RandomBoolean();
-            RandomString expectedMessage = new RandomString();
+            bool expectedIsOkFlag = new RandomBoolean();
+            string expectedMessage = new RandomString();
 
             GivenTheRepositoryServiceHealth(expectedIsOkFlag, expectedMessage);
 

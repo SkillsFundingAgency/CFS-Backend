@@ -1,4 +1,5 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
