@@ -84,14 +84,19 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("A null preview request was provided");
             }
 
+            if (string.IsNullOrWhiteSpace(previewRequest.CalculationId))
+            {
+                previewRequest.CalculationId = TempCalculationId;
+            }
+
             Calculation tempCalculation = new Calculation
             {
                 SpecificationId = previewRequest.SpecificationId,
-                Id = !string.IsNullOrWhiteSpace(previewRequest.CalculationId) ? previewRequest.CalculationId : TempCalculationId,
+                Id = TempCalculationId,
                 Current = new CalculationVersion
                 {
                     Name = !string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName,
-                    CalculationId = !string.IsNullOrWhiteSpace(previewRequest.CalculationId) ? previewRequest.CalculationId : TempCalculationId,
+                    CalculationId = TempCalculationId,
                     SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(!string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName),
                     SourceCode = previewRequest.SourceCode
                 }
@@ -131,6 +136,7 @@ namespace CalculateFunding.Services.Calcs
             if (calculation == null)
             {
                 calculation = tempCalculation;
+                calculations.Add(tempCalculation);
             }
 
             calculation.Current.SourceCode = previewRequest.SourceCode;
