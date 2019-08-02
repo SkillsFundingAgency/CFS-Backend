@@ -205,11 +205,11 @@ namespace CalculateFunding.Api.Calcs.Controllers
             return await _calcsService.GetCalculationByName(model);
         }
 
-        [Route("api/calcs/additional")]
+        [Route("api/calcs/specifications/{specificationId}/calculations")]
         [HttpPost]
-        public async Task<IActionResult> CreateAdditionalCalculation([FromBody]CalculationCreateModel model)
+        public async Task<IActionResult> CreateAdditionalCalculation([FromRoute]string specificationId, [FromBody]CalculationCreateModel model)
         {
-            return await _calcsService.CreateAdditionalCalculation(model, ControllerContext.HttpContext.Request.GetUser());
+            return await _calcsService.CreateAdditionalCalculation(specificationId, model, ControllerContext.HttpContext.Request.GetUser());
         }
     }
 }

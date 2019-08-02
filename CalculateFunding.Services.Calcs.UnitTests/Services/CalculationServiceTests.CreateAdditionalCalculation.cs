@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService calculationService = CreateCalculationService(calculationCreateModelValidator: validator);
 
             //Act
-            IActionResult result = await calculationService.CreateAdditionalCalculation(model, author);
+            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author);
 
             //Assert
             result
@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string errorMessage = $"There was problem creating a new calculation with name {CalculationName} in Cosmos Db with status code 400";
 
             //Act
-            IActionResult result = await calculationService.CreateAdditionalCalculation(model, author);
+            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author);
 
             //Assert
             result
@@ -108,7 +108,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 searchRepository: searchRepository);
 
             //Act
-            IActionResult result = await calculationService.CreateAdditionalCalculation(model, author);
+            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author);
 
             //Assert
             result

@@ -43,6 +43,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationByName(CalculationGetModel model);
 
-        Task<IActionResult> CreateAdditionalCalculation(CalculationCreateModel model, Reference author);
+        Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author);
     }
 }

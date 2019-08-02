@@ -361,7 +361,7 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculations);
         }
 
-        public async Task<IActionResult> CreateAdditionalCalculation(CalculationCreateModel model, Reference author)
+        public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author)
         {
             Guard.ArgumentNotNull(model, nameof(model));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -370,6 +370,8 @@ namespace CalculateFunding.Services.Calcs
             {
                 model.Id = Guid.NewGuid().ToString();
             }
+
+            model.SpecificationId = specificationId;
 
             BadRequestObjectResult validationResult = (await _calculationCreateModelValidator.ValidateAsync(model)).PopulateModelState();
 
