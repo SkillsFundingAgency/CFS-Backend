@@ -72,6 +72,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationCodeReferenceUpdate _calculationCodeReferenceUpdate;
         private readonly IMapper _mapper;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
+        private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
 
         public CalculationService(
             IMapper mapper,
@@ -90,7 +91,8 @@ namespace CalculateFunding.Services.Calcs
             IFeatureToggle featureToggle,
             IBuildProjectsRepository buildProjectsRepository,
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate,
-            IValidator<CalculationCreateModel> calculationCreateModelValidator)
+            IValidator<CalculationCreateModel> calculationCreateModelValidator,
+            IValidator<CalculationEditModel> calculationEditModelValidator)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
@@ -109,6 +111,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(calculationCodeReferenceUpdate, nameof(calculationCodeReferenceUpdate));
             Guard.ArgumentNotNull(calculationCreateModelValidator, nameof(calculationCreateModelValidator));
+            Guard.ArgumentNotNull(calculationEditModelValidator, nameof(calculationEditModelValidator));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -133,6 +136,7 @@ namespace CalculateFunding.Services.Calcs
             _mapper = mapper;
             _calculationCodeReferenceUpdate = calculationCodeReferenceUpdate;
             _calculationCreateModelValidator = calculationCreateModelValidator;
+            _calculationEditModelValidator = calculationEditModelValidator;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -361,7 +365,7 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculations);
         }
 
-        public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author)
+        public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId)
         {
             Guard.ArgumentNotNull(model, nameof(model));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -396,7 +400,7 @@ namespace CalculateFunding.Services.Calcs
                 Version = 1,
                 SourceCode = model.SourceCode,
                 Description = model.Description,
-                ValueType = model.ValueType,
+                ValueType = model.ValueType.Value,
                 CalculationType = CalculationType.Additional,
                 WasTemplateCalculation = false,
                 Namespace = CalculationNamespace.Additional,
@@ -423,7 +427,36 @@ namespace CalculateFunding.Services.Calcs
 
                 await UpdateSearch(calculation);
 
-                return new OkObjectResult(calculation);
+                Job job = null;
+
+                try
+                {
+                    job = await SendInstructAllocationsToJobService(calculation.SpecificationId, author.Id, author.Name, new Trigger
+                    {
+                        EntityId = calculation.Id,
+                        EntityType = nameof(Calculation),
+                        Message = $"Saving calculation: '{calculation.Id}' for specification: '{calculation.SpecificationId}'"
+                    }, correlationId);
+
+                    if (job != null)
+                    {
+                        _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
+
+                        return new OkObjectResult(calculation);
+                    }
+                    else
+                    {
+                        string errorMessage = $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{calculation.SpecificationId}'";
+
+                        _logger.Error(errorMessage);
+
+                        return new InternalServerErrorResult(errorMessage);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new InternalServerErrorResult(ex.Message);
+                }
             }
             else
             {
@@ -543,31 +576,23 @@ namespace CalculateFunding.Services.Calcs
             return updatedCalculations;
         }
 
-        public async Task<IActionResult> SaveCalculationVersion(HttpRequest request)
+        public async Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId)
         {
-            request.Query.TryGetValue("calculationId", out Microsoft.Extensions.Primitives.StringValues calcId);
+            Guard.ArgumentNotNull(calculationEditModel, nameof(calculationEditModel));
+            Guard.ArgumentNotNull(author, nameof(author));
 
-            string calculationId = calcId.FirstOrDefault();
+            calculationEditModel.SpecificationId = specificationId;
+            calculationEditModel.CalculationId = calculationId;
 
-            if (string.IsNullOrWhiteSpace(calculationId))
+            BadRequestObjectResult validationResult = (await _calculationEditModelValidator.ValidateAsync(calculationEditModel)).PopulateModelState();
+
+            if (validationResult != null)
             {
-                _logger.Error("No calculation Id was provided to GetCalculationHistory");
-
-                return new BadRequestObjectResult("Null or empty calculation Id provided");
-            }
-
-            string json = await request.GetRawBodyStringAsync();
-
-            SaveSourceCodeVersion sourceCodeVersion = JsonConvert.DeserializeObject<SaveSourceCodeVersion>(json);
-
-            if (sourceCodeVersion == null || string.IsNullOrWhiteSpace(sourceCodeVersion.SourceCode))
-            {
-                _logger.Error($"Null or empty source code was provided for calculation id {calculationId}");
-
-                return new BadRequestObjectResult("Null or empty calculation Id provided");
+                return validationResult;
             }
 
             Calculation calculation = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(calculationId));
+
             if (calculation == null)
             {
                 _logger.Error($"A calculation was not found for calculation id {calculationId}");
@@ -575,41 +600,26 @@ namespace CalculateFunding.Services.Calcs
                 return new NotFoundResult();
             }
 
-            Reference user = request.GetUser();
-            CalculationVersion calculationVersion;
-            if (calculation.Current == null)
-            {
-                calculationVersion = new CalculationVersion
-                {
-                    Date = DateTimeOffset.Now.ToLocalTime(),
-                    Author = user,
-                    PublishStatus = Models.Versioning.PublishStatus.Draft,
-                    Version = 1
-                };
-            }
-            else
-            {
-                calculationVersion = calculation.Current.Clone() as CalculationVersion;
-            }
+            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
 
-            calculationVersion.SourceCode = sourceCodeVersion.SourceCode;
-            calculationVersion.CalculationId = calculationId;
+            calculationVersion.SourceCode = calculationEditModel.SourceCode;
+            calculationVersion.Name = calculationEditModel.Name;
+            calculationVersion.ValueType = calculationEditModel.ValueType.Value;
+            calculationVersion.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculationEditModel.Name);
+            calculationVersion.Description = calculationEditModel.Description;
 
-            UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, user);
-
-            string userId = !string.IsNullOrWhiteSpace(user.Id) ? user.Id : string.Empty;
-            string userName = !string.IsNullOrWhiteSpace(user.Name) ? user.Name : string.Empty;
+            UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author);
 
             Job job = null;
 
             try
             {
-                job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, userId, userName, new Trigger
+                job = await SendInstructAllocationsToJobService(result.BuildProject.SpecificationId, author.Id, author.Name, new Trigger
                 {
                     EntityId = calculation.Id,
                     EntityType = nameof(Calculation),
                     Message = $"Saving calculation: '{calculationId}' for specification: '{calculation.SpecificationId}'"
-                }, request.GetCorrelationId());
+                }, correlationId);
 
                 if (job != null)
                 {
@@ -630,8 +640,8 @@ namespace CalculateFunding.Services.Calcs
             {
                 return new InternalServerErrorResult(ex.Message);
             }
-
         }
+
 
         private async Task<UpdateCalculationResult> UpdateCalculation(Calculation calculation, CalculationVersion calculationVersion, Reference user, bool updateBuildProject = true)
         {

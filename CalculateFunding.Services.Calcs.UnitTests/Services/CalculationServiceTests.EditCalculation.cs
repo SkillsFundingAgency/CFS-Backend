@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -19,6 +20,8 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
@@ -33,129 +36,40 @@ namespace CalculateFunding.Services.Calcs.Services
     public partial class CalculationServiceTests
     {
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenNoCalculationIdWasProvided_ReturnsBadRequest()
+        public async Task EditCalculation_GivenValidationFails_ReturnsBadRequest()
         {
             //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
+            string correlationId = "any-id";
 
-            ILogger logger = CreateLogger();
+            CalculationEditModel model = new CalculationEditModel();
+            Reference author = new Reference();
 
-            CalculationService service = CreateCalculationService(logger: logger);
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "oh no an error!!!")
+                });
+
+            IValidator<CalculationEditModel> validator = CreateCalculationEditModelValidator(validationResult);
+
+            CalculationService calculationService = CreateCalculationService(calculationEditModelValidator: validator);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await calculationService.EditCalculation(SpecificationId, CalculationId, model, author, correlationId);
 
             //Assert
             result
                 .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error(Arg.Is("No calculation Id was provided to GetCalculationHistory"));
+                .BeAssignableTo<BadRequestObjectResult>();
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationIdButNoModelSupplied_ReturnsBadRequest()
-        {
-            //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            ILogger logger = CreateLogger();
-
-            CalculationService service = CreateCalculationService(logger: logger);
-
-            //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Null or empty source code was provided for calculation id {CalculationId}"));
-        }
-
-        [TestMethod]
-        async public Task SaveCalculationVersion_GivenModelDoesNotContainSourceCiode_ReturnsBadRequest()
-        {
-            //Arrange
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion();
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            CalculationService service = CreateCalculationService(logger: logger);
-
-            //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Null or empty source code was provided for calculation id {CalculationId}"));
-        }
-
-        [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithNoHistory_CreatesNewVersion()
+        public async Task EditCalculation_GivenCalculationExistsWithNoHistory_CreatesNewVersion()
         {
             //Arrange
             Calculation calculation = CreateCalculation();
 
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
+            Reference author = new Reference();
 
             ILogger logger = CreateLogger();
 
@@ -184,7 +98,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
-                Id = calculation.SpecificationId,
+                Id = SpecificationId,
                 Name = "Test Spec Name",
             };
 
@@ -223,7 +137,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -237,33 +151,14 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenModelButCalculationDoesNotExist_ReturnsNotFound()
+        public async Task EditCalculation_GivenModelButCalculationDoesNotExist_ReturnsNotFound()
         {
             //Arrange
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
             ILogger logger = CreateLogger();
+
+            Reference author = new Reference();
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
@@ -273,7 +168,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService service = CreateCalculationService(logger: logger, calculationsRepository: calculationsRepository);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -286,274 +181,16 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithNoCurrent_CreatesNewVersion()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-            calculation.Current = null;
-
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
-
-            calculationsRepository
-                .UpdateCalculation(Arg.Any<Calculation>())
-                .Returns(HttpStatusCode.OK);
-
-            BuildProject buildProject = new BuildProject();
-
-            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
-            buildProjectsService
-                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
-                .Returns(buildProject);
-
-            CalculationIndex calcIndex = new CalculationIndex();
-
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .SearchById(Arg.Is(CalculationId))
-                .Returns(calcIndex);
-
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
-            {
-                Id = calculation.SpecificationId,
-                Name = "Test Spec Name",
-            };
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
-                .Returns(specificationSummary);
-
-            CalculationVersion calculationVersion = new CalculationVersion
-            {
-                Date = DateTimeOffset.Now.ToLocalTime(),
-                PublishStatus = PublishStatus.Draft,
-                Version = 1
-            };
-
-            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
-                .Returns(calculationVersion);
-
-            Build build = new Build();
-
-            ISourceCodeService sourceCodeService = CreateSourceCodeService();
-            sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
-                .Returns(build);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
-                .Returns(new Job { Id = "job-id-1" });
-
-            CalculationService service = CreateCalculationService(
-                logger: logger,
-                calculationsRepository: calculationsRepository,
-                buildProjectsService: buildProjectsService,
-                searchRepository: searchRepository,
-                specificationRepository: specificationRepository,
-                calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
-
-            //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>();
-
-            logger
-                .Received(1)
-                .Warning(Arg.Is($"Current for {CalculationId} was null and needed recreating."));
-
-            await
-              versionRepository
-               .Received(1)
-               .SaveVersion(Arg.Is(calculationVersion));
-        }
-
-        [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithNoBuildId_CreatesNewBuildProject()
-        {
-            //Arrange
-            Calculation calculation = CreateCalculation();
-
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
-
-            calculationsRepository
-                .UpdateCalculation(Arg.Any<Calculation>())
-                .Returns(HttpStatusCode.OK);
-
-            BuildProject buildProject = new BuildProject();
-
-            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
-            buildProjectsService
-                .GetBuildProjectForSpecificationId(Arg.Is(calculation.SpecificationId))
-                .Returns(buildProject);
-
-            CalculationIndex calcIndex = new CalculationIndex();
-
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .SearchById(Arg.Is(CalculationId))
-                .Returns(calcIndex);
-
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
-            {
-                Id = calculation.SpecificationId,
-                Name = "Test Spec Name",
-            };
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
-                .Returns(specificationSummary);
-
-            CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
-
-            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
-                .Returns(calculationVersion);
-
-            Build build = new Build
-            {
-                SourceFiles = new List<SourceFile> { new SourceFile() }
-            };
-
-            ISourceCodeService sourceCodeService = CreateSourceCodeService();
-            sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
-                .Returns(build);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
-                .Returns(new Job { Id = "job-id-1" });
-
-            CalculationService service = CreateCalculationService(
-                logger: logger,
-                calculationsRepository: calculationsRepository,
-                buildProjectsService: buildProjectsService,
-                searchRepository: searchRepository,
-                specificationRepository: specificationRepository,
-                calculationVersionRepository: versionRepository,
-                sourceCodeService: sourceCodeService,
-                jobsApiClient: jobsApiClient);
-
-            //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>();
-
-            await
-              versionRepository
-               .Received(1)
-               .SaveVersion(Arg.Is(calculationVersion));
-
-            await
-                sourceCodeService
-                    .Received(1)
-                    .SaveAssembly(Arg.Any<BuildProject>());
-
-            await
-                sourceCodeService
-                    .Received(1)
-                    .SaveSourceFiles(Arg.Is<IEnumerable<SourceFile>>(m => m.Count() == 1), Arg.Is(calculation.SpecificationId), Arg.Is(SourceCodeType.Release));
-        }
-
-        [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithButBuildProjectDoesNotExist_CreatesNewBuildProject()
+        public async Task EditCalculation_GivenCalculationExistsWithButBuildProjectDoesNotExist_CreatesNewBuildProject()
         {
             // Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
             Calculation calculation = CreateCalculation();
-           
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
+            Reference author = new Reference();
 
             ILogger logger = CreateLogger();
 
@@ -624,7 +261,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsService: buildProjectsService);
 
             // Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             // Assert
             result
@@ -648,7 +285,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationsCreatedUpdatesBuildProject()
+        public async Task EditCalculation_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationsCreatedUpdatesBuildProject()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
@@ -656,29 +293,10 @@ namespace CalculateFunding.Services.Calcs.Services
             BuildProject buildProject = new BuildProject();
 
             Calculation calculation = CreateCalculation();
-            
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
+            Reference author = new Reference();
 
             ILogger logger = CreateLogger();
 
@@ -747,7 +365,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -771,7 +389,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationSpecificationDescriptionSetWithSingleCalculation()
+        public async Task EditCalculation_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationSpecificationDescriptionSetWithSingleCalculation()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
@@ -787,28 +405,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             calcCalculations.Add(calculation);
 
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
+            Reference author = new Reference();
 
             ILogger logger = CreateLogger();
 
@@ -831,7 +430,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(buildProject);
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-           
+
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -888,7 +487,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -916,9 +515,13 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationSpecificationDescriptionSetWithMultipleCalculations()
+        public async Task EditCalculation_GivenCalculationExistsWithBuildIdButNoCalculations_EnsuresCalculationSpecificationDescriptionSetWithMultipleCalculations()
         {
             //Arrange
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+
+            Reference author = new Reference();
+
             string buildProjectId = Guid.NewGuid().ToString();
 
             BuildProject buildProject = new BuildProject();
@@ -938,29 +541,6 @@ namespace CalculateFunding.Services.Calcs.Services
             calculation2.SpecificationId = specificationId;
 
             calcCalculations.Add(calculation2);
-
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -983,7 +563,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(buildProject);
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-           
+
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
                 Id = calculation.SpecificationId,
@@ -1037,7 +617,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -1055,7 +635,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButCalculationCouldNotBeFound_AddsCalculationUpdatesBuildProject()
+        public async Task EditCalculation_GivenCalculationExistsWithBuildIdButCalculationCouldNotBeFound_AddsCalculationUpdatesBuildProject()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
@@ -1064,28 +644,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
 
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
+            Reference author = new Reference();
 
             ILogger logger = CreateLogger();
 
@@ -1151,7 +712,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -1165,7 +726,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationExistsWithBuildIdButButNotInSearch_CreatesSearchDocument()
+        public async Task EditCalculation_GivenCalculationExistsWithBuildIdButButNotInSearch_CreatesSearchDocument()
         {
             //Arrange
             Calculation calculation = CreateCalculation();
@@ -1181,28 +742,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
 
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
+            Reference author = new Reference();
 
             ILogger logger = CreateLogger();
 
@@ -1275,7 +817,7 @@ namespace CalculateFunding.Services.Calcs.Services
                jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -1299,9 +841,13 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationIsCurrentlyPublished_SetsPublishStateToUpdated()
+        public async Task EditCalculation_GivenCalculationIsCurrentlyPublished_SetsPublishStateToUpdated()
         {
             //Arrange
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+
+            Reference author = new Reference();
+
             string buildProjectId = Guid.NewGuid().ToString();
 
             BuildProject buildProject = new BuildProject
@@ -1311,29 +857,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
             calculation.Current.PublishStatus = PublishStatus.Approved;
-
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
 
             ILogger logger = CreateLogger();
 
@@ -1400,7 +923,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -1425,7 +948,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalculationIsCurrentlyUpdated_SetsPublishStateToUpdated()
+        public async Task EditCalculation_GivenCalculationIsCurrentlyUpdated_SetsPublishStateToUpdated()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
@@ -1442,28 +965,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
 
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
+            Reference author = new Reference();
 
             ILogger logger = CreateLogger();
 
@@ -1530,7 +1034,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 jobsApiClient: jobsApiClient);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -1555,7 +1059,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_SetsPublishStateToUpdatedAddNewJob()
+        public async Task EditCalculation_SetsPublishStateToUpdatedAddNewJob()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
@@ -1568,47 +1072,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 SpecificationId = specificationId
             };
 
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+
+            Reference author = CreateAuthor();
+
             Calculation calculation = CreateCalculation();
             calculation.SpecificationId = specificationId;
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
-
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            request
-                .HttpContext
-                .Returns(context);
 
             ILogger logger = CreateLogger();
 
@@ -1675,7 +1146,7 @@ namespace CalculateFunding.Services.Calcs.Services
                sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -1713,156 +1184,16 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenUserIsNull_SetsPublishStateToUpdatedAddNewJobWithEmptyUser()
+        public async Task EditCalculation_GivenCreatingJobReturnsNull_LogsErrorReturnsInternalServerError()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
             string specificationId = Guid.NewGuid().ToString();
 
-            BuildProject buildProject = new BuildProject
-            {
-                Id = buildProjectId,
-                SpecificationId = specificationId
-            };
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
 
-            Calculation calculation = CreateCalculation();
-            calculation.SpecificationId = specificationId;
-
-            calculation.Current.PublishStatus = PublishStatus.Updated;
-
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            ILogger logger = CreateLogger();
-
-            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            calculationsRepository
-                .GetCalculationById(Arg.Is(CalculationId))
-                .Returns(calculation);
-
-            calculationsRepository
-                .UpdateCalculation(Arg.Any<Calculation>())
-                .Returns(HttpStatusCode.OK);
-
-            IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
-            buildProjectsService
-                .GetBuildProjectForSpecificationId(Arg.Is(specificationId))
-                .Returns(buildProject);
-
-            CalculationIndex calcIndex = new CalculationIndex();
-
-            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .SearchById(Arg.Is(CalculationId))
-                .Returns(calcIndex);
-
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
-            {
-                Id = calculation.SpecificationId,
-                Name = "Test Spec Name",
-            };
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetSpecificationSummaryById(Arg.Is(calculation.SpecificationId))
-                .Returns(specificationSummary);
-
-            CalculationVersion calculationVersion = calculation.Current as CalculationVersion;
-            calculationVersion.PublishStatus = PublishStatus.Updated;
-
-            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<CalculationVersion>(), Arg.Any<CalculationVersion>())
-                .Returns(calculationVersion);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .CreateJob(Arg.Any<JobCreateModel>())
-                .Returns(new Job { Id = "job-id-1" });
-
-            Build build = new Build();
-
-            ISourceCodeService sourceCodeService = CreateSourceCodeService();
-            sourceCodeService
-                .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
-                .Returns(build);
-
-            CalculationService service = CreateCalculationService(
-                logger: logger,
-                calculationsRepository: calculationsRepository,
-                 buildProjectsService: buildProjectsService,
-                searchRepository: searchRepository,
-                specificationRepository: specificationRepository,
-                calculationVersionRepository: versionRepository,
-                jobsApiClient: jobsApiClient,
-                sourceCodeService: sourceCodeService);
-
-            //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkObjectResult>();
-
-            calculation
-                .Current
-                .PublishStatus
-                .Should()
-                .Be(PublishStatus.Updated);
-
-            await
-                jobsApiClient
-                    .Received(1)
-                    .CreateJob(Arg.Is<JobCreateModel>(
-                        m =>
-                            m.InvokerUserDisplayName == "" &&
-                            m.InvokerUserId == "" &&
-                            m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
-                            m.Properties["specification-id"] == specificationId &&
-                            m.Trigger.EntityId == CalculationId &&
-                            m.Trigger.EntityType == nameof(Calculation) &&
-                            m.Trigger.Message == $"Saving calculation: '{CalculationId}' for specification: '{calculation.SpecificationId}'"
-                        ));
-
-            logger
-               .Received(1)
-               .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: 'job-id-1'"));
-        }
-
-        [TestMethod]
-        async public Task SaveCalculationVersion_GivenCreatingJobReturnsNull_LogsErrorReturnsInternalServerError()
-        {
-            //Arrange
-            string buildProjectId = Guid.NewGuid().ToString();
-
-            string specificationId = Guid.NewGuid().ToString();
+            Reference author = CreateAuthor();
 
             BuildProject buildProject = new BuildProject
             {
@@ -1977,7 +1308,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result
@@ -2008,12 +1339,16 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public void SaveCalculationVersion_GivenCalculationUpdateFails_ThenExceptionIsThrown()
+        public void EditCalculation_GivenCalculationUpdateFails_ThenExceptionIsThrown()
         {
             //Arrange
             string buildProjectId = Guid.NewGuid().ToString();
 
             string specificationId = Guid.NewGuid().ToString();
+
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+
+            Reference author = CreateAuthor();
 
             BuildProject buildProject = new BuildProject
             {
@@ -2090,7 +1425,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 specificationRepository: specificationRepository);
 
             //Act
-            Func<Task<IActionResult>> resultFunc = async () => await service.SaveCalculationVersion(request);
+            Func<Task<IActionResult>> resultFunc = async () => await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             resultFunc
@@ -2102,7 +1437,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        async public Task SaveCalculationVersion_GivenCalcsContainCalculationAggregates_AddsNewJobToAggregateCalculations()
+        public async Task EditCalculation_GivenCalcsContainCalculationAggregates_AddsNewJobToAggregateCalculations()
         {
             //Arrange
             IEnumerable<Calculation> calculations = new[]
@@ -2119,6 +1454,10 @@ namespace CalculateFunding.Services.Calcs.Services
             string buildProjectId = Guid.NewGuid().ToString();
 
             string specificationId = Guid.NewGuid().ToString();
+
+            CalculationEditModel calculationEditModel = CreateCalculationEditModel();
+
+            Reference author = CreateAuthor();
 
             BuildProject buildProject = new BuildProject
             {
@@ -2240,7 +1579,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService: sourceCodeService);
 
             //Act
-            IActionResult result = await service.SaveCalculationVersion(request);
+            IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
 
             //Assert
             result

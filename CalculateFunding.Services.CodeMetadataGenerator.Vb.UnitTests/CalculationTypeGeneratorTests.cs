@@ -228,8 +228,7 @@ End If
 
 Return Result + 0";
 
-            IEnumerable<Calculation> calculations = new[] { new Calculation { 
-                Current = new CalculationVersion { SourceCode = badCode, SourceCodeName = "Broken", Namespace = CalculationNamespace.Additional} }};
+            IEnumerable<Calculation> calculations = new[] { new Calculation { Current = new CalculationVersion { SourceCode = badCode, SourceCodeName = "Broken" } } };
 
             Action generate = () => calculationTypeGenerator.GenerateCalcs(calculations).ToList();
 

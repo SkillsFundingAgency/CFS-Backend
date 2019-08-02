@@ -30,6 +30,7 @@ namespace CalculateFunding.Services.Calcs.Services
         private const string FundingStreamId = "fs-1";
         private const string DefaultSourceCode = "return 0";
         private const string Description = "test description";
+        private const string CorrelationId = "4abc2782-e8cb-4643-8803-951d715fci29";
 
         private static CalculationService CreateCalculationService(
             IMapper mapper = null,
@@ -48,7 +49,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IFeatureToggle featureToggle = null,
             IBuildProjectsRepository buildProjectsRepository = null,
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = null,
-            IValidator<CalculationCreateModel> calculationCreateModelValidator = null)
+            IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
+            IValidator<CalculationEditModel> calculationEditModelValidator = null)
         {
             return new CalculationService
                 (mapper ?? CreateMapper(),
@@ -67,7 +69,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 featureToggle ?? CreateFeatureToggle(),
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
                 calculationCodeReferenceUpdate ?? CreateCalculationCodeReferenceUpdate(),
-                calculationCreateModelValidator ?? CreateCalculationCreateModelValidator());
+                calculationCreateModelValidator ?? CreateCalculationCreateModelValidator(),
+                calculationEditModelValidator?? CreateCalculationEditModelValidator());
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
@@ -172,6 +175,22 @@ namespace CalculateFunding.Services.Calcs.Services
             return validator;
         }
 
+        private static IValidator<CalculationEditModel> CreateCalculationEditModelValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<CalculationEditModel> validator = Substitute.For<IValidator<CalculationEditModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<CalculationEditModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
         private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
@@ -202,6 +221,17 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 SpecificationId = SpecificationId,
                 FundingStreamId = FundingStreamId,
+                Name = CalculationName,
+                ValueType = CalculationValueType.Currency,
+                SourceCode = DefaultSourceCode,
+                Description = Description
+            };
+        }
+
+        private static CalculationEditModel CreateCalculationEditModel()
+        {
+            return new CalculationEditModel
+            {
                 Name = CalculationName,
                 ValueType = CalculationValueType.Currency,
                 SourceCode = DefaultSourceCode,

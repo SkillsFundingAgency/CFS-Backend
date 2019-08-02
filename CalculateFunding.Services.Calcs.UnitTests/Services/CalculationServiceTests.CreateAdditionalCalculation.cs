@@ -4,12 +4,15 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
@@ -29,6 +32,8 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateAdditionalCalculation_GivenValidationFails_ReturnsBadRequest()
         {
             //Arrange
+            string correlationId = "any-id";
+
             CalculationCreateModel model = new CalculationCreateModel();
             Reference author = new Reference();
 
@@ -41,7 +46,7 @@ namespace CalculateFunding.Services.Calcs.Services
             CalculationService calculationService = CreateCalculationService(calculationCreateModelValidator: validator);
 
             //Act
-            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author);
+            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, correlationId);
 
             //Assert
             result
@@ -53,6 +58,8 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateAdditionalCalculation_GivenSavingDraftCalcFails_ReturnsInternalServerErrorResult()
         {
             //Arrange
+            string correlationId = "any-id";
+
             CalculationCreateModel model = CreateCalculationCreateModel();
 
             Reference author = CreateAuthor();
@@ -69,7 +76,7 @@ namespace CalculateFunding.Services.Calcs.Services
             string errorMessage = $"There was problem creating a new calculation with name {CalculationName} in Cosmos Db with status code 400";
 
             //Act
-            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author);
+            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, correlationId);
 
             //Assert
             result
@@ -102,18 +109,43 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns(new Job { Id = "job-id-1" });
+
+            ILogger logger = CreateLogger();
+
             CalculationService calculationService = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 calculationVersionRepository: versionRepository,
-                searchRepository: searchRepository);
+                searchRepository: searchRepository,
+                jobsApiClient: jobsApiClient,
+                logger: logger);
 
             //Act
-            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author);
+            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, CorrelationId);
 
             //Assert
             result
                 .Should()
                 .BeAssignableTo<OkObjectResult>();
+
+            await
+               jobsApiClient
+                   .Received(1)
+                   .CreateJob(Arg.Is<JobCreateModel>(
+                       m =>
+                           m.InvokerUserDisplayName == Username &&
+                           m.InvokerUserId == UserId &&
+                           m.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructAllocationJob &&
+                           m.Properties["specification-id"] == SpecificationId
+                       ));
+
+            logger
+               .Received(1)
+               .Information(Arg.Is($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: 'job-id-1'"));
+
 
             await
                 versionRepository
@@ -149,6 +181,54 @@ namespace CalculateFunding.Services.Calcs.Services
                        m.First().Description == model.Description
                    ));
 
+        }
+
+        [TestMethod]
+        public async Task CreateAdditionalCalculation_GivenCreateJobReturnsNull_ReturnsInternalServerError()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateCalculationCreateModel();
+
+            Reference author = CreateAuthor();
+
+            ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
+            calculationsRepository
+                .CreateDraftCalculation(Arg.Any<Calculation>())
+                .Returns(HttpStatusCode.OK);
+
+            IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
+
+            ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .CreateJob(Arg.Any<JobCreateModel>())
+                .Returns((Job)null);
+
+            ILogger logger = CreateLogger();
+
+            CalculationService calculationService = CreateCalculationService(
+                calculationsRepository: calculationsRepository,
+                calculationVersionRepository: versionRepository,
+                searchRepository: searchRepository,
+                jobsApiClient: jobsApiClient,
+                logger: logger);
+
+            //Act
+            IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, CorrelationId);
+
+            //Assert
+            result
+               .Should()
+               .BeOfType<InternalServerErrorResult>()
+               .Which
+               .Value
+               .Should()
+               .Be($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{SpecificationId}'");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is($"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{SpecificationId}'"));
         }
     }
 }

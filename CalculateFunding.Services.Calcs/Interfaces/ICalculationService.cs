@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationCurrentVersion(HttpRequest request);
 
-        Task<IActionResult> SaveCalculationVersion(HttpRequest request);
+        Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId);
 
         Task<IActionResult> UpdateCalculationStatus(HttpRequest request);
 
@@ -43,6 +43,6 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationByName(CalculationGetModel model);
 
-        Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author);
+        Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId);
     }
 }

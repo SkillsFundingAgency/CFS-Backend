@@ -91,6 +91,9 @@ namespace CalculateFunding.Functions.Calcs
 
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
+            builder
+              .AddSingleton<IValidator<CalculationEditModel>, CalculationEditModelValidator>();
+
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>(ctx =>
             {
                 BlobStorageOptions blobStorageOptions = new BlobStorageOptions();

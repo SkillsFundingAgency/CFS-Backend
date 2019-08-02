@@ -2,6 +2,7 @@
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 
@@ -62,11 +63,13 @@ namespace CalculateFunding.Api.Calcs.Controllers
             return _calcsService.GetCalculationCurrentVersion(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/calcs/calculation-save-version")]
-        [HttpPost]
-        public Task<IActionResult> RunCalculationSaveVersion()
+        [Route("api/calcs/specifications/{specificationId}/calculations/{calculationId}")]
+        [HttpPut]
+        public Task<IActionResult> EditCalculation([FromRoute]string specificationId, [FromRoute]string calculationId, [FromBody]CalculationEditModel model)
         {
-            return _calcsService.SaveCalculationVersion(ControllerContext.HttpContext.Request);
+            HttpRequest httpRequest = ControllerContext.HttpContext.Request;
+
+            return _calcsService.EditCalculation(specificationId, calculationId, model, httpRequest.GetUser(), httpRequest.GetCorrelationId());
         }
 
         [Route("api/calcs/calculation-version-history")]
@@ -209,7 +212,9 @@ namespace CalculateFunding.Api.Calcs.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAdditionalCalculation([FromRoute]string specificationId, [FromBody]CalculationCreateModel model)
         {
-            return await _calcsService.CreateAdditionalCalculation(specificationId, model, ControllerContext.HttpContext.Request.GetUser());
+            HttpRequest httpRequest = ControllerContext.HttpContext.Request;
+
+            return await _calcsService.CreateAdditionalCalculation(specificationId, model, httpRequest.GetUser(), httpRequest.GetCorrelationId());
         }
     }
 }

@@ -15,16 +15,16 @@ using NSubstitute;
 namespace CalculateFunding.Services.Calcs.Validators
 {
     [TestClass]
-    public class CalculationCreateModelValidatorTests
+    public class CalculationEditModelValidatorTests
     {
         [TestMethod]
         public async Task ValidateAsync_WhenNameIsEmpty_ValidIsFalse()
         {
             //Arrange
-            CalculationCreateModel model = CreateModel();
+            CalculationEditModel model = CreateModel();
             model.Name = string.Empty;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            CalculationEditModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -40,10 +40,10 @@ namespace CalculateFunding.Services.Calcs.Validators
         public async Task ValidateAsync_WhenSpecificationIsEmpty_ValidIsFalse()
         {
             //Arrange
-            CalculationCreateModel model = CreateModel();
+            CalculationEditModel model = CreateModel();
             model.SpecificationId = string.Empty;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            CalculationEditModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -56,13 +56,13 @@ namespace CalculateFunding.Services.Calcs.Validators
         }
 
         [TestMethod]
-        public async Task ValidateAsync_WhenFundingStreamdIdEmpty_ValidIsFalse()
+        public async Task ValidateAsync_WhenCalculationIdEmpty_ValidIsFalse()
         {
             //Arrange
-            CalculationCreateModel model = CreateModel();
-            model.FundingStreamId = string.Empty;
+            CalculationEditModel model = CreateModel();
+            model.CalculationId = string.Empty;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            CalculationEditModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -78,10 +78,10 @@ namespace CalculateFunding.Services.Calcs.Validators
         public async Task ValidateAsync_WhenValueTypeIsMissing_ValidIsFalse()
         {
             //Arrange
-            CalculationCreateModel model = CreateModel();
+            CalculationEditModel model = CreateModel();
             model.ValueType = null;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            CalculationEditModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -97,10 +97,10 @@ namespace CalculateFunding.Services.Calcs.Validators
         public async Task ValidateAsync_WhenSourceCodeIsEmpty_ValidIsFalse()
         {
             //Arrange
-            CalculationCreateModel model = CreateModel();
+            CalculationEditModel model = CreateModel();
             model.SourceCode = string.Empty;
 
-            CalculationCreateModelValidator validator = CreateValidator();
+            CalculationEditModelValidator validator = CreateValidator();
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -116,7 +116,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         public async Task ValidateAsync_WhenCalculationNameAlreadyExists_ValidIsFalse()
         {
             //Arrange
-            CalculationCreateModel model = CreateModel();
+            CalculationEditModel model = CreateModel();
 
             Calculation calculationWithSameName = new Calculation();
 
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns(calculationWithSameName);
 
-            CalculationCreateModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
+            CalculationEditModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -141,7 +141,7 @@ namespace CalculateFunding.Services.Calcs.Validators
         public async Task ValidateAsync_WhenSourceCodeDoesNotCompile_ValidIsFalse()
         {
             //Arrange
-            CalculationCreateModel model = CreateModel();
+            CalculationEditModel model = CreateModel();
 
             PreviewResponse previewResponse = new PreviewResponse
             {
@@ -156,58 +156,7 @@ namespace CalculateFunding.Services.Calcs.Validators
 
             IPreviewService previewService = CreatePreviewService(previewResponse);
            
-            CalculationCreateModelValidator validator = CreateValidator(previewService: previewService);
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(model);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        public async Task ValidateAsync_WhenSpecificationCanNotBeFound_ValidIsFalse()
-        {
-            //Arrange
-            CalculationCreateModel model = CreateModel();
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
-                .Returns((SpecificationSummary)null);
-
-            CalculationCreateModelValidator validator = CreateValidator(specificationRepository: specificationRepository);
-
-            //Act
-            ValidationResult result = await validator.ValidateAsync(model);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-        }
-
-        [TestMethod]
-        public async Task ValidateAsync_WhenSpecificationDoesNotContainFundingStreamValidIsFalse()
-        {
-            //Arrange
-            CalculationCreateModel model = CreateModel();
-
-            SpecificationSummary specificationSummary = new SpecificationSummary
-            {
-                FundingStreams = new[] { new Reference() }
-            };
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
-                .Returns(specificationSummary);
-
-            CalculationCreateModelValidator validator = CreateValidator(specificationRepository: specificationRepository);
+            CalculationEditModelValidator validator = CreateValidator(previewService: previewService);
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -223,26 +172,14 @@ namespace CalculateFunding.Services.Calcs.Validators
         public async Task ValidateAsync_WhenValidModel_ValidIsTrue()
         {
             //Arrange
-            CalculationCreateModel model = CreateModel();
+            CalculationEditModel model = CreateModel();
 
-           
             ICalculationsRepository calculationsRepository = CreateCalculationRepository();
             calculationsRepository
                 .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns((Calculation)null);
 
-            SpecificationSummary specificationSummary = new SpecificationSummary
-            {
-                FundingStreams = new[] { new Reference(model.FundingStreamId, "any name") }
-            };
-
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
-                .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
-                .Returns(specificationSummary);
-
-            CalculationCreateModelValidator validator = CreateValidator(
-                calculationsRepository, specificationRepository: specificationRepository);
+            CalculationEditModelValidator validator = CreateValidator(calculationsRepository);
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -254,15 +191,13 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .BeTrue();
         }
 
-        private static CalculationCreateModelValidator CreateValidator(
+        private static CalculationEditModelValidator CreateValidator(
             ICalculationsRepository calculationRepository = null,
-            IPreviewService previewService = null,
-            ISpecificationRepository specificationRepository = null)
+            IPreviewService previewService = null)
         {
-            return new CalculationCreateModelValidator(
-                calculationRepository ?? CreateCalculationRepository(),
+            return new CalculationEditModelValidator(
                 previewService ?? CreatePreviewService(),
-                specificationRepository ?? CreateSpecificationRepository());
+                calculationRepository ?? CreateCalculationRepository());
         }
 
         private static ICalculationsRepository CreateCalculationRepository()
@@ -298,12 +233,12 @@ namespace CalculateFunding.Services.Calcs.Validators
             return Substitute.For<ISpecificationRepository>();
         }
 
-        private static CalculationCreateModel CreateModel()
+        private static CalculationEditModel CreateModel()
         {
-            return new CalculationCreateModel
+            return new CalculationEditModel
             {
                 Description = "test description",
-                FundingStreamId = "fs-1",
+                CalculationId = "cal-1",
                 Name = "test calc",
                 SourceCode = "return 1000",
                 SpecificationId = "spec-1",

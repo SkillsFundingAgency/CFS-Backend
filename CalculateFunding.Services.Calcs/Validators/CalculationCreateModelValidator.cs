@@ -34,9 +34,13 @@ namespace CalculateFunding.Services.Calcs.Validators
               .NotNull()
               .WithMessage("Null or empty specification id provided.");
 
+            RuleFor(model => model.ValueType)
+              .NotNull()
+              .WithMessage("Null value type was provided.");
 
             RuleFor(model => model.Name)
-              .Custom((name, context) => {
+              .Custom((name, context) =>
+              {
                   CalculationCreateModel calculationCreateModel = context.ParentContext.InstanceToValidate as CalculationCreateModel;
                   if (string.IsNullOrWhiteSpace(calculationCreateModel.Name))
                   {
@@ -55,7 +59,8 @@ namespace CalculateFunding.Services.Calcs.Validators
               });
 
             RuleFor(model => model.SourceCode)
-             .Custom((sc, context) => {
+             .Custom((sc, context) =>
+             {
                  CalculationCreateModel calculationCreateModel = context.ParentContext.InstanceToValidate as CalculationCreateModel;
                  if (string.IsNullOrWhiteSpace(calculationCreateModel.SourceCode))
                  {
@@ -84,12 +89,13 @@ namespace CalculateFunding.Services.Calcs.Validators
                              context.AddFailure("There are errors in the source code provided");
                          }
                      }
-                     
+
                  }
              });
 
             RuleFor(model => model.FundingStreamId)
-             .Custom((fs, context) => {
+             .Custom((fs, context) =>
+             {
                  CalculationCreateModel calculationCreateModel = context.ParentContext.InstanceToValidate as CalculationCreateModel;
                  if (string.IsNullOrWhiteSpace(calculationCreateModel.FundingStreamId))
                  {
@@ -97,7 +103,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                  }
                  else
                  {
-                     Models.Specs.SpecificationSummary specificationSummary =  _specificationRepository.GetSpecificationSummaryById(calculationCreateModel.SpecificationId).Result;
+                     Models.Specs.SpecificationSummary specificationSummary = _specificationRepository.GetSpecificationSummaryById(calculationCreateModel.SpecificationId).Result;
 
                      if (specificationSummary == null)
                      {
