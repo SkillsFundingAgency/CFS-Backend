@@ -95,6 +95,18 @@ namespace CalculateFunding.Services.Compiler
             };
         }
 
+        protected IEnumerable<TSyntaxType> GetDescendants<TSyntaxType>(SyntaxNode syntaxNode)
+            where TSyntaxType : SyntaxNode
+        {
+            return syntaxNode?.DescendantNodes().OfType<TSyntaxType>();
+        }
+
+        protected IEnumerable<TSyntaxType> GetDescendants<TSyntaxType>(SyntaxTree syntaxTree)
+            where TSyntaxType : SyntaxNode
+        {
+            return GetDescendants<TSyntaxType>(syntaxTree.GetRoot());
+        }
+
         protected abstract IDictionary<string, string> GetCalculationFunctions(IEnumerable<SourceFile> sourceFiles);
 
         protected abstract EmitResult Compile(MetadataReference[] references, MemoryStream ms, List<SourceFile> sourceFiles);

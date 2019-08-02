@@ -39,36 +39,50 @@ namespace CalculateFunding.Services.Compiler.Languages
             return GetCalculationFunctionsFromVb(sourceFiles);
         }
 
-        public IDictionary<string, string> GetCalculationFunctionsFromVb(IEnumerable<SourceFile> sourceFiles)
+        private IDictionary<string, string> GetCalculationFunctionsFromVb(IEnumerable<SourceFile> sourceFiles)
         {
             SourceFile sourceFile = sourceFiles.FirstOrDefault(m => m.FileName == "Calculations.vb");
 
             if (sourceFile == null)
             {
-                throw new System.Exception("Missing calculations class file");
+                throw new Exception("Missing calculations class file");
             }
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(sourceFile.SourceCode);
 
             Dictionary<string, string> functions = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
 
-            foreach (LambdaExpressionSyntax func in syntaxTree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            foreach(ClassBlockSyntax classDefinition in GetDescendants<ClassBlockSyntax>(syntaxTree))
             {
-                if (func.Parent != null && func.Parent is AssignmentStatementSyntax)
-                {
-                    AssignmentStatementSyntax assignmentStatementSyntax = func.Parent as AssignmentStatementSyntax;
+                string className = classDefinition.ClassStatement.Identifier.Text;
 
-                    IdentifierNameSyntax identifierNameSyntax = assignmentStatementSyntax.Left as IdentifierNameSyntax;
+                if (className == "CalculationContext")
+                {
+                    continue;
+                }
+
+                string namespaceName = className == "AdditionalCalculations" ? "Calculations" : className.Replace("Calculations", "");
+
+                foreach (LambdaExpressionSyntax func in  GetDescendants<LambdaExpressionSyntax>(classDefinition))
+                {
+                    if (!(func.Parent is AssignmentStatementSyntax)) continue;
+                    
+                    AssignmentStatementSyntax assignmentStatementSyntax = (AssignmentStatementSyntax) func.Parent;
+
+                    IdentifierNameSyntax identifierNameSyntax =
+                        (IdentifierNameSyntax) assignmentStatementSyntax.Left;
 
                     string funcName = identifierNameSyntax.Identifier.Text;
 
                     string body = func.ToFullString();
 
-                    MatchCollection matches = Regex.Matches(body, "#ExternalSource.*?\\)(.*?)#End\\sExternalSource", RegexOptions.Singleline);
+                    MatchCollection matches = Regex.Matches(body, "#ExternalSource.*?\\)(.*?)#End\\sExternalSource",
+                        RegexOptions.Singleline);
 
                     if (matches.Count > 0 && matches[0].Groups.Count > 1)
                     {
-                        functions.Add(funcName, matches[0].Groups[1].Value);
+                        //we need aggregate parameters to always be fully qualified now (for calcs)
+                        functions.Add($"{namespaceName}.{funcName}", matches[0].Groups[1].Value);
                     }
                 }
             }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
@@ -35,7 +34,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly IValidator<PreviewRequest> _previewRequestValidator;
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly IDatasetRepository _datasetRepository;
-        private readonly IFeatureToggle _featureToggle;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly ITokenChecker _tokenChecker;
@@ -46,7 +44,6 @@ namespace CalculateFunding.Services.Calcs
             IValidator<PreviewRequest> previewRequestValidator,
             ICalculationsRepository calculationsRepository,
             IDatasetRepository datasetRepository,
-            IFeatureToggle featureToggle,
             ICacheProvider cacheProvider,
             ISourceCodeService sourceCodeService,
             ITokenChecker tokenChecker)
@@ -56,7 +53,6 @@ namespace CalculateFunding.Services.Calcs
             _previewRequestValidator = previewRequestValidator;
             _calculationsRepository = calculationsRepository;
             _datasetRepository = datasetRepository;
-            _featureToggle = featureToggle;
             _cacheProvider = cacheProvider;
             _sourceCodeService = sourceCodeService;
             _tokenChecker = tokenChecker;
@@ -91,14 +87,14 @@ namespace CalculateFunding.Services.Calcs
 
             Calculation tempCalculation = new Calculation
             {
-                SpecificationId = previewRequest.SpecificationId,
                 Id = TempCalculationId,
+                SpecificationId = previewRequest.SpecificationId,
                 Current = new CalculationVersion
                 {
                     Name = !string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName,
                     CalculationId = TempCalculationId,
                     SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(!string.IsNullOrWhiteSpace(previewRequest.Name) ? previewRequest.Name : TempCalculationName),
-                    SourceCode = previewRequest.SourceCode
+                    SourceCode = previewRequest.SourceCode,
                 }
             };
 
@@ -130,12 +126,12 @@ namespace CalculateFunding.Services.Calcs
 
             List<Calculation> calculations = new List<Calculation>(calculationsTask.Result);
 
-
             Calculation calculation = calculations.FirstOrDefault(m => m.Id == previewRequest.CalculationId);
 
             if (calculation == null)
             {
                 calculation = tempCalculation;
+                calculation.Current.Namespace = CalculationNamespace.Additional;
                 calculations.Add(tempCalculation);
             }
 
@@ -174,9 +170,8 @@ namespace CalculateFunding.Services.Calcs
             if (compilerOutput.Success)
             {
                 _logger.Information($"Build compiled successfully for calculation id {calculationToPreview.Id}");
-
                
-                string calculationIdentifier = VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name);
+                string calculationIdentifier = $"{calculationToPreview.Namespace}.{VisualBasicTypeGenerator.GenerateIdentifier(calculationToPreview.Name)}";
 
                 IDictionary<string, string> functions = _sourceCodeService.GetCalculationFunctions(compilerOutput.SourceFiles);
 

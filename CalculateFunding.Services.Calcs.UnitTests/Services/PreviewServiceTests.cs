@@ -291,8 +291,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -423,9 +423,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" },
-                { "Alice", "return 1" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" },
+                { "Calculations.Alice", "return 1" }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -533,7 +533,15 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task Compile_GivenStringCompareInCode_CompilesCodeAndReturnsOk()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            const string stringCompareCode = @"Public Class AdditionalCalculations
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+If E1.ProviderType = ""goodbye"" Then
+Return ""worked""
+Else Return ""no""
+End If
+End Function
+End Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -594,8 +602,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -656,7 +664,15 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndNoAggregateFunctionsUsed_CompilesCodeAndReturnsOk()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            const string stringCompareCode = @"Public Class AdditionalCalculations
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+If E1.ProviderType = ""goodbye"" Then
+Return ""worked""
+Else Return ""no""
+End If
+End Function
+End Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -710,7 +726,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>()
             {
-                { "TestFunction", model.SourceCode }
+                { "Calculations.TestFunction", model.SourceCode }
             };
 
             Build compilerOutput = new Build
@@ -769,7 +785,16 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndAggregateFunctionsUsedButNoAggreatesFound_CompilesCodeAndReturnsOk()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nDim a = Sum(whatever) as Decimal\nIf E1.ProviderType = \"goodbye\" Then\nReturn \"worked\"\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            const string stringCompareCode = @"Public Class AdditionalCalculations
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+Dim a = Sum(Calculations.whatever) as Decimal
+If E1.ProviderType = ""goodbye"" Then
+Return ""worked""
+Else Return ""no""
+End If
+End Function
+End Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -824,9 +849,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" },
-                { "whatever", "return 1" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" },
+                { "Calculations.whatever", "return 1" }
             };
 
             Build compilerOutput = new Build
@@ -1317,13 +1342,21 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        [DataRow("Calc1")]
-        [DataRow("calc1")]
-        [DataRow("cAlC1")]
+        [DataRow("Calculations.Calc1")]
+        [DataRow("Calculations.calc1")]
+        [DataRow("Calculations.cAlC1")]
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFoundInAnyCase_CompilesCodeAndReturnsOk(string calcReference)
         {
             //Arrange
-            string stringCompareCode = $"Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum({calcReference})\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            const string stringCompareCode = @"Public Class TestClass
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+If E1.ProviderType = ""goodbye"" Then
+Return Sum({calcReference})
+Else Return ""no""
+End If
+End Function
+End Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -1384,8 +1417,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase)
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
             };
 
             IDatasetRepository datasetRepository = CreateDatasetRepository();
@@ -1428,7 +1461,20 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFoundButAlreadyInAnAggregate_ReturnsCompilerError()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum(Calc1)\nElse Return \"no\"\nEnd If\nEnd Function\nPublic Function Calc1 As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum(Calc2)\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            const string stringCompareCode = @"Public Class AdditionalCalculations
+Public Property E1 As ExampleClass
+Public Function TestFunction As String
+If E1.ProviderType = ""goodbye"" Then
+Return Sum(Calculations.Calc1)\nElse Return ""no""
+End If
+End Function
+Public Function Calc1 As String
+If E1.ProviderType = ""goodbye"" Then
+Return Sum(Calculations.Calc2)
+Else Return ""no""
+End If
+End Function
+End Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -1443,7 +1489,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new CalculationVersion
                 {
                     Name = "TestFunction",
-                    SourceCodeName = "Horace"
+                    SourceCodeName = "Horace",
+                    Namespace = CalculationNamespace.Additional
                 },
                 SpecificationId = SpecificationId,
             };
@@ -1489,9 +1536,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" },
-                { "Calc2", "Avg(TestFunction)" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" },
+                { "Calculations.Calc2", "Avg(Calculations.TestFunction)" }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -1537,14 +1584,22 @@ namespace CalculateFunding.Services.Calcs.Services
                .First()
                .Message
                .Should()
-               .Be($"TestFunction is already referenced in an aggregation that would cause nesting");
+               .Be("Calculations.TestFunction is already referenced in an aggregation that would cause nesting");
         }
 
         [TestMethod]
         public async Task Compile_GivenStringCompareInCodeAndAggregatesIsEnabledAndCalculationAggregateFunctionsFoundButFoundNestedAggregate_ReturnsCompilerError()
         {
             //Arrange
-            string stringCompareCode = "Public Class TestClass\nPublic Property E1 As ExampleClass\nPublic Function TestFunction As String\nIf E1.ProviderType = \"goodbye\" Then\nReturn Sum(Calc1)\nElse Return \"no\"\nEnd If\nEnd Function\nEnd Class";
+            const string stringCompareCode = @"Public Class TestClass
+Public Property E1 As AdditionalCalculations
+Public Function TestFunction As String
+If E1.ProviderType = ""goodbye"" Then
+Return Sum(Calculations.Calc1)
+Else Return ""no""
+End If
+End Function
+End Class";
 
             PreviewRequest model = new PreviewRequest
             {
@@ -1605,9 +1660,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
-                { "TestFunction", "return 1" },
-                { "Calc1", "return Avg(TestFunction)" },
-                { "Calc2", "return Avg(Calc1)" }
+                { "Calculations.TestFunction", "return 1" },
+                { "Calculations.Calc1", "return Avg(Calculations.TestFunction)" },
+                { "Calculations.Calc2", "return Avg(Calculations.Calc1)" }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -1653,7 +1708,7 @@ namespace CalculateFunding.Services.Calcs.Services
                .First()
                .Message
                .Should()
-               .Be("Calc2 cannot reference another calc that is being aggregated");
+               .Be("Calculations.Calc2 cannot reference another calc that is being aggregated");
 
             await
                sourceCodeService
@@ -1726,8 +1781,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -1737,7 +1792,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             sourceCodeService
                 .GetCalculationFunctions(Arg.Any<IEnumerable<SourceFile>>())
-                .Returns(sourceCodes); ;
+                .Returns(sourceCodes);
 
             PreviewService service = CreateService(logger: logger, previewRequestValidator: validator, calculationsRepository: calculationsRepository,
                 buildProjectsService: buildProjectsService, sourceCodeService: sourceCodeService);
@@ -1839,8 +1894,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" }
             };
 
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
@@ -2082,9 +2137,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
-                { "TestFunction", model.SourceCode },
-                { "Calc1", "return 1" },
-                { "Alice", "return 1" }
+                { "Calculations.TestFunction", model.SourceCode },
+                { "Calculations.Calc1", "return 1" },
+                { "Calculations.Alice", "return 1" }
             };
 
             sourceCodeService
@@ -2287,7 +2342,6 @@ Calculation Name: {{calculationName}}").ToArray()
                 previewRequestValidator ?? CreatePreviewRequestValidator(),
                 calculationsRepository ?? CreateCalculationsRepository(),
                 datasetRepository ?? CreateDatasetRepository(),
-                featureToggle ?? CreateFeatureToggle(),
                 cacheProvider ?? CreateCacheProvider(),
                 sourceCodeService ?? CreateSourceCodeService(),
                 tokenChecker ?? tokenChecker);
