@@ -1,11 +1,13 @@
-﻿using CalculateFunding.Common.CosmosDb;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Azure.Documents;
 
 namespace CalculateFunding.Services.Publishing.Repositories
 {
@@ -17,31 +19,45 @@ namespace CalculateFunding.Services.Publishing.Repositories
         {
             _cosmosRepository = cosmosRepository;
         }
+
         public async Task<ServiceHealth> IsHealthOk()
         {
             (bool Ok, string Message) = await _cosmosRepository.IsHealthOk();
 
-            ServiceHealth health = new ServiceHealth()
+            ServiceHealth health = new ServiceHealth
             {
                 Name = nameof(CalculationResultsRepository)
             };
-            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message });
+            health.Dependencies.Add(new DependencyHealth {HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message});
 
             return health;
         }
-        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1)
-        {
-            List<ProviderResult> results;
-            if (maxItemCount > 0)
-            {
-                results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).Take(maxItemCount).ToList();
-            }
-            else
-            {
-                results = _cosmosRepository.Query<ProviderResult>(enableCrossPartitionQuery: true).Where(x => x.SpecificationId == specificationId).ToList();
-            }
 
-            return Task.FromResult(results.AsEnumerable());
+
+        public Task<IEnumerable<ProviderResult>> GetCalculationResultsBySpecificationId(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            IEnumerable<ProviderResult> providerResultSummaries = _cosmosRepository
+                .DynamicQueryPartionedEntity<ProviderResult>(new SqlQuerySpec
+                {
+                    QueryText = @"
+SELECT
+	    doc.content.id AS providerId,
+	    ARRAY(  SELECT calcResult.calculation.id,
+	                   calcResult.value 
+	            FROM   calcResult IN doc.content.calcResults) AS Results
+FROM 	doc
+WHERE   doc.documentType='ProviderResult'
+AND     doc.content.specificationId = @specificationId",
+                    Parameters = new SqlParameterCollection
+                    {
+                        new SqlParameter("@specificationId", specificationId)
+                    }
+                })
+                .ToList();
+
+            return Task.FromResult(providerResultSummaries);
         }
     }
 }

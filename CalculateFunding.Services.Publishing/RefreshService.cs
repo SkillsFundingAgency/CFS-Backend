@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing
             //We will be adding telemtry
             //Updating cache with percentage comeplete
             //and whatever else
-
+            
             Guard.ArgumentNotNull(message, nameof(message));
 
             Reference author = message.GetUserDetails();

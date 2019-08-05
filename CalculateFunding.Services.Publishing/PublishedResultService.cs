@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 
-            return _resultsRepositoryPolicy.ExecuteAsync(() => _calculationResultsRepository.GetProviderResultsBySpecificationId(specificationId, -1));
+            return _resultsRepositoryPolicy.ExecuteAsync(() => _calculationResultsRepository.GetCalculationResultsBySpecificationId(specificationId));
         }
     }
 }
