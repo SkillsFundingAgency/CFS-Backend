@@ -208,6 +208,13 @@ namespace CalculateFunding.Api.Calcs.Controllers
             return await _calcsService.GetCalculationByName(model);
         }
 
+        [Route("api/calcs/specifications/{specificationId}/calculations/metadata")]
+        [HttpGet]
+        public async Task<IActionResult> GetCalculationsMetadata([FromRoute]string specificationId)
+        {
+            return await _calcsService.GetCalculationsMetadataForSpecification(specificationId);
+        }
+
         [Route("api/calcs/specifications/{specificationId}/calculations")]
         [HttpPost]
         public async Task<IActionResult> CreateAdditionalCalculation([FromRoute]string specificationId, [FromBody]CalculationCreateModel model)

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
@@ -16,6 +17,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.CodeGeneration;
 using CalculateFunding.Services.Core;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
@@ -184,6 +186,8 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task EditCalculation_GivenCalculationExistsWithButBuildProjectDoesNotExist_CreatesNewBuildProject()
         {
             // Arrange
+            string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{SpecificationId}";
+
             string buildProjectId = Guid.NewGuid().ToString();
 
             Calculation calculation = CreateCalculation();
@@ -240,6 +244,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = new List<SourceFile> { new SourceFile() }
             };
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             ISourceCodeService sourceCodeService = CreateSourceCodeService();
             sourceCodeService
                 .Compile(Arg.Any<BuildProject>(), Arg.Any<IEnumerable<Calculation>>(), Arg.Any<CompilerOptions>())
@@ -258,7 +264,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationVersionRepository: versionRepository,
                 sourceCodeService: sourceCodeService,
                 jobsApiClient: jobsApiClient,
-                buildProjectsService: buildProjectsService);
+                buildProjectsService: buildProjectsService,
+                cacheProvider: cacheProvider);
 
             // Act
             IActionResult result = await service.EditCalculation(SpecificationId, CalculationId, calculationEditModel, author, CorrelationId);
@@ -282,6 +289,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 sourceCodeService
                     .Received(1)
                     .SaveSourceFiles(Arg.Is<IEnumerable<SourceFile>>(m => m.Count() == 1), Arg.Is(calculation.SpecificationId), Arg.Is(SourceCodeType.Release));
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
         }
 
         [TestMethod]
@@ -1206,43 +1218,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
 
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            request
-                .HttpContext
-                .Returns(context);
-
             ILogger logger = CreateLogger();
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -1360,29 +1335,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             calculation.Current.PublishStatus = PublishStatus.Updated;
 
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
-
             ILogger logger = CreateLogger();
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
@@ -1467,45 +1419,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Calculation calculation = CreateCalculation();
             calculation.SpecificationId = specificationId;
-
-            calculation.Current.PublishStatus = PublishStatus.Updated;
-
-            SaveSourceCodeVersion model = new SaveSourceCodeVersion
-            {
-                SourceCode = "source code"
-            };
-            string json = JsonConvert.SerializeObject(model);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "calculationId", new StringValues(CalculationId) }
-
-            });
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ClaimsPrincipal principle = new ClaimsPrincipal(new[]
-            {
-                new ClaimsIdentity(new []{ new Claim(ClaimTypes.Sid, UserId), new Claim(ClaimTypes.Name, Username) })
-            });
-
-            HttpContext context = Substitute.For<HttpContext>();
-            context
-                .User
-                .Returns(principle);
-
-            request
-                .HttpContext
-                .Returns(context);
 
             ILogger logger = CreateLogger();
 

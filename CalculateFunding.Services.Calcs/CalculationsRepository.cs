@@ -12,6 +12,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using Microsoft.Azure.Documents;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -133,6 +134,38 @@ namespace CalculateFunding.Services.Calcs
             sqlQuerySpec.Parameters = new SqlParameterCollection(sqlParameters);
             IQueryable<int> result = _cosmosRepository.RawQuery<int>(sqlQuerySpec, 1, true);
             return result;
+        }
+
+        public async Task<IEnumerable<CalculationMetadata>> GetCalculationsMetatadataBySpecificationId(string specificationId)
+        {
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = @"SELECT 
+                                    c.content.specificationId as SpecificationId,
+                                    c.content.fundingStreamId as FundingStreamId,
+                                    c.content.current.calculationId as CalculationId,
+                                    c.content.current.valueType as ValueType,
+                                    c.content.current.name as Name,
+                                    c.content.current.sourceCodeName as SourceCodeName,
+                                    c.content.current.calculationType as CalculationType,
+                                    c.content.current.namespace as Namespace,
+                                    c.content.current.wasTemplateCalculation as WasTemplateCalculation,
+                                    c.content.current.description as Description
+                                    FROM c 
+                                    WHERE c.content.specificationId = @SpecificationId",
+                Parameters = new SqlParameterCollection
+                {
+                    new SqlParameter("@SpecificationId", specificationId)
+                }
+            };
+
+            dynamic[] resultsArray = _cosmosRepository.DynamicQuery<dynamic>(sqlQuerySpec, enableCrossPartitionQuery: true).ToArray();
+
+            string resultsString = JsonConvert.SerializeObject(resultsArray);
+
+            CalculationMetadata[] items = JsonConvert.DeserializeObject<CalculationMetadata[]>(resultsString);
+
+            return await Task.FromResult(items);
         }
     }
 }

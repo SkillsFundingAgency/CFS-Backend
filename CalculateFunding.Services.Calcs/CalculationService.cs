@@ -365,6 +365,36 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculations);
         }
 
+        public async Task<IActionResult> GetCalculationsMetadataForSpecification(string specificationId)
+        {
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error($"No specificationId was provided to {nameof(GetCalculationsMetadataForSpecification)}");
+
+                return new BadRequestObjectResult("Null or empty specificationId provided");
+            }
+
+            string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
+
+            IEnumerable<CalculationMetadata> calculations = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<CalculationMetadata>>(cacheKey));
+
+            if (calculations == null)
+            {
+                calculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsMetatadataBySpecificationId(specificationId));
+
+                if (!calculations.IsNullOrEmpty())
+                {
+                    await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<CalculationMetadata>>(cacheKey, calculations.ToList()));
+                }
+                else
+                {
+                    calculations = Enumerable.Empty<CalculationMetadata>();
+                }
+            }
+
+            return new OkObjectResult(calculations);
+        }
+
         public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId)
         {
             Guard.ArgumentNotNull(model, nameof(model));
@@ -426,6 +456,10 @@ namespace CalculateFunding.Services.Calcs
                 await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.SaveVersion(calculationVersion));
 
                 await UpdateSearch(calculation);
+
+                string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
+
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
 
                 Job job = null;
 
@@ -609,6 +643,10 @@ namespace CalculateFunding.Services.Calcs
             calculationVersion.Description = calculationEditModel.Description;
 
             UpdateCalculationResult result = await UpdateCalculation(calculation, calculationVersion, author);
+
+            string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
+
+            await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
 
             Job job = null;
 

@@ -28,6 +28,8 @@
 
         public static string CalculationsSummariesForSpecification { get; set; } = "calculation-summaries-for-specification:";
 
+        public static string CalculationsMetadataForSpecification { get; set; } = "calculations-metadata-for-specification:";
+
         public static string CurrentCalculation { get; set; } = "calculation-current:";
 
         public static string AllProviderSummaries { get; set; } = "all-provider-summaries:";

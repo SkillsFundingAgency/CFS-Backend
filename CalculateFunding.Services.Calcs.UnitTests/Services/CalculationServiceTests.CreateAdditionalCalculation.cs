@@ -6,12 +6,14 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces;
@@ -96,6 +98,8 @@ namespace CalculateFunding.Services.Calcs.Services
         public async Task CreateAdditionalCalculation_GivenCalcSaves_ReturnsOKObjectResult()
         {
             //Arrange
+            string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{SpecificationId}";
+
             CalculationCreateModel model = CreateCalculationCreateModel();
 
             Reference author = CreateAuthor();
@@ -116,12 +120,15 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ILogger logger = CreateLogger();
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService calculationService = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 calculationVersionRepository: versionRepository,
                 searchRepository: searchRepository,
                 jobsApiClient: jobsApiClient,
-                logger: logger);
+                logger: logger,
+                cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await calculationService.CreateAdditionalCalculation(SpecificationId, model, author, CorrelationId);
@@ -180,6 +187,11 @@ namespace CalculateFunding.Services.Calcs.Services
                        m.First().WasTemplateCalculation == false &&
                        m.First().Description == model.Description
                    ));
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .RemoveAsync<List<CalculationMetadata>>(Arg.Is(cacheKey));
 
         }
 
