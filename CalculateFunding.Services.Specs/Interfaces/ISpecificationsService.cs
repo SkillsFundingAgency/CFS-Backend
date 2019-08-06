@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -36,8 +35,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task AssignDataDefinitionRelationship(Message message);
 
-        Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateId, string fundingStreamId);
-
         Task<IActionResult> ReIndex();
 
         Task<IActionResult> EditSpecification(HttpRequest request);
@@ -55,5 +52,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IActionResult> UpdatePublishedRefreshedDate(HttpRequest request);
 
         Task<IActionResult> UpdateCalculationLastUpdatedDate(HttpRequest request);
+
+        Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId, string templateVersion);
     }
 }

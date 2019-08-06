@@ -31,6 +31,7 @@
         public static string CalculationsMetadataForSpecification { get; set; } = "calculations-metadata-for-specification:";
 
         public static string CurrentCalculation { get; set; } = "calculation-current:";
+        public static string CalculationsForSpecification { get; set; } = "calculations-for-specification:";
 
         public static string AllProviderSummaries { get; set; } = "all-provider-summaries:";
 

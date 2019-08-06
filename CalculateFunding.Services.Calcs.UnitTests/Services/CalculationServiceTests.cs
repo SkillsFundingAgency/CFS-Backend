@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -50,7 +50,8 @@ namespace CalculateFunding.Services.Calcs.Services
             IBuildProjectsRepository buildProjectsRepository = null,
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = null,
             IValidator<CalculationCreateModel> calculationCreateModelValidator = null,
-            IValidator<CalculationEditModel> calculationEditModelValidator = null)
+            IValidator<CalculationEditModel> calculationEditModelValidator = null,
+            ISpecificationsApiClient specificationsApiClient = null)
         {
             return new CalculationService
                 (mapper ?? CreateMapper(),
@@ -70,7 +71,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
                 calculationCodeReferenceUpdate ?? CreateCalculationCodeReferenceUpdate(),
                 calculationCreateModelValidator ?? CreateCalculationCreateModelValidator(),
-                calculationEditModelValidator?? CreateCalculationEditModelValidator());
+                calculationEditModelValidator?? CreateCalculationEditModelValidator(),
+                specificationsApiClient ?? CreateSpecificationsApiClient());
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
@@ -194,6 +196,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
+        }
+
+        private static ISpecificationsApiClient CreateSpecificationsApiClient()
+        {
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         private static Calculation CreateCalculation()

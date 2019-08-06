@@ -588,117 +588,6 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications.FirstOrDefault());
         }
 
-        public async Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateId, string fundingStreamId)
-        {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.IsNullOrWhiteSpace(templateId, nameof(templateId));
-            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
-                _logger.Error(message);
-
-                return new PreconditionFailedResult(message);
-            }
-
-            bool specificationContainsGivenFundingStream = specification.Current.FundingStreams.Any(x => x.Id == fundingStreamId);
-            if (!specificationContainsGivenFundingStream)
-            {
-                string message = $"Specification ID {specificationId} does not have contain given funding stream with ID {fundingStreamId}";
-                _logger.Error(message);
-
-                return new PreconditionFailedResult(message);
-            }
-
-            Common.ApiClient.Models.ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateContents = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplate(fundingStreamId, templateId));
-            if (fundingTemplateContents.StatusCode != HttpStatusCode.OK)
-            {
-                string message = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateId} did not return OK.";
-                _logger.Error(message);
-
-                return new PreconditionFailedResult(message);
-            }
-
-            TemplateMapping fundingTemplateMapping = fundingTemplateContents.Content != null ? GetTemplateMappingFromTemplate(fundingTemplateContents.Content.Metadata) : new TemplateMapping();
-            TemplateMapping specificationTemplateMapping = await _specificationsRepository.GetTemplateMappingForSpecificationId(specificationId);
-
-            List<Calculation> currentCalculations = ApplyTemplateChanges(specification, fundingTemplateMapping, specificationTemplateMapping);
-
-            SpecificationVersion previousSpecificationVersion = specification.Current;
-            SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
-            specificationVersion.TemplateId = templateId;
-            HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
-
-            return new OkObjectResult(updateSpecificationResult);
-        }
-
-        private static List<Calculation> ApplyTemplateChanges(Specification specification, TemplateMapping fundingTemplateMapping, TemplateMapping specificationTemplateMapping)
-        {
-            IEnumerable<string> templateCalculationNames = fundingTemplateMapping
-                .TemplateMappingItems
-                .Where(x => x.EntityType == TemplateMappingEntityType.Calculation)
-                .Select(x => x.Name);
-            IEnumerable<string> specificationTemplateCalculationNames = specificationTemplateMapping
-                .TemplateMappingItems
-                .Where(x => x.EntityType == TemplateMappingEntityType.Calculation)
-                .Select(x => x.Name);
-
-            IEnumerable<string> calculationNamesRemovedFromTemplate = specificationTemplateCalculationNames.Except(templateCalculationNames);
-            List<Calculation> currentCalculations = null ;// specification.Current.Calculations.ToList();
-
-            foreach (var calculationNameRemovedFromTemplate in calculationNamesRemovedFromTemplate)
-            {
-                currentCalculations.Remove(currentCalculations.FirstOrDefault(x => x.Name == calculationNameRemovedFromTemplate));
-            }
-
-            return currentCalculations;
-        }
-
-        private static TemplateMapping GetTemplateMappingFromTemplate(Common.TemplateMetadata.Models.TemplateMetadataContents templateMetadataContents)
-        {
-            TemplateMapping templateMapping = new TemplateMapping
-            {
-                TemplateMappingItems = new List<TemplateMappingItem>()
-            };
-
-            List<Common.TemplateMetadata.Models.FundingLine> allFundingLines = templateMetadataContents.RootFundingLines.ToList();
-            allFundingLines.AddRange(templateMetadataContents.RootFundingLines.SelectMany(x => x.FundingLines));
-
-            templateMapping.TemplateMappingItems.AddRange(
-                allFundingLines
-                    .Select(fundingLine => new TemplateMappingItem
-                    {
-                        EntityType = TemplateMappingEntityType.FundingLine,
-                        Name = fundingLine.Name,
-                        TemplateId = fundingLine.ReferenceId //TODO: Naming convention for the other fields are Template{EntityName}Id. This one can be renamed to TemplateFundingLineId instead of ReferenceId, to match it
-                    }));
-
-            templateMapping.TemplateMappingItems.AddRange(
-                allFundingLines
-                    .SelectMany(x => x.Calculations)
-                    .Select(calculation => new TemplateMappingItem
-                    {
-                        EntityType = TemplateMappingEntityType.Calculation,
-                        Name = calculation.Name,
-                        TemplateId = calculation.TemplateCalculationId,
-                    }));
-
-            templateMapping.TemplateMappingItems.AddRange(
-                allFundingLines
-                    .SelectMany(x => x.Calculations)
-                    .SelectMany(x => x.ReferenceData)
-                    .Select(referenceData => new TemplateMappingItem
-                    {
-                        EntityType = TemplateMappingEntityType.ReferenceData,
-                        Name = referenceData.Name,
-                        TemplateId = referenceData.TemplateReferenceId
-                    }));
-
-            return templateMapping;
-        }
-
         public async Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out StringValues specificationIdParse);
@@ -1743,6 +1632,45 @@ WHERE   s.documentType = @DocumentType",
                 _logger.Error(ex, "Failed to retrieve calculation progress from cache - {specificationId}", specificationId);
                 return new InternalServerErrorResult(ex.Message);
             }
+        }
+
+        public async Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId, string templateVersion)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(fundingStreamId, nameof(fundingStreamId));
+            Guard.ArgumentNotNull(templateVersion, nameof(templateVersion));
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+            if(specification == null)
+            {
+                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            bool specificationContainsGivenFundingStream = specification.Current.FundingStreams.Any(x => x.Id == fundingStreamId);
+            if (!specificationContainsGivenFundingStream)
+            {
+                string message = $"Specification ID {specificationId} does not contains given funding stream with ID {fundingStreamId}";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateContents =
+                await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplate(fundingStreamId, templateVersion));
+            if(fundingTemplateContents.StatusCode != HttpStatusCode.OK)
+            {
+                string message = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} did not return OK.";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            SpecificationVersion currentSpecificationVersion = specification.Current;
+            SpecificationVersion newSpecificationVersion = specification.Current.Clone() as SpecificationVersion;
+            newSpecificationVersion.TemplateId = templateVersion;
+            HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
+
+            return new OkObjectResult(updateSpecificationResult);
         }
 
         private async Task<HttpStatusCode> UpdateSpecification(Specification specification, SpecificationVersion specificationVersion, SpecificationVersion previousVersion)

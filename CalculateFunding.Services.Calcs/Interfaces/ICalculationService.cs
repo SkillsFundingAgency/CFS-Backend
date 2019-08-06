@@ -46,5 +46,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId);
 
         Task<IActionResult> GetCalculationsMetadataForSpecification(string specificationId);
+
+        Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateVersion, string fundingStreamId);
     }
 }

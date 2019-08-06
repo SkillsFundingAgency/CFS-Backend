@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common" Version="1.33.0" />
-    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.2" />
+    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.3" />
   </ItemGroup>
 
   <ItemGroup>

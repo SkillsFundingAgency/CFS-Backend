@@ -223,5 +223,12 @@ namespace CalculateFunding.Api.Calcs.Controllers
 
             return await _calcsService.CreateAdditionalCalculation(specificationId, model, httpRequest.GetUser(), httpRequest.GetCorrelationId());
         }
+
+        [Route("api/calcs/specifications/{specificationId}/templates/{fundingStreamId}")]
+        [HttpPut]
+        public async Task<IActionResult> RunAssociateTemplateIdWithSpecification([FromRoute]string specificationId, [FromRoute]string fundingStreamId, [FromBody] string templateId)
+        {
+            return await _calcsService.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
+        }
     }
 }

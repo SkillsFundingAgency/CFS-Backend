@@ -3,8 +3,6 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -17,11 +15,16 @@ using System.Net;
 using System.Threading.Tasks;
 using TemplateMetadataModels = CalculateFunding.Common.TemplateMetadata.Models;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
-using AutoMapper;
+using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Common.ApiClient.Specifications;
+using System.Collections.Generic;
 
-namespace CalculateFunding.Services.Specs.UnitTests.Services
+namespace CalculateFunding.Services.Calcs.Services
 {
-    public partial class SpecificationsServiceTests
+    public partial class CalculationServiceTests
     {
         [TestMethod]
         public void AssociateTemplateIdWithSpecification_SpecificationIsNull_ReturnsBadRequestObjectResult()
@@ -30,7 +33,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ILogger logger = CreateLogger();
             string specificationId = null;
 
-            SpecificationsService service = CreateService(logs: logger);
+            CalculationService service = CreateCalculationService(logger: logger);
 
             // Act
             Func<Task<IActionResult>> func = () => service.AssociateTemplateIdWithSpecification(specificationId, null, null);
@@ -49,7 +52,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string specificationId = "test";
             string templateId = null;
 
-            SpecificationsService service = CreateService(logs: logger);
+            CalculationService service = CreateCalculationService(logger: logger);
 
             // Act
             Func<Task<IActionResult>> func = () => service.AssociateTemplateIdWithSpecification(specificationId, templateId, null);
@@ -69,7 +72,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             string templateId = "test";
             string fundingStreamId = null;
 
-            SpecificationsService service = CreateService(logs: logger);
+            CalculationService service = CreateCalculationService(logger: logger);
 
             // Act
             Func<Task<IActionResult>> func = () => service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
@@ -91,12 +94,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             string expectedErrorMessage = $"No specification ID {specificationId} were returned from the repository, result came back null";
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
             specificationsRepository
-                .GetSpecificationById(specificationId)
-                .Returns<Specification>(x => null);
+                .GetSpecificationSummaryById(specificationId)
+                .Returns<SpecificationSummary>(x => null);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            CalculationService service = CreateCalculationService(logger: logger, specificationRepository: specificationsRepository);
 
             // Act
             IActionResult result = await service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
@@ -126,20 +129,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             string expectedErrorMessage = $"Specification ID {specificationId} does not have contain given funding stream with ID {fundingStreamId}";
 
-            Specification specification = new Specification
-            {
-                Current = new SpecificationVersion
-                {
-                    FundingStreams = new List<Reference>()
-                }
-            };
+            SpecificationSummary specificationSummary = new SpecificationSummary();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
             specificationsRepository
-                .GetSpecificationById(specificationId)
-                .Returns(specification);
+                .GetSpecificationSummaryById(specificationId)
+                .Returns(specificationSummary);
 
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            CalculationService service = CreateCalculationService(logger: logger, specificationRepository: specificationsRepository);
 
             // Act
             IActionResult result = await service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
@@ -169,26 +166,23 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             string expectedErrorMessage = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateId} did not return OK.";
 
-            Specification specification = new Specification
+            SpecificationSummary specificationSummary = new SpecificationSummary
             {
-                Current = new SpecificationVersion
-                {
-                    FundingStreams = new List<Reference>
+                FundingStreams = new List<Reference>
                     {
                         new Reference
                         {
                             Id = fundingStreamId
                         }
                     }
-                }
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
             specificationsRepository
-                .GetSpecificationById(specificationId)
-                .Returns(specification);
+                .GetSpecificationSummaryById(specificationId)
+                .Returns(specificationSummary);
 
             var fundingTemplateApiResponse = new ApiResponse<PolicyModels.FundingTemplateContents>(HttpStatusCode.NotFound, null);
 
@@ -196,9 +190,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetFundingTemplate(Arg.Is(fundingStreamId), Arg.Is(templateId))
                 .Returns(fundingTemplateApiResponse);
 
-            SpecificationsService service = CreateService(
-                logs: logger, 
-                specificationsRepository: specificationsRepository,
+            CalculationService service = CreateCalculationService(
+                logger: logger, 
+                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient);
 
             // Act
@@ -216,6 +210,97 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             logger
                 .Received(1)
                 .Error(Arg.Is(expectedErrorMessage));
+        }
+
+        [TestMethod]
+        public async Task AssociateTemplateIdWithSpecification_GivenWithValidParameters_AdditionalTemplateMappingItemsRemoved()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+            string specificationId = "testSpecification";
+            string templateId = "testTemplate";
+            string fundingStreamId = "testFundingStream";
+            string removedCalculationName = "calculation2Name";
+
+            IEnumerable<TemplateMetadataModels.Calculation> calculations = new List<TemplateMetadataModels.Calculation>
+            {
+                new TemplateMetadataModels.Calculation
+                {
+                    Name = "calculation1Name",
+                    TemplateCalculationId = 1,
+                    ReferenceData = new List<TemplateMetadataModels.ReferenceData>()
+                },
+                new TemplateMetadataModels.Calculation
+                {
+                    Name = removedCalculationName,
+                    TemplateCalculationId = 2,
+                    ReferenceData = new List<TemplateMetadataModels.ReferenceData>()
+                },
+            };
+
+            SpecificationSummary existingSpecificationSummary = new SpecificationSummary
+            {
+                FundingStreams = new List<Reference>
+                    {
+                        new Reference
+                        {
+                            Id = fundingStreamId
+                        }
+                    }
+            };
+
+            TemplateMetadataModels.TemplateMetadataContents fundingTemplateMetadataContents = CreateTemplateMetadataContents(calculations.Take(1));
+            PolicyModels.FundingTemplateContents fundingTemplateContents = new PolicyModels.FundingTemplateContents
+            {
+                Metadata = fundingTemplateMetadataContents
+            };
+
+            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+
+            specificationsRepository
+                .GetSpecificationSummaryById(specificationId)
+                .Returns(existingSpecificationSummary);
+
+            ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateResponse
+                = new ApiResponse<PolicyModels.FundingTemplateContents>(HttpStatusCode.OK, fundingTemplateContents);
+
+            policiesApiClient
+                .GetFundingTemplate(Arg.Is(fundingStreamId), Arg.Is(templateId))
+                .Returns(fundingTemplateResponse);
+
+            specificationsApiClient
+                .SetAssignedTemplateVersion(specificationId, templateId, fundingStreamId)
+                .Returns(HttpStatusCode.OK);
+
+            List<Calculation> calculationsBySpecId = new List<Calculation>
+            {
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<List<Calculation>>($"{CacheKeys.CalculationsForSpecification}{specificationId}")
+                .Returns(calculationsBySpecId);
+
+            CalculationService service = CreateCalculationService(
+                logger: logger,
+                specificationRepository: specificationsRepository,
+                policiesApiClient: policiesApiClient,
+                cacheProvider: cacheProvider,
+                specificationsApiClient: specificationsApiClient);
+
+            //Act
+            IActionResult result = await service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(HttpStatusCode.OK);
         }
 
         private TemplateMetadataModels.TemplateMetadataContents CreateTemplateMetadataContents(IEnumerable<TemplateMetadataModels.Calculation> calculations)
