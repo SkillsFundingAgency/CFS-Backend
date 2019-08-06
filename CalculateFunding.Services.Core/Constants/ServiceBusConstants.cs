@@ -6,6 +6,12 @@
 
         public static class QueueNames
         {
+            public const string ApplyTemplateCalculations = "apply-template-calculations";
+
+            public const string ApplyTemplateCalculationsPoisoned = "apply-template-calculations-poisoned/$DeadLetterQueue";
+
+            public const string ApplyTemplateCalculationsPoisonedLocal = "apply-template-calculations-poisoned";
+
             public const string CalculationJobInitialiser = "calc-events-instruct-generate-allocations";
 
             public const string CalculationJobInitialiserPoisoned = "calc-events-instruct-generate-allocations/$DeadLetterQueue";

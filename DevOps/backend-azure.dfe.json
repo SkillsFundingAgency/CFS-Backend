@@ -1364,6 +1364,28 @@
         },
         {
           "type": "queues",
+          "name": "apply-template-calculations",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "requiresSession": true,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 10,
+            "enablePartitioning": false,
+            "enableExpress": false
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
+        },
+        {
+          "type": "queues",
           "name": "publish-provider-results",
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",

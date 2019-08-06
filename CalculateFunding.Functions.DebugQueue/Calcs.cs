@@ -55,5 +55,35 @@ namespace CalculateFunding.Functions.DebugQueue
                 log.LogInformation($"C# Queue trigger function processed: {item}");
             }
         }
+
+        [FunctionName("on-apply-template-calculations")]
+        public static async Task RunOnApplyTemplateCalculations([QueueTrigger(ServiceBusConstants.QueueNames.ApplyTemplateCalculations, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnApplyTemplateCalculations function = scope.ServiceProvider.GetService<OnApplyTemplateCalculations>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
+        [FunctionName("on-apply-template-calculations-poisoned")]
+        public static async Task RunOnApplyTemplateCalculationsFailure([QueueTrigger(ServiceBusConstants.QueueNames.ApplyTemplateCalculationsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Calcs.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnApplyTemplateCalculationsFailure function = scope.ServiceProvider.GetService<OnApplyTemplateCalculationsFailure>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
     }
 }

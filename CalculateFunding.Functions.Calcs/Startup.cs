@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using AutoMapper;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -63,6 +63,9 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<OnCalcsInstructAllocationResults>();
             builder.AddSingleton<OnCalculationAggregationsJobCompleted>();
             builder.AddSingleton<OnDataDefinitionChanges>();
+            builder.AddSingleton<OnApplyTemplateCalculations>();
+            builder.AddSingleton<OnApplyTemplateCalculationsFailure>();
+            builder.AddSingleton<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<ICalculationService, CalculationService>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
