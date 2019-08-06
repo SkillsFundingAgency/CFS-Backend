@@ -522,7 +522,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return new Features(featuresConfig);
         }
 
-        private static void SetDefaultApiClientConfigurationOptions(HttpClient httpClient, ApiOptions options, IServiceCollection services)
+        public static void SetDefaultApiClientConfigurationOptions(HttpClient httpClient, ApiOptions options, IServiceCollection services)
         {
             Guard.ArgumentNotNull(httpClient, nameof(httpClient));
             Guard.ArgumentNotNull(options, nameof(options));
@@ -540,7 +540,7 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             IServiceProvider serviceProvider = services.BuildServiceProvider();
-            
+
             httpClient.BaseAddress = new Uri(baseAddress, UriKind.Absolute);
             httpClient.DefaultRequestHeaders?.Add(ApiClientHeaders.ApiKey, options.ApiKey);
 

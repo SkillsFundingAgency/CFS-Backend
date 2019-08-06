@@ -65,13 +65,56 @@ namespace CalculateFunding.Models.Publishing
         /// The total funding per funding line and distribution periods are stored here.
         /// </summary>
         [JsonProperty("paymentFundingLines")]
-        public IEnumerable<FundingLine> PaymentFundingLines { get; set; }
+        public IDictionary<string, IEnumerable<FundingLine>> PaymentFundingLines { get; set; }
 
         /// <summary>
         /// Total funding for this provider
         /// </summary>
         [JsonProperty("totalFunding")]
         public decimal TotalFunding { get; set; }
+
+        /// <summary>
+        /// Major version
+        /// </summary>
+        [JsonProperty("majorVersion")]
+        public int MajorVersion { get; set; }
+
+        /// <summary>
+        /// Minor version
+        /// </summary>
+        [JsonProperty("minorVersion")]
+        public int MinorVersion { get; set; }
+
+        /// <summary>
+        /// Provider information
+        /// </summary>
+        [JsonProperty("provider")]
+        public Provider Provider { get; set; }
+
+        /// <summary>
+        /// Provider IDs of Predecessor providers
+        /// </summary>
+        [JsonProperty("predecessors")]
+        public IEnumerable<string> Predecessors { get; set; }
+
+        /// <summary>
+        /// Variation reasons
+        /// </summary>
+        [JsonProperty("variationReasons")]
+        public IEnumerable<VariationReason> VariationReasons { get; set; }
+
+        /// <summary>
+        /// Job ID this PublishedProvider was updated or created on
+        /// </summary>
+        [JsonProperty("jobId")]
+        public string JobId { get; set; }
+
+        /// <summary>
+        /// Correlation ID this PublishedProvider was updated or created on.
+        /// This should line up with Provider variations and all updated made in a single refresh/approve/publish should have the same id
+        /// </summary>
+        [JsonProperty("correlationId")]
+        public string CorrelationId { get; set; }
 
         public override VersionedItem Clone()
         {

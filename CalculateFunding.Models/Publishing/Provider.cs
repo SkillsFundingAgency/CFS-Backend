@@ -1,15 +1,26 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
 using Newtonsoft.Json;
-using System;
 
 namespace CalculateFunding.Models.Publishing
 {
-    public class ProviderSummary : Reference
+    public class Provider
     {
+        [JsonProperty("providerVersionId")]
+        public string ProviderVersionId { get; set; }
+
+        [JsonProperty("providerId")]
+        public string ProviderId { get; set; }
+
+        [JsonProperty("trustStatus")]
+        public TrustStatus TrustStatus { get; set; }
+
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
         [JsonProperty("urn")]
         public string URN { get; set; }
 
-        [JsonProperty("ukPrn")]
+        [JsonProperty("ukprn")]
         public string UKPRN { get; set; }
 
         [JsonProperty("upin")]
@@ -65,9 +76,6 @@ namespace CalculateFunding.Models.Publishing
 
         [JsonProperty("successor")]
         public string Successor { get; set; }
-
-        [JsonProperty("trustStatus")]
-        public TrustStatus TrustStatus { get; set; }
 
         [JsonProperty("trustName")]
         public string TrustName { get; set; }

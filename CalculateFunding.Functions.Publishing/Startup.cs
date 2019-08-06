@@ -1,26 +1,34 @@
 ﻿using System;
-using CalculateFunding.Functions.Publishing;
+using System.Net.Http;
+using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.ApiClient.Bearer;
+using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
+using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.IoC;
+using CalculateFunding.Services.Publishing.Providers;
 using CalculateFunding.Services.Publishing.Repositories;
+using CalculateFunding.Services.Publishing.Specifications;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
 using Polly.Bulkhead;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Services.Publishing.IoC;
-using CalculateFunding.Services.Publishing.Providers;
-using CalculateFunding.Services.Publishing.Specifications;
+using Serilog;
 
 [assembly: FunctionsStartup(typeof(Startup))]
 
@@ -114,6 +122,22 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishedResultService, PublishedResultService>();
 
+            builder.AddSingleton<IFundingLineGenerator, FundingLineGenerator>();
+
+            builder.AddSingleton<IFundingLineTotalAggregator, FundingLineTotalAggregator>();
+
+            builder.AddSingleton<IProfilingService, ProfilingService>();
+
+            builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(r =>
+            {
+                PublishedProviderContentsGeneratorResolver resolver = new PublishedProviderContentsGeneratorResolver();
+
+                IPublishedProviderContentsGenerator v10Generator = new Generators.Schema10.PublishedProviderContentsGenerator();
+
+                resolver.Register("1.0", v10Generator);
+
+                return resolver;
+            });
 
             builder.AddSingleton<IJobHelperService, JobHelperService>();
 
@@ -133,6 +157,42 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
+            builder.AddJobsInterServiceClient(config);
+
+            builder.AddHttpClient(HttpClientKeys.Profiling,
+                   c =>
+                   {
+                       ApiOptions apiOptions = new ApiOptions();
+
+                       config.Bind("providerProfilingClient", apiOptions);
+
+                       ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+                   })
+                   .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+                   .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))
+                   .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(100, TimeSpan.FromSeconds(30)));
+
+            builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
+
+            builder.AddSingleton<IAzureBearerTokenProxy, AzureBearerTokenProxy>();
+
+            builder.AddSingleton<IProfilingApiClient>((ctx) =>
+            {
+                IHttpClientFactory httpClientFactory = ctx.GetService<IHttpClientFactory>();
+                ILogger logger = ctx.GetService<ILogger>();
+                ICancellationTokenProvider cancellationTokenProvider = ctx.GetService<ICancellationTokenProvider>();
+
+                IAzureBearerTokenProxy azureBearerTokenProxy = ctx.GetService<IAzureBearerTokenProxy>();
+                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
+
+                AzureBearerTokenOptions azureBearerTokenOptions = new AzureBearerTokenOptions();
+                config.Bind("providerProfilingAzureBearerTokenOptions", azureBearerTokenOptions);
+
+                AzureBearerTokenProvider bearerTokenProvider = new AzureBearerTokenProvider(azureBearerTokenProxy, cacheProvider, azureBearerTokenOptions);
+
+                return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
+
+            });
 
             return builder.BuildServiceProvider();
         }

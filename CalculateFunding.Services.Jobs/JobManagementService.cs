@@ -117,11 +117,6 @@ namespace CalculateFunding.Services.Jobs
                     return new PreconditionFailedResult(message);
                 }
 
-                if (!jobCreateModel.Properties.ContainsKey("sfa-correlationId"))
-                {
-                    jobCreateModel.Properties.Add("sfa-correlationId", request?.GetCorrelationId());
-                }
-
                 CreateJobValidationModel createJobValidationModel = new CreateJobValidationModel
                 {
                     JobCreateModel = jobCreateModel,
@@ -581,7 +576,7 @@ namespace CalculateFunding.Services.Jobs
                 ParentJobId = job.ParentJobId,
                 CorrelationId = job.CorrelationId,
                 Properties = job.Properties,
-                MessageBody = job.MessageBody
+                MessageBody = job.MessageBody,
             };
 
             Job newJobResult = null;

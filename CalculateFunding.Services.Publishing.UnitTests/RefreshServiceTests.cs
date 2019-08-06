@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -7,6 +8,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -17,17 +19,38 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IProviderService _providerService;
         private IRefreshService _refreshService;
 
+        private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
+        private IPublishedFundingRepository _publishedFundingRepository;
+        private ICalculationResultsRepository _calculationResultsRepository;
+        private IFundingLineGenerator _fundingLineGenerator;
+        private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
+        private IJobsApiClient _jobsApiClient;
+        private IProfilingService _profilingService;
+        private ILogger _logger;
+
         [TestInitialize]
         public void SetUp()
         {
             _specificationService = Substitute.For<ISpecificationService>();
             _providerService = Substitute.For<IProviderService>();
+            _calculationResultsRepository = Substitute.For<ICalculationResultsRepository>();
+            _fundingLineGenerator = Substitute.For<IFundingLineGenerator>();
+            _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
+            _jobsApiClient = Substitute.For<IJobsApiClient>();
+            _profilingService = Substitute.For<IProfilingService>();
+            _logger = Substitute.For<ILogger>();
 
             _refreshService = new RefreshService(Substitute.For<IPublishedProviderStatusUpdateService>(),
                 Substitute.For<IPublishedFundingRepository>(),
                 Substitute.For<IPublishingResiliencePolicies>(),
                 _specificationService,
-                _providerService);
+                _providerService,
+                _calculationResultsRepository,
+                _fundingLineGenerator,
+                _publishedProviderContentsGeneratorResolver,
+                _profilingService,
+                _jobsApiClient,
+                _logger);
         }
 
         [TestMethod]

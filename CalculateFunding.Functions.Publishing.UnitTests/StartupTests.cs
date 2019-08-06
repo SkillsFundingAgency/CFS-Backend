@@ -1,10 +1,10 @@
-﻿using CalculateFunding.Services.Publishing.Interfaces;
+﻿using System.Collections.Generic;
+using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Functions.Publishing.UnitTests
 {
@@ -36,6 +36,8 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                 { "CosmosDbSettings:CollectionName", "calcs" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
+                { "profilingClient:BaseUrl", "https://localhost:5003" },
+                { "profilingClient:ApiKey", "Test" },
             };
 
             return configData;
