@@ -20,6 +20,8 @@ namespace CalculateFunding.Models.FundingPolicy
 
         [JsonProperty("fundingPeriodId")]
         public string FundingPeriodId { get; set; }
-
+        
+        [JsonProperty("defaultTemplateVersion")]
+        public string DefaultTemplateVersion { get; set; }
     }
 }

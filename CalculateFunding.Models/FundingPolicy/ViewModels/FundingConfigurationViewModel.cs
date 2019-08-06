@@ -4,6 +4,8 @@ namespace CalculateFunding.Models.FundingPolicy.ViewModels
 {
     public class FundingConfigurationViewModel
     {
+        public string DefaultTemplateVersion { get; set; }
+        
         /// <summary>
         /// Organisational groupings for funding feed publishing
         /// </summary>

@@ -28,13 +28,15 @@ namespace CalculateFunding.Api.Policy.Controllers
         
         [HttpPost("api/configuration/{fundingStreamId}/{fundingPeriodId}")]
         [ProducesResponseType(201)]
-        public async Task<IActionResult> SaveFundingConfiguration([FromRoute]string fundingStreamId, [FromRoute]string fundingPeriodId, [FromBody]FundingConfigurationViewModel configurationViewModel)
+        public async Task<IActionResult> SaveFundingConfiguration([FromRoute]string fundingStreamId, 
+            [FromRoute]string fundingPeriodId, 
+            [FromBody]FundingConfigurationViewModel configurationViewModel)
         {
             string controllerName = string.Empty;
 
-            if (this.ControllerContext.RouteData.Values.ContainsKey("controller"))
+            if (ControllerContext.RouteData.Values.ContainsKey("controller"))
             {
-                controllerName = (string)this.ControllerContext.RouteData.Values["controller"];
+                controllerName = (string)ControllerContext.RouteData.Values["controller"];
             }
 
             return await _fundingConfigurationService.SaveFundingConfiguration(

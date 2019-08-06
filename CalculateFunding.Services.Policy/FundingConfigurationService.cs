@@ -102,7 +102,11 @@ namespace CalculateFunding.Services.Policy
             return new OkObjectResult(fundingConfiguration);
         }
 
-        public async Task<IActionResult> SaveFundingConfiguration(string actionName, string controllerName, FundingConfigurationViewModel configurationViewModel, string fundingStreamId, string fundingPeriodId)
+        public async Task<IActionResult> SaveFundingConfiguration(string actionName, 
+            string controllerName, 
+            FundingConfigurationViewModel configurationViewModel, 
+            string fundingStreamId, 
+            string fundingPeriodId)
         {
             Guard.IsNullOrWhiteSpace(actionName, nameof(actionName));
             Guard.IsNullOrWhiteSpace(controllerName, nameof(controllerName));
@@ -112,8 +116,8 @@ namespace CalculateFunding.Services.Policy
 
             FundingConfiguration fundingConfiguration = _mapper.Map<FundingConfiguration>(configurationViewModel, opt =>
             {
-                opt.Items["FundingStreamId"] = fundingStreamId;
-                opt.Items["FundingPeriodId"] = fundingPeriodId;
+                opt.Items[nameof(FundingConfiguration.FundingStreamId)] = fundingStreamId;
+                opt.Items[nameof(FundingConfiguration.FundingPeriodId)] = fundingPeriodId;
             });
 
             BadRequestObjectResult validationResult = (await _fundingConfigurationValidator.ValidateAsync(fundingConfiguration)).PopulateModelState();
@@ -122,6 +126,8 @@ namespace CalculateFunding.Services.Policy
             {
                 return validationResult;
             }
+            
+            //TODO; add validation on existence of template (what is a template exactly) when supplied as the default template id (funding template I'm guessing)
 
             try
             {
@@ -147,13 +153,13 @@ namespace CalculateFunding.Services.Policy
                 return new InternalServerErrorResult(errorMessage);
             }
 
-            string cachKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
+            string cacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}-{fundingPeriodId}";
 
-            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingConfiguration>(cachKey, fundingConfiguration));
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, fundingConfiguration));
 
             _logger.Information($"Successfully saved configuration file for funding stream id: {fundingStreamId} and period id: {fundingPeriodId} to cosmos db");
 
-            return new CreatedAtActionResult(actionName, controllerName, new { fundingStreamId = fundingStreamId, fundingPeriodId = fundingPeriodId }, string.Empty);
+            return new CreatedAtActionResult(actionName, controllerName, new {fundingStreamId, fundingPeriodId }, string.Empty);
         }
     }
 }

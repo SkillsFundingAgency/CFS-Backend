@@ -11,8 +11,8 @@ namespace CalculateFunding.Models.MappingProfiles
         public FundingConfigurationMappingProfile()
         {
             CreateMap<FundingConfigurationViewModel, FundingConfiguration>()
-                .ForMember(dest => dest.FundingStreamId, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["FundingStreamId"]))
-                .ForMember(dest => dest.FundingPeriodId, opt => opt.MapFrom((src, dest, destMember, context) => context.Items["FundingPeriodId"]))
+                .ForMember(dest => dest.FundingStreamId, opt => opt.MapFrom((src, dest, destMember, context) => context.Items[nameof(FundingConfiguration.FundingStreamId)]))
+                .ForMember(dest => dest.FundingPeriodId, opt => opt.MapFrom((src, dest, destMember, context) => context.Items[nameof(FundingConfiguration.FundingPeriodId)]))
                 .AfterMap((source, dest) =>
                 {
                     dest.Id = $"config-{dest.FundingStreamId}-{dest.FundingPeriodId}";

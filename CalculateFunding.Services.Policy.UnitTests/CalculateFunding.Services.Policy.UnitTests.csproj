@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Services.Policy\CalculateFunding.Services.Policy.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
@@ -104,7 +103,7 @@ namespace CalculateFunding.Services.Policy
                 return validationGeneratorResult.PopulateModelState();
             }
 
-            string blobName = $"{validationResult.FundingStreamId}/{validationResult.Version}.json";
+            string blobName =  GetBlobNameFor(validationResult.FundingStreamId, validationResult.Version);
 
             try
             {
@@ -142,7 +141,7 @@ namespace CalculateFunding.Services.Policy
                 return new OkObjectResult(template);
             }
 
-            string blobName = $"{fundingStreamId}/{templateVersion}.json";
+            string blobName = GetBlobNameFor(fundingStreamId, templateVersion);
 
             try
             {
@@ -171,6 +170,11 @@ namespace CalculateFunding.Services.Policy
 
                 return new InternalServerErrorResult($"Error occurred fetching funding template for funding stream id '{fundingStreamId}' and version '{templateVersion}'");
             }
+        }
+
+        private string GetBlobNameFor(string fundingStreamId, string templateVersion)
+        {
+            return $"{fundingStreamId}/{templateVersion}.json";
         }
 
         private async Task SaveFundingTemplateVersion(string blobName, byte[] templateBytes)
@@ -233,6 +237,11 @@ namespace CalculateFunding.Services.Policy
             FundingTemplateContents fundingTemplateContents = (getFundingTemplateContentResult as OkObjectResult).Value as FundingTemplateContents;
 
             return new OkObjectResult(fundingTemplateContents);
+        }
+
+        public async Task<bool> TemplateExists(string fundingStreamId, string templateVersion)
+        {
+            return await CheckIfFundingTemplateVersionExists(GetBlobNameFor(fundingStreamId, templateVersion));
         }
 
         private async Task<IActionResult> GetFundingTemplateContentMetadata(string fundingStreamId, string templateVersion)

@@ -14,10 +14,12 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Policy.Models;
 using CalculateFunding.Services.Policy.UnitTests;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Search.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
@@ -31,6 +33,29 @@ namespace CalculateFunding.Services.Policy
         private const string createdAtActionName = "GetFundingTemplate";
         private const string createdAtControllerName = "Schema";
 
+        [DataRow(true)]
+        [DataRow(false)]
+        [TestMethod]
+        public async Task TemplateExists_ChecksBlobExistsForFundingStreamIdAndVersionSupplied(bool expectedExistsFlag)
+        {
+            string fundingStreamId = NewRandomString();
+            string templateVersion = NewRandomString();
+
+            IFundingTemplateRepository fundingTemplateRepository = Substitute.For<IFundingTemplateRepository>();
+            FundingTemplateService service = CreateFundingTemplateService(fundingTemplateRepository: fundingTemplateRepository);
+
+            fundingTemplateRepository.TemplateVersionExists($"{fundingStreamId}/{templateVersion}.json")
+                .Returns(expectedExistsFlag);
+            
+            bool templateExists = await service.TemplateExists(fundingStreamId, templateVersion);
+
+            templateExists
+                .Should()
+                .Be(expectedExistsFlag);
+        }
+
+        private string NewRandomString() => new RandomString();
+        
         [DataRow("")]
         [DataRow("     ")]
         [TestMethod]
