@@ -193,6 +193,8 @@ namespace CalculateFunding.Services.Calculator
 
             int totalProviderResults = 0;
 
+            bool calculationResultsHaveExceptions = false;
+
             for (int i = 0; i < summaries.Count(); i += providerBatchSize)
             {
                 Stopwatch calculationStopwatch = new Stopwatch();
@@ -227,9 +229,10 @@ namespace CalculateFunding.Services.Calculator
 
                         if (calculationResults.ResultsContainExceptions)
                         {
-                            await FailJob(messageProperties.JobId, totalProviderResults, "Exceptions were thrown during generation of calculation results");
-
-                            throw new NonRetriableException($"Exceptions were thrown during generation of calculation results for specification Id: '{messageProperties.SpecificationId}'");
+                            if (!calculationResultsHaveExceptions)
+                            {
+                                calculationResultsHaveExceptions = true;
+                            }
                         }
                     }
 
@@ -271,7 +274,14 @@ namespace CalculateFunding.Services.Calculator
                 );
             }
 
-            await CompleteBatch(messageProperties, cachedCalculationAggregationsBatch, summaries.Count(), totalProviderResults);
+            if (calculationResultsHaveExceptions)
+            {
+                await FailJob(messageProperties.JobId, totalProviderResults, "Exceptions were thrown during generation of calculation results");
+            }
+            else
+            {
+                await CompleteBatch(messageProperties, cachedCalculationAggregationsBatch, summaries.Count(), totalProviderResults);
+            }
         }
 
         private async Task<CalculationResultsModel> CalculateResults(IEnumerable<ProviderSummary> summaries, IEnumerable<CalculationSummaryModel> calculations, IEnumerable<CalculationAggregation> aggregations, BuildProject buildProject,
