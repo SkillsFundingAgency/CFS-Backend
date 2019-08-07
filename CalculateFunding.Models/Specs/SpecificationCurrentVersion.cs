@@ -40,11 +40,11 @@ namespace CalculateFunding.Models.Specs
 		[JsonProperty("variationDate")]
 		public DateTimeOffset? VariationDate { get; set; }
 
-        [JsonProperty("templateId")]
-        public string TemplateId { get; set; }
-
         [JsonProperty("lastCalculationUpdatedAt")]
         public DateTimeOffset? LastCalculationUpdatedAt { get; set; }
+
+        [JsonProperty("templateIds")]
+        public IDictionary<string, string> TemplateIds { get; set; } = new Dictionary<string, string>();
 
         [JsonIgnore]
         public bool ShouldRefresh

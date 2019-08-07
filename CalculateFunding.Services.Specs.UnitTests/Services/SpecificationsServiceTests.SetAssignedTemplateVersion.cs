@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Interfaces;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
@@ -215,12 +216,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task SetAssignedTemplateVersion_ValidParametersPassed_ReturnsOK()
+        public async Task SetAssignedTemplateVersion_ValidParametersPassed_ReturnsOKAndSetsTemplateVersionForFundingStreamOnSpec()
         {
             //Arrange
             ILogger logger = CreateLogger();
-            string specificationId = "testSpecification";
             string templateVersion = "testTemplate";
+            string specificationId = "testSpecification";
             string fundingStreamId = "testFundingStream";
 
             Specification specification = new Specification
@@ -239,10 +240,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IVersionRepository<SpecificationVersion> specificationVersionRepository = CreateSpecificationVersionRepository();
 
             specificationsRepository
                 .GetSpecificationById(specificationId)
                 .Returns(specification);
+
+            SpecificationVersion clonedSpecificationVersion = null;
+
+            specificationVersionRepository.CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
+                .Returns(_ => (SpecificationVersion) _[0])
+                .AndDoes(_ => clonedSpecificationVersion = _.ArgAt<SpecificationVersion>(0));
 
             specificationsRepository
                 .UpdateSpecification(Arg.Any<Specification>())
@@ -250,6 +258,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             var fundingTemplateApiResponse = new ApiResponse<PolicyModels.FundingTemplateContents>(HttpStatusCode.OK, null);
 
+            //TODO; track down where we can grab the instance thats being saved to check we set the correct stuff on it
+            
             policiesApiClient
                 .GetFundingTemplate(Arg.Is(fundingStreamId), Arg.Is(templateVersion))
                 .Returns(fundingTemplateApiResponse);
@@ -257,6 +267,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationsService service = CreateService(
                 logs: logger,
                 specificationsRepository: specificationsRepository,
+                specificationVersionRepository: specificationVersionRepository,
                 policiesApiClient: policiesApiClient);
 
             // Act
@@ -270,6 +281,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Value
                 .Should()
                 .Be(HttpStatusCode.OK);
+
+            Dictionary<string,string> templateIds = clonedSpecificationVersion?
+                .TemplateIds;
+            
+            templateIds?.ContainsKey(fundingStreamId)
+                .Should()
+                .BeTrue();
+
+            templateIds?[fundingStreamId]
+                .Should()
+                .Be(templateVersion);
         }
     }
 }

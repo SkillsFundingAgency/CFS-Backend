@@ -1667,7 +1667,8 @@ WHERE   s.documentType = @DocumentType",
 
             SpecificationVersion currentSpecificationVersion = specification.Current;
             SpecificationVersion newSpecificationVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecificationVersion.TemplateId = templateVersion;
+            
+            newSpecificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersion);
             HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
 
             return new OkObjectResult(updateSpecificationResult);
@@ -1769,7 +1770,7 @@ WHERE   s.documentType = @DocumentType",
                 PublishedResultsRefreshedAt = specification.Content.PublishedResultsRefreshedAt,
                 LastCalculationUpdatedAt = specification.Content.LastCalculationUpdatedAt,
                 VariationDate = specification.Content.Current.VariationDate,
-                TemplateId = specification.Content.Current.TemplateId
+                TemplateIds = specification.Content.Current.TemplateIds.ToDictionary(_ => _.Key, _ => _.Value)
             };
         }
 

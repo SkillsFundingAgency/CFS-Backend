@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Linq;
 using AutoMapper;
 using CalculateFunding.Models.Specs;
 
@@ -14,7 +14,8 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(m => m.FundingStreams, opt => opt.MapFrom(s => s.Current.FundingStreams))
                 .ForMember(m => m.ApprovalStatus, opt => opt.MapFrom(p => p.Current.PublishStatus))
                 .ForMember(m => m.ProviderVersionId, opt => opt.MapFrom(p => p.Current.ProviderVersionId))
-                .ForMember(m => m.TemplateId, opt => opt.MapFrom(p => p.Current.TemplateId));
+                .ForMember(m => m.TemplateIds, opt => opt.MapFrom(
+                    p => p.Current.TemplateIds.ToDictionary(_ => _.Key, _ => _.Value)));
         }
     }
 }

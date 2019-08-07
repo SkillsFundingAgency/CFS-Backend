@@ -32,7 +32,7 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("lastCalculationUpdatedAt")]
         public DateTimeOffset? LastCalculationUpdatedAt { get; set; }
 
-        [JsonProperty("templateId")]
-        public string TemplateId { get; set; }
+        [JsonProperty("templateIds")]
+        public IDictionary<string, string> TemplateIds { get; set; } = new Dictionary<string, string>();
     }
 }

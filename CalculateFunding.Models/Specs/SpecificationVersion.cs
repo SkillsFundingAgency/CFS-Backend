@@ -10,16 +10,10 @@ namespace CalculateFunding.Models.Specs
     public class SpecificationVersion : VersionedItem
     {
         [JsonProperty("id")]
-        public override string Id
-        {
-            get { return $"{SpecificationId}_version_{Version}"; }
-        }
+        public override string Id => $"{SpecificationId}_version_{Version}";
 
         [JsonProperty("entityId")]
-        public override string EntityId
-        {
-            get { return $"{SpecificationId}"; }
-        }
+        public override string EntityId => $"{SpecificationId}";
 
         [JsonProperty("name")]
         public string Name { get; set; }
@@ -44,9 +38,21 @@ namespace CalculateFunding.Models.Specs
 
 		[JsonProperty("variationDate")]
 		public DateTimeOffset? VariationDate { get; set; }
-
+        
         [JsonProperty("templateId")]
         public string TemplateId { get; set; }
+
+        [JsonProperty("templateIds")]
+        public Dictionary<string, string> TemplateIds { get; set; } = new Dictionary<string, string>();
+
+        public void AddOrUpdateTemplateId(string fundingStreamId,
+            string templateId)
+        {
+            if (TemplateIds.ContainsKey(fundingStreamId))
+                TemplateIds[fundingStreamId] = templateId;
+            else
+                TemplateIds.Add(fundingStreamId, templateId);
+        }
 
         public override VersionedItem Clone()
         {
