@@ -19,6 +19,7 @@ using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -27,21 +28,25 @@ namespace CalculateFunding.Services.Publishing.Specifications
         private readonly ICreateJobsForSpecifications<RefreshFundingJobDefinition> _jobs;
         private readonly ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approveFundingJobs;
         private readonly ICacheProvider _cacheProvider;
+        private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
 
         public SpecificationPublishingService(ISpecificationIdServiceRequestValidator validator,
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             ICacheProvider cacheProvider,
             ICreateJobsForSpecifications<RefreshFundingJobDefinition> jobs,
-            ICreateJobsForSpecifications<ApproveFundingJobDefinition> approveFundingJobs) : base(validator, specifications, resiliencePolicies)
+            ICreateJobsForSpecifications<ApproveFundingJobDefinition> approveFundingJobs,
+            ISpecificationFundingStatusService specificationFundingStatusService) : base(validator, specifications, resiliencePolicies)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
             Guard.ArgumentNotNull(approveFundingJobs, nameof(approveFundingJobs));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
 
             _jobs = jobs;
             _cacheProvider = cacheProvider;
             _approveFundingJobs = approveFundingJobs;
+            _specificationFundingStatusService = specificationFundingStatusService;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -154,6 +159,25 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
                 return new InternalServerErrorResult(errorMessage);
             }
+        }
+
+        public async Task<IActionResult> CanChooseForFunding(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            ApiResponse<ApiSpecificationSummary> specificationResponse =
+               await ResiliencePolicy.ExecuteAsync(() => Specifications.GetSpecificationSummaryById(specificationId));
+
+            ApiSpecificationSummary specificationSummary = specificationResponse?.Content;
+
+            if (specificationSummary == null)
+            {
+                return new NotFoundResult();
+            }
+
+            SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specificationSummary);
+
+            return new OkObjectResult(new SpecificationCheckChooseForFundingResult { Status = specificationFundingStatus });
         }
 
         private static bool AnySpecificationsInThisPeriodShareFundingStreams(

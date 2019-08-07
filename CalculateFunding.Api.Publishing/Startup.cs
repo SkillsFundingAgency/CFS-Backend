@@ -90,6 +90,7 @@ namespace CalculateFunding.Api.Publishing
         public void RegisterComponents(IServiceCollection builder)
         {
             builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>();
+            builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>

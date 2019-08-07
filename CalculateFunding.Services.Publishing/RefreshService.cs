@@ -30,10 +30,11 @@ namespace CalculateFunding.Services.Publishing
         private readonly IProfilingService _profilingService;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
+        private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
 
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
-
+        
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -44,7 +45,8 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
             IProfilingService profilingService,
             IJobsApiClient jobsApiClient,
-            ILogger logger)
+            ILogger logger,
+            ISpecificationFundingStatusService specificationFundingStatusService)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
@@ -56,6 +58,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviderContentsGeneratorResolver, nameof(publishedProviderContentsGeneratorResolver));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
@@ -67,6 +70,7 @@ namespace CalculateFunding.Services.Publishing
             _profilingService = profilingService;
             _jobsApiClient = jobsApiClient;
             _logger = logger;
+            _specificationFundingStatusService = specificationFundingStatusService;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
@@ -107,9 +111,29 @@ namespace CalculateFunding.Services.Publishing
             await UpdateJobStatus(jobId, 0, 0, null, null);
 
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
-            // Check this specification is published, if not publish it.
-            // I am unable to find the service or methods in the common specifications client for this. The user stories haven't been done in this sprint yet.
 
+            if(specification == null)
+            {
+                throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
+            }
+
+            SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);
+
+            if(specificationFundingStatus == SpecificationFundingStatus.SharesAlreadyChoseFundingStream)
+            {
+                string errorMessage = $"Specification with id: '{specificationId} already shares chosen funding streams";
+
+                await UpdateJobStatus(jobId, completedSuccessfully: false, outcome: errorMessage);
+
+                throw new NonRetriableException(errorMessage);
+            }
+
+            if(specificationFundingStatus == SpecificationFundingStatus.CanChoose)
+            {
+                await _specificationService.SelectSpecificationForFunding(specificationId);
+            }
+
+            
             // Check the calculation engine is not running for this specification - fail job if it is
 
             // Get scoped providers for this specification

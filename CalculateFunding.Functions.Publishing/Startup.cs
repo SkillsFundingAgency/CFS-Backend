@@ -84,6 +84,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IRefreshService, RefreshService>();
             builder.AddSingleton<IApproveService, ApproveService>();
             builder.AddSingleton<IPublishService, PublishService>();
+            builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
 
             builder
                 .AddSingleton<IPublishedProviderVersioningService, PublishedProviderVersioningService>()

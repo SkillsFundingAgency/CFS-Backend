@@ -85,6 +85,18 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 Request.GetCorrelationId());
         }
 
+        /// <summary>
+        /// Check can choose specification for funding
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <returns></returns>
+        [HttpGet("api/specifications/{specificationId}/funding/canChoose")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> CanChooseForFunding([FromRoute] string specificationId)
+        {
+            return await _specificationPublishingService.CanChooseForFunding(specificationId);
+        }
+
         private Reference GetUser()
         {
             return Request.GetUser();

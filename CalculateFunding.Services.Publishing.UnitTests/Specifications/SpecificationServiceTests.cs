@@ -59,6 +59,28 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 .BeSameAs(expectedSpecificationSummary);
         }
 
+        [TestMethod]
+        public void SelectSpecificationForFunding__GivenNonSuccessResponse_ThrowsException()
+        {
+            //Arrange
+            string specificationId = new RandomString();
+
+            _specifications.SelectSpecificationForfunding(Arg.Is(specificationId))
+                .Returns(HttpStatusCode.NotFound);
+
+            //Act
+            Func<Task> test = async () => await _service.SelectSpecificationForFunding(specificationId);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to select specification with id '{specificationId}' for funding.");
+        }
+
         private void GivenTheApiResponseContentForTheSpecificationId(ApiSpecificationSummary specificationSummary,
             string specificationId)
         {

@@ -17,5 +17,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
             HttpRequest request,
             Reference user,
             string correlationId);
+
+        Task<IActionResult> CanChooseForFunding(string specificationId);
     }
 }
