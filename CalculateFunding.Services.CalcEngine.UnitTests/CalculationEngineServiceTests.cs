@@ -690,17 +690,9 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            Func<Task> test = async () => await service.GenerateAllocations(message);
+            await service.GenerateAllocations(message);
 
             //Assert
-            test
-                .Should()
-                .ThrowExactly<NonRetriableException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Exceptions were thrown during generation of calculation results for specification Id: '{specificationId}'");
-
             await
                 calculationEngineServiceTestsHelper
                     .MockJobsApiClient
@@ -708,11 +700,11 @@ namespace CalculateFunding.Services.Calculator
                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(m =>
                         m.CompletedSuccessfully == false &&
                         m.Outcome == "Exceptions were thrown during generation of calculation results" &&
-                        m.ItemsProcessed == 3));
+                        m.ItemsProcessed == 20));
         }
 
         [TestMethod]
-        public void GenerateAllocations_GivenCalculationResultsContainExcptionButFailsToAddAJobLog_ThrowsNonRetriableExceptionAndLogsError()
+        public async Task GenerateAllocations_GivenCalculationResultsContainExcptionButFailsToAddAJobLog_ThrowsNonRetriableExceptionAndLogsError()
         {
             //Arrange
             const string cacheKey = "Cache-key";
@@ -804,17 +796,9 @@ namespace CalculateFunding.Services.Calculator
             messageUserProperties.Add("jobId", jobId);
 
             //Act
-            Func<Task> test = async () => await service.GenerateAllocations(message);
+            await service.GenerateAllocations(message);
 
             //Assert
-            test
-                .Should()
-                .ThrowExactly<NonRetriableException>()
-                .Which
-                .Message
-                .Should()
-                .Be($"Exceptions were thrown during generation of calculation results for specification Id: '{specificationId}'");
-
             calculationEngineServiceTestsHelper
                 .MockLogger
                 .Received(1)
