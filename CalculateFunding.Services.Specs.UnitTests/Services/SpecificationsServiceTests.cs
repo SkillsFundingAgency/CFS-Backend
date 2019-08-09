@@ -3,7 +3,6 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.MappingProfiles;
@@ -54,8 +53,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IValidator<SpecificationEditModel> specificationEditModelValidator = null,
             IResultsRepository resultsRepository = null,
             IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
-            IFeatureToggle featureToggle = null,
-            IJobsApiClient jobsApiClient = null)
+            IJobsApiClient jobsApiClient = null,
+            IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -69,22 +68,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationEditModelValidator ?? CreateEditSpecificationValidator(),
                 resultsRepository ?? CreateResultsRepository(),
                 specificationVersionRepository ?? CreateVersionRepository(),
-                featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                SpecificationsResilienceTestHelper.GenerateTestPolicies()
-                );
+                SpecificationsResilienceTestHelper.GenerateTestPolicies(),
+                queueCreateSpecificationJobActions ?? Substitute.For<IQueueCreateSpecificationJobActions>());
         }
 
         protected IJobsApiClient CreateJobsApiClient()
         {
             return Substitute.For<IJobsApiClient>();
-        }
-
-        protected IFeatureToggle CreateFeatureToggle()
-        {
-            IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
-
-            return featureToggle;
         }
 
         protected IVersionRepository<SpecificationVersion> CreateVersionRepository()

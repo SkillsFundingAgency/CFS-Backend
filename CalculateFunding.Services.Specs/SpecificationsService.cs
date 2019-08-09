@@ -10,7 +10,6 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -59,9 +58,9 @@ namespace CalculateFunding.Services.Specs
         private readonly ICacheProvider _cacheProvider;
         private readonly IResultsRepository _resultsRepository;
         private readonly IVersionRepository<SpecificationVersion> _specificationVersionRepository;
-        private readonly IFeatureToggle _featureToggle;
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
+        private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
 
         // Ctor for use from functions
         public SpecificationsService(
@@ -77,9 +76,9 @@ namespace CalculateFunding.Services.Specs
             IValidator<SpecificationEditModel> specificationEditModelValidator,
             IResultsRepository resultsRepository,
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
-            IFeatureToggle featureToggle,
             ISpecificationsResiliencePolicies resiliencePolicies,
-            IJobsApiClient jobsApiClient)
+            IJobsApiClient jobsApiClient, 
+            IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -94,8 +93,8 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
-            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -110,8 +109,8 @@ namespace CalculateFunding.Services.Specs
             _specificationEditModelValidator = specificationEditModelValidator;
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
-            _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
+            _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
         }
 
@@ -129,9 +128,9 @@ namespace CalculateFunding.Services.Specs
             IValidator<SpecificationEditModel> specificationEditModelValidator,
             IResultsRepository resultsRepository,
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
-            IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
-            ISpecificationsResiliencePolicies resiliencePolicies)
+            ISpecificationsResiliencePolicies resiliencePolicies, 
+            IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -145,9 +144,9 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
-            Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -162,8 +161,8 @@ namespace CalculateFunding.Services.Specs
             _specificationEditModelValidator = specificationEditModelValidator;
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
-            _featureToggle = featureToggle;
             _jobsApiClient = jobsApiClient;
+            _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
         }
 
@@ -722,7 +721,13 @@ namespace CalculateFunding.Services.Specs
             await _specificationVersionRepository.SaveVersion(specificationVersion);
 
             await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
+            
+            await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
 
+            string specificationId = specification.Id;
+            
+            
+            
             SpecificationCurrentVersion result = ConvertSpecificationToCurrentVersion(repositoryCreateResult, fundingStreamObjects);
 
             return new OkObjectResult(result);

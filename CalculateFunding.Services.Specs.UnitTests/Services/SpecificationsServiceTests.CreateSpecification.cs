@@ -21,6 +21,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
@@ -40,6 +41,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
             ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
+            IQueueCreateSpecificationJobActions createSpecificationJobAction = Substitute.For<IQueueCreateSpecificationJobActions>();
 
             IMapper mapper = CreateImplementedMapper();
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
@@ -49,7 +51,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 policiesApiClient: policiesApiClient,
                 searchRepository: searchRepository,
                 mapper: mapper,
-                specificationVersionRepository: versionRepository);
+                specificationVersionRepository: versionRepository,
+                queueCreateSpecificationJobActions: createSpecificationJobAction);
 
             SpecificationCreateModel specificationCreateModel = new SpecificationCreateModel()
             {
@@ -187,6 +190,22 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                        m.Name == "Specification Name" &&
                        m.Version == 1
                    ));
+
+            await createSpecificationJobAction
+                .Received(1)
+                .Run(Arg.Is<SpecificationVersion>(
+                        m => !string.IsNullOrWhiteSpace(m.EntityId) &&
+                             m.PublishStatus == Models.Versioning.PublishStatus.Draft &&
+                             m.Description == "Specification Description" &&
+                             m.FundingPeriod.Id == "fp1" &&
+                             m.FundingPeriod.Name == "Funding Period 1" &&
+                             m.FundingStreams.Any() &&
+                             m.Name == "Specification Name" &&
+                             m.Version == 1
+                    ),
+                    Arg.Is<Reference>(user => user.Id == UserId &&
+                                              user.Name == Username),
+                    Arg.Any<string>());
         }
 
         [TestMethod]

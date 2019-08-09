@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Results;
+using Microsoft.AspNetCore.Routing.Tree;
 
 namespace CalculateFunding.Services.Core.Helpers
 {
@@ -16,6 +18,21 @@ namespace CalculateFunding.Services.Core.Helpers
                     {
                         throw task.Exception;
                     }
+                }
+            }
+        }
+        
+        public static async Task WhenAllAndThrow<TResult>(params Task<TResult>[] tasks)
+        {
+            if (tasks == null) return;
+            
+            await Task.WhenAll(tasks);
+            
+            foreach (Task<TResult> task in tasks)
+            {
+                if (task.Exception != null)
+                {
+                    throw task.Exception;
                 }
             }
         }

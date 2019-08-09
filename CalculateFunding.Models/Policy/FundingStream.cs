@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Policy
 {
+    
     public class FundingStream : Reference
     {
         public FundingStream()

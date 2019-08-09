@@ -29,6 +29,10 @@
             public const string PublishProviderFundingJob = "PublishProviderFundingJob";
 
             public const string ApproveFunding = "ApproveFunding";
+
+            public const string CreateSpecificationJob = nameof(CreateSpecificationJob);
+
+            public const string AssignTemplateCalculationsJob = nameof(AssignTemplateCalculationsJob);
         }
 
         public static class NotificationChannels
