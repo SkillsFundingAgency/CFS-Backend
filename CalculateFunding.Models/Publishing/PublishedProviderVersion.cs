@@ -37,10 +37,7 @@ namespace CalculateFunding.Models.Publishing
         /// Entity ID for cosmos versioning. This refers to the parent PublishedProvider cosmos ID
         /// </summary>
         [JsonProperty("entityId")]
-        public override string EntityId
-        {
-            get { return $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{Version}"; }
-        }
+        public override string EntityId => $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{Version}";
 
         /// <summary>
         /// Published Provider Approval Status
@@ -64,24 +61,21 @@ namespace CalculateFunding.Models.Publishing
         /// Funding Lines - used to store the profiling result and total for all funding lines.
         /// The total funding per funding line and distribution periods are stored here.
         /// This will be consumed from the organisation group aggregator and variations over time.
-        /// Dictionary key is the funding stream ID
         /// </summary>
         [JsonProperty("fundingLines")]
-        public IDictionary<string, IEnumerable<FundingLine>> FundingLines { get; set; }
+        public IEnumerable<FundingLine> FundingLines { get; set; }
 
         /// <summary>
         /// Calculations that make up this funding line.
-        /// Dictionary key is the funding stream ID
         /// </summary>
         [JsonProperty("calculations")]
-        public IDictionary<string, IEnumerable<FundingCalculation>> Calculations { get; set; }
+        public IEnumerable<FundingCalculation> Calculations { get; set; }
 
         /// <summary>
-        /// Calculations that make up this funding line.
-        /// Dictionary key is the funding stream ID
+        /// Reference data that make up data for calculations.
         /// </summary>
         [JsonProperty("referenceData")]
-        public IDictionary<string, IEnumerable<FundingReferenceData>> ReferenceData { get; set; }
+        public IEnumerable<FundingReferenceData> ReferenceData { get; set; }
 
         /// <summary>
         /// Total funding for this provider

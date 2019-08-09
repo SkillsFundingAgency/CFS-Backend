@@ -12,7 +12,7 @@ namespace CalculateFunding.Models.Publishing
         public string ProviderId { get; set; }
 
         [JsonProperty("trustStatus")]
-        public TrustStatus TrustStatus { get; set; }
+        public ProviderTrustStatus TrustStatus { get; set; }
 
         [JsonProperty("name")]
         public string Name { get; set; }

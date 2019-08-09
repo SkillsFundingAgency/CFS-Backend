@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface ICalculationResultsRepository
     {
-        Task<IEnumerable<ProviderResult>> GetCalculationResultsBySpecificationId(string specificationId);
+        Task<IEnumerable<ProviderCalculationResult>> GetCalculationResultsBySpecificationId(string specificationId);
     }
 }

@@ -4,7 +4,7 @@ namespace CalculateFunding.Models.Publishing
 {
     public class PublishedFunding : IIdentifiable
     {
-        public string Id => $"funding_{Current.OrganisationIdentiferType}_{Current.OrganisationIdentifer}_{Current.FundingPeriodId}_{Current.FundingStreamId}";
+        public string Id => $"funding_{Current.OrganisationGroupTypeIdentifier}_{Current.OrganisationGroupIdentifierValue}_{Current.FundingPeriod.Id}_{Current.FundingStreamId}";
 
         public PublishedFundingVersion Current { get; set; }
 

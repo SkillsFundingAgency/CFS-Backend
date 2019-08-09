@@ -3,12 +3,12 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
 {
-    public class ProviderResult
+    public class ProviderCalculationResult
     {
-        [JsonProperty("providerId")] 
+        [JsonProperty("providerId")]
         public string ProviderId { get; set; }
 
-        [JsonProperty("results")] 
+        [JsonProperty("results")]
         public IEnumerable<CalculationResult> Results { get; set; }
     }
 }

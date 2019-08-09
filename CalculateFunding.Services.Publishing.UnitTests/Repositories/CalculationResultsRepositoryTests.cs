@@ -66,32 +66,32 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         public async Task GetCalculationResultSummariesDelegatesToCosmosUsingCustomSqlQuery()
         {
             string specificationId = NewRandomString();
-            ProviderResult resultOne = NewProviderResultSummary();
-            ProviderResult resultTwo = NewProviderResultSummary();
-            ProviderResult resultThree = NewProviderResultSummary();
+            ProviderCalculationResult resultOne = NewProviderResultSummary();
+            ProviderCalculationResult resultTwo = NewProviderResultSummary();
+            ProviderCalculationResult resultThree = NewProviderResultSummary();
 
             GivenTheSqlQueryResultsForSpecificationResults(specificationId, resultOne, resultTwo, resultThree);
 
-            IEnumerable<ProviderResult> results = await WhenTheCalculationResultsAreQueriedBySpecificationId(specificationId);
+            IEnumerable<ProviderCalculationResult> results = await WhenTheCalculationResultsAreQueriedBySpecificationId(specificationId);
 
             results
                 .Should()
                 .BeEquivalentTo(resultOne, resultTwo, resultThree);
         }
 
-        private async Task<IEnumerable<ProviderResult>> WhenTheCalculationResultsAreQueriedBySpecificationId(string specificationId)
+        private async Task<IEnumerable<ProviderCalculationResult>> WhenTheCalculationResultsAreQueriedBySpecificationId(string specificationId)
         {
             return await _repository.GetCalculationResultsBySpecificationId(specificationId);
         }
 
-        private ProviderResult NewProviderResultSummary()
+        private ProviderCalculationResult NewProviderResultSummary()
         {
-            return new ProviderResult();
+            return new ProviderCalculationResult();
         }
 
-        private void GivenTheSqlQueryResultsForSpecificationResults(string specificationId, params ProviderResult[] results)
+        private void GivenTheSqlQueryResultsForSpecificationResults(string specificationId, params ProviderCalculationResult[] results)
         {
-            _cosmosRepository.DynamicQueryPartionedEntity<ProviderResult>(Arg.Is<SqlQuerySpec>(sql =>
+            _cosmosRepository.DynamicQueryPartionedEntity<ProviderCalculationResult>(Arg.Is<SqlQuerySpec>(sql =>
                     sql.QueryText == @"
 SELECT
 	    doc.content.id AS providerId,

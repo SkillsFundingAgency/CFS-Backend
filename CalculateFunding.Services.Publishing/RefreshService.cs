@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing
                     $"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to updated");
 
             // Get calculation results for specification
-            IEnumerable<ProviderResult> allCalculationResults = await _calculationResultsRepository.GetCalculationResultsBySpecificationId(specificationId);
+            IEnumerable<ProviderCalculationResult> allCalculationResults = await _calculationResultsRepository.GetCalculationResultsBySpecificationId(specificationId);
             Dictionary<string, IEnumerable<CalculationResult>> calculationResults = new Dictionary<string, IEnumerable<CalculationResult>>();
             foreach (var result in allCalculationResults)
             {

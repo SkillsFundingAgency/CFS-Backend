@@ -280,7 +280,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                     new OrganisationGroupingConfiguration
                     {
                         GroupingReason = GroupingReason.Payment,
-                        IdentifierType = OrganisationIdentifierType.LACode,
+                        IdentifierType = OrganisationGroupTypeIdentifier.LACode,
                         OrganisationGroupingType = OrganisationGroupingType.UKPRN,
                         ProviderTypeMatch = new[]
                         {

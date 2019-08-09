@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V3.Interfaces;
-using CalculateFunding.Api.External.V3.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External.V3.AtomItems;
 using CalculateFunding.Models.Publishing;
@@ -39,7 +38,7 @@ namespace CalculateFunding.Api.External.V3.Services
             int? pageRef,
             IEnumerable<string> fundingStreamIds = null,
             IEnumerable<string> fundingPeriodIds = null,
-            IEnumerable<GroupingReason> groupingReasons = null,
+            IEnumerable<Models.GroupingReason> groupingReasons = null,
             int? pageSize = MaxRecords)
         {
             pageSize = pageSize ?? MaxRecords;

@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing
             _calculationResultsRepository = calculationResultsRepository;
         }
 
-        public Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId)
+        public Task<IEnumerable<ProviderCalculationResult>> GetProviderResultsBySpecificationId(string specificationId)
         {
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
 

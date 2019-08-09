@@ -34,12 +34,12 @@ namespace CalculateFunding.Services.Publishing.Repositories
         }
 
 
-        public Task<IEnumerable<ProviderResult>> GetCalculationResultsBySpecificationId(string specificationId)
+        public Task<IEnumerable<ProviderCalculationResult>> GetCalculationResultsBySpecificationId(string specificationId)
         {
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
-            IEnumerable<ProviderResult> providerResultSummaries = _cosmosRepository
-                .DynamicQueryPartionedEntity<ProviderResult>(new SqlQuerySpec
+            IEnumerable<ProviderCalculationResult> providerResultSummaries = _cosmosRepository
+                .DynamicQueryPartionedEntity<ProviderCalculationResult>(new SqlQuerySpec
                 {
                     QueryText = @"
 SELECT

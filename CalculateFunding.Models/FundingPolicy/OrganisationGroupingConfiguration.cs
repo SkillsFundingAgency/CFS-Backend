@@ -9,9 +9,9 @@ namespace CalculateFunding.Models.FundingPolicy
         /// <summary>
         /// Grouping organisation 
         /// </summary>
-        [EnumDataType(typeof(OrganisationIdentifierType))]
+        [EnumDataType(typeof(OrganisationGroupTypeIdentifier))]
         [JsonProperty("identifierType")]
-        public OrganisationIdentifierType IdentifierType { get; set; }
+        public OrganisationGroupTypeIdentifier IdentifierType { get; set; }
 
         [EnumDataType(typeof(GroupingReason))]
         [JsonProperty("groupingReason")]

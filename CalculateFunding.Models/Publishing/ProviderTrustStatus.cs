@@ -2,7 +2,7 @@
 
 namespace CalculateFunding.Models.Publishing
 {
-    public enum TrustStatus
+    public enum ProviderTrustStatus
     {
         [EnumMember(Value = "Not applicable")]
         NotApplicable,
