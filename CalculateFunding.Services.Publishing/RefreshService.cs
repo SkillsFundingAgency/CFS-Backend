@@ -27,6 +27,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly ICalculationResultsRepository _calculationResultsRepository;
         private readonly IFundingLineGenerator _fundingLineGenerator;
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
+        private readonly IInScopePublishedProviderService _inScopePublishedProviderService;
+        private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private readonly IProfilingService _profilingService;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
@@ -44,6 +46,8 @@ namespace CalculateFunding.Services.Publishing
             IFundingLineGenerator fundingLineGenerator,
             IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
             IProfilingService profilingService,
+            IInScopePublishedProviderService inScopePublishedProviderService,
+            IPublishedProviderDataPopulator publishedProviderDataPopulator,
             IJobsApiClient jobsApiClient,
             ILogger logger,
             ISpecificationFundingStatusService specificationFundingStatusService)
@@ -56,6 +60,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(calculationResultsRepository, nameof(calculationResultsRepository));
             Guard.ArgumentNotNull(fundingLineGenerator, nameof(fundingLineGenerator));
             Guard.ArgumentNotNull(publishedProviderContentsGeneratorResolver, nameof(publishedProviderContentsGeneratorResolver));
+            Guard.ArgumentNotNull(inScopePublishedProviderService, nameof(inScopePublishedProviderService));
+            Guard.ArgumentNotNull(publishedProviderDataPopulator, nameof(publishedProviderDataPopulator));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
@@ -67,6 +73,8 @@ namespace CalculateFunding.Services.Publishing
             _calculationResultsRepository = calculationResultsRepository;
             _fundingLineGenerator = fundingLineGenerator;
             _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
+            _inScopePublishedProviderService = inScopePublishedProviderService;
+            _publishedProviderDataPopulator = publishedProviderDataPopulator;
             _profilingService = profilingService;
             _jobsApiClient = jobsApiClient;
             _logger = logger;
@@ -161,6 +169,8 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (Reference fundingStream in specification.FundingStreams)
             {
+                Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+
                 // TODO: Specifications service needs updating to store template per funding stream, rather than once
 
                 TemplateMetadataContents templateMetadataContents = null; //await _policiesApiClient.GetFundingTemplateContents(fundingStreamId, specification.AssociatedTemplates[fundingStream.Id]);
@@ -177,9 +187,8 @@ namespace CalculateFunding.Services.Publishing
                     }
                 }
 
-                // Create PublishedProvider for new providers
-                Dictionary<string, PublishedProvider> newProviders = new Dictionary<string, PublishedProvider>();
-                // TODO: Call service to create new PublishedProvider entities for this funding stream
+                // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
+                Dictionary<string, PublishedProvider> newProviders = _inScopePublishedProviderService.GenerateMissingProviders(scopedProviders, specification, fundingStream, publishedProviders, templateMetadataContents);
                 publishedProviders.AddRange(newProviders);
 
                 // Calculate funding line totals
@@ -188,12 +197,24 @@ namespace CalculateFunding.Services.Publishing
                 // Profile payment funding lines
                 await _profilingService.ProfileFundingLines(fundingLineTotals, fundingStream.Id, specification.FundingPeriod.Id);
 
-                // Set payment funding line totals on each published provider
+                // Set generated data on the Published provider
+                foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
+                {
+                    bool fundingLinesUpdated = _publishedProviderDataPopulator.UpdateFundingLines(publishedProvider.Value, fundingLineTotals[publishedProvider.Key]);
+                    bool profilingUpdated = _publishedProviderDataPopulator.UpdateProfiling(publishedProvider.Value, fundingLineTotals[publishedProvider.Key]);
+                    bool calculationsUpdated = _publishedProviderDataPopulator.UpdateCalculations(publishedProvider.Value, templateMetadataContents, calculationResults[publishedProvider.Key]);
 
-                // Determine changed providers which need saving
-                Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+                    Common.ApiClient.Providers.Models.Provider provider = scopedProviders.FirstOrDefault(p => p.ProviderId == publishedProvider.Key);
+                    bool providerInformationUpdated = _publishedProviderDataPopulator.UpdateProviderInformation(publishedProvider.Value, provider);
 
-                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders.Values, author, PublishedProviderStatus.Updated);
+                    if (fundingLinesUpdated || profilingUpdated || calculationsUpdated || providerInformationUpdated)
+                    {
+                        publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                    }
+                }
+
+                // Save updated PublishedProviders to cosmos
+                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated);
 
                 // Generate contents JSON for provider
                 IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
@@ -204,7 +225,6 @@ namespace CalculateFunding.Services.Publishing
                     // TODO Write contents to blob storage
                 }
 
-                // TODO Save updated PublishedProviders to cosmos
             }
 
             // Mark job as complete

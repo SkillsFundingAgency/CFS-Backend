@@ -52,6 +52,6 @@ namespace CalculateFunding.Models.Publishing
         /// Profile periods for this funding line
         /// </summary>
         [JsonProperty("profilePeriods")]
-        public IEnumerable<ProfilePeriod> ProfilePeriods { get; set; }
+        public IEnumerable<DistributionPeriod> DistributionPeriods { get; set; }
     }
 }

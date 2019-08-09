@@ -129,6 +129,10 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IProfilingService, ProfilingService>();
 
+            builder.AddSingleton<IInScopePublishedProviderService, InScopePublishedProviderService>();
+
+            builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
+
             builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(r =>
             {
                 PublishedProviderContentsGeneratorResolver resolver = new PublishedProviderContentsGeneratorResolver();

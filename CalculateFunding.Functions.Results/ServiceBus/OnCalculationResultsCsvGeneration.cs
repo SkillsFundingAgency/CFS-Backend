@@ -34,7 +34,7 @@ namespace CalculateFunding.Functions.Results.ServiceBus
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.AllocationLineResultStatusUpdates}");
+                _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration}");
                 throw;
             }
         }

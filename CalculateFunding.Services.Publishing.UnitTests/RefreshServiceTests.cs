@@ -26,6 +26,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private IJobsApiClient _jobsApiClient;
         private IProfilingService _profilingService;
+        private IInScopePublishedProviderService _inScopePublishedProviderService;
+        private IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private ILogger _logger;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
 
@@ -37,6 +39,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _calculationResultsRepository = Substitute.For<ICalculationResultsRepository>();
             _fundingLineGenerator = Substitute.For<IFundingLineGenerator>();
             _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
+            _inScopePublishedProviderService = Substitute.For<IInScopePublishedProviderService>();
+            _publishedProviderDataPopulator = Substitute.For<IPublishedProviderDataPopulator>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
             _profilingService = Substitute.For<IProfilingService>();
             _logger = Substitute.For<ILogger>();
@@ -51,6 +55,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _fundingLineGenerator,
                 _publishedProviderContentsGeneratorResolver,
                 _profilingService,
+                _inScopePublishedProviderService,
+                _publishedProviderDataPopulator,
                 _jobsApiClient,
                 _logger,
                 _specificationFundingStatusService);
