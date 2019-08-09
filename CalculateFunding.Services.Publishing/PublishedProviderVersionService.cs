@@ -90,5 +90,28 @@ namespace CalculateFunding.Services.Publishing
 
             return new OkObjectResult(template);
         }
+
+        public async Task SavePublishedProviderVersionBody(string publishedProviderVersionId, string publishedProviderVersionBody)
+        {
+            Guard.IsNullOrWhiteSpace(publishedProviderVersionId, nameof(publishedProviderVersionId));
+            Guard.IsNullOrWhiteSpace(publishedProviderVersionBody, nameof(publishedProviderVersionBody));
+
+            string blobName = $"{publishedProviderVersionId}.json";
+
+            try
+            {
+                ICloudBlob blob = await _blobClientPolicy.ExecuteAsync(() => _blobClient.GetBlobReferenceFromServerAsync(blobName));
+
+                await _blobClientPolicy.ExecuteAsync(() => _blobClient.UploadAsync(blob, publishedProviderVersionBody));
+            }
+            catch (Exception ex)
+            {
+                string errorMessage = $"Failed to save blob '{blobName}' to azure storage";
+
+                _logger.Error(ex, errorMessage);
+
+                throw new Exception(errorMessage, ex);
+            }
+        }
     }
 }

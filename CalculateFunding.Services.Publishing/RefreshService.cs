@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -33,10 +34,11 @@ namespace CalculateFunding.Services.Publishing
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
+        private readonly IPublishedProviderVersionService _publishedProviderVersionService;
 
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
-        
+
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
@@ -50,7 +52,8 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderDataPopulator publishedProviderDataPopulator,
             IJobsApiClient jobsApiClient,
             ILogger logger,
-            ISpecificationFundingStatusService specificationFundingStatusService)
+            ISpecificationFundingStatusService specificationFundingStatusService,
+            IPublishedProviderVersionService publishedProviderVersionService)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
@@ -65,6 +68,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
+            Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
@@ -82,6 +86,7 @@ namespace CalculateFunding.Services.Publishing
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
+            _publishedProviderVersionService = publishedProviderVersionService;
         }
 
         public async Task<IEnumerable<Common.ApiClient.Providers.Models.Provider>> GetProvidersByProviderVersionId(string providerVersionId)
@@ -220,9 +225,23 @@ namespace CalculateFunding.Services.Publishing
                 IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
                 foreach (KeyValuePair<string, PublishedProvider> provider in publishedProvidersToUpdate)
                 {
-                    string contents = generator.GenerateContents(provider.Value.Current, templateMetadataContents, calculationResults[provider.Key], fundingLineTotals[provider.Key]);
+                    PublishedProviderVersion publishedProviderVersion = provider.Value.Current;
 
-                    // TODO Write contents to blob storage
+                    string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, calculationResults[provider.Key], fundingLineTotals[provider.Key]);
+
+                    if (string.IsNullOrWhiteSpace(contents))
+                    {
+                        throw new RetriableException($"Generator failed to generate content for published provider version with id: '{publishedProviderVersion.Id}'");
+                    }
+
+                    try
+                    {
+                        await _publishedProviderVersionService.SavePublishedProviderVersionBody(publishedProviderVersion.Id, contents);
+                    }
+                    catch(Exception ex)
+                    {
+                        throw new RetriableException(ex.Message);
+;                   }
                 }
 
             }

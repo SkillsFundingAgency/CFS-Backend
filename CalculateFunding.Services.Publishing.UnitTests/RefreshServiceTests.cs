@@ -30,6 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private ILogger _logger;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
+        private IPublishedProviderVersionService _publishedProviderVersionService;
 
         [TestInitialize]
         public void SetUp()
@@ -45,6 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _profilingService = Substitute.For<IProfilingService>();
             _logger = Substitute.For<ILogger>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
+            _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
 
             _refreshService = new RefreshService(Substitute.For<IPublishedProviderStatusUpdateService>(),
                 Substitute.For<IPublishedFundingRepository>(),
@@ -59,7 +61,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedProviderDataPopulator,
                 _jobsApiClient,
                 _logger,
-                _specificationFundingStatusService);
+                _specificationFundingStatusService,
+                _publishedProviderVersionService);
         }
 
         [TestMethod]

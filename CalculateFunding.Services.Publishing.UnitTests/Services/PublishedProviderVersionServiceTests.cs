@@ -21,6 +21,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
         private string blobName = $"{publishedProviderVersionId}.json";
 
+        private const string body = "just a string";
+
         [TestMethod]
         public async Task GetPublishedProviderVersionBody_GivenNullOrEmptyId_ReturnsBadRequest()
         {
@@ -108,9 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public async Task GetPublishedProviderVersionBody_GivenReturnsFromBlobStorage_returnsOK()
         {
             //Arrange
-            string template = "just a string";
-
-            byte[] bytes = Encoding.UTF8.GetBytes(template);
+            byte[] bytes = Encoding.UTF8.GetBytes(body);
 
             Stream memoryStream = new MemoryStream(bytes);
 
@@ -143,8 +143,97 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Which
                 .Value
                 .Should()
-                .Be(template);
+                .Be(body);
         }
+
+        [TestMethod]
+        public void SavePublishedProviderVersionBody_GivenGetBlobReferenceFromServerAsyncThrowsException_ThrowsNewException()
+        {
+            //Arrange
+            IBlobClient blobClient = CreateBlobClient();
+           
+            blobClient
+                .When(x => x.GetBlobReferenceFromServerAsync(Arg.Is(blobName)))
+                .Do(x => { throw new Exception("Failed to get blob reference"); });
+
+            ILogger logger = CreateLogger();
+
+            string errorMessage = $"Failed to save blob '{blobName}' to azure storage";
+
+            PublishedProviderVersionService service = CreatePublishedProviderVersionService(logger, blobClient);
+
+            //Act
+            Func<Task> test = async () => await service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .And
+                .Message
+                .Should()
+                .Be(errorMessage);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is<Exception>(m => m.Message == "Failed to get blob reference"), Arg.Is(errorMessage));
+        }
+
+        [TestMethod]
+        public void SavePublishedProviderVersionBody_GivenUoloadAsyncThrowsException_ThrowsNewException()
+        {
+            //Arrange
+            IBlobClient blobClient = CreateBlobClient();
+
+            blobClient
+                .When(x => x.UploadAsync(Arg.Any<ICloudBlob>(), Arg.Is(body)))
+                .Do(x => { throw new Exception("Failed to upload blob"); });
+
+            ILogger logger = CreateLogger();
+
+            string errorMessage = $"Failed to save blob '{blobName}' to azure storage";
+
+            PublishedProviderVersionService service = CreatePublishedProviderVersionService(logger, blobClient);
+
+            //Act
+            Func<Task> test = async () => await service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<Exception>()
+                .And
+                .Message
+                .Should()
+                .Be(errorMessage);
+
+            logger
+                .Received(1)
+                .Error(Arg.Is<Exception>(m => m.Message == "Failed to upload blob"), Arg.Is(errorMessage));
+        }
+
+        [TestMethod]
+        public async Task SavePublishedProviderVersionBody_GivenUoloadAsyncSuccessful_EnsuresCalledWithCorrectParameters()
+        {
+            //Arrange
+            ICloudBlob blob = Substitute.For<ICloudBlob>();
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobName))
+                .Returns(blob);
+
+            PublishedProviderVersionService service = CreatePublishedProviderVersionService(blobClient: blobClient);
+
+            //Act
+            await service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+
+            //Assert
+            await
+                blobClient
+                .Received(1)
+                .UploadAsync(Arg.Is(blob), Arg.Is(body));
+         }
 
         private static PublishedProviderVersionService CreatePublishedProviderVersionService(
                 ILogger logger = null,

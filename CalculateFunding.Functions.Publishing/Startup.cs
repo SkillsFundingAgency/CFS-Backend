@@ -11,9 +11,11 @@ using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
@@ -93,6 +95,21 @@ namespace CalculateFunding.Functions.Publishing
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateService, PublishedProviderStatusUpdateService>()
                 .AddSingleton<IHealthChecker, PublishedProviderStatusUpdateService>();
+
+            builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>()
+                .AddSingleton<IHealthChecker, PublishedProviderStatusUpdateService>();
+
+            builder
+               .AddSingleton<IBlobClient, BlobClient>((ctx) =>
+               {
+                   AzureStorageSettings storageSettings = new AzureStorageSettings();
+
+                   config.Bind("AzureStorageSettings", storageSettings);
+
+                   storageSettings.ContainerName = "publishedproviderversions";
+
+                   return new BlobClient(storageSettings);
+               });
 
             builder.AddSingleton<IVersionRepository<PublishedProviderVersion>, VersionRepository<PublishedProviderVersion>>((ctx) =>
             {
@@ -212,7 +229,8 @@ namespace CalculateFunding.Functions.Publishing
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;
