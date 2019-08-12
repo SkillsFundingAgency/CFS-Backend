@@ -79,6 +79,9 @@ namespace CalculateFunding.Services.Calcs
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.Policy _specificationsApiClientPolicy;
         private readonly IValidator<CalculationEditModel> _calculationEditModelValidator;
+        private readonly ICalculationNameInUseCheck _calculationNameInUseCheck;
+        private readonly IInstructionAllocationJobCreation _instructionAllocationJobCreation;
+        private readonly ICreateCalculationService _createCalculationService;
 
         public CalculationService(
             IMapper mapper,
@@ -99,7 +102,10 @@ namespace CalculateFunding.Services.Calcs
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate,
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IValidator<CalculationEditModel> calculationEditModelValidator,
-            ISpecificationsApiClient specificationsApiClient)
+            ISpecificationsApiClient specificationsApiClient, 
+            ICalculationNameInUseCheck calculationNameInUseCheck, 
+            IInstructionAllocationJobCreation instructionAllocationJobCreation, 
+            ICreateCalculationService createCalculationService)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
@@ -120,6 +126,9 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationCreateModelValidator, nameof(calculationCreateModelValidator));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(calculationEditModelValidator, nameof(calculationEditModelValidator));
+            Guard.ArgumentNotNull(calculationNameInUseCheck, nameof(calculationNameInUseCheck));
+            Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
+            Guard.ArgumentNotNull(createCalculationService, nameof(createCalculationService));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;
@@ -147,6 +156,9 @@ namespace CalculateFunding.Services.Calcs
             _policiesApiClient = policiesApiClient;
             _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
             _specificationsApiClient = specificationsApiClient;
+            _calculationNameInUseCheck = calculationNameInUseCheck;
+            _instructionAllocationJobCreation = instructionAllocationJobCreation;
+            _createCalculationService = createCalculationService;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _calculationEditModelValidator = calculationEditModelValidator;
         }
@@ -443,109 +455,26 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId)
         {
-            Guard.ArgumentNotNull(model, nameof(model));
-            Guard.ArgumentNotNull(author, nameof(author));
+            CreateCalculationResponse createCalculationResponse = await _createCalculationService.CreateCalculation(specificationId, 
+                model,
+                CalculationNamespace.Additional, 
+                CalculationType.Additional,
+                author, 
+                correlationId);
 
-            if (string.IsNullOrWhiteSpace(model.Id))
+            if (createCalculationResponse.Succeeded)
             {
-                model.Id = Guid.NewGuid().ToString();
+                return new OkObjectResult(createCalculationResponse.Calculation);
             }
 
-            model.SpecificationId = specificationId;
-
-            BadRequestObjectResult validationResult = (await _calculationCreateModelValidator.ValidateAsync(model)).PopulateModelState();
-
-            if (validationResult != null)
+            if (createCalculationResponse.ErrorType == CreateCalculationErrorType.InvalidRequest)
             {
-                return validationResult;
+                return createCalculationResponse.ValidationResult != null
+                    ? createCalculationResponse.ValidationResult.AsBadRequest()
+                    : new BadRequestObjectResult(createCalculationResponse.ErrorMessage);
             }
-
-            Calculation calculation = new Calculation
-            {
-                Id = model.Id,
-                FundingStreamId = model.FundingStreamId,
-                SpecificationId = model.SpecificationId,
-            };
-
-            CalculationVersion calculationVersion = new CalculationVersion
-            {
-                CalculationId = calculation.Id,
-                PublishStatus = PublishStatus.Draft,
-                Author = author,
-                Date = DateTimeOffset.Now.ToLocalTime(),
-                Version = 1,
-                SourceCode = model.SourceCode,
-                Description = model.Description,
-                ValueType = model.ValueType.Value,
-                CalculationType = CalculationType.Additional,
-                WasTemplateCalculation = false,
-                Namespace = CalculationNamespace.Additional,
-                Name = model.Name
-            };
-
-            calculation.Current = calculationVersion;
-
-            IActionResult nameValidResult = await IsCalculationNameValid(calculation.Id, calculation.Name, null);
-
-            if (nameValidResult is ConflictResult)
-            {
-                _logger.Error("Calculation with the same generated source code name already exists in this specification. Calculation Name {calcName} and Specification {specificationId}", calculation.Name, calculation.SpecificationId);
-                return new BadRequestObjectResult($"Calculation with the same generated source code name already exists in this specification. Calculation Name {calculation.Name} and Specification {calculation.SpecificationId}");
-            }
-
-            calculation.Current.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculation.Name);
-
-            HttpStatusCode result = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.CreateDraftCalculation(calculation));
-
-            if (result.IsSuccess())
-            {
-                await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.SaveVersion(calculationVersion));
-
-                await UpdateSearch(calculation);
-
-                string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
-
-                await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
-
-                Job job = null;
-
-                try
-                {
-                    job = await SendInstructAllocationsToJobService(calculation.SpecificationId, author.Id, author.Name, new Trigger
-                    {
-                        EntityId = calculation.Id,
-                        EntityType = nameof(Calculation),
-                        Message = $"Saving calculation: '{calculation.Id}' for specification: '{calculation.SpecificationId}'"
-                    }, correlationId);
-
-                    if (job != null)
-                    {
-                        _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
-
-                        return new OkObjectResult(calculation);
-                    }
-                    else
-                    {
-                        string errorMessage = $"Failed to create job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' on specification '{calculation.SpecificationId}'";
-
-                        _logger.Error(errorMessage);
-
-                        return new InternalServerErrorResult(errorMessage);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return new InternalServerErrorResult(ex.Message);
-                }
-            }
-            else
-            {
-                string errorMessage = $"There was problem creating a new calculation with name {calculation.Name} in Cosmos Db with status code {(int)result}";
-
-                _logger.Error(errorMessage);
-
-                return new InternalServerErrorResult(errorMessage);
-            }
+            
+            return new InternalServerErrorResult(createCalculationResponse.ErrorMessage);
         }
 
         public async Task UpdateCalculationsForSpecification(Message message)
@@ -1054,32 +983,14 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> IsCalculationNameValid(string specificationId, string calculationName, string existingCalculationId)
         {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.IsNullOrWhiteSpace(calculationName, nameof(calculationName));
+            bool? isNameInUseCheckResult = await _calculationNameInUseCheck.IsCalculationNameInUse(specificationId, calculationName, existingCalculationId);
 
-            SpecificationSummary specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetSpecificationSummaryById(specificationId));
-
-            if (specification == null)
+            if (isNameInUseCheckResult == null)
             {
                 return new NotFoundResult();
             }
 
-            IEnumerable<Calculation> existingCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-
-            if (!existingCalculations.IsNullOrEmpty())
-            {
-                string calcSourceName = VisualBasicTypeGenerator.GenerateIdentifier(calculationName);
-
-                foreach (Calculation calculation in existingCalculations)
-                {
-                    if (calculation.Id != existingCalculationId && string.Compare(calculation.Current.SourceCodeName, calcSourceName, true) == 0)
-                    {
-                        return new ConflictResult();
-                    }
-                }
-            }
-
-            return new OkResult();
+            return isNameInUseCheckResult == true ? (IActionResult)new ConflictResult() : new OkResult();
         }
 
         public async Task<IActionResult> DuplicateCalcNamesMigration()
@@ -1252,39 +1163,7 @@ namespace CalculateFunding.Services.Calcs
 
         private async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId)
         {
-            IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
-
-            bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false :
-                SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.Current.SourceCode));
-
-            JobCreateModel job = new JobCreateModel
-            {
-                InvokerUserDisplayName = userName,
-                InvokerUserId = userId,
-                JobDefinitionId = generateCalculationAggregations ?
-                    JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob :
-                    JobConstants.DefinitionNames.CreateInstructAllocationJob,
-                SpecificationId = specificationId,
-                Properties = new Dictionary<string, string>
-                    {
-                        { "specification-id", specificationId }
-                    },
-                Trigger = trigger,
-                CorrelationId = correlationId
-            };
-
-            try
-            {
-                return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
-            }
-            catch (Exception ex)
-            {
-                string errorMessage = $"Failed to create job of type '{job.JobDefinitionId}' on specification '{specificationId}'";
-
-                _logger.Error(ex, errorMessage);
-
-                throw new RetriableException(errorMessage, ex);
-            }
+            return await _instructionAllocationJobCreation.SendInstructAllocationsToJobService(specificationId, userId, userName, trigger, correlationId);
         }
 
         private async Task UpdateCalculationInCache(Calculation calculation, CalculationCurrentVersion currentVersion)

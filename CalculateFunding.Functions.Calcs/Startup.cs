@@ -67,7 +67,10 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<OnApplyTemplateCalculationsFailure>();
             builder.AddSingleton<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
-            builder.AddSingleton<ICalculationService, CalculationService>();
+            builder.AddSingleton<ICalculationService, CalculationService>()
+                .AddSingleton<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
+                .AddSingleton<ICreateCalculationService, CreateCalculationService>();
+            builder.AddSingleton<ICalculationNameInUseCheck, CalculationNameInUseCheck>();
             builder.AddSingleton<ICalculationsSearchService, CalculationSearchService>();
             builder.AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>();
             builder.AddSingleton<ITokenChecker, TokenChecker>();

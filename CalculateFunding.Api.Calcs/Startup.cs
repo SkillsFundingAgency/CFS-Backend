@@ -83,7 +83,10 @@ namespace CalculateFunding.Api.Calcs
 
             builder
                .AddSingleton<ICalculationService, CalculationService>()
-               .AddSingleton<IHealthChecker, CalculationService>();
+               .AddSingleton<ICalculationNameInUseCheck, CalculationNameInUseCheck>()
+               .AddSingleton<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
+               .AddSingleton<IHealthChecker, CalculationService>()
+               .AddSingleton<ICreateCalculationService, CreateCalculationService>();
 
             builder
                 .AddSingleton<ICalculationCodeReferenceUpdate, CalculationCodeReferenceUpdate>()

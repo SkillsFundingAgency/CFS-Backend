@@ -53,6 +53,15 @@ namespace CalculateFunding.Services.Calcs.Services
             IValidator<CalculationEditModel> calculationEditModelValidator = null,
             ISpecificationsApiClient specificationsApiClient = null)
         {
+            CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
+                specificationRepository ?? CreateSpecificationRepository(),
+                resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies());
+
+            InstructionAllocationJobCreation instructionAllocationJobCreation = new InstructionAllocationJobCreation(calculationsRepository ?? CreateCalculationsRepository(),
+                resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
+                logger ?? CreateLogger(),
+                jobsApiClient ?? CreateJobsApiClient());
+            
             return new CalculationService
                 (mapper ?? CreateMapper(),
                 calculationsRepository ?? CreateCalculationsRepository(),
@@ -72,7 +81,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 calculationCodeReferenceUpdate ?? CreateCalculationCodeReferenceUpdate(),
                 calculationCreateModelValidator ?? CreateCalculationCreateModelValidator(),
                 calculationEditModelValidator?? CreateCalculationEditModelValidator(),
-                specificationsApiClient ?? CreateSpecificationsApiClient());
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
+                calculationNameInUseCheck,
+                instructionAllocationJobCreation,
+                new CreateCalculationService(calculationNameInUseCheck, 
+                    calculationsRepository ?? CreateCalculationsRepository(),
+                    calculationVersionRepository ?? CreateCalculationVersionRepository(),
+                    resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
+                    calculationCreateModelValidator ?? CreateCalculationCreateModelValidator(),
+                    cacheProvider ?? CreateCacheProvider(),
+                    searchRepository ?? CreateSearchRepository(),
+                    logger ?? CreateLogger(),
+                    instructionAllocationJobCreation));
         }
 
         private static ICalculationCodeReferenceUpdate CreateCalculationCodeReferenceUpdate()
