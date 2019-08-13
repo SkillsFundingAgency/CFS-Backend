@@ -1232,7 +1232,7 @@
         },
         {
           "type": "queues",
-          "name": "on-calculation-results-csv-generation",
+          "name": "calculation-results-csv-generation",
           "apiVersion": "2017-04-01",
           "location": "[resourceGroup().location]",
           "properties": {
