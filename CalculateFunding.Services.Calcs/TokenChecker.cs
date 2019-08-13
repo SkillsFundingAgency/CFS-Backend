@@ -7,31 +7,25 @@ namespace CalculateFunding.Services.Calcs
 {
     public class TokenChecker : ITokenChecker
     {
-        //NCrunch can't see the tests for this, but they are there
-        public bool CheckIsToken(string sourceCode, string tokenName, int position)
+        public int? CheckIsToken(string sourceCode, string tokenNamespace, string tokenName, int position)
         {
-            if (position < 0 || position > sourceCode.Length - tokenName.Length)
-            {
-                throw new ArgumentException("Supplied token position is invalid");
-            }
+            return CheckIsToken(sourceCode,
+                       tokenName,
+                       false,
+                       position)
+                   ?? (string.IsNullOrWhiteSpace(tokenNamespace)
+                        ? null
+                        : CheckIsToken(sourceCode,
+                           $"{tokenNamespace}.{tokenName}",
+                           true,
+                           position));
+        }
 
-            if (string.IsNullOrWhiteSpace(tokenName))
-            {
-                throw new ArgumentException("Token names cannot be blank");
-            }
-            if (!Regex.IsMatch(tokenName, "^[A-Za-z_]"))
-            {
-                throw new ArgumentException($"Token name '{tokenName}' is not a valid identifier");
-            }
+        public int? CheckIsToken(string sourceCode, string tokenName, bool isNamespaced, int position)
+        {
+            CheckTokenLegal(tokenName, isNamespaced);
 
-            string invalidCharacters = " \t.()[]{}-+=!\"':;,/|\\¬¦%&*'" + Environment.NewLine;
-            foreach (var character in invalidCharacters.ToCharArray())
-            {
-                if (tokenName.Contains(character))
-                {
-                    throw new ArgumentException($"Token name '{tokenName}' is not a valid identifier");
-                }
-            }
+            if (sourceCode.IndexOf(tokenName, position) < 0) return null;
 
             bool result = sourceCode.Substring(position, tokenName.Length) == tokenName;
             string[] validPrecedingCharacters = { "(", ",", "=", "+", "-", "*", "/" };
@@ -55,7 +49,33 @@ namespace CalculateFunding.Services.Calcs
                 }
             }
 
-            return result;
+            return result
+                ? tokenName.Length
+                : (int?)null;
+        }
+
+        public void CheckTokenLegal(string tokenName, bool isNamespaced)
+        {
+            if (string.IsNullOrWhiteSpace(tokenName))
+            {
+                throw new ArgumentException("Token names cannot be blank");
+            }
+
+            if (!Regex.IsMatch(tokenName, "^[A-Za-z_]"))
+            {
+                throw new ArgumentException($"Token name '{tokenName}' is not a valid identifier");
+            }
+
+            string invalidCharacters = " \t()[]{}-+=!\"':;,/|\\¬¦%&*'"
+                                       + Environment.NewLine
+                                       + (isNamespaced ? "" : ".");
+            foreach (var character in invalidCharacters.ToCharArray())
+            {
+                if (tokenName.Contains(character))
+                {
+                    throw new ArgumentException($"Token name '{tokenName}' is not a valid identifier");
+                }
+            }
         }
     }
 }

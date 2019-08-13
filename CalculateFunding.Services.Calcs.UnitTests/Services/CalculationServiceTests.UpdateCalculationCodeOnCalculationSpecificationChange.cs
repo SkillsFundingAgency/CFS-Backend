@@ -19,10 +19,10 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = CreateCalculationCodeReferenceUpdate();
             calculationCodeReferenceUpdate
-                .ReplaceSourceCodeReferences(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>())
+                .ReplaceSourceCodeReferences(Arg.Any<Calculation>(), Arg.Any<string>(), Arg.Any<string>())
                 .Returns(x =>
                 {
-                    string source = x.ArgAt<string>(0);
+                    string source = x.ArgAt<Calculation>(0).Current.SourceCode;
                     string oldName = x.ArgAt<string>(1);
                     string newName = x.ArgAt<string>(2);
 
@@ -76,36 +76,33 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Reference user = new Reference("userId", "User Name");
 
-            List<Calculation> calculations = new List<Calculation>();
-            Calculation calc1 = new Calculation
+            List<Calculation> calculations = new List<Calculation>
             {
-                Id = calculationId,
-                SpecificationId = specificationId,
-                Current = new CalculationVersion
+                new Calculation
                 {
-                    SourceCode = originalCodeIgnore,
-                    Name = "Calculation to Update",
-                    CalculationType = CalculationType.Template,
-                    Description = "Calculation Description"
+                    Id = calculationId,
+                    SpecificationId = specificationId,
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = originalCodeIgnore,
+                        Name = "Calculation to Update",
+                        CalculationType = CalculationType.Template,
+                        Description = "Calculation Description"
+                    }
+                },
+                new Calculation
+                {
+                    Id = "referenceCalc",
+                    SpecificationId = specificationId,
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = originalCodeUpdate,
+                        Name = "Calling Calculation To Update",
+                        CalculationType = CalculationType.Template,
+                        Description = "Calculation Description"
+                    }
                 }
             };
-
-            calculations.Add(calc1);
-
-            Calculation calc2 = new Calculation
-            {
-                Id = "referenceCalc",
-                SpecificationId = specificationId,
-                Current = new CalculationVersion
-                {
-                    SourceCode = originalCodeUpdate,
-                    Name = "Calling Calculation To Update",
-                    CalculationType = CalculationType.Template,
-                    Description = "Calculation Description"
-                }
-            };
-
-            calculations.Add(calc2);
 
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -168,17 +165,17 @@ namespace CalculateFunding.Services.Calcs.Services
 
             calculationCodeReferenceUpdate
                 .Received(calculations.Count)
-                .ReplaceSourceCodeReferences(Arg.Any<string>(),
+                .ReplaceSourceCodeReferences(Arg.Any<Calculation>(),
                     VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name),
                     VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name));
 
             calculationCodeReferenceUpdate
                 .Received(1)
-                .ReplaceSourceCodeReferences(originalCodeIgnore, Arg.Any<string>(), Arg.Any<string>());
+                .ReplaceSourceCodeReferences(Arg.Is<Calculation>(c => c.Current.SourceCode == originalCodeIgnore), Arg.Any<string>(), Arg.Any<string>());
 
             calculationCodeReferenceUpdate
                 .Received(1)
-                .ReplaceSourceCodeReferences(originalCodeUpdate, Arg.Any<string>(), Arg.Any<string>());
+                .ReplaceSourceCodeReferences(Arg.Is<Calculation>(c => c.Current.SourceCode == originalCodeIgnore), Arg.Any<string>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -227,36 +224,33 @@ namespace CalculateFunding.Services.Calcs.Services
             const string originalCodeIgnore = "Return 10";
             const string originalCodeUpdate = "Return OriginalName()";
 
-            List<Calculation> calculations = new List<Calculation>();
-            Calculation calc1 = new Calculation
+            List<Calculation> calculations = new List<Calculation>
             {
-                Id = calculationId,
-                SpecificationId = specificationId,
-                Current = new CalculationVersion
+                new Calculation
                 {
-                    SourceCode = originalCodeIgnore,
-                    Name = "Calculation to Update",
-                    CalculationType = CalculationType.Template,
-                    Description = "Calculation Description"
+                    Id = calculationId,
+                    SpecificationId = specificationId,
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = originalCodeIgnore,
+                        Name = "Calculation to Update",
+                        CalculationType = CalculationType.Template,
+                        Description = "Calculation Description"
+                    }
+                },
+                new Calculation()
+                {
+                    Id = "referenceCalc",
+                    SpecificationId = specificationId,
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = originalCodeUpdate,
+                        Name = "Calling Calculation To Update",
+                        CalculationType = CalculationType.Template,
+                        Description = "Calculation Description",
+                    }
                 }
             };
-
-            calculations.Add(calc1);
-
-            Calculation calc2 = new Calculation()
-            {
-                Id = "referenceCalc",
-                SpecificationId = specificationId,
-                Current = new CalculationVersion
-                {
-                    SourceCode = originalCodeUpdate,
-                    Name = "Calling Calculation To Update",
-                    CalculationType = CalculationType.Template,
-                    Description = "Calculation Description",
-                }
-            };
-
-            calculations.Add(calc2);
 
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
@@ -322,17 +316,17 @@ namespace CalculateFunding.Services.Calcs.Services
 
             calculationCodeReferenceUpdate
                 .Received(calculations.Count)
-                .ReplaceSourceCodeReferences(Arg.Any<string>(),
+                .ReplaceSourceCodeReferences(Arg.Any<Calculation>(),
                     VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name),
                     VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name));
 
             calculationCodeReferenceUpdate
                 .Received(1)
-                .ReplaceSourceCodeReferences(originalCodeIgnore, Arg.Any<string>(), Arg.Any<string>());
+                .ReplaceSourceCodeReferences(Arg.Is<Calculation>(c => c.Current.SourceCode == originalCodeIgnore), Arg.Any<string>(), Arg.Any<string>());
 
             calculationCodeReferenceUpdate
                 .Received(1)
-                .ReplaceSourceCodeReferences(originalCodeUpdate, Arg.Any<string>(), Arg.Any<string>());
+                .ReplaceSourceCodeReferences(Arg.Is<Calculation>(c => c.Current.SourceCode == originalCodeIgnore), Arg.Any<string>(), Arg.Any<string>());
         }
 
         [TestMethod]
@@ -446,7 +440,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             calculationCodeReferenceUpdate
                 .Received(calculations.Count)
-                .ReplaceSourceCodeReferences(Arg.Any<string>(),
+                .ReplaceSourceCodeReferences(Arg.Any<Calculation>(),
                     VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name),
                     VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name));
 
@@ -454,7 +448,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 calculationCodeReferenceUpdate
                     .Received(1)
-                    .ReplaceSourceCodeReferences(calculation.Current.SourceCode,
+                    .ReplaceSourceCodeReferences(calculation,
                         VisualBasicTypeGenerator.GenerateIdentifier(comparison.Previous.Name),
                         VisualBasicTypeGenerator.GenerateIdentifier(comparison.Current.Name));
             }

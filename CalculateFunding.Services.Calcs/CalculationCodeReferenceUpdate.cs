@@ -1,5 +1,6 @@
 ﻿using System;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 
 namespace CalculateFunding.Services.Calcs
@@ -15,22 +16,27 @@ namespace CalculateFunding.Services.Calcs
             _tokenChecker = tokenChecker;
         }
 
-        public string ReplaceSourceCodeReferences(string sourceCode, string oldCalcSourceCodeName, string newCalcSourceCodeName)
+        public string ReplaceSourceCodeReferences(Calculation calculation, string oldCalcSourceCodeName, string newCalcSourceCodeName)
         {
-            Guard.IsNullOrWhiteSpace(sourceCode, nameof(sourceCode));
+            Guard.ArgumentNotNull(calculation, nameof(calculation));
             Guard.IsNullOrWhiteSpace(oldCalcSourceCodeName, nameof(oldCalcSourceCodeName));
             Guard.IsNullOrWhiteSpace(newCalcSourceCodeName, nameof(newCalcSourceCodeName));
 
-            //NCrunch can't run the tests for this, but they run fine manually
+            string sourceCode = calculation.Current.SourceCode;
+            string calculationNamespace = calculation.Namespace;
+
             int position = -1;
             while (sourceCode.Substring(++position).Contains(oldCalcSourceCodeName, StringComparison.CurrentCultureIgnoreCase))
             {
                 position = sourceCode.IndexOf(oldCalcSourceCodeName, position, StringComparison.CurrentCultureIgnoreCase);
-                if (_tokenChecker.CheckIsToken(sourceCode, oldCalcSourceCodeName, position))
+
+                int? tokenLength = _tokenChecker.CheckIsToken(sourceCode, calculationNamespace, oldCalcSourceCodeName, position);
+
+                if (tokenLength != null)
                 {
                     string before = sourceCode.Substring(0, position);
-                    string after = sourceCode.Substring(position + oldCalcSourceCodeName.Length);
-                    sourceCode = $"{before}{newCalcSourceCodeName}{after}";
+                    string after = sourceCode.Substring(position + (int)tokenLength);
+                    sourceCode = $"{before}{calculationNamespace}.{newCalcSourceCodeName}{after}";
                 }
             }
 

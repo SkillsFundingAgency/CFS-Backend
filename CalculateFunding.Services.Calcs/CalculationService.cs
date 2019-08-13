@@ -566,7 +566,9 @@ namespace CalculateFunding.Services.Calcs
                 foreach (Calculation calculation in calculations)
                 {
                     string sourceCode = calculation.Current.SourceCode;
-                    string result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(sourceCode,
+                    CalculationNamespace calcNamespace = calculation.Current.Namespace;
+
+                    string result = _calculationCodeReferenceUpdate.ReplaceSourceCodeReferences(calculation,
                         oldCalcSourceCodeName,
                         newCalcSourceCodeName);
 

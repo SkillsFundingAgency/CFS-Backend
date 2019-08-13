@@ -2072,9 +2072,21 @@ End Class";
 #endif
         [TestMethod]
         [DynamicData(nameof(CodeContainsItsOwnNameTestCases), DynamicDataSourceType.Method)]
-        public async Task Compile_GivenCodeContainsItsOwnName_ReturnsBasedOnWhetherNameIsToken(string calculationName, string sourceCode, bool codeContainsName, bool isToken)
+        public async Task Compile_GivenCodeContainsItsOwnName_ReturnsBasedOnWhetherNameIsToken(
+            CalculationNamespace calcNamespace, 
+            string calculationName, 
+            string sourceCode, 
+            bool codeContainsName, 
+            int? isToken)
         {
+            string BuildCalcName(Calculation calc, string name)
+            {
+                return $"{calc.Namespace}.{name}";
+            }
+
             //Arrange
+            string calcName = "Alice";
+
             PreviewRequest model = new PreviewRequest
             {
                 CalculationId = CalculationId,
@@ -2088,8 +2100,10 @@ End Class";
                 Current = new CalculationVersion
                 {
                     SourceCodeName = calculationName,
-                    Name = "Alice"
+                    Namespace = calcNamespace,
+                    Name = calcName
                 },
+                FundingStreamId = "xyz",
                 SpecificationId = SpecificationId
             };
 
@@ -2137,9 +2151,9 @@ End Class";
 
             Dictionary<string, string> sourceCodes = new Dictionary<string, string>
             {
-                { "Calculations.TestFunction", model.SourceCode },
-                { "Calculations.Calc1", "return 1" },
-                { "Calculations.Alice", "return 1" }
+                { BuildCalcName(calculation, "TestFunction"), model.SourceCode },
+                { BuildCalcName(calculation, "Calc1"), "return 1" },
+                { BuildCalcName(calculation, calcName), "return 1" }
             };
 
             sourceCodeService
@@ -2161,7 +2175,7 @@ End Class";
 
             ITokenChecker tokenChecker = CreateTokenChecker();
             tokenChecker
-                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
                 .Returns(isToken);
 
             PreviewService service = CreateService(logger: logger,
@@ -2185,16 +2199,16 @@ End Class";
 
             previewResponse
                 .CompilerOutput.Success
-                .Should().Be(!(isToken && codeContainsName));
+                .Should().Be(!(isToken != null && codeContainsName));
 
             if (codeContainsName)
             {
                 tokenChecker
                     .Received(1)
-                    .CheckIsToken(sourceCode, calculationName, sourceCode.IndexOf(calculationName));
+                    .CheckIsToken(sourceCode, calcNamespace.ToString(), calculationName, sourceCode.IndexOf(calculationName));
             }
 
-            if (codeContainsName && isToken)
+            if (codeContainsName && isToken != null)
             {
                 previewResponse
                     .CompilerOutput.CompilerMessages.Single().Message
@@ -2214,14 +2228,17 @@ End Class";
 
         private static IEnumerable<object[]> CodeContainsItsOwnNameTestCases()
         {
-            foreach (var isToken in new[] {true, false})
+            foreach (var tokenPosition in new int?[] { 1, null })
             {
-                foreach (var calculationName in new[] {"Horace", "Alice"})
+                foreach (var calcNamespace in new[] { CalculationNamespace.Additional, CalculationNamespace.Template })
                 {
-                    yield return new object[] { calculationName, $"Return {calculationName}", true, isToken };
-                    yield return new object[] { calculationName, $"Return {calculationName.ToUpper()}", true, isToken };
-                    yield return new object[] { calculationName, $"Return {calculationName.ToLower()}", true, isToken };
-                    yield return new object[] { calculationName, $"Return 1", false, isToken };
+                    foreach (var calculationName in new[] {"Horace", "Alice"})
+                    {
+                        yield return new object[] { calcNamespace, calculationName, $"Return {calculationName}", true, tokenPosition };
+                        yield return new object[] { calcNamespace, calculationName, $"Return {calculationName.ToUpper()}", true, tokenPosition };
+                        yield return new object[] { calcNamespace, calculationName, $"Return {calculationName.ToLower()}", true, tokenPosition };
+                        yield return new object[] { calcNamespace, calculationName, $"Return 1", false, tokenPosition };
+                    }
                 }
             }
         }

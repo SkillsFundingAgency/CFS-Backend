@@ -249,9 +249,12 @@ namespace CalculateFunding.Services.Calcs
 
             if (sourceCode.Contains(calculationToPreview.Current.SourceCodeName, StringComparison.InvariantCultureIgnoreCase))
             {
-                if (_tokenChecker.CheckIsToken(sourceCode,
-                    calculationToPreview.Current.SourceCodeName,
-                    sourceCode.IndexOf(calculationToPreview.Current.SourceCodeName)))
+                int? token = _tokenChecker.CheckIsToken(sourceCode,
+                                 calculationToPreview.Current.Namespace.ToString(),
+                                 calculationToPreview.Current.SourceCodeName,
+                                 sourceCode.IndexOf(calculationToPreview.Current.SourceCodeName));
+
+                if (token != null)
                 {
                     compilerOutput.CompilerMessages.Add(new CompilerMessage
                     {

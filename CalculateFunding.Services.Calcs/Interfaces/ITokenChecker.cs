@@ -2,6 +2,8 @@
 {
     public interface ITokenChecker
     {
-        bool CheckIsToken(string sourceCode, string tokenName, int position);
+        int? CheckIsToken(string sourceCode, string tokenNamespace, string tokenName, int position);
+        int? CheckIsToken(string sourceCode, string tokenName, bool isNamespaced, int position);
+        void CheckTokenLegal(string tokenName, bool isNamespaced);
     }
 }

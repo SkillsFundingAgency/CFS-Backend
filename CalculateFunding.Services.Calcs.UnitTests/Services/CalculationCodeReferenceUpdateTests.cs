@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -20,7 +21,7 @@ namespace CalculateFunding.Services.Calcs.Services
 #endif
         [TestMethod]
         [DynamicData(nameof(CodeTestCases), DynamicDataSourceType.Method)]
-        public void ReplaceSourceCodeReferences_RunsAsExpected(string input,
+        public void ReplaceSourceCodeReferences_RunsAsExpected(Calculation input,
             string oldName,
             string newName,
             string expectedOutput,
@@ -29,8 +30,10 @@ namespace CalculateFunding.Services.Calcs.Services
             //Arrange
             ITokenChecker tokenChecker = Substitute.For<ITokenChecker>();
             tokenChecker
-                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
-                .Returns(x => x.ArgAt<int>(2) % 2 == 0);
+                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>())
+                .Returns(x => x.ArgAt<int>(3) % 2 == 0
+                    ? x.ArgAt<string>(2).Length
+                    : (int?)null);
 
             CalculationCodeReferenceUpdate calculationCodeReferenceUpdate = new CalculationCodeReferenceUpdate(tokenChecker);
 
@@ -42,64 +45,117 @@ namespace CalculateFunding.Services.Calcs.Services
 
             tokenChecker
                 .Received(tokenCheckerCalls.Count())
-                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>());
+                .CheckIsToken(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<int>());
 
             foreach (TokenCheckerCall call in tokenCheckerCalls)
             {
                 tokenChecker
                     .Received(1)
-                    .CheckIsToken(call.SourceCode, oldName, call.Position);
+                    .CheckIsToken(call.SourceCode, input.Namespace, oldName, call.Position);
             }
         }
 
         private static IEnumerable<object[]> CodeTestCases()
         {
-            yield return new object[] { "Hello, world!", "X", "Y", "Hello, world!", new TokenCheckerCall[] { } };
-            yield return new object[] { "Hello, world!", "l", "m", "Hemlo, wormd!", new []
+            yield return new object[]
             {
-                new TokenCheckerCall{ SourceCode = "Hello, world!", Position = 2},
-                new TokenCheckerCall{ SourceCode = "Hemlo, world!", Position = 3},
-                new TokenCheckerCall{ SourceCode = "Hemlo, world!", Position = 10}
-            } };
+                new Calculation
+                {
+                    Current = new CalculationVersion
+                    {
+                        SourceCode = "Hello, world!", Namespace = CalculationNamespace.Additional
+                    },
+                },
+                "X", "Y", "Hello, world!", new TokenCheckerCall[] { }
+            };
+
+            Calculation original = new Calculation
+            {
+                Current = new CalculationVersion
+                {
+                    SourceCode = @"The Dairymaid she curtsied,
+            And went and told
+            The Alderney:
+            Don’t forget the butter for
+            The Royal slice of bread",
+                    Namespace = CalculationNamespace.Additional
+                }
+            };
             yield return new object[] {
-                @"The Dairymaid she curtsied,
-And went and told
-The Alderney:
-“Don’t forget the butter for
-The Royal slice of bread",
+                original,
                 "The",
                 "A",
-                @"A Dairymaid she curtsied,
-And went and told
-A Alderney:
-“Don’t forget the butter for
-The Royal slice of bread",
+                @"Calculations.A Dairymaid she curtsied,
+            And went and told
+            The Alderney:
+            Don’t forget the butter for
+            The Royal slice of bread",
                 new[] {
-                    new TokenCheckerCall{ SourceCode = @"The Dairymaid she curtsied,
-And went and told
-The Alderney:
-“Don’t forget the butter for
-The Royal slice of bread",
-                        Position = 0},
-                    new TokenCheckerCall{ SourceCode = @"A Dairymaid she curtsied,
-And went and told
-The Alderney:
-“Don’t forget the butter for
-The Royal slice of bread",
-                        Position = 46},
-                    new TokenCheckerCall{ SourceCode = @"A Dairymaid she curtsied,
-And went and told
-A Alderney:
-“Don’t forget the butter for
-The Royal slice of bread",
-                        Position = 73},
-                    new TokenCheckerCall{ SourceCode = @"A Dairymaid she curtsied,
-And went and told
-A Alderney:
-“Don’t forget the butter for
-The Royal slice of bread",
-                        Position = 89},
-                    }
+                    new TokenCheckerCall{ SourceCode = original.Current.SourceCode, Position = 0},
+                    new TokenCheckerCall{ SourceCode = @"Calculations.A Dairymaid she curtsied,
+            And went and told
+            The Alderney:
+            Don’t forget the butter for
+            The Royal slice of bread",
+                        Position = 83},
+                    new TokenCheckerCall{ SourceCode = @"Calculations.A Dairymaid she curtsied,
+            And went and told
+            The Alderney:
+            Don’t forget the butter for
+            The Royal slice of bread",
+                        Position = 123},
+                    new TokenCheckerCall{ SourceCode = @"Calculations.A Dairymaid she curtsied,
+            And went and told
+            The Alderney:
+            Don’t forget the butter for
+            The Royal slice of bread",
+                        Position = 151},
+                }
+            };
+
+            original = new Calculation
+            {
+                Current = new CalculationVersion
+                {
+                    SourceCode = @"The Dairymaid she curtsied,
+            And went and told
+            The Alderney:
+            Don’t forget the butter for
+            The Royal slice of bread",
+                    Namespace = CalculationNamespace.Template
+                },
+                FundingStreamId = "Cromulent"
+            };
+            yield return new object[] {
+                original,
+                "The",
+                "A",
+                @"Cromulent.A Dairymaid she curtsied,
+            And went and told
+            Cromulent.A Alderney:
+            Don’t forget Cromulent.A butter for
+            Cromulent.A Royal slice of bread",
+                new[] {
+                    new TokenCheckerCall{ SourceCode = original.Current.SourceCode, Position = 0},
+                    new TokenCheckerCall{ SourceCode = @"Cromulent.A Dairymaid she curtsied,
+            And went and told
+            The Alderney:
+            Don’t forget the butter for
+            The Royal slice of bread",
+                        Position = 80},
+                    new TokenCheckerCall{ SourceCode = @"Cromulent.A Dairymaid she curtsied,
+            And went and told
+            Cromulent.A Alderney:
+            Don’t forget the butter for
+            The Royal slice of bread",
+                        Position = 128},
+                    new TokenCheckerCall{ SourceCode = @"Cromulent.A Dairymaid she curtsied,
+            And went and told
+            Cromulent.A Alderney:
+            Don’t forget Cromulent.A butter for
+            The Royal slice of bread",
+                        Position = 164},
+                }
             };
         }
     }
