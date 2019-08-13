@@ -255,8 +255,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     m.ItemsProcessed == 100 &&
                     m.ItemsFailed == 40 &&
                     m.ItemsSucceeded == 60 &&
-                    m.CompletedSuccessfully == false &&
-                    m.Timestamp.Date == DateTimeOffset.Now.ToLocalTime().Date));
+                    m.CompletedSuccessfully == false));
            
         }
 
@@ -390,7 +389,6 @@ namespace CalculateFunding.Services.Jobs.Services
                     m.OverallItemsSucceeded == 60 &&
                     m.ParentJobId == null &&
                     m.SpecificationId == "spec-id-1" &&
-                    m.StatusDateTime.Date == DateTimeOffset.Now.ToLocalTime().Date &&
                     string.IsNullOrWhiteSpace(m.SupersededByJobId) &&
                     m.Trigger.EntityId == "spec-id-1" &&
                     m.Trigger.EntityType == "Specification" &&

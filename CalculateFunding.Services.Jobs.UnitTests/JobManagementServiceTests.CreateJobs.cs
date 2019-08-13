@@ -543,7 +543,6 @@ namespace CalculateFunding.Services.Jobs.Services
                     .UpdateJob(Arg.Is<Job>(
                             m =>
                                 m.Id == "current-job-1" &&
-                                m.Completed.Value.Date == DateTimeOffset.Now.ToLocalTime().Date &&
                                 m.CompletionStatus == CompletionStatus.Superseded &&
                                 !string.IsNullOrWhiteSpace(m.SupersededByJobId) &&
                                 m.RunningStatus == RunningStatus.Completed
@@ -555,7 +554,6 @@ namespace CalculateFunding.Services.Jobs.Services
                    .UpdateJob(Arg.Is<Job>(
                            m =>
                                m.Id == "current-job-2" &&
-                               m.Completed.Value.Date == DateTimeOffset.Now.ToLocalTime().Date &&
                                m.CompletionStatus == CompletionStatus.Superseded &&
                                !string.IsNullOrWhiteSpace(m.SupersededByJobId) &&
                                m.RunningStatus == RunningStatus.Completed
@@ -704,8 +702,7 @@ namespace CalculateFunding.Services.Jobs.Services
                             m.Trigger.Message == "test" &&
                             m.Trigger.EntityType == "e-type" &&
                             m.Trigger.EntityId == "e-1" &&
-                            string.IsNullOrWhiteSpace(m.ParentJobId) &&
-                            m.StatusDateTime.Date == DateTimeOffset.Now.Date
+                            string.IsNullOrWhiteSpace(m.ParentJobId)
                         ));
 
             await
@@ -886,8 +883,7 @@ namespace CalculateFunding.Services.Jobs.Services
                             m.Trigger.Message == "test" &&
                             m.Trigger.EntityType == "e-type" &&
                             m.Trigger.EntityId == "e-1" &&
-                            string.IsNullOrWhiteSpace(m.ParentJobId) &&
-                            m.StatusDateTime.Date == DateTimeOffset.Now.Date
+                            string.IsNullOrWhiteSpace(m.ParentJobId)
                         ));
 
             await

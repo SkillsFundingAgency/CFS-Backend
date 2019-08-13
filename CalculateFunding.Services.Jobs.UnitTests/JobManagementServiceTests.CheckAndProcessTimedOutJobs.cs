@@ -277,7 +277,6 @@ namespace CalculateFunding.Services.Jobs.Services
                     .Received(1)
                     .UpdateJob(Arg.Is<Job>(
                         m => m.Id == "job-id-1" &&
-                             m.Completed.Value.Date == DateTimeOffset.Now.Date &&
                              m.CompletionStatus == CompletionStatus.TimedOut &&
                              m.RunningStatus == RunningStatus.Completed
                         ));
@@ -288,8 +287,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     .SendNotification(Arg.Is<JobNotification>(
                             m => m.JobId == "job-id-1" &&
                             m.CompletionStatus == CompletionStatus.TimedOut &&
-                            m.RunningStatus == RunningStatus.Completed &&
-                            m.StatusDateTime.Date == DateTimeOffset.Now.Date
+                            m.RunningStatus == RunningStatus.Completed
                         ));
         }
 
@@ -347,7 +345,6 @@ namespace CalculateFunding.Services.Jobs.Services
                     .Received(1)
                     .UpdateJob(Arg.Is<Job>(
                         m => m.Id == "job-id-1" &&
-                             m.Completed.Value.Date == DateTimeOffset.Now.Date &&
                              m.CompletionStatus == CompletionStatus.TimedOut &&
                              m.RunningStatus == RunningStatus.Completed
                         ));
@@ -358,8 +355,7 @@ namespace CalculateFunding.Services.Jobs.Services
                     .SendNotification(Arg.Is<JobNotification>(
                             m => m.JobId == "job-id-1" &&
                             m.CompletionStatus == CompletionStatus.TimedOut &&
-                            m.RunningStatus == RunningStatus.Completed &&
-                            m.StatusDateTime.Date == DateTimeOffset.Now.Date
+                            m.RunningStatus == RunningStatus.Completed
                         ));
 
             logger

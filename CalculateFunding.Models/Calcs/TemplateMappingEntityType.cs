@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace CalculateFunding.Models.Specs
+namespace CalculateFunding.Models.Calcs
 {
     public enum TemplateMappingEntityType
     {
@@ -9,8 +9,5 @@ namespace CalculateFunding.Models.Specs
 
         [EnumMember(Value = "ReferenceData")]
         ReferenceData = 1,
-
-        [EnumMember(Value = "FundingLine")]
-        FundingLine = 2
     }
 }

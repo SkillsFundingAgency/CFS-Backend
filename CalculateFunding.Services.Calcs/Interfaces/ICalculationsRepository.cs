@@ -1,8 +1,8 @@
-﻿using CalculateFunding.Models.Aggregations;
-using CalculateFunding.Models.Calcs;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.Calcs.Interfaces
 {
@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<Calculation> GetCalculationById(string calculationId);
 
-	    Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
+        Task<IEnumerable<Calculation>> GetCalculationsBySpecificationId(string specificationId);
 
         Task<HttpStatusCode> UpdateCalculation(Calculation calculation);
 
@@ -27,5 +27,9 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<Calculation> GetCalculationsBySpecificationIdAndCalculationName(string specificationId, string calculationName);
 
         Task<IEnumerable<CalculationMetadata>> GetCalculationsMetatadataBySpecificationId(string specificationId);
+
+        Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId);
+
+        Task UpdateTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping);
     }
 }

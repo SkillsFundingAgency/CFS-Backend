@@ -38,8 +38,6 @@ using Serilog;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using PublishStatus = CalculateFunding.Models.Versioning.PublishStatus;
 using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
-using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
-using CalculateFunding.Models.Calcs;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -1034,248 +1032,6 @@ namespace CalculateFunding.Services.Specs
             await _messengerService.SendToTopic(topicName, comparisonModel, properties, true);
         }
 
-        //private async Task SendCalculationComparisonModelMessageToTopic(string specificationId, string calculationId, string topicName, Calculation current, Calculation previous, HttpRequest request)
-        //{
-        //    Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-        //    Guard.ArgumentNotNull(current, nameof(current));
-        //    Guard.ArgumentNotNull(previous, nameof(previous));
-        //    Guard.ArgumentNotNull(request, nameof(request));
-
-        //    IDictionary<string, string> properties = CreateMessageProperties(request);
-
-        //    CalculationVersionComparisonModel comparisonModel = new CalculationVersionComparisonModel
-        //    {
-        //        SpecificationId = specificationId,
-        //        CalculationId = calculationId,
-        //        Current = current,
-        //        Previous = previous,
-        //    };
-
-        //    await _messengerService.SendToTopic(topicName, comparisonModel, properties);
-        //}
-
-        /// <summary>
-        /// Remove Missing Allocation Line Associations
-        /// </summary>
-        /// <param name="allocationLines">Valid allocation lines</param>
-        /// <param name="policies">Policies</param>
-        //private static void RemoveMissingAllocationLineAssociations(Dictionary<string, bool> allocationLines, IEnumerable<Calculation> calculations)
-        //{
-        //    if (calculations.IsNullOrEmpty() || allocationLines.IsNullOrEmpty())
-        //    {
-        //        return;
-        //    }
-
-        //    foreach (Calculation calculation in calculations)
-        //    {
-        //        if (calculation.AllocationLine != null && !allocationLines.ContainsKey(calculation.AllocationLine.Id))
-        //        {
-        //            calculation.AllocationLine = null;
-        //        }
-        //    }
-        //}
-
-        //public async Task<IActionResult> CreateCalculation(HttpRequest request)
-        //{
-        //    string json = await request.GetRawBodyStringAsync();
-        //    CalculationCreateModel createModel = JsonConvert.DeserializeObject<CalculationCreateModel>(json);
-        //    if (createModel == null)
-        //    {
-        //        _logger.Error("Null calculation create model provided to CreateCalculation");
-        //        return new BadRequestObjectResult("Null calculation create model provided");
-        //    }
-        //    BadRequestObjectResult validationResult = (await _calculationCreateModelValidator.ValidateAsync(createModel)).PopulateModelState();
-        //    if (validationResult != null)
-        //    {
-        //        _logger.Error("Invalid data was provided for CreateCalculation");
-        //        return validationResult;
-        //    }
-        //    Specification specification = await _specificationsRepository.GetSpecificationById(createModel.SpecificationId);
-        //    if (specification == null)
-        //    {
-        //        _logger.Warning($"Specification not found for specification id {createModel.SpecificationId}");
-        //        return new PreconditionFailedResult($"Specification not found for specification id {createModel.SpecificationId}");
-        //    }
-
-        //    SpecificationVersion previousSpecificationVersion = specification.Current;
-
-        //    SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
-
-        //    Calculation calculation = _mapper.Map<Calculation>(createModel);
-        //    calculation.LastUpdated = DateTimeOffset.Now;
-
-        //    FundingStream currentFundingStream = null;
-
-        //    if (!string.IsNullOrWhiteSpace(createModel.AllocationLineId))
-        //    {
-        //        string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
-        //        Common.ApiClient.Models.ApiResponse<IEnumerable<PolicyModels.FundingStream>> fundingStreamsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreams());
-        //        IEnumerable<FundingStream> fundingStreams = _mapper.Map<IEnumerable<FundingStream>>(fundingStreamsResponse?.Content);
-
-        //        if (fundingStreams.IsNullOrEmpty() || !fundingStreams.Any(x => fundingSteamIds.Contains(x.Id)))
-        //        {
-        //            _logger.Error("No funding streams were returned");
-
-        //            return new InternalServerErrorResult("No funding stream were returned");
-        //        }
-
-        //        foreach (FundingStream fundingStream in fundingStreams)
-        //        {
-        //            AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == createModel.AllocationLineId);
-        //            if (allocationLine != null)
-        //            {
-        //                calculation.AllocationLine = allocationLine;
-        //                currentFundingStream = fundingStream;
-        //                break;
-        //            }
-        //        }
-        //        if (currentFundingStream == null)
-        //        {
-        //            return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {createModel.AllocationLineId}");
-        //        }
-        //    }
-
-        //    specificationVersion.Calculations = (specificationVersion.Calculations == null
-        //        ? new[] { calculation }
-        //        : specificationVersion.Calculations.Concat(new[] { calculation }));
-
-        //    HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
-        //    if (statusCode != HttpStatusCode.OK)
-        //    {
-        //        _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
-        //        return new StatusCodeResult((int)statusCode);
-        //    }
-
-        //    await ReindexSpecification(specification);
-
-        //    IDictionary<string, string> properties = request.BuildMessageProperties();
-
-        //    await _messengerService.SendToQueue(ServiceBusConstants.QueueNames.CreateDraftCalculation,
-        //        new Models.Calcs.Calculation
-        //        {
-        //            Id = Guid.NewGuid().ToString(),
-        //            Name = calculation.Name,
-        //            CalculationSpecification = new Reference(calculation.Id, calculation.Name),
-        //            AllocationLine = calculation.AllocationLine,
-        //            CalculationType = (Models.Calcs.CalculationType)calculation.CalculationType,
-        //            SpecificationId = specification.Id,
-        //            FundingPeriod = specificationVersion.FundingPeriod,
-        //            FundingStream = currentFundingStream,
-        //        },
-        //        properties);
-
-        //    return new OkObjectResult(calculation);
-        //}
-
-        //public async Task<IActionResult> EditCalculation(HttpRequest request)
-        //{
-        //    Guard.ArgumentNotNull(request, nameof(request));
-
-        //    request.Query.TryGetValue("specificationId", out StringValues specId);
-
-        //    string specificationId = specId.FirstOrDefault();
-        //    if (string.IsNullOrWhiteSpace(specificationId))
-        //    {
-        //        _logger.Error("No specification Id was provided to EditCalculation");
-        //        return new BadRequestObjectResult("Null or empty specification Id provided");
-        //    }
-
-        //    request.Query.TryGetValue("calculationId", out StringValues calcId);
-
-        //    string calculationId = calcId.FirstOrDefault();
-        //    if (string.IsNullOrWhiteSpace(calculationId))
-        //    {
-        //        _logger.Error("No calculation Id was provided to EditCalculation");
-        //        return new BadRequestObjectResult("Null or empty calculation Id provided");
-        //    }
-
-        //    string json = await request.GetRawBodyStringAsync();
-        //    CalculationEditModel editModel = JsonConvert.DeserializeObject<CalculationEditModel>(json);
-
-        //    if (editModel == null)
-        //    {
-        //        _logger.Error("Null calculation edit model provided to EditCalculation");
-        //        return new BadRequestObjectResult("Null calculation edit model provided");
-        //    }
-
-        //    editModel.CalculationId = calculationId;
-        //    editModel.SpecificationId = specificationId;
-
-        //    BadRequestObjectResult validationResult = (await _calculationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();
-        //    if (validationResult != null)
-        //    {
-        //        _logger.Error("Invalid data was provided for EdditCalculation");
-        //        return validationResult;
-        //    }
-
-        //    Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-        //    if (specification == null)
-        //    {
-        //        _logger.Warning($"Specification not found for specification id {specificationId}");
-        //        return new PreconditionFailedResult($"Specification not found for specification id {specificationId}");
-        //    }
-
-        //    SpecificationVersion previousSpecificationVersion = specification.Current;
-
-        //    SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
-
-        //    Calculation calculation = specificationVersion.Calculations?.FirstOrDefault(m => m.Id == calculationId);
-
-        //    if (calculation == null)
-        //    {
-        //        _logger.Warning($"Calculation not found for calculation id '{calculationId}'");
-        //        return new NotFoundObjectResult($"Calculation not found for calculation id '{calculationId}'");
-        //    }
-
-        //    Calculation previousCalculation = calculation.Clone();
-
-        //    calculation.Name = editModel.Name;
-        //    calculation.Description = editModel.Description;
-        //    calculation.LastUpdated = DateTimeOffset.Now;
-        //    calculation.CalculationType = editModel.CalculationType;
-
-        //    FundingStream currentFundingStream = null;
-        //    if (!string.IsNullOrWhiteSpace(editModel.AllocationLineId))
-        //    {
-        //        string[] fundingSteamIds = specificationVersion.FundingStreams.Select(s => s.Id).ToArray();
-        //        Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingSteamIds.FirstOrDefault()));
-        //        if (fundingStreamResponse?.Content == null)
-        //        {
-        //            _logger.Error("No funding streams were returned");
-
-        //            return new InternalServerErrorResult("No funding stream were returned");
-        //        }
-
-        //        FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
-
-
-        //        AllocationLine allocationLine = fundingStream.AllocationLines.FirstOrDefault(m => m.Id == editModel.AllocationLineId);
-        //        if (allocationLine != null)
-        //        {
-        //            calculation.AllocationLine = allocationLine;
-        //            currentFundingStream = fundingStream;
-        //        }
-
-        //        if (currentFundingStream == null)
-        //        {
-        //            return new PreconditionFailedResult($"A funding stream was not found for specification with id: {specification.Id} for allocation ID {editModel.AllocationLineId}");
-        //        }
-        //    }
-
-        //    HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
-        //    if (statusCode != HttpStatusCode.OK)
-        //    {
-        //        _logger.Error($"Failed to update specification when creating a calc with status {statusCode}");
-        //        return new StatusCodeResult((int)statusCode);
-        //    }
-
-        //    await ReindexSpecification(specification);
-
-        //    await SendCalculationComparisonModelMessageToTopic(specificationId, calculationId, ServiceBusConstants.TopicNames.EditCalculation, calculation, previousCalculation, request);
-
-        //    return new OkObjectResult(calculation);
-        //}
-
         public async Task AssignDataDefinitionRelationship(Message message)
         {
             AssignDefinitionRelationshipMessage relationshipMessage = message.GetPayloadAsInstanceOf<AssignDefinitionRelationshipMessage>();
@@ -1646,7 +1402,7 @@ WHERE   s.documentType = @DocumentType",
             Guard.ArgumentNotNull(templateVersion, nameof(templateVersion));
 
             Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-            if(specification == null)
+            if (specification == null)
             {
                 string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
                 _logger.Error(message);
@@ -1663,7 +1419,7 @@ WHERE   s.documentType = @DocumentType",
 
             ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateContents =
                 await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplate(fundingStreamId, templateVersion));
-            if(fundingTemplateContents.StatusCode != HttpStatusCode.OK)
+            if (fundingTemplateContents.StatusCode != HttpStatusCode.OK)
             {
                 string message = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} did not return OK.";
                 _logger.Error(message);

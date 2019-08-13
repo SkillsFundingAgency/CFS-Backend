@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
@@ -166,6 +166,21 @@ namespace CalculateFunding.Services.Calcs
             CalculationMetadata[] items = JsonConvert.DeserializeObject<CalculationMetadata[]>(resultsString);
 
             return await Task.FromResult(items);
+        }
+
+        public async Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId)
+        {
+            DocumentEntity<TemplateMapping> result = await _cosmosRepository.ReadAsync<TemplateMapping>($"templatemapping-{specificationId}-{fundingStreamId}");
+            return result == null ? null : result.Content;
+        }
+
+        public async Task UpdateTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+            Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
+
+            await _cosmosRepository.UpsertAsync(templateMapping);
         }
     }
 }

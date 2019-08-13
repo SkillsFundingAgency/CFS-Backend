@@ -13,6 +13,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
@@ -42,7 +43,6 @@ using Newtonsoft.Json;
 using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationCurrentVersion = CalculateFunding.Models.Calcs.CalculationCurrentVersion;
-using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -1089,12 +1089,12 @@ namespace CalculateFunding.Services.Calcs
         {
             Task<IEnumerable<Calculation>> calculationsRequest = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
             Task<BuildProject> buildProjectRequest = _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
-           
+
             await TaskHelper.WhenAllAndThrow(calculationsRequest, buildProjectRequest);
 
             List<Calculation> calculations = new List<Calculation>(calculationsRequest.Result);
             BuildProject buildProject = buildProjectRequest.Result;
-           
+
             return await UpdateBuildProject(specificationId, calculations, buildProject);
         }
 
@@ -1200,7 +1200,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
             SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(specificationId);
-            
+
             if (specificationSummary == null)
             {
                 string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
@@ -1218,8 +1218,8 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult(message);
             }
 
-            Common.ApiClient.Models.ApiResponse<PolicyModels.FundingTemplateContents> fundingTemplateContents = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplate(fundingStreamId, templateVersion));
-            if (fundingTemplateContents.StatusCode != HttpStatusCode.OK)
+            Common.ApiClient.Models.ApiResponse<Common.TemplateMetadata.Models.TemplateMetadataContents> fundingTemplateContentsResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, templateVersion));
+            if (fundingTemplateContentsResponse.StatusCode != HttpStatusCode.OK)
             {
                 string message = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} did not return OK.";
                 _logger.Error(message);
@@ -1227,105 +1227,189 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult(message);
             }
 
-            TemplateMapping fundingTemplateMapping = fundingTemplateContents.Content != null ? GetTemplateMappingFromTemplateMetadata(fundingTemplateContents.Content.Metadata) : new TemplateMapping();
-
-            IActionResult getCurrentCalculationsForSpecificationResult = await GetCalculationsForSpecification(specificationId);
-            if(!(getCurrentCalculationsForSpecificationResult is OkObjectResult))
+            if(fundingTemplateContentsResponse == null || fundingTemplateContentsResponse.Content == null)
             {
-                return getCurrentCalculationsForSpecificationResult;
+                string message = $"Retrieved funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} has null content. Can not use it for further processing.";
+                _logger.Error(message);
+
+                return new PreconditionFailedResult(message);
             }
-            List<Calculation> currentCalculations = (getCurrentCalculationsForSpecificationResult as OkObjectResult).Value as List<Calculation>;
 
-            TemplateMapping specificationTemplateMapping = GetTemplateMappingForCalculations(currentCalculations);
+            TemplateMetadataContents templateMetadataContents = fundingTemplateContentsResponse.Content;
 
-            // TODO: What to do with the removed calculations? When this method was on Specs, was calling Edit Specification by setting the calculations field.
-            List<Calculation> updatedCalculations = ApplyTemplateChanges(currentCalculations, fundingTemplateMapping, specificationTemplateMapping);
+            string existingSaveVersionOfTemplateMapping = null;
+
+            TemplateMapping templateMapping = await _calculationsRepository.GetTemplateMapping(specificationId, fundingStreamId);
+            if (templateMapping == null)
+            {
+                templateMapping = new TemplateMapping()
+                {
+                    FundingStreamId = fundingStreamId,
+                    SpecificationId = specificationId,
+                    TemplateMappingItems = new List<TemplateMappingItem>(),
+                };
+            }
+            else
+            {
+                existingSaveVersionOfTemplateMapping = JsonConvert.SerializeObject(templateMapping);
+            }
+
+            IEnumerable<CalculationMetadata> currentCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsMetatadataBySpecificationId(specificationId));
+
+            ProcessTemplateMappingChanges(templateMapping, templateMetadataContents);
 
             HttpStatusCode setAssignedTemplateVersionStatusCode = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.SetAssignedTemplateVersion(specificationId, templateVersion, fundingStreamId));
-            return new OkObjectResult(setAssignedTemplateVersionStatusCode);
-        }
-
-        private TemplateMapping GetTemplateMappingForCalculations(List<Calculation> calculations)
-        {
-            TemplateMapping templateMapping = new TemplateMapping
+            if (setAssignedTemplateVersionStatusCode != HttpStatusCode.OK)
             {
-                TemplateMappingItems = new List<TemplateMappingItem>()
-            };
+                string message = $"Unable to set assigned template version for funding stream: {fundingStreamId} and templateId: {templateVersion} for specification ID {specificationId}, did not return OK, but {setAssignedTemplateVersionStatusCode}";
+                _logger.Error(message);
 
-            templateMapping.TemplateMappingItems.AddRange(
-                calculations
-                    .Select(calculation => new TemplateMappingItem
-                    {
-                        EntityType = TemplateMappingEntityType.Calculation,
-                        Name = calculation.Name,
-                        CalculationId = calculation.Id
-                    }));
-
-            return templateMapping;
-        }
-
-        private static List<Calculation> ApplyTemplateChanges(List<Calculation> calculations, TemplateMapping fundingTemplateMapping, TemplateMapping specificationTemplateMapping)
-        {
-            IEnumerable<string> templateCalculationIds = fundingTemplateMapping
-                .TemplateMappingItems
-                .Where(x => x.EntityType == TemplateMappingEntityType.Calculation)
-                .Select(x => x.CalculationId);
-            IEnumerable<string> specificationTemplateCalculationIds = specificationTemplateMapping
-                .TemplateMappingItems
-                .Where(x => x.EntityType == TemplateMappingEntityType.Calculation)
-                .Select(x => x.CalculationId);
-
-            IEnumerable<string> calculationNamesRemovedFromTemplate = specificationTemplateCalculationIds.Except(templateCalculationIds);
-
-            foreach (var calculationNameRemovedFromTemplate in calculationNamesRemovedFromTemplate)
-            {
-                calculations.Remove(calculations.FirstOrDefault(x => x.Id == calculationNameRemovedFromTemplate));
+                return new PreconditionFailedResult(message);
             }
 
-            return calculations;
+            // Only save if changed
+            if (existingSaveVersionOfTemplateMapping != JsonConvert.SerializeObject(templateMapping))
+            {
+                await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.UpdateTemplateMapping(specificationId, fundingStreamId, templateMapping));
+            }
+
+            return new OkObjectResult(templateMapping);
         }
 
-        private static TemplateMapping GetTemplateMappingFromTemplateMetadata(Common.TemplateMetadata.Models.TemplateMetadataContents templateMetadataContents)
+        private bool ProcessTemplateMappingChanges(TemplateMapping templateMapping, TemplateMetadataContents fundingTemplateContents)
         {
-            TemplateMapping templateMapping = new TemplateMapping
+            bool madeChanges = false;
+
+            List<FundingLine> allFundingLines = fundingTemplateContents
+                .RootFundingLines
+                .ToList();
+
+            allFundingLines
+                .AddRange(allFundingLines.SelectMany(f => 
+                {
+                    if (f.FundingLines.IsNullOrEmpty())
+                    {
+                        return Enumerable.Empty<FundingLine>();
+                    }
+
+                    return f.FundingLines;
+                    })
+                .ToList());
+
+            List<Common.TemplateMetadata.Models.Calculation> templateCalculations = allFundingLines
+                .SelectMany(c =>
+                {
+                    if (c.Calculations.IsNullOrEmpty())
+                    {
+                        return Enumerable.Empty<Common.TemplateMetadata.Models.Calculation>();
+                    }
+
+                    return c.Calculations;
+                }).ToList();
+
+            templateCalculations.AddRange(templateCalculations.SelectMany(c => 
             {
-                TemplateMappingItems = new List<TemplateMappingItem>()
-            };
+                if (c.Calculations.IsNullOrEmpty())
+                {
+                    return Enumerable.Empty<Common.TemplateMetadata.Models.Calculation>();
+                }
 
-            List<Common.TemplateMetadata.Models.FundingLine> allFundingLines = templateMetadataContents.RootFundingLines.ToList();
-            allFundingLines.AddRange(templateMetadataContents.RootFundingLines.SelectMany(x => x.FundingLines));
+                return c.Calculations;
+            }));
 
-            templateMapping.TemplateMappingItems.AddRange(
-                allFundingLines
-                    .Select(fundingLine => new TemplateMappingItem
+            IEnumerable<ReferenceData> templateReferenceData = templateCalculations
+                .SelectMany(c =>
+                {
+                    if (c.ReferenceData.IsNullOrEmpty())
                     {
-                        EntityType = TemplateMappingEntityType.FundingLine,
-                        Name = fundingLine.Name,
-                        TemplateId = fundingLine.ReferenceId
-                    }));
+                        return Enumerable.Empty<ReferenceData>();
+                    }
 
-            templateMapping.TemplateMappingItems.AddRange(
-                allFundingLines
-                    .SelectMany(x => x.Calculations)
-                    .Select(calculation => new TemplateMappingItem
+                    return c.ReferenceData;
+                });
+
+            List<TemplateMappingItem> itemsToRemove = new List<TemplateMappingItem>();
+
+            foreach (var mapping in templateMapping.TemplateMappingItems)
+            {
+                if (mapping.EntityType == TemplateMappingEntityType.Calculation)
+                {
+                    bool stillExists = templateCalculations.Any(c => c.TemplateCalculationId == mapping.TemplateId);
+                    if (!stillExists)
                     {
+                        itemsToRemove.Add(mapping);
+                    }
+                }
+                if(mapping.EntityType == TemplateMappingEntityType.ReferenceData)
+                {
+                    bool stillExists = templateReferenceData.Any(c => c.TemplateReferenceId == mapping.TemplateId);
+                    if (!stillExists)
+                    {
+                        itemsToRemove.Add(mapping);
+                    }
+                }
+            }
+
+            foreach (TemplateMappingItem item in itemsToRemove)
+            {
+                templateMapping.TemplateMappingItems.Remove(item);
+            }
+
+            foreach (Common.TemplateMetadata.Models.Calculation calculation in templateCalculations)
+            {
+                TemplateMappingItem existingItem = templateMapping.TemplateMappingItems
+                    .FirstOrDefault(s => s.EntityType == TemplateMappingEntityType.Calculation && s.TemplateId == calculation.TemplateCalculationId);
+
+                if (existingItem == null)
+                {
+                    TemplateMappingItem mappingCalculation = new TemplateMappingItem()
+                    {
+                        CalculationId = null,
                         EntityType = TemplateMappingEntityType.Calculation,
                         Name = calculation.Name,
                         TemplateId = calculation.TemplateCalculationId,
-                    }));
+                    };
 
-            templateMapping.TemplateMappingItems.AddRange(
-                allFundingLines
-                    .SelectMany(x => x.Calculations)
-                    .SelectMany(x => x.ReferenceData)
-                    .Select(referenceData => new TemplateMappingItem
+                    templateMapping.TemplateMappingItems.Add(mappingCalculation);
+                    madeChanges = true;
+                }
+                else
+                {
+                    if (existingItem.Name != calculation.Name)
                     {
+                        existingItem.Name = calculation.Name;
+                    }
+                }
+            }
+
+            foreach (ReferenceData referenceData in templateReferenceData)
+            {
+                TemplateMappingItem existingItem = templateMapping.TemplateMappingItems
+                    .FirstOrDefault(s => s.EntityType == TemplateMappingEntityType.ReferenceData && s.TemplateId == referenceData.TemplateReferenceId);
+
+                if (existingItem == null)
+                {
+                    TemplateMappingItem mappingCalculation = new TemplateMappingItem()
+                    {
+                        CalculationId = null,
                         EntityType = TemplateMappingEntityType.ReferenceData,
                         Name = referenceData.Name,
-                        TemplateId = referenceData.TemplateReferenceId
-                    }));
+                        TemplateId = referenceData.TemplateReferenceId,
+                    };
 
-            return templateMapping;
+                    templateMapping.TemplateMappingItems.Add(mappingCalculation);
+                    madeChanges = true;
+                }
+                else
+                {
+                    if (existingItem.Name != referenceData.Name)
+                    {
+                        existingItem.Name = referenceData.Name;
+                    }
+                }
+            }
+
+            return madeChanges;
         }
     }
 }
