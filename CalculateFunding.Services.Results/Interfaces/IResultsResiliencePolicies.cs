@@ -27,5 +27,6 @@ namespace CalculateFunding.Services.Results.Interfaces
         Policy ProviderChangesRepository { get; set; }
 
         Policy ProviderCalculationResultsSearchRepository { get; set; }
+        Policy CsvBlobPolicy { get; set; }
     }
 }

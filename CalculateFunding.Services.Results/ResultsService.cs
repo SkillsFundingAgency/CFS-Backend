@@ -2,7 +2,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -56,6 +58,7 @@ namespace CalculateFunding.Services.Results
         private readonly IValidator<MasterProviderModel> _masterProviderModelValidator;
         private readonly IFeatureToggle _featureToggle;
         private readonly IBlobClient _blobClient;
+        private readonly Polly.Policy _blobClientPolicy;
 
         public ResultsService(ILogger logger,
             IFeatureToggle featureToggle,
@@ -109,6 +112,7 @@ namespace CalculateFunding.Services.Results
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _featureToggle = featureToggle;
             _blobClient = blobClient;
+            _blobClientPolicy = resiliencePolicies.CsvBlobPolicy;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -645,9 +649,12 @@ namespace CalculateFunding.Services.Results
 
             string csv = new CsvUtils().CreateCsvExpando(resultsForOutput);
 
-            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync($"calculation-results-{specificationId}");
+            ICloudBlob blob = _blobClient.GetBlockBlobReference($"calculation-results-{specificationId}.csv");
 
-            await _blobClient.UploadAsync(blob, csv);
+            using (MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(csv)))
+            {
+                await _blobClientPolicy.ExecuteAsync(() => blob.UploadFromStreamAsync(memoryStream));
+            }
         }
 
         public IEnumerable<ExpandoObject> ProcessProviderResultsForCsvOutput(IEnumerable<ProviderResult> results)

@@ -2155,7 +2155,6 @@ namespace CalculateFunding.Services.Results.Services
         {
             //Arrange
             string specificationId = "123";
-            string expectedCsv = "\"UKPRN\",\"ProviderName\",\"Mary\"\r\n\"42\",\"William\",\"3\"\r\n";
 
             Message msg = new Message();
             msg.UserProperties.Add("specification-id", specificationId);
@@ -2183,7 +2182,7 @@ namespace CalculateFunding.Services.Results.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Any<string>())
+                .GetBlockBlobReference(Arg.Any<string>())
                 .Returns(cloudBlob);
 
             ResultsService resultsService = CreateResultsService(logger: logger,
@@ -2202,13 +2201,13 @@ namespace CalculateFunding.Services.Results.Services
                 .Received(1)
                 .GetProviderResultsBySpecificationId(specificationId, Arg.Any<int>());
 
-            await blobClient
+            blobClient
                 .Received(1)
-                .GetBlobReferenceFromServerAsync($"calculation-results-{specificationId}");
+                .GetBlockBlobReference($"calculation-results-{specificationId}.csv");
 
-            await blobClient
+            await cloudBlob
                 .Received(1)
-                .UploadAsync(cloudBlob, expectedCsv);
+                .UploadFromStreamAsync(Arg.Any<MemoryStream>());
         }
 
 #if NCRUNCH

@@ -210,7 +210,7 @@ namespace CalculateFunding.Functions.Results
 
                     config.Bind("AzureStorageSettings", storageSettings);
 
-                    storageSettings.ContainerName = "datasets";
+                    storageSettings.ContainerName = "calculationresultscsv";
 
                     return new AzureStorage.BlobClient(storageSettings);
                 });
@@ -307,6 +307,7 @@ namespace CalculateFunding.Functions.Results
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                CsvBlobPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
             };
 
             return resiliencePolicies;
