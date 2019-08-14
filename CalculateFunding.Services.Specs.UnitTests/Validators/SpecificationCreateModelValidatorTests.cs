@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using CalculateFunding.Common.ApiClient.Policies;
+using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -11,6 +13,7 @@ using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using CalculateFunding.Common.ApiClient.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Validators
 {
@@ -95,6 +98,57 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             result
                 .Errors
                 .Count
+                .Should()
+                .Be(1);
+        }
+
+        [TestMethod]
+        public void Validate_GivenFundingPeriodId_FundingPeriodIsNotEmpty_ValidIsTrue()
+        {
+            //Arrange
+            SpecificationCreateModel model = CreateModel();
+            //model.FundingPeriodId = string.Empty;
+            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+
+            SpecificationCreateModelValidator validator = CreateValidator(policiesApiClient: policiesApiClient);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
+        [TestMethod]
+        public void Validate_GivenFundingPeriodId_FundingPeriodDoesntExist_ValidIsFalse()
+        {
+            //Arrange
+            SpecificationCreateModel model = CreateModel();
+
+            IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>();
+
+            policiesApiClient
+            .GetFundingPeriodById(Arg.Is("1819"))
+            .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, new PolicyModels.Period()));
+
+
+            SpecificationCreateModelValidator validator = CreateValidator(policiesApiClient: policiesApiClient);
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors.Select(x => x.PropertyName == "FundingPeriodId" && x.ErrorMessage == "Funding period not found")
+                .Count()
                 .Should()
                 .Be(1);
         }
@@ -253,9 +307,28 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return providerApiClient;
         }
 
-        private static SpecificationCreateModelValidator CreateValidator(ISpecificationsRepository repository = null, IProvidersApiClient providersApiClient = null)
+        private static SpecificationCreateModelValidator CreateValidator(ISpecificationsRepository repository = null, 
+            IProvidersApiClient providersApiClient = null,
+            IPoliciesApiClient policiesApiClient = null
+            )
         {
-            return new SpecificationCreateModelValidator(repository ?? CreateSpecificationsRepository(), providersApiClient ?? CreateProviderApiClient());
+            return new SpecificationCreateModelValidator(repository ?? CreateSpecificationsRepository(), 
+                providersApiClient ?? CreateProviderApiClient(),
+                policiesApiClient ?? CreatePoliciesApiClient(),
+                SpecificationsResilienceTestHelper.GenerateTestPolicies());
         }
+
+        private static IPoliciesApiClient CreatePoliciesApiClient()
+        {
+            IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>(); 
+
+            policiesApiClient
+            .GetFundingPeriodById(Arg.Any<string>())
+            .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, new PolicyModels.Period { EndDate = DateTimeOffset.Parse("2019-08-31T23:59:59"), Id = "1819", Name = "AY1819", StartDate = DateTimeOffset.Parse("2018-09-01T00:00:00") }));
+
+
+            return policiesApiClient;
+        }
+      
     }
 }
