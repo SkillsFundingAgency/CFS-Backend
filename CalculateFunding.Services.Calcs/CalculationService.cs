@@ -1271,6 +1271,9 @@ namespace CalculateFunding.Services.Calcs
             if (existingSaveVersionOfTemplateMapping != JsonConvert.SerializeObject(templateMapping))
             {
                 await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.UpdateTemplateMapping(specificationId, fundingStreamId, templateMapping));
+
+                string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<TemplateMapping>(cacheKey));
             }
 
             return new OkObjectResult(templateMapping);
@@ -1410,6 +1413,31 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return madeChanges;
+        }
+
+        public async Task<IActionResult> GetMappedCalculationsOfSpecificationTemplate(string specificationId, string fundingStreamId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            TemplateMapping templateMapping = await _cachePolicy.ExecuteAsync(() => _cacheProvider.GetAsync<TemplateMapping>(cacheKey));
+
+            if (templateMapping == null)
+            {
+                templateMapping = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetTemplateMapping(specificationId, fundingStreamId));
+                if (templateMapping?.TemplateMappingItems == null)
+                {
+                    string message = $"A template mapping was not found for specification id {specificationId} and funding stream Id {fundingStreamId}";
+                    _logger.Information(message);
+
+                    return new NotFoundObjectResult(message);
+                }
+
+                await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, templateMapping, TimeSpan.FromDays(7), true));
+            }
+
+            return new OkObjectResult(templateMapping?.TemplateMappingItems);
         }
     }
 }

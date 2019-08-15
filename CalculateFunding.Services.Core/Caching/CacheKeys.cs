@@ -77,5 +77,7 @@
         public static string FundingTemplateContents { get; set; } = "funding-template-contents:";
 
         public static string FundingTemplateContentMetadata { get; set; } = "funding-template-content-metadata:";
+
+        public static string TemplateMapping { get; set; } = "template-mapping:";
     }
 }

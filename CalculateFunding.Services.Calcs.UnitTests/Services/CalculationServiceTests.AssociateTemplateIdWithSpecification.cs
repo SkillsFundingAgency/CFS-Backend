@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -154,11 +156,14 @@ namespace CalculateFunding.Services.Calcs.Services
             await calculationsRepository
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
+            ICacheProvider cacheProvider = CreateCacheProvider(); 
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             // Act
             var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
@@ -230,6 +235,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
         [TestMethod]
@@ -294,11 +304,14 @@ namespace CalculateFunding.Services.Calcs.Services
             await calculationsRepository
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             // Act
             var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
@@ -326,6 +339,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
         [TestMethod]
@@ -599,11 +617,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             TemplateMapping savedTemplateMapping = null;
 
@@ -663,6 +684,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
         [TestMethod]
@@ -800,11 +826,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             TemplateMapping savedTemplateMapping = null;
 
@@ -878,6 +907,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
 
@@ -1014,11 +1048,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             TemplateMapping savedTemplateMapping = null;
 
@@ -1085,6 +1122,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
         [TestMethod]
@@ -1198,11 +1240,14 @@ namespace CalculateFunding.Services.Calcs.Services
             await calculationsRepository
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             // Act
             var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
@@ -1250,6 +1295,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
         [TestMethod]
@@ -1365,11 +1415,14 @@ namespace CalculateFunding.Services.Calcs.Services
             await calculationsRepository
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             // Act
             var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
@@ -1424,6 +1477,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
         [TestMethod]
@@ -1576,11 +1634,14 @@ namespace CalculateFunding.Services.Calcs.Services
             await calculationsRepository
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             // Act
             var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
@@ -1635,6 +1696,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
         [TestMethod]
@@ -1787,11 +1853,14 @@ namespace CalculateFunding.Services.Calcs.Services
             await calculationsRepository
                .UpdateTemplateMapping(Arg.Is(specificationId), Arg.Is(fundingStreamId), Arg.Do<TemplateMapping>(r => savedTemplateMapping = r));
 
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
                 specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
-                specificationsApiClient: specificationsApiClient);
+                specificationsApiClient: specificationsApiClient,
+                cacheProvider: cacheProvider);
 
             // Act
             var result = await service.AssociateTemplateIdWithSpecification(specificationId, templateVersion, fundingStreamId);
@@ -1846,6 +1915,11 @@ namespace CalculateFunding.Services.Calcs.Services
             savedTemplateMapping
                 .Should()
                 .BeEquivalentTo(expectedTemplateMapping);
+
+            string cacheKey = $"{CacheKeys.TemplateMapping}{specificationId}-{fundingStreamId}";
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<TemplateMapping>(cacheKey);
         }
 
         [TestMethod]
