@@ -78,12 +78,12 @@ namespace CalculateFunding.Services.Specs
 
             await TaskHelper.WhenAllAndThrow(createAssignTemplateJobTasks);
 
-            IEnumerable<Task<ApiResponse<FundingConfiguration>>> queryFundingConfigurationTasks
+            Task<ApiResponse<FundingConfiguration>>[] queryFundingConfigurationTasks
                 = specificationVersion.FundingStreams.Select(_ =>
                     _policyResiliencePolicy.ExecuteAsync(() => _policies.GetFundingConfiguration(_.Id,
-                        fundingPeriodId)));
+                        fundingPeriodId))).ToArray();
 
-            await TaskHelper.WhenAllAndThrow(queryFundingConfigurationTasks.ToArray());
+            await TaskHelper.WhenAllAndThrow(queryFundingConfigurationTasks);
 
             IEnumerable<Task<ApiResponse<TemplateMetadataContents>>> queryTemplateContentsTasks
                 = queryFundingConfigurationTasks.Where(_ => !string.IsNullOrWhiteSpace(_?.Result?.Content?.DefaultTemplateVersion))
@@ -114,8 +114,13 @@ namespace CalculateFunding.Services.Specs
                 () => _policies.GetFundingTemplateContents(fundingStreamId,
                     fundingConfiguration.DefaultTemplateVersion));
 
-            int? itemCount = templateContents?.Content?.RootFundingLines.Sum(_ =>
-                _.Calculations.Count() + _.Calculations.Sum(cal => cal.ReferenceData.Count()));
+            IEnumerable<FundingLine> flattenedFundingLines = templateContents?.Content?.RootFundingLines.Flatten(_ => _.FundingLines)
+                                                             ?? new FundingLine[0];
+
+            int itemCount = flattenedFundingLines.Sum(_ =>
+                _.Calculations.Count() + _.Calculations.Sum(
+                    cal => (cal.ReferenceData?.Count())
+                        .GetValueOrDefault()));
 
             if (itemCount == 0)
             {
@@ -134,7 +139,8 @@ namespace CalculateFunding.Services.Specs
                     {
                         {"specification-id", specificationVersion.SpecificationId},
                         {"fundingstream-id", fundingStreamId},
-                        {"fundingperiod-id", fundingPeriodId}
+                        {"fundingperiod-id", fundingPeriodId},
+                        {"template-version", templateVersion}
                     },
                     parentJobId,
                     itemCount));

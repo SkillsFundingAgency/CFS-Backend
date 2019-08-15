@@ -26,6 +26,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
         private const string SpecificationId = "specification-id";
         private const string FundingStreamId = "fundingstream-id";
         private const string FundingPeriodId = "fundingperiod-id";
+        private const string TemplateVersion = "template-version";
+        
         private IPoliciesApiClient _policies;
         private IJobsApiClient _jobs;
 
@@ -77,6 +79,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 fundingSteam3
             };
 
+            string templateVersion1 = NewRandomString();
+            string templateVersion2 = NewRandomString();
+
             string fundingPeriodId = NewRandomString();
 
             SpecificationVersion specificationVersion = NewSpecificationVersion(_ => _.WithSpecificationId(specificationId)
@@ -88,7 +93,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
             Job createSpecificationJob = NewJob(_ => _.WithId(expectedParentJobId));
 
             GivenTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingSteam1,
-                NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(NewRandomString())
+                NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(templateVersion1)
                     .WithFundingStreamId(fundingSteam1)
                     .WithFundingPeriodId(fundingPeriodId)),
                 NewTemplateMetadataContents(_ => _.WithFundingLines(
@@ -96,8 +101,9 @@ namespace CalculateFunding.Services.Specs.UnitTests
                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(), NewCalculation()))))); //item count 5
             AndTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingSteam2, NewFundingConfiguration(), NewTemplateMetadataContents());
             AndTheFundingConfigurationForPeriodAndStream(fundingPeriodId, fundingSteam3,
-                NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(NewRandomString())
+                NewFundingConfiguration(_ => _.WithDefaultTemplateVersion(templateVersion2)
                     .WithFundingStreamId(fundingSteam3)
+                    
                     .WithFundingPeriodId(fundingPeriodId)),
                 NewTemplateMetadataContents(_ => _.WithFundingLines(
                     NewFundingLine(fl => fl.WithCalculations(NewCalculation(cal => cal.WithReferenceData(NewReferenceData())))),
@@ -113,6 +119,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 CreateJobModelMatching(_ => _.JobDefinitionId == AssignTemplateCalculationsJob &&
                                             _.ParentJobId == expectedParentJobId &&
                                             _.ItemCount == 5 &&
+                                            HasProperty(_, TemplateVersion, templateVersion1) && 
                                             HasProperty(_, SpecificationId, specificationId) &&
                                             HasProperty(_, FundingStreamId, fundingSteam1) &&
                                             HasProperty(_, FundingPeriodId, fundingPeriodId)));
@@ -120,6 +127,7 @@ namespace CalculateFunding.Services.Specs.UnitTests
                 CreateJobModelMatching(_ => _.JobDefinitionId == AssignTemplateCalculationsJob &&
                                             _.ParentJobId == expectedParentJobId &&
                                             _.ItemCount == 3 &&
+                                            HasProperty(_, TemplateVersion, templateVersion2) && 
                                             HasProperty(_, SpecificationId, specificationId) &&
                                             HasProperty(_, FundingStreamId, fundingSteam3) &&
                                             HasProperty(_, FundingPeriodId, fundingPeriodId)));

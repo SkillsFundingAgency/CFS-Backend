@@ -10,6 +10,29 @@ namespace CalculateFunding.Services.Core.Extensions
     [TestClass]
     public class EnumExtensionsTests
     {
+        public enum Source
+        {
+            Two = 1,
+            One = 2
+        }
+
+        public enum Target
+        {
+            One = 0,
+            Two = 1
+        }
+
+        [TestMethod]
+        [DataRow(Source.One, Target.One)]
+        [DataRow(Source.Two, Target.Two)]
+        public void AsParsesEnumValueNames(Source source, Target expectedTarget)
+        {
+            source
+                .AsMatchingEnum<Target>()
+                .Should()
+                .Be(expectedTarget);
+        }
+        
         [TestMethod]
         [DataRow(TestEnum.Green, "green")]
         [DataRow(TestEnum.Red, "Red")]

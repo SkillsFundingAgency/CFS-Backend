@@ -5,6 +5,6 @@ namespace CalculateFunding.Services.Calcs
 {
     public interface IInstructionAllocationJobCreation
     {
-        Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId);
+        Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool initiateCalcRUn = true);
     }
 }

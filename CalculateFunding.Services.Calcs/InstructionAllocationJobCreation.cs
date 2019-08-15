@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Calcs
             _jobsApiClientPolicy = calculationsResiliencePolicies.JobsApiClient;
         }
 
-        public async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId)
+        public async Task<Job> SendInstructAllocationsToJobService(string specificationId, string userId, string userName, Trigger trigger, string correlationId, bool initiateCalcRUn = true)
         {
             IEnumerable<Calculation> allCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 

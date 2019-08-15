@@ -6,11 +6,12 @@ namespace CalculateFunding.Services.Calcs
 {
     public interface ICreateCalculationService
     {
-        Task<CreateCalculationResponse> CreateCalculation(string specificationId, 
-            CalculationCreateModel model, 
+        Task<CreateCalculationResponse> CreateCalculation(string specificationId,
+            CalculationCreateModel model,
             CalculationNamespace calculationNamespace,
             CalculationType calculationType,
-            Reference author, 
-            string correlationId);
+            Reference author,
+            string correlationId, 
+            bool initiateCalcRun = true);
     }
 }

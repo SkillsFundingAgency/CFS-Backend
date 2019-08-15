@@ -69,12 +69,13 @@ namespace CalculateFunding.Services.Calcs
             _cachePolicy = calculationsResiliencePolicies.CacheProviderPolicy;
         }
 
-        public async Task<CreateCalculationResponse> CreateCalculation(string specificationId, 
-            CalculationCreateModel model, 
+        public async Task<CreateCalculationResponse> CreateCalculation(string specificationId,
+            CalculationCreateModel model,
             CalculationNamespace calculationNamespace,
             CalculationType calculationType,
-            Reference author, 
-            string correlationId)
+            Reference author,
+            string correlationId, 
+            bool initiateCalcRun = true)
         {
             
             Guard.ArgumentNotNull(model, nameof(model));
@@ -155,14 +156,16 @@ namespace CalculateFunding.Services.Calcs
 
                 try
                 {
-                    Job job = await SendInstructAllocationsToJobService(calculation.SpecificationId, author.Id, author.Name, new Trigger
+                    Job job = !initiateCalcRun 
+                        ? null 
+                        : await SendInstructAllocationsToJobService(calculation.SpecificationId, author.Id, author.Name, new Trigger
                     {
                         EntityId = calculation.Id,
                         EntityType = nameof(Calculation),
                         Message = $"Saving calculation: '{calculation.Id}' for specification: '{calculation.SpecificationId}'"
                     }, correlationId);
 
-                    if (job != null)
+                    if (!initiateCalcRun || job != null)
                     {
                         _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
 

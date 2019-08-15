@@ -36,6 +36,20 @@ namespace CalculateFunding.Services.Calcs
 
             return health;
         }
+        
+        public async Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId)
+        {
+            DocumentEntity<TemplateMapping> result = await _cosmosRepository.ReadAsync<TemplateMapping>($"templatemapping-{specificationId}-{fundingStreamId}");
+            
+            return result?.Content;
+        }
+
+        public async Task UpdateTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping)
+        {
+            Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
+
+            await _cosmosRepository.UpsertAsync(templateMapping);
+        }
 
         public async Task<HttpStatusCode> CreateDraftCalculation(Calculation calculation)
         {
@@ -166,21 +180,6 @@ namespace CalculateFunding.Services.Calcs
             CalculationMetadata[] items = JsonConvert.DeserializeObject<CalculationMetadata[]>(resultsString);
 
             return await Task.FromResult(items);
-        }
-
-        public async Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId)
-        {
-            DocumentEntity<TemplateMapping> result = await _cosmosRepository.ReadAsync<TemplateMapping>($"templatemapping-{specificationId}-{fundingStreamId}");
-            return result == null ? null : result.Content;
-        }
-
-        public async Task UpdateTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping)
-        {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
-            Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
-            Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
-
-            await _cosmosRepository.UpsertAsync(templateMapping);
         }
     }
 }
