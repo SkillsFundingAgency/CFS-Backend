@@ -266,54 +266,155 @@ namespace CalculateFunding.Services.CalcEngine
                     case "DateOpened":
                         property.SetValue(data, providerSummary.DateOpened.HasValue ? providerSummary.DateOpened.Value.Date : (DateTime?)null);
                         break;
+
                     case "ProviderType":
                         property.SetValue(data, providerSummary.ProviderType.EmptyIfNull());
                         break;
+
                     case "ProviderSubType":
                         property.SetValue(data, providerSummary.ProviderSubType.EmptyIfNull());
                         break;
+
                     case "Name":
                         property.SetValue(data, providerSummary.Name.EmptyIfNull());
                         break;
+
                     case "UKPRN":
                         property.SetValue(data, providerSummary.UKPRN.EmptyIfNull());
                         break;
+
                     case "URN":
                         property.SetValue(data, providerSummary.URN.EmptyIfNull());
                         break;
+
                     case "UPIN":
                         property.SetValue(data, providerSummary.UPIN.EmptyIfNull());
                         break;
+
                     case "DfeEstablishmentNumber":
                         property.SetValue(data, providerSummary.DfeEstablishmentNumber.EmptyIfNull());
                         break;
+
                     case "EstablishmentNumber":
                         property.SetValue(data, providerSummary.EstablishmentNumber.EmptyIfNull());
                         break;
+
                     case "LegalName":
                         property.SetValue(data, providerSummary.LegalName.EmptyIfNull());
                         break;
+
                     case "Authority":
                         property.SetValue(data, providerSummary.Authority.EmptyIfNull());
                         break;
+
                     case "DateClosed":
                         property.SetValue(data, providerSummary.DateClosed.HasValue ? providerSummary.DateClosed.Value.Date : (DateTime?)null);
                         break;
+
                     case "LACode":
                         property.SetValue(data, providerSummary.LACode.EmptyIfNull());
                         break;
+
                     case "CrmAccountId":
                         property.SetValue(data, providerSummary.CrmAccountId.EmptyIfNull());
                         break;
+
                     case "NavVendorNo":
                         property.SetValue(data, providerSummary.NavVendorNo.EmptyIfNull());
                         break;
+
                     case "Status":
                         property.SetValue(data, providerSummary.Status.EmptyIfNull());
                         break;
+
                     case "PhaseOfEducation":
                         property.SetValue(data, providerSummary.PhaseOfEducation.EmptyIfNull());
                         break;
+
+                    case "LocalAuthorityName":
+                        property.SetValue(data, providerSummary.LocalAuthorityName.EmptyIfNull());
+                        break;
+
+                    case "CompaniesHouseNumber":
+                        property.SetValue(data, providerSummary.CompaniesHouseNumber.EmptyIfNull());
+                        break;
+
+                    case "GroupIdNumber":
+                        property.SetValue(data, providerSummary.GroupIdNumber.EmptyIfNull());
+                        break;
+
+                    case "RscRegionName":
+                        property.SetValue(data, providerSummary.RscRegionName.EmptyIfNull());
+                        break;
+
+                    case "RscRegionCode":
+                        property.SetValue(data, providerSummary.RscRegionCode.EmptyIfNull());
+                        break;
+
+                    case "GovernmentOfficeRegionName":
+                        property.SetValue(data, providerSummary.GovernmentOfficeRegionName.EmptyIfNull());
+                        break;
+
+                    case "GovernmentOfficeRegionCode":
+                        property.SetValue(data, providerSummary.GovernmentOfficeRegionCode.EmptyIfNull());
+                        break;
+
+                    case "DistrictName":
+                        property.SetValue(data, providerSummary.DistrictName.EmptyIfNull());
+                        break;
+
+                    case "DistrictCode":
+                        property.SetValue(data, providerSummary.DistrictCode.EmptyIfNull());
+                        break;
+
+                    case "WardName":
+                        property.SetValue(data, providerSummary.WardName.EmptyIfNull());
+                        break;
+
+                    case "WardCode":
+                        property.SetValue(data, providerSummary.WardCode.EmptyIfNull());
+                        break;
+
+                    case "CensusWardName":
+                        property.SetValue(data, providerSummary.CensusWardName.EmptyIfNull());
+                        break;
+
+                    case "CensusWardCode":
+                        property.SetValue(data, providerSummary.CensusWardCode.EmptyIfNull());
+                        break;
+
+                    case "MiddleSuperOutputAreaName":
+                        property.SetValue(data, providerSummary.MiddleSuperOutputAreaName.EmptyIfNull());
+                        break;
+
+                    case "MiddleSuperOutputAreaCode":
+                        property.SetValue(data, providerSummary.MiddleSuperOutputAreaCode.EmptyIfNull());
+                        break;
+
+                    case "LowerSuperOutputAreaName":
+                        property.SetValue(data, providerSummary.LowerSuperOutputAreaName.EmptyIfNull());
+                        break;
+
+                    case "LowerSuperOutputAreaCode":
+                        property.SetValue(data, providerSummary.LowerSuperOutputAreaCode.EmptyIfNull());
+                        break;
+
+                    case "ParliamentaryConstituencyName":
+                        property.SetValue(data, providerSummary.ParliamentaryConstituencyName.EmptyIfNull());
+                        break;
+
+                    case "ParliamentaryConstituencyCode":
+                        property.SetValue(data, providerSummary.ParliamentaryConstituencyCode.EmptyIfNull());
+                        break;
+
+                    case "CountryCode":
+                        property.SetValue(data, providerSummary.CountryCode.EmptyIfNull());
+                        break;
+
+                    case "CountryName":
+                        property.SetValue(data, providerSummary.CountryName.EmptyIfNull());
+                        break;
+
                     default:
                         break;
                 }

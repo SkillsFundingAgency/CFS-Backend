@@ -61,5 +61,47 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string Town { get; set; }
 
         public string Postcode { get; set; }
+
+        public string LocalAuthorityName { get; set; }
+
+        public string CompaniesHouseNumber { get; set; }
+
+        public string GroupIdNumber { get; set; }
+
+        public string RscRegionName { get; set; }
+
+        public string RscRegionCode { get; set; }
+
+        public string GovernmentOfficeRegionName { get; set; }
+
+        public string GovernmentOfficeRegionCode { get; set; }
+
+        public string DistrictName { get; set; }
+
+        public string DistrictCode { get; set; }
+
+        public string WardName { get; set; }
+
+        public string WardCode { get; set; }
+
+        public string CensusWardName { get; set; }
+
+        public string CensusWardCode { get; set; }
+
+        public string MiddleSuperOutputAreaName { get; set; }
+
+        public string MiddleSuperOutputAreaCode { get; set; }
+
+        public string LowerSuperOutputAreaName { get; set; }
+
+        public string LowerSuperOutputAreaCode { get; set; }
+
+        public string ParliamentaryConstituencyName { get; set; }
+
+        public string ParliamentaryConstituencyCode { get; set; }
+
+        public string CountryCode { get; set; }
+
+        public string CountryName { get; set; }
     }
 }

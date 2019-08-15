@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
 using CalculateFunding.Functions.Results.ServiceBus;
-using CalculateFunding.Functions.Scenarios.ServiceBus;
 using CalculateFunding.Functions.TestEngine.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Jobs;

@@ -119,6 +119,90 @@
     {
       "sourceFieldName": "/postcode",
       "targetFieldName": "postcode"
+    },
+    {
+      "sourceFieldName": "/localAuthorityName",
+      "targetFieldName": "localAuthorityName"
+    },
+    {
+      "sourceFieldName": "/companiesHouseNumber",
+      "targetFieldName": "companiesHouseNumber"
+    },
+    {
+      "sourceFieldName": "/groupIdNumber",
+      "targetFieldName": "groupIdNumber"
+    },
+    {
+      "sourceFieldName": "/rscRegionName",
+      "targetFieldName": "rscRegionName"
+    },
+    {
+      "sourceFieldName": "/rscRegionCode",
+      "targetFieldName": "rscRegionCode"
+    },
+    {
+      "sourceFieldName": "/governmentOfficeRegionName",
+      "targetFieldName": "governmentOfficeRegionName"
+    },
+    {
+      "sourceFieldName": "/governmentOfficeRegionCode",
+      "targetFieldName": "governmentOfficeRegionCode"
+    },
+    {
+      "sourceFieldName": "/districtName",
+      "targetFieldName": "districtName"
+    },
+    {
+      "sourceFieldName": "/districtCode",
+      "targetFieldName": "districtCode"
+    },
+    {
+      "sourceFieldName": "/wardName",
+      "targetFieldName": "wardName"
+    },
+    {
+      "sourceFieldName": "/wardCode",
+      "targetFieldName": "wardCode"
+    },
+    {
+      "sourceFieldName": "/censusWardName",
+      "targetFieldName": "censusWardName"
+    },
+    {
+      "sourceFieldName": "/censusWardCode",
+      "targetFieldName": "censusWardCode"
+    },
+    {
+      "sourceFieldName": "/middleSuperOutputAreaName",
+      "targetFieldName": "middleSuperOutputAreaName"
+    },
+    {
+      "sourceFieldName": "/middleSuperOutputAreaCode",
+      "targetFieldName": "middleSuperOutputAreaCode"
+    },
+    {
+      "sourceFieldName": "/lowerSuperOutputAreaName",
+      "targetFieldName": "lowerSuperOutputAreaName"
+    },
+    {
+      "sourceFieldName": "/lowerSuperOutputAreaCode",
+      "targetFieldName": "lowerSuperOutputAreaCode"
+    },
+    {
+      "sourceFieldName": "/parliamentaryConstituencyName",
+      "targetFieldName": "parliamentaryConstituencyName"
+    },
+    {
+      "sourceFieldName": "/parliamentaryConstituencyCode",
+      "targetFieldName": "parliamentaryConstituencyCode"
+    },
+    {
+      "sourceFieldName": "/countryCode",
+      "targetFieldName": "countryCode"
+    },
+    {
+      "sourceFieldName": "/countryName",
+      "targetFieldName": "countryName"
     }
   ],
   "parameters": {

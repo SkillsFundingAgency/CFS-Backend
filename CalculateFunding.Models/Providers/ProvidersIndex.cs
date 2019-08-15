@@ -131,5 +131,89 @@ namespace CalculateFunding.Models.Providers
         [IsSearchable]
         [JsonProperty("postcode")]
         public string Postcode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("localAuthorityName")]
+        public string LocalAuthorityName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("companiesHouseNumber")]
+        public string CompaniesHouseNumber { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("groupIdNumber")]
+        public string GroupIdNumber { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("rscRegionName")]
+        public string RscRegionName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("rscRegionCode")]
+        public string RscRegionCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("governmentOfficeRegionName")]
+        public string GovernmentOfficeRegionName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("governmentOfficeRegionCode")]
+        public string GovernmentOfficeRegionCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("districtName")]
+        public string DistrictName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("districtCode")]
+        public string DistrictCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("wardName")]
+        public string WardName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("wardCode")]
+        public string WardCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("censusWardName")]
+        public string CensusWardName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("censusWardCode")]
+        public string CensusWardCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("middleSuperOutputAreaName")]
+        public string MiddleSuperOutputAreaName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("middleSuperOutputAreaCode")]
+        public string MiddleSuperOutputAreaCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("lowerSuperOutputAreaName")]
+        public string LowerSuperOutputAreaName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("lowerSuperOutputAreaCode")]
+        public string LowerSuperOutputAreaCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("parliamentaryConstituencyName")]
+        public string ParliamentaryConstituencyName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("parliamentaryConstituencyCode")]
+        public string ParliamentaryConstituencyCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("countryCode")]
+        public string CountryCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("countryName")]
+        public string CountryName { get; set; }
     }
 }

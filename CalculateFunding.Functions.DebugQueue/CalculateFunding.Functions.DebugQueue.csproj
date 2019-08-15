@@ -34,6 +34,7 @@
     <ProjectReference Include="..\CalculateFunding.Functions.Notifications\CalculateFunding.Functions.Notifications.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Publishing\CalculateFunding.Functions.Publishing.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />
+    <!--<ProjectReference Include="..\CalculateFunding.Functions.Results\CalculateFunding.Functions.Results.csproj" />-->
     <ProjectReference Include="..\CalculateFunding.Functions.Scenarios\CalculateFunding.Functions.Scenarios.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.Specs\CalculateFunding.Functions.Specs.csproj" />
     <ProjectReference Include="..\CalculateFunding.Functions.TestEngine\CalculateFunding.Functions.TestEngine.csproj" />

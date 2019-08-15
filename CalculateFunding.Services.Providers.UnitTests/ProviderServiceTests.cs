@@ -101,8 +101,28 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().TrustName == provider.TrustName &&
                     x.First().TrustCode == provider.TrustCode &&
                     x.First().Town == provider.Town &&
-                    x.First().Postcode == provider.Postcode
-
+                    x.First().Postcode == provider.Postcode &&
+                    x.First().LocalAuthorityName == provider.LocalAuthorityName &&
+                    x.First().CompaniesHouseNumber == provider.CompaniesHouseNumber &&
+                    x.First().GroupIdNumber == provider.GroupIdNumber &&
+                    x.First().RscRegionName == provider.RscRegionName &&
+                    x.First().RscRegionCode == provider.RscRegionCode &&
+                    x.First().GovernmentOfficeRegionName == provider.GovernmentOfficeRegionName &&
+                    x.First().GovernmentOfficeRegionCode == provider.GovernmentOfficeRegionCode &&
+                    x.First().DistrictName == provider.DistrictName &&
+                    x.First().DistrictCode == provider.DistrictCode &&
+                    x.First().WardName == provider.WardName &&
+                    x.First().WardCode == provider.WardCode &&
+                    x.First().CensusWardName == provider.CensusWardName &&
+                    x.First().CensusWardCode == provider.CensusWardCode &&
+                    x.First().MiddleSuperOutputAreaName == provider.MiddleSuperOutputAreaName &&
+                    x.First().MiddleSuperOutputAreaCode == provider.MiddleSuperOutputAreaCode &&
+                    x.First().LowerSuperOutputAreaName == provider.LowerSuperOutputAreaName &&
+                    x.First().LowerSuperOutputAreaCode == provider.LowerSuperOutputAreaCode &&
+                    x.First().ParliamentaryConstituencyName == provider.ParliamentaryConstituencyName &&
+                    x.First().ParliamentaryConstituencyCode == provider.ParliamentaryConstituencyCode &&
+                    x.First().CountryCode == provider.CountryCode &&
+                    x.First().CountryName == provider.CountryName
                 ), Arg.Is(cacheKey));
 
             totalCountResult
@@ -366,7 +386,28 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 TrustName = provider.TrustName,
                 TrustCode = provider.TrustCode,
                 Town = provider.Town,
-                Postcode = provider.Postcode
+                Postcode = provider.Postcode,
+                LocalAuthorityName =provider.LocalAuthorityName,
+                CompaniesHouseNumber = provider.CompaniesHouseNumber,
+                GroupIdNumber = provider.GroupIdNumber,
+                RscRegionName =provider.RscRegionName,
+                RscRegionCode =provider.RscRegionCode,
+                GovernmentOfficeRegionName =provider.GovernmentOfficeRegionName,
+                GovernmentOfficeRegionCode = provider.GovernmentOfficeRegionCode,
+                DistrictName = provider.DistrictName,
+                DistrictCode =provider.DistrictCode,
+                WardName =provider.WardName,
+                WardCode = provider.WardCode,
+                CensusWardName = provider.CensusWardName,
+                CensusWardCode = provider.CensusWardCode,
+                MiddleSuperOutputAreaName = provider.MiddleSuperOutputAreaName,
+                MiddleSuperOutputAreaCode = provider.MiddleSuperOutputAreaCode,
+                LowerSuperOutputAreaName = provider.LowerSuperOutputAreaName,
+                LowerSuperOutputAreaCode = provider.LowerSuperOutputAreaCode,
+                ParliamentaryConstituencyName = provider.ParliamentaryConstituencyName,
+                ParliamentaryConstituencyCode = provider.ParliamentaryConstituencyCode,
+                CountryCode = provider.CountryCode,
+                CountryName = provider.CountryName
             };
         }
 
@@ -398,7 +439,28 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Successor = "Successor",
                 TrustStatusViewModelString = "NotApplicable",
                 TrustName = "TrustName",
-                TrustCode = "TrustCode"
+                TrustCode = "TrustCode",
+                LocalAuthorityName = "LocalAuthorityName",
+                CompaniesHouseNumber = "CompaniesHouseNumber",
+                GroupIdNumber = "GroupIdNumber",
+                RscRegionName = "RscRegionName",
+                RscRegionCode = "RscRegionCode",
+                GovernmentOfficeRegionName = "GovernmentOfficeRegionName",
+                GovernmentOfficeRegionCode = "GovernmentOfficeRegionCode",
+                DistrictName = "DistrictName",
+                DistrictCode = "DistrictCode",
+                WardName = "WardName",
+                WardCode = "WardCode",
+                CensusWardName = "CensusWardName",
+                CensusWardCode = "CensusWardCode",
+                MiddleSuperOutputAreaName = "MiddleSuperOutputAreaName",
+                MiddleSuperOutputAreaCode = "MiddleSuperOutputAreaCode",
+                LowerSuperOutputAreaName = "LowerSuperOutputAreaName",
+                LowerSuperOutputAreaCode = "LowerSuperOutputAreaCode",
+                ParliamentaryConstituencyName = "ParliamentaryConstituencyName",
+                ParliamentaryConstituencyCode = "ParliamentaryConstituencyCode",
+                CountryCode = "CountryCode",
+                CountryName = "CountryName"
             };
         }
     }

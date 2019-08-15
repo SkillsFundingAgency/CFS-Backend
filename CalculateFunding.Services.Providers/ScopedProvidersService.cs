@@ -210,7 +210,28 @@ namespace CalculateFunding.Services.Providers
                     TrustName = x.TrustName,
                     TrustCode = x.TrustCode,
                     Town = x.Town,
-                    Postcode = x.Postcode
+                    Postcode = x.Postcode,
+                    LocalAuthorityName = x.LocalAuthorityName,
+                    CompaniesHouseNumber = x.CompaniesHouseNumber,
+                    GroupIdNumber = x.GroupIdNumber,
+                    RscRegionName = x.RscRegionName,
+                    RscRegionCode = x.RscRegionCode,
+                    GovernmentOfficeRegionName = x.GovernmentOfficeRegionName,
+                    GovernmentOfficeRegionCode = x.GovernmentOfficeRegionCode,
+                    DistrictCode = x.DistrictCode,
+                    DistrictName = x.DistrictName,
+                    WardName = x.WardName,
+                    WardCode = x.WardCode,
+                    CensusWardCode = x.CensusWardCode,
+                    CensusWardName = x.CensusWardName,
+                    MiddleSuperOutputAreaCode = x.MiddleSuperOutputAreaCode,
+                    MiddleSuperOutputAreaName = x.MiddleSuperOutputAreaName,
+                    LowerSuperOutputAreaCode = x.LowerSuperOutputAreaCode,
+                    LowerSuperOutputAreaName = x.LowerSuperOutputAreaName,
+                    ParliamentaryConstituencyCode = x.ParliamentaryConstituencyCode,
+                    ParliamentaryConstituencyName = x.ParliamentaryConstituencyName,
+                    CountryCode = x.CountryCode,
+                    CountryName = x.CountryName
                 });
 
                 await _cacheProvider.CreateListAsync(providerSummaries, cacheKeyAllProviderSummaries);

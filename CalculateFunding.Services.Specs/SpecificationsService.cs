@@ -724,8 +724,6 @@ namespace CalculateFunding.Services.Specs
 
             string specificationId = specification.Id;
             
-            
-            
             SpecificationCurrentVersion result = ConvertSpecificationToCurrentVersion(repositoryCreateResult, fundingStreamObjects);
 
             return new OkObjectResult(result);

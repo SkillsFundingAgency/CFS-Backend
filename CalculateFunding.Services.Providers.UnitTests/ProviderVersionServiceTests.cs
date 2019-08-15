@@ -966,7 +966,28 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ReasonEstablishmentClosed = "",
                 Successor = "",
                 TrustName = "Trusts (name)",
-                TrustCode = ""
+                TrustCode = "",
+                LocalAuthorityName = "LocalAuthorityName",
+                CompaniesHouseNumber = "CompaniesHouseNumber",
+                GroupIdNumber = "GroupIdNumber",
+                RscRegionName = "RscRegionName",
+                RscRegionCode = "RscRegionCode",
+                GovernmentOfficeRegionName = "GovernmentOfficeRegionName",
+                GovernmentOfficeRegionCode = "GovernmentOfficeRegionCode",
+                DistrictName = "DistrictName",
+                DistrictCode = "DistrictCode",
+                WardName = "WardName",
+                WardCode = "WardCode",
+                CensusWardName = "CensusWardName",
+                CensusWardCode = "CensusWardCode",
+                MiddleSuperOutputAreaName = "MiddleSuperOutputAreaName",
+                MiddleSuperOutputAreaCode = "MiddleSuperOutputAreaCode",
+                LowerSuperOutputAreaName = "LowerSuperOutputAreaName",
+                LowerSuperOutputAreaCode = "LowerSuperOutputAreaCode",
+                ParliamentaryConstituencyName = "ParliamentaryConstituencyName",
+                ParliamentaryConstituencyCode = "ParliamentaryConstituencyCode",
+                CountryCode = "CountryCode",
+                CountryName = "CountryName"
             };
         }
     }

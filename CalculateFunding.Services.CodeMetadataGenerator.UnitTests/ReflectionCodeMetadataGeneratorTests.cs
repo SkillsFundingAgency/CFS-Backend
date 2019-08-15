@@ -352,6 +352,41 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
             result.FirstOrDefault(m => m.Name == "If-Then-ElseIf-Then").Should().NotBeNull();
         }
 
+        [TestMethod]
+        public void GetTypeInformation_WhenCompiledAssembly_EnsuresProviderPropertiesPresent()
+        {
+            // Arrange
+            ICodeMetadataGeneratorService generator = GetCodeGenerator();
+            byte[] assembly = GetTestNewProviderPropertiesAssembly();
+
+            IEnumerable<string> propertyNames = new[]
+            {
+                 "Name",  "DateOpened",  "ProviderType", "ProviderSubType",  "UKPRN", "URN", "UPIN", "DfeEstablishmentNumber", "EstablishmentNumber",
+                 "LegalName", "Authority", "DateClosed", "LACode", "CrmAccountId", "NavVendorNo", "Status", "PhaseOfEducation", "LocalAuthorityName",
+                 "CompaniesHouseNumber", "GroupIdNumber", "RscRegionName", "RscRegionCode", "GovernmentOfficeRegionName", "governmentOfficeRegionCode",
+                 "DistrictName", "DistrictCode", "WardName", "WardCode", "CensusWardName", "CensusWardCode", "MiddleSuperOutputAreaName", "MiddleSuperOutputAreaCode",
+                 "LowerSuperOutputAreaName", "LowerSuperOutputAreaCode", "ParliamentaryConstituencyName", "ParliamentaryConstituencyCode", "CountryCode", "CountryName"
+            };
+
+            // Act
+            IEnumerable<TypeInformation> result = generator.GetTypeInformation(assembly);
+
+            // Assert
+            result.Should().NotBeNull("Result should not be null");
+
+            result.FirstOrDefault(m => m.Name == "Provider").Should().NotBeNull();
+
+            IEnumerable<PropertyInformation> providerProperties = result.FirstOrDefault(m => m.Name == "Provider").Properties;
+
+            foreach(string propertyName in propertyNames)
+            {
+                providerProperties
+                    .FirstOrDefault(m => m.Name == propertyName)
+                    .Should()
+                    .NotBeNull();
+            }
+        }
+
         private static ICodeMetadataGeneratorService GetCodeGenerator()
         {
             return new ReflectionCodeMetadataGenerator();
@@ -378,6 +413,12 @@ namespace CalculateFunding.Services.CodeMetadataGenerator.UnitTests
         {
             // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
             return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "calculationsWithDescriptions.dll.dat"));
+        }
+
+        private byte[] GetTestNewProviderPropertiesAssembly()
+        {
+            // Read this generated DLL as example input, it should be copied to the output directory to be read by the tests
+            return File.ReadAllBytes(Path.Combine(Environment.CurrentDirectory, "TestNewProviderProperties.dll.dat"));
         }
     }
 }

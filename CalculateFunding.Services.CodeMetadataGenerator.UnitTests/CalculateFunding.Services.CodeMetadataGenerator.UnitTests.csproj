@@ -39,4 +39,10 @@
     <ProjectReference Include="..\CalculateFunding.Services.CodeMetadataGenerator\CalculateFunding.Services.CodeMetadataGenerator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestNewProviderProperties.dll.dat">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

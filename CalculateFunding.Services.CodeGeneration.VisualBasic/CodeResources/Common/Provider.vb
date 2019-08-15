@@ -67,4 +67,88 @@ Public Class Provider
     <Field(Id:="PhaseOfEducation", Name:="PhaseOfEducation")>
     <Description(Description:="The stage of education delivered by the provider in the UK's five stage education system. Get Information About Schools attribute PhaseOfEducation (name)")>
     Public Property PhaseOfEducation() As String
+
+    <Field(Id:="LocalAuthorityName", Name:="LocalAuthorityName")>
+    <Description(Description:="The local authority name")>
+    Public Property LocalAuthorityName() As String
+
+    <Field(Id:="CompaniesHouseNumber", Name:="CompaniesHouseNumber")>
+    <Description(Description:="The companies house number")>
+    Public Property CompaniesHouseNumber() As String
+
+    <Field(Id:="GroupIdNumber", Name:="GroupIdNumber")>
+    <Description(Description:="The group id number")>
+    Public Property GroupIdNumber() As String
+
+    <Field(Id:="RscRegionName", Name:="RscRegionName")>
+    <Description(Description:="The RCS region name")>
+    Public Property RscRegionName() As String
+
+    <Field(Id:="RscRegionCode", Name:="RscRegionCode")>
+    <Description(Description:="The rcs region code")>
+    Public Property RscRegionCode() As String
+
+    <Field(Id:="GovernmentOfficeRegionName", Name:="GovernmentOfficeRegionName")>
+    <Description(Description:="The governement office region name")>
+    Public Property GovernmentOfficeRegionName() As String
+
+    <Field(Id:="governmentOfficeRegionCode", Name:="governmentOfficeRegionCode")>
+    <Description(Description:="The government office region code")>
+    Public Property governmentOfficeRegionCode() As String
+
+    <Field(Id:="DistrictName", Name:="DistrictName")>
+    <Description(Description:="The district name")>
+    Public Property DistrictName() As String
+
+    <Field(Id:="DistrictCode", Name:="DistrictCode")>
+    <Description(Description:="The district code")>
+    Public Property DistrictCode() As String
+
+    <Field(Id:="WardName", Name:="WardName")>
+    <Description(Description:="The ward name")>
+    Public Property WardName() As String
+
+    <Field(Id:="WardCode", Name:="WardCode")>
+    <Description(Description:="The ward code")>
+    Public Property WardCode() As String
+
+    <Field(Id:="CensusWardName", Name:="CensusWardName")>
+    <Description(Description:="The census ward name")>
+    Public Property CensusWardName() As String
+
+    <Field(Id:="CensusWardCode", Name:="CensusWardCode")>
+    <Description(Description:="The census ward code")>
+    Public Property CensusWardCode() As String
+
+    <Field(Id:="MiddleSuperOutputAreaName", Name:="MiddleSuperOutputAreaName")>
+    <Description(Description:="The middle super output area name")>
+    Public Property MiddleSuperOutputAreaName() As String
+
+    <Field(Id:="MiddleSuperOutputAreaCode", Name:="MiddleSuperOutputAreaCode")>
+    <Description(Description:="The middle super output area code")>
+    Public Property MiddleSuperOutputAreaCode() As String
+
+    <Field(Id:="LowerSuperOutputAreaName", Name:="LowerSuperOutputAreaName")>
+    <Description(Description:="The lower super output area name")>
+    Public Property LowerSuperOutputAreaName() As String
+
+    <Field(Id:="LowerSuperOutputAreaCode", Name:="LowerSuperOutputAreaCode")>
+    <Description(Description:="The lower super output area code")>
+    Public Property LowerSuperOutputAreaCode() As String
+
+    <Field(Id:="ParliamentaryConstituencyName", Name:="ParliamentaryConstituencyName")>
+    <Description(Description:="The parlimentary constituency name")>
+    Public Property ParliamentaryConstituencyName() As String
+
+    <Field(Id:="ParliamentaryConstituencyCode", Name:="ParliamentaryConstituencyCode")>
+    <Description(Description:="The parlimentary constituency code")>
+    Public Property ParliamentaryConstituencyCode() As String
+
+    <Field(Id:="CountryCode", Name:="CountryCode")>
+    <Description(Description:="The country code")>
+    Public Property CountryCode() As String
+
+    <Field(Id:="CountryName", Name:="CountryName")>
+    <Description(Description:="The country name")>
+    Public Property CountryName() As String
 End Class

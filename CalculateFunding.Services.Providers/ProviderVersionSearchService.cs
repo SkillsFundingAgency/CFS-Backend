@@ -335,7 +335,28 @@ namespace CalculateFunding.Services.Providers
                     TrustName = m.Result.TrustName,
                     TrustCode = m.Result.TrustCode,
                     Town = m.Result.Town,
-                    Postcode = m.Result.Postcode
+                    Postcode = m.Result.Postcode,
+                    LocalAuthorityName = m.Result.LocalAuthorityName,
+                    CompaniesHouseNumber = m.Result.CompaniesHouseNumber,
+                    GroupIdNumber = m.Result.GroupIdNumber,
+                    RscRegionName = m.Result.RscRegionName,
+                    RscRegionCode = m.Result.RscRegionCode,
+                    GovernmentOfficeRegionName = m.Result.GovernmentOfficeRegionName,
+                    GovernmentOfficeRegionCode = m.Result.GovernmentOfficeRegionCode,
+                    DistrictCode = m.Result.DistrictCode,
+                    DistrictName = m.Result.DistrictName,
+                    WardName = m.Result.WardName,
+                    WardCode = m.Result.WardCode,
+                    CensusWardCode = m.Result.CensusWardCode,
+                    CensusWardName = m.Result.CensusWardName,
+                    MiddleSuperOutputAreaCode = m.Result.MiddleSuperOutputAreaCode,
+                    MiddleSuperOutputAreaName = m.Result.MiddleSuperOutputAreaName,
+                    LowerSuperOutputAreaCode = m.Result.LowerSuperOutputAreaCode,
+                    LowerSuperOutputAreaName = m.Result.LowerSuperOutputAreaName,
+                    ParliamentaryConstituencyCode = m.Result.ParliamentaryConstituencyCode,
+                    ParliamentaryConstituencyName = m.Result.ParliamentaryConstituencyName,
+                    CountryCode = m.Result.CountryCode,
+                    CountryName = m.Result.CountryName
                 });
             }
         }
