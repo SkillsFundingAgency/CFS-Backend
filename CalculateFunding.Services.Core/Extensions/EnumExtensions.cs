@@ -10,7 +10,13 @@ namespace CalculateFunding.Services.Core.Extensions
         public static TTargetEnum AsMatchingEnum<TTargetEnum>(this Enum value)
             where TTargetEnum : struct
         {
-            return Enum.Parse<TTargetEnum>(value.ToString());
+            return value.ToString().AsEnum<TTargetEnum>();
+        }
+
+        public static TTargetEnum AsEnum<TTargetEnum>(this string enumLiteral)
+            where TTargetEnum : struct
+        {
+            return Enum.Parse<TTargetEnum>(enumLiteral);
         }
         
         public static string GetDescription(this Enum value, bool nameIfNull = true)

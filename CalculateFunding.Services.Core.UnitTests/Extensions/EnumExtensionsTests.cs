@@ -19,7 +19,20 @@ namespace CalculateFunding.Services.Core.Extensions
         public enum Target
         {
             One = 0,
-            Two = 1
+            Two = 1,
+            Three = 2,
+        }
+
+        [TestMethod]
+        [DataRow("One", Target.One)]
+        [DataRow("Two", Target.Two)]
+        [DataRow("Three", Target.Three)]
+        public void AsEnumParsesLiteralIntoSuppliedEnumType(string literal, Target expectedEnumValue)
+        {
+            literal
+                .AsEnum<Target>()
+                .Should()
+                .Be(expectedEnumValue);
         }
 
         [TestMethod]

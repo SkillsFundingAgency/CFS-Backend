@@ -113,8 +113,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task ReturnsNotFoundResultIfNoPublishedProviderVersionLocatedWithTheSuppliedMetadata()
         {
-            PublishedProviderVersion publishedProviderVersion =
-                NewPublishedProviderVersion(_ => _.WithDefaults(version: 1));
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion();
 
             AndTheApiResponseDetailsForPublishedVersionMetaSupplied(null);
 
@@ -126,8 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task GetsPublishedProviderVersionForSuppliedVersionMetadata()
         {
-            PublishedProviderVersion publishedProviderVersion =
-                NewPublishedProviderVersion(_ => _.WithDefaults(version: 1));
+            PublishedProviderVersion publishedProviderVersion = NewPublishedProviderVersion();
 
             AndTheApiResponseDetailsForPublishedVersionMetaSupplied(publishedProviderVersion);
 

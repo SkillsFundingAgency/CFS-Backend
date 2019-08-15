@@ -1,7 +1,4 @@
 using CalculateFunding.Models.Publishing;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using CalculateFunding.Tests.Common.Helpers;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -13,7 +10,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _fundingStreamId;
         private int? _version;
         private string _specificationId;
+        private PublishedProviderStatus? _status;
+        private Provider _provider;
 
+        public PublishedProviderVersionBuilder WithProvider(Provider provider)
+        {
+            _provider = provider;
+
+            return this;
+        }
+
+        public PublishedProviderVersionBuilder WithPublishedProviderStatus(PublishedProviderStatus status)
+        {
+            _status = status;
+
+            return this;
+        }
+        
         public PublishedProviderVersionBuilder WithSpecificationId(string specificationId)
         {
             _specificationId = specificationId;
@@ -21,12 +34,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public PublishedProviderVersionBuilder WithDefaults(string providerId = null, string fundingPeriodId = null, string fundingStreamId = null, int? version = null)
+        public PublishedProviderVersionBuilder WithFundingStreamId(string fundingStreamId)
+        {
+            _fundingStreamId = fundingStreamId;
+
+            return this;
+        }
+
+        public PublishedProviderVersionBuilder WithFundingPeriodId(string fundingPeriodId)
+        {
+            _fundingPeriodId = fundingPeriodId;
+
+            return this;
+        }
+
+        public PublishedProviderVersionBuilder WithProviderId(string providerId)
         {
             _providerId = providerId;
-            _fundingPeriodId = fundingPeriodId;
-            _fundingStreamId = fundingStreamId;
+
+            return this;
+        }
+
+        public PublishedProviderVersionBuilder WithVersion(int version)
+        {
             _version = version;
+
             return this;
         }
 
@@ -38,7 +70,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ProviderId = _providerId ?? NewRandomString(),
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
-                Version = _version ?? 1
+                Version = _version ?? 1,
+                Status = _status.GetValueOrDefault(NewRandomEnum<PublishedProviderStatus>()),
+                Provider = _provider
             };
         }
     }
