@@ -154,6 +154,8 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
 
+            builder.AddSingleton<ICalculationsService, CalculationsService>();
+
             builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(r =>
             {
                 PublishedProviderContentsGeneratorResolver resolver = new PublishedProviderContentsGeneratorResolver();

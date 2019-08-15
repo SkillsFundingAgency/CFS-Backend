@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
@@ -1277,6 +1278,21 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return new OkObjectResult(templateMapping);
+        }
+
+        public async Task<IActionResult> CheckHasAllApprovedTemplateCalculationsForSpecificationId(string specificationId)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+
+            int countNonApproved = await _calculationSearchRepositoryPolicy.ExecuteAsync(() => _calculationsRepository
+                .GetCountOfNonApprovedTemplateCalculations(specificationId));
+
+            BooleanResponseModel booleanResponseModel = new BooleanResponseModel
+            {
+                Value = countNonApproved == 0
+            };
+
+            return new OkObjectResult(booleanResponseModel);
         }
 
         private bool ProcessTemplateMappingChanges(TemplateMapping templateMapping, TemplateMetadataContents fundingTemplateContents)

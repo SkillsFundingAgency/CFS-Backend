@@ -128,6 +128,15 @@ namespace CalculateFunding.Services.Calcs
             return options?.Content ?? new CompilerOptions();
         }
 
+        public Task<int> GetCountOfNonApprovedTemplateCalculations(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+           
+            IQueryable<int> count = GetCountOfNonApprovedTemplateCalculationsForSpecificationId(specificationId);
+
+            return Task.FromResult(count.AsEnumerable().First());
+        }
+
         private IQueryable<int> QueryStatus(string specificationId, string publishStatus)
         {
             SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
@@ -180,6 +189,28 @@ namespace CalculateFunding.Services.Calcs
             CalculationMetadata[] items = JsonConvert.DeserializeObject<CalculationMetadata[]>(resultsString);
 
             return await Task.FromResult(items);
+        }
+
+        private IQueryable<int> GetCountOfNonApprovedTemplateCalculationsForSpecificationId(string specificationId)
+        {
+            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            {
+                QueryText = $@"SELECT VALUE COUNT(1)
+                            FROM    c 
+                            WHERE   c.documentType = 'Calculation' 
+                                    AND c.content.current.publishStatus != 'Approved'
+                                    AND c.content.specificationId = @SpecificationId
+                                    AND c.content.current.calculationType = 'Template'"
+            };
+
+            SqlParameter[] sqlParameters =
+            {
+                new SqlParameter("@SpecificationId", specificationId)
+            };
+
+            sqlQuerySpec.Parameters = new SqlParameterCollection(sqlParameters);
+            IQueryable<int> result = _cosmosRepository.RawQuery<int>(sqlQuerySpec, 1, true);
+            return result;
         }
     }
 }

@@ -11,7 +11,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 PublishedProviderVersionRepository = Policy.NoOpAsync(),
                 JobsApiClient = Policy.NoOpAsync(),
-                BlobClient = Policy.NoOpAsync()
+                BlobClient = Policy.NoOpAsync(),
+                CalcsApiClient = Policy.NoOpAsync()
             };
         }
     }

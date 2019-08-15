@@ -35,6 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ILogger _logger;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private IPublishedProviderVersionService _publishedProviderVersionService;
+        private ICalculationsService _calculationsService;
 
         [TestInitialize]
         public void SetUp()
@@ -53,6 +54,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _logger = Substitute.For<ILogger>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
+            _calculationsService = Substitute.For<ICalculationsService>();
 
             _refreshService = new RefreshService(Substitute.For<IPublishedProviderStatusUpdateService>(),
                 Substitute.For<IPublishedFundingRepository>(),
@@ -70,7 +72,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _logger,
                 _specificationFundingStatusService,
                 _publishedProviderVersionService,
-                _mapper);
+                _mapper,
+                _calculationsService);
         }
 
         [TestMethod]

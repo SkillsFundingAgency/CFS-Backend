@@ -31,5 +31,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<TemplateMapping> GetTemplateMapping(string specificationId, string fundingStreamId);
 
         Task UpdateTemplateMapping(string specificationId, string fundingStreamId, TemplateMapping templateMapping);
+
+        Task<int> GetCountOfNonApprovedTemplateCalculations(string specificationId);
     }
 }

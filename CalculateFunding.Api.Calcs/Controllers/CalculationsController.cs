@@ -237,5 +237,12 @@ namespace CalculateFunding.Api.Calcs.Controllers
         {
             return await _calcsService.GetMappedCalculationsOfSpecificationTemplate(specificationId, fundingStreamId);
         }
+
+        [Route("api/calcs/specifications/{specificationId}/templateCalculations/allApproved")]
+        [HttpGet]
+        public async Task<IActionResult> CheckHasAllApprovedTemplateCalculationsForSpecificationId([FromRoute]string specificationId)
+        {
+            return await _calcsService.CheckHasAllApprovedTemplateCalculationsForSpecificationId(specificationId);
+        }
     }
 }

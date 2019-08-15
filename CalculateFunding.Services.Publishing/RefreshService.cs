@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IMapper _mapper;
-
+        private readonly ICalculationsService _calculationsService;
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
         private readonly Policy _calcsApiClientPolicy;
@@ -61,7 +61,8 @@ namespace CalculateFunding.Services.Publishing
             ILogger logger,
             ISpecificationFundingStatusService specificationFundingStatusService,
             IPublishedProviderVersionService publishedProviderVersionService,
-            IMapper mapper)
+            IMapper mapper,
+            ICalculationsService calculationsService)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
@@ -79,6 +80,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(calculationsService, nameof(calculationsService));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
@@ -100,6 +102,7 @@ namespace CalculateFunding.Services.Publishing
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
             _calcsApiClientPolicy = publishingResiliencePolicies.CalcsApiClient;
             _publishedProviderVersionService = publishedProviderVersionService;
+            _calculationsService = calculationsService;
         }
 
         public async Task<IEnumerable<Common.ApiClient.Providers.Models.Provider>> GetProvidersByProviderVersionId(string providerVersionId)
@@ -141,6 +144,17 @@ namespace CalculateFunding.Services.Publishing
             if(specification == null)
             {
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
+            }
+
+            //check if all template calculations are to be removed
+            bool haveAllTemplateCalculationsBeenApproved = await _calculationsService.HaveAllTemplateCalculationsBeenApproved(specificationId);
+            if (!haveAllTemplateCalculationsBeenApproved)
+            {
+                string errorMessage = $"Specification with id: '{specificationId} still requires template calculations to be approved";
+
+                await UpdateJobStatus(jobId, completedSuccessfully: false, outcome: errorMessage);
+
+                throw new NonRetriableException(errorMessage);
             }
 
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);

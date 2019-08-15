@@ -50,5 +50,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
         Task<IActionResult> AssociateTemplateIdWithSpecification(string specificationId, string templateVersion, string fundingStreamId);
 
         Task<IActionResult> GetMappedCalculationsOfSpecificationTemplate(string specificationId, string fundingStreamId);
+
+        Task<IActionResult> CheckHasAllApprovedTemplateCalculationsForSpecificationId(string specificationId);
     }
 }
