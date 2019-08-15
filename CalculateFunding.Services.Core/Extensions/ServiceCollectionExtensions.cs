@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers;
@@ -168,6 +169,27 @@ namespace CalculateFunding.Services.Core.Extensions
 
                      return new ResultsApiProxy(apiOptions, logger);
                  });
+
+            return builder;
+        }
+
+        public static IServiceCollection AddCalculationsInterServiceClient(this IServiceCollection builder, IConfiguration config)
+        {
+            builder.AddHttpClient(HttpClientKeys.Calculations,
+               c =>
+               {
+                   ApiOptions apiOptions = new ApiOptions();
+
+                   config.Bind("calcsClient", apiOptions);
+
+                   SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+               })
+               .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+               .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(retryTimeSpans))
+               .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(numberOfExceptionsBeforeCircuitBreaker, circuitBreakerFailurePeriod));
+
+            builder
+                .AddSingleton<ICalculationsApiClient, CalculationsApiClient>();
 
             return builder;
         }

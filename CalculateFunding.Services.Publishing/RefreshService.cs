@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -16,6 +18,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
+using CalcsTemplateMapping = CalculateFunding.Common.ApiClient.Calcs.Models.TemplateMapping;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -32,12 +35,15 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private readonly IProfilingService _profilingService;
         private readonly IJobsApiClient _jobsApiClient;
+        private readonly ICalculationsApiClient _calcsApiClient;
         private readonly ILogger _logger;
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
+        private readonly IMapper _mapper;
 
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
+        private readonly Policy _calcsApiClientPolicy;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingRepository publishedFundingRepository,
@@ -51,9 +57,11 @@ namespace CalculateFunding.Services.Publishing
             IInScopePublishedProviderService inScopePublishedProviderService,
             IPublishedProviderDataPopulator publishedProviderDataPopulator,
             IJobsApiClient jobsApiClient,
+            ICalculationsApiClient calcsApiClient,
             ILogger logger,
             ISpecificationFundingStatusService specificationFundingStatusService,
-            IPublishedProviderVersionService publishedProviderVersionService)
+            IPublishedProviderVersionService publishedProviderVersionService,
+            IMapper mapper)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
@@ -67,8 +75,10 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviderDataPopulator, nameof(publishedProviderDataPopulator));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
@@ -81,11 +91,14 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderDataPopulator = publishedProviderDataPopulator;
             _profilingService = profilingService;
             _jobsApiClient = jobsApiClient;
+            _calcsApiClient = calcsApiClient;
             _logger = logger;
             _specificationFundingStatusService = specificationFundingStatusService;
+            _mapper = mapper;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
+            _calcsApiClientPolicy = publishingResiliencePolicies.CalcsApiClient;
             _publishedProviderVersionService = publishedProviderVersionService;
         }
 
@@ -227,7 +240,16 @@ namespace CalculateFunding.Services.Publishing
                 {
                     PublishedProviderVersion publishedProviderVersion = provider.Value.Current;
 
-                    string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, calculationResults[provider.Key], fundingLineTotals[provider.Key]);
+                    ApiResponse<CalcsTemplateMapping> response = await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.GetTemplateMapping(specificationId, fundingStream.Id));
+
+                    if (response == null || response.Content == null)
+                    {
+                        throw new RetriableException($"Generator failed to retrieve template mappings for specification with id: '{specificationId}' and funding stream with id: '{fundingStream.Id}'");
+                    }
+
+                    CalcsTemplateMapping templateMapping = response.Content;
+
+                    string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, _mapper.Map<TemplateMapping>(templateMapping), calculationResults[provider.Key], fundingLineTotals[provider.Key]);
 
                     if (string.IsNullOrWhiteSpace(contents))
                     {
@@ -241,7 +263,7 @@ namespace CalculateFunding.Services.Publishing
                     catch(Exception ex)
                     {
                         throw new RetriableException(ex.Message);
-;                   }
+                    }
                 }
 
             }

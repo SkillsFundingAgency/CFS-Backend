@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Bearer;
 using CalculateFunding.Common.ApiClient.Profiling;
@@ -9,6 +10,7 @@ using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
@@ -180,6 +182,15 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config);
+
+            MapperConfiguration publishingConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<PublishingMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(publishingConfig.CreateMapper());
 
             builder.AddHttpClient(HttpClientKeys.Profiling,
                    c =>
@@ -230,7 +241,8 @@ namespace CalculateFunding.Functions.Publishing
                 ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;

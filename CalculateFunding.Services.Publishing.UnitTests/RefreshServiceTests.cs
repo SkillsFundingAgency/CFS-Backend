@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -9,6 +10,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using AutoMapper;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -25,6 +27,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IFundingLineGenerator _fundingLineGenerator;
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private IJobsApiClient _jobsApiClient;
+        private ICalculationsApiClient _calcsApiClient;
+        private IMapper _mapper;
         private IProfilingService _profilingService;
         private IInScopePublishedProviderService _inScopePublishedProviderService;
         private IPublishedProviderDataPopulator _publishedProviderDataPopulator;
@@ -43,6 +47,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _inScopePublishedProviderService = Substitute.For<IInScopePublishedProviderService>();
             _publishedProviderDataPopulator = Substitute.For<IPublishedProviderDataPopulator>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
+            _calcsApiClient = Substitute.For<ICalculationsApiClient>();
+            _mapper = Substitute.For<IMapper>();
             _profilingService = Substitute.For<IProfilingService>();
             _logger = Substitute.For<ILogger>();
             _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
@@ -60,9 +66,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _inScopePublishedProviderService,
                 _publishedProviderDataPopulator,
                 _jobsApiClient,
+                _calcsApiClient,
                 _logger,
                 _specificationFundingStatusService,
-                _publishedProviderVersionService);
+                _publishedProviderVersionService,
+                _mapper);
         }
 
         [TestMethod]

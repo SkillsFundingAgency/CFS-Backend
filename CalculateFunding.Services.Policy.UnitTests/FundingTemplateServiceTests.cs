@@ -332,9 +332,9 @@ namespace CalculateFunding.Services.Policy
                 .Should()
                 .Be(1);
 
-            ((string[])validationResults["ProfilePeriods"])[0]
+            ((string[])validationResults["DistributionPeriods"])[0]
                 .Should()
-                .Be("Funding line : 'Total funding line' has values for the profilePeriods");
+                .Be("Funding line : 'Total funding line' has values for the distribution periods");
         }
 
         [TestMethod]

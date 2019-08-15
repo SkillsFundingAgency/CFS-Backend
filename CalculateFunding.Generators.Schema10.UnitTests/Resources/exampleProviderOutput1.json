@@ -1,0 +1,140 @@
+{
+  "id": "PSG-AY-1920-12345678-1_0",
+  "fundingVersion": "1_0",
+  "provider": {
+    "identifier": "12345678",
+    "name": "Example School 1",
+    "searchableName": "ExampleSchool1",
+    "otherIdentifiers": [
+      {
+        "type": "URN",
+        "value": "123453"
+      },
+      {
+        "type": "UKPRN",
+        "value": "12345678"
+      }
+    ],
+    "providerVersionId": "3",
+    "providerType": "Academies",
+    "providerSubType": "Academy alternative provision converter",
+    "providerDetails": {
+      "dateOpened": "2012-12-02T00:00:00+00:00",
+      "dateClosed": null,
+      "status": "Open",
+      "phaseOfEducation": "Secondary",
+      "localAuthorityName": "Camden",
+      "openReason": "Academy Converter",
+      "closeReason": null,
+      "trustStatus": "Supported by a single-academy trust",
+      "trustName": "Trust Name",
+      "town": "MOCK TOWN",
+      "postcode": "MOCK POSTCODE",
+      "companiesHouseNumber": "6237225",
+      "groupIdNumber": "GroupID2522",
+      "rscRegionName": "North West",
+      "rscRegionCode": "NW",
+      "governmentOfficeRegionName": "Gov Office Region 2",
+      "governmentOfficeRegionCode": "GRCC2",
+      "districtName": "District Name",
+      "districtCode": "DC",
+      "wardName": "South Bermondsey",
+      "wardCode": "WC522257",
+      "censusWardName": "Census Ward Name",
+      "censusWardCode": "Census Ward Code 1",
+      "middleSuperOutputAreaName": "MSOA Fifty Six",
+      "middleSuperOutputAreaCode": "MSOA56",
+      "lowerSuperOutputAreaName": "Lower 66",
+      "lowerSuperOutputAreaCode": "L66",
+      "parliamentaryConstituencyName": "Bermondsey and Old Southwark",
+      "parliamentaryConstituencyCode": "BOS",
+      "countryCode": "E",
+      "countryName": "England"
+    }
+  },
+  "fundingStreamCode": "PSG",
+  "fundingPeriodId": "AY-1920",
+  "fundingValue": {
+    "totalValue": 5050000,
+    "fundingLines": [
+      {
+        "name": "Total funding line",
+        "fundingLineCode": "TotalFundingLine",
+        "value": 1000,
+        "templateLineId": 1,
+        "type": "Payment",
+        "calculations": [
+          {
+            "name": "Number of pupils",
+            "templateCalculationId": 1,
+            "value": "1000",
+            "valueFormat": "Number",
+            "type": "PupilNumber",
+            "formulaText": "Something * something",
+            "aggregationType": "Sum",
+            "calculations": [
+              {
+                "name": "Test Rate",
+                "templateCalculationId": 152,
+                "value": "152000",
+                "valueFormat": "Number",
+                "type": "Rate",
+                "formulaText": "Something * something else",
+                "aggregationType": "Sum",
+                "calculations": null,
+                "referenceData": null
+              }
+            ],
+            "referenceData": [
+              {
+                "name": "Academic year 2018 to 2019 pupil number on roll",
+                "templateReferenceId": 1,
+                "format": "Number",
+                "value": "1",
+                "aggregationType": "Sum"
+              }
+            ]
+          },
+          {
+            "name": "Number of pupils",
+            "templateCalculationId": 1,
+            "value": "1000",
+            "valueFormat": "Number",
+            "type": "PupilNumber",
+            "formulaText": "Something * something",
+            "aggregationType": "Sum",
+            "calculations": null,
+            "referenceData": [
+              {
+                "name": "Academic year 2018 to 2019 pupil number on roll",
+                "templateReferenceId": 2,
+                "format": "Number",
+                "value": "1",
+                "aggregationType": "Sum"
+              }
+            ]
+          },
+          {
+            "name": "Weighting",
+            "templateCalculationId": 126,
+            "value": "126000",
+            "valueFormat": "Percentage",
+            "type": "Weighting",
+            "formulaText": "",
+            "aggregationType": "Average",
+            "calculations": null,
+            "referenceData": null
+          }
+        ],
+        "fundingLines": null,
+        "distributionPeriods": null
+      }
+    ]
+  },
+  "variationReasons": [
+    "NameFieldUpdated",
+    "FundingUpdated"
+  ],
+  "successors": null,
+  "predecessors": null
+}

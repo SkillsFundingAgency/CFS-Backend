@@ -172,7 +172,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .ValidationState
                 .Errors
                 .Should()
-                .HaveCount(12);
+                .HaveCount(19);
 
             result
                .IsValid

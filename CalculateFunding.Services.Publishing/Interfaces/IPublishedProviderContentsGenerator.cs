@@ -12,9 +12,10 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         /// </summary>
         /// <param name="publishedProviderVersion">Published Provider Version</param>
         /// <param name="templateMetadataContents">Template contents</param>
+        /// <param name="templateMapping">Template Mapping</param>
         /// <param name="calculationResults">Calculation Results</param>
         /// <param name="fundingLines">Funding Lines (with precalculated totals). Should contain all funding lines, not just payment</param>
         /// <returns>Contents to be saved for this provider version</returns>
-        string GenerateContents(PublishedProviderVersion publishedProviderVersion, TemplateMetadataContents templateMetadataContents, IEnumerable<CalculationResult> calculationResults, IEnumerable<Models.Publishing.FundingLine> fundingLines);
+        string GenerateContents(PublishedProviderVersion publishedProviderVersion, TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, IEnumerable<CalculationResult> calculationResults, IEnumerable<Models.Publishing.FundingLine> fundingLines);
     }
 }

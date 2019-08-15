@@ -13,7 +13,7 @@
     "fundingPeriod": {
       "code": "AY1920",
       "name": "Academic year 2019-20",
-      "type": "AcademicYear",
+      "type": "AY",
       "startDate": "2019-09-01T01:00:00+01:00",
       "endDate": "2020-08-31T01:00:00+01:00"
     },
@@ -34,48 +34,77 @@
     },
     "fundingValue": {
       "totalValue": 2400,
-      "fundingValueByDistributionPeriod": [
+      "fundingLines": [
         {
-          "value": 1400,
-          "distributionPeriodCode": "FY1920",
-          "fundingLines": [
+          "name": "Total funding line",
+          "fundingLineCode": "TotalFundingLine",
+          "value": 700,
+          "templateLineId": 1,
+          "type": "Payment",
+          "distributionPeriods": [
             {
-              "name": "Total funding line",
-              "fundingLineCode": "TotalFundingLine",
-              "value": 1400,
-              "templateLineId": 1,
-              "type": "Payment",
+              "value": 2800,
+              "distributionPeriodId": "FY1920",
               "profilePeriods": [
                 {
                   "type": "CalendarMonth",
                   "typeValue": "October",
                   "year": 2019,
-                  "occurence": 1,
-                  "profiledValue": 1400,
-                  "periodCode": "FY1920"
+                  "occurrence": 1,
+                  "profiledValue": 2800,
+                  "distributionPeriodId": "FY1920"
                 }
               ]
-            }
-          ]
-        },
-        {
-          "value": 1000,
-          "distributionPeriodCode": "FY2021",
-          "fundingLines": [
+            },
             {
-              "name": "Total funding line",
-              "fundingLineCode": "FundingLineCode2",
-              "value": 1000,
-              "templateLineId": 1,
-              "type": "Payment",
+              "value": 2000,
+              "distributionPeriodId": "FY2021",
               "profilePeriods": [
                 {
                   "type": "CalendarMonth",
-                  "typeValue": "April",
+                  "typeValue": "October",
                   "year": 2020,
-                  "occurence": 1,
-                  "profiledValue": 1000,
-                  "periodCode": "FY2021"
+                  "occurrence": 1,
+                  "profiledValue": 2000,
+                  "distributionPeriodId": "FY2021"
+                }
+              ]
+            }
+          ],
+          "calculations": [
+            {
+              "name": "Number of pupils",
+              "templateCalculationId": 1,
+              "value": "456",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 1,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
+                }
+              ]
+            },
+            {
+              "name": "Number of pupils",
+              "templateCalculationId": 1,
+              "value": "456",
+              "valueFormat": "Number",
+              "type": "PupilNumber",
+              "formulaText": "Something * something",
+              "aggregationType": "Sum",
+              "referenceData": [
+                {
+                  "name": "Academic year 2018 to 2019 pupil number on roll",
+                  "templateReferenceId": 1,
+                  "format": "Number",
+                  "value": "1",
+                  "aggregationType": "Sum"
                 }
               ]
             }
@@ -108,25 +137,41 @@
         "fundingPeriodCode": "AY1920",
         "fundingValue": {
           "totalValue": 1200,
-          "fundingValueByDistributionPeriod": [
-            {
-              "value": 700,
-              "distributionPeriodCode": "FY1920",
-              "fundingLines": [
+          "fundingLines": [
                 {
                   "name": "Total funding line",
                   "fundingLineCode": "TotalFundingLine",
                   "value": 700,
                   "templateLineId": 1,
                   "type": "Payment",
-                  "profilePeriods": [
+                  "distributionPeriods": [
                     {
-                      "type": "CalendarMonth",
-                      "typeValue": "October",
-                      "year": 2019,
-                      "occurence": 1,
-                      "profiledValue": 700,
-                      "periodCode": "FY1920"
+                      "value": 2800,
+                      "distributionPeriodId": "FY1920",
+                      "profilePeriods": [
+                        {
+                          "type": "CalendarMonth",
+                          "typeValue": "October",
+                          "year": 2019,
+                          "occurrence": 1,
+                          "profiledValue": 2800,
+                          "distributionPeriodId": "FY1920"
+                        }
+                      ]
+                    },
+                    {
+                      "value": 2000,
+                      "distributionPeriodId": "FY2021",
+                      "profilePeriods": [
+                        {
+                          "type": "CalendarMonth",
+                          "typeValue": "October",
+                          "year": 2020,
+                          "occurrence": 1,
+                          "profiledValue": 2000,
+                          "distributionPeriodId": "FY2021"
+                        }
+                      ]
                     }
                   ],
                   "calculations": [
@@ -159,7 +204,7 @@
                       "referenceData": [
                         {
                           "name": "Academic year 2018 to 2019 pupil number on roll",
-                          "templateReferenceId": 2,
+                          "templateReferenceId": 1,
                           "format": "Number",
                           "value": "1",
                           "aggregationType": "Sum"
@@ -169,32 +214,7 @@
                   ]
                 }
               ]
-            },
-            {
-              "value": 500,
-              "distributionPeriodCode": "FY2021",
-              "fundingLines": [
-                {
-                  "name": "Total funding line",
-                  "fundingLineCode": "TotalFundingLine2",
-                  "value": 500,
-                  "templateLineId": 1,
-                  "type": "Payment",
-                  "profilePeriods": [
-                    {
-                      "type": "CalendarMonth",
-                      "typeValue": "April",
-                      "year": 2020,
-                      "occurence": 1,
-                      "profiledValue": 500,
-                      "periodCode": "FY2021"
-                    }
-                  ]
-                }
-              ]
             }
-          ]
-        }
       },
       {
         "id": "PESports_AY1920_87654322_1.0",
@@ -220,48 +240,39 @@
         "fundingPeriodCode": "AY1920",
         "fundingValue": {
           "totalValue": 1200,
-          "fundingValueByDistributionPeriod": [
+          "fundingLines": [
             {
+              "name": "Total funding line",
+              "fundingLineCode": "TotalFundingLine",
               "value": 700,
-              "distributionPeriodCode": "FY1920",
-              "fundingLines": [
+              "templateLineId": 1,
+              "type": "Payment",
+              "distributionPeriods": [
                 {
-                  "name": "Total funding line",
-                  "fundingLineCode": "TotalFundingLine",
-                  "value": 700,
-                  "templateLineId": 1,
-                  "type": "Payment",
+                  "value": 2800,
+                  "distributionPeriodId": "FY1920",
                   "profilePeriods": [
                     {
                       "type": "CalendarMonth",
                       "typeValue": "October",
                       "year": 2019,
-                      "occurence": 1,
-                      "profiledValue": 700,
-                      "periodCode": "FY1920"
+                      "occurrence": 1,
+                      "profiledValue": 2800,
+                      "distributionPeriodId": "FY1920"
                     }
                   ]
-                }
-              ]
-            },
-            {
-              "value": 500,
-              "distributionPeriodCode": "FY2021",
-              "fundingLines": [
+                },
                 {
-                  "name": "Total funding line",
-                  "fundingLineCode": "TotalFundingLine2",
-                  "value": 500,
-                  "templateLineId": 1,
-                  "type": "Payment",
+                  "value": 2000,
+                  "distributionPeriodId": "FY2021",
                   "profilePeriods": [
                     {
                       "type": "CalendarMonth",
-                      "typeValue": "April",
+                      "typeValue": "October",
                       "year": 2020,
-                      "occurence": 1,
-                      "profiledValue": 500,
-                      "periodCode": "FY2021"
+                      "occurrence": 1,
+                      "profiledValue": 2000,
+                      "distributionPeriodId": "FY2021"
                     }
                   ]
                 }

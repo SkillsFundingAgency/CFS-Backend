@@ -1,9 +1,11 @@
 using System;
 using System.IO;
 using System.Reflection;
+using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
@@ -117,6 +119,16 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
+
+            MapperConfiguration publishingConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<PublishingMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(publishingConfig.CreateMapper());
+
             builder.AddSingleton<IPublishingResiliencePolicies>(ctx =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
@@ -128,6 +140,7 @@ namespace CalculateFunding.Api.Publishing
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)

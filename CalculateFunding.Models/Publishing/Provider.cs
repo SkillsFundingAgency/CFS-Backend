@@ -88,5 +88,68 @@ namespace CalculateFunding.Models.Publishing
 
         [JsonProperty("postcode")]
         public string Postcode { get; set; }
+
+        [JsonProperty("localAuthorityName")]
+        public string LocalAuthorityName { get; set; }
+
+        [JsonProperty("companiesHouseNumber")]
+        public string CompaniesHouseNumber { get; set; }
+
+        [JsonProperty("groupIdNumber")]
+        public string GroupIdNumber { get; set; }
+
+        [JsonProperty("rscRegionName")]
+        public string RscRegionName { get; set; }
+
+        [JsonProperty("rscRegionCode")]
+        public string RscRegionCode { get; set; }
+
+        [JsonProperty("governmentOfficeRegionName")]
+        public string GovernmentOfficeRegionName { get; set; }
+
+        [JsonProperty("governmentOfficeRegionCode")]
+        public string GovernmentOfficeRegionCode { get; set; }
+
+        [JsonProperty("districtName")]
+        public string DistrictName { get; set; }
+
+        [JsonProperty("districtCode")]
+        public string DistrictCode { get; set; }
+
+        [JsonProperty("wardName")]
+        public string WardName { get; set; }
+
+        [JsonProperty("wardCode")]
+        public string WardCode { get; set; }
+
+        [JsonProperty("censusWardName")]
+        public string CensusWardName { get; set; }
+
+        [JsonProperty("censusWardCode")]
+        public string CensusWardCode { get; set; }
+
+        [JsonProperty("middleSuperOutputAreaName")]
+        public string MiddleSuperOutputAreaName { get; set; }
+
+        [JsonProperty("middleSuperOutputAreaCode")]
+        public string MiddleSuperOutputAreaCode { get; set; }
+
+        [JsonProperty("lowerSuperOutputAreaName")]
+        public string LowerSuperOutputAreaName { get; set; }
+
+        [JsonProperty("lowerSuperOutputAreaCode")]
+        public string LowerSuperOutputAreaCode { get; set; }
+
+        [JsonProperty("parliamentaryConstituencyName")]
+        public string ParliamentaryConstituencyName { get; set; }
+
+        [JsonProperty("parliamentaryConstituencyCode")]
+        public string ParliamentaryConstituencyCode { get; set; }
+
+        [JsonProperty("countryCode")]
+        public string CountryCode { get; set; }
+
+        [JsonProperty("countryName")]
+        public string CountryName { get; set; }
     }
 }

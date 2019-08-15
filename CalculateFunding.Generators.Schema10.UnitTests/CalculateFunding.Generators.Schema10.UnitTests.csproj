@@ -9,17 +9,28 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\dsg1.0.json" />
+    <None Remove="Resources\exampleProviderOutput1.json" />
+    <None Remove="Resources\exampleProviderTemplate1.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\dsg1.0.json" />
+    <EmbeddedResource Include="Resources\exampleProviderOutput1.json" />
+    <EmbeddedResource Include="Resources\exampleProviderTemplate1.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.6.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="2.2.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+    <PackageReference Include="NSubstitute" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CalculateFunding.Api.Datasets\CalculateFunding.Api.Datasets.csproj" />
+    <ProjectReference Include="..\CalculateFunding.Generators.Schema10\CalculateFunding.Generators.Schema10.csproj" />
     <ProjectReference Include="..\CalculateFunding.Tests.Common\CalculateFunding.Tests.Common.csproj" />
   </ItemGroup>
 
