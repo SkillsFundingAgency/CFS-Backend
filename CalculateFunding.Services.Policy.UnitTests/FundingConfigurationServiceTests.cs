@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
@@ -22,6 +23,10 @@ namespace CalculateFunding.Services.Policy.UnitTests
     [TestClass]
     public class FundingConfigurationServiceTests
     {
+        private const string fundingStreamId = "fs-1";
+
+        private string fundingConfigurationsCacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}";
+
         [TestMethod]
         [DataRow("1234", "5678")]
         public async Task GetFundingConfiguration_GivenFundingConfigurationDoesNotExist_ReturnsNotFoundRequest(string fundingStreamId, string fundingPeriodId)
@@ -253,6 +258,130 @@ namespace CalculateFunding.Services.Policy.UnitTests
             logger
                 .Received(1)
                 .Error(Arg.Is($"Failed to save configuration file for funding stream id: {fundingStreamId} and period id: {fundingPeriodId} to cosmos db with status 400"));
+        }
+
+        [TestMethod]
+        public async Task GetFundingConfigurationsByFundingStreamId_GivenEmptyFundingStreamId_ReturnsBadRequestRequest()
+        {
+            // Arrange
+            string fundingStreamId = string.Empty;
+
+            ILogger logger = CreateLogger();
+
+            FundingConfigurationService fundingConfigurationsService = CreateFundingConfigurationService(logger: logger);
+
+            // Act
+            IActionResult result = await fundingConfigurationsService.GetFundingConfigurationsByFundingStreamId(fundingStreamId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be("Null or empty funding stream Id provided");
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No funding stream Id was provided to GetFundingConfigurationsByFundingStreamId"));
+        }
+
+        [TestMethod]
+        public async Task GetFundingConfigurationsByFundingStreamId_GivenFundingConfigurationsInCache_ReturnsFromCache()
+        {
+            // Arrange
+            List<FundingConfiguration> fundingConfigs = new List<FundingConfiguration>
+            {
+                new FundingConfiguration()
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<List<FundingConfiguration>>(Arg.Is(fundingConfigurationsCacheKey))
+                .Returns(fundingConfigs);
+
+            FundingConfigurationService fundingConfigurationsService = CreateFundingConfigurationService(cacheProvider: cacheProvider);
+
+            // Act
+            IActionResult result = await fundingConfigurationsService.GetFundingConfigurationsByFundingStreamId(fundingStreamId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(fundingConfigs);
+        }
+
+        [TestMethod]
+        public async Task GetFundingConfigurationsByFundingStreamId_GivenFundingConfigurationsNotInCacheAndNotInDatabase_ReturnsNotFound()
+        {
+            // Arrange
+            List<FundingConfiguration> fundingConfigs = null;
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<List<FundingConfiguration>>(Arg.Is(fundingConfigurationsCacheKey))
+                .Returns(fundingConfigs);
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingConfigurationsByFundingStreamId(Arg.Is(fundingStreamId))
+                .Returns(fundingConfigs);
+
+            FundingConfigurationService fundingConfigurationsService = 
+                CreateFundingConfigurationService(cacheProvider: cacheProvider, policyRepository: policyRepository);
+
+            // Act
+            IActionResult result = await fundingConfigurationsService.GetFundingConfigurationsByFundingStreamId(fundingStreamId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
+        public async Task GetFundingConfigurationsByFundingStreamId_GivenFundingConfigurationsNotInCacheBuInDatabase_ReturnsOKSetsInCache()
+        {
+            // Arrange
+            List<FundingConfiguration> fundingConfigs = new List<FundingConfiguration>
+            {
+                new FundingConfiguration()
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .GetAsync<List<FundingConfiguration>>(Arg.Is(fundingConfigurationsCacheKey))
+                .Returns((List<FundingConfiguration>)null);
+
+            IPolicyRepository policyRepository = CreatePolicyRepository();
+            policyRepository
+                .GetFundingConfigurationsByFundingStreamId(Arg.Is(fundingStreamId))
+                .Returns(fundingConfigs);
+
+            FundingConfigurationService fundingConfigurationsService = 
+                CreateFundingConfigurationService(cacheProvider: cacheProvider, policyRepository: policyRepository);
+
+            // Act
+            IActionResult result = await fundingConfigurationsService.GetFundingConfigurationsByFundingStreamId(fundingStreamId);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .Be(fundingConfigs);
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .SetAsync(Arg.Is(fundingConfigurationsCacheKey), Arg.Any<List<FundingConfiguration>>());
         }
 
         private static FundingConfigurationService CreateFundingConfigurationService(

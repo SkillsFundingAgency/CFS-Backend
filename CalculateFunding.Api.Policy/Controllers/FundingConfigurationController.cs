@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.FundingPolicy.ViewModels;
@@ -45,6 +46,13 @@ namespace CalculateFunding.Api.Policy.Controllers
                 configurationViewModel,
                 fundingStreamId,
                 fundingPeriodId);
+        }
+
+        [HttpGet("api/configuration/{fundingStreamId}")]
+        [Produces(typeof(IEnumerable<FundingConfiguration>))]
+        public async Task<IActionResult> GetFundingConfigurations([FromRoute]string fundingStreamId)
+        {
+            return await _fundingConfigurationService.GetFundingConfigurationsByFundingStreamId(fundingStreamId);
         }
     }
 }

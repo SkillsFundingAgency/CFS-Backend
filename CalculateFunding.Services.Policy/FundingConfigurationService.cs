@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -100,6 +102,38 @@ namespace CalculateFunding.Services.Policy
             }
 
             return new OkObjectResult(fundingConfiguration);
+        }
+
+        public async Task<IActionResult> GetFundingConfigurationsByFundingStreamId(string fundingStreamId)
+        {
+            if (string.IsNullOrWhiteSpace(fundingStreamId))
+            {
+                _logger.Error("No funding stream Id was provided to GetFundingConfigurationsByFundingStreamId");
+
+                return new BadRequestObjectResult("Null or empty funding stream Id provided");
+            }
+
+            string cacheKey = $"{CacheKeys.FundingConfig}{fundingStreamId}";
+           
+            IEnumerable<FundingConfiguration> fundingConfigurations = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<List<FundingConfiguration>>(cacheKey));
+
+            if (!fundingConfigurations.IsNullOrEmpty())
+            {
+                return new OkObjectResult(fundingConfigurations);
+            }
+
+            fundingConfigurations = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingConfigurationsByFundingStreamId(fundingStreamId));
+
+            if (fundingConfigurations.IsNullOrEmpty())
+            {
+                _logger.Error($"No funding Configurations were found for funding stream id : {fundingStreamId}");
+
+                return new NotFoundResult();
+            }
+
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<FundingConfiguration>>(cacheKey, fundingConfigurations.ToList()));
+
+            return new OkObjectResult(fundingConfigurations);
         }
 
         public async Task<IActionResult> SaveFundingConfiguration(string actionName, 
