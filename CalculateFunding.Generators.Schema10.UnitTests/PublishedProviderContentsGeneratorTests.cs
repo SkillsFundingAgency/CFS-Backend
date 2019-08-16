@@ -7,6 +7,7 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -205,17 +206,11 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
             };
         }
 
-        public string GetResourceString(string resourceName)
+        private string GetResourceString(string resourceName)
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    return reader.ReadToEnd();
-                }
-            }
+            return typeof(PublishedProviderContentsGeneratorTests)
+                .Assembly
+                .GetEmbeddedResourceFileContents(resourceName);
         }
     }
 }

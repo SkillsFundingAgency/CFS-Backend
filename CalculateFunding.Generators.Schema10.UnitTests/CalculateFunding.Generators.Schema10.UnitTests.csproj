@@ -18,6 +18,8 @@
     <EmbeddedResource Include="Resources\dsg1.0.json" />
     <EmbeddedResource Include="Resources\exampleProviderOutput1.json" />
     <EmbeddedResource Include="Resources\exampleProviderTemplate1.json" />
+    <EmbeddedResource Include="Resources\examplePublishedFundingVersion_1.json" />
+    <EmbeddedResource Include="Resources\expectedPublishedFundingSchema1Contents_1.json" />
   </ItemGroup>
 
   <ItemGroup>
