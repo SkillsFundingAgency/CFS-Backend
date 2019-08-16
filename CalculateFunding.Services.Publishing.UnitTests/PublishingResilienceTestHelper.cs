@@ -12,7 +12,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 PublishedProviderVersionRepository = Policy.NoOpAsync(),
                 JobsApiClient = Policy.NoOpAsync(),
                 BlobClient = Policy.NoOpAsync(),
-                CalcsApiClient = Policy.NoOpAsync()
+                CalculationsApiClient = Policy.NoOpAsync(),
+                FundingFeedSearchRepository = Policy.NoOpAsync(),
+                ProvidersApiClient = Policy.NoOpAsync(),
+                PublishedFundingBlobRepository = Policy.NoOpAsync(),
+                PublishedFundingRepository = Policy.NoOpAsync(),
+                ResultsRepository = Policy.NoOpAsync(),
+                SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
             };
         }
     }

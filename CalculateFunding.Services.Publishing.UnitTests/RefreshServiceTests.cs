@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -10,7 +12,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using AutoMapper;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -27,7 +28,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IFundingLineGenerator _fundingLineGenerator;
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private IJobsApiClient _jobsApiClient;
-        private ICalculationsApiClient _calcsApiClient;
         private IMapper _mapper;
         private IProfilingService _profilingService;
         private IInScopePublishedProviderService _inScopePublishedProviderService;
@@ -35,7 +35,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ILogger _logger;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
         private IPublishedProviderVersionService _publishedProviderVersionService;
-        private ICalculationsService _calculationsService;
+        private ICalculationsApiClient _calculationsApiClient;
+        private IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
+        private IPoliciesApiClient _policiesApiClient;
 
         [TestInitialize]
         public void SetUp()
@@ -48,13 +50,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _inScopePublishedProviderService = Substitute.For<IInScopePublishedProviderService>();
             _publishedProviderDataPopulator = Substitute.For<IPublishedProviderDataPopulator>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
-            _calcsApiClient = Substitute.For<ICalculationsApiClient>();
+            _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
+
             _mapper = Substitute.For<IMapper>();
             _profilingService = Substitute.For<IProfilingService>();
             _logger = Substitute.For<ILogger>();
-            _specificationFundingStatusService = Substitute.For<ISpecificationFundingStatusService>();
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
-            _calculationsService = Substitute.For<ICalculationsService>();
+            _refreshPrerequisiteChecker = Substitute.For<IRefreshPrerequisiteChecker>();
+            _policiesApiClient = Substitute.For<IPoliciesApiClient>();
 
             _refreshService = new RefreshService(Substitute.For<IPublishedProviderStatusUpdateService>(),
                 Substitute.For<IPublishedFundingRepository>(),
@@ -68,12 +71,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _inScopePublishedProviderService,
                 _publishedProviderDataPopulator,
                 _jobsApiClient,
-                _calcsApiClient,
                 _logger,
-                _specificationFundingStatusService,
                 _publishedProviderVersionService,
-                _mapper,
-                _calculationsService);
+                _calculationsApiClient,
+                _policiesApiClient,
+                _refreshPrerequisiteChecker);
         }
 
         [TestMethod]

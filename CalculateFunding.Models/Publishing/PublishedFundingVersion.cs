@@ -122,10 +122,10 @@ namespace CalculateFunding.Models.Publishing
         public DateTime EarliestPaymentAvailableDate { get; set; }
 
         /// <summary>
-        /// Total funding for this organisation group
+        /// Total funding for this organisation group in pence
         /// </summary>
         [JsonProperty("totalFunding")]
-        public decimal TotalFunding { get; set; }
+        public int TotalFunding { get; set; }
 
         /// <summary>
         /// Major version

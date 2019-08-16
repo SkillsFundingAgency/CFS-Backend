@@ -68,7 +68,7 @@ namespace CalculateFunding.Repositories.Common.Search
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error Creating Index '{definition.Name}'");
+                Console.WriteLine($"Error Creating Index '{definition.Name}'. {e} {e.Message}");
             }
         }
 
@@ -81,7 +81,7 @@ namespace CalculateFunding.Repositories.Common.Search
                     type = DataSourceType.DocumentDb;
                     break;
             }
-           var dataSourceDefinition = new DataSource
+            var dataSourceDefinition = new DataSource
             {
                 Name = attribute.IndexerForType.Name.ToLowerInvariant(),
                 Type = type,
@@ -90,11 +90,11 @@ namespace CalculateFunding.Repositories.Common.Search
                 //DataChangeDetectionPolicy =
                 //    new HighWaterMarkChangeDetectionPolicy { HighWaterMarkColumnName = "_ts" },
                 DataDeletionDetectionPolicy =
-                    new SoftDeleteColumnDeletionDetectionPolicy
-                    {
-                        SoftDeleteColumnName = "deleted",
-                        SoftDeleteMarkerValue = "true"
-                    },
+                     new SoftDeleteColumnDeletionDetectionPolicy
+                     {
+                         SoftDeleteColumnName = "deleted",
+                         SoftDeleteMarkerValue = "true"
+                     },
             };
             try
             {
@@ -104,7 +104,7 @@ namespace CalculateFunding.Repositories.Common.Search
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error Creating Search DataSource '{dataSourceDefinition.Name}'");
+                Console.WriteLine($"Error Creating Search DataSource '{dataSourceDefinition.Name}' {e} {e.Message}");
             }
 
 
@@ -126,7 +126,7 @@ namespace CalculateFunding.Repositories.Common.Search
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Error Creating Indexer '{definition.Name}'");
+                Console.WriteLine($"Error Creating Indexer '{definition.Name}'. {e} {e.Message}");
             }
         }
 

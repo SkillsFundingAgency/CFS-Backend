@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
@@ -10,7 +11,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using NSubstitute;
 using Serilog;
 
@@ -152,6 +152,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
         {
             return new PublishedProviderVersion
             {
+                TotalFunding = 5050000,
                 Provider = new Provider
                 {
                     ProviderId = "12345678",

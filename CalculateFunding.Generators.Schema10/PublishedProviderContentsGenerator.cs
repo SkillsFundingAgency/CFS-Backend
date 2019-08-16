@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
@@ -24,7 +25,8 @@ namespace CalculateFunding.Generators.Schema10
             Guard.ArgumentNotNull(fundingLines, nameof(fundingLines));
             Guard.ArgumentNotNull(publishedProviderVersion.Provider, nameof(publishedProviderVersion.Provider));
 
-            dynamic contents = new {
+            dynamic contents = new
+            {
                 Id = publishedProviderVersion.FundingId,
                 FundingVersion = $"{publishedProviderVersion.MajorVersion}_{publishedProviderVersion.MinorVersion}",
                 Provider = new
@@ -73,7 +75,7 @@ namespace CalculateFunding.Generators.Schema10
                 },
                 FundingStreamCode = publishedProviderVersion.FundingStreamId,
                 FundingPeriodId = publishedProviderVersion.FundingPeriodId,
-                FundingValue = new { TotalValue = Convert.ToInt32(fundingLines.Sum(x => x.Value)), FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, fundingLines, templateMapping, calculationResults)) },
+                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, fundingLines, templateMapping, calculationResults)) },
                 VariationReasons = publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor) ? null : new List<string> { publishedProviderVersion.Provider.Successor },
                 Predecessors = publishedProviderVersion.Predecessors
@@ -152,10 +154,10 @@ namespace CalculateFunding.Generators.Schema10
             };
         }
 
-        private dynamic ToCalculation(Calculation calculation, TemplateMapping templateMapping, IEnumerable<CalculationResult> calculationResults)
+        private dynamic ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, TemplateMapping templateMapping, IEnumerable<CalculationResult> calculationResults)
         {
             string calculationId = templateMapping.TemplateMappingItems.Where(x => x.TemplateId == calculation.TemplateCalculationId)?.Single().CalculationId;
-            
+
             return new
             {
                 Name = calculation.Name,

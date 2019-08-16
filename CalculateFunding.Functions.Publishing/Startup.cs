@@ -3,6 +3,8 @@ using System.Net.Http;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Bearer;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
@@ -150,9 +152,15 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IInScopePublishedProviderService, InScopePublishedProviderService>();
 
-            builder.AddSingleton(new MapperConfiguration(_ =>_.AddProfile<ProviderMappingProfilePublishing>()).CreateMapper());
+            builder.AddSingleton(new MapperConfiguration(_ => _.AddProfile<ProviderMappingProfilePublishing>()).CreateMapper());
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
+
+            builder.AddSingleton<IRefreshPrerequisiteChecker, RefreshPrerequisiteChecker>();
+
+            builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
+
+            builder.AddSingleton<ICalculationPrerequisiteCheckerService, CalculationPrerequisiteCheckerService>();
 
             builder.AddSingleton<ICalculationsService, CalculationsService>();
 
@@ -188,14 +196,6 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddJobsInterServiceClient(config);
             builder.AddCalculationsInterServiceClient(config);
 
-            MapperConfiguration publishingConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<PublishingMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(publishingConfig.CreateMapper());
-
             builder.AddHttpClient(HttpClientKeys.Profiling,
                    c =>
                    {
@@ -228,8 +228,39 @@ namespace CalculateFunding.Functions.Publishing
                 AzureBearerTokenProvider bearerTokenProvider = new AzureBearerTokenProvider(azureBearerTokenProxy, cacheProvider, azureBearerTokenOptions);
 
                 return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
-
             });
+
+            builder.AddHttpClient(HttpClientKeys.Calculations,
+                    c =>
+                    {
+                        ApiOptions apiOptions = new ApiOptions();
+
+                        config.Bind("calcsClient", apiOptions);
+
+                        ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+                    })
+                .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+                .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))
+                .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(100, TimeSpan.FromSeconds(30)));
+
+            builder
+                .AddSingleton<ICalculationsApiClient, CalculationsApiClient>();
+
+            builder.AddHttpClient(HttpClientKeys.Policies,
+                   c =>
+                   {
+                       ApiOptions apiOptions = new ApiOptions();
+
+                       config.Bind("policiesClient", apiOptions);
+
+                       ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
+                   })
+               .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
+               .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))
+               .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(100, TimeSpan.FromSeconds(30)));
+
+            builder
+                .AddSingleton<IPoliciesApiClient, PoliciesApiClient>();
 
             return builder.BuildServiceProvider();
         }
@@ -246,7 +277,7 @@ namespace CalculateFunding.Functions.Publishing
                 PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
             };
 
             return resiliencePolicies;

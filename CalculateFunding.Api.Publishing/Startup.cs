@@ -1,11 +1,9 @@
 using System;
 using System.IO;
 using System.Reflection;
-using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
@@ -63,13 +61,13 @@ namespace CalculateFunding.Api.Publishing
             else
             {
                 app.UseHsts();
-                
+
                 app.UseMiddleware<LoggedInUserMiddleware>();
 
                 app.UseMiddleware<ApiKeyMiddleware>();
             }
-        
-           app.UseHttpsRedirection();
+
+            app.UseHttpsRedirection();
 
             // Enable middleware to serve generated Swagger as a JSON endpoint.
             app.UseSwagger();
@@ -111,7 +109,7 @@ namespace CalculateFunding.Api.Publishing
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");
             builder.AddTelemetry();
-            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot) Configuration);
+            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddPolicySettings(Configuration);
             builder.AddHttpContextAccessor();
             builder.AddHealthCheckMiddleware();
@@ -121,29 +119,21 @@ namespace CalculateFunding.Api.Publishing
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddCalculationsInterServiceClient(Configuration);
 
-            MapperConfiguration publishingConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<PublishingMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(publishingConfig.CreateMapper());
-
             builder.AddSingleton<IPublishingResiliencePolicies>(ctx =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
                 BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
-                
+
                 return new ResiliencePolicies
                 {
                     SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
         }

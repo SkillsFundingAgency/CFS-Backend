@@ -18,7 +18,15 @@ namespace CalculateFunding.Services.Publishing
             _fundingLineTotalAggregator = fundingLineTotalAggregator;
         }
 
-        public Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> GenerateFundingLines(TemplateMetadataContents templateMetadata, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IEnumerable<ProviderCalculationResult> calculationResults)
+        /// <summary>
+        /// Generate Funding Lines for a funding stream for all in scope providers
+        /// </summary>
+        /// <param name="templateMetadata">Template Metadata</param>
+        /// <param name="templateMapping">Template Mapping</param>
+        /// <param name="scopedProviders">Scoped providers for a specification</param>
+        /// <param name="calculationResults">Calculation Results</param>
+        /// <returns></returns>
+        public Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> GenerateFundingLines(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IEnumerable<ProviderCalculationResult> calculationResults)
         {
             Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> fundingLines = new Dictionary<string, IEnumerable<Models.Publishing.FundingLine>>();
 

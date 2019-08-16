@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
 
@@ -8,22 +7,15 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     public interface IPublishedProviderDataPopulator
     {
         /// <summary>
-        /// Update Calculations
+        /// Updates the given data on the Published Provider.
+        /// This method is responsible for applying the data passed into on to the PublishedProviderVersion and returning if the PublishedProviderVersion has been updated
         /// </summary>
-        /// <param name="publishedProvider">Published provider</param>
+        /// <param name="publishedProviderVersion">Published Provider Version</param>
+        /// <param name="fundingLines">Funding lines and profiling information</param>
         /// <param name="templateMetadataContents">Template Metadata Contents</param>
         /// <param name="calculationResults">Calculation Results</param>
-        /// <returns></returns>
-        bool UpdateCalculations(PublishedProvider publishedProvider, TemplateMetadataContents templateMetadataContents, IEnumerable<CalculationResult> calculationResults);
-
-        /// <summary>
-        /// Update Funding Lines
-        /// </summary>
-        /// <param name="publishedProvider">Published Provider</param>
-        /// <param name="fundingLines">Funding Lines</param>
-        /// <returns></returns>
-        bool UpdateFundingLines(PublishedProvider publishedProvider, IEnumerable<Models.Publishing.FundingLine> fundingLines);
-        bool UpdateProfiling(PublishedProvider value, IEnumerable<Models.Publishing.FundingLine> enumerable);
-        bool UpdateProviderInformation(PublishedProvider value, Common.ApiClient.Providers.Models.Provider provider);
+        /// <param name="provider">Core provider information</param>
+        /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
+        bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion, IEnumerable<Models.Publishing.FundingLine> fundingLines, TemplateMetadataContents templateMetadataContents, IEnumerable<CalculationResult> calculationResults, Common.ApiClient.Providers.Models.Provider provider);
     }
 }

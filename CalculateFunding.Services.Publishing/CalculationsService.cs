@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
@@ -20,7 +17,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
 
         public CalculationsService(
-            ICalculationsApiClient calculationsApiClient, 
+            ICalculationsApiClient calculationsApiClient,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             ILogger logger)
         {
@@ -29,7 +26,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _calculationsApiClient = calculationsApiClient;
-            _calcsApiClientPolicy = publishingResiliencePolicies.CalcsApiClient;
+            _calcsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _logger = logger;
         }
 
