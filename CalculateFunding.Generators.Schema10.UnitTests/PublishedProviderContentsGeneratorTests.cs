@@ -7,6 +7,7 @@ using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -25,62 +26,6 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
         private const int ValueMultiplicationFactor = 1000;
 
         [TestMethod]
-        public void GenerateContents_GivenValidProviderVersionTemplateMappingCalculationsAndFundingLines_ReturnsValidJson()
-        {
-            //Arrange
-            ILogger logger = CreateLogger();
-
-            ITemplateMetadataGenerator templateMetaDataGenerator = CreateTemplateGenerator(logger);
-
-            TemplateMetadataContents contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Generators.Schema10.UnitTests.Resources.dsg1.0.json"));
-
-            PublishedProviderContentsGenerator publishedProviderContentsGenerator = new PublishedProviderContentsGenerator();
-
-            //Act
-            string publishedcontents = publishedProviderContentsGenerator.GenerateContents(GetProviderVersion(), contents, GetTemplateMapping(), GetCalculationResults(), GetFundingLines());
-
-            //Assert
-            JObject json = JsonConvert.DeserializeObject<JObject>(publishedcontents);
-
-            json.TryGetValue("fundingStreamCode", out JToken fundingStreamCodeToken);
-            ((JValue)fundingStreamCodeToken).Value<string>().Should().Be("PSG");
-
-            json.TryGetValue("fundingPeriodId", out JToken fundingPeriodIdToken);
-            ((JValue)fundingPeriodIdToken).Value<string>().Should().Be("AY-1920");
-
-            json.TryGetValue("provider", out JToken providerToken);
-            providerToken.Value<JObject>().TryGetValue("otherIdentifiers", out JToken otherIdentifiersToken);
-            otherIdentifiersToken[0].Value<JObject>().TryGetValue("type", out JToken urn);
-            ((JValue)urn).Value<string>().Should().Be("URN");
-
-            otherIdentifiersToken[1].Value<JObject>().TryGetValue("type", out JToken ukprn);
-            ((JValue)ukprn).Value<string>().Should().Be("UKPRN");
-
-            json.TryGetValue("fundingValue", out JToken fundigValueToken);
-
-            fundigValueToken.Value<JObject>().TryGetValue("totalValue", out JToken fundingTotalValue);
-            ((JValue)fundingTotalValue).Value<string>().Should().Be("5050000");
-
-            fundigValueToken.Value<JObject>().TryGetValue("fundingLines", out JToken fundingLines);
-            fundingLines[0].Value<JObject>().TryGetValue("name", out JToken fundingLineName);
-            ((JValue)fundingLineName).Value<string>().Should().Be("Prior To Recoupment");
-
-            fundingLines[0].Value<JObject>().TryGetValue("fundingLines", out JToken fundingLines1);
-
-            fundingLines1[0].Value<JObject>().TryGetValue("fundingLines", out JToken fundingLines2);
-
-            fundingLines2[0].Value<JObject>().TryGetValue("calculations", out JToken fundingLineCalculations);
-            fundingLineCalculations[0].Value<JObject>().TryGetValue("value", out JToken calculationValue);
-
-            ((JValue)calculationValue).Value<string>().Should().Be("3000");
-
-            fundingLineCalculations[0].Value<JObject>().TryGetValue("calculations", out JToken fundingLineSubCalculations);
-            fundingLineSubCalculations[0].Value<JObject>().TryGetValue("value", out JToken subcalculationValue);
-
-            ((JValue)subcalculationValue).Value<string>().Should().Be("4000");
-        }
-
-        [TestMethod]
         public void GenerateContents_GivenValidPublishedProviderVersion_ReturnsValidJson()
         {
             //Arrange
@@ -93,12 +38,13 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
             PublishedProviderContentsGenerator publishedProviderContentsGenerator = new PublishedProviderContentsGenerator();
 
             //Act
-            string publishedcontents = System.Text.RegularExpressions.Regex.Replace(publishedProviderContentsGenerator.GenerateContents(GetProviderVersion(), contents, GetTemplateMapping(), GetCalculationResults(), GetFundingLines()), @"\r\n|\s+", string.Empty);
+            string publishedcontents = publishedProviderContentsGenerator.GenerateContents(GetProviderVersion(), contents, GetTemplateMapping(), GetCalculationResults(), GetFundingLines());
 
             //Assert
-            string expectedOutput = System.Text.RegularExpressions.Regex.Replace(GetResourceString("CalculateFunding.Generators.Schema10.UnitTests.Resources.exampleProviderOutput1.json"), @"\r\n|\s+", string.Empty);
+            string expectedOutput = GetResourceString("CalculateFunding.Generators.Schema10.UnitTests.Resources.exampleProviderOutput1.json").Prettify();
 
             publishedcontents
+                .Prettify()
                 .Should()
                 .Be(expectedOutput);
         }

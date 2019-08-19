@@ -9,13 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\dsg1.0.json" />
     <None Remove="Resources\exampleProviderOutput1.json" />
     <None Remove="Resources\exampleProviderTemplate1.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\dsg1.0.json" />
     <EmbeddedResource Include="Resources\exampleProviderOutput1.json" />
     <EmbeddedResource Include="Resources\exampleProviderTemplate1.json" />
     <EmbeddedResource Include="Resources\examplePublishedFundingVersion_1.json" />

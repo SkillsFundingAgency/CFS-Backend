@@ -1,0 +1,60 @@
+[
+  {
+    "name": "Number of pupils",
+    "templateCalculationId": 1,
+    "value": "2000.325",
+    "valueFormat": "Number",
+    "type": "PupilNumber",
+    "formulaText": "Something * something",
+    "aggregationType": "Sum",
+    "calculations": [
+      {
+        "name": "Test Rate",
+        "templateCalculationId": 152,
+        "value": "1530000.325",
+        "valueFormat": "Number",
+        "type": "Rate",
+        "formulaText": "Something * something else",
+        "aggregationType": "Sum",
+        "referenceData": null
+      }
+    ],
+    "referenceData": [
+      {
+        "name": "Academic year 2018 to 2019 pupil number on roll",
+        "templateReferenceId": 1,
+        "format": "Number",
+        "value": "1",
+        "aggregationType": "Sum"
+      }
+    ]
+  },
+  {
+    "name": "Number of pupils",
+    "templateCalculationId": 1,
+    "value": "2000.325",
+    "valueFormat": "Number",
+    "type": "PupilNumber",
+    "formulaText": "Something * something",
+    "aggregationType": "Sum",
+    "referenceData": [
+      {
+        "name": "Academic year 2018 to 2019 pupil number on roll",
+        "templateReferenceId": 2,
+        "format": "Number",
+        "value": "1",
+        "aggregationType": "Sum"
+      }
+    ]
+  },
+  {
+    "name": "Weighting",
+    "templateCalculationId": 126,
+    "value": "127000.325",
+    "valueFormat": "Percentage",
+    "type": "Weighting",
+    "formulaText": "",
+    "aggregationType": "Average",
+    "referenceData": null
+  }
+  ]
