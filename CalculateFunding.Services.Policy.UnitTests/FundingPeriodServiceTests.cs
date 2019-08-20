@@ -9,7 +9,9 @@ using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Providers.Validators;
 using FluentAssertions;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -234,7 +236,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        async public Task SaveFundingPeriod_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
+        public async Task SaveFundingPeriod_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -257,7 +259,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        async public Task SaveFundingPeriod_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
+        public async Task SaveFundingPeriod_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
             IHeaderDictionary headerDictionary = new HeaderDictionary
@@ -288,7 +290,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        async public Task SaveFundingPeriod_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
+        public async Task SaveFundingPeriod_GivenYamlWasProvidedButIsInvalid_ReturnsBadRequest()
         {
             //Arrange
             string yaml = "invalid yaml";
@@ -325,9 +327,51 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
         }
+        
+        [TestMethod]
+        public async Task SaveFundingPeriod_GivenWellFormedYamlWasProvidedButFailsCustomValidation_ReturnsBadRequest()
+        {
+            //Arrange
+            string yaml = CreateRawFundingPeriods();
+            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            MemoryStream stream = new MemoryStream(byteArray);
+
+            IHeaderDictionary headerDictionary = new HeaderDictionary
+            {
+                { "yaml-file", new StringValues(yamlFile) }
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+            request
+                .Headers
+                .Returns(headerDictionary);
+
+            request
+                .Body
+                .Returns(stream);
+
+            ILogger logger = CreateLogger();
+            IFundingPeriodValidator fundingPeriodValidator = Substitute.For<IFundingPeriodValidator>();
+            fundingPeriodValidator.Validate(Arg.Any<FundingPeriod>())
+                .Returns(new ValidationResult(new[] {new ValidationFailure("anything", "anything")}));
+
+            FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, fundingPeriodValidator: fundingPeriodValidator);
+
+            //Act
+            IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
+        }
 
         [TestMethod]
-        async public Task SaveFundingPeriod_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
+        public async Task SaveFundingPeriod_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
         {
             //Arrange
             string yaml = CreateRawFundingPeriods();
@@ -379,7 +423,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        async public Task SaveFundingStream_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
+        public async Task SaveFundingStream_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
         {
             //Arrange
             string yaml = CreateRawFundingPeriods();
@@ -427,13 +471,25 @@ namespace CalculateFunding.Services.Policy.UnitTests
         private static FundingPeriodService CreateFundingPeriodService(
            ILogger logger = null,
            ICacheProvider cacheProvider = null,
-           IPolicyRepository policyRepository = null)
+           IPolicyRepository policyRepository = null,
+           IFundingPeriodValidator fundingPeriodValidator = null)
         {
             return new FundingPeriodService(
                 logger ?? CreateLogger(),
                 cacheProvider ?? CreateCacheProvider(),
                 policyRepository ?? CreatePolicyRepository(),
-                PolicyResiliencePoliciesTestHelper.GenerateTestPolicies());
+                PolicyResiliencePoliciesTestHelper.GenerateTestPolicies(),
+                fundingPeriodValidator ?? CreateFundingPeriodValidator());
+        }
+
+        private static IFundingPeriodValidator CreateFundingPeriodValidator()
+        {
+            IFundingPeriodValidator fundingPeriodValidator = Substitute.For<IFundingPeriodValidator>();
+
+            fundingPeriodValidator.Validate(Arg.Any<FundingPeriod>())
+                .Returns(new ValidationResult());
+            
+            return fundingPeriodValidator;
         }
 
         private static ILogger CreateLogger()
@@ -451,7 +507,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             return Substitute.For<ICacheProvider>();
         }
 
-        protected string CreateRawFundingPeriods()
+        private string CreateRawFundingPeriods()
         {
             StringBuilder yaml = new StringBuilder();
 

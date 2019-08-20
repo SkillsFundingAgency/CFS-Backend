@@ -19,22 +19,9 @@ namespace CalculateFunding.Models.Policy
         public FundingPeriodType Type { get; set; }
 
         [JsonProperty("startYear")]
-        public int StartYear
-        {
-            get
-            {
-                return StartDate.Year;
-            }
-        }
+        public int StartYear => StartDate.Year;
 
         [JsonProperty("endYear")]
-        public int EndYear
-        {
-            get
-            {
-                return EndDate.Year;
-            }
-        }
+        public int EndYear => EndDate.Year;
     }
-
 }

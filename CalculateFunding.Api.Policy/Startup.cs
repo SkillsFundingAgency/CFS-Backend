@@ -100,7 +100,8 @@ namespace CalculateFunding.Api.Policy
 
             builder
                 .AddSingleton<IFundingPeriodService, FundingPeriodService>()
-                .AddSingleton<IHealthChecker, FundingPeriodService>();
+                .AddSingleton<IHealthChecker, FundingPeriodService>()
+                .AddSingleton<IFundingPeriodValidator, FundingPeriodValidator>();
 
             builder
                 .AddSingleton<IFundingSchemaService, FundingSchemaService>()

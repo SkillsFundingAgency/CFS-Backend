@@ -9,11 +9,14 @@ using CalculateFunding.Models.Policy;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
+using CalculateFunding.Services.Providers.Validators;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using YamlDotNet.Serialization.NodeDeserializers;
 
 namespace CalculateFunding.Services.Policy
 {
@@ -24,20 +27,24 @@ namespace CalculateFunding.Services.Policy
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _policyRepositoryPolicy;
         private readonly Polly.Policy _cacheProviderPolicy;
+        private readonly IFundingPeriodValidator _fundingPeriodValidator;
 
         public FundingPeriodService(ILogger logger,
             ICacheProvider cacheProvider,
             IPolicyRepository policyRepository,
-            IPolicyResiliencePolicies policyResiliencePolicies)
+            IPolicyResiliencePolicies policyResiliencePolicies, 
+            IFundingPeriodValidator fundingPeriodValidator)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
+            Guard.ArgumentNotNull(fundingPeriodValidator, nameof(fundingPeriodValidator));
 
             _logger = logger;
             _cacheProvider = cacheProvider;
             _policyRepository = policyRepository;
+            _fundingPeriodValidator = fundingPeriodValidator;
             _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
             _cacheProviderPolicy = policyResiliencePolicies.CacheProvider;
         }
@@ -94,7 +101,7 @@ namespace CalculateFunding.Services.Policy
                 }
                 else
                 {
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods, fundingPeriods.ToArraySafe()));
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(CacheKeys.FundingPeriods, fundingPeriods.ToArraySafe()));
                 }
             }
 
@@ -114,6 +121,8 @@ namespace CalculateFunding.Services.Policy
             }
 
             IDeserializer deserializer = new DeserializerBuilder()
+                .WithNodeDeserializer(inner => new FundingPeriodValidatingYamlNodeDeserialiser(inner, _fundingPeriodValidator), 
+                    _ => _.InsteadOf<ObjectNodeDeserializer>() )
                 .WithNamingConvention(new CamelCaseNamingConvention())
                 .Build();
 
@@ -131,13 +140,15 @@ namespace CalculateFunding.Services.Policy
 
             try
             {
-                if (!fundingPeriodsYamlModel.FundingPeriods.IsNullOrEmpty())
+                FundingPeriod[] fundingPeriods = fundingPeriodsYamlModel.FundingPeriods;
+                
+                if (!fundingPeriods.IsNullOrEmpty())
                 {
-                    await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.SaveFundingPeriods(fundingPeriodsYamlModel.FundingPeriods));
+                    await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.SaveFundingPeriods(fundingPeriods));
 
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods, fundingPeriodsYamlModel.FundingPeriods));
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(CacheKeys.FundingPeriods, fundingPeriods));
 
-                    _logger.Information($"Upserted {fundingPeriodsYamlModel.FundingPeriods.Length} funding periods into cosomos");
+                    _logger.Information($"Upserted {fundingPeriods.Length} funding periods into cosomos");
                 }
             }
             catch (Exception exception)

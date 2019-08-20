@@ -25,6 +25,7 @@ using CalculateFunding.Services.Policy;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Providers;
 using CalculateFunding.Services.Providers.Interfaces;
+using CalculateFunding.Services.Providers.Validators;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publising.Interfaces;
@@ -231,7 +232,8 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
             builder
-              .AddSingleton<IFundingPeriodService, FundingPeriodService>();
+              .AddSingleton<IFundingPeriodService, FundingPeriodService>()
+              .AddSingleton<IFundingPeriodValidator, FundingPeriodValidator>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
