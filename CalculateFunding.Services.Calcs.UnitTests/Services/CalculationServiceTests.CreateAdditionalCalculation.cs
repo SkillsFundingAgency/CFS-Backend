@@ -138,6 +138,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Should()
                 .BeAssignableTo<OkObjectResult>();
 
+            Calculation calculation = (result as OkObjectResult).Value as Calculation;
+
             await
                jobsApiClient
                    .Received(1)
@@ -185,7 +187,9 @@ namespace CalculateFunding.Services.Calcs.Services
                        m.First().Namespace == CalculationNamespace.Additional.ToString() &&
                        m.First().FundingStreamId == model.FundingStreamId &&
                        m.First().WasTemplateCalculation == false &&
-                       m.First().Description == model.Description
+                       m.First().Description == model.Description &&
+                       m.First().Status == calculation.Current.PublishStatus.ToString() &&
+                       m.First().LastUpdatedDate.Value.Date == DateTime.Now.Date
                    ));
 
             await

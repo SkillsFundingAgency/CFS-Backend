@@ -44,5 +44,13 @@ namespace CalculateFunding.Models.Calcs
         [IsRetrievable(true)]
         [JsonProperty("description")]
         public string Description { get; set; }
+
+        [IsFilterable, IsRetrievable(true)]
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [IsFilterable, IsSortable, IsRetrievable(true)]
+        [JsonProperty("lastUpdatedDate")]
+        public DateTimeOffset? LastUpdatedDate { get; set; }
     }
 }

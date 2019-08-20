@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Services.Core.Filtering;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -80,6 +81,12 @@ namespace CalculateFunding.Services.Calcs
 
         Task<SearchResults<CalculationIndex>> BuildItemsSearchTask(SearchModel searchModel)
         {
+            IDictionary<string, string[]> searchModelDictionary = searchModel.Filters;
+
+            List<Filter> filters = searchModelDictionary?.Select(keyValueFilterPair => new Filter(keyValueFilterPair.Key, keyValueFilterPair.Value, false, "eq")).ToList();
+
+            FilterHelper filterHelper = new FilterHelper(filters);
+
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
 			return Task.Run(() =>
 			{
@@ -90,7 +97,7 @@ namespace CalculateFunding.Services.Calcs
 					SearchMode = (SearchMode)searchModel.SearchMode,
 					SearchFields = new List<string> { "name" },
 					IncludeTotalResultCount = true,
-                    Filter = searchModel.Filters != null ? string.Join(" and ", searchModel.Filters.Values.Where(x => !string.IsNullOrWhiteSpace(x.FirstOrDefault()))) : string.Empty,
+                    Filter = filterHelper.BuildAndFilterQuery(),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
 					QueryType = QueryType.Full
 				});
@@ -116,7 +123,9 @@ namespace CalculateFunding.Services.Calcs
                     CalculationType = m.Result.CalculationType,
                     Namespace = m.Result.Namespace,
                     WasTemplateCalculation = m.Result.WasTemplateCalculation,
-                    Description = m.Result.Description
+                    Description = m.Result.Description,
+                    Status = m.Result.Status,
+                    LastUpdatedDate = m.Result.LastUpdatedDate
                 });
             }
         }
