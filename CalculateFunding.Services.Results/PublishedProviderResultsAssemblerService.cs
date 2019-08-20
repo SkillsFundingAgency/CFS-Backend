@@ -9,7 +9,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core;
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Results
             {
                 case Models.Calcs.CalculationType.Template:
                     return PublishedCalculationType.Funding;
-               
+
                 default:
                     throw new NonRetriableException($"Unknown CalculationType: {calculationType}");
             }

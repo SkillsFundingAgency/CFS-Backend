@@ -1,8 +1,10 @@
-﻿using CalculateFunding.Models.Calcs;
+﻿using System;
+using CalculateFunding.Models.Calcs;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class FundingStreamCalculation
     {
         [JsonProperty("calculationName")]

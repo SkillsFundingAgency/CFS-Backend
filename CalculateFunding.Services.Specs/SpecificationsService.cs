@@ -15,7 +15,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Versioning;
@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Specs
             IResultsRepository resultsRepository,
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
             ISpecificationsResiliencePolicies resiliencePolicies,
-            IJobsApiClient jobsApiClient, 
+            IJobsApiClient jobsApiClient,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Specs
             IResultsRepository resultsRepository,
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
             IJobsApiClient jobsApiClient,
-            ISpecificationsResiliencePolicies resiliencePolicies, 
+            ISpecificationsResiliencePolicies resiliencePolicies,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
@@ -609,19 +609,25 @@ namespace CalculateFunding.Services.Specs
                 return new InternalServerErrorResult("Specification contains no funding streams");
             }
 
-            string[] fundingSteamIds = specification.Current.FundingStreams.Select(s => s.Id).ToArray();
+            string[] fundingStreamIds = specification.Current.FundingStreams.Select(s => s.Id).ToArray();
 
-            Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingSteamIds.FirstOrDefault()));
-            if (fundingStreamResponse?.Content == null)
+            List<PolicyModels.FundingStream> result = new List<PolicyModels.FundingStream>();
+
+            foreach (string fundingStreamId in fundingStreamIds)
             {
-                _logger.Error("No funding streams were returned");
+                ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamId));
+                if (fundingStreamResponse?.Content == null)
+                {
+                    string message = $"Funding streams not returned for funding stream ID '{fundingStreamId}' in specification '{specification.Id}'";
+                    _logger.Error(message);
 
-                return new InternalServerErrorResult("No funding stream were returned");
+                    return new InternalServerErrorResult(message);
+                }
+
+                result.Add(fundingStreamResponse.Content);
             }
 
-            FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
-
-            return new OkObjectResult(new List<FundingStream> { fundingStream });
+            return new OkObjectResult(result);
         }
 
         public async Task<IActionResult> CreateSpecification(HttpRequest request)
@@ -719,11 +725,11 @@ namespace CalculateFunding.Services.Specs
             await _specificationVersionRepository.SaveVersion(specificationVersion);
 
             await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
-            
+
             await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
 
             string specificationId = specification.Id;
-            
+
             SpecificationCurrentVersion result = ConvertSpecificationToCurrentVersion(repositoryCreateResult, fundingStreamObjects);
 
             return new OkObjectResult(result);
@@ -1426,7 +1432,7 @@ WHERE   s.documentType = @DocumentType",
 
             SpecificationVersion currentSpecificationVersion = specification.Current;
             SpecificationVersion newSpecificationVersion = specification.Current.Clone() as SpecificationVersion;
-            
+
             newSpecificationVersion.AddOrUpdateTemplateId(fundingStreamId, templateVersion);
             HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
 
@@ -1512,6 +1518,7 @@ WHERE   s.documentType = @DocumentType",
             return properties;
         }
 
+        [Obsolete]
         private static SpecificationCurrentVersion ConvertSpecificationToCurrentVersion(DocumentEntity<Specification> specification, IEnumerable<FundingStream> fundingStreams)
         {
             return new SpecificationCurrentVersion()

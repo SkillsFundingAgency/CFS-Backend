@@ -208,7 +208,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -274,7 +274,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -287,7 +287,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 },
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream2" },
@@ -353,7 +353,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -366,7 +366,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 },
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -430,7 +430,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -443,7 +443,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 },
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -512,7 +512,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -525,7 +525,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 },
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -594,7 +594,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             {
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },
@@ -607,7 +607,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 },
                 new PublishedProviderResult
                 {
-                    FundingPeriod = new Models.Policy.Period { Name = "Period1" },
+                    FundingPeriod = new Models.Obsoleted.Period { Name = "Period1" },
                     FundingStreamResult = new PublishedFundingStreamResult
                     {
                         FundingStream = new PublishedFundingStreamDefinition { Name = "Stream1" },

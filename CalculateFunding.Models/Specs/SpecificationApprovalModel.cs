@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Specs
 {
+    [Obsolete]
     public class SpecificationApprovalModel
     {
         public string FundingStreamId { get; set; }

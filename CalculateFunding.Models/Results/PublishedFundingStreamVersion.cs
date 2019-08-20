@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedFundingStreamVersion : VersionedItem
     {
         [JsonProperty("id")]

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Text;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy;
-using CalculateFunding.Models.Specs;
+using CalculateFunding.Models.Obsoleted;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedFundingStream : IIdentifiable
     {
         [JsonProperty("providerId")]

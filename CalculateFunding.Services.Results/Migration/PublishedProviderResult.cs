@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Results;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Results.Migration
 {
+    [Obsolete]
     public class PublishedProviderResult : IIdentifiable
     {
         public PublishedProviderResult()

@@ -20,16 +20,16 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         [TestMethod]
         public async Task GetFundingStreams_WhenServiceReturnsOkResult_ShouldReturnOkResultWithFundingStreams()
         {
-            Models.Policy.FundingStream fundingStream = new Models.Policy.FundingStream()
+            Models.Obsoleted.FundingStream fundingStream = new Models.Obsoleted.FundingStream()
             {
-                AllocationLines = new List<Models.Policy.AllocationLine>()
+                AllocationLines = new List<Models.Obsoleted.AllocationLine>()
                 {
-                    new Models.Policy.AllocationLine()
+                    new Models.Obsoleted.AllocationLine()
                     {
                         Id = "id",
                         Name = "name",
                         ShortName = "short-name",
-                        FundingRoute = Models.Policy.FundingRoute.LA,
+                        FundingRoute = CalculateFunding.Models.Obsoleted.FundingRoute.LA,
                         IsContractRequired = true
                     }
                 },
@@ -37,7 +37,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 Id = "id",
                 ShortName = "short-name",
                 RequireFinancialEnvelopes = true,
-                PeriodType = new Models.Policy.PeriodType
+                PeriodType = new Models.Obsoleted.PeriodType
                 {
                     Id = "p1",
                     Name = "period 1",
@@ -99,16 +99,16 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
         [TestMethod]
         public async Task GetFundingStreams_WhenServiceReturnsOkResult_ShouldReturnOkResultWithMultipleFundingStreamsWithMultipleEnvelopeFlags()
         {
-            Models.Policy.FundingStream fundingStreamTrue = new Models.Policy.FundingStream()
+            Models.Obsoleted.FundingStream fundingStreamTrue = new Models.Obsoleted.FundingStream()
             {
-                AllocationLines = new List<Models.Policy.AllocationLine>()
+                AllocationLines = new List<Models.Obsoleted.AllocationLine>()
                 {
-                    new Models.Policy.AllocationLine()
+                    new Models.Obsoleted.AllocationLine()
                     {
                         Id = "id",
                         Name = "name",
                         ShortName = "short-name",
-                        FundingRoute = Models.Policy.FundingRoute.LA,
+                        FundingRoute = CalculateFunding.Models.Obsoleted.FundingRoute.LA,
                         IsContractRequired = true
                     }
                 },
@@ -116,7 +116,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 Id = "id",
                 ShortName = "short-name",
                 RequireFinancialEnvelopes = true,
-                PeriodType = new Models.Policy.PeriodType
+                PeriodType = new Models.Obsoleted.PeriodType
                 {
                     Id = "p1",
                     Name = "period 1",
@@ -126,16 +126,16 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                     EndMonth = 7
                 }
             };
-            Models.Policy.FundingStream fundingStreamFalse = new Models.Policy.FundingStream()
+            Models.Obsoleted.FundingStream fundingStreamFalse = new Models.Obsoleted.FundingStream()
             {
-                AllocationLines = new List<Models.Policy.AllocationLine>()
+                AllocationLines = new List<Models.Obsoleted.AllocationLine>()
                 {
-                    new Models.Policy.AllocationLine()
+                    new Models.Obsoleted.AllocationLine()
                     {
                         Id = "id2",
                         Name = "name2",
                         ShortName = "short-name2",
-                        FundingRoute = Models.Policy.FundingRoute.LA,
+                        FundingRoute = CalculateFunding.Models.Obsoleted.FundingRoute.LA,
                         IsContractRequired = true
                     }
                 },
@@ -143,7 +143,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                 Id = "id2",
                 ShortName = "short-name2",
                 RequireFinancialEnvelopes = false,
-                PeriodType = new Models.Policy.PeriodType
+                PeriodType = new Models.Obsoleted.PeriodType
                 {
                     Id = "p2",
                     Name = "period 2",
@@ -202,7 +202,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             // Arrange
             IMapper mapper = Substitute.For<IMapper>();
 
-            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Policy.FundingStream>());
+            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Obsoleted.FundingStream>());
 
             IPolicyFundingStreamService mockFundingService = Substitute.For<IPolicyFundingStreamService>();
 
@@ -250,7 +250,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
             // Arrange
             string fundingStreamId = "PSG";
 
-            Models.Policy.FundingStream fundingStream = new Models.Policy.FundingStream
+            Models.Obsoleted.FundingStream fundingStream = new Models.Obsoleted.FundingStream
             {
                 Id = fundingStreamId,
                 Name = "PE and Sport Grant",

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Specs
 {
+    [Obsolete]
     public class SpecificationCurrentVersion : Reference
     {
         [JsonProperty("fundingPeriod")]
@@ -37,8 +37,8 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("publishedResultsRefreshedAt")]
         public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
 
-		[JsonProperty("variationDate")]
-		public DateTimeOffset? VariationDate { get; set; }
+        [JsonProperty("variationDate")]
+        public DateTimeOffset? VariationDate { get; set; }
 
         [JsonProperty("lastCalculationUpdatedAt")]
         public DateTimeOffset? LastCalculationUpdatedAt { get; set; }

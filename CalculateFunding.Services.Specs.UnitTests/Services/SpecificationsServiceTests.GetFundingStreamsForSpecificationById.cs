@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -65,18 +65,31 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetSpecificationById(Arg.Is(specificationId))
                 .Returns(specification);
 
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream()
+            PolicyModels.FundingStream fundingStream1 = new PolicyModels.FundingStream()
             {
                 Id = "fs1",
                 Name = "Funding Stream 1",
                 AllocationLines = new List<PolicyModels.AllocationLine>(),
             };
 
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
+            ApiResponse<PolicyModels.FundingStream> fundingStream1Response = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream1);
 
             policiesApiClient
-                .GetFundingStreamById(Arg.Is<string>(fundingStream.Id))
-                .Returns(fundingStreamResponse);
+                .GetFundingStreamById(Arg.Is<string>(fundingStream1.Id))
+                .Returns(fundingStream1Response);
+
+            PolicyModels.FundingStream fundingStream2 = new PolicyModels.FundingStream()
+            {
+                Id = "fs2",
+                Name = "Funding Stream 2",
+                AllocationLines = new List<PolicyModels.AllocationLine>(),
+            };
+
+            ApiResponse<PolicyModels.FundingStream> fundingStream2Response = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream2);
+
+            policiesApiClient
+                .GetFundingStreamById(Arg.Is<string>(fundingStream2.Id))
+                .Returns(fundingStream2Response);
 
             // Act
             IActionResult actionResult = await specificationsService.GetFundingStreamsForSpecificationById(request);
@@ -89,6 +102,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 {
                     Id = "fs1",
                     Name = "Funding Stream 1",
+                    AllocationLines = new List<AllocationLine>(),
+                },
+                new FundingStream()
+                {
+                    Id = "fs2",
+                    Name = "Funding Stream 2",
                     AllocationLines = new List<AllocationLine>(),
                 }
             };
@@ -106,7 +125,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             await policiesApiClient
                 .Received(1)
-                .GetFundingStreamById(fundingStream.Id);
+                .GetFundingStreamById(fundingStream1.Id);
         }
 
         [TestMethod]
@@ -235,7 +254,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .Value
                 .Should()
-                .Be("No funding stream were returned");
+                .Be("Funding streams not returned for funding stream ID 'fs1' in specification 'spec1'");
 
             await specificationsRepository
                 .Received(1)

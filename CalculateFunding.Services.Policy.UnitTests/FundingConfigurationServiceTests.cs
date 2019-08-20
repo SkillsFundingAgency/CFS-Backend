@@ -111,7 +111,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 Id = fundingStreamId
             };
 
-            Period fundingPeriod = new Period
+            FundingPeriod fundingPeriod = new FundingPeriod
             {
                 Id = fundingPeriodId
             };
@@ -162,7 +162,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 Id = fundingStreamId
             };
 
-            Period fundingPeriod = new Period
+            FundingPeriod fundingPeriod = new FundingPeriod
             {
                 Id = fundingPeriodId
             };
@@ -215,7 +215,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 Id = fundingStreamId
             };
 
-            Period fundingPeriod = new Period
+            FundingPeriod fundingPeriod = new FundingPeriod
             {
                 Id = fundingPeriodId
             };
@@ -332,7 +332,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingConfigurationsByFundingStreamId(Arg.Is(fundingStreamId))
                 .Returns(fundingConfigs);
 
-            FundingConfigurationService fundingConfigurationsService = 
+            FundingConfigurationService fundingConfigurationsService =
                 CreateFundingConfigurationService(cacheProvider: cacheProvider, policyRepository: policyRepository);
 
             // Act
@@ -363,7 +363,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .GetFundingConfigurationsByFundingStreamId(Arg.Is(fundingStreamId))
                 .Returns(fundingConfigs);
 
-            FundingConfigurationService fundingConfigurationsService = 
+            FundingConfigurationService fundingConfigurationsService =
                 CreateFundingConfigurationService(cacheProvider: cacheProvider, policyRepository: policyRepository);
 
             // Act

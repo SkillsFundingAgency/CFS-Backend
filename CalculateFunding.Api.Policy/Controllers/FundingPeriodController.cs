@@ -21,7 +21,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// </summary>
         /// <returns>A list of funding periods</returns>
         [HttpGet("api/fundingperiods")]
-        [Produces(typeof(IEnumerable<Period>))]
+        [Produces(typeof(IEnumerable<FundingPeriod>))]
         public async Task<IActionResult> GetFundingPeriods()
         {
             return await _fundingPeriodService.GetFundingPeriods();
@@ -33,7 +33,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// <param name="fundingPeriodId">Funding Period ID eg AY1920</param>
         /// <returns>Funding Period</returns>
         [HttpGet("api/fundingperiods/{fundingPeriodId}")]
-        [Produces(typeof(Period))]
+        [Produces(typeof(FundingPeriod))]
         public async Task<IActionResult> GetFundingPeriodById([FromRoute]string fundingPeriodId)
         {
             return await _fundingPeriodService.GetFundingPeriodById(fundingPeriodId);
@@ -44,7 +44,7 @@ namespace CalculateFunding.Api.Policy.Controllers
         /// </summary>
         /// <returns>Saved Funding Period</returns>
         [HttpPost("api/fundingperiods")]
-        [Produces(typeof(Period))]
+        [Produces(typeof(FundingPeriod))]
         public async Task<IActionResult> SaveFundingPeriods()
         {
             return await _fundingPeriodService.SaveFundingPeriods(ControllerContext.HttpContext.Request);

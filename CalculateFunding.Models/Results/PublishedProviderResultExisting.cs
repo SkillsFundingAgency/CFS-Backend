@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedProviderResultExisting
     {
         public string Id { get; set; }

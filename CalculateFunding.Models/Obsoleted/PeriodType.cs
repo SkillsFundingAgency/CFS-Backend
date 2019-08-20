@@ -1,8 +1,10 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Policy
+namespace CalculateFunding.Models.Obsoleted
 {
+    [Obsolete]
     public class PeriodType : Reference
     {
         [JsonProperty("startDay")]

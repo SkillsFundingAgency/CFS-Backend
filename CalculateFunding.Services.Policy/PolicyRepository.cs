@@ -83,27 +83,27 @@ namespace CalculateFunding.Services.Policy
             return await Task.FromResult(fundingConfigurations.AsEnumerable());
         }
 
-        public async Task<Period> GetFundingPeriodById(string fundingPeriodId)
+        public async Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId)
         {
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-            return (await _cosmosRepository.ReadAsync<Period>(fundingPeriodId, true))?.Content;
+            return (await _cosmosRepository.ReadAsync<FundingPeriod>(fundingPeriodId, true))?.Content;
         }
 
-        public async Task<IEnumerable<Period>> GetFundingPeriods(Expression<Func<Period, bool>> query = null)
+        public async Task<IEnumerable<FundingPeriod>> GetFundingPeriods(Expression<Func<FundingPeriod, bool>> query = null)
         {
-            IQueryable<Period> fundingPeriods = query == null
-               ? _cosmosRepository.Query<Period>(true)
-               : _cosmosRepository.Query<Period>(true).Where(query);
+            IQueryable<FundingPeriod> fundingPeriods = query == null
+               ? _cosmosRepository.Query<FundingPeriod>(true)
+               : _cosmosRepository.Query<FundingPeriod>(true).Where(query);
 
             return await Task.FromResult(fundingPeriods.AsEnumerable());
         }
 
-        public async Task SaveFundingPeriods(IEnumerable<Period> fundingPeriods)
+        public async Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods)
         {
             Guard.ArgumentNotNull(fundingPeriods, nameof(fundingPeriods));
 
-            await _cosmosRepository.BulkUpsertAsync<Period>(fundingPeriods.ToList(), enableCrossPartitionQuery: true);
+            await _cosmosRepository.BulkUpsertAsync<FundingPeriod>(fundingPeriods.ToList(), enableCrossPartitionQuery: true);
         }
     }
 }

@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class FinancialEnvelope
     {
         [JsonProperty("monthStart")]

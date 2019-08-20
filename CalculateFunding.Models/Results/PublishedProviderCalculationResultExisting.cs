@@ -1,5 +1,8 @@
-﻿namespace CalculateFunding.Models.Results
+﻿using System;
+
+namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedProviderCalculationResultExisting
     {
         public string Id { get; set; }

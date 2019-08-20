@@ -1,5 +1,8 @@
-﻿namespace CalculateFunding.Models.Results
+﻿using System;
+
+namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class ProviderVariationError
     {
         public string UKPRN { get; set; }

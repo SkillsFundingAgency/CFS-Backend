@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class ProfilingPeriod
     {
         [JsonProperty("period")]

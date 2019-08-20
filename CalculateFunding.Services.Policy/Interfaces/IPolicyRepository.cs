@@ -11,13 +11,21 @@ namespace CalculateFunding.Services.Policy.Interfaces
     public interface IPolicyRepository
     {
         Task<FundingConfiguration> GetFundingConfiguration(string configId);
+
         Task<HttpStatusCode> SaveFundingConfiguration(FundingConfiguration configuration);
+
         Task<IEnumerable<FundingStream>> GetFundingStreams(Expression<Func<FundingStream, bool>> query = null);
+
         Task<FundingStream> GetFundingStreamById(string fundingStreamId);
+
         Task<HttpStatusCode> SaveFundingStream(FundingStream fundingStream);
-        Task<Period> GetFundingPeriodById(string fundingPeriodId);
-        Task<IEnumerable<Period>> GetFundingPeriods(Expression<Func<Period, bool>> query = null);
-        Task SaveFundingPeriods(IEnumerable<Period> fundingPeriods);
+
+        Task<FundingPeriod> GetFundingPeriodById(string fundingPeriodId);
+
+        Task<IEnumerable<FundingPeriod>> GetFundingPeriods(Expression<Func<FundingPeriod, bool>> query = null);
+
+        Task SaveFundingPeriods(IEnumerable<FundingPeriod> fundingPeriods);
+
         Task<IEnumerable<FundingConfiguration>> GetFundingConfigurationsByFundingStreamId(string fundingStreamId);
     }
 }

@@ -9,7 +9,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Core.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
@@ -61,30 +60,28 @@ namespace CalculateFunding.Services.Calcs.Services
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 logger ?? CreateLogger(),
                 jobsApiClient ?? CreateJobsApiClient());
-            
+
             return new CalculationService
-                (mapper ?? CreateMapper(),
+                (
                 calculationsRepository ?? CreateCalculationsRepository(),
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
-                calcValidator ?? CreateCalculationValidator(),
                 buildProjectsService ?? CreateBuildProjectsService(),
                 specificationRepository ?? CreateSpecificationRepository(),
                 policiesApiClient ?? CreatePoliciesApiClient(),
                 cacheProvider ?? CreateCacheProvider(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
                 calculationVersionRepository ?? CreateCalculationVersionRepository(),
-                jobsApiClient ?? CreateJobsApiClient(),
                 sourceCodeService ?? CreateSourceCodeService(),
                 featureToggle ?? CreateFeatureToggle(),
                 buildProjectsRepository ?? CreateBuildProjectsRepository(),
                 calculationCodeReferenceUpdate ?? CreateCalculationCodeReferenceUpdate(),
                 calculationCreateModelValidator ?? CreateCalculationCreateModelValidator(),
-                calculationEditModelValidator?? CreateCalculationEditModelValidator(),
+                calculationEditModelValidator ?? CreateCalculationEditModelValidator(),
                 specificationsApiClient ?? CreateSpecificationsApiClient(),
                 calculationNameInUseCheck,
                 instructionAllocationJobCreation,
-                new CreateCalculationService(calculationNameInUseCheck, 
+                new CreateCalculationService(calculationNameInUseCheck,
                     calculationsRepository ?? CreateCalculationsRepository(),
                     calculationVersionRepository ?? CreateCalculationVersionRepository(),
                     resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),
@@ -139,7 +136,7 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
-                c.AddProfile<PolicyMappingProfile>();
+                // c.AddProfile<PolicyMappingProfile>();
             });
 
             return resultsConfig.CreateMapper();

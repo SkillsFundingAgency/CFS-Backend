@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
-using CalculateFunding.Models.Policy;
-using CalculateFunding.Models.Specs;
+﻿using System;
+using System.Collections.Generic;
+using CalculateFunding.Models.Obsoleted;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedFundingStreamAllocationLine
     {
         [JsonProperty("allocationLine")]

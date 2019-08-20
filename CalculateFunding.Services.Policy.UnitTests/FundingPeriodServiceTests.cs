@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             // Arrange
             ILogger logger = CreateLogger();
 
-            IEnumerable<Period> Periods = null;
+            IEnumerable<FundingPeriod> Periods = null;
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
             policyRepository
@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             OkObjectResult objectResult = result as OkObjectResult;
 
-            IEnumerable<Period> values = objectResult.Value as IEnumerable<Period>;
+            IEnumerable<FundingPeriod> values = objectResult.Value as IEnumerable<FundingPeriod>;
 
             values
                 .Should()
@@ -66,15 +66,15 @@ namespace CalculateFunding.Services.Policy.UnitTests
             // Arrange
             ILogger logger = CreateLogger();
 
-            IEnumerable<Period> Periods = new[]
+            IEnumerable<FundingPeriod> Periods = new[]
             {
-                new Period(),
-                new Period()
+                new FundingPeriod(),
+                new FundingPeriod()
             };
 
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
-                .GetAsync<Period[]>(Arg.Is(CacheKeys.FundingPeriods))
+                .GetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods))
                 .Returns(Periods.ToArray());
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
@@ -91,7 +91,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             OkObjectResult objectResult = result as OkObjectResult;
 
-            IEnumerable<Period> values = objectResult.Value as IEnumerable<Period>;
+            IEnumerable<FundingPeriod> values = objectResult.Value as IEnumerable<FundingPeriod>;
 
             values
                 .Should()
@@ -109,10 +109,10 @@ namespace CalculateFunding.Services.Policy.UnitTests
             // Arrange
             ILogger logger = CreateLogger();
 
-            IEnumerable<Period> Periods = new[]
+            IEnumerable<FundingPeriod> Periods = new[]
             {
-                new Period(),
-                new Period()
+                new FundingPeriod(),
+                new FundingPeriod()
             };
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
@@ -134,7 +134,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             OkObjectResult objectResult = result as OkObjectResult;
 
-            IEnumerable<Period> values = objectResult.Value as IEnumerable<Period>;
+            IEnumerable<FundingPeriod> values = objectResult.Value as IEnumerable<FundingPeriod>;
 
             values
                 .Should()
@@ -143,7 +143,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             await
                 cacheProvider
                     .Received(1)
-                    .SetAsync<Period[]>(Arg.Is(CacheKeys.FundingPeriods), Arg.Is<Period[]>(m => m.SequenceEqual(Periods)));
+                    .SetAsync<FundingPeriod[]>(Arg.Is(CacheKeys.FundingPeriods), Arg.Is<FundingPeriod[]>(m => m.SequenceEqual(Periods)));
         }
 
         [TestMethod]
@@ -185,7 +185,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             IPolicyRepository policyRepository = CreatePolicyRepository();
             policyRepository
                 .GetFundingPeriodById(Arg.Is(fundingPeriodId))
-                .Returns((Period)null);
+                .Returns((FundingPeriod)null);
 
             FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository);
 
@@ -208,7 +208,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             // Arrange
             const string fundingPeriodId = "fp-1";
 
-            Period fundingPeriod = new Period
+            FundingPeriod fundingPeriod = new FundingPeriod
             {
                 Id = fundingPeriodId
             };
@@ -353,7 +353,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
             policyRepository
-                .When(x => x.SaveFundingPeriods(Arg.Any<Period[]>()))
+                .When(x => x.SaveFundingPeriods(Arg.Any<FundingPeriod[]>()))
                 .Do(x => { throw new Exception(); });
 
 
@@ -421,7 +421,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             await
                 policyRepository
                     .Received(1)
-                    .SaveFundingPeriods(Arg.Is<Period[]>(m => m.Count() == 4));
+                    .SaveFundingPeriods(Arg.Is<FundingPeriod[]>(m => m.Count() == 4));
         }
 
         private static FundingPeriodService CreateFundingPeriodService(

@@ -6,7 +6,6 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Search;
@@ -223,55 +222,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     FundingPeriod = new Reference("FP1", "Funding Period"),
                     PublishStatus = Models.Versioning.PublishStatus.Draft,
                     Version = 1
-                }
-            };
-        }
-
-        protected IEnumerable<FundingStream> CreateFundingStreams()
-        {
-            return new[]
-            {
-                new FundingStream
-                {
-                    Id = "PSG",
-                    Name = "PE and Sport Premium Grant",
-                    ShortName = "PE and Sport",
-                    PeriodType = new PeriodType
-                    {
-                        Id = "AC",
-                        StartDay = 1,
-                        StartMonth = 9,
-                        EndDay = 31,
-                        EndMonth = 8,
-                        Name = "Academies Academic Year"
-                    },
-                    AllocationLines = new List<AllocationLine>
-                    {
-                        new AllocationLine
-                        {
-                            Id = "PSG-NMSS",
-                            Name = "Non-maintained Special Schools",
-                            FundingRoute = FundingRoute.Provider,
-                            IsContractRequired = true,
-                            ShortName = "NMSS"
-                        },
-                        new AllocationLine
-                        {
-                            Id = "PSG-ACAD",
-                            Name = "Academies",
-                            FundingRoute = FundingRoute.Provider,
-                            IsContractRequired = false,
-                            ShortName = "Acad"
-                        },
-                         new AllocationLine
-                        {
-                            Id = "PSG-LAMS",
-                            Name = "Maintained Schools",
-                            FundingRoute = FundingRoute.LA,
-                            IsContractRequired = false,
-                            ShortName = "MS"
-                        }
-                    }
                 }
             };
         }

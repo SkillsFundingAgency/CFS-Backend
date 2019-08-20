@@ -20,23 +20,23 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         [TestMethod]
         public async Task GetFundingStreams_WhenServiceReturnsOkResult_ShouldReturnOkResultWithFundingStreams()
         {
-            Models.Policy.FundingStream fundingStream = new Models.Policy.FundingStream()
+            Models.Obsoleted.FundingStream fundingStream = new Models.Obsoleted.FundingStream()
             {
-                AllocationLines = new List<Models.Policy.AllocationLine>()
+                AllocationLines = new List<Models.Obsoleted.AllocationLine>()
                 {
-                    new Models.Policy.AllocationLine()
+                    new Models.Obsoleted.AllocationLine()
                     {
                         Id = "id",
                         Name = "name",
                         ShortName = "short-name",
-                        FundingRoute = Models.Policy.FundingRoute.LA,
+                        FundingRoute = CalculateFunding.Models.Obsoleted.FundingRoute.LA,
                         IsContractRequired = true
                     }
                 },
                 Name = "name",
                 Id = "id",
                 ShortName = "short-name",
-                PeriodType = new Models.Policy.PeriodType
+                PeriodType = new Models.Obsoleted.PeriodType
                 {
                     Id = "p1",
                     Name = "period 1",
@@ -100,7 +100,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             // Arrange
             IMapper mapper = Substitute.For<IMapper>();
 
-            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Policy.FundingStream>());
+            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Obsoleted.FundingStream>());
 
             IPolicyFundingStreamService mockFundingService = Substitute.For<IPolicyFundingStreamService>();
 

@@ -13,7 +13,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -233,7 +233,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 new PublishedProviderCalculationResult
                 {
                     Id = "calc-1",
-                    Name = "calc1" 
+                    Name = "calc1"
                 }
             };
 
@@ -326,7 +326,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 new PublishedProviderCalculationResult
                 {
                     Id = "calc-1",
-                    Name = "calc1" 
+                    Name = "calc1"
                 }
             };
 
@@ -392,7 +392,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 new PublishedProviderCalculationResult
                 {
                     Id = "calc-1",
-                    Name = "calc1" 
+                    Name = "calc1"
                 }
             };
 
@@ -5315,7 +5315,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             return specificationsRepository;
         }
-        
+
         private static IPoliciesApiClient InitialisePoliciesApiClient()
         {
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();

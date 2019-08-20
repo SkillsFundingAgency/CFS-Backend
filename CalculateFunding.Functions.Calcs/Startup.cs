@@ -1,21 +1,15 @@
-﻿ using System;
-using AutoMapper;
-using CalculateFunding.Services.Core.Extensions;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using System;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Storage;
+using CalculateFunding.Functions.Calcs.ServiceBus;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.CodeMetadataGenerator;
@@ -24,14 +18,17 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using FluentValidation;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using CalculateFunding.Functions.Calcs.ServiceBus;
 
 [assembly: FunctionsStartup(typeof(CalculateFunding.Functions.Calcs.Startup))]
 
@@ -123,14 +120,6 @@ namespace CalculateFunding.Functions.Calcs
 
                 return new VersionRepository<CalculationVersion>(resultsRepostory);
             });
-
-            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<PolicyMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(resultsConfig.CreateMapper());
 
             if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
             {

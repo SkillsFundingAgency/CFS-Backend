@@ -1,4 +1,8 @@
-﻿using CalculateFunding.Common.Caching;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Policy;
@@ -8,10 +12,6 @@ using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Policy
                 return new BadRequestObjectResult("Null or empty funding period id provided");
             }
 
-            Period fundingPeriod = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingPeriodById(fundingPeriodId));
+            FundingPeriod fundingPeriod = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingPeriodById(fundingPeriodId));
 
             if (fundingPeriod == null)
             {
@@ -80,7 +80,7 @@ namespace CalculateFunding.Services.Policy
 
         public async Task<IActionResult> GetFundingPeriods()
         {
-            IEnumerable<Period> fundingPeriods = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<Period[]>(CacheKeys.FundingPeriods));
+            IEnumerable<FundingPeriod> fundingPeriods = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.GetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods));
 
             if (fundingPeriods.IsNullOrEmpty())
             {
@@ -90,11 +90,11 @@ namespace CalculateFunding.Services.Policy
                 {
                     _logger.Error("No funding periods were returned");
 
-                    fundingPeriods = new Period[0];
+                    fundingPeriods = new FundingPeriod[0];
                 }
                 else
                 {
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<Period[]>(CacheKeys.FundingPeriods, fundingPeriods.ToArraySafe()));
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods, fundingPeriods.ToArraySafe()));
                 }
             }
 
@@ -135,7 +135,7 @@ namespace CalculateFunding.Services.Policy
                 {
                     await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.SaveFundingPeriods(fundingPeriodsYamlModel.FundingPeriods));
 
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<Period[]>(CacheKeys.FundingPeriods, fundingPeriodsYamlModel.FundingPeriods));
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<FundingPeriod[]>(CacheKeys.FundingPeriods, fundingPeriodsYamlModel.FundingPeriods));
 
                     _logger.Information($"Upserted {fundingPeriodsYamlModel.FundingPeriods.Length} funding periods into cosomos");
                 }

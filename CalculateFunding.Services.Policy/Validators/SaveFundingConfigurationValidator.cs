@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Providers.Validators
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
             Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
             Guard.ArgumentNotNull(fundingTemplateService, nameof(fundingTemplateService));
-                
+
             _policyRepository = policyRepository;
             _fundingTemplateService = fundingTemplateService;
             _policyRepositoryPolicy = policyResiliencePolicies.PolicyRepository;
@@ -46,7 +46,7 @@ namespace CalculateFunding.Services.Providers.Validators
                     FundingConfiguration model = context.ParentContext.InstanceToValidate as FundingConfiguration;
                     if (!string.IsNullOrWhiteSpace(model.FundingPeriodId))
                     {
-                        Period fundingPeriod = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingPeriodById(model.FundingPeriodId));
+                        FundingPeriod fundingPeriod = await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.GetFundingPeriodById(model.FundingPeriodId));
                         if (fundingPeriod == null) context.AddFailure("Funding period not found");
                     }
                 });

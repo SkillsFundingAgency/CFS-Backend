@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedProviderCalculationResultSummary
     {
         [JsonProperty("calculationName")]
@@ -11,7 +13,7 @@ namespace CalculateFunding.Models.Results
         public string CalculationDisplayName { get; set; }
 
         [JsonProperty("calculationVersion")]
-        public int CalculationVersion{ get; set; }
+        public int CalculationVersion { get; set; }
 
         [JsonProperty("calculationType")]
         public string CalculationType { get; set; }

@@ -1,7 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Policy
+namespace CalculateFunding.Models.Obsoleted
 {
+    [Obsolete]
     public class ProviderLookup
     {
         [JsonProperty("providerType")]

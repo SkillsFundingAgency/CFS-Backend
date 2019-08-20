@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Policy.Validators
     {
         private FundingConfiguration _fundingConfiguration;
         private ValidationResult _validationResult;
-        
+
         private IFundingTemplateService _fundingTemplateService;
         private SaveFundingConfigurationValidator _validator;
 
@@ -27,18 +27,18 @@ namespace CalculateFunding.Services.Policy.Validators
             _fundingTemplateService = Substitute.For<IFundingTemplateService>();
 
             IPolicyRepository policyRepository = Substitute.For<IPolicyRepository>();
-            
+
             _validator = new SaveFundingConfigurationValidator(policyRepository,
                 new PolicyResiliencePolicies
                 {
                     PolicyRepository = Polly.Policy.NoOpAsync()
-                }, 
+                },
                 _fundingTemplateService);
 
             policyRepository.GetFundingStreamById(Arg.Any<string>())
                 .Returns(new FundingStream());
             policyRepository.GetFundingPeriodById(Arg.Any<string>())
-                .Returns(new Period());
+                .Returns(new FundingPeriod());
         }
 
         [TestMethod]
@@ -47,13 +47,13 @@ namespace CalculateFunding.Services.Policy.Validators
         {
             string defaultTemplateVersion = NewRandomString();
             string fundingStreamId = NewRandomString();
-            
+
             GivenTheFundingConfiguration(_ => _.WithFundingStreamId(fundingStreamId)
                 .WithDefaultTemplateVersion(defaultTemplateVersion));
             AndTheTemplateExistsCheck(fundingStreamId, defaultTemplateVersion, expectedFlag);
-            
+
             WhenTheFundingConfigurationIsValidated();
-            
+
             ThenTheValidationResultShouldBe(expectedFlag);
         }
 
@@ -65,11 +65,11 @@ namespace CalculateFunding.Services.Policy.Validators
             bool expectedFlag)
         {
             string fundingStreamId = NewRandomString();
-            
+
             GivenTheFundingConfiguration(_ => _.WithDefaultTemplateVersion(defaultTemplateVersion)
                 .WithFundingStreamId(fundingStreamId));
             AndTheTemplateExistsCheck(fundingStreamId, defaultTemplateVersion, true);
-            
+
             WhenTheFundingConfigurationIsValidated();
 
             ThenTheValidationResultShouldBe(expectedFlag);
@@ -77,10 +77,10 @@ namespace CalculateFunding.Services.Policy.Validators
 
         public static IEnumerable<object[]> FlagExamples()
         {
-            yield return new object[] {true};
-            yield return new object[] {false};
+            yield return new object[] { true };
+            yield return new object[] { false };
         }
-        
+
         private string NewRandomString() => new RandomString();
 
         private void ThenTheValidationResultShouldBe(bool expectedIsValidFlag)
@@ -101,7 +101,7 @@ namespace CalculateFunding.Services.Policy.Validators
             FundingConfigurationBuilder fundingConfigurationBuilder = new FundingConfigurationBuilder();
 
             setUp?.Invoke(fundingConfigurationBuilder);
-            
+
             _fundingConfiguration = fundingConfigurationBuilder.Build();
         }
 

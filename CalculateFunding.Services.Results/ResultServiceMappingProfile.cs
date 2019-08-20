@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.Services.Results

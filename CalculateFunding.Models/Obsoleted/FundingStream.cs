@@ -3,25 +3,25 @@ using System.Collections.Generic;
 using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Results
+namespace CalculateFunding.Models.Obsoleted
 {
     [Obsolete]
-    public class PublishedFundingStreamDefinition : Reference
+    public class FundingStream : Reference
     {
-        public PublishedFundingStreamDefinition()
+        public FundingStream()
         {
-            AllocationLines = new List<PublishedAllocationLineDefinition>(0);
-            PeriodType = new PublishedPeriodType();
+            AllocationLines = new List<AllocationLine>();
+            PeriodType = new PeriodType();
         }
 
         [JsonProperty("shortName")]
         public string ShortName { get; set; }
 
         [JsonProperty("allocationLines")]
-        public List<PublishedAllocationLineDefinition> AllocationLines { get; set; }
+        public List<AllocationLine> AllocationLines { get; set; }
 
         [JsonProperty("periodType")]
-        public PublishedPeriodType PeriodType { get; set; }
+        public PeriodType PeriodType { get; set; }
 
         [JsonProperty("requireFinancialEnvelopes")]
         public bool RequireFinancialEnvelopes { get; set; }

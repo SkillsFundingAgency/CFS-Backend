@@ -28,7 +28,7 @@ namespace CalculateFunding.Api.External.V2.Services
 
             if (result is OkObjectResult okObjectResult)
             {
-                IEnumerable<CalculateFunding.Models.Policy.FundingStream> fundingStream = (IEnumerable<CalculateFunding.Models.Policy.FundingStream>)okObjectResult.Value;
+                IEnumerable<CalculateFunding.Models.Obsoleted.FundingStream> fundingStream = (IEnumerable<CalculateFunding.Models.Obsoleted.FundingStream>)okObjectResult.Value;
                 if (fundingStream.IsNullOrEmpty())
                 {
                     return new OkResult();

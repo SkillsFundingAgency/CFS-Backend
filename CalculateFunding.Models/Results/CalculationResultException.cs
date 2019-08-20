@@ -1,11 +1,11 @@
 ﻿namespace CalculateFunding.Models.Results
 {
-    public class CaclulationResultException
+    public class CalculationResultException
     {
         public string ExceptionType { get; set; }
 
         public string Message { get; set; }
 
-        public CaclulationResultException InnerException { get; set; }
+        public CalculationResultException InnerException { get; set; }
     }
 }

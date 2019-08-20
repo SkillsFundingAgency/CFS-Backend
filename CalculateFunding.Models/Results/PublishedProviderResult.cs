@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Text;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedProviderResult : IIdentifiable
     {
         public PublishedProviderResult()
@@ -16,7 +17,7 @@ namespace CalculateFunding.Models.Results
         public string ProviderId { get; set; }
 
         [JsonProperty("summary")]
-        public string Summary => 
+        public string Summary =>
              $"{FundingStreamResult.AllocationLineResult.Current.Provider.ProviderProfileIdType}: {FundingStreamResult.AllocationLineResult.Current.Provider.Id}, version {FundingStreamResult.AllocationLineResult.Current.VersionNumber}";
 
         [JsonProperty("id")]

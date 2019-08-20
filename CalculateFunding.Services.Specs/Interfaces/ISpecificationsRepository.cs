@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
         Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
         Task<IEnumerable<Specification>> GetSpecifications();
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);
-        Task<HttpStatusCode> UpdateSpecification(Specification specification);   
+        Task<HttpStatusCode> UpdateSpecification(Specification specification);
         [Obsolete]
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec);

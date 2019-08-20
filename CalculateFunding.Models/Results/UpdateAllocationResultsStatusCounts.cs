@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class UpdateAllocationResultsStatusCounts
     {
         public int UpdatedAllocationLines { get; set; }

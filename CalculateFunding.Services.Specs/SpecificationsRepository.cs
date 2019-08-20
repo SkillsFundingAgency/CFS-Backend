@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core.Extensions;
@@ -68,8 +66,8 @@ namespace CalculateFunding.Services.Specs
 
         public Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null)
         {
-            var specifications = query == null 
-                ? _repository.Query<Specification>() 
+            var specifications = query == null
+                ? _repository.Query<Specification>()
                 : _repository.Query<Specification>().Where(query);
 
             return Task.FromResult(specifications.AsEnumerable());
@@ -116,13 +114,6 @@ namespace CalculateFunding.Services.Specs
             var specifications = _repository.RawQuery<T>(sqlQuerySpec);
 
             return Task.FromResult(specifications.AsEnumerable());
-        }
-
-        public Task<IEnumerable<Period>> GetPeriods()
-        {
-            var fundingPeriods = _repository.Query<Period>();
-
-            return Task.FromResult(fundingPeriods.ToList().AsEnumerable());
         }
 
         public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)

@@ -9,7 +9,7 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
@@ -512,7 +512,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
@@ -646,7 +646,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
@@ -780,7 +780,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository
@@ -1142,7 +1142,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new FundingStream { Id = "fs11" } };
+            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
             IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
             versionRepository

@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AutoMapper;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -56,7 +54,6 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICalculationsRepository _calculationsRepository;
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
-        private readonly IValidator<Calculation> _calculationValidator;
         private readonly IBuildProjectsService _buildProjectsService;
         private readonly ISpecificationRepository _specsRepository;
         private readonly ICacheProvider _cacheProvider;
@@ -65,15 +62,12 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.Policy _cachePolicy;
         private readonly Polly.Policy _calculationVersionsRepositoryPolicy;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
-        private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
-        private readonly IJobsApiClient _jobsApiClient;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly IFeatureToggle _featureToggle;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly Polly.Policy _buildProjectRepositoryPolicy;
         private readonly ICalculationCodeReferenceUpdate _calculationCodeReferenceUpdate;
-        private readonly IMapper _mapper;
         private readonly IValidator<CalculationCreateModel> _calculationCreateModelValidator;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly Polly.Policy _policiesApiClientPolicy;
@@ -85,41 +79,35 @@ namespace CalculateFunding.Services.Calcs
         private readonly ICreateCalculationService _createCalculationService;
 
         public CalculationService(
-            IMapper mapper,
             ICalculationsRepository calculationsRepository,
             ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository,
-            IValidator<Calculation> calculationValidator,
             IBuildProjectsService buildProjectsService,
             ISpecificationRepository specificationRepository,
             IPoliciesApiClient policiesApiClient,
             ICacheProvider cacheProvider,
             ICalcsResiliencePolicies resiliencePolicies,
             IVersionRepository<CalculationVersion> calculationVersionRepository,
-            IJobsApiClient jobsApiClient,
             ISourceCodeService sourceCodeService,
             IFeatureToggle featureToggle,
             IBuildProjectsRepository buildProjectsRepository,
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate,
             IValidator<CalculationCreateModel> calculationCreateModelValidator,
             IValidator<CalculationEditModel> calculationEditModelValidator,
-            ISpecificationsApiClient specificationsApiClient, 
-            ICalculationNameInUseCheck calculationNameInUseCheck, 
-            IInstructionAllocationJobCreation instructionAllocationJobCreation, 
+            ISpecificationsApiClient specificationsApiClient,
+            ICalculationNameInUseCheck calculationNameInUseCheck,
+            IInstructionAllocationJobCreation instructionAllocationJobCreation,
             ICreateCalculationService createCalculationService)
         {
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
-            Guard.ArgumentNotNull(calculationValidator, nameof(calculationValidator));
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
             Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(sourceCodeService, nameof(sourceCodeService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
@@ -134,7 +122,6 @@ namespace CalculateFunding.Services.Calcs
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _searchRepository = searchRepository;
-            _calculationValidator = calculationValidator;
             _specsRepository = specificationRepository;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resiliencePolicies.CalculationsRepository;
@@ -143,15 +130,12 @@ namespace CalculateFunding.Services.Calcs
             _cachePolicy = resiliencePolicies.CacheProviderPolicy;
             _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepositoryPolicy;
             _calculationVersionsRepositoryPolicy = resiliencePolicies.CalculationsVersionsRepositoryPolicy;
-            _jobsApiClient = jobsApiClient;
-            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
             _sourceCodeService = sourceCodeService;
             _featureToggle = featureToggle;
             _buildProjectsService = buildProjectsService;
             _buildProjectsRepository = buildProjectsRepository;
             _buildProjectRepositoryPolicy = resiliencePolicies.BuildProjectRepositoryPolicy;
             _calculationCodeReferenceUpdate = calculationCodeReferenceUpdate;
-            _mapper = mapper;
             _calculationCodeReferenceUpdate = calculationCodeReferenceUpdate;
             _calculationCreateModelValidator = calculationCreateModelValidator;
             _policiesApiClient = policiesApiClient;
@@ -456,11 +440,11 @@ namespace CalculateFunding.Services.Calcs
 
         public async Task<IActionResult> CreateAdditionalCalculation(string specificationId, CalculationCreateModel model, Reference author, string correlationId)
         {
-            CreateCalculationResponse createCalculationResponse = await _createCalculationService.CreateCalculation(specificationId, 
+            CreateCalculationResponse createCalculationResponse = await _createCalculationService.CreateCalculation(specificationId,
                 model,
-                CalculationNamespace.Additional, 
+                CalculationNamespace.Additional,
                 CalculationType.Additional,
-                author, 
+                author,
                 correlationId);
 
             if (createCalculationResponse.Succeeded)
@@ -474,7 +458,7 @@ namespace CalculateFunding.Services.Calcs
                     ? createCalculationResponse.ValidationResult.AsBadRequest()
                     : new BadRequestObjectResult(createCalculationResponse.ErrorMessage);
             }
-            
+
             return new InternalServerErrorResult(createCalculationResponse.ErrorMessage);
         }
 
@@ -1228,7 +1212,7 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult(message);
             }
 
-            if(fundingTemplateContentsResponse == null || fundingTemplateContentsResponse.Content == null)
+            if (fundingTemplateContentsResponse == null || fundingTemplateContentsResponse.Content == null)
             {
                 string message = $"Retrieved funding template with fundingStreamId: {fundingStreamId} and templateId: {templateVersion} has null content. Can not use it for further processing.";
                 _logger.Error(message);
@@ -1304,7 +1288,7 @@ namespace CalculateFunding.Services.Calcs
                 .ToList();
 
             allFundingLines
-                .AddRange(allFundingLines.SelectMany(f => 
+                .AddRange(allFundingLines.SelectMany(f =>
                 {
                     if (f.FundingLines.IsNullOrEmpty())
                     {
@@ -1312,7 +1296,7 @@ namespace CalculateFunding.Services.Calcs
                     }
 
                     return f.FundingLines;
-                    })
+                })
                 .ToList());
 
             List<Common.TemplateMetadata.Models.Calculation> templateCalculations = allFundingLines
@@ -1326,7 +1310,7 @@ namespace CalculateFunding.Services.Calcs
                     return c.Calculations;
                 }).ToList();
 
-            templateCalculations.AddRange(templateCalculations.SelectMany(c => 
+            templateCalculations.AddRange(templateCalculations.SelectMany(c =>
             {
                 if (c.Calculations.IsNullOrEmpty())
                 {
@@ -1359,7 +1343,7 @@ namespace CalculateFunding.Services.Calcs
                         itemsToRemove.Add(mapping);
                     }
                 }
-                if(mapping.EntityType == TemplateMappingEntityType.ReferenceData)
+                if (mapping.EntityType == TemplateMappingEntityType.ReferenceData)
                 {
                     bool stillExists = templateReferenceData.Any(c => c.TemplateReferenceId == mapping.TemplateId);
                     if (!stillExists)

@@ -1,8 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace CalculateFunding.Models.Policy
+namespace CalculateFunding.Models.Obsoleted
 {
+    [Obsolete]
     [JsonConverter(typeof(StringEnumConverter))]
     public enum FundingRoute
     {

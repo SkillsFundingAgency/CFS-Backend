@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Models.Results
 {
-
+    [Obsolete]
     public class PublishedAllocationLineResultStatusUpdateModel
     {
         public PublishedAllocationLineResultStatusUpdateModel()

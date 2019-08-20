@@ -319,7 +319,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version2
                         }
                     }
                 },
-                FundingPeriod = new Models.Policy.Period
+                FundingPeriod = new Models.Obsoleted.Period
                 {
                     Id = "Ay12345",
                     Name = "fp-1"

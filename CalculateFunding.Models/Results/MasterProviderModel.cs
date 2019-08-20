@@ -1,11 +1,12 @@
-﻿using CalculateFunding.Models.Converters;
+﻿using System;
+using CalculateFunding.Models.Converters;
 using Newtonsoft.Json;
-using System;
 using Newtonsoft.Json.Converters;
 
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class MasterProviderModel
     {
         public string MasterCRMAccountId { get; set; }
@@ -44,13 +45,13 @@ namespace CalculateFunding.Models.Results
 
         public string MasterNavendorNo { get; set; }
 
-	    [JsonConverter(typeof(StringEnumConverter))]
-		public EstablishmentOpenedReason? MasterReasonEstablishmentOpened { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public EstablishmentOpenedReason? MasterReasonEstablishmentOpened { get; set; }
 
-	    [JsonConverter(typeof(StringEnumConverter))]
-		public EstablishmentClosedReason? MasterReasonEstablishmentClosed { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
+        public EstablishmentClosedReason? MasterReasonEstablishmentClosed { get; set; }
 
-	    public string MasterSuccessor { get; set; }
+        public string MasterSuccessor { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
         public TrustStatus? MasterTrustStatus { get; set; }

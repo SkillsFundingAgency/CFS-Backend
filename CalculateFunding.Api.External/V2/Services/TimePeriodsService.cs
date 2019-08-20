@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Api.External.V2.Interfaces;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using Microsoft.AspNetCore.Mvc;
 using IPolicyFundingPeriodService = CalculateFunding.Services.Policy.Interfaces.IFundingPeriodService;
 

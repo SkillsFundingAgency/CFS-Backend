@@ -10,7 +10,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Constants;
@@ -202,7 +202,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 new PublishedProviderCalculationResult
                 {
                     Id = "calc-1",
-                    Name = "calc1" 
+                    Name = "calc1"
                 }
             };
 
@@ -302,7 +302,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 new PublishedProviderCalculationResult
                 {
                     Id = "calc-1",
-                    Name = "calc1" 
+                    Name = "calc1"
                 }
             };
 
@@ -371,7 +371,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 new PublishedProviderCalculationResult
                 {
                     Id = "calc-1",
-                    Name = "calc1" 
+                    Name = "calc1"
                 }
             };
 

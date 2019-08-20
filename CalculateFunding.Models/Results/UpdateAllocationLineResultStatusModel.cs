@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class UpdatePublishedAllocationLineResultStatusModel
     {
         public UpdatePublishedAllocationLineResultStatusModel()

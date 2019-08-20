@@ -8,7 +8,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -621,7 +621,7 @@ namespace CalculateFunding.Services.Results
 
             AllocationLine allocationLine = fundingStream.AllocationLines
                 .FirstOrDefault(a => a.ProviderLookups
-                    .Any(l => l.ProviderType == providerChangeItem.SuccessorProvider.ProviderType 
+                    .Any(l => l.ProviderType == providerChangeItem.SuccessorProvider.ProviderType
                               && l.ProviderSubType == providerChangeItem.SuccessorProvider.ProviderSubType));
             PublishedAllocationLineDefinition publishedAllocationLine = _mapper.Map<PublishedAllocationLineDefinition>(allocationLine);
 

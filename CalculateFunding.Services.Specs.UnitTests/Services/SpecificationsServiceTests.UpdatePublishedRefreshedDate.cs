@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Policy;
+using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
@@ -250,9 +250,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 {
                     Description = "test",
                     FundingPeriod = new Reference { Id = "fp1", Name = "funding period 1" },
-                    FundingStreams = new List<FundingStream>
+                    FundingStreams = new List<Reference>
                     {
-                        new FundingStream{ Id = "fs1", Name = "funding stream 1" }
+                        new Reference{ Id = "fs1", Name = "funding stream 1" }
                     },
                     PublishStatus = Models.Versioning.PublishStatus.Draft
                 }

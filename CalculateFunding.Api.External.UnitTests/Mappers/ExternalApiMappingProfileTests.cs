@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AutoMapper;
 using AutoMapper.Configuration;
 using CalculateFunding.Api.External.MappingProfiles;
+using CalculateFunding.Models.Obsoleted;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -37,7 +38,7 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
             Mapper.Initialize(mappings);
             IMapper mapperUnderTest = Mapper.Instance;
 
-            Models.Policy.Period fundingPeriod = new Models.Policy.Period()
+            Period fundingPeriod = new Period()
             {
                 Name = "Name",
                 Id = "Id",
@@ -69,23 +70,23 @@ namespace CalculateFunding.Api.External.UnitTests.Mappers
             string allocationLineName = "Name";
             string allocationLineShortName = "short-name";
 
-            Models.Policy.FundingStream fundingStream = new Models.Policy.FundingStream()
+            FundingStream fundingStream = new FundingStream()
             {
-                AllocationLines = new List<Models.Policy.AllocationLine>()
+                AllocationLines = new List<AllocationLine>()
                 {
-                    new Models.Policy.AllocationLine()
+                    new AllocationLine()
                     {
                         Id = allocationLineId,
                         Name = allocationLineName,
                         ShortName = allocationLineShortName,
-                        FundingRoute = Models.Policy.FundingRoute.LA,
+                        FundingRoute = FundingRoute.LA,
                         IsContractRequired = true
                     }
                 },
                 Name = "Name",
                 Id = "id",
                 ShortName = "short-name",
-                PeriodType = new Models.Policy.PeriodType
+                PeriodType = new PeriodType
                 {
                     Id = "p1",
                     Name = "period 1",

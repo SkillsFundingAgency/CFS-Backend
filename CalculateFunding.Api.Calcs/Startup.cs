@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using CalculateFunding.Common.CosmosDb;
+﻿using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -12,7 +11,6 @@ using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.CodeGen;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
-using CalculateFunding.Services.Calcs.MappingProfiles;
 using CalculateFunding.Services.Calcs.Validators;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.CodeMetadataGenerator;
@@ -108,7 +106,7 @@ namespace CalculateFunding.Api.Calcs
             builder
                 .AddSingleton<IPreviewService, PreviewService>()
                 .AddSingleton<IHealthChecker, PreviewService>();
-           
+
             builder
                .AddSingleton<ICompilerFactory, CompilerFactory>();
 
@@ -168,14 +166,6 @@ namespace CalculateFunding.Api.Calcs
 
                 return new VersionRepository<CalculationVersion>(resultsRepostory);
             });
-
-            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<PolicyMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(resultsConfig.CreateMapper());
 
             builder
                 .AddSingleton<ICancellationTokenProvider, HttpContextCancellationProvider>();

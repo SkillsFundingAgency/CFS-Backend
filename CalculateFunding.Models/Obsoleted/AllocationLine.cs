@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
-namespace CalculateFunding.Models.Policy
+namespace CalculateFunding.Models.Obsoleted
 {
+    [Obsolete]
     public class AllocationLine : Reference
     {
         public AllocationLine()

@@ -1,8 +1,10 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using CalculateFunding.Common.Models;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedAllocationLineDefinition : Reference
     {
         [JsonProperty("fundingRoute")]

@@ -1,8 +1,9 @@
-﻿using CalculateFunding.Models.Versioning;
+﻿using System;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Results
 {
+    [Obsolete]
     public class PublishedProviderResultsCalculationSummary
     {
         [JsonProperty("calculationName")]

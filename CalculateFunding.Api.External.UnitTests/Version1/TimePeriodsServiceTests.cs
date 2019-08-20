@@ -22,14 +22,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
         public async Task GetTimePeriods_WhenServiceReturns200OkResult_ShouldReturnOkResultWithFundingPeriods()
         {
             // Arrange
-            Models.Policy.Period fundingPeriod1 = new Models.Policy.Period()
+            Models.Obsoleted.Period fundingPeriod1 = new Models.Obsoleted.Period()
             {
                 Id = "AYCode",
                 Name = "AcademicYear",
                 StartDate = DateTimeOffset.Now,
                 EndDate = DateTimeOffset.Now.AddYears(1)
             };
-            Models.Policy.Period fundingPeriod2 = new Models.Policy.Period()
+            Models.Obsoleted.Period fundingPeriod2 = new Models.Obsoleted.Period()
             {
                 Id = "FYCode",
                 Name = "FinalYear",
@@ -43,7 +43,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version1
             Mapper.Initialize(mappings);
             IMapper mapper = Mapper.Instance;
 
-            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Policy.Period>
+            OkObjectResult specServiceOkObjectResult = new OkObjectResult(new List<Models.Obsoleted.Period>
             {
                 fundingPeriod1,
                 fundingPeriod2

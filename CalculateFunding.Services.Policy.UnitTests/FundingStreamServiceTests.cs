@@ -204,14 +204,16 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        public async Task GetFundingStreamById__GivenFundingStreamnWasFound_ReturnsSuccess()
+        public async Task GetFundingStreamById__GivenFundingStreamWasFound_ReturnsSuccess()
         {
             // Arrange
             const string fundingStreamId = "fs-1";
 
             FundingStream fundingStream = new FundingStream
             {
-                Id = fundingStreamId
+                Id = fundingStreamId,
+                Name = "Funding Stream Name",
+                ShortName = "FSN",
             };
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
@@ -475,92 +477,6 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
         }
 
-        [TestMethod]
-        public async Task SaveFundingStream_GivenAllocationLinesWithProviderLookups_ReturnsOK()
-        {
-            //Arrange
-            StringBuilder yaml = new StringBuilder();
-            yaml.AppendLine("shortName: GIAS Test");
-            yaml.AppendLine("allocationLines:");
-            yaml.AppendLine("- fundingRoute: Provider");
-            yaml.AppendLine("  isContractRequired: true");
-            yaml.AppendLine("  shortName: 16 - 18 Tships Burs Fund");
-            yaml.AppendLine("  id: 1618T - 001");
-            yaml.AppendLine("  name: 16 - 18 Traineeships Bursary Funding");
-            yaml.AppendLine("  providerLookups:");
-            yaml.AppendLine("  - providerType: test1");
-            yaml.AppendLine("    providerSubType: test2");
-            yaml.AppendLine("- fundingRoute: Provider");
-            yaml.AppendLine("  isContractRequired: true");
-            yaml.AppendLine("  shortName: 16 - 18 Tships Prog Fund");
-            yaml.AppendLine("  id: 1618T - 002");
-            yaml.AppendLine("  name: 16 - 18 Traineeships Programme Funding");
-            yaml.AppendLine("periodType:");
-            yaml.AppendLine("  startDay: 1");
-            yaml.AppendLine("  startMonth: 8");
-            yaml.AppendLine("  endDay: 31");
-            yaml.AppendLine("  endMonth: 7");
-            yaml.AppendLine("  id: AY");
-            yaml.AppendLine("  name: Schools Academic Year");
-            yaml.AppendLine("id: GIASTEST");
-            yaml.AppendLine("name: GIAS Test");
-
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml.ToString());
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            IHeaderDictionary headerDictionary = new HeaderDictionary
-            {
-                { "yaml-file", new StringValues(yamlFile) }
-            };
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Headers
-                .Returns(headerDictionary);
-
-            request
-                .Body
-                .Returns(stream);
-
-            ILogger logger = CreateLogger();
-
-            HttpStatusCode statusCode = HttpStatusCode.Created;
-
-            IPolicyRepository policyRepository = CreatePolicyRepository();
-            policyRepository
-                .SaveFundingStream(Arg.Any<FundingStream>())
-                .Returns(statusCode);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            cacheProvider
-                .KeyExists<FundingStream[]>(Arg.Is(CacheKeys.AllFundingStreams))
-                .Returns(true);
-
-            FundingStreamService fundingStreamsService = CreateFundingStreamService(logger, cacheProvider, policyRepository);
-
-            //Act
-            IActionResult result = await fundingStreamsService.SaveFundingStream(request);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<OkResult>();
-
-            logger
-                .Received(1)
-                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
-
-            await policyRepository
-                .Received(1)
-                .SaveFundingStream(Arg.Is<FundingStream>(f => f.AllocationLines.First().ProviderLookups.Count() == 1 &&
-                    f.AllocationLines.First().ProviderLookups.First().ProviderType == "test1" &&
-                    f.AllocationLines.First().ProviderLookups.First().ProviderSubType == "test2"));
-
-            await cacheProvider
-                .Received(1)
-                .KeyDeleteAsync<FundingStream[]>(CacheKeys.AllFundingStreams);
-        }
-
         private static FundingStreamService CreateFundingStreamService(
             ILogger logger = null,
             ICacheProvider cacheProvider = null,
@@ -594,21 +510,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             yaml.AppendLine(@"id: YPLRE");
             yaml.AppendLine(@"name: School Budget Share");
-            yaml.AppendLine(@"allocationLines:");
-            yaml.AppendLine(@"- id: YPE01");
-            yaml.AppendLine(@"  name: School Budget Share");
-            yaml.AppendLine(@"- id: YPE02");
-            yaml.AppendLine(@"  name: Education Services Grant");
-            yaml.AppendLine(@"- id: YPE03");
-            yaml.AppendLine(@"  name: Insurance");
-            yaml.AppendLine(@"- id: YPE04");
-            yaml.AppendLine(@"  name: Teacher Threshold");
-            yaml.AppendLine(@"- id: YPE05");
-            yaml.AppendLine(@"  name: Mainstreamed Grants");
-            yaml.AppendLine(@"- id: YPE06");
-            yaml.AppendLine(@"  name: Start Up Grant Part a");
-            yaml.AppendLine(@"- id: YPE07");
-            yaml.AppendLine(@"  name: Start Up Grant Part b Formulaic");
+            yaml.AppendLine(@"shortName: SBS");
 
             return yaml.ToString();
         }
