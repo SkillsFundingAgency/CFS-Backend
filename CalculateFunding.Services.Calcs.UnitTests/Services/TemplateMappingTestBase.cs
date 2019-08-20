@@ -1,7 +1,6 @@
 using System;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Tests.Common.Helpers;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using TemplateCalculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
@@ -20,7 +19,16 @@ namespace CalculateFunding.Services.Calcs.Services
             
             return calculationBuilder.Build();
         }
-        
+
+        protected static CalculationVersion NewCalculationVersion(Action<CalculationVersionBuilder> setUp = null)
+        {
+            CalculationVersionBuilder calculationVersionBuilder = new CalculationVersionBuilder();
+
+            setUp?.Invoke(calculationVersionBuilder);
+
+            return calculationVersionBuilder.Build();
+        }
+
         protected static TemplateCalculation NewTemplateMappingCalculation(Action<TemplateMappingCalculationBuilder> setUp = null)
         {
             TemplateMappingCalculationBuilder templateMappingCalculationBuilder = new TemplateMappingCalculationBuilder();

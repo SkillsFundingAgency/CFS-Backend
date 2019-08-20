@@ -12,6 +12,7 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -30,6 +31,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly Policy _policiesResiliencePolicy;
         private readonly Policy _calculationsRepositoryPolicy;
         private readonly ILogger _logger;
+        private readonly ICalculationService _calculationService;
 
         public ApplyTemplateCalculationsService(ICreateCalculationService createCalculationService,
             IPoliciesApiClient policiesApiClient,
@@ -38,7 +40,8 @@ namespace CalculateFunding.Services.Calcs
             ITemplateContentsCalculationQuery templateContentsCalculationQuery,
             IApplyTemplateCalculationsJobTrackerFactory jobTrackerFactory,
             IInstructionAllocationJobCreation instructionAllocationJobCreation,
-            ILogger logger)
+            ILogger logger,
+            ICalculationService calculationService)
         {
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
             Guard.ArgumentNotNull(jobTrackerFactory, nameof(jobTrackerFactory));
@@ -49,6 +52,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsRepository, nameof(calculationsResiliencePolicies.CalculationsRepository));
             Guard.ArgumentNotNull(templateContentsCalculationQuery, nameof(templateContentsCalculationQuery));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(calculationService, nameof(calculationService));
 
             _createCalculationService = createCalculationService;
             _calculationsRepository = calculationsRepository;
@@ -59,6 +63,7 @@ namespace CalculateFunding.Services.Calcs
             _logger = logger;
             _instructionAllocationJobCreation = instructionAllocationJobCreation;
             _jobTrackerFactory = jobTrackerFactory;
+            _calculationService = calculationService;
         }
 
         public async Task ApplyTemplateCalculation(Message message)
@@ -70,7 +75,7 @@ namespace CalculateFunding.Services.Calcs
             try
             {
                 bool canRunJob = await jobTracker.TryStartTrackingJob();
-                
+
                 if (!canRunJob) return;
 
                 string specificationId = UserPropertyFrom(message, "specification-id");
@@ -100,6 +105,10 @@ namespace CalculateFunding.Services.Calcs
                     .Select(_ => _)
                     .ToArray();
 
+                TemplateMappingItem[] mappingsWithCalculations = templateMapping.TemplateMappingItems.Where(_ => !_.CalculationId.IsNullOrWhitespace())
+                    .Select(_ => _)
+                    .ToArray();
+
                 IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines)
                                                                  ?? new FundingLine[0];
 
@@ -108,7 +117,7 @@ namespace CalculateFunding.Services.Calcs
                         cal => (cal.ReferenceData?.Count())
                             .GetValueOrDefault()));
 
-                int startingItemCount = itemCount - mappingsWithoutCalculations.Length;
+                int startingItemCount = itemCount - mappingsWithoutCalculations.Length - mappingsWithCalculations.Length;
 
                 await jobTracker.NotifyProgress(startingItemCount);
 
@@ -124,8 +133,16 @@ namespace CalculateFunding.Services.Calcs
                 await _calculationsRepositoryPolicy.ExecuteAsync(
                     () => _calculationsRepository.UpdateTemplateMapping(specificationId, fundingStreamId, templateMapping));
 
+                await EnsureAllExistingCalculationsModified(mappingsWithCalculations, 
+                    specificationId, 
+                    correlationId, 
+                    author, 
+                    flattenedFundingLines, 
+                    jobTracker, 
+                    startingItemCount + mappingsWithoutCalculations.Length);
+
                 await jobTracker.CompleteTrackingJob("Completed Successfully", itemCount);
-                
+
                 await InitiateCalculationRun(specificationId, author, correlationId);
             }
             catch (Exception ex)
@@ -133,6 +150,53 @@ namespace CalculateFunding.Services.Calcs
                 await jobTracker.FailJob(ex.Message);
 
                 throw;
+            }
+        }
+
+        private async Task EnsureAllExistingCalculationsModified(TemplateMappingItem[] mappingsWithCalculations, 
+            string specificationId, 
+            string correlationId, 
+            Reference author,
+            IEnumerable<FundingLine> flattenedFundingLines,
+            IApplyTemplateCalculationsJobTracker jobTracker,
+            int startingItemCount)
+        {
+            if (!mappingsWithCalculations.Any()) return;
+
+            IEnumerable<Calculation> flattenedCalculations = flattenedFundingLines
+                .SelectMany(_ => _.Calculations)
+                .Flatten(_ => _.Calculations)
+                ?? new Calculation[0];
+
+            IEnumerable<Models.Calcs.Calculation> existingCalculations = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
+
+            for (int calculationCount = 0; calculationCount < mappingsWithCalculations.Length; calculationCount++)
+            {
+                TemplateMappingItem mappingWithCalculations = mappingsWithCalculations[calculationCount];
+                Calculation templateCalculation = flattenedCalculations.SingleOrDefault(_ => _.TemplateCalculationId == mappingWithCalculations.TemplateId);
+                Models.Calcs.Calculation existingCalculation = existingCalculations.SingleOrDefault(_ => _.Id == mappingWithCalculations.CalculationId);
+
+                if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount);
+
+                if (templateCalculation?.Name == existingCalculation?.Current.Name && templateCalculation?.ValueFormat.AsMatchingEnum<CalculationValueType>() == existingCalculation?.Current.ValueType)
+                {
+                    continue;
+                }
+
+                CalculationEditModel calculationEditModel = new CalculationEditModel
+                {
+                    Description = existingCalculation.Current.Description,
+                    SourceCode = existingCalculation.Current.SourceCode,
+                    Name = templateCalculation.Name,
+                    ValueType = templateCalculation.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                };
+
+                IActionResult editCalculationResult = await _calculationService.EditCalculation(specificationId, mappingWithCalculations.CalculationId, calculationEditModel, author, correlationId);
+
+                if(!(editCalculationResult is OkObjectResult))
+                {
+                    LogAndThrowException("Unable to edit template calculation for template mapping");
+                }
             }
         }
 
