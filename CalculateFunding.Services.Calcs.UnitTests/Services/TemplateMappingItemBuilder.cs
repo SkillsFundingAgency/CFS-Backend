@@ -6,6 +6,7 @@ namespace CalculateFunding.Services.Calcs.Services
     public class TemplateMappingItemBuilder : TestEntityBuilder
     {
         private uint? _templateId;
+        private string _templateName;
         private string _calculationid;
 
         public TemplateMappingItemBuilder WithCalculationId(string calculationId)
@@ -21,11 +22,19 @@ namespace CalculateFunding.Services.Calcs.Services
 
             return this;
         }
-        
+
+        public TemplateMappingItemBuilder WithName(string templateName)
+        {
+            _templateName = templateName;
+
+            return this;
+        }
+
         public TemplateMappingItem Build()
         {
             return new TemplateMappingItem
             {
+                Name = _templateName,
                 CalculationId = _calculationid,
                 TemplateId = _templateId.GetValueOrDefault(NewRandomUint())
             };

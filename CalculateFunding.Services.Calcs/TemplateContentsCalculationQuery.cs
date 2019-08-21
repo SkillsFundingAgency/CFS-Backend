@@ -19,7 +19,7 @@ namespace CalculateFunding.Services.Calcs
         {
             foreach (FundingLine fundingLine in fundingLines)
             {
-                Calculation match = fundingLine?.Calculations.FirstOrDefault(_ => _.TemplateCalculationId == templateCalculationId);
+                Calculation match = fundingLine?.Calculations.Select(_ => GetCalculation(templateCalculationId, _)).FirstOrDefault();
 
                 if (match == null && fundingLine.FundingLines?.Any() == true)
                     match = GetCalculationFromFundingLines(templateCalculationId, fundingLine.FundingLines);
@@ -29,6 +29,11 @@ namespace CalculateFunding.Services.Calcs
             }
 
             return null;
-        }    
+        }  
+        
+        private Calculation GetCalculation(uint templateCalculationId, Calculation calculation)
+        {
+            return calculation.TemplateCalculationId == templateCalculationId ? calculation : calculation.Calculations?.Select(_ => GetCalculation(templateCalculationId, _)).FirstOrDefault();
+        }
     }
 }

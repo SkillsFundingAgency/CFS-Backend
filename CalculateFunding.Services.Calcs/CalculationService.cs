@@ -572,7 +572,7 @@ namespace CalculateFunding.Services.Calcs
             return updatedCalculations;
         }
 
-        public async Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId)
+        public async Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId, bool setAdditional = false)
         {
             Guard.ArgumentNotNull(calculationEditModel, nameof(calculationEditModel));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -597,6 +597,12 @@ namespace CalculateFunding.Services.Calcs
             }
 
             CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
+
+            if(setAdditional)
+            {
+                calculationVersion.WasTemplateCalculation = true;
+                calculationVersion.CalculationType = CalculationType.Additional;
+            }
 
             calculationVersion.SourceCode = calculationEditModel.SourceCode;
             calculationVersion.Name = calculationEditModel.Name;

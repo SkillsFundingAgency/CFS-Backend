@@ -23,7 +23,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
 
         Task<IActionResult> GetCalculationCurrentVersion(HttpRequest request);
 
-        Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId);
+        Task<IActionResult> EditCalculation(string specificationId, string calculationId, CalculationEditModel calculationEditModel, Reference author, string correlationId, bool setAdditional = false);
 
         Task<IActionResult> UpdateCalculationStatus(HttpRequest request);
 

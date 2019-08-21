@@ -18,6 +18,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 using Polly;
 using Serilog;
@@ -174,22 +175,31 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             TemplateMappingItem mappingWithMissingCalculation1 = NewTemplateMappingItem();
             TemplateMappingItem mappingWithMissingCalculation2 = NewTemplateMappingItem();
+            TemplateMappingItem mappingWithMissingCalculation3 = NewTemplateMappingItem();
 
             TemplateMapping templateMapping = NewTemplateMapping(_ => _.WithItems(mappingWithMissingCalculation1,
                 NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString())),
                 mappingWithMissingCalculation2,
+                NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString())),
+
+                mappingWithMissingCalculation3,
                 NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString()))));
 
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl =>
                 fl.WithCalculations(
-                    NewTemplateMappingCalculation(),
-                    NewTemplateMappingCalculation(),
-                    NewTemplateMappingCalculation()))));
+                    NewTemplateMappingCalculation(c1 => {
+                        c1.WithCalculations(NewTemplateMappingCalculation(c4 =>c4.WithTemplateCalculationId(4)));
+                        c1.WithTemplateCalculationId(1);
+                    }),
+                    NewTemplateMappingCalculation(c2 => c2.WithTemplateCalculationId(2)),
+                    NewTemplateMappingCalculation(c3 => c3.WithTemplateCalculationId(3))))));
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
             TemplateCalculation templateCalculationTwo = NewTemplateMappingCalculation(_ => _.WithName("template calculation 2"));
+            TemplateCalculation templateCalculationThree = NewTemplateMappingCalculation(_ => _.WithName("template calculation 3"));
 
             string newCalculationId1 = NewRandomString();
             string newCalculationId2 = NewRandomString();
+            string newCalculationId3 = NewRandomString();
 
             GivenAValidMessage();
             AndTheTemplateMapping(templateMapping);
@@ -208,8 +218,16 @@ namespace CalculateFunding.Services.Calcs.Services
                                                               _.ValueType.GetValueOrDefault()
                                                               == templateCalculationTwo.ValueFormat.AsMatchingEnum<CalculationValueType>(),
                 NewCalculation(_ => _.WithId(newCalculationId2)));
+            AndTheCalculationIsCreatedForRequestMatching(_ => _.Name == templateCalculationThree.Name &&
+                                                              _.SourceCode == "return 0" &&
+                                                              _.SpecificationId == _specificationId &&
+                                                              _.FundingStreamId == _fundingStreamId &&
+                                                              _.ValueType.GetValueOrDefault()
+                                                              == templateCalculationThree.ValueFormat.AsMatchingEnum<CalculationValueType>(),
+                NewCalculation(_ => _.WithId(newCalculationId3)));
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);
+            AndTheTemplateContentsCalculation(mappingWithMissingCalculation3, templateMetadataContents, templateCalculationThree);
 
             await WhenTheTemplateCalculationsAreApplied();
 
@@ -221,10 +239,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .CalculationId
                 .Should().Be(newCalculationId2);
 
+            mappingWithMissingCalculation3
+                .CalculationId
+                .Should().Be(newCalculationId3);
+
             AndTheTemplateMappingWasUpdated(templateMapping);
             AndTheJobsStartWasLogged();
-            AndTheProgressNotificationsWereMade(-1);
-            AndTheJobCompletionWasLogged(3);
+            AndTheProgressNotificationsWereMade(1);
+            AndTheJobCompletionWasLogged(4);
             AndACalculationRunWasInitialised();
         }
 
@@ -236,9 +258,11 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string calculationId1 = NewRandomString();
             string calculationId2 = NewRandomString();
+            string calculationId3 = NewRandomString();
 
             string calculationName1 = NewRandomString();
             string calculationName2 = NewRandomString();
+            string calculationName3 = NewRandomString();
 
             string newCalculationName1 = NewRandomString();
             string newCalculationName2 = NewRandomString();
@@ -248,14 +272,20 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationValueFormat calculationValueFormat1 = CalculationValueFormat.Currency;
             CalculationValueFormat calculationValueFormat2 = CalculationValueFormat.Number;
+            CalculationValueType calculationValueType3 = CalculationValueType.Percentage;
 
             TemplateMappingItem mappingWithMissingCalculation1 = NewTemplateMappingItem();
             TemplateMappingItem mappingWithMissingCalculation2 = NewTemplateMappingItem();
+            TemplateMappingItem mappingWithMissingCalculation3 = NewTemplateMappingItem(_ => {
+                _.WithCalculationId(calculationId3);
+                _.WithName(calculationName3);
+            });
 
             TemplateMapping templateMapping = NewTemplateMapping(_ => _.WithItems(mappingWithMissingCalculation1,
                 NewTemplateMappingItem(mi => mi.WithCalculationId(calculationId1).WithTemplateId(templateCalculationId1)),
                 mappingWithMissingCalculation2,
-                NewTemplateMappingItem(mi => mi.WithCalculationId(calculationId2).WithTemplateId(templateCalculationId2))));
+                NewTemplateMappingItem(mi => mi.WithCalculationId(calculationId2).WithTemplateId(templateCalculationId2)),
+                mappingWithMissingCalculation3));
 
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl =>
                 fl.WithCalculations(
@@ -275,6 +305,14 @@ namespace CalculateFunding.Services.Calcs.Services
                                     .WithCurrentVersion(
                                         NewCalculationVersion(x=>x.WithName(newCalculationName2)))),
             };
+
+            Calculation missingCalculation = NewCalculation(_ => _.WithId(calculationId3)
+                                    .WithCurrentVersion(
+                                        NewCalculationVersion(x =>
+                                        {
+                                            x.WithName(calculationName3);
+                                            x.WithValueType(calculationValueType3);
+                                        })));
 
             GivenAValidMessage();
             AndTheTemplateMapping(templateMapping);
@@ -303,9 +341,17 @@ namespace CalculateFunding.Services.Calcs.Services
                                                 _.Description == null &&
                                                 _.SourceCode == null,
                 calculationId2);
+
+            AndTheMissingCalculationIsEditedForRequestMatching(_ => _.Name == calculationName3 &&
+                                                _.ValueType == calculationValueType3 &&
+                                                _.Description == null &&
+                                                _.SourceCode == null,
+                calculationId3);
+
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation1, templateMetadataContents, templateCalculationOne);
             AndTheTemplateContentsCalculation(mappingWithMissingCalculation2, templateMetadataContents, templateCalculationTwo);
 
+            AndMissingCalculation(calculationId3, missingCalculation);
             AndTheCalculations(calculations);
 
             await WhenTheTemplateCalculationsAreApplied();
@@ -320,8 +366,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             AndTheTemplateMappingWasUpdated(templateMapping);
             AndTheJobsStartWasLogged();
-            AndTheProgressNotificationsWereMade(0);
-            AndTheJobCompletionWasLogged(4);
+            AndTheProgressNotificationsWereMade(-1);
+            AndTheJobCompletionWasLogged(3);
             AndACalculationRunWasInitialised();
         }
 
@@ -330,6 +376,8 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             uint templateCalculationId1 = (uint)new RandomNumberBetween(1, int.MaxValue);
             uint templateCalculationId2 = (uint)new RandomNumberBetween(1, int.MaxValue);
+            uint templateCalculationId3 = (uint)new RandomNumberBetween(1, int.MaxValue);
+            uint templateCalculationId4 = (uint)new RandomNumberBetween(1, int.MaxValue);
 
             string calculationId1 = NewRandomString();
             string calculationId2 = NewRandomString();
@@ -353,10 +401,10 @@ namespace CalculateFunding.Services.Calcs.Services
 
             TemplateMetadataContents templateMetadataContents = NewTemplateMetadataContents(_ => _.WithFundingLines(NewFundingLine(fl =>
                 fl.WithCalculations(
-                    NewTemplateMappingCalculation(),
-                    NewTemplateMappingCalculation(),
                     NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId1).WithName(calculationName1).WithValueFormat(calculationValueFormat1)),
-                    NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId2).WithName(calculationName2).WithValueFormat(calculationValueFormat2))))));
+                    NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId2).WithName(calculationName2).WithValueFormat(calculationValueFormat2)),
+                    NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId3)),
+                    NewTemplateMappingCalculation(x => x.WithTemplateCalculationId(templateCalculationId4))))));
             TemplateCalculation templateCalculationOne = NewTemplateMappingCalculation(_ => _.WithName("template calculation 1"));
             TemplateCalculation templateCalculationTwo = NewTemplateMappingCalculation(_ => _.WithName("template calculation 2"));
 
@@ -450,6 +498,18 @@ namespace CalculateFunding.Services.Calcs.Services
                 .Returns(new OkObjectResult(null));
         }
 
+        private void AndTheMissingCalculationIsEditedForRequestMatching(Expression<Predicate<CalculationEditModel>> editModelMatching, string calculationId)
+        {
+            _calculationService.EditCalculation(Arg.Is(_specificationId),
+                Arg.Is(calculationId),
+                Arg.Is(editModelMatching),
+                Arg.Is<Reference>(_ => _.Id == _userId &&
+                                           _.Name == _userName),
+                Arg.Is(_correlationId),
+                Arg.Is(true))
+                .Returns(new OkObjectResult(null));
+        }
+
         private void ThenAnExceptionShouldBeThrownWithMessage(string expectedMessage)
         {
             Func<Task> invocation = WhenTheTemplateCalculationsAreApplied;
@@ -518,6 +578,12 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             _calculationsRepository.GetCalculationsBySpecificationId(_specificationId)
                 .Returns(calculations);
+        }
+
+        private void AndMissingCalculation(string calculationId, Calculation calculation)
+        {
+            _calculationsRepository.GetCalculationById(calculationId)
+                .Returns(calculation);
         }
 
         private void AndTheTemplateMappingWasUpdated(TemplateMapping templateMapping)

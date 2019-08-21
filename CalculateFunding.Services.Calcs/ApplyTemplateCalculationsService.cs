@@ -14,6 +14,7 @@ using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
+using Newtonsoft.Json;
 using Polly;
 using Serilog;
 using Calculation = CalculateFunding.Common.TemplateMetadata.Models.Calculation;
@@ -102,20 +103,27 @@ namespace CalculateFunding.Services.Calcs
                         $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId} and template version {templateVersion}");
 
                 TemplateMappingItem[] mappingsWithoutCalculations = templateMapping.TemplateMappingItems.Where(_ => _.CalculationId.IsNullOrWhitespace())
-                    .Select(_ => _)
-                    .ToArray();
-
-                TemplateMappingItem[] mappingsWithCalculations = templateMapping.TemplateMappingItems.Where(_ => !_.CalculationId.IsNullOrWhitespace())
-                    .Select(_ => _)
                     .ToArray();
 
                 IEnumerable<FundingLine> flattenedFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines)
                                                                  ?? new FundingLine[0];
 
-                int itemCount = flattenedFundingLines.Sum(_ =>
-                    _.Calculations.Count() + _.Calculations.Sum(
-                        cal => (cal.ReferenceData?.Count())
-                            .GetValueOrDefault()));
+                IEnumerable<Calculation> flattenedCalculations = flattenedFundingLines.SelectMany(_ => _.Calculations.Flatten(cal => cal.Calculations)) ?? new Calculation[0];
+
+                IEnumerable<Calculation> uniqueflattenedCalculations = flattenedCalculations.GroupBy(x => x.TemplateCalculationId).Select(x => x.First());
+
+                templateMapping.TemplateMappingItems.RemoveAll(mappingItem => IsMissingCalculation(specificationId,
+                        author,
+                        correlationId,
+                        mappingItem,
+                        templateMapping.TemplateMappingItems.Except(templateMapping.TemplateMappingItems.Where(item => flattenedCalculations.Any(calc => item.TemplateId == calc.TemplateCalculationId)))).GetAwaiter().GetResult());
+
+                TemplateMappingItem[] mappingsWithCalculations = templateMapping.TemplateMappingItems.Where(_ => !_.CalculationId.IsNullOrWhitespace())
+                    .ToArray();
+
+                int itemCount = uniqueflattenedCalculations?.Count() + uniqueflattenedCalculations?.Sum(
+                       cal => (cal.ReferenceData?.Count())
+                           .GetValueOrDefault()) ?? 0;
 
                 int startingItemCount = itemCount - mappingsWithoutCalculations.Length - mappingsWithCalculations.Length;
 
@@ -153,9 +161,9 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        private async Task EnsureAllExistingCalculationsModified(TemplateMappingItem[] mappingsWithCalculations, 
-            string specificationId, 
-            string correlationId, 
+        private async Task EnsureAllExistingCalculationsModified(TemplateMappingItem[] mappingsWithCalculations,
+            string specificationId,
+            string correlationId,
             Reference author,
             IEnumerable<FundingLine> flattenedFundingLines,
             IApplyTemplateCalculationsJobTracker jobTracker,
@@ -193,7 +201,7 @@ namespace CalculateFunding.Services.Calcs
 
                 IActionResult editCalculationResult = await _calculationService.EditCalculation(specificationId, mappingWithCalculations.CalculationId, calculationEditModel, author, correlationId);
 
-                if(!(editCalculationResult is OkObjectResult))
+                if (!(editCalculationResult is OkObjectResult))
                 {
                     LogAndThrowException("Unable to edit template calculation for template mapping");
                 }
@@ -224,6 +232,38 @@ namespace CalculateFunding.Services.Calcs
 
                 if ((calculationCount + 1) % 10 == 0) await jobTracker.NotifyProgress(startingItemCount + calculationCount);
             }
+        }
+
+        private async Task<bool> IsMissingCalculation(string specificationId, Reference author, string correlationId, TemplateMappingItem mapping, IEnumerable<TemplateMappingItem> missingMappings)
+        {
+            if (!missingMappings.IsNullOrEmpty() && mapping.CalculationId != null && missingMappings.Contains(mapping))
+            {
+                Models.Calcs.Calculation existingCalculation = await _calculationsRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationById(mapping.CalculationId));
+
+                if (existingCalculation != null)
+                {
+                    CalculationVersion calculationVersion = existingCalculation.Current.Clone() as CalculationVersion;
+
+                    CalculationEditModel calculationEditModel = new CalculationEditModel
+                    {
+                        Description = existingCalculation.Current.Description,
+                        SourceCode = existingCalculation.Current.SourceCode,
+                        Name = existingCalculation?.Current.Name,
+                        ValueType = existingCalculation?.Current.ValueType,
+                    };
+
+                    IActionResult editCalculationResult = await _calculationService.EditCalculation(specificationId, mapping.CalculationId, calculationEditModel, author, correlationId, true);
+
+                    if (!(editCalculationResult is OkObjectResult))
+                    {
+                        LogAndThrowException("Unable to edit template calculation for template mapping");
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private async Task InitiateCalculationRun(string specifiationId, Reference user, string correlationId)
