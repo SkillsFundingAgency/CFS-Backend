@@ -1,4 +1,7 @@
-﻿using CalculateFunding.Common.TemplateMetadata;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Models.Publishing;
@@ -8,12 +11,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -75,12 +72,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             List<PublishedProviderVersion> providerVersions = new List<PublishedProviderVersion>();
 
-            for(int i=1;i<=3; i++)
+            for (int i = 1; i <= 3; i++)
             {
                 providerVersions.Add(new PublishedProviderVersion
                 {
                     Provider = GetProvider(i),
-                    Calculations = JsonConvert.DeserializeObject<IEnumerable<FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
+                    FundingLines = JsonConvert.DeserializeObject<IEnumerable<Models.Publishing.FundingLine>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
                     FundingId = $"PSG-AY-1920-1234{i}-1_0",
                     ProviderId = "1234" + i,
                     FundingStreamId = "PSG",

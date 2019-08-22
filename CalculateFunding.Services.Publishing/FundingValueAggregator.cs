@@ -1,10 +1,7 @@
-﻿using CalculateFunding.Common.TemplateMetadata.Models;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Publishing;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using CalculateFunding.Common.TemplateMetadata.Models;
+using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -23,7 +20,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 Dictionary<uint, decimal> calculations = new Dictionary<uint, decimal>();
 
-                provider.Calculations?.ToList().ForEach(calculation => GetCalculation(calculations, calculation));
+                provider.FundingLines.ToList().ForEach(calc => calc.Calculations?.ToList().ForEach(calculation => GetCalculation(calculations, calculation)));
             });
 
             return templateMetadataContent.RootFundingLines?.Select(fundingLine => ToFundingLine(fundingLine));
@@ -34,7 +31,7 @@ namespace CalculateFunding.Services.Publishing
             if (decimal.TryParse(calculation.Value?.ToString(), out decimal value))
             {
                 // if the calculation for the current provider has not been added to the aggregated total then add it only once.
-                if(calculations.TryAdd(calculation.TemplateCalculationId, value))
+                if (calculations.TryAdd(calculation.TemplateCalculationId, value))
                 {
                     AggregateCalculation(calculation.TemplateCalculationId, value);
                 }
@@ -87,7 +84,8 @@ namespace CalculateFunding.Services.Publishing
                         }
                 }
 
-                return new AggregateFundingCalculation {
+                return new AggregateFundingCalculation
+                {
                     TemplateCalculationId = calculation.TemplateCalculationId,
                     Value = aggregateValue,
                     Calculations = calculation.Calculations?.Select(x => GetAggregateCalculation(x)).Where(x => x != null)

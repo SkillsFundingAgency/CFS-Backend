@@ -51,7 +51,20 @@ namespace CalculateFunding.Models.Publishing
         /// <summary>
         /// Profile periods for this funding line
         /// </summary>
-        [JsonProperty("profilePeriods")]
+        [JsonProperty("distributionPeriods")]
         public IEnumerable<DistributionPeriod> DistributionPeriods { get; set; }
+
+        /// <summary>
+        /// Funding Lines
+        /// </summary>
+        [JsonProperty("fundingLines")]
+        public IEnumerable<FundingLine> FundingLines { get; set; }
+
+        /// <summary>
+        /// Calculations that make up this funding line. 
+        /// Should only contain calculations which have been aggregated
+        /// </summary>
+        [JsonProperty("calculations")]
+        public IEnumerable<FundingCalculation> Calculations { get; set; }
     }
 }

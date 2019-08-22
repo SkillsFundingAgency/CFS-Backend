@@ -77,20 +77,6 @@ namespace CalculateFunding.Models.Publishing
         public IEnumerable<FundingLine> FundingLines { get; set; }
 
         /// <summary>
-        /// Calculations that make up this funding line. 
-        /// Should only contain calculations which have been aggregated
-        /// </summary>
-        [JsonProperty("calculations")]
-        public IEnumerable<FundingCalculation> Calculations { get; set; }
-
-        /// <summary>
-        /// Reference data that make up data for calculations.
-        /// Should only contain aggregated reference data
-        /// </summary>
-        [JsonProperty("referenceData")]
-        public IEnumerable<FundingReferenceData> ReferenceData { get; set; }
-
-        /// <summary>
         /// The provider funding version ID for all providers under this Organisation Group of funding.
         /// The ID refers to PublishedProviderVersion.Id when creating this PublishedFundingVersion
         /// </summary>
