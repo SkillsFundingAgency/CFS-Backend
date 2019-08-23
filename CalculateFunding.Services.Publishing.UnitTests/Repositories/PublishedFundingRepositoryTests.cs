@@ -63,6 +63,36 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         [TestMethod]
+        public async Task FetchesPublishedProvidersWithTheSuppliedSpecificationIdAndStatusOfUpdatedOrHeld()
+        {
+            string specificationId = new RandomString();
+
+            PublishedProvider firstExpectedPublishedProvider = NewPublishedProvider(_ =>
+                _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId)
+                    .WithPublishedProviderStatus(PublishedProviderStatus.Held))));
+            PublishedProvider secondExpectedPublishedProvider = NewPublishedProvider(_ =>
+                _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId)
+                    .WithPublishedProviderStatus(PublishedProviderStatus.Updated))));
+
+            GivenThePublishedProviders(NewPublishedProvider(),
+                firstExpectedPublishedProvider,
+                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv =>
+                    ppv.WithSpecificationId(specificationId)
+                        .WithPublishedProviderStatus(PublishedProviderStatus.Approved)))),
+                NewPublishedProvider(),
+                secondExpectedPublishedProvider,
+                NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(ppv =>
+                    ppv.WithSpecificationId(specificationId)
+                        .WithPublishedProviderStatus(PublishedProviderStatus.Released)))));
+
+            IEnumerable<PublishedProvider> matches = await _repository.GetPublishedProvidersForApproval(specificationId);
+
+            matches
+                .Should()
+                .BeEquivalentTo(firstExpectedPublishedProvider, secondExpectedPublishedProvider);
+        }
+
+        [TestMethod]
         public async Task FetchesPublishedProvidersWithTheSuppliedSpecificationId()
         {
             string specificationId = new RandomString();
@@ -79,7 +109,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 secondExpectedPublishedProvider,
                 NewPublishedProvider());
 
-            var matches = await _repository.GetLatestPublishedProvidersBySpecification(specificationId);
+            IEnumerable<PublishedProvider> matches = await _repository.GetLatestPublishedProvidersBySpecification(specificationId);
 
             matches
                 .Should()

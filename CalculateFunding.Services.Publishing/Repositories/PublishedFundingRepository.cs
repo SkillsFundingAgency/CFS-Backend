@@ -21,6 +21,16 @@ namespace CalculateFunding.Services.Publishing.Repositories
             _repository = cosmosRepository;
         }
 
+        public Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(
+            string specificationId)
+        {
+            return Task.FromResult(_repository.Query<PublishedProvider>(true)
+                .Where(_ => _.Current.SpecificationId == specificationId &&
+                            (_.Current.Status == PublishedProviderStatus.Held ||
+                             _.Current.Status == PublishedProviderStatus.Updated))
+                .AsEnumerable());
+        }
+
         public Task<IEnumerable<PublishedProvider>> GetLatestPublishedProvidersBySpecification(
             string specificationId)
         {
@@ -37,7 +47,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             {
                 Name = nameof(PublishedFundingRepository)
             };
-            
+
             health.Dependencies.Add(new DependencyHealth
             {
                 HealthOk = cosmosRepoHealth.Ok,
@@ -59,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(version, nameof(version));
 
 
-            var id = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}-{version}";
+            string id = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}-{version}";
 
             return (await _repository.ReadAsync<PublishedProviderVersion>(id, true))?.Content;
         }

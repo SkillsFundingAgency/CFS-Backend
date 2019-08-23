@@ -15,5 +15,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
                 string fundingPeriodId,
                 string providerId,
                 string version);
+
+        Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(
+            string specificationId);
     }
 }
