@@ -173,7 +173,8 @@ namespace CalculateFunding.Services.Calcs
                                     c.content.current.calculationType as CalculationType,
                                     c.content.current.namespace as Namespace,
                                     c.content.current.wasTemplateCalculation as WasTemplateCalculation,
-                                    c.content.current.description as Description
+                                    c.content.current.description as Description,
+                                    c.content.current.publishStatus as PublishStatus
                                     FROM c 
                                     WHERE c.content.specificationId = @SpecificationId",
                 Parameters = new SqlParameterCollection

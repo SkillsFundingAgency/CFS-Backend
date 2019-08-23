@@ -3,35 +3,56 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class CalculationPrerequisiteCheckerService : ICalculationPrerequisiteCheckerService
     {
         private readonly ICalculationsApiClient _calcsApiClient;
+        private readonly ILogger _logger;
+        private readonly Policy _policy;
 
-        public CalculationPrerequisiteCheckerService(ICalculationsApiClient calculationsApiClient, IPublishingResiliencePolicies publishingResiliencePolicies)
+        public CalculationPrerequisiteCheckerService(ICalculationsApiClient calculationsApiClient, 
+            IPublishingResiliencePolicies publishingResiliencePolicies, 
+            ILogger logger)
         {
+            Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
+            Guard.ArgumentNotNull(publishingResiliencePolicies?.CalculationsApiClient, nameof(publishingResiliencePolicies.CalculationsApiClient));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            
             _calcsApiClient = calculationsApiClient;
+            _policy = publishingResiliencePolicies.CalculationsApiClient;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<string>> VerifyCalculationPrerequisites(SpecificationSummary specification)
         {
             List<string> validationErrors = new List<string>();
-            // TODO: Check all calculations are approved
-            var calcsResult = await _calcsApiClient.GetCalculations(specification.Id);
-            foreach (var calc in calcsResult.Content)
+
+            string specificationId = specification.Id;
+            
+            ApiResponse<IEnumerable<CalculationMetadata>> calculationsResponse = await _policy.ExecuteAsync(() =>  _calcsApiClient.GetCalculations(specificationId));
+
+            if (calculationsResponse?.Content == null)
             {
-                // TODO: Add approval status to calculation
+                LogErrorAndThrow($"Did locate any calculation metadata for specification {specificationId}. Unable to complete prerequisite checks");   
             }
+            
+            validationErrors.AddRange(calculationsResponse?.Content.Where(_ => _.PublishStatus != PublishStatus.Approved)
+                .Select(_ => $"Calculation {_.Name} must be approved but is {_.PublishStatus}"));
 
             // TOOO: Check all template calculations are mapped to calculations
 
             foreach (var fundingStream in specification.FundingStreams)
             {
-                var templateMappingResponse = await _calcsApiClient.GetTemplateMapping(specification.Id, fundingStream.Id);
+                var templateMappingResponse = await _calcsApiClient.GetTemplateMapping(specificationId, fundingStream.Id);
 
                 foreach (var calcInError in templateMappingResponse.Content.TemplateMappingItems.Where(c => string.IsNullOrWhiteSpace(c.CalculationId)))
                 {
@@ -40,7 +61,13 @@ namespace CalculateFunding.Services.Publishing
             }
 
             return validationErrors;
-            throw new NotImplementedException();
+        }
+
+        private void LogErrorAndThrow(string message)
+        {
+            _logger.Error(message);
+            
+            throw new Exception(message);
         }
     }
 }

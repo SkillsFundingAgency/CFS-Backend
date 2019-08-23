@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Calcs
+﻿using CalculateFunding.Models.Versioning;
+
+namespace CalculateFunding.Models.Calcs
 {
     public class CalculationMetadata
     {
@@ -21,5 +23,7 @@
         public string SpecificationId { get; set; }
 
         public string FundingStreamId { get; set; }
+        
+        public PublishStatus PublishStatus { get; set; }
     }
 }

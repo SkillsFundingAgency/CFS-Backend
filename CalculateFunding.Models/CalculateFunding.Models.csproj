@@ -20,7 +20,7 @@
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.6" />
     <PackageReference Include="Microsoft.Azure.Search" Version="5.0.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
-	<PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="1.0.6" />
+	<PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="1.0.9" />
   </ItemGroup>
 
 </Project>
