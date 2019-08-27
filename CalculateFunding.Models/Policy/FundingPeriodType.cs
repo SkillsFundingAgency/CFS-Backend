@@ -13,6 +13,11 @@ namespace CalculateFunding.Models.Policy
         /// An academic year (early September till end of July).
         /// </summary>
         AY,
+        
+        /// <summary>
+        /// An Academy year.
+        /// </summary>
+        AC,
 
         /// <summary>
         /// A financial year (1 April to 31 March).
