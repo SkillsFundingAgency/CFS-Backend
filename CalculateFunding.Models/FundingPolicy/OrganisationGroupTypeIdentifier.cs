@@ -5,7 +5,7 @@ using Newtonsoft.Json.Converters;
 namespace CalculateFunding.Models.FundingPolicy
 {
     /// <summary>
-    /// Valid list of the different unique ways to identifier an organisation.
+    /// Valid list of organisation group types.
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
     public enum OrganisationGroupTypeIdentifier

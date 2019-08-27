@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing
             foreach (Common.ApiClient.Providers.Models.Provider provider in scopedProviders)
             {
                 ProviderCalculationResult calculationResultsForProvider = calculationResults.FirstOrDefault(p => p.ProviderId == provider.ProviderId);
-                IEnumerable<Models.Publishing.FundingLine> fundingLinesTotals = _fundingLineTotalAggregator.GenerateTotals(templateMetadata, calculationResultsForProvider.Results);
+                IEnumerable<Models.Publishing.FundingLine> fundingLinesTotals = _fundingLineTotalAggregator.GenerateTotals(templateMetadata, templateMapping, calculationResultsForProvider.Results);
 
                 fundingLines[provider.ProviderId] = fundingLinesTotals;
             }

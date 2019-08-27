@@ -8,5 +8,6 @@ namespace CalculateFunding.Models.FundingPolicy
     {
         Payment,
         Information,
+        Contracting,
     }
 }

@@ -1,25 +1,21 @@
-﻿using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.FundingPolicy
 {
     public class OrganisationGroupingConfiguration
     {
-        /// <summary>
-        /// Grouping organisation 
-        /// </summary>
-        [EnumDataType(typeof(OrganisationGroupTypeIdentifier))]
-        [JsonProperty("identifierType")]
-        public OrganisationGroupTypeIdentifier IdentifierType { get; set; }
+        [JsonProperty("groupTypeIdentifier")]
+        public OrganisationGroupTypeIdentifier GroupTypeIdentifier { get; set; }
 
-        [EnumDataType(typeof(GroupingReason))]
         [JsonProperty("groupingReason")]
         public GroupingReason GroupingReason { get; set; }
 
-        [EnumDataType(typeof(OrganisationGroupingType))]
-        [JsonProperty("organisationGroupingType")]
-        public OrganisationGroupingType OrganisationGroupingType { get; set; }
+        [JsonProperty("groupTypeClassification")]
+        public OrganisationGroupTypeClassification GroupTypeClassification { get; set; }
+
+        [JsonProperty("organisationGroupTypeCode")]
+        public OrganisationGroupTypeCode OrganisationGroupTypeCode { get; set; }
 
         [JsonProperty("providerTypeMatch")]
         public IEnumerable<ProviderTypeMatch> ProviderTypeMatch { get; set; }

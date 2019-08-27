@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IFundingLineTotalAggregator
     {
-        IEnumerable<Models.Publishing.FundingLine> GenerateTotals(TemplateMetadataContents templateMetadataContents, IEnumerable<CalculationResult> calculationResults);
+        IEnumerable<Models.Publishing.FundingLine> GenerateTotals(TemplateMetadataContents templateMetadataContents, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<CalculationResult> calculationResults);
     }
 }

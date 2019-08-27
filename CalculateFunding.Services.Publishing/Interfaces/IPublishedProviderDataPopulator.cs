@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
@@ -12,10 +11,8 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         /// </summary>
         /// <param name="publishedProviderVersion">Published Provider Version</param>
         /// <param name="fundingLines">Funding lines and profiling information</param>
-        /// <param name="templateMetadataContents">Template Metadata Contents</param>
-        /// <param name="calculationResults">Calculation Results</param>
         /// <param name="provider">Core provider information</param>
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
-        bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion, IEnumerable<Models.Publishing.FundingLine> fundingLines, TemplateMetadataContents templateMetadataContents, IEnumerable<CalculationResult> calculationResults, Common.ApiClient.Providers.Models.Provider provider);
+        bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion, IEnumerable<Models.Publishing.FundingLine> fundingLines, Common.ApiClient.Providers.Models.Provider provider);
     }
 }

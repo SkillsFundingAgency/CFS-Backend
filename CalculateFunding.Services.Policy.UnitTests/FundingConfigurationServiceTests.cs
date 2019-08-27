@@ -409,8 +409,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
                     new OrganisationGroupingConfiguration
                     {
                         GroupingReason = GroupingReason.Payment,
-                        IdentifierType = OrganisationGroupTypeIdentifier.LACode,
-                        OrganisationGroupingType = OrganisationGroupingType.UKPRN,
+                        GroupTypeIdentifier = OrganisationGroupTypeIdentifier.LACode,
+                        GroupTypeClassification =  OrganisationGroupTypeClassification.LegalEntity,
+                        OrganisationGroupTypeCode = OrganisationGroupTypeCode.LocalAuthority,
                         ProviderTypeMatch = new[]
                         {
                             new ProviderTypeMatch
