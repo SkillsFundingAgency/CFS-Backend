@@ -52,9 +52,9 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (var fundingStream in specification.FundingStreams)
             {
-                var templateMappingResponse = await _calcsApiClient.GetTemplateMapping(specificationId, fundingStream.Id);
+                ApiResponse<TemplateMapping> templateMappingResponse = await _calcsApiClient.GetTemplateMapping(specificationId, fundingStream.Id);
 
-                foreach (var calcInError in templateMappingResponse.Content.TemplateMappingItems.Where(c => string.IsNullOrWhiteSpace(c.CalculationId)))
+                foreach (TemplateMappingItem calcInError in templateMappingResponse.Content.TemplateMappingItems.Where(c => string.IsNullOrWhiteSpace(c.CalculationId)))
                 {
                     validationErrors.Add($"{calcInError.EntityType} {calcInError.Name} is not mapped to a calculation in CFS");
                 }

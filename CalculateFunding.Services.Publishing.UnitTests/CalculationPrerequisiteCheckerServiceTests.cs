@@ -56,6 +56,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new RandomString();
         }
 
+        private static TEnum NewRandomEnum<TEnum>() where TEnum : struct
+        {
+            return new RandomEnum<TEnum>();
+        }
+
         [TestMethod]
         public async Task CollectsDetailsOfUnapprovedCalculationsAsValidationErrors()
         {
@@ -88,18 +93,63 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 });
         }
 
+        [TestMethod]
+        public async Task CollectDetailsOfNotMappedTemplateCalculationsAsValidationErrors()
+        {
+            CalculationMetadata calculation2 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved));
+            CalculationMetadata calculation4 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved));
+            CalculationMetadata calculation5 = NewApiCalculation(_ => _.WithPublishStatus(PublishStatus.Approved));
+
+            string specificationId = NewRandomString();
+            string fundingStreamId = NewRandomString();
+            string templateMappingItemName1 = NewRandomString();
+
+            TemplateMappingEntityType templateMappingEntityType1 = NewRandomEnum<TemplateMappingEntityType>();
+
+            GivenTheCalculationsForTheSpecificationId(specificationId,
+                calculation2,
+                calculation4,
+                calculation5);
+
+            TemplateMapping templateMapping = NewTemplateMapping(_ => _.WithItems(
+                NewTemplateMappingItem(mi => mi.WithCalculationId(string.Empty).WithEntityType(templateMappingEntityType1).WithName(templateMappingItemName1)),
+                NewTemplateMappingItem(mi => mi.WithCalculationId(NewRandomString()))));
+
+            GivenTheTemplateMappingForTheSpecificationIdAndFundingStreamId(specificationId, fundingStreamId, templateMapping);
+
+            FundingStream[] fundingStreams = new FundingStream[]
+            {
+                new FundingStream{Id = fundingStreamId}
+            };
+
+            await WhenThePreRequisitesAreChecked(specificationId, fundingStreams);
+
+            _validationErrors
+                .Should()
+                .Contain(new[]
+                {
+                    $"{templateMappingEntityType1} {templateMappingItemName1} is not mapped to a calculation in CFS"
+                });
+        }
+
         private void GivenTheCalculationsForTheSpecificationId(string specificationId, params CalculationMetadata[] calculations)
         {
             _calculationsApiClient.GetCalculations(specificationId)
                 .Returns(new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.OK, calculations));
         }
 
-        private async Task WhenThePreRequisitesAreChecked(string specificationId)
+        private void GivenTheTemplateMappingForTheSpecificationIdAndFundingStreamId(string specificationId, string fundingStreamId, TemplateMapping templateMapping)
+        {
+            _calculationsApiClient.GetTemplateMapping(specificationId, fundingStreamId)
+                .Returns(new ApiResponse<TemplateMapping>(HttpStatusCode.OK, templateMapping));
+        }
+
+        private async Task WhenThePreRequisitesAreChecked(string specificationId, FundingStream[] fundingStreams = null)
         {
             _validationErrors = await _prerequisites.VerifyCalculationPrerequisites(new SpecificationSummary
             {
                 Id = specificationId,
-                FundingStreams = new FundingStream[0]
+                FundingStreams = fundingStreams ?? new FundingStream[0]
             });
         }
 
@@ -111,5 +161,25 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return calculationMetadataBuilder.Build();
         }
+
+        protected static TemplateMapping NewTemplateMapping(Action<TemplateMappingBuilder> setUp = null)
+        {
+            TemplateMappingBuilder templateMappingBuilder = new TemplateMappingBuilder();
+
+            setUp?.Invoke(templateMappingBuilder);
+
+            return templateMappingBuilder.Build();
+        }
+
+        protected static TemplateMappingItem NewTemplateMappingItem(Action<TemplateMappingItemBuilder> setUp = null)
+        {
+            TemplateMappingItemBuilder templateMappingItemBuilder = new TemplateMappingItemBuilder();
+
+            setUp?.Invoke(templateMappingItemBuilder);
+
+            return templateMappingItemBuilder.Build();
+        }
+
+
     }
 }
