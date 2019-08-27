@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing
 {
     public class ApproveService : IApproveService
     {
-        private readonly IApproveResultsJobTracker _jobTracker;
+        private readonly IJobTracker _jobTracker;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly Policy _publishingResiliencePolicy;
@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             ISpecificationService specificationService, 
-            IApproveResultsJobTracker jobTracker)
+            IJobTracker jobTracker)
         {
             Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
@@ -60,22 +60,22 @@ namespace CalculateFunding.Services.Publishing
             
             Guard.IsNullOrWhiteSpace(jobId, nameof(jobId));
 
-            if (!(await _jobTracker.TryStartTrackingJob(jobId)))
+            if (!await _jobTracker.TryStartTrackingJob(jobId, "ApproveResults"))
             {
                 return;
             }
             
             Reference author = message.GetUserDetails();
 
-            string specificationId = "";
+            string specificationId = message.GetUserProperty<string>("specification-id");
 
             IEnumerable<PublishedProvider> publishedProviders =
-                await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
+                await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingRepository.GetPublishedProvidersForApproval(specificationId));
 
             if (publishedProviders.IsNullOrEmpty())
-                throw new RetriableException($"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to approved.");
+                throw new RetriableException($"Null or empty published providers returned for specification id : '{specificationId}' when setting status to approved.");
 
-            await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved);
+            await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Approved, jobId);
 
             await _jobTracker.CompleteTrackingJob(jobId);
         }

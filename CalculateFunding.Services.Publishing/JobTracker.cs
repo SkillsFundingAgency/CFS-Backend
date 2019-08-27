@@ -10,13 +10,13 @@ using Serilog;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class ApproveResultsJobTracker : IApproveResultsJobTracker
+    public class JobTracker : IJobTracker
     {
         private readonly IJobsApiClient _jobs;
         private readonly Policy _resiliencePolicy;
         private readonly ILogger _logger;
 
-        public ApproveResultsJobTracker(IJobsApiClient jobs,
+        public JobTracker(IJobsApiClient jobs,
             IPublishingResiliencePolicies resiliencePolicies,
             ILogger logger)
         {
@@ -29,8 +29,7 @@ namespace CalculateFunding.Services.Publishing
             _logger = logger;
         }
 
-
-        public async Task<bool> TryStartTrackingJob(string jobId)
+        public async Task<bool> TryStartTrackingJob(string jobId, string jobType)
         {
             ApiResponse<JobViewModel> jobResponse = await _resiliencePolicy.ExecuteAsync(() => _jobs.GetJobById(jobId));
 
@@ -47,7 +46,8 @@ namespace CalculateFunding.Services.Publishing
 
             if (applyTemplateCalculationsJob.CompletionStatus.HasValue)
             {
-                _logger.Information("ApproveResults job with id: '{0}' is already  in a completed state with status {1}",
+                _logger.Information("{0} job with id: '{1}' is already  in a completed state with status {2}",
+                    jobType,
                     applyTemplateCalculationsJob.Id,
                     applyTemplateCalculationsJob.CompletionStatus.Value.ToString());
 
@@ -72,6 +72,23 @@ namespace CalculateFunding.Services.Publishing
                 ItemsProcessed = 0,
                 ItemsSucceeded = 0,
                 ItemsFailed = 0
+            }, jobId);
+        }
+
+        public async Task NotifyProgress(int itemCount, string jobId)
+        {
+            await AddJobLog(new JobLogUpdateModel
+            {
+                ItemsProcessed = itemCount,
+            }, jobId);
+        }
+
+        public async Task FailJob(string outcome, string jobId)
+        {
+            await AddJobLog(new JobLogUpdateModel
+            {
+                CompletedSuccessfully = false,
+                Outcome = outcome
             }, jobId);
         }
 

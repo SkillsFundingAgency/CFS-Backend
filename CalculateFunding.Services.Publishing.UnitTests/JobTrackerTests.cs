@@ -16,13 +16,13 @@ using Serilog;
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
-    public class ApproveResultsJobTrackerTests
+    public class JobTrackerTests
     {
         private IJobsApiClient _jobs;
         private JobViewModel _job;
         private string _jobId;
 
-        private ApproveResultsJobTracker _tracker;
+        private JobTracker _tracker;
 
         [TestInitialize]
         public void SetUp()
@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _jobs = Substitute.For<IJobsApiClient>();
             _jobId = NewRandomString();
 
-            _tracker = new ApproveResultsJobTracker(_jobs,
+            _tracker = new JobTracker(_jobs,
                 new ResiliencePolicies
                 {
                     JobsApiClient = Policy.NoOpAsync()
@@ -96,6 +96,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                               _.ItemsSucceeded == 0 &&
                                               _.ItemsProcessed == 0);
         }
+        
+        [TestMethod]
+        public async Task NotifyProgressAddJoLogWithSuppliedItemCount()
+        {
+            int expectedItemCount = NewRandomNumber();
+
+            await _tracker.NotifyProgress(expectedItemCount, _jobId);
+
+            AndTheJobWasAddedForTheJobId(_ => _.Outcome.IsNullOrWhitespace() &&
+                                              _.CompletedSuccessfully == null &&
+                                              _.ItemsFailed == null &&
+                                              _.ItemsSucceeded == null &&
+                                              _.ItemsProcessed == expectedItemCount);
+        }
+
+        [TestMethod]
+        public async Task FailJobSendsJobLogWithSuppliedOutcomeAndFailedFlag()
+        {
+            string expectedOutcome = NewRandomString();
+
+            await _tracker.FailJob(expectedOutcome, _jobId);
+
+            AndTheJobWasAddedForTheJobId(_ => _.Outcome == expectedOutcome &&
+                                              _.CompletedSuccessfully == false &&
+                                              _.ItemsFailed == null &&
+                                              _.ItemsSucceeded == null &&
+                                              _.ItemsProcessed == null);
+        }
 
         private static RandomNumberBetween NewRandomNumber()
         {
@@ -109,7 +137,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private async Task<bool> WhenTheJobTrackingIsStarted()
         {
-            return await _tracker.TryStartTrackingJob(_jobId);
+            return await _tracker.TryStartTrackingJob(_jobId, "ApproveJob");
         }
 
         private void GivenTheJobForTheJobId(Action<JobViewModelBuilder> setUp = null)

@@ -15,16 +15,21 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishedProviderStatusUpdateService : IPublishedProviderStatusUpdateService, IHealthChecker
     {
+        private readonly IJobTracker _jobTracker;
         private readonly IPublishedProviderVersioningService _publishedProviderVersioningService;
         private readonly ILogger _logger;
 
-        public PublishedProviderStatusUpdateService(IPublishedProviderVersioningService publishedProviderVersioningService, ILogger logger)
+        public PublishedProviderStatusUpdateService(IPublishedProviderVersioningService publishedProviderVersioningService,
+            IJobTracker jobTracker,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(publishedProviderVersioningService, nameof(publishedProviderVersioningService));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
 
             _publishedProviderVersioningService = publishedProviderVersioningService;
             _logger = logger;
+            _jobTracker = jobTracker;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -41,7 +46,10 @@ namespace CalculateFunding.Services.Publishing
             return health;
         }
 
-        public async Task UpdatePublishedProviderStatus(IEnumerable<PublishedProvider> publishedProviders, Reference author, PublishedProviderStatus publishedProviderStatus)
+        public async Task UpdatePublishedProviderStatus(IEnumerable<PublishedProvider> publishedProviders, 
+            Reference author, 
+            PublishedProviderStatus publishedProviderStatus, 
+            string jobId = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
             Guard.ArgumentNotNull(author, nameof(author));
@@ -51,13 +59,50 @@ namespace CalculateFunding.Services.Publishing
 
             if (publishedProviderCreateVersionRequests.IsNullOrEmpty())
             {
-                string errorMessage = "No published providers were assemebled for updating.";
+                string errorMessage = "No published providers were assembled for updating.";
 
                 _logger.Error(errorMessage);
 
                 throw new NonRetriableException(errorMessage);
             }
 
+            bool shouldNotifyProgress = !jobId.IsNullOrWhitespace();
+            
+            if (shouldNotifyProgress)
+            {
+                await CreatePublishedProviderVersionsInBatches(publishedProviderStatus, publishedProviderCreateVersionRequests.ToList(), jobId);
+            }
+            else
+            {
+                await CreateLatestPublishedProviderVersions(publishedProviderStatus, publishedProviderCreateVersionRequests);  
+            }
+        }
+
+        private async Task CreatePublishedProviderVersionsInBatches(PublishedProviderStatus publishedProviderStatus, 
+            List<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests,
+            string jobId)
+        {
+            const int batchSize = 200;
+            int currentCount = 0;
+            int total = publishedProviderCreateVersionRequests.Count;
+
+            while (currentCount < total)
+            {
+                IEnumerable<PublishedProviderCreateVersionRequest> batch = publishedProviderCreateVersionRequests
+                    .Skip(currentCount)
+                    .Take(batchSize);
+
+                await CreateLatestPublishedProviderVersions(publishedProviderStatus, batch);
+
+                currentCount += batchSize;
+
+                await _jobTracker.NotifyProgress(Math.Min(currentCount, total), jobId);
+            }
+        }
+
+        private async Task CreateLatestPublishedProviderVersions(PublishedProviderStatus publishedProviderStatus, 
+            IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests)
+        {
             IEnumerable<PublishedProvider> updatedPublishedProviders = await CreateVersions(publishedProviderCreateVersionRequests, publishedProviderStatus);
 
             if (updatedPublishedProviders.Any())
