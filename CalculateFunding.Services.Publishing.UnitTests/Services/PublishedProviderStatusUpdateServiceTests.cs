@@ -288,7 +288,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             return new PublishedProviderStatusUpdateService(
                     publishedProviderVersioningService ?? CreateVersioningService(),
                     jobTracker ?? CreateJobTracker(),
-                    logger ?? CreateLogger()
+                    logger ?? CreateLogger(),
+                    new PublishedProviderStatusUpdateSettings()
                 );
         }
 

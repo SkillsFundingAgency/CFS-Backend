@@ -105,6 +105,17 @@ namespace CalculateFunding.Functions.Publishing
                 .AddSingleton<IHealthChecker, PublishedProviderStatusUpdateService>();
 
             builder
+                .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
+                    {
+                        PublishedProviderStatusUpdateSettings settings = new PublishedProviderStatusUpdateSettings();
+
+                        config.Bind("PublishedProviderStatusUpdateSettings", settings);
+
+                        return settings;
+                    }
+                );
+
+            builder
                .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                {
                    AzureStorageSettings storageSettings = new AzureStorageSettings();

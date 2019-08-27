@@ -15,20 +15,24 @@ namespace CalculateFunding.Services.Publishing
 {
     public class PublishedProviderStatusUpdateService : IPublishedProviderStatusUpdateService, IHealthChecker
     {
+        private readonly IPublishedProviderStatusUpdateSettings _settings;
         private readonly IJobTracker _jobTracker;
         private readonly IPublishedProviderVersioningService _publishedProviderVersioningService;
         private readonly ILogger _logger;
 
         public PublishedProviderStatusUpdateService(IPublishedProviderVersioningService publishedProviderVersioningService,
             IJobTracker jobTracker,
-            ILogger logger)
+            ILogger logger, 
+            IPublishedProviderStatusUpdateSettings settings)
         {
             Guard.ArgumentNotNull(publishedProviderVersioningService, nameof(publishedProviderVersioningService));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
+            Guard.ArgumentNotNull(settings, nameof(settings));
 
             _publishedProviderVersioningService = publishedProviderVersioningService;
             _logger = logger;
+            _settings = settings;
             _jobTracker = jobTracker;
         }
 
@@ -82,7 +86,7 @@ namespace CalculateFunding.Services.Publishing
             List<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests,
             string jobId)
         {
-            const int batchSize = 200;
+            int batchSize = _settings.BatchSize;
             int currentCount = 0;
             int total = publishedProviderCreateVersionRequests.Count;
 
