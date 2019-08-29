@@ -22,18 +22,6 @@ namespace CalculateFunding.Api.External.UnitTests
             // Act
             target.ConfigureServices(Services);
 
-            // Assert v1
-            ResolveType<V1.Controllers.AllocationsController>().Should().NotBeNull(nameof(V1.Controllers.AllocationsController));
-            ResolveType<V1.Controllers.AllocationNotificationsController>().Should().NotBeNull(nameof(V1.Controllers.AllocationNotificationsController));
-            ResolveType<V1.Controllers.FundingStreamController>().Should().NotBeNull(nameof(V1.Controllers.FundingStreamController));
-            ResolveType<V1.Controllers.TimePeriodsController>().Should().NotBeNull(nameof(V1.Controllers.TimePeriodsController));
-
-            // Assert v2
-            ResolveType<V2.Controllers.AllocationsController>().Should().NotBeNull(nameof(V2.Controllers.AllocationsController));
-            ResolveType<V2.Controllers.AllocationNotificationsController>().Should().NotBeNull(nameof(V2.Controllers.AllocationNotificationsController));
-            ResolveType<V2.Controllers.FundingStreamController>().Should().NotBeNull(nameof(V2.Controllers.FundingStreamController));
-            ResolveType<V2.Controllers.TimePeriodsController>().Should().NotBeNull(nameof(V2.Controllers.TimePeriodsController));
-
             // Assert v3
             ResolveType<V3.Controllers.FundingFeedController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedController));
             ResolveType<V3.Controllers.FundingFeedItemController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedItemController));

@@ -10,10 +10,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="V1\Models\ProviderFundingStreamResult.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="StoreExport\allocation-lines.csv" />
     <None Remove="StoreExport\budgets.csv" />
     <None Remove="StoreExport\periods.csv" />
@@ -31,7 +27,6 @@
     <None Remove="StoreExport\sbs-sparsity.csv" />
     <None Remove="StoreExport\sbs-split-sites.csv" />
     <None Remove="StoreExport\sbs-totals.csv" />
-    <None Remove="Swagger\DocsTopContents.v2.md" />
     <None Remove="Swagger\DocsTopContents.v3.md" />
     <None Remove="Swagger\Helpers\DocsTopContents.txt" />
   </ItemGroup>
@@ -55,12 +50,6 @@
     <EmbeddedResource Include="StoreExport\sbs-split-sites.csv" />
     <EmbeddedResource Include="StoreExport\sbs-totals.csv" />
     <Content Include="Swagger\DocsTopContents.v3.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Swagger\DocsTopContents.v2.md">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Swagger\DocsTopContents.v1.md">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -95,21 +84,6 @@
     <Reference Include="CsvHelper">
       <HintPath>..\..\..\..\.nuget\packages\csvhelper\6.1.0\lib\netstandard2.0\CsvHelper.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

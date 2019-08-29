@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using AutoMapper;
-using CalculateFunding.Api.External.MappingProfiles;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Common.Caching;
@@ -147,26 +146,6 @@ namespace CalculateFunding.Api.External
         {
             builder.AddFeatureToggling(Configuration);
 
-            // Register v1 services
-            builder
-               .AddSingleton<V1.Interfaces.IAllocationNotificationFeedsService, V1.Services.AllocationNotificationFeedsService>();
-            builder
-                .AddSingleton<V1.Interfaces.IAllocationsService, V1.Services.AllocationsService>();
-            builder
-                .AddSingleton<V1.Interfaces.ITimePeriodsService, V1.Services.TimePeriodsService>();
-            builder
-                .AddSingleton<V1.Interfaces.IFundingStreamService, V1.Services.FundingStreamService>();
-
-            // Register v2 services
-            builder
-                .AddSingleton<V2.Interfaces.IAllocationNotificationFeedsService, V2.Services.AllocationNotificationFeedsService>();
-            builder
-                .AddSingleton<V2.Interfaces.IAllocationsService, V2.Services.AllocationsService>();
-            builder
-                .AddSingleton<V2.Interfaces.ITimePeriodsService, V2.Services.TimePeriodsService>();
-            builder
-                .AddSingleton<V2.Interfaces.IFundingStreamService, V2.Services.FundingStreamService>();
-
             // Register v3 services
             builder
                 .AddSingleton<V3.Interfaces.IFundingFeedService, V3.Services.FundingFeedService>();
@@ -238,7 +217,6 @@ namespace CalculateFunding.Api.External
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<DatasetsMappingProfile>();
-                c.AddProfile<ExternalApiMappingProfile>();
             });
 
             builder
