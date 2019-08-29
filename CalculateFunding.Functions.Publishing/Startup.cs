@@ -164,7 +164,10 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IInScopePublishedProviderService, InScopePublishedProviderService>();
 
-            builder.AddSingleton(new MapperConfiguration(_ => _.AddProfile<ProviderMappingProfilePublishing>()).CreateMapper());
+            builder.AddSingleton(new MapperConfiguration(_ => {
+                _.AddProfile<ProviderMappingProfilePublishing>();
+                _.AddProfile<GeneratorsMappingProfile>();
+            }).CreateMapper());
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
 

@@ -15,7 +15,7 @@ using Serilog;
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
-    public class FundingValueAggregatorTest
+    public class FundingValueAggregatorTests
     {
         [TestMethod]
         public void GetTotals_GivenValidPublishedProviderVersions_ReturnsFundingLines()
@@ -77,7 +77,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 providerVersions.Add(new PublishedProviderVersion
                 {
                     Provider = GetProvider(i),
-                    FundingLines = JsonConvert.DeserializeObject<IEnumerable<Models.Publishing.FundingLine>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
+                    Calculations = JsonConvert.DeserializeObject<IEnumerable<Models.Publishing.FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
                     FundingId = $"PSG-AY-1920-1234{i}-1_0",
                     ProviderId = "1234" + i,
                     FundingStreamId = "PSG",
@@ -139,7 +139,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         public string GetResourceString(string resourceName)
         {
-            return typeof(FundingValueAggregatorTest)
+            return typeof(FundingValueAggregatorTests)
                 .Assembly
                 .GetEmbeddedResourceFileContents(resourceName);
         }

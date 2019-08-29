@@ -1,0 +1,34 @@
+[
+  {
+    "type": "Cash",
+    "aggregationType": "None",
+    "formulaText": "",
+    "templateCalculationId": 1,
+    "value": 0,
+    "calculations": [
+      {
+        "name": "Sub calc to test calcs under calcs set to aggregates",
+        "type": "PupilNumber",
+        "aggregationType": "Sum",
+        "formulaText": "",
+        "templateCalculationId": 2,
+        "value": 378373,
+        "valueFormat": "Number"
+      }
+    ]
+  },
+  {
+    "type": "Rate",
+    "aggregationType": "Average",
+    "formulaText": "",
+    "templateCalculationId": 3,
+    "value": 257.324569
+  },
+  {
+    "type": "Weighting",
+    "aggregationType": "Average",
+    "formulaText": "",
+    "templateCalculationId": 4,
+    "value": 26
+  }
+]

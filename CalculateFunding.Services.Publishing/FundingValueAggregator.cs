@@ -20,7 +20,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 Dictionary<uint, decimal> calculations = new Dictionary<uint, decimal>();
 
-                provider.FundingLines.ToList().ForEach(calc => calc.Calculations?.ToList().ForEach(calculation => GetCalculation(calculations, calculation)));
+                provider.Calculations?.ToList().ForEach(calculation => GetCalculation(calculations, calculation));
             });
 
             return templateMetadataContent.RootFundingLines?.Select(fundingLine => ToFundingLine(fundingLine));

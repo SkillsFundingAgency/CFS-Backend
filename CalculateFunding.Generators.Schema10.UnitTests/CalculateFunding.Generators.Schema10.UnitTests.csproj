@@ -11,6 +11,7 @@
   <ItemGroup>
     <None Remove="Resources\exampleProviderOutput1.json" />
     <None Remove="Resources\exampleProviderTemplate1.json" />
+    <None Remove="Resources\examplePublishedFundingCalculations_2.json" />
     <None Remove="Resources\examplePublishedFundingVersion_2.json" />
     <None Remove="Resources\exampleTemplate1.json" />
     <None Remove="Resources\expectedPublishedFundingSchema1Contents_2.json" />
@@ -19,6 +20,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\exampleProviderOutput1.json" />
     <EmbeddedResource Include="Resources\exampleProviderTemplate1.json" />
+    <EmbeddedResource Include="Resources\examplePublishedFundingCalculations_2.json" />
     <EmbeddedResource Include="Resources\examplePublishedFundingVersion_2.json" />
     <EmbeddedResource Include="Resources\expectedPublishedFundingSchema1Contents_2.json" />
     <EmbeddedResource Include="Resources\exampleTemplate1.json" />

@@ -32,53 +32,53 @@ namespace CalculateFunding.Generators.Schema10
                 Provider = new
                 {
                     Identifier = publishedProviderVersion.ProviderId,
-                    Name = publishedProviderVersion.Provider.Name,
+                    publishedProviderVersion.Provider.Name,
                     SearchableName = System.Text.RegularExpressions.Regex.Replace(publishedProviderVersion.Provider.Name, @"\s+", string.Empty),
                     OtherIdentifiers = GetOtherIdentifiers(publishedProviderVersion.Provider),
-                    ProviderVersionId = publishedProviderVersion.Provider.ProviderVersionId,
-                    ProviderType = publishedProviderVersion.Provider.ProviderType,
-                    ProviderSubType = publishedProviderVersion.Provider.ProviderSubType,
+                    publishedProviderVersion.Provider.ProviderVersionId,
+                    publishedProviderVersion.Provider.ProviderType,
+                    publishedProviderVersion.Provider.ProviderSubType,
                     ProviderDetails = new
                     {
-                        DateOpened = publishedProviderVersion.Provider.DateOpened,
-                        DateClosed = publishedProviderVersion.Provider.DateClosed,
-                        Status = publishedProviderVersion.Provider.Status,
-                        PhaseOfEducation = publishedProviderVersion.Provider.PhaseOfEducation,
-                        LocalAuthorityName = publishedProviderVersion.Provider.LocalAuthorityName,
+                        publishedProviderVersion.Provider.DateOpened,
+                        publishedProviderVersion.Provider.DateClosed,
+                        publishedProviderVersion.Provider.Status,
+                        publishedProviderVersion.Provider.PhaseOfEducation,
+                        publishedProviderVersion.Provider.LocalAuthorityName,
                         OpenReason = publishedProviderVersion.Provider.ReasonEstablishmentOpened,
                         CloseReason = publishedProviderVersion.Provider.ReasonEstablishmentClosed,
                         TrustStatus = publishedProviderVersion.Provider.TrustStatus.ToEnumMemberAttrValue(),
-                        TrustName = publishedProviderVersion.Provider.TrustName,
-                        Town = publishedProviderVersion.Provider.Town,
-                        Postcode = publishedProviderVersion.Provider.Postcode,
-                        CompaniesHouseNumber = publishedProviderVersion.Provider.CompaniesHouseNumber,
-                        GroupIdNumber = publishedProviderVersion.Provider.GroupIdNumber,
-                        RscRegionName = publishedProviderVersion.Provider.RscRegionName,
-                        RscRegionCode = publishedProviderVersion.Provider.RscRegionCode,
-                        GovernmentOfficeRegionName = publishedProviderVersion.Provider.GovernmentOfficeRegionName,
-                        GovernmentOfficeRegionCode = publishedProviderVersion.Provider.GovernmentOfficeRegionCode,
-                        DistrictName = publishedProviderVersion.Provider.DistrictName,
-                        DistrictCode = publishedProviderVersion.Provider.DistrictCode,
-                        WardName = publishedProviderVersion.Provider.WardName,
-                        WardCode = publishedProviderVersion.Provider.WardCode,
-                        CensusWardName = publishedProviderVersion.Provider.CensusWardName,
-                        CensusWardCode = publishedProviderVersion.Provider.CensusWardCode,
-                        MiddleSuperOutputAreaName = publishedProviderVersion.Provider.MiddleSuperOutputAreaName,
-                        MiddleSuperOutputAreaCode = publishedProviderVersion.Provider.MiddleSuperOutputAreaCode,
-                        LowerSuperOutputAreaName = publishedProviderVersion.Provider.LowerSuperOutputAreaName,
-                        LowerSuperOutputAreaCode = publishedProviderVersion.Provider.LowerSuperOutputAreaCode,
-                        ParliamentaryConstituencyName = publishedProviderVersion.Provider.ParliamentaryConstituencyName,
-                        ParliamentaryConstituencyCode = publishedProviderVersion.Provider.ParliamentaryConstituencyCode,
-                        CountryCode = publishedProviderVersion.Provider.CountryCode,
-                        CountryName = publishedProviderVersion.Provider.CountryName
+                        publishedProviderVersion.Provider.TrustName,
+                        publishedProviderVersion.Provider.Town,
+                        publishedProviderVersion.Provider.Postcode,
+                        publishedProviderVersion.Provider.CompaniesHouseNumber,
+                        publishedProviderVersion.Provider.GroupIdNumber,
+                        publishedProviderVersion.Provider.RscRegionName,
+                        publishedProviderVersion.Provider.RscRegionCode,
+                        publishedProviderVersion.Provider.GovernmentOfficeRegionName,
+                        publishedProviderVersion.Provider.GovernmentOfficeRegionCode,
+                        publishedProviderVersion.Provider.DistrictName,
+                        publishedProviderVersion.Provider.DistrictCode,
+                        publishedProviderVersion.Provider.WardName,
+                        publishedProviderVersion.Provider.WardCode,
+                        publishedProviderVersion.Provider.CensusWardName,
+                        publishedProviderVersion.Provider.CensusWardCode,
+                        publishedProviderVersion.Provider.MiddleSuperOutputAreaName,
+                        publishedProviderVersion.Provider.MiddleSuperOutputAreaCode,
+                        publishedProviderVersion.Provider.LowerSuperOutputAreaName,
+                        publishedProviderVersion.Provider.LowerSuperOutputAreaCode,
+                        publishedProviderVersion.Provider.ParliamentaryConstituencyName,
+                        publishedProviderVersion.Provider.ParliamentaryConstituencyCode,
+                        publishedProviderVersion.Provider.CountryCode,
+                        publishedProviderVersion.Provider.CountryName
                     }
                 },
                 FundingStreamCode = publishedProviderVersion.FundingStreamId,
-                FundingPeriodId = publishedProviderVersion.FundingPeriodId,
+                publishedProviderVersion.FundingPeriodId,
                 FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, fundingLines, templateMapping, calculationResults)) },
-                VariationReasons = publishedProviderVersion.VariationReasons,
+                publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor) ? null : new List<string> { publishedProviderVersion.Provider.Successor },
-                Predecessors = publishedProviderVersion.Predecessors
+                publishedProviderVersion.Predecessors
             };
 
             JsonSerializerSettings serializerSettings = new JsonSerializerSettings();
@@ -143,14 +143,14 @@ namespace CalculateFunding.Generators.Schema10
         {
             return new
             {
-                Name = fundingLine.Name,
-                FundingLineCode = fundingLine.FundingLineCode,
+                fundingLine.Name,
+                fundingLine.FundingLineCode,
                 Value = Convert.ToInt32(fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().Value),
-                TemplateLineId = fundingLine.TemplateLineId,
+                fundingLine.TemplateLineId,
                 Type = fundingLine.Type.ToString(),
                 Calculations = fundingLine.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults)),
                 FundingLines = fundingLine.FundingLines?.Select(x => ToFundingLine(x, fundingLineValues, templateMapping, calculationResults)),
-                DistributionPeriods = fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().DistributionPeriods
+                fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().DistributionPeriods
             };
         }
 
@@ -160,12 +160,12 @@ namespace CalculateFunding.Generators.Schema10
 
             return new
             {
-                Name = calculation.Name,
-                TemplateCalculationId = calculation.TemplateCalculationId,
+                calculation.Name,
+                calculation.TemplateCalculationId,
                 Value = string.Format("{0:0}", calculationResults.Where(x => x.Id == calculationId)?.Single().Value),
                 ValueFormat = calculation.ValueFormat.ToString(),
                 Type = calculation.Type.ToString(),
-                FormulaText = calculation.FormulaText,
+                calculation.FormulaText,
                 AggregationType = calculation.AggregationType.ToString(),
                 Calculations = calculation.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults)),
                 ReferenceData = calculation.ReferenceData?.Select(x => ToReferenceData(x))
@@ -176,10 +176,10 @@ namespace CalculateFunding.Generators.Schema10
         {
             return new
             {
-                Name = referenceData.Name,
-                TemplateReferenceId = referenceData.TemplateReferenceId,
+                referenceData.Name,
+                referenceData.TemplateReferenceId,
                 Format = referenceData.Format.ToString(),
-                Value = referenceData.Value,
+                referenceData.Value,
                 AggregationType = referenceData.AggregationType.ToString()
             };
         }

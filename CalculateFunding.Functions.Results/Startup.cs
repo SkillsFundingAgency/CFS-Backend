@@ -121,7 +121,7 @@ namespace CalculateFunding.Functions.Results
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<DatasetsMappingProfile>();
-                c.AddProfile<ResultServiceMappingProfile>();
+                //c.AddProfile<ResultServiceMappingProfile>();
                 c.AddProfile<ProviderMappingProfile>();
             });
 

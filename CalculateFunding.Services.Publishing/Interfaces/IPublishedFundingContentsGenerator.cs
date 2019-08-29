@@ -1,5 +1,6 @@
 ﻿using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
@@ -10,6 +11,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         /// </summary>
         /// <param name="publishedFundingVersion">Published Funding Version</param>
         /// <returns>Contents to output in the feed</returns>
-        string GenerateContents(PublishedFundingVersion publishedFundingVersion, TemplateMetadataContents templateMetadataContents);
+        string GenerateContents(PublishedFundingVersion publishedFundingVersion, TemplateMetadataContents templateMetadataContents, IEnumerable<FundingCalculation> fundingCalculations);
     }
 }

@@ -58,17 +58,14 @@ namespace CalculateFunding.Generators.Schema10
         }
 
         public string GenerateContents(PublishedFundingVersion publishedFundingVersion,
-            TemplateMetadataContents templateMetadataContents)
+            TemplateMetadataContents templateMetadataContents,
+            IEnumerable<FundingCalculation> calculations)
         {
             Guard.ArgumentNotNull(publishedFundingVersion, nameof(publishedFundingVersion));
             Guard.ArgumentNotNull(templateMetadataContents, nameof(templateMetadataContents));
+            Guard.ArgumentNotNull(calculations, nameof(calculations));
 
-            Dictionary<uint, Calculation> templateCalculations =
-                templateMetadataContents.RootFundingLines
-                    .Flatten(_ => _.FundingLines)
-                    .SelectMany(_ => _.Calculations)
-                    .Flatten(_ => _.Calculations)
-                    .ToDictionary(_ => _.TemplateCalculationId, _ => _);
+            IEnumerable<FundingCalculation> flattenedCalculations = calculations?.Flatten(_ => _.Calculations);
 
             SchemaJson contents = new SchemaJson
             {
@@ -111,7 +108,7 @@ namespace CalculateFunding.Generators.Schema10
                     FundingValue = new
                     {
                         TotalValue = publishedFundingVersion.TotalFunding,
-                        FundingLines = BuildSchemaJsonFundingLines(publishedFundingVersion.FundingLines, templateCalculations)
+                        FundingLines = templateMetadataContents.RootFundingLines?.Select(_ => BuildSchemaJsonFundingLines(flattenedCalculations, publishedFundingVersion.FundingLines, _))
                     },
                     ProviderFundings = publishedFundingVersion.ProviderFundings?.ToArray(),
                     publishedFundingVersion.GroupingReason,
@@ -124,60 +121,57 @@ namespace CalculateFunding.Generators.Schema10
             return contents.AsJson();
         }
 
-        private dynamic BuildSchemaJsonFundingLines(IEnumerable<FundingLine> fundingLines,
-            Dictionary<uint, Calculation> templateCalculations)
+        private SchemaJsonFundingLine BuildSchemaJsonFundingLines(IEnumerable<FundingCalculation> fundingCalculations, IEnumerable<FundingLine> fundingLines,
+            Common.TemplateMetadata.Models.FundingLine templateFundingLine)
         {
-            return fundingLines?.Select(fundingLine => new SchemaJsonFundingLine
+            FundingLine publishedFundingLine = fundingLines.Where(_ => _.TemplateLineId == templateFundingLine.TemplateLineId).SingleOrDefault();
+
+            return new SchemaJsonFundingLine
+                {
+                    Name = templateFundingLine.Name,
+                    FundingLineCode = templateFundingLine.FundingLineCode,
+                    Value = DecimalAsObject(publishedFundingLine.Value),
+                    TemplateLineId = templateFundingLine.TemplateLineId,
+                    Type = templateFundingLine.Type.ToString(),
+                    Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(fundingCalculations, _)),
+                    DistributionPeriods = publishedFundingLine.DistributionPeriods?.Select(distributionPeriod => new
+                    {
+                        Value = Convert.ToInt32(distributionPeriod.Value),
+                        distributionPeriod.DistributionPeriodId,
+                        ProfilePeriods = distributionPeriod.ProfilePeriods?.Select(profilePeriod => new
+                        {
+                            Type = profilePeriod.Type.ToString(),
+                            profilePeriod.TypeValue,
+                            profilePeriod.Year,
+                            profilePeriod.Occurrence,
+                            ProfiledValue = DecimalAsObject(profilePeriod.ProfiledValue),
+                            profilePeriod.DistributionPeriodId
+                        }).ToArray()
+                    }).ToArray() ?? new dynamic[0],
+                    FundingLines = templateFundingLine.FundingLines?.Select(_ => BuildSchemaJsonFundingLines(fundingCalculations, fundingLines, _))
+                };
+        }
+
+        private SchemaJsonCalculation BuildSchemaJsonCalculations(IEnumerable<FundingCalculation> fundingCalculations, Common.TemplateMetadata.Models.Calculation calculation)
+        {
+            FundingCalculation publishedFundingCalculation = fundingCalculations?.Where(_ => _.TemplateCalculationId == calculation.TemplateCalculationId)?.Single();
+
+            return new SchemaJsonCalculation
             {
-                Name = fundingLine.Name,
-                FundingLineCode = fundingLine.FundingLineCode,
-                Value = DecimalAsObject(fundingLine.Value),
-                TemplateLineId = fundingLine.TemplateLineId,
-                Type = fundingLine.Type.ToString(),
-                Calculations = BuildSchemaJsonCalculations(fundingLine.Calculations, templateCalculations),
-                DistributionPeriods = fundingLine.DistributionPeriods?.Select(distributionPeriod => new
-                {
-                    Value = Convert.ToInt32(distributionPeriod.Value),
-                    distributionPeriod.DistributionPeriodId,
-                    ProfilePeriods = distributionPeriod.ProfilePeriods?.Select(profilePeriod => new
-                    {
-                        Type = profilePeriod.Type.ToString(),
-                        profilePeriod.TypeValue,
-                        profilePeriod.Year,
-                        profilePeriod.Occurrence,
-                        ProfiledValue = DecimalAsObject(profilePeriod.ProfiledValue),
-                        profilePeriod.DistributionPeriodId
-                    }).ToArray()
-                }).ToArray() ?? new dynamic[0],
-                FundingLines = BuildSchemaJsonFundingLines(fundingLine.FundingLines, templateCalculations)
-            }).ToArray();
+                Name = calculation.Name,
+                Type = calculation.Type.ToString(),
+                AggregationType = calculation.AggregationType.ToString(),
+                FormulaText = calculation.FormulaText,
+                Value = publishedFundingCalculation.Value,
+                TemplateCalculationId = calculation.TemplateCalculationId,
+                ValueFormat = calculation.ValueFormat.ToString(),
+                Calculations = calculation.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(fundingCalculations, _))
+            };
         }
 
-        private IEnumerable<SchemaJsonCalculation> BuildSchemaJsonCalculations(IEnumerable<FundingCalculation> fundingCalculations,
-            Dictionary<uint, Calculation> templateCalculations)
+        private static bool IsAggregationOrHasChildCalculations(Common.TemplateMetadata.Models.Calculation fundingCalculation)
         {
-            return fundingCalculations?.Where(IsAggregationOrHasChildCalculations)
-                .Select(calculation =>
-                {
-                    Calculation templateCalculation = templateCalculations[calculation.TemplateCalculationId];
-
-                    return new SchemaJsonCalculation
-                    {
-                        Name = templateCalculation.Name,
-                        Type = calculation.Type.ToString(),
-                        AggregationType = calculation.AggregationType.ToString(),
-                        FormulaText = templateCalculation.FormulaText,
-                        Value = calculation.Value,
-                        TemplateCalculationId = calculation.TemplateCalculationId,
-                        ValueFormat = templateCalculation.ValueFormat.ToString(),
-                        Calculations = BuildSchemaJsonCalculations(calculation.Calculations, templateCalculations)
-                    };
-                }).ToArray();
-        }
-
-        private static bool IsAggregationOrHasChildCalculations(FundingCalculation fundingCalculation)
-        {
-            return fundingCalculation.AggregationType != AggregationType.None
+            return fundingCalculation.AggregationType != Common.TemplateMetadata.Enums.AggregationType.None
                    || fundingCalculation.Calculations?.Any() == true;
         }
 

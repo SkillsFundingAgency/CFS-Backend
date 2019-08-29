@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\exampleFundingLineTemplate1.json" />
     <None Remove="Resources\exampleProvider1Calculations.json" />
     <None Remove="Resources\exampleProvider2Calculations.json" />
     <None Remove="Resources\exampleProvider3Calculations.json" />
@@ -14,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\exampleFundingLineTemplate1.json" />
     <EmbeddedResource Include="Resources\exampleProvider1Calculations.json" />
     <EmbeddedResource Include="Resources\exampleProvider2Calculations.json" />
     <EmbeddedResource Include="Resources\exampleProvider3Calculations.json" />

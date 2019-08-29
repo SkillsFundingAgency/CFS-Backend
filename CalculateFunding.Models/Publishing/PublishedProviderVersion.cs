@@ -68,6 +68,18 @@ namespace CalculateFunding.Models.Publishing
         public IEnumerable<FundingLine> FundingLines { get; set; }
 
         /// <summary>
+        /// Calculations - used to store all calculatins.
+        /// </summary>
+        [JsonProperty("calculations")]
+        public IEnumerable<FundingCalculation> Calculations { get; set; }
+
+        /// <summary>
+        /// Reference data that make up data for calculations.
+        /// </summary>
+        [JsonProperty("referenceData")]
+        public IEnumerable<FundingReferenceData> ReferenceData { get; set; }
+
+        /// <summary>
         /// Total funding for this provider in pence
         /// </summary>
         [JsonProperty("totalFunding")]
