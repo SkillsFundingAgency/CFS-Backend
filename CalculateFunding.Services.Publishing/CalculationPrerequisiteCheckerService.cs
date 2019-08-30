@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
@@ -42,13 +41,16 @@ namespace CalculateFunding.Services.Publishing
 
             if (calculationsResponse?.Content == null)
             {
-                LogErrorAndThrow($"Did locate any calculation metadata for specification {specificationId}. Unable to complete prerequisite checks");   
+                string errorMessage = $"Did locate any calculation metadata for specification {specificationId}. Unable to complete prerequisite checks";
+
+                _logger.Error(errorMessage);
+                validationErrors.Add(errorMessage);
+
+                return validationErrors;
             }
             
             validationErrors.AddRange(calculationsResponse?.Content.Where(_ => _.PublishStatus != PublishStatus.Approved)
                 .Select(_ => $"Calculation {_.Name} must be approved but is {_.PublishStatus}"));
-
-            // TOOO: Check all template calculations are mapped to calculations
 
             foreach (var fundingStream in specification.FundingStreams)
             {
@@ -61,13 +63,6 @@ namespace CalculateFunding.Services.Publishing
             }
 
             return validationErrors;
-        }
-
-        private void LogErrorAndThrow(string message)
-        {
-            _logger.Error(message);
-            
-            throw new Exception(message);
         }
     }
 }

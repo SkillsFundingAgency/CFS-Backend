@@ -6,6 +6,8 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Serilog;
+using System;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -15,22 +17,26 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationService _specificationService;
         private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
         private readonly ICalculationPrerequisiteCheckerService _calculationApprovalCheckerService;
+        private readonly ILogger _logger;
 
         public RefreshPrerequisiteChecker(
             ISpecificationFundingStatusService specificationFundingStatusService,
             ISpecificationService specificationService,
             ICalculationEngineRunningChecker calculationEngineRunningChecker,
-            ICalculationPrerequisiteCheckerService calculationApprovalCheckerService)
+            ICalculationPrerequisiteCheckerService calculationApprovalCheckerService,
+            ILogger logger)
         {
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
             Guard.ArgumentNotNull(calculationApprovalCheckerService, nameof(calculationApprovalCheckerService));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
             _specificationFundingStatusService = specificationFundingStatusService;
             _specificationService = specificationService;
             _calculationEngineRunningChecker = calculationEngineRunningChecker;
             _calculationApprovalCheckerService = calculationApprovalCheckerService;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<string>> PerformPrerequisiteChecks(SpecificationSummary specification)
@@ -43,12 +49,21 @@ namespace CalculateFunding.Services.Publishing
             {
                 string errorMessage = $"Specification with id: '{specification.Id} already shares chosen funding streams";
 
+                _logger.Error(errorMessage);
                 return new string[] { errorMessage };
             }
 
             if (specificationFundingStatus == SpecificationFundingStatus.CanChoose)
             {
-                await _specificationService.SelectSpecificationForFunding(specification.Id);
+                try
+                {
+                    await _specificationService.SelectSpecificationForFunding(specification.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex.Message);
+                    return new string[] { ex.Message };
+                }
             }
 
             List<string> result = new List<string>();
@@ -65,7 +80,9 @@ namespace CalculateFunding.Services.Publishing
                 result.AddRange(calculationPrereqValidationErrors);
             }
 
+            _logger.Error(string.Join(Environment.NewLine, result));
             return result;
         }
+
     }
 }

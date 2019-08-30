@@ -20,6 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     public class CalculationPrerequisiteCheckerServiceTests
     {
         private ICalculationsApiClient _calculationsApiClient;
+        private ILogger _logger;
 
         private CalculationPrerequisiteCheckerService _prerequisites;
         private IEnumerable<string> _validationErrors;
@@ -28,27 +29,34 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void SetUp()
         {
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
+            _logger = Substitute.For<ILogger>();
 
             _prerequisites = new CalculationPrerequisiteCheckerService(_calculationsApiClient,
                 new ResiliencePolicies
                 {
                     CalculationsApiClient = Policy.NoOpAsync()
                 },
-                Substitute.For<ILogger>());
+                _logger);
         }
 
         [TestMethod]
-        public void ThrowsExceptionIfCantRetrieveCalculationsToCheck()
+        public async Task ReturnsErrorDetailsIfCantRetrieveCalculationsToCheck()
         {
             string specificationId = NewRandomString();
+            string errorMessage = $"Did locate any calculation metadata for specification {specificationId}. Unable to complete prerequisite checks";
 
-            Func<Task> invocation = () => WhenThePreRequisitesAreChecked(specificationId);
+            await WhenThePreRequisitesAreChecked(specificationId);
 
-            invocation
+            _validationErrors
                 .Should()
-                .Throw<Exception>()
-                .WithMessage(
-                    $"Did locate any calculation metadata for specification {specificationId}. Unable to complete prerequisite checks");
+                .Contain(new[]
+                {
+                    errorMessage
+                });
+
+            _logger
+                .Received()
+                .Error(errorMessage);
         }
 
         private static RandomString NewRandomString()
