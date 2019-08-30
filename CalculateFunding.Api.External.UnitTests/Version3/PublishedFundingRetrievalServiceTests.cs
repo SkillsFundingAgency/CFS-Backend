@@ -3,7 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Storage;
-using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using FluentAssertions;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
@@ -114,13 +114,14 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         public async Task GetFundingFeedDocument_WhenReturnsFromBlobStorage_ReturnsOK(string template)
         {
             //Arrange
-            string documentPath = "cromulent";
+            string documentPath = "cromulent.json";
             string uri = $"https://cfs/test/{documentPath}";
 
             Stream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(template));
 
             ILogger logger = CreateLogger();
             ICloudBlob cloudBlob = CreateBlob();
+            IFileSystemCache fileSystemCache = CreateFileSystemCache();
 
             cloudBlob
                 .Exists()
@@ -141,7 +142,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
 
             PublishedFundingRetrievalService service = CreatePublishedFundingRetrievalService(
                 blobClient: blobClient,
-                logger: logger);
+                logger: logger,
+                fileSystemCache: fileSystemCache);
 
             //Act
             string result = await service.GetFundingFeedDocument(uri);
@@ -166,12 +168,25 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             await blobClient
                 .Received(1)
                 .DownloadToStreamAsync(cloudBlob);
+
+            fileSystemCache
+                .Received(0)
+                .Get(Arg.Any<FundingFileSystemCacheKey>());
+
+            string documentName = Path.GetFileNameWithoutExtension(documentPath);
+            
+            fileSystemCache
+                .Received(1)
+                .Add(Arg.Is<FundingFileSystemCacheKey>(
+                    _ => _.Key == documentName), 
+                    memoryStream);
         }
 
         [TestMethod]
         [DataRow("https://cfs/test/2345", "2345")]
         [DataRow("https://www.education.gov.uk/cfs/embiggen", "embiggen")]
-        [DataRow("https://strgt1dvprovcfs.blob.core.windows.net/publishedfunding/subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json", "subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json")]
+        [DataRow("https://strgt1dvprovcfs.blob.core.windows.net/publishedfunding/subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json", 
+            "subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json")]
         public void ParseDocumentPathRelativeToBlobContainerFromFullUrl_ParsesAsExpected(string input, string output)
         {
             //Arrange
@@ -186,12 +201,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
 
         private static PublishedFundingRetrievalService CreatePublishedFundingRetrievalService(
             IBlobClient blobClient = null,
-            IPublishingResiliencePolicies publishingResiliencePolicies = null,
-            ILogger logger = null)
+            ILogger logger = null,
+            IFileSystemCache fileSystemCache = null)
         {
             return new PublishedFundingRetrievalService(
                 blobClient ?? CreateBlobClient(),
                 PublishingResilienceTestHelper.GenerateTestPolicies(),
+                fileSystemCache ?? CreateFileSystemCache(),
                 logger ?? CreateLogger());
         }
 
@@ -208,6 +224,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         private static ICloudBlob CreateBlob()
         {
             return Substitute.For<ICloudBlob>();
+        }
+
+        private static IFileSystemCache CreateFileSystemCache()
+        {
+            return Substitute.For<IFileSystemCache>();
         }
     }
 }

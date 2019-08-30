@@ -3,6 +3,8 @@ using System.Linq;
 using AutoMapper;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
+using CalculateFunding.Api.External.V3.Interfaces;
+using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -15,6 +17,7 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -120,7 +123,7 @@ namespace CalculateFunding.Api.External
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApiVersionDescriptionProvider provider)
+        public void Configure(IApplicationBuilder app, IApplicationLifetime applicationLifetime, IHostingEnvironment env, IApiVersionDescriptionProvider provider)
         {
             if (env.IsDevelopment())
             {
@@ -140,6 +143,16 @@ namespace CalculateFunding.Api.External
             SwaggerSetup.ConfigureSwagger(app, provider);
 
             app.UseHealthCheckMiddleware();
+
+            applicationLifetime.ApplicationStarted.Register(() => OnStartUp(app));
+        }
+
+        private void OnStartUp(IApplicationBuilder app)
+        {
+            IFeedItemPreloader feedItemPreLoader = app.ApplicationServices.GetService<IFeedItemPreloader>();
+
+            feedItemPreLoader.EnsureFoldersExists();
+            feedItemPreLoader.BeginFeedItemPreLoading();
         }
 
         public void RegisterComponents(IServiceCollection builder)
@@ -153,6 +166,28 @@ namespace CalculateFunding.Api.External
             builder
                .AddSingleton<V3.Interfaces.IFundingFeedItemByIdService, V3.Services.FundingFeedItemByIdService>();
 
+            builder
+                .AddSingleton<IFileSystemCache, FileSystemCache>()
+                .AddSingleton<IFileSystemAccess, FileSystemAccess>()
+                .AddSingleton<IFileSystemCacheSettings>(ctx =>
+                {
+                    FileSystemCacheSettings settings = new FileSystemCacheSettings();
+
+                    Configuration.Bind("filesystemcachesettings", settings);
+                    
+                    return settings;
+                });
+
+            builder.AddSingleton<IFeedItemPreloader, FeedItemPreLoader>()
+                .AddSingleton<IFeedItemPreloaderSettings>(ctx =>
+                {
+                    FeedItemPreLoaderSettings settings = new FeedItemPreLoaderSettings();
+
+                    Configuration.Bind("feeditempreloadersettings", settings);
+                    
+                    return settings;
+                });
+
             builder.AddSingleton<V3.Interfaces.IPublishedFundingRetrievalService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -165,8 +200,9 @@ namespace CalculateFunding.Api.External
 
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();
-
-                return new V3.Services.PublishedFundingRetrievalService(blobClient, publishingResiliencePolicies, logger);
+                IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
+                
+                return new V3.Services.PublishedFundingRetrievalService(blobClient, publishingResiliencePolicies, fileSystemCache, logger);
             });
 
             // Register dependencies
@@ -183,11 +219,11 @@ namespace CalculateFunding.Api.External
 
                 IBlobClient blobClient = new BlobClient(storageSettings);
 
-                ICacheProvider cacheProvider = ctx.GetService<ICacheProvider>();
                 IProvidersResiliencePolicies publishingResiliencePolicies = ctx.GetService<IProvidersResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();
+                IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
 
-                return new ProviderFundingVersionService(cacheProvider, blobClient, logger, publishingResiliencePolicies);
+                return new ProviderFundingVersionService(blobClient, logger, publishingResiliencePolicies, fileSystemCache);
             });
 
             builder
