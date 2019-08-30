@@ -18,7 +18,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
         [TestMethod]
         public void ThrowsExceptionWhenPublishedFundingVersionNotSupplied()
         {
-            Func<string> invocation = () => WhenThePublishedFundingVersionIsTransformed(null, new TemplateMetadataContents(), new FundingCalculation[0]);
+            Func<string> invocation = () => WhenThePublishedFundingVersionIsTransformed(null, new TemplateMetadataContents());
 
             invocation
                 .Should()
@@ -32,7 +32,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
         [TestMethod]
         public void ThrowsExceptionWhenTemplateMetadataContentsNotSupplied()
         {
-            Func<string> invocation = () => WhenThePublishedFundingVersionIsTransformed(new PublishedFundingVersion(), null, new FundingCalculation[0]);
+            Func<string> invocation = () => WhenThePublishedFundingVersionIsTransformed(new PublishedFundingVersion(), null);
 
             invocation
                 .Should()
@@ -56,10 +56,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
             TemplateMetadataContents templateMetadataContents = ReadTemplateContents(ReadResourceFileContents(
                 "CalculateFunding.Generators.Schema10.UnitTests.Resources.exampleTemplate1.json"));
 
-            IEnumerable<FundingCalculation> fundingCalculations = ReadResourceFileContents("CalculateFunding.Generators.Schema10.UnitTests.Resources.examplePublishedFundingCalculations_2.json")
-                    .AsPoco<IEnumerable<FundingCalculation>>();
-
-            string actualJson = WhenThePublishedFundingVersionIsTransformed(publishedFundingVersion, templateMetadataContents, fundingCalculations);
+            string actualJson = WhenThePublishedFundingVersionIsTransformed(publishedFundingVersion, templateMetadataContents);
 
             actualJson = actualJson
                 .Prettify();
@@ -70,11 +67,10 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
         }
 
         private string WhenThePublishedFundingVersionIsTransformed(PublishedFundingVersion publishedFundingVersion, 
-            TemplateMetadataContents templateMetadataContents,
-            IEnumerable<FundingCalculation> fundingCalculations)
+            TemplateMetadataContents templateMetadataContents)
         {
             return new PublishedFundingContentsGenerator()
-                .GenerateContents(publishedFundingVersion, templateMetadataContents, fundingCalculations);
+                .GenerateContents(publishedFundingVersion, templateMetadataContents);
         }
 
         private string ReadResourceFileContents(string resourcePath)

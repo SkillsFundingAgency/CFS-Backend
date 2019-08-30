@@ -36,8 +36,6 @@ namespace CalculateFunding.Services.Publishing
                     AggregateCalculation(calculation.TemplateCalculationId, value);
                 }
             }
-
-            calculation.Calculations?.ToList().ForEach(x => GetCalculation(calculations, x));
         }
 
         public void AggregateCalculation(uint key, decimal value)

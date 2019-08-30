@@ -55,17 +55,16 @@ namespace CalculateFunding.Generators.Schema10
 
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
             public IEnumerable<SchemaJsonCalculation> Calculations { get; set; }
+
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public IEnumerable<dynamic> ReferenceData { get; set; }
         }
 
         public string GenerateContents(PublishedFundingVersion publishedFundingVersion,
-            TemplateMetadataContents templateMetadataContents,
-            IEnumerable<FundingCalculation> calculations)
+            TemplateMetadataContents templateMetadataContents)
         {
             Guard.ArgumentNotNull(publishedFundingVersion, nameof(publishedFundingVersion));
             Guard.ArgumentNotNull(templateMetadataContents, nameof(templateMetadataContents));
-            Guard.ArgumentNotNull(calculations, nameof(calculations));
-
-            IEnumerable<FundingCalculation> flattenedCalculations = calculations?.Flatten(_ => _.Calculations);
 
             SchemaJson contents = new SchemaJson
             {
@@ -108,7 +107,7 @@ namespace CalculateFunding.Generators.Schema10
                     FundingValue = new
                     {
                         TotalValue = publishedFundingVersion.TotalFunding,
-                        FundingLines = templateMetadataContents.RootFundingLines?.Select(_ => BuildSchemaJsonFundingLines(flattenedCalculations, publishedFundingVersion.FundingLines, _))
+                        FundingLines = templateMetadataContents.RootFundingLines?.Select(_ => BuildSchemaJsonFundingLines(publishedFundingVersion.ReferenceData, publishedFundingVersion.Calculations, publishedFundingVersion.FundingLines, _))
                     },
                     ProviderFundings = publishedFundingVersion.ProviderFundings?.ToArray(),
                     publishedFundingVersion.GroupingReason,
@@ -121,7 +120,7 @@ namespace CalculateFunding.Generators.Schema10
             return contents.AsJson();
         }
 
-        private SchemaJsonFundingLine BuildSchemaJsonFundingLines(IEnumerable<FundingCalculation> fundingCalculations, IEnumerable<FundingLine> fundingLines,
+        private SchemaJsonFundingLine BuildSchemaJsonFundingLines(IEnumerable<FundingReferenceData> referenceData, IEnumerable<FundingCalculation> fundingCalculations, IEnumerable<FundingLine> fundingLines,
             Common.TemplateMetadata.Models.FundingLine templateFundingLine)
         {
             FundingLine publishedFundingLine = fundingLines.Where(_ => _.TemplateLineId == templateFundingLine.TemplateLineId).SingleOrDefault();
@@ -133,7 +132,7 @@ namespace CalculateFunding.Generators.Schema10
                     Value = DecimalAsObject(publishedFundingLine.Value),
                     TemplateLineId = templateFundingLine.TemplateLineId,
                     Type = templateFundingLine.Type.ToString(),
-                    Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(fundingCalculations, _)),
+                    Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _)),
                     DistributionPeriods = publishedFundingLine.DistributionPeriods?.Select(distributionPeriod => new
                     {
                         Value = Convert.ToInt32(distributionPeriod.Value),
@@ -148,13 +147,14 @@ namespace CalculateFunding.Generators.Schema10
                             profilePeriod.DistributionPeriodId
                         }).ToArray()
                     }).ToArray() ?? new dynamic[0],
-                    FundingLines = templateFundingLine.FundingLines?.Select(_ => BuildSchemaJsonFundingLines(fundingCalculations, fundingLines, _))
+                    FundingLines = templateFundingLine.FundingLines?.Select(_ => BuildSchemaJsonFundingLines(referenceData, fundingCalculations, fundingLines, _))
                 };
         }
 
-        private SchemaJsonCalculation BuildSchemaJsonCalculations(IEnumerable<FundingCalculation> fundingCalculations, Common.TemplateMetadata.Models.Calculation calculation)
+        private SchemaJsonCalculation BuildSchemaJsonCalculations(IEnumerable<FundingReferenceData> referenceData, IEnumerable<FundingCalculation> fundingCalculations, Common.TemplateMetadata.Models.Calculation calculation)
         {
             FundingCalculation publishedFundingCalculation = fundingCalculations?.Where(_ => _.TemplateCalculationId == calculation.TemplateCalculationId)?.Single();
+            IEnumerable<FundingReferenceData> publishedFundingReferenceData = referenceData?.Where(_ => _.TemplateCalculationId == calculation.TemplateCalculationId);
 
             return new SchemaJsonCalculation
             {
@@ -165,7 +165,12 @@ namespace CalculateFunding.Generators.Schema10
                 Value = publishedFundingCalculation.Value,
                 TemplateCalculationId = calculation.TemplateCalculationId,
                 ValueFormat = calculation.ValueFormat.ToString(),
-                Calculations = calculation.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(fundingCalculations, _))
+                Calculations = calculation.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _)),
+                ReferenceData = publishedFundingReferenceData?.Select(_ => new {AggregationType = _.AggregationType.ToString(),
+                    _.FundingLineTemplateLineId,
+                    _.TemplateCalculationId,
+                    _.TemplateReferenceId,
+                    _.Value })
             };
         }
 

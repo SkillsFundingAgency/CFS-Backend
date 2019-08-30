@@ -49,6 +49,6 @@ namespace CalculateFunding.Models.Publishing
         /// Parent calculation ID
         /// </summary>
         [JsonProperty("templateCalculationId")]
-        public string TemplateCalculationId { get; set; }
+        public uint TemplateCalculationId { get; set; }
     }
 }

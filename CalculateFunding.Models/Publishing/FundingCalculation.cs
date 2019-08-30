@@ -48,18 +48,6 @@ namespace CalculateFunding.Models.Publishing
         public AggregationType AggregationType { get; set; }
 
         /// <summary>
-        /// Sub level calculations.
-        /// </summary>
-        [JsonProperty("calculations", NullValueHandling = NullValueHandling.Ignore)]
-        public IEnumerable<FundingCalculation> Calculations { get; set; }
-
-        /// <summary>
-        /// Reference data this these calculations depend on.
-        /// </summary>
-        [JsonProperty("referenceData")]
-        public IEnumerable<FundingReferenceData> ReferenceData { get; set; }
-
-        /// <summary>
         /// Parent funding line TemplateLineId
         /// </summary>
         [JsonProperty("fundingLineTemplateLineId")]
