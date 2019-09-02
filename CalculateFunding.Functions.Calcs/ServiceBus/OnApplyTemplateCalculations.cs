@@ -28,7 +28,7 @@ namespace CalculateFunding.Functions.Calcs.ServiceBus
         [FunctionName("on-apply-template-calculations")]
         public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.QueueNames.ApplyTemplateCalculations,
-            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey, IsSessionsEnabled = true)] Message message)
         {
             try
             {
