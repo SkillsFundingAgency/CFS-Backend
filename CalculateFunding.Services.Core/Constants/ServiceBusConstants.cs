@@ -8,7 +8,7 @@
         {
             public const string ApplyTemplateCalculations = "apply-template-calculations";
 
-            public const string ApplyTemplateCalculationsPoisoned = "apply-template-calculations-poisoned/$DeadLetterQueue";
+            public const string ApplyTemplateCalculationsPoisoned = "apply-template-calculations/$DeadLetterQueue";
 
             public const string ApplyTemplateCalculationsPoisonedLocal = "apply-template-calculations-poisoned";
 
