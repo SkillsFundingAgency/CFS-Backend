@@ -48,11 +48,13 @@ namespace CalculateFunding.Api.External.V3.Services
 
             if (_fileSystemCache.Exists(fundingFileSystemCacheKey))
             {
+                if (isForPreLoad) return null;
+                
                 Stream fundingDocumentStream = _fileSystemCache.Get(fundingFileSystemCacheKey);
 
                 using (BinaryReader binaryReader = new BinaryReader(fundingDocumentStream))
                 {
-                    return isForPreLoad ? null : GetDocumentContentFromBytes(binaryReader.ReadBytes((int) fundingDocumentStream.Length));
+                    return GetDocumentContentFromBytes(binaryReader.ReadBytes((int) fundingDocumentStream.Length));
                 }
             }
 
