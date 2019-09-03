@@ -1,0 +1,29 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentKey": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment key for this particular environment eg t1dv"
+      }
+    },
+    "productVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "The product version for this particular environment eg t1dv"
+      }
+    }
+  },
+  "variables": {
+    "azureSearchName": "[concat('ss-', parameters('environmentKey'), '-cfs-', parameters('productVersion'))]"
+  },
+  "resources": [
+  ],
+  "outputs": {
+    "AzureSearchKey": {
+      "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices/', variables('azureSearchName')), '2015-08-19').primaryKey]",
+      "type": "string"
+    }
+  }
+}
