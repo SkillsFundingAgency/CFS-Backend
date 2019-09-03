@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.Publishing
 
         private readonly IProviderService _providerService;
         private readonly ICalculationResultsRepository _calculationResultsRepository;
-        private readonly IFundingLineGenerator _fundingLineGenerator;
+        private readonly IPublishedProviderDataGenerator _fundingLineGenerator;
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private readonly IInScopePublishedProviderService _inScopePublishedProviderService;
         private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using TemplateModels = CalculateFunding.Common.TemplateMetadata.Models;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
+using TemplateModels = CalculateFunding.Common.TemplateMetadata.Models;
 
 namespace CalculateFunding.Models.MappingProfiles
 {
@@ -22,7 +22,6 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(c => c.FundingLines, opt => opt.Ignore());
 
             CreateMap<GeneratorModels.Calculation, Publishing.FundingCalculation>()
-                .ForMember(c => c.FundingLineTemplateLineId, opt => opt.Ignore())
                 .ForMember(c => c.AggregationType, opt => opt.Ignore());
         }
     }

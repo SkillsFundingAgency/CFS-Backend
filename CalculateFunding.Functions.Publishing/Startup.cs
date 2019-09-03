@@ -156,7 +156,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IPublishedResultService, PublishedResultService>();
 
-            builder.AddSingleton<IFundingLineGenerator, FundingLineGenerator>();
+            builder.AddSingleton<IPublishedProviderDataGenerator, PublishedProviderDataGenerator>();
 
             builder.AddSingleton<IFundingLineTotalAggregator, FundingLineTotalAggregator>();
 

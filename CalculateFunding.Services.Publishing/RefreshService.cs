@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationService _specificationService;
         private readonly IProviderService _providerService;
         private readonly ICalculationResultsRepository _calculationResultsRepository;
-        private readonly IFundingLineGenerator _fundingLineGenerator;
+        private readonly IPublishedProviderDataGenerator _publishedProviderDataGenerator;
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private readonly IInScopePublishedProviderService _inScopePublishedProviderService;
         private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;
@@ -49,7 +49,7 @@ namespace CalculateFunding.Services.Publishing
             ISpecificationService specificationService,
             IProviderService providerService,
             ICalculationResultsRepository calculationResultsRepository,
-            IFundingLineGenerator fundingLineGenerator,
+            IPublishedProviderDataGenerator publishedProviderDataGenerator,
             IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
             IProfilingService profilingService,
             IInScopePublishedProviderService inScopePublishedProviderService,
@@ -67,7 +67,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(providerService, nameof(providerService));
             Guard.ArgumentNotNull(calculationResultsRepository, nameof(calculationResultsRepository));
-            Guard.ArgumentNotNull(fundingLineGenerator, nameof(fundingLineGenerator));
+            Guard.ArgumentNotNull(publishedProviderDataGenerator, nameof(publishedProviderDataGenerator));
             Guard.ArgumentNotNull(publishedProviderContentsGeneratorResolver, nameof(publishedProviderContentsGeneratorResolver));
             Guard.ArgumentNotNull(inScopePublishedProviderService, nameof(inScopePublishedProviderService));
             Guard.ArgumentNotNull(publishedProviderDataPopulator, nameof(publishedProviderDataPopulator));
@@ -82,7 +82,7 @@ namespace CalculateFunding.Services.Publishing
             _specificationService = specificationService;
             _providerService = providerService;
             _calculationResultsRepository = calculationResultsRepository;
-            _fundingLineGenerator = fundingLineGenerator;
+            _publishedProviderDataGenerator = publishedProviderDataGenerator;
             _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
             _inScopePublishedProviderService = inScopePublishedProviderService;
             _publishedProviderDataPopulator = publishedProviderDataPopulator;
@@ -210,10 +210,10 @@ namespace CalculateFunding.Services.Publishing
 
                 Common.ApiClient.Calcs.Models.TemplateMapping templateMapping = calculationMappingResult.Content;
 
-                // Calculate funding line totals
-                Dictionary<string, GeneratedProviderResult> fundingLineTotals = _fundingLineGenerator.GenerateFundingLines(templateMetadataContents, templateMapping, scopedProviders.Values, allCalculationResults);
+                // Generate populated data for each provider in this funding line
+                Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = _publishedProviderDataGenerator.Generate(templateMetadataContents, templateMapping, scopedProviders.Values, allCalculationResults);
 
-                Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> fundingLinesForProfiling = new Dictionary<string, IEnumerable<Models.Publishing.FundingLine>>(fundingLineTotals.Select(c => new KeyValuePair<string, IEnumerable<Models.Publishing.FundingLine>>(c.Key, c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment))));
+                Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> fundingLinesForProfiling = new Dictionary<string, IEnumerable<Models.Publishing.FundingLine>>(generatedPublishedProviderData.Select(c => new KeyValuePair<string, IEnumerable<Models.Publishing.FundingLine>>(c.Key, c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment))));
 
                 // Profile payment funding lines
                 await _profilingService.ProfileFundingLines(fundingLinesForProfiling, fundingStream.Id, specification.FundingPeriod.Id);
@@ -221,7 +221,7 @@ namespace CalculateFunding.Services.Publishing
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
                 {
-                    bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProvider.Value.Current, fundingLineTotals[publishedProvider.Key], scopedProviders[publishedProvider.Value.Current.ProviderId]);
+                    bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProvider.Value.Current, generatedPublishedProviderData[publishedProvider.Key], scopedProviders[publishedProvider.Value.Current.ProviderId]);
 
                     if (publishedProviderUpdated)
                     {
@@ -241,7 +241,7 @@ namespace CalculateFunding.Services.Publishing
                         PublishedProviderVersion publishedProviderVersion = provider.Value.Current;
 
                         // TODO - update this method signature to change it to use GeneratedProviderResult instead of calculation results
-                        string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, calculationResults[provider.Key], fundingLineTotals[provider.Key].FundingLines);
+                        string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, calculationResults[provider.Key], generatedPublishedProviderData[provider.Key].FundingLines);
 
                         if (string.IsNullOrWhiteSpace(contents))
                         {

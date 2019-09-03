@@ -53,11 +53,5 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("distributionPeriods")]
         public IEnumerable<DistributionPeriod> DistributionPeriods { get; set; }
-
-        /// <summary>
-        /// Funding line calculations.
-        /// </summary>
-        [JsonProperty("calculations", NullValueHandling = NullValueHandling.Ignore)]
-        public IEnumerable<FundingCalculation> Calculations { get; set; }
     }
 }
