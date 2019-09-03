@@ -5,7 +5,8 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Caching;
+using CalculateFunding.Api.External.UnitTests;
+using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Services.Core.Caching.FileSystem;
@@ -76,7 +77,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             //Arrange
             ILogger logger = CreateLogger();
             IBlobClient blobClient = CreateBlobClient();
-            
+
             blobClient
                 .BlobExistsAsync(blobName)
                 .Returns(true);
@@ -166,8 +167,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
             fileSystemCache
                 .Received(0)
                 .Add(Arg.Is<ProviderFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
-                    memoryStream, 
-                    CancellationToken.None);    
+                    memoryStream,
+                    CancellationToken.None);
         }
 
         [TestMethod]
@@ -223,11 +224,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Content
                 .Should()
                 .Be(template);
-            
+
             fileSystemCache
                 .Received(1)
                 .Add(Arg.Is<ProviderFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
-                    memoryStream, 
+                    memoryStream,
                     CancellationToken.None);
         }
 
@@ -269,7 +270,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         {
             return new ProviderFundingVersionService(blobClient ?? CreateBlobClient(),
                 logger ?? CreateLogger(),
-                ProviderResilienceTestHelper.GenerateTestPolicies(),
+                ExternalApiResilienceTestHelper.GenerateTestPolicies(),
                 fileSystemCache ?? CreateFileSystemCache());
         }
 

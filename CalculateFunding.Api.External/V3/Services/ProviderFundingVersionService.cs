@@ -2,18 +2,18 @@
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
 using Polly;
 using Serilog;
 
-namespace CalculateFunding.Services.Providers
+namespace CalculateFunding.Api.External.V3.Services
 {
     public class ProviderFundingVersionService : IProviderFundingVersionService
     {
@@ -24,7 +24,7 @@ namespace CalculateFunding.Services.Providers
 
         public ProviderFundingVersionService(IBlobClient blobClient,
             ILogger logger,
-            IProvidersResiliencePolicies resiliencePolicies, 
+            IExternalApiResiliencePolicies resiliencePolicies,
             IFileSystemCache fileSystemCache)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Providers
             if (string.IsNullOrWhiteSpace(providerFundingVersion)) return new BadRequestObjectResult("Null or empty id provided.");
 
             string blobName = $"{providerFundingVersion}.json";
-            
+
             try
             {
                 ProviderFileSystemCacheKey cacheKey = new ProviderFileSystemCacheKey(providerFundingVersion);
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.Providers
                         return await GetContentResultForStream(cachedStream);
                     }
                 }
-                
+
                 bool exists = await _blobClientPolicy.ExecuteAsync(() => _blobClient.BlobExistsAsync(blobName));
 
                 if (!exists)
@@ -87,7 +87,7 @@ namespace CalculateFunding.Services.Providers
         private async Task<ContentResult> GetContentResultForStream(Stream stream)
         {
             stream.Position = 0;
-            
+
             using (StreamReader streamReader = new StreamReader(stream))
             {
                 string template = await streamReader.ReadToEndAsync();
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Providers
                 {
                     Content = template,
                     ContentType = "application/json",
-                    StatusCode = (int) HttpStatusCode.OK
+                    StatusCode = (int)HttpStatusCode.OK
                 };
             }
         }

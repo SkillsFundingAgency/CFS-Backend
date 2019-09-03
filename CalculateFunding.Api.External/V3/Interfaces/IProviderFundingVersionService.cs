@@ -1,10 +1,7 @@
 ﻿using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Models.Providers;
-using CalculateFunding.Models.Providers.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CalculateFunding.Services.Providers.Interfaces
+namespace CalculateFunding.Api.External.V3.Interfaces
 {
     public interface IProviderFundingVersionService
     {

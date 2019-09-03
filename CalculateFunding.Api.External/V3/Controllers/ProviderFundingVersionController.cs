@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Providers.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

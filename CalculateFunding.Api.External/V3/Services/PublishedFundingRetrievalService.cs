@@ -36,13 +36,13 @@ namespace CalculateFunding.Api.External.V3.Services
             _logger = logger;
         }
 
-        public async Task<string> GetFundingFeedDocument(string absoluteDocumentPathUrl, 
+        public async Task<string> GetFundingFeedDocument(string absoluteDocumentPathUrl,
             bool isForPreLoad = false)
         {
             Guard.IsNullOrWhiteSpace(absoluteDocumentPathUrl, nameof(absoluteDocumentPathUrl));
 
             string documentPath = ParseDocumentPathRelativeToBlobContainerFromFullUrl(absoluteDocumentPathUrl);
-            
+
             string fundingFeedDocumentName = Path.GetFileNameWithoutExtension(documentPath);
             FundingFileSystemCacheKey fundingFileSystemCacheKey = new FundingFileSystemCacheKey(fundingFeedDocumentName);
 
@@ -66,14 +66,14 @@ namespace CalculateFunding.Api.External.V3.Services
                 return null;
             }
 
-            using (MemoryStream fundingDocumentStream = (MemoryStream) await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob)))
+            using (MemoryStream fundingDocumentStream = (MemoryStream)await _publishedFundingRepositoryPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob)))
             {
                 if (fundingDocumentStream == null || fundingDocumentStream.Length == 0)
                 {
                     _logger.Error($"Invalid blob returned: {documentPath}");
                     return null;
                 }
-                    
+
                 _fileSystemCache.Add(fundingFileSystemCacheKey, fundingDocumentStream);
 
                 fundingDocumentStream.Position = 0;

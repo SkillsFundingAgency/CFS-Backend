@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using CalculateFunding.Services.Results;
-using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Api.External.V3.Interfaces;
+using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
@@ -41,11 +41,11 @@ namespace CalculateFunding.Api.External.UnitTests
             // Assert
             IServiceProvider serviceProvider = target.ServiceProvider;
 
-            IPublishedAllocationLineLogicalResultVersionService service = (IPublishedAllocationLineLogicalResultVersionService)serviceProvider.GetService(typeof(IPublishedAllocationLineLogicalResultVersionService));
+            IProviderFundingVersionService service = (IProviderFundingVersionService)serviceProvider.GetService(typeof(IProviderFundingVersionService));
 
             service
                 .Should()
-                .BeOfType<PublishedAllocationLineLogicalResultVersionService>();
+                .BeOfType<ProviderFundingVersionService>();
         }
 
         protected override Dictionary<string, string> AddToConfiguration()
