@@ -621,6 +621,10 @@ namespace CalculateFunding.Services.Jobs
         private async Task QueueNewJob(Job job, JobDefinition jobDefinition)
         {
             string queueOrTopic = !string.IsNullOrWhiteSpace(jobDefinition.MessageBusQueue) ? jobDefinition.MessageBusQueue : jobDefinition.MessageBusTopic;
+            
+            //support parent jobs with no queue / consumers
+            if (queueOrTopic.IsNullOrWhitespace()) return;
+            
             string data = !string.IsNullOrWhiteSpace(job.MessageBody) ? job.MessageBody : null;
             IDictionary<string, string> messageProperties = job.Properties;
 

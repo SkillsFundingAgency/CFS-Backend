@@ -1339,6 +1339,104 @@ namespace CalculateFunding.Services.Jobs.Services
         }
 
         [TestMethod]
+        public async Task CreateJobs_GivenCreateJobForQueueing_DoesNotTryToPlacedOnQueueIfNoQueueOrTopicInDefinition()
+        {
+            //Arrange
+            string jobId = Guid.NewGuid().ToString();
+
+            IEnumerable<JobCreateModel> jobs = new[]
+            {
+                new JobCreateModel
+                {
+                    JobDefinitionId = jobDefinitionId,
+                    Trigger = new Trigger(),
+                    InvokerUserId = "authorId",
+                    InvokerUserDisplayName = "authorname",
+                    SpecificationId = "spec-id-1",
+                    Properties = new Dictionary<string, string>
+                    {
+                        { "user-id", "authorId" },
+                        { "user-name", "authorname" }
+                    }
+                }
+            };
+
+            IEnumerable<JobDefinition> jobDefinitions = new[]
+            {
+                new JobDefinition
+                {
+                    Id = jobDefinitionId,
+                }
+            };
+
+            Job job = new Job
+            {
+                JobDefinitionId = jobDefinitionId,
+                SpecificationId = "spec-id-1",
+                Id = jobId,
+                ItemCount = 1000,
+                InvokerUserId = "authorId",
+                InvokerUserDisplayName = "authorname",
+                Trigger = new Trigger
+                {
+                    EntityId = "e-1",
+                    EntityType = "e-type",
+                    Message = "test"
+                },
+                Properties = new Dictionary<string, string>
+                {
+                    { "specificationId", "spec-id-1" }
+                },
+                MessageBody = "a message"
+            };
+
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            IJobDefinitionsService jobDefinitionsService = CreateJobDefinitionsService();
+            jobDefinitionsService
+                .GetAllJobDefinitions()
+                .Returns(jobDefinitions);
+
+            IJobRepository jobRepository = CreateJobRepository();
+            jobRepository
+                .CreateJob(Arg.Any<Job>())
+                .Returns(job);
+
+            IMessengerService messengerService = CreateMessengerService();
+
+            ILogger logger = CreateLogger();
+
+            JobManagementService jobManagementService = CreateJobManagementService(
+                jobDefinitionsService: jobDefinitionsService, jobRepository: jobRepository,
+                logger: logger, messengerService: messengerService);
+
+            //Act
+            IActionResult actionResult = await jobManagementService.CreateJobs(jobs, request);
+
+            //Assert
+            actionResult
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .NotBeNull();
+
+            await
+                messengerService
+                    .Received(0)
+                    .SendToQueueAsJson(
+                        Arg.Any<string>(), 
+                        Arg.Is("a message"), 
+                        Arg.Is<Dictionary<string, string>>(
+                            m => m.ContainsKey("specificationId") &&
+                            m["specificationId"] == "spec-id-1" &&
+                            m.ContainsKey("jobId") &&
+                            m["jobId"] == jobId
+                ));
+        }
+        
+        [TestMethod]
         public async Task CreateJobs_GivenCreateJobForQueueingToRunInSession_EnsuresMessageIsPlacedOnQueue()
         {
             //Arrange
