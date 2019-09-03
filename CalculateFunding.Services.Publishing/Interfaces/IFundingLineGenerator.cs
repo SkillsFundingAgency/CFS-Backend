@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         /// <param name="templateMapping">Template Mapping</param>
         /// <param name="scopedProviders">Scoped providers for this specification</param>
         /// <param name="calculationResults">Calculation Results for Specification</param>
-        /// <returns>Dictionary of providers (provider ID as key) containing the funding stream of that provider</returns>
-        Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> GenerateFundingLines(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IEnumerable<ProviderCalculationResult> calculationResults);
+        /// <returns>Dictionary of providers (provider ID as key) containing the funding streams, calculations and reference data of that provider</returns>
+        Dictionary<string, GeneratedProviderResult> GenerateFundingLines(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IEnumerable<ProviderCalculationResult> calculationResults);
     }
 }

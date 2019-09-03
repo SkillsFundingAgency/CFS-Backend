@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -118,6 +119,11 @@ namespace CalculateFunding.Api.Publishing
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddCalculationsInterServiceClient(Configuration);
+
+            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<PublishingServiceMappingProfile>();
+            });
 
             builder.AddSingleton<IPublishingResiliencePolicies>(ctx =>
             {

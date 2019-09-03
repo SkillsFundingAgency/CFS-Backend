@@ -144,6 +144,21 @@ namespace CalculateFunding.Api.Policy
                });
 
             builder
+             .AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
+             {
+                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                 cosmosDbSettings.CollectionName = "policy";
+
+                 Configuration.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                 CosmosRepository cosmosRepostory = new CosmosRepository(cosmosDbSettings);
+
+                 return new PolicyRepository(cosmosRepostory);
+             })
+             .AddSingleton<IHealthChecker, FundingStreamService>();
+
+            builder
                 .AddSingleton<IPolicyRepository, PolicyRepository>((ctx) =>
                     {
                         CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();

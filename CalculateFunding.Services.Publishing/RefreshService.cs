@@ -211,10 +211,12 @@ namespace CalculateFunding.Services.Publishing
                 Common.ApiClient.Calcs.Models.TemplateMapping templateMapping = calculationMappingResult.Content;
 
                 // Calculate funding line totals
-                Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> fundingLineTotals = _fundingLineGenerator.GenerateFundingLines(templateMetadataContents, templateMapping, scopedProviders.Values, allCalculationResults);
+                Dictionary<string, GeneratedProviderResult> fundingLineTotals = _fundingLineGenerator.GenerateFundingLines(templateMetadataContents, templateMapping, scopedProviders.Values, allCalculationResults);
+
+                Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> fundingLinesForProfiling = new Dictionary<string, IEnumerable<Models.Publishing.FundingLine>>(fundingLineTotals.Select(c => new KeyValuePair<string, IEnumerable<Models.Publishing.FundingLine>>(c.Key, c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment))));
 
                 // Profile payment funding lines
-                await _profilingService.ProfileFundingLines(fundingLineTotals, fundingStream.Id, specification.FundingPeriod.Id);
+                await _profilingService.ProfileFundingLines(fundingLinesForProfiling, fundingStream.Id, specification.FundingPeriod.Id);
 
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
@@ -238,7 +240,8 @@ namespace CalculateFunding.Services.Publishing
                     {
                         PublishedProviderVersion publishedProviderVersion = provider.Value.Current;
 
-                        string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, calculationResults[provider.Key], fundingLineTotals[provider.Key]);
+                        // TODO - update this method signature to change it to use GeneratedProviderResult instead of calculation results
+                        string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, calculationResults[provider.Key], fundingLineTotals[provider.Key].FundingLines);
 
                         if (string.IsNullOrWhiteSpace(contents))
                         {

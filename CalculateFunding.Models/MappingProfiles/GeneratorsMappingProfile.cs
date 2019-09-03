@@ -14,11 +14,16 @@ namespace CalculateFunding.Models.MappingProfiles
                 .ForMember(c => c.ReferenceData, opt => opt.Ignore())
                 .ForMember(c => c.ValueFormat, opt => opt.Ignore());
 
+
             CreateMap<GeneratorModels.FundingLine, TemplateModels.FundingLine>();
 
             CreateMap<Publishing.FundingLine, GeneratorModels.FundingLine>()
                 .ForMember(c => c.Calculations, opt => opt.Ignore())
                 .ForMember(c => c.FundingLines, opt => opt.Ignore());
+
+            CreateMap<GeneratorModels.Calculation, Publishing.FundingCalculation>()
+                .ForMember(c => c.FundingLineTemplateLineId, opt => opt.Ignore())
+                .ForMember(c => c.AggregationType, opt => opt.Ignore());
         }
     }
 }
