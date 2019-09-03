@@ -1,0 +1,29 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentKey": {
+      "type": "string",
+      "metadata": {
+        "description": "The environment key for this particular environment eg t1dv"
+      }
+    },
+    "productVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "The product version for this particular environment eg t1dv"
+      }
+    } 
+  },
+  "variables": {
+    "documentDatabaseName": "[concat('cos-', parameters('environmentKey'),'-cfs-', parameters('productVersion'))]"
+  },
+  "resources": [
+  ],
+  "outputs": {
+    "CosmosDbConnectionString": {
+      "value": "[concat('AccountEndpoint=', reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('documentDatabaseName'))).documentEndpoint, ';AccountKey=', listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('documentDatabaseName')), '2015-04-08').primaryMasterKey, ';')]",
+      "type": "string"
+    }
+  }
+}
