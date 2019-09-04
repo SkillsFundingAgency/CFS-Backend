@@ -58,7 +58,13 @@
                       "name": "calculation 1",
                       "templateCalculationId": 1,
                       "value": "1.7",
-                      "type": "Weighting"
+                      "type": "Weighting",
+                      "referenceData": [
+                        {
+                          "templateReferenceId" : 1,
+                          "value": "1"
+                        }
+                      ]
                     },
                     {
                       "name": "calculation 8",

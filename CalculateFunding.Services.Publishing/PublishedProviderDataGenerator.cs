@@ -1,22 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AutoMapper;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class PublishedProviderDataGenerator : IPublishedProviderDataGenerator
     {
         private readonly IFundingLineTotalAggregator _fundingLineTotalAggregator;
+        private readonly IMapper _mapper;
 
-        public PublishedProviderDataGenerator(IFundingLineTotalAggregator fundingLineTotalAggregator)
+        public PublishedProviderDataGenerator(IFundingLineTotalAggregator fundingLineTotalAggregator, IMapper mapper)
         {
             Guard.ArgumentNotNull(fundingLineTotalAggregator, nameof(fundingLineTotalAggregator));
 
             _fundingLineTotalAggregator = fundingLineTotalAggregator;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -29,49 +33,68 @@ namespace CalculateFunding.Services.Publishing
         /// <returns>Dictionary of Generated Provider Results, keyed on ProviderId</returns>
         public Dictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IEnumerable<ProviderCalculationResult> calculationResults)
         {
+            Guard.ArgumentNotNull(templateMetadata, nameof(templateMetadata));
+            Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
+            Guard.ArgumentNotNull(calculationResults, nameof(calculationResults));
+
             Dictionary<string, GeneratedProviderResult> results = new Dictionary<string, GeneratedProviderResult>();
 
-            // TODO: Check for nulls in dictionary and new up provider and funding stream sub dictionaries
             foreach (Common.ApiClient.Providers.Models.Provider provider in scopedProviders)
             {
                 GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
                 ProviderCalculationResult calculationResultsForProvider = calculationResults.FirstOrDefault(p => p.ProviderId == provider.ProviderId);
 
-                IEnumerable<Models.Publishing.FundingLine> fundingLinesTotals = _fundingLineTotalAggregator.GenerateTotals(templateMetadata, templateMapping, calculationResultsForProvider.Results);
+                if (calculationResultsForProvider != null)
+                {
+                    GeneratorModels.FundingValue fundingValue = _fundingLineTotalAggregator.GenerateTotals(templateMetadata, templateMapping, calculationResultsForProvider.Results);
 
-                generatedProviderResult.FundingLines = fundingLinesTotals;
+                    // Get funding lines
+                    IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines) ?? new GeneratorModels.FundingLine[0];
 
-                // Generate calculations
-                List<FundingCalculation> fundingCalculations = new List<FundingCalculation>();
+                    generatedProviderResult.FundingLines = _mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingLines);
 
-                // Use the template to generate a single FundingCalculation per TemplateCalculationId
+                    // Get calculations
+                    IEnumerable<GeneratorModels.Calculation> fundingCalculations = fundingLines?.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations)) ?? new GeneratorModels.Calculation[0];
 
-                // Assign the value of the calculation result to the calculation (use TemplateMaping to resolve CalculationId from TemplateCalculationId)
+                    generatedProviderResult.Calculations = _mapper.Map<IEnumerable<FundingCalculation>>(fundingCalculations);
 
-                generatedProviderResult.Calculations = fundingCalculations;
+                    // Get reference data
+                    IEnumerable<GeneratorModels.ReferenceData> fundingReferenceData = fundingCalculations?.SelectMany(_ => _.ReferenceData);
 
-                // Generate reference data
-                // Use the template to generate a single FundingCalculation per TemplateCalculationId
-                List<FundingReferenceData> fundingReferenceData = new List<FundingReferenceData>();
+                    generatedProviderResult.ReferenceData = _mapper.Map<IEnumerable<FundingReferenceData>>(fundingReferenceData);
 
-                // Assign the value of the calculation result to the calculation (use TemplateMaping to resolve CalculationId from TemplateCalculationId)
+                    // Set Provider information
+                    generatedProviderResult.Provider = _mapper.Map<Provider>(provider);
 
-                generatedProviderResult.ReferenceData = fundingReferenceData;
-
-                // Set Provider information
-                generatedProviderResult.Provider = MapProvider(provider);
-
-
-                results.Add(provider.ProviderId, generatedProviderResult);
+                    results.Add(provider.ProviderId, generatedProviderResult);
+                }
             }
 
             return results;
         }
 
-        private Models.Publishing.Provider MapProvider(Common.ApiClient.Providers.Models.Provider provider)
+        private Common.TemplateMetadata.Models.FundingLine ToFundingLine(Common.TemplateMetadata.Models.FundingLine fundingLine, Common.ApiClient.Calcs.Models.TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
         {
-            throw new NotImplementedException();
+            fundingLine.Calculations = fundingLine.Calculations?.Select(_ => ToCalculation(_, mapping, calculationResults));
+
+            fundingLine.FundingLines = fundingLine.FundingLines?.Select(_ => ToFundingLine(_, mapping, calculationResults));
+
+            return fundingLine;
+        }
+
+        private Common.TemplateMetadata.Models.Calculation ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, Common.ApiClient.Calcs.Models.TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
+        {
+            calculation.Value = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId))?.Value;
+
+            calculation.Calculations = calculation.Calculations?.Select(_ => ToCalculation(_, mapping, calculationResults));
+
+            return calculation;
+        }
+
+        private string GetCalculationId(Common.ApiClient.Calcs.Models.TemplateMapping mapping, uint templateId)
+        {
+            return mapping.TemplateMappingItems.SingleOrDefault(_ => _.TemplateId == templateId)?.CalculationId;
         }
     }
 }

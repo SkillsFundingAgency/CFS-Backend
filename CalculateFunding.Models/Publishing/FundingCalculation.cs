@@ -32,25 +32,5 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("value")]
         public object Value { get; set; }
-
-        /// <summary>
-        /// The type of calculation.
-        /// </summary>
-        [EnumDataType(typeof(FundingCalculationType))]
-        [JsonProperty("type")]
-        public FundingCalculationType Type { get; set; }
-
-        /// <summary>
-        /// How the calculation should aggregate.
-        /// </summary>
-        [EnumDataType(typeof(AggregationType))]
-        [JsonProperty("aggregationType")]
-        public AggregationType AggregationType { get; set; }
-
-        /// <summary>
-        /// Parent funding line TemplateLineId
-        /// </summary>
-        [JsonProperty("fundingLineTemplateLineId")]
-        public string FundingLineTemplateLineId { get; set; }
     }
 }

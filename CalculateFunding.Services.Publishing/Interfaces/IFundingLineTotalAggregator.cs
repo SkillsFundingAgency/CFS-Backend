@@ -2,11 +2,12 @@
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
+using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IFundingLineTotalAggregator
     {
-        IEnumerable<Models.Publishing.FundingLine> GenerateTotals(TemplateMetadataContents templateMetadataContents, TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults);
+        GeneratorModels.FundingValue GenerateTotals(TemplateMetadataContents templateMetadataContents, TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults);
     }
 }

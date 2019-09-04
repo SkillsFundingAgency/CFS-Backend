@@ -154,7 +154,8 @@ namespace CalculateFunding.Generators.Schema10
         private SchemaJsonCalculation BuildSchemaJsonCalculations(IEnumerable<FundingReferenceData> referenceData, IEnumerable<FundingCalculation> fundingCalculations, Common.TemplateMetadata.Models.Calculation calculation)
         {
             FundingCalculation publishedFundingCalculation = fundingCalculations?.Where(_ => _.TemplateCalculationId == calculation.TemplateCalculationId)?.Single();
-            IEnumerable<FundingReferenceData> publishedFundingReferenceData = referenceData?.Where(_ => _.TemplateCalculationId == calculation.TemplateCalculationId);
+            IEnumerable<FundingReferenceData> publishedFundingReferenceData = referenceData?.Where(_ => calculation.ReferenceData?.Any(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId) ?? false);
+            IEnumerable<dynamic> refernceData = publishedFundingReferenceData?.Select(_ => ToReferenceData(calculation.ReferenceData.Where(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId).Single(), _));
 
             return new SchemaJsonCalculation
             {
@@ -166,11 +167,19 @@ namespace CalculateFunding.Generators.Schema10
                 TemplateCalculationId = calculation.TemplateCalculationId,
                 ValueFormat = calculation.ValueFormat.ToString(),
                 Calculations = calculation.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _)),
-                ReferenceData = publishedFundingReferenceData?.Select(_ => new {AggregationType = _.AggregationType.ToString(),
-                    _.FundingLineTemplateLineId,
-                    _.TemplateCalculationId,
-                    _.TemplateReferenceId,
-                    _.Value })
+                ReferenceData = !refernceData.IsNullOrEmpty() ? refernceData : null
+            };
+        }
+
+        private dynamic ToReferenceData(ReferenceData referenceData, FundingReferenceData fundingReferenceData)
+        {
+            return new
+            {
+                referenceData.Name,
+                referenceData.TemplateReferenceId,
+                Format = referenceData.Format.ToString(),
+                fundingReferenceData.Value,
+                AggregationType = referenceData.AggregationType.ToString()
             };
         }
 

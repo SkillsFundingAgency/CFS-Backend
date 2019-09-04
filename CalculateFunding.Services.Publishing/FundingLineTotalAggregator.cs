@@ -19,21 +19,21 @@ namespace CalculateFunding.Services.Publishing
 
         public FundingLineTotalAggregator(IMapper mapper)
         {
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
-
             _fundingGenerator = new FundingGenerator();
             _mapper = mapper;
         }
 
-        public IEnumerable<Models.Publishing.FundingLine> GenerateTotals(TemplateModels.TemplateMetadataContents templateMetadataContents, TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
+        public GeneratorModels.FundingValue GenerateTotals(TemplateModels.TemplateMetadataContents templateMetadataContents, TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
         {
+            Guard.ArgumentNotNull(templateMetadataContents, nameof(templateMetadataContents));
+            Guard.ArgumentNotNull(mapping, nameof(mapping));
+            Guard.ArgumentNotNull(calculationResults, nameof(calculationResults));
+
             templateMetadataContents.RootFundingLines = templateMetadataContents.RootFundingLines?.Select(_ => ToFundingLine(_, mapping, calculationResults));
 
             IEnumerable<GeneratorModels.FundingLine> fundingLines = _mapper.Map<IEnumerable<GeneratorModels.FundingLine>>(templateMetadataContents.RootFundingLines);
 
-            GeneratorModels.FundingValue fundingValue = _fundingGenerator.GenerateFundingValue(fundingLines);
-
-            return _mapper.Map<IEnumerable<FundingLine>>(fundingValue.FundingLines.Flatten(_ => _.FundingLines) ?? new GeneratorModels.FundingLine[0]);
+            return _fundingGenerator.GenerateFundingValue(fundingLines);
         }
 
         private Common.TemplateMetadata.Models.FundingLine ToFundingLine(Common.TemplateMetadata.Models.FundingLine fundingLine, TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)

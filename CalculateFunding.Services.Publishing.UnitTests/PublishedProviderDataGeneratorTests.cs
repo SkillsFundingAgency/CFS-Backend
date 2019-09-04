@@ -22,10 +22,10 @@ using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
     [TestClass]
-    public class FundingLineTotalAggregatorTests
+    public class PublishedProviderDataGeneratorTests
     {
         [TestMethod]
-        public void GenerateTotals_GivenValidTemplateMetadataContentsAndCalculations_ReturnsFundingLines()
+        public void GenerateTotals_GivenValidTemplateMetadataContentsCalculationsAndProviders_ReturnsFundingLines()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -40,46 +40,87 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             TemplateMapping mapping = CreateTemplateMappings();
 
-            //Act
-            GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping, CreateCalculations(mapping));
+            PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
 
-            IEnumerable<Models.Publishing.FundingLine> fundingLines = mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingValue.FundingLines.Flatten(_ => _.FundingLines));
+            //Act
+            Dictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), CreateCalculations(mapping));
 
             //Assert
-            fundingLines.Single(_ => _.TemplateLineId == 1).Value
+            generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 1).Value
                 .Should()
                 .Be(16500.63M);
 
-            fundingLines.Single(_ => _.TemplateLineId == 2).Value
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 1).Value
+                .Should()
+                .Be(1.7M);
+
+            generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 2).Value
                 .Should()
                 .Be(8000M);
 
-            fundingLines.Single(_ => _.TemplateLineId == 3).Value
-                .Should()
-                .Be(3500M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 4).Value
-                .Should()
-                .Be(5000.63M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 5).Value
-                .Should()
-                .Be(0M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 6).Value
-                .Should()
-                .Be(8000M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 7).Value
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 2).Value
                 .Should()
                 .Be(500M);
 
-            fundingLines.Single(_ => _.TemplateLineId == 8).Value
+            generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 3).Value
+                .Should()
+                .Be(3500M);
+
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 3).Value
+                .Should()
+                .Be(1200M);
+
+            generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 4).Value
+                .Should()
+                .Be(5000.63M);
+
+            generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 5).Value
+                .Should()
+                .Be(0M);
+
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 5).Value
+                .Should()
+                .Be(5000.63M);
+
+            generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 6).Value
+                .Should()
+                .Be(8000M);
+
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 6).Value
+                .Should()
+                .Be(80M);
+
+            generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 7).Value
+                .Should()
+                .Be(500M);
+
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 7).Value
+                .Should()
+                .Be(20M);
+
+            generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 8).Value
                 .Should()
                 .Be(1500M);
+
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 8).Value
+                .Should()
+                .Be(8000M);
+
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 9).Value
+                .Should()
+                .Be(300M);
+
+            generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 10).Value
+                .Should()
+                .Be(1500M);
+
+            generatedProviderResult["1234"].ReferenceData.Single(_ => _.TemplateReferenceId == 1).Value
+                .Should()
+                .Be("1");
         }
 
-        public void GenerateTotals_GivenValidTemplateMetadataContentsAndInvalidCalculations_ReturnsTemplateCalculationTotals()
+        [TestMethod]
+        public void GenerateTotals_GivenValidTemplateMetadataContentsAndProvidersButMissingCalculations_EmptyGeneratedProviderResultsReturned()
         {
             //Arrange
             ILogger logger = CreateLogger();
@@ -94,42 +135,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             TemplateMapping mapping = CreateTemplateMappings();
 
+            PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
+
             //Act
-            GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping, new CalculationResult[0]);
-            IEnumerable<Models.Publishing.FundingLine> fundingLines = mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingValue.FundingLines.Flatten(_ => _.FundingLines));
-            
-            //Assert
-            fundingLines.Single(_ => _.TemplateLineId == 1).Value
-                .Should()
-                .Be(0M);
+            Dictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), new ProviderCalculationResult[0]);
 
-            fundingLines.Single(_ => _.TemplateLineId == 2).Value
+            generatedProviderResult.Any()
                 .Should()
-                .Be(8000M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 3).Value
-                .Should()
-                .Be(3500M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 4).Value
-                .Should()
-                .Be(5000.63M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 5).Value
-                .Should()
-                .Be(0M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 6).Value
-                .Should()
-                .Be(8000M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 7).Value
-                .Should()
-                .Be(500M);
-
-            fundingLines.Single(_ => _.TemplateLineId == 8).Value
-                .Should()
-                .Be(1500M);
+                .BeFalse();
         }
 
 
@@ -153,6 +166,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return Substitute.For<ILogger>();
         }
 
+        public IEnumerable<Common.ApiClient.Providers.Models.Provider> GetProviders()
+        {
+            return new List<Common.ApiClient.Providers.Models.Provider> { new Common.ApiClient.Providers.Models.Provider { ProviderId = "1234", Name = "Provider 1" } };
+        }
+
         public TemplateMapping CreateTemplateMappings()
         {
             TemplateMapping mapping = new TemplateMapping();
@@ -174,9 +192,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return mapping;
         }
 
-        public IEnumerable<CalculationResult> CreateCalculations(TemplateMapping mapping)
+        public IEnumerable<ProviderCalculationResult> CreateCalculations(TemplateMapping mapping)
         {
-            return mapping.TemplateMappingItems.Select(_ => new CalculationResult { Id = _.CalculationId, Value = GetValue(_.TemplateId) });
+            return new List<ProviderCalculationResult> { new ProviderCalculationResult { ProviderId = "1234", Results = mapping.TemplateMappingItems.Select(_ => new CalculationResult { Id = _.CalculationId, Value = GetValue(_.TemplateId) }) } };
         }
 
         public decimal GetValue(uint templateId)

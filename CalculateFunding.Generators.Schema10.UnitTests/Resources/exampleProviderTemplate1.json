@@ -71,7 +71,7 @@
                   "name": "Academic year 2018 to 2019 pupil number on roll",
                   "templateReferenceId": 1,
                   "format": "Number",
-                  "value": "1",
+                  "value": "",
                   "aggregationType": "Sum"
                 }
               ]
@@ -89,7 +89,7 @@
                   "name": "Academic year 2018 to 2019 pupil number on roll",
                   "templateReferenceId": 2,
                   "format": "Number",
-                  "value": "1",
+                  "value": "",
                   "aggregationType": "Sum"
                 }
               ]

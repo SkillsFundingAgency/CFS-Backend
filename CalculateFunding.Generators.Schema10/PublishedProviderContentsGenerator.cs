@@ -16,13 +16,13 @@ namespace CalculateFunding.Generators.Schema10
 {
     public class PublishedProviderContentsGenerator : IPublishedProviderContentsGenerator
     {
-        public string GenerateContents(PublishedProviderVersion publishedProviderVersion, TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, IEnumerable<CalculationResult> calculationResults, IEnumerable<FundingLine> fundingLines)
+        public string GenerateContents(PublishedProviderVersion publishedProviderVersion, TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, GeneratedProviderResult generatedProviderResult)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.ArgumentNotNull(templateMetadataContents, nameof(templateMetadataContents));
             Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
-            Guard.ArgumentNotNull(calculationResults, nameof(calculationResults));
-            Guard.ArgumentNotNull(fundingLines, nameof(fundingLines));
+            Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
+
             Guard.ArgumentNotNull(publishedProviderVersion.Provider, nameof(publishedProviderVersion.Provider));
 
             dynamic contents = new
@@ -75,7 +75,7 @@ namespace CalculateFunding.Generators.Schema10
                 },
                 FundingStreamCode = publishedProviderVersion.FundingStreamId,
                 publishedProviderVersion.FundingPeriodId,
-                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, fundingLines, templateMapping, calculationResults)) },
+                FundingValue = new { TotalValue = publishedProviderVersion.TotalFunding, FundingLines = templateMetadataContents.RootFundingLines?.Select(x => ToFundingLine(x, generatedProviderResult.FundingLines, templateMapping, generatedProviderResult.Calculations, generatedProviderResult.ReferenceData)) },
                 publishedProviderVersion.VariationReasons,
                 Successors = string.IsNullOrWhiteSpace(publishedProviderVersion.Provider.Successor) ? null : new List<string> { publishedProviderVersion.Provider.Successor },
                 publishedProviderVersion.Predecessors
@@ -139,7 +139,7 @@ namespace CalculateFunding.Generators.Schema10
             return otherIdentifiers;
         }
 
-        private dynamic ToFundingLine(TemplateFundingLine fundingLine, IEnumerable<FundingLine> fundingLineValues, TemplateMapping templateMapping, IEnumerable<CalculationResult> calculationResults)
+        private dynamic ToFundingLine(TemplateFundingLine fundingLine, IEnumerable<FundingLine> fundingLineValues, TemplateMapping templateMapping, IEnumerable<FundingCalculation> calculationResults, IEnumerable<FundingReferenceData> referenceData)
         {
             return new
             {
@@ -148,38 +148,40 @@ namespace CalculateFunding.Generators.Schema10
                 Value = Convert.ToInt32(fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().Value),
                 fundingLine.TemplateLineId,
                 Type = fundingLine.Type.ToString(),
-                Calculations = fundingLine.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults)),
-                FundingLines = fundingLine.FundingLines?.Select(x => ToFundingLine(x, fundingLineValues, templateMapping, calculationResults)),
+                Calculations = fundingLine.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults, referenceData)),
+                FundingLines = fundingLine.FundingLines?.Select(x => ToFundingLine(x, fundingLineValues, templateMapping, calculationResults, referenceData)),
                 fundingLineValues.Where(x => x.TemplateLineId == fundingLine.TemplateLineId)?.Single().DistributionPeriods
             };
         }
 
-        private dynamic ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, TemplateMapping templateMapping, IEnumerable<CalculationResult> calculationResults)
+        private dynamic ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, TemplateMapping templateMapping, IEnumerable<FundingCalculation> calculationResults, IEnumerable<FundingReferenceData> referenceData)
         {
             string calculationId = templateMapping.TemplateMappingItems.Where(x => x.TemplateId == calculation.TemplateCalculationId)?.Single().CalculationId;
+            IEnumerable<FundingReferenceData> publishedFundingReferenceData = referenceData?.Where(_ => calculation.ReferenceData?.Any(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId) ?? false);
+            IEnumerable<dynamic> refernceData = publishedFundingReferenceData?.Select(_ => ToReferenceData(calculation.ReferenceData.Where(calcReferenceData => calcReferenceData.TemplateReferenceId == _.TemplateReferenceId).Single(), _));
 
             return new
             {
                 calculation.Name,
                 calculation.TemplateCalculationId,
-                Value = string.Format("{0:0}", calculationResults.Where(x => x.Id == calculationId)?.Single().Value),
+                Value = string.Format("{0:0}", calculationResults.Where(x => x.TemplateCalculationId == calculation.TemplateCalculationId)?.Single().Value),
                 ValueFormat = calculation.ValueFormat.ToString(),
                 Type = calculation.Type.ToString(),
                 calculation.FormulaText,
                 AggregationType = calculation.AggregationType.ToString(),
-                Calculations = calculation.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults)),
-                ReferenceData = calculation.ReferenceData?.Select(x => ToReferenceData(x))
+                Calculations = calculation.Calculations?.Select(x => ToCalculation(x, templateMapping, calculationResults, referenceData)),
+                ReferenceData = !refernceData.IsNullOrEmpty() ? refernceData : null
             };
         }
-
-        private dynamic ToReferenceData(ReferenceData referenceData)
+        
+        private dynamic ToReferenceData(ReferenceData referenceData, FundingReferenceData fundingReferenceData)
         {
             return new
             {
                 referenceData.Name,
                 referenceData.TemplateReferenceId,
                 Format = referenceData.Format.ToString(),
-                referenceData.Value,
+                Value = string.Format("{0:0}", fundingReferenceData.Value),
                 AggregationType = referenceData.AggregationType.ToString()
             };
         }

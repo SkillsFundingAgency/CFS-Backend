@@ -240,8 +240,7 @@ namespace CalculateFunding.Services.Publishing
                     {
                         PublishedProviderVersion publishedProviderVersion = provider.Value.Current;
 
-                        // TODO - update this method signature to change it to use GeneratedProviderResult instead of calculation results
-                        string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, calculationResults[provider.Key], generatedPublishedProviderData[provider.Key].FundingLines);
+                        string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[provider.Key]);
 
                         if (string.IsNullOrWhiteSpace(contents))
                         {

@@ -198,9 +198,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             return new[]
             {
-                new FundingCalculation { TemplateCalculationId = 1, Value = 123, AggregationType = AggregationType.None },
-                new FundingCalculation { TemplateCalculationId = 2, Value = 456, AggregationType = AggregationType.Sum },
-                new FundingCalculation { TemplateCalculationId = 3, Value = 789, AggregationType = AggregationType.Average }
+                new FundingCalculation { TemplateCalculationId = 1, Value = 123 },
+                new FundingCalculation { TemplateCalculationId = 2, Value = 456 },
+                new FundingCalculation { TemplateCalculationId = 3, Value = 789 }
             };
         }
 
@@ -208,9 +208,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             return new[]
             {
-                new FundingReferenceData { TemplateCalculationId = 1, Value = 123, AggregationType = AggregationType.None },
-                new FundingReferenceData { TemplateCalculationId = 2, Value = 456, AggregationType = AggregationType.Sum },
-                new FundingReferenceData { TemplateCalculationId = 3, Value = 789, AggregationType = AggregationType.Average }
+                new FundingReferenceData { TemplateReferenceId = 1, Value = 123 },
+                new FundingReferenceData { TemplateReferenceId = 2, Value = 456 },
+                new FundingReferenceData { TemplateReferenceId = 3, Value = 789 }
             };
         }
 

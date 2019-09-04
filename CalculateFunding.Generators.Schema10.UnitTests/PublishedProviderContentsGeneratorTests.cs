@@ -22,6 +22,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
     public class PublishedProviderContentsGeneratorTests
     {
         private const int MaxCalculationResults = 1000;
+        private const int MaxFundingResults = 2;
         private const int MaxFundingLines = 100;
         private const int ValueMultiplicationFactor = 1000;
 
@@ -38,7 +39,7 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
             PublishedProviderContentsGenerator publishedProviderContentsGenerator = new PublishedProviderContentsGenerator();
 
             //Act
-            string publishedcontents = publishedProviderContentsGenerator.GenerateContents(GetProviderVersion(), contents, GetTemplateMapping(), GetCalculationResults(), GetFundingLines());
+            string publishedcontents = publishedProviderContentsGenerator.GenerateContents(GetProviderVersion(), contents, GetTemplateMapping(), GetGeneratedProviderResult());
 
             //Assert
             string expectedOutput = GetResourceString("CalculateFunding.Generators.Schema10.UnitTests.Resources.exampleProviderOutput1.json").Prettify();
@@ -71,13 +72,30 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
             return new TemplateMapping { TemplateMappingItems = items };
         }
 
-        public IEnumerable<CalculationResult> GetCalculationResults()
+        public GeneratedProviderResult GetGeneratedProviderResult()
         {
-            List<CalculationResult> results = new List<CalculationResult>();
+            return new GeneratedProviderResult { FundingLines = GetFundingLines(), Calculations = GetCalculationResults(), ReferenceData = GetReferenceData() };
+        }
+
+        public IEnumerable<Models.Publishing.FundingReferenceData> GetReferenceData()
+        {
+            List<Models.Publishing.FundingReferenceData> results = new List<Models.Publishing.FundingReferenceData>();
+
+            for (uint i = 0; i <= MaxFundingResults; i++)
+            {
+                results.Add(new Models.Publishing.FundingReferenceData { TemplateReferenceId = i, Value = i * ValueMultiplicationFactor });
+            }
+
+            return results;
+        }
+
+        public IEnumerable<Models.Publishing.FundingCalculation> GetCalculationResults()
+        {
+            List<Models.Publishing.FundingCalculation> results = new List<Models.Publishing.FundingCalculation>();
 
             for (uint i = 0; i <= MaxCalculationResults; i++)
             {
-                results.Add(new CalculationResult { Id = i.ToString(), Value = i * ValueMultiplicationFactor });
+                results.Add(new Models.Publishing.FundingCalculation { TemplateCalculationId = i, Value = i * ValueMultiplicationFactor });
             }
 
             return results;
