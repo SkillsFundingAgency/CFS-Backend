@@ -6,7 +6,7 @@
     [string]$environmentKey,
     
     [Parameter(Position = 2, mandatory = $true)]
-    [String[]] $indexes = @(),
+    [String[]] $indexers = @(),
 
     [Parameter(Position = 3, mandatory = $true)]
     [string]$productVersion
@@ -30,7 +30,7 @@ $indexes | ForEach-Object {
 
     $schema = $schema | ConvertTo-Json
 
-    $searchServiceUrl = "https://ss-$environmentKey-cfs-$productVersion.search.windows.net/indexes/$($indexName)?api-version=2019-05-06"
+    $searchServiceUrl = "https://ss-$environmentKey-cfs-$productVersion.search.windows.net/indexers/$($indexName)?api-version=2019-05-06"
 
     $stopTrying = $false
 
