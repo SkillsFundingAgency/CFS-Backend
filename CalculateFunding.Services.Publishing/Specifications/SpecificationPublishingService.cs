@@ -1,31 +1,31 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Models.Specs;
+using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Mvc;
-using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
-using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
-using CalculateFunding.Models.Specs;
-using Newtonsoft.Json;
 using Microsoft.AspNetCore.Http;
-using System;
-using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Common.Caching;
-using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Models.Publishing;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
+using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
     public class SpecificationPublishingService : SpecificationPublishingBase, ISpecificationPublishingService, IHealthChecker
     {
-        private readonly ICreateJobsForSpecifications<RefreshFundingJobDefinition> _jobs;
+        private readonly ICreateJobsForSpecifications<RefreshFundingJobDefinition> _refreshFundingJobs;
         private readonly ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approveFundingJobs;
         private readonly ICacheProvider _cacheProvider;
         private readonly ISpecificationFundingStatusService _specificationFundingStatusService;
@@ -34,16 +34,16 @@ namespace CalculateFunding.Services.Publishing.Specifications
             ISpecificationsApiClient specifications,
             IPublishingResiliencePolicies resiliencePolicies,
             ICacheProvider cacheProvider,
-            ICreateJobsForSpecifications<RefreshFundingJobDefinition> jobs,
+            ICreateJobsForSpecifications<RefreshFundingJobDefinition> refreshFundingJobs,
             ICreateJobsForSpecifications<ApproveFundingJobDefinition> approveFundingJobs,
             ISpecificationFundingStatusService specificationFundingStatusService) : base(validator, specifications, resiliencePolicies)
         {
-            Guard.ArgumentNotNull(jobs, nameof(jobs));
+            Guard.ArgumentNotNull(refreshFundingJobs, nameof(refreshFundingJobs));
             Guard.ArgumentNotNull(approveFundingJobs, nameof(approveFundingJobs));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(specificationFundingStatusService, nameof(specificationFundingStatusService));
 
-            _jobs = jobs;
+            _refreshFundingJobs = refreshFundingJobs;
             _cacheProvider = cacheProvider;
             _approveFundingJobs = approveFundingJobs;
             _specificationFundingStatusService = specificationFundingStatusService;
@@ -63,7 +63,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             return health;
         }
 
-        public async Task<IActionResult> CreatePublishJob(string specificationId,
+        public async Task<IActionResult> CreateRefreshFundingJob(string specificationId,
             Reference user,
             string correlationId)
         {
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return new ConflictResult();
             }
 
-            ApiJob refreshFundingJob = await _jobs.CreateJob(specificationId, user, correlationId);
+            ApiJob refreshFundingJob = await _refreshFundingJobs.CreateJob(specificationId, user, correlationId);
 
             Guard.ArgumentNotNull(refreshFundingJob, nameof(refreshFundingJob), "Failed to create RefreshFundingJob");
 
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
 
             ApiSpecificationSummary specificationSummary = specificationIdResponse.Content;
 
-            if(specificationSummary == null)
+            if (specificationSummary == null)
             {
                 return new NotFoundResult();
             }

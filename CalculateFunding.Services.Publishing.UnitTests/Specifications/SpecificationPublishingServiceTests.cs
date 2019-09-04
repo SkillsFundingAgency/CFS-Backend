@@ -235,7 +235,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         private async Task WhenTheSpecificationIsPublished()
         {
-            ActionResult = await _service.CreatePublishJob(SpecificationId, User, CorrelationId);
+            ActionResult = await _service.CreateRefreshFundingJob(SpecificationId, User, CorrelationId);
         }
 
         private void AndTheProvidersShouldBeCached()

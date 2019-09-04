@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface ISpecificationPublishingService
     {
-        Task<IActionResult> CreatePublishJob(string specificationId,
+        Task<IActionResult> CreateRefreshFundingJob(string specificationId,
             Reference user,
             string correlationId);
 

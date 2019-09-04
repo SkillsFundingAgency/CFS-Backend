@@ -28,14 +28,37 @@ namespace CalculateFunding.Api.Publishing.Controllers
         }
 
         /// <summary>
-        /// Publish specification
+        /// Refresh funding for a specification
         /// </summary>
         /// <returns></returns>
-        [HttpPost("api/publishedspecifications/{specificationId}")]
+        [HttpPost("api/specifications/{specificationId}/refresh")]
         [ProducesResponseType(201)]
-        public async Task<IActionResult> PublishSpecification([FromRoute] string specificationId)
+        public async Task<IActionResult> RefreshFundingForSpecification([FromRoute] string specificationId)
         {
-            return await _specificationPublishingService.CreatePublishJob(specificationId,
+            return await _specificationPublishingService.CreateRefreshFundingJob(specificationId,
+                Request.GetUser(),
+                Request.GetCorrelationId());
+        }
+
+        /// <summary>
+        /// Approve funding for a specification
+        /// </summary>
+        /// <param name="specificationId">The specification id</param>
+        /// <returns></returns>
+        [HttpPost("api/specifications/{specificationId}/approve")]
+        [ProducesResponseType(201)]
+        public async Task<IActionResult> ApproveSpecification([FromRoute] string specificationId)
+        {
+            var controllerName = string.Empty;
+
+            if (ControllerContext.RouteData.Values.ContainsKey("controller"))
+                controllerName = (string)ControllerContext.RouteData.Values["controller"];
+
+            return await _specificationPublishingService.ApproveSpecification(
+                nameof(ApproveSpecification),
+                controllerName,
+                specificationId,
+                ControllerContext.HttpContext.Request,
                 Request.GetUser(),
                 Request.GetCorrelationId());
         }
@@ -53,7 +76,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 GetUser(),
                 GetCorrelationId());
         }
-        
+
         [HttpGet("api/specifications/{specificationId}/publishedproviders")]
         [ProducesResponseType(200)]
         public async Task<IActionResult> PublishedProviders([FromRoute] string specificationId)
@@ -61,29 +84,7 @@ namespace CalculateFunding.Api.Publishing.Controllers
             return await _publishedProviderFundingService
                 .GetLatestPublishedProvidersForSpecificationId(specificationId);
         }
-        
-        /// <summary>
-        /// Approve specification
-        /// </summary>
-        /// <param name="specificationId">The specification id</param>
-        /// <returns></returns>
-        [HttpPost("api/specifications/{specificationId}/approve")]
-        [ProducesResponseType(201)]
-        public async Task<IActionResult> ApproveSpecification([FromRoute] string specificationId)
-        {
-            var controllerName = string.Empty;
 
-            if (ControllerContext.RouteData.Values.ContainsKey("controller"))
-                controllerName = (string) ControllerContext.RouteData.Values["controller"];
-
-            return await _specificationPublishingService.ApproveSpecification(
-                nameof(ApproveSpecification),
-                controllerName,
-                specificationId,
-                ControllerContext.HttpContext.Request,
-                Request.GetUser(),
-                Request.GetCorrelationId());
-        }
 
         /// <summary>
         /// Check can choose specification for funding
