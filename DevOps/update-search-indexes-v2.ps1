@@ -30,7 +30,7 @@ $indexes | ForEach-Object {
 
     $schema = $schema | ConvertTo-Json
 
-    $searchServiceUrl = "https://ss-$environmentKey-cfs-productVersion.search.windows.net/indexes/$($indexName)?api-version=2019-05-06"
+    $searchServiceUrl = "https://ss-$environmentKey-cfs-$productVersion.search.windows.net/indexes/$($indexName)?api-version=2019-05-06"
 
     $stopTrying = $false
 
