@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         {
             return Task.FromResult(_repository.Query<PublishedProvider>(true)
                 .Where(_ => _.Current.SpecificationId == specificationId &&
-                            (_.Current.Status == PublishedProviderStatus.Held ||
+                            (_.Current.Status == PublishedProviderStatus.Draft ||
                              _.Current.Status == PublishedProviderStatus.Updated))
                 .AsEnumerable());
         }
@@ -72,6 +72,11 @@ namespace CalculateFunding.Services.Publishing.Repositories
             string id = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}-{version}";
 
             return (await _repository.ReadAsync<PublishedProviderVersion>(id, true))?.Content;
+        }
+
+        public Task<IEnumerable<PublishedFunding>> GetLatestPublishedFundingBySpecification(string specificationId)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

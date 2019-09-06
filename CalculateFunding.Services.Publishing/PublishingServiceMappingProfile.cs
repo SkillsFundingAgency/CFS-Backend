@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using CalculateFunding.Common.Extensions;
 using CalculateFunding.Models.Publishing;
+using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -8,9 +8,7 @@ namespace CalculateFunding.Services.Publishing
     {
         public PublishingServiceMappingProfile()
         {
-            CreateMap<Common.ApiClient.Providers.Models.Provider, Provider>()
-                .ForMember(d => d.TrustStatus, opt => opt.MapFrom(
-                    o => EnumExtensions.AsEnum<ProviderTrustStatus>(o.TrustStatusViewModelString)));
+            CreateMap<ApiProvider, Provider>();
         }
     }
 }

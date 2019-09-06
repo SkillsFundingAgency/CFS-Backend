@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
@@ -10,6 +9,8 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Generators.OrganisationGroup;
+using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
@@ -18,47 +19,80 @@ using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
+using FundingConfiguration = CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig.FundingConfiguration;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class PublishService : IPublishService
     {
-        private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
+        private readonly IPublishedFundingStatusUpdateService _publishedFundingStatusUpdateService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ISpecificationService _specificationService;
 
         private readonly IProviderService _providerService;
-        private readonly ICalculationResultsRepository _calculationResultsRepository;
-        private readonly IPublishedProviderDataGenerator _fundingLineGenerator;
-        private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
-        private readonly IInScopePublishedProviderService _inScopePublishedProviderService;
-        private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;
-        private readonly IProfilingService _profilingService;
+
         private readonly IJobsApiClient _jobsApiClient;
         private readonly ILogger _logger;
-        private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly IPoliciesApiClient _policiesApiClient;
-        private readonly IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
-        private readonly IPublishedProviderVersionService _publishedProviderVersionService;
+        private readonly IPublishPrerequisiteChecker _publishPrerequisiteChecker;
+        private readonly IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
+        private readonly IPublishedFundingGenerator _publishedFundingGenerator;
+        private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
+
+        // TODO: Change to IOrganisationGroupGenerator once common is updated
+        private readonly OrganisationGroupGenerator _organisationGroupGenerator;
+
 
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
-        private readonly Policy _calculationsApiClientPolicy;
+        private readonly Policy _policyApiClientPolicy;
 
-        public PublishService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
+        public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
-            ISpecificationService specificationService)
+            ISpecificationService specificationService,
+            // TODO - update this to interface once common package version is updated
+            OrganisationGroupGenerator organisationGroupGenerator,
+            IPublishPrerequisiteChecker publishPrerequisiteChecker,
+            IPublishedFundingChangeDetectorService publishedFundingChangeDetectorService,
+            IPublishedFundingGenerator publishedFundingGenerator,
+            IPublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService,
+            IProviderService providerService,
+            IJobsApiClient jobsApiClient,
+            IPoliciesApiClient policiesApiClient,
+            ILogger logger
+            )
         {
-            Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
+            Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
+            Guard.ArgumentNotNull(organisationGroupGenerator, nameof(organisationGroupGenerator));
+            Guard.ArgumentNotNull(publishPrerequisiteChecker, nameof(publishPrerequisiteChecker));
+            Guard.ArgumentNotNull(publishedFundingChangeDetectorService, nameof(publishedFundingChangeDetectorService));
+            Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedFundingGenerator));
+            Guard.ArgumentNotNull(publishedFundingContentsPersistanceService, nameof(publishedFundingContentsPersistanceService));
+            Guard.ArgumentNotNull(providerService, nameof(providerService));
+            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
+            Guard.ArgumentNotNull(logger, nameof(logger));
 
-            _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
+            _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
             _specificationService = specificationService;
+            _organisationGroupGenerator = organisationGroupGenerator;
+            _publishPrerequisiteChecker = publishPrerequisiteChecker;
+            _publishedFundingChangeDetectorService = publishedFundingChangeDetectorService;
+            _publishedFundingGenerator = publishedFundingGenerator;
+            _publishedFundingContentsPersistanceService = publishedFundingContentsPersistanceService;
+            _providerService = providerService;
+            _jobsApiClient = jobsApiClient;
+            _policiesApiClient = policiesApiClient;
+            _logger = logger;
+
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
+            _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
+            _policyApiClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
         }
 
         public async Task<ApiSpecificationSummary> GetSpecificationSummaryById(string specificationId)
@@ -97,6 +131,31 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
             }
 
+            IEnumerable<PublishedProvider> publishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() =>
+                        _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
+
+            if (publishedProviders.IsNullOrEmpty())
+                throw new RetriableException(
+                        $"Null or empty published providers returned for specification id : '{specificationId}' when setting status to released");
+
+
+            // Check prerequisites for this specification to be published
+            IEnumerable<string> prereqValidationErrors = await _publishPrerequisiteChecker.PerformPrerequisiteChecks(specification, publishedProviders);
+            if (!prereqValidationErrors.IsNullOrEmpty())
+            {
+                string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
+
+                await UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
+
+                throw new NonRetriableException(errorMessage);
+            }
+
+
+            // Get latest version of existing published funding
+            IEnumerable<PublishedFunding> publishedFunding = await _publishingResiliencePolicy.ExecuteAsync(() =>
+                        _publishedFundingRepository.GetLatestPublishedFundingBySpecification(specificationId));
+
+
             foreach (Reference fundingStream in specification.FundingStreams)
             {
                 Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
@@ -105,30 +164,30 @@ namespace CalculateFunding.Services.Publishing
                 // TODO: Null and response checking on response. If there is a null associated template, continue to next funding stream
                 TemplateMetadataContents templateMetadataContents = templateMetadataContentsResponse.Content;
 
-
-                // Get latest published provider versions
-                // TODO - at some stage optimise this call to only get fundingId and version from latest provider, then retrieve the details later for PublishedProvider get provider data
-                IEnumerable<PublishedProvider> publishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
-
-                // Get latest PublishedFunding to get ID + providerVersions
-
                 // Lookup the funding configuration to determine which groups to publish
+                var fundingConfigurationResponse = await _policyApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id));
+                FundingConfiguration fundingConfiguration = fundingConfigurationResponse.Content;
+
+                IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders = await _providerService.GetScopedProvidersForSpecification(specificationId, specification.ProviderVersionId);
 
                 // Foreach group, determine the provider versions required to be latest
+                IEnumerable<OrganisationGroupResult> organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(fundingConfiguration, scopedProviders, specification.ProviderVersionId);
 
                 // Compare existing published provider versions with existing current PublishedFundingVersion
+                IEnumerable<OrganisationGroupResult> organisationGroupsToSave = await _publishedFundingChangeDetectorService.GenerateOrganisationGroupsToSave(organisationGroups, publishedFunding, publishedProviders);
 
                 // Generate PublishedFundingVersion for new and updated PublishedFundings
+                IEnumerable<PublishedFundingVersion> publishedFundingToSave = _publishedFundingGenerator.GeneratePublishedFunding(organisationGroupsToSave, templateMetadataContents, publishedProviders);
 
-                // Generate aggregate for FundingValue
+                // Save a version of published funding and set this version to current
+                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedProviderStatus.Released);
 
-                if (publishedProviders.IsNullOrEmpty())
-                    throw new RetriableException(
-                        $"Null or empty published providers returned for specification id : '{specificationId}' when setting status to released");
-
-                await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProviders, author, PublishedProviderStatus.Released);
+                // Save contents to blob storage and search for the feed
+                await _publishedFundingContentsPersistanceService.SavePublishedFundingContents(publishedFundingToSave, templateMetadataContents);
             }
+
+            // Mark job as complete
+            await UpdateJobStatus(jobId, 0, 0, true, null);
         }
 
         private async Task<JobViewModel> RetrieveJobAndCheckCanBeProcessed(string jobId)

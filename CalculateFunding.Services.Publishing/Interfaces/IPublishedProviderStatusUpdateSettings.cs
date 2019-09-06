@@ -1,4 +1,4 @@
-namespace CalculateFunding.Services.Publishing
+namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedProviderStatusUpdateSettings
     {

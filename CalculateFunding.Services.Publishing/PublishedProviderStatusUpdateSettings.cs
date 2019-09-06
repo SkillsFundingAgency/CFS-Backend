@@ -1,3 +1,5 @@
+using CalculateFunding.Services.Publishing.Interfaces;
+
 namespace CalculateFunding.Services.Publishing
 {
     public class PublishedProviderStatusUpdateSettings : IPublishedProviderStatusUpdateSettings

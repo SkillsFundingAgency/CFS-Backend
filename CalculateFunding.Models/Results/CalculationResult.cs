@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using Newtonsoft.Json;
@@ -12,6 +11,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("calculation")]
         public Reference Calculation { get; set; }
 
+        [Obsolete]
         [JsonProperty("allocationLine")]
         public Reference AllocationLine { get; set; }
 
@@ -34,6 +34,7 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("calculationType")]
         public CalculationType CalculationType { get; set; }
 
+        [Obsolete]
         [JsonProperty("version")]
         public int Version { get; set; }
     }

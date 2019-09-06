@@ -39,6 +39,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
+        private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
         private readonly Policy _calculationsApiClientPolicy;
@@ -57,6 +58,7 @@ namespace CalculateFunding.Services.Publishing
             IJobsApiClient jobsApiClient,
             ILogger logger,
             IPublishedProviderVersionService publishedProviderVersionService,
+            IPublishedProviderIndexerService publishedProviderIndexerService,
             ICalculationsApiClient calculationsApiClient,
             IPoliciesApiClient policiesApiClient,
             IRefreshPrerequisiteChecker refreshPrerequisiteChecker)
@@ -74,6 +76,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
+            Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
 
@@ -97,6 +100,7 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
             _publishedProviderVersionService = publishedProviderVersionService;
+            _publishedProviderIndexerService = publishedProviderIndexerService;
         }
 
         public async Task<IEnumerable<Common.ApiClient.Providers.Models.Provider>> GetProvidersByProviderVersionId(string providerVersionId)
@@ -250,6 +254,15 @@ namespace CalculateFunding.Services.Publishing
                         try
                         {
                             await _publishedProviderVersionService.SavePublishedProviderVersionBody(publishedProviderVersion.Id, contents);
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new RetriableException(ex.Message);
+                        }
+
+                        try
+                        {
+                            await _publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
                         }
                         catch (Exception ex)
                         {

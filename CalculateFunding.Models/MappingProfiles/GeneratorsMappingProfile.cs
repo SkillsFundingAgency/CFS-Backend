@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
+using CalculateFunding.Models.Publishing;
+using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 using TemplateModels = CalculateFunding.Common.TemplateMetadata.Models;
-using ApiProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
-using CalculateFunding.Models.Publishing;
-using System;
 
 namespace CalculateFunding.Models.MappingProfiles
 {
@@ -32,8 +31,7 @@ namespace CalculateFunding.Models.MappingProfiles
 
             CreateMap<GeneratorModels.Calculation, Publishing.FundingCalculation>();
 
-            CreateMap<ApiProvider, Provider>()
-                .ForMember(c => c.TrustStatus, opt => opt.MapFrom(c => Enum.Parse<ProviderTrustStatus>(c.TrustStatusViewModelString)));
+            CreateMap<ApiProvider, Provider>();
         }
     }
 }

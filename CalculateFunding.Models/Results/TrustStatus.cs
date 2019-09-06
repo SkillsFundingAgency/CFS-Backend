@@ -1,9 +1,7 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace CalculateFunding.Models.Results
 {
-    [Obsolete]
     public enum TrustStatus
     {
         [EnumMember(Value = "Not applicable")]

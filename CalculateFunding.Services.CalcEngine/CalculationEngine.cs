@@ -48,24 +48,24 @@ namespace CalculateFunding.Services.CalcEngine
             IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId);
 
             Parallel.ForEach(providers, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
-            {
-                var stopwatch = new Stopwatch();
-                stopwatch.Start();
+           {
+               var stopwatch = new Stopwatch();
+               stopwatch.Start();
 
-                IEnumerable<ProviderSourceDataset> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.SpecificationId).Result;
+               IEnumerable<ProviderSourceDataset> providerSourceDatasets = getProviderSourceDatasets(provider.Id, buildProject.SpecificationId).Result;
 
-                if (providerSourceDatasets == null)
-                {
-                    providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
-                }
+               if (providerSourceDatasets == null)
+               {
+                   providerSourceDatasets = Enumerable.Empty<ProviderSourceDataset>();
+               }
 
-                var result = CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerSourceDatasets.ToList());
+               ProviderResult result = CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerSourceDatasets.ToList());
 
-                providerResults.Add(result);
+               providerResults.Add(result);
 
-                stopwatch.Stop();
-                _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
-            });
+               stopwatch.Stop();
+               _logger.Debug($"Generated result for {provider.Name} in {stopwatch.ElapsedMilliseconds}ms");
+           });
 
             return providerResults;
         }
@@ -78,12 +78,12 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<CalculationResult> calculationResults = model.Execute(providerSourceDatasets != null ? providerSourceDatasets.ToList() : new List<ProviderSourceDataset>(), provider, aggregations).ToArray();
 
-            var providerCalResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
+            var providerCalcResults = calculationResults.ToDictionary(x => x.Calculation?.Id);
             stopwatch.Stop();
 
-            if (providerCalResults.Count > 0)
+            if (providerCalcResults.Count > 0)
             {
-                _logger.Debug($"{providerCalResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalResults.Count: 0.0000}ms)");
+                _logger.Debug($"{providerCalcResults.Count} calcs in {stopwatch.ElapsedMilliseconds}ms ({stopwatch.ElapsedMilliseconds / providerCalcResults.Count: 0.0000}ms)");
             }
             else
             {
@@ -109,17 +109,12 @@ namespace CalculateFunding.Services.CalcEngine
                     {
                         Calculation = calculation.GetReference(),
                         CalculationType = calculation.CalculationType,
-                        Version = calculation.Version
+                        Version = 0 // This is no longer required for new publishing. Hard coded to 0 for change detection. Previously was calculation.Version
                     };
 
-                    if (providerCalResults.TryGetValue(calculation.Id, out CalculationResult calculationResult))
+                    if (providerCalcResults.TryGetValue(calculation.Id, out CalculationResult calculationResult))
                     {
                         result.Calculation.Id = calculationResult.Calculation?.Id;
-
-                        if (calculationResult.AllocationLine != null)
-                        {
-                            result.AllocationLine = calculationResult.AllocationLine;
-                        }
 
                         // The default for the calculation is to return Decimal.MinValue - if this is the case, then subsitute a 0 value as the result, instead of the negative number.
                         if (calculationResult.Value != decimal.MinValue)
@@ -139,14 +134,7 @@ namespace CalculateFunding.Services.CalcEngine
                 }
             }
 
-            providerResult.CalculationResults = results.ToList();
-
-            providerResult.AllocationLineResults = results.Where(x => x.CalculationType == CalculationType.Template && x.AllocationLine != null)
-                .GroupBy(x => x.AllocationLine).Select(x => new AllocationLineResult
-                {
-                    AllocationLine = x.Key,
-                    Value = x.All(v => !v.Value.HasValue) ? (decimal?)null : x.Sum(v => v.Value ?? decimal.Zero)
-                }).ToList();
+            providerResult.CalculationResults = results;
 
             return providerResult;
         }

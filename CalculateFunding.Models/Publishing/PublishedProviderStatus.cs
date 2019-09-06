@@ -6,7 +6,7 @@ namespace CalculateFunding.Models.Publishing
     [JsonConverter(typeof(StringEnumConverter))]
     public enum PublishedProviderStatus
     {
-        Held,
+        Draft,
         Approved,
         Released,
         Updated

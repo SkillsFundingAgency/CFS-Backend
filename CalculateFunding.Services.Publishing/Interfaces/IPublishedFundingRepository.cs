@@ -18,5 +18,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 
         Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(
             string specificationId);
+
+        Task<IEnumerable<PublishedFunding>> GetLatestPublishedFundingBySpecification(string specificationId);
     }
 }

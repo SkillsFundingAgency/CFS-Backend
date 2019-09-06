@@ -69,7 +69,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
             PublishedProvider firstExpectedPublishedProvider = NewPublishedProvider(_ =>
                 _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId)
-                    .WithPublishedProviderStatus(PublishedProviderStatus.Held))));
+                    .WithPublishedProviderStatus(PublishedProviderStatus.Draft))));
             PublishedProvider secondExpectedPublishedProvider = NewPublishedProvider(_ =>
                 _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId)
                     .WithPublishedProviderStatus(PublishedProviderStatus.Updated))));

@@ -1,6 +1,5 @@
 ﻿using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {

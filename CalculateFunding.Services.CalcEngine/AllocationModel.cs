@@ -61,7 +61,6 @@ namespace CalculateFunding.Services.CalcEngine
                     CalculationResult result = new CalculationResult
                     {
                         Calculation = GetReference(attributes, "Calculation"),
-                        AllocationLine = GetReference(attributes, "AllocationLine"),
                     };
 
                     _funcs.Add(new Tuple<FieldInfo, CalculationResult>(executeFunc, result));
@@ -479,31 +478,21 @@ namespace CalculateFunding.Services.CalcEngine
 
                         if (propType == "System.Nullable`1[System.Int32]")
                         {
-                            try
+                            // A catch(Exception) was surrounding this code, but I removed it, but not sure why, as it's not documented in here
+                            // My hunch is the persisted / provided value is not in the correct property format
+                            if (value != null)
                             {
-                                if (value != null)
-                                {
-                                    value = int.TryParse(value.ToString(), out int outValue) ? (int?)outValue : null;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-
+                                value = int.TryParse(value.ToString(), out int outValue) ? (int?)outValue : null;
                             }
                         }
 
                         if (propType == "System.Nullable`1[System.Decimal]")
                         {
-                            try
+                            // A catch(Exception) was surrounding this code, but I removed it, but not sure why, as it's not documented in here
+                            // My hunch is the persisted / provided value is not in the correct property format
+                            if (value != null)
                             {
-                                if (value != null)
-                                {
-                                    value = decimal.TryParse(value.ToString(), out decimal outValue) ? (decimal?)outValue : null;
-                                }
-                            }
-                            catch(Exception ex)
-                            {
-
+                                value = decimal.TryParse(value.ToString(), out decimal outValue) ? (decimal?)outValue : null;
                             }
                         }
 

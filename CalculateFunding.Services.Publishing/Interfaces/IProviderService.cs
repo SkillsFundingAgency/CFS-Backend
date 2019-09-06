@@ -7,5 +7,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     public interface IProviderService
     {
         Task<IEnumerable<Provider>> GetProvidersByProviderVersionsId(string providerVersionId);
+        Task<IEnumerable<Provider>> GetScopedProvidersForSpecification(string specificationId, string providerVersionId);
     }
 }
