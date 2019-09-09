@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
@@ -53,7 +54,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IResultsRepository resultsRepository = null,
             IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
             IJobsApiClient jobsApiClient = null,
-            IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null)
+            IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null,
+            ICalculationsApiClient calcsApiClient = null)
         {
             return new SpecificationsService(mapper ?? CreateMapper(),
                 specificationsRepository ?? CreateSpecificationsRepository(),
@@ -69,7 +71,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationVersionRepository ?? CreateVersionRepository(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 SpecificationsResilienceTestHelper.GenerateTestPolicies(),
-                queueCreateSpecificationJobActions ?? Substitute.For<IQueueCreateSpecificationJobActions>());
+                queueCreateSpecificationJobActions ?? Substitute.For<IQueueCreateSpecificationJobActions>(),
+                calcsApiClient ?? CreateCalcsApiClient());
         }
 
         protected IJobsApiClient CreateJobsApiClient()
@@ -85,6 +88,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         protected IResultsRepository CreateResultsRepository()
         {
             return Substitute.For<IResultsRepository>();
+        }
+
+        protected ICalculationsApiClient CreateCalcsApiClient()
+        {
+            return Substitute.For<ICalculationsApiClient>();
         }
 
         protected IMapper CreateMapper()

@@ -113,7 +113,8 @@ namespace CalculateFunding.Functions.Specs
                 return new SpecificationsResiliencePolicies()
                 {
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 
@@ -145,6 +146,7 @@ namespace CalculateFunding.Functions.Specs
             builder.AddProvidersInterServiceClient(config);
             builder.AddPoliciesInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config);
 
             builder.AddPolicySettings(config);
 

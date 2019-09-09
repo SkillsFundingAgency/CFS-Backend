@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
@@ -106,6 +107,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
 
+            ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, new FundingConfiguration());
+            
             policiesApiClient
                 .GetFundingPeriodById(Arg.Is(fundingPeriodId))
                 .Returns(fundingPeriodResponse);
@@ -113,6 +116,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             policiesApiClient
                 .GetFundingStreamById(Arg.Is(fundingStreamId))
                 .Returns(fundingStreamResponse);
+
+            policiesApiClient
+                .GetFundingConfiguration(Arg.Is(fundingStreamId), Arg.Is(fundingPeriodId))
+                .Returns(fundingConfigResponse);
 
             DateTime createdDate = new DateTime(2018, 1, 2, 5, 6, 2);
 

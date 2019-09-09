@@ -10,7 +10,8 @@ namespace CalculateFunding.Services.Specs.UnitTests
             return new SpecificationsResiliencePolicies()
             {
                 JobsApiClient = Policy.NoOpAsync(),
-                PoliciesApiClient = Policy.NoOpAsync()
+                PoliciesApiClient = Policy.NoOpAsync(),
+                CalcsApiClient = Policy.NoOpAsync()
             };
         }
     }

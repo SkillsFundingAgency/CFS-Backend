@@ -64,6 +64,8 @@ namespace CalculateFunding.Functions.Calcs
             builder.AddSingleton<OnApplyTemplateCalculationsFailure>();
             builder.AddSingleton<IApplyTemplateCalculationsService, ApplyTemplateCalculationsService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
+            builder.AddSingleton<ITemplateContentsCalculationQuery, TemplateContentsCalculationQuery>();
+            builder.AddSingleton<IApplyTemplateCalculationsJobTrackerFactory, ApplyTemplateCalculationsJobTrackerFactory>();
             builder.AddSingleton<ICalculationService, CalculationService>()
                 .AddSingleton<IInstructionAllocationJobCreation, InstructionAllocationJobCreation>()
                 .AddSingleton<ICreateCalculationService, CreateCalculationService>();

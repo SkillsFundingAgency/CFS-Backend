@@ -189,7 +189,7 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.UpdateCalculationLastUpdatedDate(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/{specificationId}/templates/{fundingStreamId}")]
+        [Route("api/specs/{specificationId}/templates/{fundingStreamId}/")]
         [HttpPut]
         public async Task<IActionResult> RunSetAssignedTemplateVersion([FromRoute]string specificationId, [FromRoute]string fundingStreamId, [FromBody]string templateVersion)
         {

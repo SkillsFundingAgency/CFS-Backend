@@ -8,5 +8,7 @@ namespace CalculateFunding.Services.Specs
         public Policy JobsApiClient { get; set; }
 
         public Policy PoliciesApiClient { get; set; }
+
+        public Policy CalcsApiClient { get; set; }
     }
 }

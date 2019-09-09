@@ -5,10 +5,12 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -59,6 +61,8 @@ namespace CalculateFunding.Services.Specs
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
+        private readonly ICalculationsApiClient _calcsApiClient;
+        private readonly Polly.Policy _calcsApiClientPolicy;
 
         // Ctor for use from functions
         public SpecificationsService(
@@ -76,7 +80,8 @@ namespace CalculateFunding.Services.Specs
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
             ISpecificationsResiliencePolicies resiliencePolicies,
             IJobsApiClient jobsApiClient,
-            IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction)
+            IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
+            ICalculationsApiClient calcsApiClient)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -93,6 +98,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
+            Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -110,6 +116,8 @@ namespace CalculateFunding.Services.Specs
             _jobsApiClient = jobsApiClient;
             _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
+            _calcsApiClient = calcsApiClient;
+            _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
         }
 
         // Ctor for use from API
@@ -128,7 +136,8 @@ namespace CalculateFunding.Services.Specs
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
             IJobsApiClient jobsApiClient,
             ISpecificationsResiliencePolicies resiliencePolicies,
-            IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction)
+            IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
+            ICalculationsApiClient calcsApiClient)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
@@ -145,6 +154,7 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
+            Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
 
             _mapper = mapper;
             _specificationsRepository = specificationsRepository;
@@ -162,6 +172,8 @@ namespace CalculateFunding.Services.Specs
             _jobsApiClient = jobsApiClient;
             _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
             _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
+            _calcsApiClient = calcsApiClient;
+            _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -725,6 +737,19 @@ namespace CalculateFunding.Services.Specs
             await _specificationVersionRepository.SaveVersion(specificationVersion);
 
             await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
+
+            
+            foreach(string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
+            {
+                ApiResponse<FundingConfiguration> fundingConfigResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStreamId, specification.Current.FundingPeriod.Id));
+
+                if (!fundingConfigResponse.StatusCode.IsSuccess())
+                {
+                    return new InternalServerErrorResult($"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                }
+
+                await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id, fundingConfigResponse.Content.DefaultTemplateVersion, fundingStreamId));
+            }
 
             await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
 

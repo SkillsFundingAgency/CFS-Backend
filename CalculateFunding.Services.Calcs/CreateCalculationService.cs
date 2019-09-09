@@ -154,18 +154,25 @@ namespace CalculateFunding.Services.Calcs
 
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<List<CalculationMetadata>>(cacheKey));
 
+                if (!initiateCalcRun)
+                {
+                    return new CreateCalculationResponse
+                    {
+                        Succeeded = true,
+                        Calculation = calculation
+                    };
+                }
+
                 try
                 {
-                    Job job = !initiateCalcRun 
-                        ? null 
-                        : await SendInstructAllocationsToJobService(calculation.SpecificationId, author.Id, author.Name, new Trigger
+                    Job job = await SendInstructAllocationsToJobService(calculation.SpecificationId, author.Id, author.Name, new Trigger
                     {
                         EntityId = calculation.Id,
                         EntityType = nameof(Calculation),
                         Message = $"Saving calculation: '{calculation.Id}' for specification: '{calculation.SpecificationId}'"
                     }, correlationId);
 
-                    if (!initiateCalcRun || job != null)
+                    if (job != null)
                     {
                         _logger.Information($"New job of type '{JobConstants.DefinitionNames.CreateInstructAllocationJob}' created with id: '{job.Id}'");
 

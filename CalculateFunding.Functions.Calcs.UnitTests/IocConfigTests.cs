@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Services.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Calcs.Interfaces.CodeGen;
 using CalculateFunding.Services.Compiler.Interfaces;
@@ -8,6 +9,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Serilog;
 
 namespace CalculateFunding.Functions.Calcs.UnitTests
 {
@@ -35,6 +37,11 @@ namespace CalculateFunding.Functions.Calcs.UnitTests
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
                 scope.ServiceProvider.GetService<ICalculationCodeReferenceUpdate>().Should().NotBeNull(nameof(ICalculationCodeReferenceUpdate));
                 scope.ServiceProvider.GetService<ITokenChecker>().Should().NotBeNull(nameof(ITokenChecker));
+                scope.ServiceProvider.GetService<ITemplateContentsCalculationQuery>().Should().NotBeNull(nameof(ITemplateContentsCalculationQuery));
+                scope.ServiceProvider.GetService<IApplyTemplateCalculationsJobTrackerFactory>().Should().NotBeNull(nameof(IApplyTemplateCalculationsJobTrackerFactory));
+                scope.ServiceProvider.GetService<ILogger>().Should().NotBeNull(nameof(ILogger));
+                scope.ServiceProvider.GetService<IInstructionAllocationJobCreation>().Should().NotBeNull(nameof(IInstructionAllocationJobCreation));
+                scope.ServiceProvider.GetService<ICalcsResiliencePolicies>().Should().NotBeNull(nameof(ICalcsResiliencePolicies));
             }
         }
 
