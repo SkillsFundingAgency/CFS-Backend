@@ -225,10 +225,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             //Assert
             result
                 .Should()
-                .BeOfType<ContentResult>();
+                .BeOfType<OkObjectResult>();
 
-            ContentResult contentResult = result as ContentResult;
-            AtomFeed<AtomEntry> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AtomEntry>>(contentResult.Content);
+            OkObjectResult contentResult = result as OkObjectResult;
+            AtomFeed<AtomEntry> atomFeed = contentResult.Value as AtomFeed<AtomEntry>;
 
             atomFeed
                 .Should()
@@ -307,10 +307,10 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             //Assert
             result
                 .Should()
-                .BeOfType<ContentResult>();
+                .BeOfType<OkObjectResult>();
 
-            ContentResult contentResult = result as ContentResult;
-            AtomFeed<AtomEntry> atomFeed = JsonConvert.DeserializeObject<AtomFeed<AtomEntry>>(contentResult.Content);
+            OkObjectResult contentResult = result as OkObjectResult;
+            AtomFeed<AtomEntry> atomFeed = contentResult.Value as AtomFeed<AtomEntry>;
 
             atomFeed
                 .Should()
@@ -323,45 +323,6 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             atomFeed.Link.First(m => m.Rel == "next-archive").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications/3");
             atomFeed.Link.First(m => m.Rel == "current").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications/2");
             atomFeed.Link.First(m => m.Rel == "self").Href.Should().Be("https://wherever.naf:12345/api/v3/funding/notifications");
-        }
-
-        [TestMethod]
-        public async Task GetNotifications_GivenAcceptHeaderNotSupplied_ReturnsBadRequest()
-        {
-            //Arrange
-            int pageRef = 3;
-            int maxRecords = 499;
-
-            SearchFeedV3<PublishedFundingIndex> feeds = new SearchFeedV3<PublishedFundingIndex>
-            {
-                PageRef = pageRef,
-                Top = 500,
-                TotalCount = 3,
-                Entries = CreateFeedIndexes()
-            };
-
-            IFundingFeedSearchService feedsSearchService = CreateSearchService();
-            feedsSearchService
-                .GetFeedsV3(Arg.Is(pageRef), Arg.Is(500))
-                .ReturnsForAnyArgs(feeds);
-
-            FundingFeedService service = CreateService(feedsSearchService);
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request.Scheme.Returns("https");
-            request.Path.Returns(new PathString("/api/v1/test/3"));
-            request.Host.Returns(new HostString("wherever.naf:12345"));
-            request.QueryString.Returns(new QueryString("?allocationStatuses=Published,Approved"));
-
-            //Act
-            IActionResult result = await service.GetFunding(request,
-                pageRef: pageRef,
-                pageSize: maxRecords);
-
-            //Assert
-            result
-                .Should()
-                .BeOfType<BadRequestResult>();
         }
 
         [TestMethod]

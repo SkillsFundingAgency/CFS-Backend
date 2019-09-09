@@ -148,7 +148,7 @@ namespace CalculateFunding.Services.Policy
                 return;
             }
 
-            if (parsedFundingTemplate["funding"]["fundingStream"]["templateVersion"] == null)
+            if (parsedFundingTemplate["funding"]["templateVersion"] == null)
             {
                 fundingTemplateValidationResult.ValidationState.Errors.Add("No template version property found");
 
@@ -171,7 +171,7 @@ namespace CalculateFunding.Services.Policy
                 }
             }
 
-            string templateVersion = fundingTemplateValidationResult.Version = parsedFundingTemplate["funding"]["fundingStream"]["templateVersion"].Value<string>();
+            string templateVersion = fundingTemplateValidationResult.Version = parsedFundingTemplate["funding"]["templateVersion"].Value<string>();
 
             if (string.IsNullOrWhiteSpace(templateVersion))
             {

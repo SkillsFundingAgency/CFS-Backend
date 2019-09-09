@@ -37,8 +37,6 @@ namespace CalculateFunding.Api.External.V3.Controllers
             [FromQuery] GroupingReason[] groupingReasons,
             [FromQuery] int? pageSize)
         {
-            AtomFeed<object> result = new AtomFeed<object>();
-
             return await _fundingFeedsService.GetFunding(Request, null, fundingStreamIds,
                  fundingPeriodIds, groupingReasons, pageSize);
         }
@@ -62,8 +60,6 @@ namespace CalculateFunding.Api.External.V3.Controllers
             [FromQuery] int? pageSize,
             [FromRoute] int pageRef)
         {
-            AtomFeed<object> result = new AtomFeed<object>();
-
             return await _fundingFeedsService.GetFunding(Request, pageRef, fundingStreamIds,
                  fundingPeriodIds, groupingReasons, pageSize);
         }

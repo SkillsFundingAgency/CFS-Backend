@@ -56,9 +56,6 @@ namespace CalculateFunding.Api.External.Swagger.OperationFilters
                     {
                         {
                             "application/atom+json", provider.GetExamples()
-                        },
-                        {
-                            "application/atom+xml", stringwriter.ToString()
                         }
                     };
                 }
@@ -68,9 +65,6 @@ namespace CalculateFunding.Api.External.Swagger.OperationFilters
                     {
                         {
                             "application/json", provider.GetExamples()
-                        },
-                        {
-                            "application/xml", stringwriter.ToString()
                         }
                     };
                 }

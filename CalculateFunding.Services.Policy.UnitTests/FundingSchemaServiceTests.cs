@@ -1,17 +1,16 @@
-﻿using CalculateFunding.Services.Policy.Interfaces;
+﻿using System;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Policy.Interfaces;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using CalculateFunding.Services.Core.Extensions;
-using System.IO;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
 
 namespace CalculateFunding.Services.Policy.UnitTests
 {
@@ -117,7 +116,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         public async Task SaveFundingSchema_WhenVersionDoesNotExistButSavingToBlobStorageCausesAnError_ReturnsNoContentResult()
         {
             //arrange 
-            const string version = "0.6";
+            const string version = "1.0";
 
             string blobName = $"{fundingSchemaFolder}/{version}.json";
 
@@ -160,7 +159,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         public async Task SaveFundingSchema_WhenSavingIsSuccessful_ReturnsCreatedAtResult()
         {
             //arrange 
-            const string version = "0.6";
+            const string version = "1.0";
 
             string blobName = $"{fundingSchemaFolder}/{version}.json";
 
@@ -201,7 +200,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             actionResult
                 .RouteValues["schemaVersion"].ToString()
                 .Should()
-                .Be("0.6");
+                .Be("1.0");
         }
 
         [TestMethod]
@@ -238,7 +237,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             string blobName = $"{fundingSchemaFolder}/{version}.json";
 
             IFundingSchemaRepository fundingSchemaRepository = CreateFundingSchemaRepository();
-            
+
             fundingSchemaRepository
                 .When(x => x.SchemaVersionExists(Arg.Any<string>()))
                 .Do(x => { throw new Exception(); });
@@ -394,7 +393,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             IFundingSchemaRepository fundingSchemaRepository = null)
         {
             return new FundingSchemaService(
-                logger ?? CreateLogger(), 
+                logger ?? CreateLogger(),
                 fundingSchemaRepository ?? CreateFundingSchemaRepository(),
                 PolicyResiliencePoliciesTestHelper.GenerateTestPolicies());
         }

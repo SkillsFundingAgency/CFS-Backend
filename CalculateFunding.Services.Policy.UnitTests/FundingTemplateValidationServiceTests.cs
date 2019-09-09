@@ -172,7 +172,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .ValidationState
                 .Errors
                 .Should()
-                .HaveCount(19);
+                .HaveCount(11);
 
             result
                .IsValid
@@ -389,7 +389,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
             {
                 SchemaVersion = "1.0",
-                Funding = new { fundingStream = new { code = "", templateVersion = "1.2" } }
+                Funding = new { templateVersion = "1.2", fundingStream = new { code = "" } }
             };
 
             string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
@@ -426,7 +426,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        public async Task ValidateFundingTemplate_GivenTemplateWIthValidSchemaVersionAndFundingPropertyButFundingStreamDoesNotExist_ReturnsValidationResultWithErrors()
+        public async Task ValidateFundingTemplate_GivenTemplateWithValidSchemaVersionAndFundingPropertyButFundingStreamDoesNotExist_ReturnsValidationResultWithErrors()
         {
             //Arrange
             const string schemaVersion = "1.0";
@@ -438,7 +438,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
             {
                 SchemaVersion = "1.0",
-                Funding = new { fundingStream = new { code = "PES", templateVersion = "1.2" } }
+                Funding = new { templateVersion = "1.2", fundingStream = new { code = "PSG" } }
             };
 
             string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
@@ -457,7 +457,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
             policyRepository
-                .GetFundingStreamById(Arg.Is("PES"))
+                .GetFundingStreamById(Arg.Is("PSG"))
                 .Returns((FundingStream)null);
 
             FundingTemplateValidationService fundingTemplateValidationService = CreateFundingTemplateValidationService(
@@ -473,7 +473,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Errors[0]
                 .ErrorMessage
                 .Should()
-                .Be("A funding stream could not be found for funding stream id 'PES'");
+                .Be("A funding stream could not be found for funding stream id 'PSG'");
 
             result
                .IsValid
@@ -496,7 +496,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
             {
                 SchemaVersion = "1.0",
-                Funding = new { fundingStream = new { code = "PES", templateVersion = "" } }
+                Funding = new { templateVersion = "", fundingStream = new { code = "PES" } }
             };
 
             string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);
@@ -554,7 +554,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             TestClassWithFundingProperty testClassWithFunding = new TestClassWithFundingProperty
             {
                 SchemaVersion = "1.0",
-                Funding = new { fundingStream = new { code = "PES", templateVersion = "2.1" } }
+                Funding = new { templateVersion = "2.1", fundingStream = new { code = "PES" } }
             };
 
             string fundingTemplate = JsonConvert.SerializeObject(testClassWithFunding);

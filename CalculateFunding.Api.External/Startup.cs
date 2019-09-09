@@ -70,7 +70,6 @@ namespace CalculateFunding.Api.External
             services.AddMvc(options =>
             {
                 options.OutputFormatters.RemoveType<StringOutputFormatter>();
-                options.OutputFormatters.Add(new XmlSerializerOutputFormatter());
 
                 JsonOutputFormatter jFormatter =
                     options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(JsonOutputFormatter)) as
@@ -78,14 +77,11 @@ namespace CalculateFunding.Api.External
                 jFormatter?.SupportedMediaTypes.Clear();
                 jFormatter?.SupportedMediaTypes.Add("application/atom+json");
                 jFormatter?.SupportedMediaTypes.Add("application/json");
-
-                XmlSerializerOutputFormatter xFormatter =
-                    options.OutputFormatters.FirstOrDefault(f => f.GetType() == typeof(XmlSerializerOutputFormatter)) as
-                        XmlSerializerOutputFormatter;
-                xFormatter?.SupportedMediaTypes.Clear();
-                xFormatter?.SupportedMediaTypes.Add("application/atom+xml");
-                xFormatter?.SupportedMediaTypes.Add("application/xml");
-            }).AddJsonOptions(options => { options.SerializerSettings.Formatting = Formatting.Indented; })
+            }).AddJsonOptions(options =>
+            {
+                options.SerializerSettings.Formatting = Formatting.Indented;
+                options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+            })
             // 2.1 versioning still needs to be enabled to support API versioning for endpoints
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 

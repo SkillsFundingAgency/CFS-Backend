@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CalculateFunding.Api.External.Swagger.Helpers;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.External.V3.AtomItems;
@@ -53,7 +52,7 @@ namespace CalculateFunding.Api.External.V3.Services
 
             AtomFeed<AtomEntry> atomFeed = await CreateAtomFeed(searchFeed, request);
 
-            return Formatter.ActionResult<AtomFeed<AtomEntry>>(request, atomFeed);
+            return new OkObjectResult(atomFeed);
         }
 
         private async Task<AtomFeed<AtomEntry>> CreateAtomFeed(SearchFeedV3<PublishedFundingIndex> searchFeed, HttpRequest request)
@@ -143,7 +142,7 @@ namespace CalculateFunding.Api.External.V3.Services
                 Published = feedIndex.StatusChangedDate,
                 Updated = feedIndex.StatusChangedDate.Value,
                 Version = feedIndex.Version,
-                Link = new CalculateFunding.Models.External.AtomItems.AtomLink("Funding", link),
+                Link = new CalculateFunding.Models.External.AtomItems.AtomLink(link, "Funding"),
                 Content = contentsObject,
             });
         }
