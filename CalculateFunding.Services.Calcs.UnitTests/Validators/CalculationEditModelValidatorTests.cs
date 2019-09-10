@@ -191,6 +191,34 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .BeTrue();
         }
 
+        [TestMethod]
+        public async Task ValidateAsync_WhenCalculationNameAlreadyExistsButItsTheSameCalc_EnsuresValidIsTrue()
+        {
+            //Arrange
+            CalculationEditModel model = CreateModel();
+
+            Calculation calculationWithSameName = new Calculation
+            {
+                Id = model.CalculationId
+            };
+
+            ICalculationsRepository calculationsRepository = CreateCalculationRepository();
+            calculationsRepository
+                .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
+                .Returns(calculationWithSameName);
+
+            CalculationEditModelValidator validator = CreateValidator(calculationRepository: calculationsRepository);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
+        }
+
         private static CalculationEditModelValidator CreateValidator(
             ICalculationsRepository calculationRepository = null,
             IPreviewService previewService = null)

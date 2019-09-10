@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                      {
                          Calculation calculation = _calculationRepository.GetCalculationsBySpecificationIdAndCalculationName(calculationEditModel.SpecificationId, calculationEditModel.Name).Result;
 
-                         if (calculation != null)
+                         if (calculation != null && calculation.Id != calculationEditModel.CalculationId)
                              context.AddFailure($"A calculation already exists with the name: '{calculationEditModel.Name}' for this specification");
                      }
                  }
