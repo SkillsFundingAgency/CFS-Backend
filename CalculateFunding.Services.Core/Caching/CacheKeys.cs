@@ -16,6 +16,8 @@
 
         public const string CalculationProgress = "calculation-progress:";
 
+        public const string CalculationResults = "calculationresults:";
+
         public static string SpecificationSummaryById { get; set; } = "specification-summary:";
 
         public static string SpecificationCurrentVersionById { get; set; } = "specification-current-version:";

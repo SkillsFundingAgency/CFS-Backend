@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Azure.Amqp.Framing;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -147,6 +148,18 @@ namespace CalculateFunding.Services.Core.Extensions
                 .Should()
                 .BeLessThan(stringAsBytes.Length);
         }
+
+        [TestMethod]
+        [DataRow("blah blah blah hash this", "22D4F135040A7A1E0D716E7A5B6DE683D02BABEA")]
+        [DataRow("null guards aplenty!!", "C3C1F8B053B98DD1A5846F15DA3F224E9A5682D5")]
+        public void ComputeSHA1HashComputesHashOnUTF8BytesForSuppliedText(string input,
+            string expectedHash)
+        {
+            input.ComputeSHA1Hash()
+                .Should()
+                .Be(expectedHash);
+        }
+        
     }
 }
 

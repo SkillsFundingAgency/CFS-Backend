@@ -1,14 +1,27 @@
 ﻿using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace System
 {
     [EditorBrowsable(EditorBrowsableState.Never)]
-    static public class StringExtensions
+    public static class StringExtensions
     {
+        [EditorBrowsable(EditorBrowsableState.Advanced)]
+        public static string ComputeSHA1Hash(this string text)
+        {
+            using (SHA1Managed sha1 = new SHA1Managed())
+            {
+                byte[] hash = sha1.ComputeHash(text.AsUTF8Bytes());
+
+                return string.Concat(hash.Select(_ => _.ToString("X2")));
+            }
+        }
+        
         public static string ConvertExpotentialNumber(this string text, string replaceWith = "0")
         {
             return Regex.Replace(text, "E[+|-](\\d)+", replaceWith);
@@ -75,12 +88,14 @@ namespace System
                     return false;
             try
             {
-                byte[] data =Convert.FromBase64String(base64String);
+                byte[] data = Convert.FromBase64String(base64String);
+                
                 return true;
             }
             catch
-            {}
-            return false;
+            { 
+                return false;
+            }
         }
 
         public static byte[] Compress(this string body)
@@ -90,7 +105,7 @@ namespace System
                 return new byte[0];
             }
 
-            byte[] data = Encoding.UTF8.GetBytes(body);
+            byte[] data = body.AsUTF8Bytes();
 
             byte[] zippedBytes;
 
@@ -108,6 +123,11 @@ namespace System
             }
 
             return zippedBytes;
+        }
+
+        public static byte[] AsUTF8Bytes(this string text)
+        {
+            return Encoding.UTF8.GetBytes(text ?? string.Empty);
         }
     }
 }

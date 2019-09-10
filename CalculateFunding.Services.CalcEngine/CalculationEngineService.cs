@@ -209,6 +209,8 @@ namespace CalculateFunding.Services.CalcEngine
                 long saveSearchElapsedMs = -1;
                 long saveRedisElapsedMs = 0;
                 long saveQueueElapsedMs = 0;
+                int savedProviders = 0;
+                int percentageProvidersSaved = 0;
 
                 if (calculationResults.ProviderResults.Any())
                 {
@@ -218,13 +220,17 @@ namespace CalculateFunding.Services.CalcEngine
                     }
                     else
                     {
-                        (long saveCosmosElapsedMs, long saveSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs) timingMetrics = await ProcessProviderResults(calculationResults.ProviderResults, messageProperties, message);
-                        saveCosmosElapsedMs = timingMetrics.saveCosmosElapsedMs;
-                        saveSearchElapsedMs = timingMetrics.saveSearchElapsedMs;
-                        saveRedisElapsedMs = timingMetrics.saveRedisElapsedMs;
-                        saveQueueElapsedMs = timingMetrics.saveQueueElapsedMs;
-
+                        (long saveCosmosElapsedMs, long saveSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs, int savedProviders) processResultsMetrics = 
+                            await ProcessProviderResults(calculationResults.ProviderResults, messageProperties, message);
+                        
+                        saveCosmosElapsedMs = processResultsMetrics.saveCosmosElapsedMs;
+                        saveSearchElapsedMs = processResultsMetrics.saveSearchElapsedMs;
+                        saveRedisElapsedMs = processResultsMetrics.saveRedisElapsedMs;
+                        saveQueueElapsedMs = processResultsMetrics.saveQueueElapsedMs;
+                        savedProviders = processResultsMetrics.savedProviders;
+                        
                         totalProviderResults += calculationResults.ProviderResults.Count();
+                        percentageProvidersSaved = savedProviders / totalProviderResults * 100;
 
                         if (calculationResults.ResultsContainExceptions)
                         {
@@ -249,6 +255,8 @@ namespace CalculateFunding.Services.CalcEngine
                     { "calculation-run-saveProviderResultsRedisMs", saveRedisElapsedMs },
                     { "calculation-run-saveProviderResultsServiceBusMs", saveQueueElapsedMs },
                     { "calculation-run-runningCalculationMs",  calculationStopwatch.ElapsedMilliseconds },
+                    { "calculation-run-savedProviders",  savedProviders },
+                    { "calculation-run-savePercentage ",  percentageProvidersSaved },
                 };
 
                 if (saveCosmosElapsedMs > -1)
@@ -300,13 +308,6 @@ namespace CalculateFunding.Services.CalcEngine
 
             providerSourceDatasetsStopwatch.Stop();
 
-            if (providerSourceDatasets == null)
-            {
-                _logger.Information($"No provider sources found for specification id {messageProperties.SpecificationId}");
-
-                providerSourceDatasets = new List<ProviderSourceDataset>();
-            }
-
             _logger.Information($"fetched provider sources found for specification id {messageProperties.SpecificationId}");
 
             calculationStopwatch.Start();
@@ -323,14 +324,12 @@ namespace CalculateFunding.Services.CalcEngine
 
                 ProviderResult result = _calculationEngine.CalculateProviderResults(allocationModel, buildProject, calculations, provider, providerDatasets, aggregations);
 
-                if (result != null)
-                {
-                    providerResults.Add(result);
-                }
-                else
+                if (result == null)
                 {
                     throw new InvalidOperationException("Null result from Calc Engine CalculateProviderResults");
                 }
+                
+                providerResults.Add(result);
             });
 
 
@@ -589,16 +588,21 @@ namespace CalculateFunding.Services.CalcEngine
             }
         }
 
-        private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs)> ProcessProviderResults(IEnumerable<ProviderResult> providerResults,
-            GenerateAllocationMessageProperties messageProperties, Message message)
+        private async Task<(long saveCosmosElapsedMs, long saveToSearchElapsedMs, long saveRedisElapsedMs, long saveQueueElapsedMs, int savedProviders)> ProcessProviderResults(
+            IEnumerable<ProviderResult> providerResults,
+            GenerateAllocationMessageProperties messageProperties, 
+            Message message)
         {
-            (long saveToCosmosElapsedMs, long saveToSearchElapsedMs) saveProviderResultsTimings = (-1, -1);
+            (long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders) saveProviderResultsTimings = (-1, -1, -1);
 
             if (!message.UserProperties.ContainsKey("ignore-save-provider-results"))
             {
                 _logger.Information($"Saving results for specification id {messageProperties.SpecificationId}");
-
-                saveProviderResultsTimings = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, _engineSettings.SaveProviderDegreeOfParallelism));
+                
+                saveProviderResultsTimings = await _providerResultsRepositoryPolicy.ExecuteAsync(() => _providerResultsRepository.SaveProviderResults(providerResults, 
+                    messageProperties.PartitionIndex, 
+                    messageProperties.PartitionSize, 
+                    _engineSettings.SaveProviderDegreeOfParallelism));
 
                 _logger.Information($"Saving results completeed for specification id {messageProperties.SpecificationId}");
             }
@@ -609,7 +613,7 @@ namespace CalculateFunding.Services.CalcEngine
             _logger.Information($"Saving results to cache for specification id {messageProperties.SpecificationId} with key {providerResultsCacheKey}");
 
             Stopwatch saveRedisStopwatch = Stopwatch.StartNew();
-            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync<List<ProviderResult>>($"{CacheKeys.ProviderResultBatch}{providerResultsCacheKey}", providerResults.ToList(), TimeSpan.FromHours(12), false));
+            await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync($"{CacheKeys.ProviderResultBatch}{providerResultsCacheKey}", providerResults.ToList(), TimeSpan.FromHours(12), false));
             saveRedisStopwatch.Stop();
 
             _logger.Information($"Saved results to cache for specification id {messageProperties.SpecificationId} with key {providerResultsCacheKey}");
@@ -628,7 +632,11 @@ namespace CalculateFunding.Services.CalcEngine
 
             _logger.Information($"Message sent for test exceution for specification id {messageProperties.SpecificationId}");
 
-            return (saveProviderResultsTimings.saveToCosmosElapsedMs, saveProviderResultsTimings.saveToSearchElapsedMs, saveRedisStopwatch.ElapsedMilliseconds, saveQueueStopwatch.ElapsedMilliseconds);
+            return (saveProviderResultsTimings.saveToCosmosElapsedMs, 
+                saveProviderResultsTimings.saveToSearchElapsedMs, 
+                saveRedisStopwatch.ElapsedMilliseconds, 
+                saveQueueStopwatch.ElapsedMilliseconds, 
+                saveProviderResultsTimings.savedProviders);
         }
 
         private async Task FailJob(string jobId, int itemsProcessed, string outcome = null)

@@ -142,7 +142,7 @@ namespace CalculateFunding.Services.Core.Extensions
                     {
                         ApiOptions apiOptions = new ApiOptions();
 
-                        config.Bind("specificationsApiClient", apiOptions);
+                        config.Bind("specificationsClient", apiOptions);
 
                         SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
                     })

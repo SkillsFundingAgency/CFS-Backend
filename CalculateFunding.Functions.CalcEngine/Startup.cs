@@ -8,6 +8,7 @@ using CalculateFunding.Functions.CalcEngine.ServiceBus;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
+using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.CalcEngine.Validators;
 using CalculateFunding.Services.Calcs;
@@ -73,6 +74,8 @@ namespace CalculateFunding.Functions.CalcEngine
                 return new ProviderSourceDatasetsRepository(calcsCosmosRepostory, engineSettings);
             });
 
+            builder.AddSingleton<IProviderResultCalculationsHashProvider, ProviderResultCalculationsHashProvider>();
+
             builder.AddSingleton<IProviderResultsRepository, ProviderResultsRepository>((ctx) =>
             {
                 CosmosDbSettings calcResultsDbSettings = new CosmosDbSettings();
@@ -95,6 +98,8 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 EngineSettings engineSettings = ctx.GetService<EngineSettings>();
 
+                IProviderResultCalculationsHashProvider calculationsHashProvider = ctx.GetService<IProviderResultCalculationsHashProvider>();
+
                 return new ProviderResultsRepository(
                     calcsCosmosRepostory,
                     calculationProviderResultsSearchRepository,
@@ -102,7 +107,8 @@ namespace CalculateFunding.Functions.CalcEngine
                     logger,
                     providerCalculationResultsSearchRepository,
                     featureToggle,
-                    engineSettings);
+                    engineSettings,
+                    calculationsHashProvider);
             });
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>

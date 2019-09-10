@@ -11,6 +11,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
@@ -27,6 +28,7 @@ namespace CalculateFunding.Services.CalcEngine
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
         private readonly IFeatureToggle _featureToggle;
         private readonly EngineSettings _engineSettings;
+        private readonly IProviderResultCalculationsHashProvider _calculationsHashProvider;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
@@ -35,7 +37,8 @@ namespace CalculateFunding.Services.CalcEngine
             ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
             IFeatureToggle featureToggle,
-            EngineSettings engineSettings)
+            EngineSettings engineSettings, 
+            IProviderResultCalculationsHashProvider calculationsHashProvider)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
@@ -44,6 +47,7 @@ namespace CalculateFunding.Services.CalcEngine
             Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
+            Guard.ArgumentNotNull(calculationsHashProvider, nameof(calculationsHashProvider));
 
             _cosmosRepository = cosmosRepository;
             _searchRepository = searchRepository;
@@ -52,14 +56,23 @@ namespace CalculateFunding.Services.CalcEngine
             _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
             _featureToggle = featureToggle;
             _engineSettings = engineSettings;
+            _calculationsHashProvider = calculationsHashProvider;
         }
-
-        public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs)> SaveProviderResults(IEnumerable<ProviderResult> providerResults, int degreeOfParallelism = 5)
+        
+        public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders)> SaveProviderResults(IEnumerable<ProviderResult> providerResults, 
+            int partitionIndex, 
+            int partitionSize,
+            int degreeOfParallelism = 5)
         {
             if (providerResults == null || providerResults.Count() == 0)
             {
-                return (0, 0);
+                return (0, 0, 0);
             }
+
+            //only leave the provider results where the calculation results have changed since they were last saved
+            providerResults = providerResults.Where(_ => ResultsHaveChanged(_, partitionIndex, partitionSize)
+                .GetAwaiter()
+                .GetResult());
 
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
@@ -83,8 +96,21 @@ namespace CalculateFunding.Services.CalcEngine
 
             await TaskHelper.WhenAllAndThrow(cosmosSaveTask, searchSaveTask);
 
-            return (cosmosSaveTask.Result, searchSaveTask.Result);
+            return (cosmosSaveTask.Result, searchSaveTask.Result, providerResults.Count());
         }
+
+        private async Task<bool> ResultsHaveChanged(ProviderResult providerResult, int partitionIndex, int partitionSize)
+        {
+            bool hasChanged = await _calculationsHashProvider.TryUpdateCalculationResultHash(providerResult, partitionIndex, partitionSize);
+            
+            if (!hasChanged)
+            {
+                _logger.Information(
+                    $"Provider:{providerResult.Provider.Id} Spec:{providerResult.SpecificationId} results have no changes so will not be stored this time");
+            }
+
+            return hasChanged;
+        } 
 
         private async Task<long> BulkSaveProviderResults(IEnumerable<KeyValuePair<string, ProviderResult>> providerResults, int degreeOfParallelism = 5)
         {

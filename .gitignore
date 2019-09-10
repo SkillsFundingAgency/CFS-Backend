@@ -303,3 +303,15 @@ __pycache__/
 local.settings.json
 
 /Debugging/CalculateFunding/*
+/CalculateFunding-Backend.sln.startup.json
+/CalculateFunding.Functions.Providers/Properties/launchSettings.json
+/CalculateFunding.Functions.Datasets/Properties/launchSettings.json
+/CalculateFunding.Functions.Publishing/Properties/launchSettings.json
+/CalculateFunding.Functions.Results/Properties/launchSettings.json
+/CalculateFunding.Functions.Jobs/Properties/launchSettings.json
+/CalculateFunding.Functions.Scenarios/Properties/launchSettings.json
+/CalculateFunding.Functions.Notifications/Properties/launchSettings.json
+/CalculateFunding.Functions.Calcs/Properties/launchSettings.json
+/CalculateFunding.Functions.Policy/Properties/launchSettings.json
+/CalculateFunding.Functions.CosmosDbScaling/Properties/launchSettings.json
+/CalculateFunding.Functions.Users/Properties/launchSettings.json

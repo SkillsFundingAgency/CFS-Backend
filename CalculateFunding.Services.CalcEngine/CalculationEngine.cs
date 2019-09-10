@@ -133,8 +133,9 @@ namespace CalculateFunding.Services.CalcEngine
                     results.Add(result);
                 }
             }
-
-            providerResult.CalculationResults = results;
+            
+            //we need a stable sort of results to enable the cache checks by overall SHA hash on the results json
+            providerResult.CalculationResults = results.OrderBy(_ => _.Calculation.Id).ToList(); 
 
             return providerResult;
         }

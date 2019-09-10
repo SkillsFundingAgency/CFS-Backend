@@ -151,12 +151,13 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 .Should()
                 .Be(1);
 
+            //we also need to check we order by calc id as we need a stable sort for the caching hash checks
             results
                 .First()
                 .CalculationResults
-                .Count
+                .Select(_ => _.Calculation.Id)
                 .Should()
-                .Be(3);
+                .BeEquivalentTo(new[] {CalculationId, "calc2", "calc3"});
         }
 
 

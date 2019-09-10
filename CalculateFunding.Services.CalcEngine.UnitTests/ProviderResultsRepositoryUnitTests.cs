@@ -9,6 +9,7 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,7 +33,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             IEnumerable<ProviderResult> results = Enumerable.Empty<ProviderResult>();
 
             // Act
-            await repo.SaveProviderResults(results);
+            await repo.SaveProviderResults(results, 1, 1);
 
             // Assert
             await cosmosRepository.DidNotReceive().BulkCreateAsync(Arg.Any<IEnumerable<KeyValuePair<string, ProviderResult>>>());
@@ -83,7 +84,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             };
 
             // Act
-            await repo.SaveProviderResults(results);
+            await repo.SaveProviderResults(results, 1, 1);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -145,7 +146,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             };
 
             // Act
-            await repo.SaveProviderResults(results);
+            await repo.SaveProviderResults(results, 1, 1);
 
             // Assert
             await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r => r.Count() == 1));
@@ -223,7 +224,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             };
 
             // Act
-            await repo.SaveProviderResults(results);
+            await repo.SaveProviderResults(results, 1, 1);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -231,6 +232,70 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 Arg.Any<bool>(),
                 Arg.Is<bool>(false));
         }
+        
+         [TestMethod]
+        public async Task SaveProviderResults_WhenExcludedResultsButResultsNotChanged_ThenResultsNotSavedToCosmos()
+        {
+            // Arrange
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IProviderResultCalculationsHashProvider hashProvider = Substitute.For<IProviderResultCalculationsHashProvider>();
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository, calculationsHashProvider: hashProvider);
+
+            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+
+            IEnumerable<ProviderResult> results = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
+                            Value = 1112.3M
+                        }
+                    },
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
+                            Calculation = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationType = Models.Calcs.CalculationType.Template,
+                            Value = null
+                        }
+                    },
+                    Id = Guid.NewGuid().ToString(),
+                    Provider = new ProviderSummary
+                    {
+                        Id = "prov1",
+                        Name = "Provider 1",
+                        ProviderType = "TYpe 1",
+                        ProviderSubType = "Sub type 1",
+                        Authority = "Authority",
+                        UKPRN = "ukprn123",
+                        URN = "urn123",
+                        EstablishmentNumber = "en123",
+                        UPIN = "upin123",
+                        DateOpened = DateTime.Now
+                    },
+                    SpecificationId = "spec1"
+                }
+            };
+
+            // Act
+            await repo.SaveProviderResults(results, 1, 1);
+
+            // Assert
+            await cosmosRepository.Received(0).BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
+                Arg.Any<int>(),
+                Arg.Any<bool>(),
+                Arg.Is<bool>(false));
+        }
+
 
         [TestMethod]
         public async Task SaveProviderResults_WhenExcludedResults_ThenResultsSavedToSearch()
@@ -285,12 +350,91 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             };
 
             // Act
-            await repo.SaveProviderResults(results);
+            await repo.SaveProviderResults(results, 1, 1);
 
             // Assert
             await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r => r.Count() == 1));
 
             await searchRepository.Received(1).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r =>
+                r.First().SpecificationId == results.First().SpecificationId &&
+                r.First().SpecificationName == "Specification 1" &&
+                r.First().CalculationName == results.First().CalculationResults.First().Calculation.Name &&
+                r.First().CalculationId == results.First().CalculationResults.First().Calculation.Id &&
+                r.First().CalculationType == results.First().CalculationResults.First().CalculationType.ToString() &&
+                r.First().ProviderId == results.First().Provider.Id &&
+                r.First().ProviderName == results.First().Provider.Name &&
+                r.First().ProviderType == results.First().Provider.ProviderType &&
+                r.First().ProviderSubType == results.First().Provider.ProviderSubType &&
+                r.First().LocalAuthority == results.First().Provider.Authority &&
+                r.First().UKPRN == results.First().Provider.UKPRN &&
+                r.First().URN == results.First().Provider.URN &&
+                r.First().UPIN == results.First().Provider.UPIN &&
+                r.First().EstablishmentNumber == results.First().Provider.EstablishmentNumber &&
+                r.First().OpenDate == results.First().Provider.DateOpened &&
+                r.First().CalculationResult == null &&
+                r.First().IsExcluded == true));
+        }
+        
+        [TestMethod]
+        public async Task SaveProviderResults_WhenExcludedResultsButResultsNotChanged_ThenResultsNotSavedToSearch()
+        {
+            // Arrange
+            ICosmosRepository cosmosRepository = CreateCosmosRepository();
+            ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
+            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            IProviderResultCalculationsHashProvider hashProvider = Substitute.For<IProviderResultCalculationsHashProvider>();
+
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository, calculationsHashProvider: hashProvider);
+
+            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+
+            IEnumerable<ProviderResult> results = new List<ProviderResult>
+            {
+                new ProviderResult
+                {
+                    AllocationLineResults = new List<AllocationLineResult>
+                    {
+                        new AllocationLineResult
+                        {
+                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
+                            Value = 1112.3M
+                        }
+                    },
+                    CalculationResults = new List<CalculationResult>
+                    {
+                        new CalculationResult
+                        {
+                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
+                            Calculation = new Reference { Id = "calc1", Name = "calculation one" },
+                            CalculationType = Models.Calcs.CalculationType.Template,
+                            Value = null
+                        }
+                    },
+                    Id = Guid.NewGuid().ToString(),
+                    Provider = new ProviderSummary
+                    {
+                        Id = "prov1",
+                        Name = "Provider 1",
+                        ProviderType = "TYpe 1",
+                        ProviderSubType = "Sub type 1",
+                        Authority = "Authority",
+                        UKPRN = "ukprn123",
+                        URN = "urn123",
+                        EstablishmentNumber = "en123",
+                        UPIN = "upin123",
+                        DateOpened = DateTime.Now
+                    },
+                    SpecificationId = "spec1"
+                }
+            };
+
+            // Act
+            await repo.SaveProviderResults(results, 1, 1);
+
+            // Assert
+            await searchRepository.Received(0).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r => r.Count() == 1));
+
+            await searchRepository.Received(0).Index(Arg.Is<IEnumerable<CalculationProviderResultsIndex>>(r =>
                 r.First().SpecificationId == results.First().SpecificationId &&
                 r.First().SpecificationName == "Specification 1" &&
                 r.First().CalculationName == results.First().CalculationResults.First().Calculation.Name &&
@@ -368,7 +512,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             };
 
             // Act
-            await repo.SaveProviderResults(results);
+            await repo.SaveProviderResults(results, 1, 1);
 
             // Assert
             await searchRepository.Received(1).Index(Arg.Is<IEnumerable<ProviderCalculationResultsIndex>>(r => r.Count() == 1));
@@ -452,7 +596,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             };
 
             // Act
-            await repo.SaveProviderResults(results);
+            await repo.SaveProviderResults(results, 1, 1);
 
             // Assert
             await cosmosRepository.Received().BulkUpsertAsync(Arg.Is<IEnumerable<KeyValuePair<string, ProviderResult>>>(r => r.Count() == 1),
@@ -488,7 +632,8 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             ILogger logger = null,
             IFeatureToggle featureToggle = null,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
-            EngineSettings engineSettings = null)
+            EngineSettings engineSettings = null,
+            IProviderResultCalculationsHashProvider calculationsHashProvider = null)
         {
 
             return new ProviderResultsRepository(
@@ -498,7 +643,18 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 logger ?? CreateLogger(),
                 providerCalculationResultsSearchRepository ?? CreateProviderCalculationResultsSearchRepository(),
                 featureToggle ?? CreateFeatureToggle(),
-                engineSettings ?? CreateEngineSettings());
+                engineSettings ?? CreateEngineSettings(),
+                calculationsHashProvider ?? CreateCalcHashProvider());
+        }
+
+        private static IProviderResultCalculationsHashProvider CreateCalcHashProvider()
+        {
+            IProviderResultCalculationsHashProvider calculationsHashProvider = Substitute.For<IProviderResultCalculationsHashProvider>();
+
+            calculationsHashProvider.TryUpdateCalculationResultHash(Arg.Any<ProviderResult>(), Arg.Any<int>(), Arg.Any<int>())
+                .Returns(true);
+            
+            return calculationsHashProvider;
         }
 
         private static ILogger CreateLogger()

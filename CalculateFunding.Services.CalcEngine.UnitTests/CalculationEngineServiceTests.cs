@@ -133,7 +133,7 @@ namespace CalculateFunding.Services.Calculator
             await calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(0)
-                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<int>());
+                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), partitionIndex, partitionSize, Arg.Any<int>());
         }
 
         [TestMethod]
@@ -232,7 +232,7 @@ namespace CalculateFunding.Services.Calculator
             calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(7)
-                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<int>());
+                .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
         }
 
         [TestMethod]
@@ -346,13 +346,13 @@ namespace CalculateFunding.Services.Calculator
             calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(6)
-                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 3), Arg.Any<int>());
+                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 3), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
 
             await
             calculationEngineServiceTestsHelper
                 .MockProviderResultRepo
                 .Received(1)
-                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 2), Arg.Any<int>());
+                .SaveProviderResults(Arg.Is<IEnumerable<ProviderResult>>(m => m.Count() == 2), Arg.Is(partitionIndex), Arg.Is(partitionSize), Arg.Any<int>());
         }
 
         [TestMethod]
@@ -447,7 +447,7 @@ namespace CalculateFunding.Services.Calculator
                 calculationEngineServiceTestsHelper
                     .MockProviderResultRepo
                     .Received(0)
-                    .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), Arg.Any<int>());
+                    .SaveProviderResults(Arg.Any<IEnumerable<ProviderResult>>(), partitionIndex, partitionSize, Arg.Any<int>());
         }
 
         [TestMethod]
