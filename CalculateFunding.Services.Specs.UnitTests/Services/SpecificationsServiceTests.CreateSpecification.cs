@@ -90,19 +90,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                 .Returns((Specification)null);
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = fundingPeriodId,
                 Name = "Funding Period 1"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = fundingStreamId,
                 Name = "Funding Stream 1",
-                AllocationLines = new List<PolicyModels.AllocationLine>()
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
@@ -272,19 +271,18 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .GetSpecificationByQuery(Arg.Any<Expression<Func<Specification, bool>>>())
                 .Returns((Specification)null);
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = fundingPeriodId,
                 Name = "Funding Period 1"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = fundingStreamId,
                 Name = "Funding Stream 1",
-                AllocationLines = new List<PolicyModels.AllocationLine>()
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);

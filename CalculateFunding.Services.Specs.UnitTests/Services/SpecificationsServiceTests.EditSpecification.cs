@@ -270,13 +270,13 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new List<string> { "fs10" }
             };
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = "fp10",
                 Name = "fp 10"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             string json = JsonConvert.SerializeObject(specificationEditModel);
             byte[] byteArray = Encoding.UTF8.GetBytes(json);
@@ -343,21 +343,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingPeriodId = "fp10"
             };
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = "fp10",
                 Name = "fp 10"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = "fs11",
-                AllocationLines = new List<PolicyModels.AllocationLine>
-                {
-                    new PolicyModels.AllocationLine { Id = "al1", Name = "al2"}
-                }
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
@@ -437,21 +433,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = "fp10",
                 Name = "fp 10"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = "fs11",
-                AllocationLines = new List<PolicyModels.AllocationLine>
-                {
-                    new PolicyModels.AllocationLine { Id = "al1", Name = "al2"}
-                }
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
@@ -571,21 +563,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = "fp10",
                 Name = "fp 10"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = "fs11",
-                AllocationLines = new List<PolicyModels.AllocationLine>
-                {
-                    new PolicyModels.AllocationLine { Id = "al1", Name = "al2"}
-                }
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
@@ -705,21 +693,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = "fp10",
                 Name = "fp 10"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = "fs11",
-                AllocationLines = new List<PolicyModels.AllocationLine>
-                {
-                    new PolicyModels.AllocationLine { Id = "al1", Name = "al2"}
-                }
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
@@ -839,21 +823,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = "fp10",
                 Name = "fp 10"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = "fs11",
-                AllocationLines = new List<PolicyModels.AllocationLine>
-                {
-                    new PolicyModels.AllocationLine { Id = "al1", Name = "al2"}
-                }
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
@@ -950,21 +930,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = "fp10",
                 Name = "fp 10"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = "fs11",
-                AllocationLines = new List<PolicyModels.AllocationLine>
-                {
-                    new PolicyModels.AllocationLine { Id = "al1", Name = "al2"}
-                }
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
@@ -1063,21 +1039,17 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 FundingStreamIds = new[] { "fs11" }
             };
 
-            PolicyModels.Period fundingPeriod = new PolicyModels.Period
+            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
             {
                 Id = "fp10",
                 Name = "fp 10"
             };
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, fundingPeriod);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
 
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
                 Id = "fs11",
-                AllocationLines = new List<PolicyModels.AllocationLine>
-                {
-                    new PolicyModels.AllocationLine { Id = "al1", Name = "al2"}
-                }
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);

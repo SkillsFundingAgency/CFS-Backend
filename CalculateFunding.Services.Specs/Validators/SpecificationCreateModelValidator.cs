@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Specs.Validators
                     SpecificationCreateModel specModel = context.ParentContext.InstanceToValidate as SpecificationCreateModel;
                     if (!string.IsNullOrWhiteSpace(specModel.FundingPeriodId))
                     {                       
-                        ApiResponse<PolicyModels.Period> fundingPeriodResponse = 
+                        ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = 
                         await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specModel.FundingPeriodId));
                         if (fundingPeriodResponse?.StatusCode != HttpStatusCode.OK || fundingPeriodResponse?.Content == null)
                         {

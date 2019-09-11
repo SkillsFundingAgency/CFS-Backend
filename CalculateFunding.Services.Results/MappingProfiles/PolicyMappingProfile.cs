@@ -8,6 +8,10 @@ namespace CalculateFunding.Services.Results.MappingProfiles
         public PolicyMappingProfile()
         {
             CreateMap<FundingStream, CalculateFunding.Common.ApiClient.Policies.Models.FundingStream>();
+            CreateMap<CalculateFunding.Common.ApiClient.Policies.Models.FundingStream, FundingStream>()
+                .ForMember(_ => _.AllocationLines, opt => opt.Ignore())
+                .ForMember(_ => _.PeriodType, opt => opt.Ignore())
+                .ForMember(_ => _.RequireFinancialEnvelopes, opt => opt.Ignore());
         }
     }
 }

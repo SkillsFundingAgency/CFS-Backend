@@ -676,15 +676,22 @@ namespace CalculateFunding.Services.Results
 
         private async Task<Period> GetFundingPeriod(SpecificationCurrentVersion specification)
         {
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specification.FundingPeriod.Id));
-            Period fundingPeriod = _mapper.Map<Period>(fundingPeriodResponse?.Content);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specification.FundingPeriod.Id));
+
+            PolicyModels.FundingPeriod fundingPeriod = fundingPeriodResponse?.Content;
 
             if (fundingPeriod == null)
             {
                 throw new NonRetriableException($"Failed to find a funding period for id: {specification.FundingPeriod.Id}");
             }
 
-            return fundingPeriod;
+            return new Period
+            {
+                Id = fundingPeriod.Id,
+                Name = fundingPeriod.Name,
+                StartDate = fundingPeriod.StartDate,
+                EndDate = fundingPeriod.EndDate
+            };
         }
 
         private IEnumerable<ProfilingPeriod> MergeProfilingPeriods(IEnumerable<ProfilingPeriod> lhs, IEnumerable<ProfilingPeriod> rhs)

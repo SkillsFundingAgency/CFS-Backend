@@ -57,8 +57,8 @@ namespace CalculateFunding.Services.Results
 
             string specificationId = specificationCurrentVersion.Id;
 
-            ApiResponse<PolicyModels.Period> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specificationCurrentVersion.FundingPeriod.Id));
-            Period fundingPeriod = _mapper.Map<Period>(fundingPeriodResponse?.Content);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specificationCurrentVersion.FundingPeriod.Id));
+            PolicyModels.FundingPeriod fundingPeriod = fundingPeriodResponse?.Content;
 
             if (fundingPeriod == null)
             {
@@ -82,7 +82,13 @@ namespace CalculateFunding.Services.Results
                         ProviderId = providerResult.Provider.Id,
                         SpecificationId = specificationId,
                         FundingStreamResult = publishedFundingStreamResult,
-                        FundingPeriod = fundingPeriod,
+                        FundingPeriod = new Period
+                        {
+                            Id = fundingPeriod.Id,
+                            Name = fundingPeriod.Name,
+                            StartDate = fundingPeriod.StartDate,
+                            EndDate = fundingPeriod.EndDate
+                        },
                     };
 
                     publishedProviderResult.FundingStreamResult.AllocationLineResult.Current.PublishedProviderResultId = publishedProviderResult.Id;

@@ -16,6 +16,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
+using CalculateFunding.Services.Results.MappingProfiles;
 using CalculateFunding.Services.Results.Repositories;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -182,7 +183,11 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
         static IMapper CreateMapper()
         {
-            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<ResultServiceMappingProfile>());
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ResultServiceMappingProfile>();
+                c.AddProfile<PolicyMappingProfile>();
+            });
             return mapperConfiguration.CreateMapper();
         }
 
@@ -208,7 +213,11 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
         static IMapper CreateRealMapper()
         {
-            MapperConfiguration mapperConfiguration = new MapperConfiguration(c => c.AddProfile<ResultServiceMappingProfile>());
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ResultServiceMappingProfile>();
+                c.AddProfile<PolicyMappingProfile>();
+            });
             return mapperConfiguration.CreateMapper();
         }
 

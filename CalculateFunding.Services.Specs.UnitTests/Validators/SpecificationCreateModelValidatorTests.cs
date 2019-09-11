@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
             policiesApiClient
             .GetFundingPeriodById(Arg.Is("1819"))
-            .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, new PolicyModels.Period()));
+            .Returns(new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, new PolicyModels.FundingPeriod()));
 
 
             SpecificationCreateModelValidator validator = CreateValidator(policiesApiClient: policiesApiClient);
@@ -324,7 +324,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
 
             policiesApiClient
             .GetFundingPeriodById(Arg.Any<string>())
-            .Returns(new ApiResponse<PolicyModels.Period>(HttpStatusCode.OK, new PolicyModels.Period { EndDate = DateTimeOffset.Parse("2019-08-31T23:59:59"), Id = "1819", Name = "AY1819", StartDate = DateTimeOffset.Parse("2018-09-01T00:00:00") }));
+            .Returns(new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, new PolicyModels.FundingPeriod { EndDate = DateTimeOffset.Parse("2019-08-31T23:59:59"), Id = "1819", Name = "AY1819", StartDate = DateTimeOffset.Parse("2018-09-01T00:00:00") }));
 
 
             return policiesApiClient;

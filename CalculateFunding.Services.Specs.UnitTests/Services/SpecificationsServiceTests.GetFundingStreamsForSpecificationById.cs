@@ -69,7 +69,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = "fs1",
                 Name = "Funding Stream 1",
-                AllocationLines = new List<PolicyModels.AllocationLine>(),
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStream1Response = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream1);
@@ -82,7 +81,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 Id = "fs2",
                 Name = "Funding Stream 2",
-                AllocationLines = new List<PolicyModels.AllocationLine>(),
             };
 
             ApiResponse<PolicyModels.FundingStream> fundingStream2Response = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream2);
@@ -102,13 +100,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 {
                     Id = "fs1",
                     Name = "Funding Stream 1",
-                    AllocationLines = new List<AllocationLine>(),
                 },
                 new FundingStream()
                 {
                     Id = "fs2",
                     Name = "Funding Stream 2",
-                    AllocationLines = new List<AllocationLine>(),
                 }
             };
 

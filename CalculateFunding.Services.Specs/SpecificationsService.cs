@@ -660,8 +660,16 @@ namespace CalculateFunding.Services.Specs
                 return validationResult;
             }
 
-            Common.ApiClient.Models.ApiResponse<PolicyModels.Period> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(createModel.FundingPeriodId));
-            Period fundingPeriod = _mapper.Map<Period>(fundingPeriodResponse?.Content);
+            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(createModel.FundingPeriodId));
+            PolicyModels.FundingPeriod content = fundingPeriodResponse.Content;
+            
+            Period fundingPeriod = new Period
+            {
+                Id = content.Id,
+                Name = content.Period,
+                EndDate = content.EndDate,
+                StartDate = content.StartDate
+            };
 
             Reference user = request.GetUser();
 
@@ -810,13 +818,20 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                Common.ApiClient.Models.ApiResponse<PolicyModels.Period> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
-                if (fundingPeriodResponse?.Content == null)
+                ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
+                PolicyModels.FundingPeriod content = fundingPeriodResponse?.Content;
+                if (content == null)
                 {
                     return new PreconditionFailedResult($"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
                 }
 
-                Period fundingPeriod = _mapper.Map<Period>(fundingPeriodResponse?.Content);
+                Period fundingPeriod = new Period
+                {
+                    Id = content.Id,
+                    Name = content.Period,
+                    StartDate = content.StartDate,
+                    EndDate = content.EndDate
+                };
                 specificationVersion.FundingPeriod = new Reference { Id = fundingPeriod.Id, Name = fundingPeriod.Name };
             }
 
