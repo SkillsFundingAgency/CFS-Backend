@@ -1,4 +1,7 @@
-﻿using CalculateFunding.Common.Caching;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
@@ -7,9 +10,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -92,8 +92,8 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             ILogger logger = CreateLogger();
-            string specificationId = "test";
-            string fundingStreamId = "test";
+            string specificationId = "testSpecId";
+            string fundingStreamId = "testFundingStreamId";
 
             List<TemplateMappingItem> templateMappingItems = new List<TemplateMappingItem>();
 
@@ -119,13 +119,20 @@ namespace CalculateFunding.Services.Calcs.Services
             IActionResult result = await service.GetMappedCalculationsOfSpecificationTemplate(specificationId, fundingStreamId);
 
             // Assert
+            TemplateMappingSummary expectedResult = new TemplateMappingSummary()
+            {
+                SpecificationId = specificationId,
+                FundingStreamId = fundingStreamId,
+                TemplateMappingItems = templateMappingItems,
+            };
+
             result
                 .Should()
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
                 .Should()
-                .Be(templateMappingItems);
+                .BeEquivalentTo(expectedResult);
         }
 
         [TestMethod]
@@ -133,8 +140,8 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             //Arrange
             ILogger logger = CreateLogger();
-            string specificationId = "test";
-            string fundingStreamId = "test";
+            string specificationId = "testSpecId";
+            string fundingStreamId = "testFundingStreamId";
 
             List<TemplateMappingItem> templateMappingItems = new List<TemplateMappingItem>();
 
@@ -154,18 +161,25 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger: logger,
                 calculationsRepository: calculationsRepository);
 
-
             // Act
             IActionResult result = await service.GetMappedCalculationsOfSpecificationTemplate(specificationId, fundingStreamId);
 
             // Assert
+
+            TemplateMappingSummary expectedResult = new TemplateMappingSummary()
+            {
+                SpecificationId = specificationId,
+                FundingStreamId = fundingStreamId,
+                TemplateMappingItems = templateMappingItems,
+            };
+
             result
                 .Should()
                 .BeOfType<OkObjectResult>()
                 .Which
                 .Value
                 .Should()
-                .Be(templateMappingItems);
+                .BeEquivalentTo(expectedResult);
         }
     }
 }

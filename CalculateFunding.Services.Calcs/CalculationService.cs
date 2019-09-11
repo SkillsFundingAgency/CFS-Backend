@@ -598,7 +598,7 @@ namespace CalculateFunding.Services.Calcs
 
             CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
 
-            if(setAdditional)
+            if (setAdditional)
             {
                 calculationVersion.WasTemplateCalculation = true;
                 calculationVersion.CalculationType = CalculationType.Additional;
@@ -1443,7 +1443,14 @@ namespace CalculateFunding.Services.Calcs
                 await _cachePolicy.ExecuteAsync(() => _cacheProvider.SetAsync(cacheKey, templateMapping, TimeSpan.FromDays(7), true));
             }
 
-            return new OkObjectResult(templateMapping?.TemplateMappingItems);
+            TemplateMappingSummary result = new TemplateMappingSummary()
+            {
+                SpecificationId = specificationId,
+                FundingStreamId = fundingStreamId,
+                TemplateMappingItems = templateMapping?.TemplateMappingItems,
+            };
+
+            return new OkObjectResult(result);
         }
     }
 }
