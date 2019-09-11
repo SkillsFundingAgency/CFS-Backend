@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CalculateFunding.Api.External.UnitTests;
+using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
@@ -19,7 +19,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using Serilog;
 
-namespace CalculateFunding.Services.Providers.UnitTests
+namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 {
     [TestClass]
     public class ProviderFundingVersionServiceTests
@@ -149,7 +149,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             contentResult
                 .StatusCode
                 .Should()
-                .Be((int)HttpStatusCode.OK);
+                .Be((int) HttpStatusCode.OK);
 
             contentResult
                 .Content
@@ -170,9 +170,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     memoryStream,
                     CancellationToken.None);
         }
-
+        
         [TestMethod]
-        public async Task GetProviderFundingVersionsBody_GivenReturnsFromBlobStorage_ReturnsOK()
+        public async Task GetProviderFundingVersionsBody_GivenReturnsFileSystemIsDisabledGetsFromBlobClientFetch_ReturnsOK()
         {
             //Arrange
             string template = "just a string";
@@ -182,23 +182,33 @@ namespace CalculateFunding.Services.Providers.UnitTests
             Stream memoryStream = new MemoryStream(bytes);
 
             ILogger logger = CreateLogger();
-            ICloudBlob cloudBlob = CreateBlob();
             IFileSystemCache fileSystemCache = CreateFileSystemCache();
-
             IBlobClient blobClient = CreateBlobClient();
+
+            fileSystemCache.Exists(Arg.Is<ProviderFileSystemCacheKey>(
+                    _ => _.Key == providerFundingVersion))
+                .Returns(true);
+
+            fileSystemCache.Get(Arg.Is<ProviderFileSystemCacheKey>(
+                    _ => _.Key == providerFundingVersion))
+                .Returns(memoryStream);
+
+            ICloudBlob cloudBlob = CreateBlob();
+            
             blobClient
                 .BlobExistsAsync(blobName)
                 .Returns(true);
 
             blobClient
-                 .GetBlobReferenceFromServerAsync(blobName)
-                 .Returns(cloudBlob);
+                .GetBlobReferenceFromServerAsync(blobName)
+                .Returns(cloudBlob);
 
             blobClient
-                  .DownloadToStreamAsync(cloudBlob)
-                  .Returns(memoryStream);
+                .DownloadToStreamAsync(cloudBlob)
+                .Returns(memoryStream);
 
-            ProviderFundingVersionService service = CreateProviderFundingVersionService(logger, blobClient, fileSystemCache);
+            ProviderFundingVersionService service = CreateProviderFundingVersionService(logger, blobClient, fileSystemCache, 
+                Substitute.For<IExternalApiFileSystemCacheSettings>());
 
             //Act
             IActionResult result = await service.GetProviderFundingVersion(providerFundingVersion);
@@ -218,7 +228,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             contentResult
                 .StatusCode
                 .Should()
-                .Be((int)HttpStatusCode.OK);
+                .Be((int) HttpStatusCode.OK);
 
             contentResult
                 .Content
@@ -226,7 +236,81 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Be(template);
 
             fileSystemCache
-                .Received(1)
+                .Received(0)
+                .Exists(Arg.Any<FileSystemCacheKey>());
+
+            fileSystemCache
+                .Received(0)
+                .Get(Arg.Any<FileSystemCacheKey>());
+
+            fileSystemCache
+                .Received(0)
+                .Add(Arg.Is<ProviderFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
+                    memoryStream,
+                    CancellationToken.None);
+        }
+
+        [TestMethod]
+        [DataRow(true, 1)]
+        [DataRow(false, 0)]
+        public async Task GetProviderFundingVersionsBody_GivenReturnsFromBlobStorage_ReturnsOK(bool isFileSystemCacheEnabled, 
+            int expectedCacheAddCount)
+        {
+            //Arrange
+            string template = "just a string";
+
+            byte[] bytes = Encoding.UTF8.GetBytes(template);
+
+            Stream memoryStream = new MemoryStream(bytes);
+
+            ILogger logger = CreateLogger();
+            ICloudBlob cloudBlob = CreateBlob();
+            IFileSystemCache fileSystemCache = CreateFileSystemCache();
+            IExternalApiFileSystemCacheSettings cacheSettings = Substitute.For<IExternalApiFileSystemCacheSettings>();
+            cacheSettings.IsEnabled.Returns(isFileSystemCacheEnabled);
+            
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .BlobExistsAsync(blobName)
+                .Returns(true);
+
+            blobClient
+                .GetBlobReferenceFromServerAsync(blobName)
+                .Returns(cloudBlob);
+
+            blobClient
+                .DownloadToStreamAsync(cloudBlob)
+                .Returns(memoryStream);
+
+            ProviderFundingVersionService service = CreateProviderFundingVersionService(logger, blobClient, fileSystemCache, cacheSettings);
+
+            //Act
+            IActionResult result = await service.GetProviderFundingVersion(providerFundingVersion);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<ContentResult>();
+
+            ContentResult contentResult = result as ContentResult;
+
+            contentResult
+                .ContentType
+                .Should()
+                .Be("application/json");
+
+            contentResult
+                .StatusCode
+                .Should()
+                .Be((int) HttpStatusCode.OK);
+
+            contentResult
+                .Content
+                .Should()
+                .Be(template);
+
+            fileSystemCache
+                .Received(expectedCacheAddCount)
                 .Add(Arg.Is<ProviderFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
                     memoryStream,
                     CancellationToken.None);
@@ -265,13 +349,15 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         private static ProviderFundingVersionService CreateProviderFundingVersionService(ILogger logger = null,
-                IBlobClient blobClient = null,
-                IFileSystemCache fileSystemCache = null)
+            IBlobClient blobClient = null,
+            IFileSystemCache fileSystemCache = null,
+            IExternalApiFileSystemCacheSettings cacheSettings = null)
         {
             return new ProviderFundingVersionService(blobClient ?? CreateBlobClient(),
                 logger ?? CreateLogger(),
                 ExternalApiResilienceTestHelper.GenerateTestPolicies(),
-                fileSystemCache ?? CreateFileSystemCache());
+                fileSystemCache ?? CreateFileSystemCache(),
+                cacheSettings ?? CreateFileSystemCacheSettings());
         }
 
         private static ILogger CreateLogger()
@@ -292,6 +378,16 @@ namespace CalculateFunding.Services.Providers.UnitTests
         private static IFileSystemCache CreateFileSystemCache()
         {
             return Substitute.For<IFileSystemCache>();
+        }
+
+        private static IExternalApiFileSystemCacheSettings CreateFileSystemCacheSettings()
+        {
+            IExternalApiFileSystemCacheSettings externalApiFileSystemCacheSettings
+                = Substitute.For<IExternalApiFileSystemCacheSettings>();
+
+            externalApiFileSystemCacheSettings.IsEnabled.Returns(true);
+
+            return externalApiFileSystemCacheSettings;
         }
     }
 }

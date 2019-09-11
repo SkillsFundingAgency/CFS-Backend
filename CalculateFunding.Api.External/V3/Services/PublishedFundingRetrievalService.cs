@@ -18,22 +18,26 @@ namespace CalculateFunding.Api.External.V3.Services
         private readonly IBlobClient _blobClient;
         private readonly Policy _publishedFundingRepositoryPolicy;
         private readonly IFileSystemCache _fileSystemCache;
+        private readonly IExternalApiFileSystemCacheSettings _cacheSettings;
         private readonly ILogger _logger;
 
         public PublishedFundingRetrievalService(IBlobClient blobClient,
             IPublishingResiliencePolicies resiliencePolicies,
             IFileSystemCache fileSystemCache,
-            ILogger logger)
+            ILogger logger, 
+            IExternalApiFileSystemCacheSettings cacheSettings)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(cacheSettings, nameof(cacheSettings));
 
             _blobClient = blobClient;
             _publishedFundingRepositoryPolicy = resiliencePolicies.PublishedFundingBlobRepository;
             _fileSystemCache = fileSystemCache;
             _logger = logger;
+            _cacheSettings = cacheSettings;
         }
 
         public async Task<string> GetFundingFeedDocument(string absoluteDocumentPathUrl,
@@ -46,7 +50,7 @@ namespace CalculateFunding.Api.External.V3.Services
             string fundingFeedDocumentName = Path.GetFileNameWithoutExtension(documentPath);
             FundingFileSystemCacheKey fundingFileSystemCacheKey = new FundingFileSystemCacheKey(fundingFeedDocumentName);
 
-            if (_fileSystemCache.Exists(fundingFileSystemCacheKey))
+            if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(fundingFileSystemCacheKey))
             {
                 if (isForPreLoad) return null;
                 
@@ -74,7 +78,10 @@ namespace CalculateFunding.Api.External.V3.Services
                     return null;
                 }
 
-                _fileSystemCache.Add(fundingFileSystemCacheKey, fundingDocumentStream);
+                if (_cacheSettings.IsEnabled)
+                {
+                    _fileSystemCache.Add(fundingFileSystemCacheKey, fundingDocumentStream);
+                }
 
                 fundingDocumentStream.Position = 0;
 

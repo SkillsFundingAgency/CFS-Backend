@@ -164,6 +164,15 @@ namespace CalculateFunding.Api.External
                     return settings;
                 });
 
+            builder.AddSingleton<IExternalApiFileSystemCacheSettings>(ctx =>
+            {
+                ExternalApiFileSystemCacheSettings settings = new ExternalApiFileSystemCacheSettings();
+
+                Configuration.Bind("externalapifilesystemcachesettings", settings);
+
+                return settings;
+            });
+
             builder.AddSingleton<V3.Interfaces.IPublishedFundingRetrievalService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -177,8 +186,9 @@ namespace CalculateFunding.Api.External
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();
                 IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
+                IExternalApiFileSystemCacheSettings settings = ctx.GetService<IExternalApiFileSystemCacheSettings>();
 
-                return new V3.Services.PublishedFundingRetrievalService(blobClient, publishingResiliencePolicies, fileSystemCache, logger);
+                return new PublishedFundingRetrievalService(blobClient, publishingResiliencePolicies, fileSystemCache, logger, settings);
             });
 
             // Register dependencies
@@ -275,8 +285,9 @@ namespace CalculateFunding.Api.External
                 IExternalApiResiliencePolicies publishingResiliencePolicies = ctx.GetService<IExternalApiResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();
                 IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
+                IExternalApiFileSystemCacheSettings settings = ctx.GetService<IExternalApiFileSystemCacheSettings>();
 
-                return new ProviderFundingVersionService(blobClient, logger, publishingResiliencePolicies, fileSystemCache);
+                return new ProviderFundingVersionService(blobClient, logger, publishingResiliencePolicies, fileSystemCache, settings);
             });
 
             ServiceProvider = builder.BuildServiceProvider();

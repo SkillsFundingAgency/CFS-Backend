@@ -17,6 +17,7 @@ namespace CalculateFunding.Api.External.V3.Services
 {
     public class ProviderFundingVersionService : IProviderFundingVersionService
     {
+        private readonly IExternalApiFileSystemCacheSettings _cacheSettings;
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IBlobClient _blobClient;
         private readonly Policy _blobClientPolicy;
@@ -25,16 +26,19 @@ namespace CalculateFunding.Api.External.V3.Services
         public ProviderFundingVersionService(IBlobClient blobClient,
             ILogger logger,
             IExternalApiResiliencePolicies resiliencePolicies,
-            IFileSystemCache fileSystemCache)
+            IFileSystemCache fileSystemCache, 
+            IExternalApiFileSystemCacheSettings cacheSettings)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
+            Guard.ArgumentNotNull(cacheSettings, nameof(cacheSettings));
 
             _blobClient = blobClient;
             _logger = logger;
             _fileSystemCache = fileSystemCache;
+            _cacheSettings = cacheSettings;
             _blobClientPolicy = resiliencePolicies.BlobRepositoryPolicy;
         }
 
@@ -48,7 +52,7 @@ namespace CalculateFunding.Api.External.V3.Services
             {
                 ProviderFileSystemCacheKey cacheKey = new ProviderFileSystemCacheKey(providerFundingVersion);
 
-                if (_fileSystemCache.Exists(cacheKey))
+                if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(cacheKey))
                 {
                     using (Stream cachedStream = _fileSystemCache.Get(cacheKey))
                     {
@@ -69,7 +73,10 @@ namespace CalculateFunding.Api.External.V3.Services
 
                 using (Stream blobStream = await _blobClientPolicy.ExecuteAsync(() => _blobClient.DownloadToStreamAsync(blob)))
                 {
-                    _fileSystemCache.Add(cacheKey, blobStream);
+                    if (_cacheSettings.IsEnabled)
+                    {
+                        _fileSystemCache.Add(cacheKey, blobStream);
+                    }
 
                     return await GetContentResultForStream(blobStream);
                 }
