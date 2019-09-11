@@ -48,7 +48,16 @@ namespace CalculateFunding.Services.CalcEngine
             PropertyInfo providerSetter = allocationType.GetProperty("Provider");
             Type providerType = providerSetter.PropertyType;
 
-            IEnumerable<FieldInfo> executeFuncs = allocationType.GetTypeInfo().DeclaredFields.Where(x => x.FieldType == typeof(Func<decimal?>));
+            IEnumerable<PropertyInfo> allocationTypeCalculationProperties = allocationType.GetTypeInfo().DeclaredProperties.Where(m => m.PropertyType.BaseType.Name == "BaseCalculation");
+
+            List<FieldInfo> executeFuncs = new List<FieldInfo>();
+
+            foreach (PropertyInfo propertyInfo in allocationTypeCalculationProperties)
+            {
+                IEnumerable<FieldInfo> fieldInfos = propertyInfo.PropertyType.GetTypeInfo().DeclaredFields.Where(x => x.FieldType == typeof(Func<decimal?>));
+
+                executeFuncs.AddRange(fieldInfos);
+            }
 
             _mainMethod = allocationType.GetMethods().FirstOrDefault(x => x.Name == "MainCalc");
 
