@@ -1,9 +1,9 @@
-﻿using Microsoft.Azure.EventHubs;
-using Microsoft.Azure.ServiceBus;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using CalculateFunding.Models.CosmosDbScaling;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.EventHubs;
+using Microsoft.Azure.ServiceBus;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
 {
@@ -16,5 +16,7 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
         Task ScaleDownForJobConfiguration();
 
         Task ScaleDownIncrementally();
+
+        Task<IActionResult> SaveConfiguration(ScalingConfigurationUpdateModel scalingConfigurationUpdate);
     }
 }

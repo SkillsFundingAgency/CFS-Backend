@@ -2,12 +2,15 @@
 using CalculateFunding.Functions.CosmosDbScaling.EventHubs;
 using CalculateFunding.Functions.CosmosDbScaling.ServiceBus;
 using CalculateFunding.Functions.CosmosDbScaling.Timer;
+using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.CosmosDbScaling;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using CalculateFunding.Services.CosmosDbScaling.Repositories;
+using CalculateFunding.Services.CosmosDbScaling.Validators;
+using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,6 +57,7 @@ namespace CalculateFunding.Functions.CosmosDbScaling
             builder.AddSingleton<ICosmosDbScalingRequestModelBuilder, CosmosDbScalingRequestModelBuilder>();
 
             builder.AddSingleton<ICosmosDbThrottledEventsFilter, CosmosDbThrottledEventsFilter>();
+            builder.AddSingleton<IValidator<ScalingConfigurationUpdateModel>, ScalingConfigurationUpdateModelValidator>();
 
             builder.AddSingleton<CalculationProviderResultsScalingRepository>((ctx) =>
             {

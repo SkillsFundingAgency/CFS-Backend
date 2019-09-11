@@ -51,6 +51,13 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
             return await _cosmosRepository.UpsertAsync<CosmosDbScalingCollectionSettings>(settings);
         }
 
+        public async Task<HttpStatusCode> UpdateConfigSettings(CosmosDbScalingConfig settings)
+        {
+            Guard.ArgumentNotNull(settings, nameof(settings));
+
+            return await _cosmosRepository.UpsertAsync(settings);
+        }
+
         public async Task<IEnumerable<CosmosDbScalingCollectionSettings>> GetCollectionSettingsIncremented(int previousMinutes)
         {
             IQueryable<CosmosDbScalingCollectionSettings> settings = _cosmosRepository.Query<CosmosDbScalingCollectionSettings>()

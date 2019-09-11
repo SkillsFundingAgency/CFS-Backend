@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -9,10 +10,15 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.CosmosDbScaling;
+using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.CosmosDbScaling.Interfaces;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1558,6 +1564,266 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 .Error(Arg.Is($"Failed to update cosmos scale config repository type: '{CosmosCollectionType.CalculationProviderResults}' with new request units of '10000' with status code: 'BadRequest'"));
         }
 
+        [TestMethod]
+        public void SaveConfiguration_GivenModelButWasInvalid_ReturnesBadRequest()
+        {
+            //Arrange
+            ScalingConfigurationUpdateModel request = CreateScalingConfigurationUpdateModel();
+
+            ILogger logger = CreateLogger();
+
+            ValidationResult validationResult = new ValidationResult(new[]{
+                    new ValidationFailure("prop1", "any error")
+                });
+
+            IValidator<ScalingConfigurationUpdateModel> validator = CreateScalingConfigurationUpdateModelValidator(validationResult);
+          
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,             
+                scalingConfigurationUpdateModelValidator: validator);
+
+            //Act
+            Func<Task> test = async () => await cosmosDbScalingService.SaveConfiguration(request);
+
+            //Assert
+            test
+               .Should().ThrowExactly<InvalidModelException>();
+        }
+
+        [TestMethod]
+        public void SaveConfiguration_GivenScalingCollectionsToProcessButFailsToUpdate_ThrowsretriableException()
+        {
+            //Arrange
+            ScalingConfigurationUpdateModel request = CreateScalingConfigurationUpdateModel();
+
+            IValidator<ScalingConfigurationUpdateModel> validator = CreateScalingConfigurationUpdateModelValidator(null);
+
+
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            
+            cosmosDbScalingConfigRepository
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingConfig);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
+
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())               
+                .Returns(HttpStatusCode.InternalServerError);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,               
+                 scalingConfigurationUpdateModelValidator: validator);
+
+          
+            //Act
+            Func<Task> test = async () => await cosmosDbScalingService.SaveConfiguration(request);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to Insert or Update Scaling Collection Setting for repository type: '{request.RepositoryType}'  with status code: '{HttpStatusCode.InternalServerError}'");
+
+           
+        }
+
+        [TestMethod]
+        public void SaveConfiguration_GivenScalingConfigToProcessButFailsToUpdate_ThrowsretriableException()
+        {
+            //Arrange
+            ScalingConfigurationUpdateModel request = CreateScalingConfigurationUpdateModel();
+
+            IValidator<ScalingConfigurationUpdateModel> validator = CreateScalingConfigurationUpdateModelValidator(null);
+
+
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+
+            cosmosDbScalingConfigRepository
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingConfig);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(settings);
+
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.OK);
+
+            cosmosDbScalingConfigRepository
+                .UpdateConfigSettings(Arg.Any<CosmosDbScalingConfig>())
+                .Returns(HttpStatusCode.InternalServerError);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                 scalingConfigurationUpdateModelValidator: validator);
+
+
+            //Act
+            Func<Task> test = async () => await cosmosDbScalingService.SaveConfiguration(request);
+
+            //Assert
+            test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Which
+                .Message
+                .Should()
+                .Be($"Failed to Insert or Update config setting repository type: '{request.RepositoryType}'  with status code: '{HttpStatusCode.InternalServerError}'");
+        }
+
+        [TestMethod]
+        public async Task SaveConfiguration_GivenScalingCollectionsToProcessNoExistingDocument_InsertScaleCollectionAsync()
+        {
+            //Arrange
+            ScalingConfigurationUpdateModel request = CreateScalingConfigurationUpdateModel();
+
+            IValidator<ScalingConfigurationUpdateModel> validator = CreateScalingConfigurationUpdateModelValidator(null);
+
+
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.CalculationProviderResults);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.CalculationProviderResults);
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+
+            cosmosDbScalingConfigRepository
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(scalingConfig);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.CalculationProviderResults))
+                .Returns(new CosmosDbScalingCollectionSettings());
+
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.OK);
+
+            cosmosDbScalingConfigRepository
+                .UpdateConfigSettings(Arg.Any<CosmosDbScalingConfig>())
+                .Returns(HttpStatusCode.OK);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                 scalingConfigurationUpdateModelValidator: validator);
+
+
+            //Act
+            await cosmosDbScalingService.SaveConfiguration(request);
+
+            //Assert
+            await
+              cosmosDbScalingConfigRepository
+              .Received(1)
+              .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
+                   m.CosmosCollectionType == request.RepositoryType &&
+                   m.MaxRequestUnits == request.MaxRequestUnits &&
+                   m.MinRequestUnits == request.BaseRequestUnits
+              ));
+
+        }
+
+        [TestMethod]
+        public async Task SaveConfiguration_GivenScalingCollectionsToProcessExistingDocument_UpdateScaleCollectionAsync()
+        {
+            //Arrange
+            ScalingConfigurationUpdateModel request = CreateScalingConfigurationUpdateModel();
+
+            IValidator<ScalingConfigurationUpdateModel> validator = CreateScalingConfigurationUpdateModelValidator(null);
+
+
+            CosmosDbScalingConfig scalingConfig = CreateCosmosScalingConfig(CosmosCollectionType.ProviderSourceDatasets);
+
+            CosmosDbScalingCollectionSettings settings = CreateCollectionSettings(CosmosCollectionType.ProviderSourceDatasets);
+
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+
+            cosmosDbScalingConfigRepository
+                .GetConfigByRepositoryType(Arg.Is(CosmosCollectionType.ProviderSourceDatasets))
+                .Returns(scalingConfig);
+
+            cosmosDbScalingConfigRepository
+                .GetCollectionSettingsByRepositoryType(Arg.Is(CosmosCollectionType.ProviderSourceDatasets))
+                .Returns(settings);
+
+            cosmosDbScalingConfigRepository
+                .UpdateCollectionSettings(Arg.Any<CosmosDbScalingCollectionSettings>())
+                .Returns(HttpStatusCode.OK);
+
+            cosmosDbScalingConfigRepository
+                .UpdateConfigSettings(Arg.Any<CosmosDbScalingConfig>())
+                .Returns(HttpStatusCode.OK);
+
+            ILogger logger = CreateLogger();
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                logger,
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                 scalingConfigurationUpdateModelValidator: validator);
+
+
+            //Act
+            await cosmosDbScalingService.SaveConfiguration(request);
+
+            //Assert
+            await
+              cosmosDbScalingConfigRepository
+              .DidNotReceive()
+              .UpdateCollectionSettings(Arg.Is<CosmosDbScalingCollectionSettings>(m =>
+                   m.CosmosCollectionType == request.RepositoryType &&
+                   m.MaxRequestUnits == request.MaxRequestUnits &&
+                   m.MinRequestUnits == request.BaseRequestUnits
+              ));
+
+            await cosmosDbScalingConfigRepository
+             .Received(1)
+             .UpdateConfigSettings(Arg.Is<CosmosDbScalingConfig>(m =>
+                  m.JobRequestUnitConfigs == request.JobRequestUnitConfigs
+             ));
+        }
+
+        private static ScalingConfigurationUpdateModel CreateScalingConfigurationUpdateModel()
+        {
+            return new ScalingConfigurationUpdateModel()
+            {
+                BaseRequestUnits = 4000,
+                JobRequestUnitConfigs = new[]
+                {
+                    new CosmosDbScalingJobConfig
+                    {
+                        JobDefinitionId = "job-def-1",
+                        JobRequestUnits = 50000
+                    }
+                },
+                MaxRequestUnits = 4000,
+                RepositoryType = CosmosCollectionType.ProviderSourceDatasets,
+            };
+        }
+
         private CosmosDbScalingService CreateScalingService(
             ILogger logger = null,
             ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = null,
@@ -1565,7 +1831,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
             ICacheProvider cacheProvider = null,
             ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = null,
             ICosmosDbScalingRequestModelBuilder cosmosDbScalingRequestModelBuilder = null,
-            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = null)
+            ICosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = null,
+            IValidator<ScalingConfigurationUpdateModel> scalingConfigurationUpdateModelValidator = null)
         {
             return new CosmosDbScalingService(
                 logger ?? CreateLogger(),
@@ -1575,8 +1842,27 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 cosmosDbScalingConfigRepository ?? CreateCosmosDbScalingConfigRepository(),
                 CosmosDbScalingResilienceTestHelper.GenerateTestPolicies(),
                 cosmosDbScalingRequestModelBuilder ?? CreateReqestModelBuilder(),
-                cosmosDbThrottledEventsFilter ?? CreateCosmosDbThrottledEventsFilter());
+                cosmosDbThrottledEventsFilter ?? CreateCosmosDbThrottledEventsFilter(),
+                scalingConfigurationUpdateModelValidator ?? CreateScalingConfigurationUpdateModelValidator());
         }
+
+        static IValidator<ScalingConfigurationUpdateModel> CreateScalingConfigurationUpdateModelValidator(ValidationResult validationResult = null)
+        {
+            if (validationResult == null)
+            {
+                validationResult = new ValidationResult();
+            }
+
+            IValidator<ScalingConfigurationUpdateModel> validator = Substitute.For<IValidator<ScalingConfigurationUpdateModel>>();
+
+            validator
+               .ValidateAsync(Arg.Any<ScalingConfigurationUpdateModel>())
+               .Returns(validationResult);
+
+            return validator;
+        }
+
+        
 
         private static ICosmosDbThrottledEventsFilter CreateCosmosDbThrottledEventsFilter()
         {

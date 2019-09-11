@@ -17,5 +17,6 @@ namespace CalculateFunding.Services.CosmosDbScaling.Interfaces
         Task<HttpStatusCode> UpdateCollectionSettings(CosmosDbScalingCollectionSettings settings);
 
         Task<IEnumerable<CosmosDbScalingCollectionSettings>> GetCollectionSettingsIncremented(int previousMinutes);
+        Task<HttpStatusCode> UpdateConfigSettings(CosmosDbScalingConfig cosmosDbScalingConfig);
     }
 }
