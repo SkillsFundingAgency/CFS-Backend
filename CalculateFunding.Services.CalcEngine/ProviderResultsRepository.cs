@@ -69,10 +69,14 @@ namespace CalculateFunding.Services.CalcEngine
                 return (0, 0, 0);
             }
 
+            string batchSpecificationId = providerResults.First().SpecificationId;
+            
+            _calculationsHashProvider.StartBatch(batchSpecificationId, partitionIndex, partitionSize);
+
             //only leave the provider results where the calculation results have changed since they were last saved
-            providerResults = providerResults.Where(_ => ResultsHaveChanged(_, partitionIndex, partitionSize)
-                .GetAwaiter()
-                .GetResult());
+            providerResults = providerResults.Where(_ => ResultsHaveChanged(_, partitionIndex, partitionSize));
+            
+            _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
 
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
 
@@ -99,9 +103,9 @@ namespace CalculateFunding.Services.CalcEngine
             return (cosmosSaveTask.Result, searchSaveTask.Result, providerResults.Count());
         }
 
-        private async Task<bool> ResultsHaveChanged(ProviderResult providerResult, int partitionIndex, int partitionSize)
+        private bool ResultsHaveChanged(ProviderResult providerResult, int partitionIndex, int partitionSize)
         {
-            bool hasChanged = await _calculationsHashProvider.TryUpdateCalculationResultHash(providerResult, partitionIndex, partitionSize);
+            bool hasChanged = _calculationsHashProvider.TryUpdateCalculationResultHash(providerResult, partitionIndex, partitionSize);
             
             if (!hasChanged)
             {

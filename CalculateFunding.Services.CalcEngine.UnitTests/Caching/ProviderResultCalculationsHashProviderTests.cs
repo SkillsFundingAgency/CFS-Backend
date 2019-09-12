@@ -42,13 +42,50 @@ namespace CalculateFunding.Services.Calculator.Caching
         }
 
         [TestMethod]
-        public async Task CreatesCacheEntryIfNoneForSpecificationId()
+        public void TryUpdate_ThrowsExceptionIfBatchNotStartedForSpecificationId()
+        {
+            Func<bool> invocation = () => WhenTheProviderResultCacheIsUpdated(NewProviderResult(_ => _.WithCalculationResults(NewCalculationResult(),
+                NewCalculationResult())));
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+        
+        [TestMethod]
+        public void EndBatch_ThrowsExceptionIfBatchNotStartedForSpecificationId()
+        {
+            Action invocation = AndTheBatchIsEnded; 
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+        
+        [TestMethod]
+        public void StartBatch_ThrowsExceptionIfBatchAlreadyStartedForSpecificationId()
+        {
+            WhenTheBatchIsStarted();
+            
+            Action invocation = WhenTheBatchIsStarted; 
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+        
+        [TestMethod]
+        public void CreatesNewDictionaryIfNoneCachedForProviderIdAndSpecificationIdYet()
         {
             ProviderResult providerResult = NewProviderResult(_ => _.WithCalculationResults(NewCalculationResult(),
                 NewCalculationResult()));
             string expectedCachedHash = GetComputedHash(providerResult.CalculationResults);
-
-            bool wasUpdated = await WhenTheProviderResultCacheIsUpdated(providerResult);
+            
+            WhenTheBatchIsStarted();
+            
+            bool wasUpdated = AndTheProviderResultCacheIsUpdated(providerResult);
+            
+            AndTheBatchIsEnded();
 
             wasUpdated
                 .Should()
@@ -61,15 +98,19 @@ namespace CalculateFunding.Services.Calculator.Caching
         }
 
         [TestMethod]
-        public async Task UpdatesCacheEntryIfCachedHashDiffersForProviderIdAndSpecificationId()
+        public void UpdatesCacheEntryIfCachedHashDiffersForProviderIdAndSpecificationId()
         {
             ProviderResult providerResult = NewProviderResult(_ => _.WithCalculationResults(NewCalculationResult(),
                 NewCalculationResult()));
             string expectedCachedHash = GetComputedHash(providerResult.CalculationResults);
             
             GivenTheExistingResultsHashesForSpecification(_providerId, "a different hash", "a second provider", "a different hash");
-
-            bool wasUpdated = await WhenTheProviderResultCacheIsUpdated(providerResult);
+            
+            WhenTheBatchIsStarted();
+            
+            bool wasUpdated = AndTheProviderResultCacheIsUpdated(providerResult);
+            
+            AndTheBatchIsEnded();
 
             wasUpdated
                 .Should()
@@ -83,7 +124,7 @@ namespace CalculateFunding.Services.Calculator.Caching
         }
         
         [TestMethod]
-        public async Task DoesNothingIfCachedHashUnchangedForProviderIdAndSpecificationId()
+        public void ReturnsFalseIfCachedHashUnchangedForProviderIdAndSpecificationId()
         {
             ProviderResult providerResult = NewProviderResult(_ => _.WithCalculationResults(NewCalculationResult(),
                 NewCalculationResult()));
@@ -91,22 +132,47 @@ namespace CalculateFunding.Services.Calculator.Caching
             
             GivenTheExistingResultsHashesForSpecification(_providerId, expectedCachedHash, "a second provider", "a different hash");
 
-            bool wasUpdated = await WhenTheProviderResultCacheIsUpdated(providerResult);
+            WhenTheBatchIsStarted();
+            
+            bool wasUpdated = AndTheProviderResultCacheIsUpdated(providerResult);
+            
+            AndTheBatchIsEnded();
 
             wasUpdated
                 .Should()
                 .BeFalse();
 
-            await AndNoResultHashesWereStored();
+            AndTheResultsHashDictionaryWasStored(new Dictionary<string, string>
+            {
+                {providerResult.Provider.Id, expectedCachedHash},
+                {"a second provider", "a different hash"}
+            });
         }
         
-        private async Task<bool> WhenTheProviderResultCacheIsUpdated(ProviderResult providerResult)
+        private bool WhenTheProviderResultCacheIsUpdated(ProviderResult providerResult)
         {
-            return await _calculationsHashProvider.TryUpdateCalculationResultHash(providerResult,
+            bool isUpdated = _calculationsHashProvider.TryUpdateCalculationResultHash(providerResult,
                 _partitionIndex,
                 _partitionSize);
+            
+            return isUpdated;
         }
 
+        private bool AndTheProviderResultCacheIsUpdated(ProviderResult providerResult)
+        {
+            return WhenTheProviderResultCacheIsUpdated(providerResult);
+        }
+
+        private void WhenTheBatchIsStarted()
+        {
+            _calculationsHashProvider.StartBatch(_specificationId, _partitionIndex, _partitionSize);    
+        }
+        
+        private void AndTheBatchIsEnded()
+        {
+            _calculationsHashProvider.EndBatch(_specificationId, _partitionIndex, _partitionSize);   
+        }
+        
         private string GetComputedHash(IEnumerable<CalculationResult> calculationResults)
         {
             return calculationResults
@@ -152,13 +218,6 @@ namespace CalculateFunding.Services.Calculator.Caching
         {
             _cacheProvider.SetAsync(CacheKeyForSpecification(),
                 Arg.Is<Dictionary<string, string>>(actualDictionary => DictionariesMatch(expectedDictionary, actualDictionary)));
-        }
-
-        private async Task AndNoResultHashesWereStored()
-        {
-            await _cacheProvider
-                .Received(0)
-                .SetAsync(Arg.Any<string>(), Arg.Any<Dictionary<string, string>>());
         }
 
         private bool DictionariesMatch(Dictionary<string, string> expected, Dictionary<string, string> actual)

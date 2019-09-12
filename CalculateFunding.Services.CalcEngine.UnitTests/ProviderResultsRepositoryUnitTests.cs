@@ -452,6 +452,12 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 r.First().OpenDate == results.First().Provider.DateOpened &&
                 r.First().CalculationResult == null &&
                 r.First().IsExcluded == true));
+            
+            hashProvider.Received(1)
+                .StartBatch(results.First().SpecificationId, 1, 1);
+            
+            hashProvider.Received(1)
+                .EndBatch(results.First().SpecificationId, 1, 1);
         }
 
         [TestMethod]
