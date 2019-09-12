@@ -221,7 +221,7 @@ namespace CalculateFunding.Api.Calcs.Controllers
         {
             HttpRequest httpRequest = ControllerContext.HttpContext.Request;
 
-            return await _calcsService.CreateAdditionalCalculation(specificationId, model, httpRequest.GetUser(), httpRequest.GetCorrelationId());
+            return await _calcsService.CreateAdditionalCalculation(specificationId, model, httpRequest.GetUserOrDefault(), httpRequest.GetCorrelationId());
         }
 
         [Route("api/calcs/specifications/{specificationId}/templates/{fundingStreamId}")]
