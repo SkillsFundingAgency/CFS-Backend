@@ -53,8 +53,8 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canApproveFunding")]
         public bool CanApproveFunding { get; set; }
 
-        [JsonProperty("canPublishFunding")]
-        public bool CanPublishFunding { get; set; }
+        [JsonProperty("canReleaseFunding")]
+        public bool CanReleaseFunding { get; set; }
 
         [JsonProperty("canCreateQaTests")]
         public bool CanCreateQaTests { get; set; }
@@ -74,7 +74,7 @@ namespace CalculateFunding.Models.Users
                 fundingStreamPermission.CanChooseFunding == CanChooseFunding &&
                 fundingStreamPermission.CanRefreshFunding == CanRefreshFunding &&
                 fundingStreamPermission.CanApproveFunding == CanApproveFunding &&
-                fundingStreamPermission.CanPublishFunding == CanPublishFunding &&
+                fundingStreamPermission.CanReleaseFunding == CanReleaseFunding &&
                 fundingStreamPermission.CanAdministerFundingStream == CanAdministerFundingStream &&
                 fundingStreamPermission.CanCreateQaTests == CanCreateQaTests &&
                 fundingStreamPermission.CanEditQaTests == CanEditQaTests &&

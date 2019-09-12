@@ -78,7 +78,7 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanMapDatasets = false,
-                    CanPublishFunding = true,
+                    CanReleaseFunding = true,
                     FundingStreamId = FundingStreamId,
                     UserId = UserId
                 },
@@ -90,7 +90,7 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = true,
                     CanEditSpecification = false,
                     CanMapDatasets = false,
-                    CanPublishFunding = true,
+                    CanReleaseFunding = true,
                     FundingStreamId = "fs2",
                     UserId = UserId
                 }
@@ -124,7 +124,7 @@ namespace CalculateFunding.Services.Users
                         CanEditCalculations = false,
                         CanEditSpecification = false,
                         CanMapDatasets = false,
-                        CanPublishFunding = true,
+                        CanReleaseFunding = true,
                         FundingStreamId = FundingStreamId,
                         UserId = UserId
                     },
@@ -136,7 +136,7 @@ namespace CalculateFunding.Services.Users
                         CanEditCalculations = true,
                         CanEditSpecification = false,
                         CanMapDatasets = false,
-                        CanPublishFunding = true,
+                        CanReleaseFunding = true,
                         FundingStreamId = "fs2",
                         UserId = UserId
                     }

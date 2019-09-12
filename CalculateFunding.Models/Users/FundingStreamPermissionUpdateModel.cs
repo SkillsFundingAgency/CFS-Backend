@@ -37,8 +37,8 @@ namespace CalculateFunding.Models.Users
         [JsonProperty("canApproveFunding")]
         public bool CanApproveFunding { get; set; }
 
-        [JsonProperty("canPublishFunding")]
-        public bool CanPublishFunding { get; set; }
+        [JsonProperty("canReleaseFunding")]
+        public bool CanReleaseFunding { get; set; }
 
         [JsonProperty("canCreateQaTests")]
         public bool CanCreateQaTests { get; set; }

@@ -118,7 +118,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
             };
 
             string json = JsonConvert.SerializeObject(updateModel);
@@ -161,7 +161,7 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanMapDatasets = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                 });
 
             await userRepository
@@ -175,7 +175,7 @@ namespace CalculateFunding.Services.Users
                     !p.CanEditCalculations &&
                     !p.CanEditSpecification &&
                     !p.CanMapDatasets &&
-                    !p.CanPublishFunding
+                    !p.CanReleaseFunding
                 ));
 
             await cacheProvider
@@ -218,7 +218,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
             };
 
             userRepository
@@ -239,7 +239,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
             };
 
             string json = JsonConvert.SerializeObject(updateModel);
@@ -282,7 +282,7 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanMapDatasets = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                 });
 
             await userRepository
@@ -296,7 +296,7 @@ namespace CalculateFunding.Services.Users
                    !p.CanEditCalculations &&
                    !p.CanEditSpecification &&
                    !p.CanMapDatasets &&
-                   !p.CanPublishFunding
+                   !p.CanReleaseFunding
                ));
 
             await cacheProvider
@@ -336,7 +336,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
             };
 
             userRepository
@@ -357,7 +357,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
             };
 
             string json = JsonConvert.SerializeObject(updateModel);
@@ -397,7 +397,7 @@ namespace CalculateFunding.Services.Users
                     CanEditCalculations = false,
                     CanEditSpecification = false,
                     CanMapDatasets = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                 });
 
             await userRepository
@@ -441,7 +441,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
             };
 
             userRepository
@@ -462,7 +462,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
             };
 
             string json = JsonConvert.SerializeObject(updateModel);

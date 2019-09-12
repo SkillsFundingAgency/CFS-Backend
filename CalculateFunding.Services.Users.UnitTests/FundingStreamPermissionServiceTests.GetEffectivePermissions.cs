@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Users
                     CanChooseFunding = false,
                     CanEditCalculations = false,
                     CanEditSpecification = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanCreateQaTests = false,
@@ -210,7 +210,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanCreateQaTests = false,
@@ -246,7 +246,7 @@ namespace CalculateFunding.Services.Users
                     CanChooseFunding = false,
                     CanEditCalculations = false,
                     CanEditSpecification = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanCreateQaTests = false,
@@ -271,7 +271,7 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditCalculations &&
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
-                        !p.CanPublishFunding &&
+                        !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanCreateQaTests &&
@@ -329,7 +329,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanCreateQaTests = false,
@@ -364,7 +364,7 @@ namespace CalculateFunding.Services.Users
                     CanChooseFunding = false,
                     CanEditCalculations = false,
                     CanEditSpecification = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanCreateQaTests = false,
@@ -388,7 +388,7 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditCalculations &&
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
-                        !p.CanPublishFunding &&
+                        !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanCreateQaTests &&
@@ -443,7 +443,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanCreateQaTests = false,
@@ -461,7 +461,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanCreateQaTests = false,
@@ -500,7 +500,7 @@ namespace CalculateFunding.Services.Users
                     CanChooseFunding = false,
                     CanEditCalculations = false,
                     CanEditSpecification = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanCreateQaTests = false,
@@ -520,7 +520,7 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditCalculations &&
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
-                        !p.CanPublishFunding &&
+                        !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanCreateQaTests &&
@@ -588,7 +588,7 @@ namespace CalculateFunding.Services.Users
                     CanChooseFunding = false,
                     CanEditCalculations = false,
                     CanEditSpecification = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanCreateQaTests = false,
@@ -608,7 +608,7 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditCalculations &&
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
-                        !p.CanPublishFunding &&
+                        !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanCreateQaTests &&
@@ -658,7 +658,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanCreateQaTests = false,
@@ -676,7 +676,7 @@ namespace CalculateFunding.Services.Users
                 CanEditCalculations = false,
                 CanEditSpecification = false,
                 CanMapDatasets = false,
-                CanPublishFunding = false,
+                CanReleaseFunding = false,
                 CanAdministerFundingStream = false,
                 CanApproveSpecification = false,
                 CanCreateQaTests = false,
@@ -715,7 +715,7 @@ namespace CalculateFunding.Services.Users
                     CanChooseFunding = false,
                     CanEditCalculations = false,
                     CanEditSpecification = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanCreateQaTests = false,
@@ -735,7 +735,7 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditCalculations &&
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
-                        !p.CanPublishFunding &&
+                        !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanCreateQaTests &&
@@ -810,7 +810,7 @@ namespace CalculateFunding.Services.Users
                     CanChooseFunding = false,
                     CanEditCalculations = false,
                     CanEditSpecification = false,
-                    CanPublishFunding = false,
+                    CanReleaseFunding = false,
                     CanAdministerFundingStream = false,
                     CanApproveSpecification = false,
                     CanCreateQaTests = false,
@@ -830,7 +830,7 @@ namespace CalculateFunding.Services.Users
                         !p.CanEditCalculations &&
                         !p.CanEditSpecification &&
                         !p.CanMapDatasets &&
-                        !p.CanPublishFunding &&
+                        !p.CanReleaseFunding &&
                         !p.CanAdministerFundingStream &&
                         !p.CanApproveSpecification &&
                         !p.CanCreateQaTests &&
