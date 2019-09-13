@@ -225,7 +225,13 @@ namespace CalculateFunding.Services.Publishing
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
                 {
-                    bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProvider.Value.Current, generatedPublishedProviderData[publishedProvider.Key], scopedProviders[publishedProvider.Value.Current.ProviderId]);
+                    PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
+                    string providerId = publishedProviderVersion.ProviderId;
+                    
+                    bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, 
+                        generatedPublishedProviderData[publishedProvider.Key], 
+                        scopedProviders[providerId],
+                        specification.TemplateIds[providerId]);
 
                     if (publishedProviderUpdated)
                     {

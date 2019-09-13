@@ -30,15 +30,13 @@ namespace CalculateFunding.Services.Core.Extensions
             return poco.AsJson().AsPoco<TPoco>();
         }
 
-
-        public static bool AreEqual<TItem1, TItem2>(this TItem1 item1, TItem2 item2)
+        public static bool AreEqual<TItem>(this TItem item1, TItem item2)
+            where TItem : class
         {
             if (ReferenceEquals(item1, item2)) return true;
-            if ((item1 == null) || (item2 == null)) return false;
-            if (item1.GetType() != item2.GetType()) return false;
 
-            var item1Json = JsonConvert.SerializeObject(item1);
-            var item2Json = JsonConvert.SerializeObject(item2);
+            string item1Json = item1.AsJson();
+            string item2Json = item2.AsJson();
 
             return item1Json == item2Json;
         }

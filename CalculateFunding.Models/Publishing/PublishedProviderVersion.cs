@@ -35,6 +35,9 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
+        
+        [JsonProperty("templateVersion")]
+        public string TemplateVersion { get; set; }
 
         /// <summary>
         /// Entity ID for cosmos versioning. This refers to the parent PublishedProvider cosmos ID

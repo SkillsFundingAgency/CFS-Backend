@@ -27,20 +27,26 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="publishedProviderVersion">Published Provider Version</param>
         /// <param name="generatedProviderResult">Funding lines and profiling information, calculations, reference data</param>
         /// <param name="provider">Core provider information</param>
+        /// <param name="templateVersion">The template version used for the specification and provider</param>
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
-        public bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion, GeneratedProviderResult generatedProviderResult, Common.ApiClient.Providers.Models.Provider provider)
+        public bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion, 
+            GeneratedProviderResult generatedProviderResult, 
+            Common.ApiClient.Providers.Models.Provider provider,
+            string templateVersion)
         {
             Guard.ArgumentNotNull(publishedProviderVersion, nameof(publishedProviderVersion));
             Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
             Guard.ArgumentNotNull(provider, nameof(provider));
 
-            PublishedProviderVersion publishedProviderVersionCloned = publishedProviderVersion.Clone() as PublishedProviderVersion;
+            PublishedProviderVersion publishedProviderVersionCloned = publishedProviderVersion.DeepCopy();
 
             publishedProviderVersion.FundingLines = generatedProviderResult.FundingLines;
 
             publishedProviderVersion.Calculations = generatedProviderResult.Calculations;
 
             publishedProviderVersion.ReferenceData = generatedProviderResult.ReferenceData;
+
+            publishedProviderVersion.TemplateVersion = templateVersion;
 
             publishedProviderVersion.Provider = _providerMapper.Map<Provider>(provider);
 
