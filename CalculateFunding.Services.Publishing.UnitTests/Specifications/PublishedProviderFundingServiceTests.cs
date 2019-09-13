@@ -14,7 +14,6 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Polly;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
@@ -44,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             _service = new PublishedProviderFundingService(new ResiliencePolicies
                 {
-                    PublishedFundingRepository = Policy.NoOpAsync()
+                    PublishedFundingRepository = Polly.Policy.NoOpAsync()
                 },
                 _publishedFunding,
                 _validator);

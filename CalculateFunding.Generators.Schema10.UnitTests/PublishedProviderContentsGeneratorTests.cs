@@ -159,7 +159,6 @@ namespace CalculateFunding.Generators.Schema10.UnitTests
                     CountryCode = "E",
                     CountryName = "England"
                 },
-                FundingId = "PSG-AY-1920-12345678-1_0",
                 ProviderId = "12345678",
                 FundingStreamId = "PSG",
                 FundingPeriodId = "AY-1920",

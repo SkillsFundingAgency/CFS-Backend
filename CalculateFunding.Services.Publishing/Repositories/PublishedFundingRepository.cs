@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Services.Publishing.Repositories
@@ -37,6 +39,17 @@ namespace CalculateFunding.Services.Publishing.Repositories
             return Task.FromResult(_repository.Query<PublishedProvider>(true)
                 .Where(_ => _.Current.SpecificationId == specificationId)
                 .AsEnumerable());
+        }
+
+        public async Task<IEnumerable<HttpStatusCode>> UpsertPublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
+        {
+            Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
+
+            IEnumerable<Task<HttpStatusCode>> tasks = publishedProviders.Select(async (_) => await _repository.UpsertAsync(_));
+
+            await TaskHelper.WhenAllAndThrow(tasks.ToArray());
+
+            return tasks.Select(_ => _.Result);
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -76,7 +89,18 @@ namespace CalculateFunding.Services.Publishing.Repositories
 
         public Task<IEnumerable<PublishedFunding>> GetLatestPublishedFundingBySpecification(string specificationId)
         {
-            throw new System.NotImplementedException();
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            return Task.FromResult(_repository.Query<PublishedFunding>(true)
+            .Where(_ => _.Current.SpecificationId == specificationId)
+            .AsEnumerable());
+        }
+
+        public async Task<HttpStatusCode> UpsertPublishedFunding(PublishedFunding publishedFunding)
+        {
+            Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
+
+            return await _repository.UpsertAsync(publishedFunding);
         }
     }
 }

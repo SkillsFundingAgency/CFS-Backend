@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using CalculateFunding.Api.Policy.Controllers;
+using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;

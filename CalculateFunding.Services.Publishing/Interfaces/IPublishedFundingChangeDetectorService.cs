@@ -7,6 +7,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedFundingChangeDetectorService
     {
-        Task<IEnumerable<OrganisationGroupResult>> GenerateOrganisationGroupsToSave(IEnumerable<OrganisationGroupResult> organisationGroups, IEnumerable<PublishedFunding> existingPublishedFunding, IEnumerable<PublishedProvider> currentPublishedProviders);
+        IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> GenerateOrganisationGroupsToSave(IEnumerable<OrganisationGroupResult> organisationGroups, IEnumerable<PublishedFunding> existingPublishedFunding, IEnumerable<PublishedProvider> currentPublishedProviders);
     }
 }

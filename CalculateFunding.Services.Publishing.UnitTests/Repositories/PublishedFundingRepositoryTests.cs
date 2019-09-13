@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
     public class PublishedFundingRepositoryTests
     {
         private List<PublishedProvider> _providers;
+        private List<PublishedFunding> _funding;
         private ICosmosRepository _cosmosRepository;
 
         private PublishedFundingRepository _repository;
@@ -25,10 +26,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         public void SetUp()
         {
             _providers = new List<PublishedProvider>();
+            _funding = new List<PublishedFunding>();
             _cosmosRepository = Substitute.For<ICosmosRepository>();
 
             _cosmosRepository.Query<PublishedProvider>(true)
                 .Returns(_providers.AsQueryable());
+
+            _cosmosRepository.Query<PublishedFunding>(true)
+                .Returns(_funding.AsQueryable());
 
             _repository = new PublishedFundingRepository(_cosmosRepository);
         }
@@ -116,9 +121,57 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                 .BeEquivalentTo(firstExpectedPublishedProvider, secondExpectedPublishedProvider);
         }
 
+        [TestMethod]
+        public async Task FetchesPublishedFundingWithTheSuppliedSpecificationId()
+        {
+            string specificationId = new RandomString();
+
+            PublishedFunding firstExpectedPublishedFunding = NewPublishedFunding(_ =>
+                _.WithCurrent(NewPublishedFundingVersion(ppv => ppv.WithSpecificationId(specificationId))));
+            PublishedFunding secondExpectedPublishedFunding = NewPublishedFunding(_ =>
+                _.WithCurrent(NewPublishedFundingVersion(ppv => ppv.WithSpecificationId(specificationId))));
+
+            GivenThePublishedFunding(NewPublishedFunding(),
+                firstExpectedPublishedFunding,
+                NewPublishedFunding(),
+                NewPublishedFunding(),
+                secondExpectedPublishedFunding,
+                NewPublishedFunding());
+
+            IEnumerable<PublishedFunding> matches = await _repository.GetLatestPublishedFundingBySpecification(specificationId);
+
+            matches
+                .Should()
+                .BeEquivalentTo(firstExpectedPublishedFunding, secondExpectedPublishedFunding);
+        }
+
+        private void GivenThePublishedFunding(params PublishedFunding[] publishedFinding)
+        {
+            _funding.AddRange(publishedFinding);
+        }
+
         private void GivenThePublishedProviders(params PublishedProvider[] publishedProviders)
         {
             _providers.AddRange(publishedProviders);
+        }
+
+        private PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)
+        {
+            PublishedFundingBuilder builder = new PublishedFundingBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
+        }
+
+        private PublishedFundingVersion NewPublishedFundingVersion(
+            Action<PublishedFundingVersionBuilder> setUp = null)
+        {
+            PublishedFundingVersionBuilder builder = new PublishedFundingVersionBuilder();
+
+            setUp?.Invoke(builder);
+
+            return builder.Build();
         }
 
         private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)

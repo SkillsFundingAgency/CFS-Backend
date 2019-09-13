@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Tests.Common.Helpers;
+using System.Net;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -210,6 +211,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             IPublishedProviderVersioningService providerVersioningService = CreateVersioningService();
 
+            IPublishedFundingRepository publishedFundingRepository = CreatePublishedFundingRepository();
+
             providerVersioningService
                 .AssemblePublishedProviderCreateVersionRequests(Arg.Is(publishedProviders), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
                 .Returns(publishedProviderCreateVersionRequests);
@@ -218,12 +221,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .CreateVersions(Arg.Is(publishedProviderCreateVersionRequests))
                 .Returns(publishedProviders);
 
+            publishedFundingRepository.UpsertPublishedProviders(Arg.Is(publishedProviders))
+                .Returns(new[] { HttpStatusCode.OK });
+
             providerVersioningService
                 .When(x => x.SaveVersions(Arg.Is(publishedProviders)))
                 .Do(x => { throw new Exception(); });
 
             PublishedProviderStatusUpdateService publishedProviderStatusUpdateService =
-                CreatePublishedProviderStatusUpdateService(providerVersioningService, logger);
+                CreatePublishedProviderStatusUpdateService(providerVersioningService, logger, publishedFundingRepository: publishedFundingRepository);
 
             string errorMessage = $"Failed to save versions when updating status:' {PublishedProviderStatus.Approved}' on published providers.";
 
@@ -234,6 +240,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .ThrowExactly<RetriableException>()
                 .Which
+                .InnerException
                 .Message
                 .Should()
                 .Be(errorMessage);
@@ -283,10 +290,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private static PublishedProviderStatusUpdateService CreatePublishedProviderStatusUpdateService(
             IPublishedProviderVersioningService publishedProviderVersioningService = null,
             ILogger logger = null,
-            IJobTracker jobTracker = null)
+            IJobTracker jobTracker = null,
+            IPublishedFundingRepository publishedFundingRepository = null)
         {
             return new PublishedProviderStatusUpdateService(
                     publishedProviderVersioningService ?? CreateVersioningService(),
+                    publishedFundingRepository ?? CreatePublishedFundingRepository(),
                     jobTracker ?? CreateJobTracker(),
                     logger ?? CreateLogger(),
                     new PublishedProviderStatusUpdateSettings()
@@ -296,6 +305,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private static IPublishedProviderVersioningService CreateVersioningService()
         {
             return Substitute.For<IPublishedProviderVersioningService>();
+        }
+
+        private static IPublishedFundingRepository CreatePublishedFundingRepository()
+        {
+            return Substitute.For<IPublishedFundingRepository>();
         }
 
         private static ILogger CreateLogger()

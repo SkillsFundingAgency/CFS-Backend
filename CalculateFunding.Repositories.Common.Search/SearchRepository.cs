@@ -25,11 +25,13 @@ namespace CalculateFunding.Repositories.Common.Search
         private readonly SearchRepositorySettings _settings;
         private readonly SearchServiceClient _searchServiceClient;
         private readonly string _indexName;
+        private readonly SearchInitializer _searchInitializer;
 
         public SearchRepository(SearchRepositorySettings settings)
         {
-            _indexName = typeof(T).Name.ToLowerInvariant() ;
+            _indexName = typeof(T).Name.ToLowerInvariant();
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _searchInitializer = new SearchInitializer(_settings.SearchServiceName, _settings.SearchKey, null);
             _searchServiceClient = new SearchServiceClient(_settings.SearchServiceName, new SearchCredentials(_settings.SearchKey));
         }
 
@@ -93,8 +95,12 @@ namespace CalculateFunding.Repositories.Common.Search
 
         public async Task Initialize()
         {
-            var searchInitializer = new SearchInitializer(_settings.SearchServiceName, _settings.SearchKey, null);
-            await searchInitializer.Initialise<T>();
+            await _searchInitializer.Initialise<T>();
+        }
+
+        public async Task RunIndexer()
+        {
+            await _searchInitializer.RunIndexer<T>();
         }
 
         public async Task<SearchResults<T>> Search(string searchText, SearchParameters searchParameters = null, bool allResults = false)

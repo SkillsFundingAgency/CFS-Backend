@@ -1,7 +1,6 @@
 ﻿using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Publishing.Interfaces;
-using Polly;
 
 namespace CalculateFunding.Services.Publishing.Specifications
 {
@@ -25,6 +24,6 @@ namespace CalculateFunding.Services.Publishing.Specifications
             _resiliencePolicies = resiliencePolicies;
         }
 
-        protected Policy ResiliencePolicy => _resiliencePolicies.SpecificationsRepositoryPolicy;
+        protected Polly.Policy ResiliencePolicy => _resiliencePolicies.SpecificationsRepositoryPolicy;
     }
 }

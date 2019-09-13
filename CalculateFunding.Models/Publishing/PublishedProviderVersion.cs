@@ -16,7 +16,7 @@ namespace CalculateFunding.Models.Publishing
         public override string Id => $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{Version}";
 
         [JsonProperty("fundingId")]
-        public string FundingId { get; set; }
+        public string FundingId => $"{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{MajorVersion}_{MinorVersion}";
 
         /// <summary>
         /// Funding Stream ID. eg PSG, DSG

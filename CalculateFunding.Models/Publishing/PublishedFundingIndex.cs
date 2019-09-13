@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
 {
-    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "publishedfundingindex")]
+    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "publishedfundingindex", IndexerName = "publishedfundingindexer")]
     public class PublishedFundingIndex
     {
         [Key]

@@ -54,6 +54,7 @@ namespace CalculateFunding.Services.Publishing
                     Current = new PublishedProviderVersion
                     {
                         Version = 1,
+                        MajorVersion = 1,
                         FundingPeriodId = fundingPeriodId,
                         FundingStreamId = fundingStreamId,
                         Status = _.Status.AsEnum<PublishedProviderStatus>(),

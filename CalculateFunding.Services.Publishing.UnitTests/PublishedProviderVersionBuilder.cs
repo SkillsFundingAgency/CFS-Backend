@@ -12,6 +12,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private string _specificationId;
         private PublishedProviderStatus? _status;
         private Provider _provider;
+        private int? _majorVersion;
+        private int _minorVersion;
+
 
         public PublishedProviderVersionBuilder WithProvider(Provider provider)
         {
@@ -62,6 +65,20 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedProviderVersionBuilder WithMajorVersion(int majorVersion)
+        {
+            _majorVersion = majorVersion;
+
+            return this;
+        }
+
+        public PublishedProviderVersionBuilder WithMinorVersion(int minorVersion)
+        {
+            _minorVersion = minorVersion;
+
+            return this;
+        }
+
         public PublishedProviderVersion Build()
         {
             return new PublishedProviderVersion
@@ -71,6 +88,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 FundingPeriodId = _fundingPeriodId ?? NewRandomString(),
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 Version = _version ?? 1,
+                MajorVersion = _majorVersion ?? 1,
+                MinorVersion = _minorVersion,
                 Status = _status.GetValueOrDefault(NewRandomEnum<PublishedProviderStatus>()),
                 Provider = _provider
             };

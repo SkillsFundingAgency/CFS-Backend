@@ -125,6 +125,8 @@ namespace CalculateFunding.Api.Publishing
                 c.AddProfile<PublishingServiceMappingProfile>();
             });
 
+            builder.AddSingleton(resultsConfig.CreateMapper());
+
             builder.AddSingleton<IPublishingResiliencePolicies>(ctx =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();

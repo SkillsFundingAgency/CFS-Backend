@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ namespace CalculateFunding.Repositories.Common.Search
 {
     public class SearchInitializer
     {
-        private readonly SearchServiceClient _searchServiceClient;
+        private readonly ISearchServiceClient _searchServiceClient;
         private static readonly Dictionary<Type, DataType> TypeMapping = new Dictionary<Type, DataType> {
             { typeof(int), DataType.Int32 },
             { typeof(int?), DataType.Int32 },
@@ -40,8 +41,6 @@ namespace CalculateFunding.Repositories.Common.Search
             _searchServiceClient = new SearchServiceClient(searchServiceName, new SearchCredentials(searchServicePrimaryKey));
             _documentDbConnectionString = documentDbConnectionString;
         }
-
-
 
         public async Task Initialise<T>()
         {
@@ -107,7 +106,6 @@ namespace CalculateFunding.Repositories.Common.Search
                 Console.WriteLine($"Error Creating Search DataSource '{dataSourceDefinition.Name}' {e} {e.Message}");
             }
 
-
             var definition = new Indexer
             {
                 Name = $"{attribute.IndexerForType.Name}-{indexType.Name}".ToLowerInvariant(),
@@ -130,6 +128,28 @@ namespace CalculateFunding.Repositories.Common.Search
             }
         }
 
+        public async Task RunIndexer<T>()
+        {
+            var type = typeof(T);
+
+            var attribute = type.GetCustomAttribute<SearchIndexAttribute>();
+
+            if (!string.IsNullOrWhiteSpace(attribute?.IndexerName))
+            {
+                await _searchServiceClient.Indexers.RunAsync(attribute?.IndexerName.ToLowerInvariant());
+            }
+            else
+            {
+                if (attribute?.IndexerForType != null)
+                {
+                    await _searchServiceClient.Indexers.RunAsync($"{attribute.IndexerForType.Name}-{type.Name}".ToLowerInvariant());
+                }
+                else
+                {
+                    throw new InvalidOperationException($"There is no associated indexer created for {type.Name}");
+                }
+            }
+        }
 
         private static Index GetDefinition(Type type)
         {

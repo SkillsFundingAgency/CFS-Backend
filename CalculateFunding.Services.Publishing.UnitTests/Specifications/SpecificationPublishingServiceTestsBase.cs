@@ -14,7 +14,6 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using Polly;
 using SpecModels = CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
@@ -57,7 +56,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             ResiliencePolicies = new ResiliencePolicies
             {
-                SpecificationsRepositoryPolicy = Policy.NoOpAsync()
+                SpecificationsRepositoryPolicy = Polly.Policy.NoOpAsync()
             };
         }
 

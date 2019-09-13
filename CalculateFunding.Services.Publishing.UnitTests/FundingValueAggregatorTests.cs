@@ -78,7 +78,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     Provider = GetProvider(i),
                     Calculations = JsonConvert.DeserializeObject<IEnumerable<Models.Publishing.FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
-                    FundingId = $"PSG-AY-1920-1234{i}-1_0",
                     ProviderId = "1234" + i,
                     FundingStreamId = "PSG",
                     FundingPeriodId = "AY-1920",

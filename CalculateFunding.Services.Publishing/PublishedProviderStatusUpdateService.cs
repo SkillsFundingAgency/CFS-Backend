@@ -9,6 +9,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
@@ -18,19 +19,23 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderStatusUpdateSettings _settings;
         private readonly IJobTracker _jobTracker;
         private readonly IPublishedProviderVersioningService _publishedProviderVersioningService;
+        private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ILogger _logger;
 
         public PublishedProviderStatusUpdateService(IPublishedProviderVersioningService publishedProviderVersioningService,
+            IPublishedFundingRepository publishedFundingRepository,
             IJobTracker jobTracker,
             ILogger logger, 
             IPublishedProviderStatusUpdateSettings settings)
         {
             Guard.ArgumentNotNull(publishedProviderVersioningService, nameof(publishedProviderVersioningService));
+            Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
             Guard.ArgumentNotNull(settings, nameof(settings));
 
             _publishedProviderVersioningService = publishedProviderVersioningService;
+            _publishedFundingRepository = publishedFundingRepository;
             _logger = logger;
             _settings = settings;
             _jobTracker = jobTracker;
@@ -111,7 +116,29 @@ namespace CalculateFunding.Services.Publishing
 
             if (updatedPublishedProviders.Any())
             {
-                await SaveVersions(updatedPublishedProviders, publishedProviderStatus);
+                string errorMessage = $"Failed to create published Providers when updating status:' {publishedProviderStatus}' on published providers.";
+
+                IEnumerable<HttpStatusCode> results;
+
+                try
+                {
+                    results = await _publishedFundingRepository.UpsertPublishedProviders(updatedPublishedProviders);
+
+                    if (results.All(_ => _.IsSuccess()))
+                    {
+                        await SaveVersions(updatedPublishedProviders, publishedProviderStatus);
+                    }
+                    else
+                    {
+                        throw new Exception();
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _logger.Error(ex, errorMessage);
+
+                    throw new RetriableException(errorMessage, ex);
+                }
             }
         }
 

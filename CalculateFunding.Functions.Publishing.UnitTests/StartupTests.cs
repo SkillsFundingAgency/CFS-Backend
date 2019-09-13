@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common;
 using FluentAssertions;
@@ -34,6 +36,8 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
         {
             Dictionary<string, string> configData = new Dictionary<string, string>
             {
+                { "SearchServiceName", "ss-t1te-cfs"},
+                { "SearchServiceKey", "test" },
                 { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                 { "CosmosDbSettings:CollectionName", "calcs" },
                 { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },

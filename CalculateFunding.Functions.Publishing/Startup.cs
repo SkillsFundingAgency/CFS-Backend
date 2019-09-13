@@ -140,6 +140,19 @@ namespace CalculateFunding.Functions.Publishing
                 return new VersionRepository<PublishedProviderVersion>(resultsRepostory);
             }).AddSingleton<IHealthChecker, VersionRepository<PublishedProviderVersion>>();
 
+            builder.AddSingleton<IVersionRepository<PublishedFundingVersion>, VersionRepository<PublishedFundingVersion>>((ctx) =>
+            {
+                CosmosDbSettings ProviderSourceDatasetVersioningDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", ProviderSourceDatasetVersioningDbSettings);
+
+                ProviderSourceDatasetVersioningDbSettings.CollectionName = "providersources";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings);
+
+                return new VersionRepository<PublishedFundingVersion>(cosmosRepository);
+            });
+
 
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
             {
@@ -179,11 +192,33 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<ICalculationsService, CalculationsService>();
 
-            builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(r =>
+            builder.AddSingleton<IPublishedProviderContentsGeneratorResolver>(ctx =>
             {
                 PublishedProviderContentsGeneratorResolver resolver = new PublishedProviderContentsGeneratorResolver();
 
                 IPublishedProviderContentsGenerator v10Generator = new Generators.Schema10.PublishedProviderContentsGenerator();
+
+                resolver.Register("1.0", v10Generator);
+
+                return resolver;
+            });
+
+            builder.AddSingleton<IPublishedFundingContentsGeneratorResolver>(ctx =>
+            {
+                PublishedFundingContentsGeneratorResolver resolver = new PublishedFundingContentsGeneratorResolver();
+
+                IPublishedFundingContentsGenerator v10Generator = new Generators.Schema10.PublishedFundingContentsGenerator();
+
+                resolver.Register("1.0", v10Generator);
+
+                return resolver;
+            });
+
+            builder.AddSingleton<IPublishedFundingIdGeneratorResolver>(ctx =>
+            {
+                PublishedFundingIdGeneratorResolver resolver = new PublishedFundingIdGeneratorResolver();
+
+                IPublishedFundingIdGenerator v10Generator = new Generators.Schema10.PublishedFundingIdGenerator();
 
                 resolver.Register("1.0", v10Generator);
 

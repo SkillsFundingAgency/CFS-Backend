@@ -92,7 +92,7 @@ namespace CalculateFunding.Models.Publishing
 
         /// <summary>
         /// The provider funding version ID for all providers under this Organisation Group of funding.
-        /// The ID refers to PublishedProviderVersion.Id when creating this PublishedFundingVersion
+        /// The ID refers to PublishedProviderVersion.FundingId when creating this PublishedFundingVersion
         /// </summary>
         [JsonProperty("providerFundings")]
         public IEnumerable<string> ProviderFundings { get; set; }
@@ -181,7 +181,6 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("correlationId")]
         public string CorrelationId { get; set; }
-
 
         public override VersionedItem Clone()
         {

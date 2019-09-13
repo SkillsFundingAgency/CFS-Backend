@@ -10,6 +10,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.OrganisationGroup;
+using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
@@ -38,10 +39,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
         private readonly IPublishedFundingGenerator _publishedFundingGenerator;
         private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
-
-        // TODO: Change to IOrganisationGroupGenerator once common is updated
-        private readonly OrganisationGroupGenerator _organisationGroupGenerator;
-
+        private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
 
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
@@ -51,8 +49,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             ISpecificationService specificationService,
-            // TODO - update this to interface once common package version is updated
-            OrganisationGroupGenerator organisationGroupGenerator,
+            IOrganisationGroupGenerator organisationGroupGenerator,
             IPublishPrerequisiteChecker publishPrerequisiteChecker,
             IPublishedFundingChangeDetectorService publishedFundingChangeDetectorService,
             IPublishedFundingGenerator publishedFundingGenerator,
@@ -150,18 +147,21 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException(errorMessage);
             }
 
-
             // Get latest version of existing published funding
             IEnumerable<PublishedFunding> publishedFunding = await _publishingResiliencePolicy.ExecuteAsync(() =>
                         _publishedFundingRepository.GetLatestPublishedFundingBySpecification(specificationId));
-
 
             foreach (Reference fundingStream in specification.FundingStreams)
             {
                 Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
 
                 ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specification.TemplateIds[fundingStream.Id]);
-                // TODO: Null and response checking on response. If there is a null associated template, continue to next funding stream
+                
+                if(templateMetadataContentsResponse?.Content == null)
+                {
+                    continue;
+                }
+
                 TemplateMetadataContents templateMetadataContents = templateMetadataContentsResponse.Content;
 
                 // Lookup the funding configuration to determine which groups to publish
@@ -174,16 +174,16 @@ namespace CalculateFunding.Services.Publishing
                 IEnumerable<OrganisationGroupResult> organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(fundingConfiguration, scopedProviders, specification.ProviderVersionId);
 
                 // Compare existing published provider versions with existing current PublishedFundingVersion
-                IEnumerable<OrganisationGroupResult> organisationGroupsToSave = await _publishedFundingChangeDetectorService.GenerateOrganisationGroupsToSave(organisationGroups, publishedFunding, publishedProviders);
+                IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> organisationGroupsToSave = _publishedFundingChangeDetectorService.GenerateOrganisationGroupsToSave(organisationGroups, publishedFunding, publishedProviders);
 
                 // Generate PublishedFundingVersion for new and updated PublishedFundings
-                IEnumerable<PublishedFundingVersion> publishedFundingToSave = _publishedFundingGenerator.GeneratePublishedFunding(organisationGroupsToSave, templateMetadataContents, publishedProviders);
+                IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave = _publishedFundingGenerator.GeneratePublishedFunding(organisationGroupsToSave, templateMetadataContents, publishedProviders, specification.TemplateIds[fundingStream.Id]);
 
                 // Save a version of published funding and set this version to current
-                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedProviderStatus.Released);
+                await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released);
 
                 // Save contents to blob storage and search for the feed
-                await _publishedFundingContentsPersistanceService.SavePublishedFundingContents(publishedFundingToSave, templateMetadataContents);
+                await _publishedFundingContentsPersistanceService.SavePublishedFundingContents(publishedFundingToSave.Select(_ => _.PublishedFundingVersion), templateMetadataContents);
             }
 
             // Mark job as complete
