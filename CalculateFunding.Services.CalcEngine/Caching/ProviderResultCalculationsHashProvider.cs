@@ -54,7 +54,7 @@ namespace CalculateFunding.Services.CalcEngine.Caching
 
             lock (GetKeyLock(specificationBatchKey))
             {
-                Dictionary<string, string> batchHashContainer = GetSpecificationBatchHashContainer(specificationBatchKey);
+                Dictionary<string, string> batchHashContainer = RemoveSpecificationBatchHashContainer(specificationBatchKey);
                 
                 CacheCalculationResultsHashes(specificationBatchKey, batchHashContainer)
                     .GetAwaiter()
@@ -92,6 +92,16 @@ namespace CalculateFunding.Services.CalcEngine.Caching
         private static Dictionary<string, string> GetSpecificationBatchHashContainer(string specificationBatchKey)
         {
             if (!BatchHashContainers.TryGetValue(specificationBatchKey, out Dictionary<string, string> batchHashContainer))
+            {
+                throw new InvalidOperationException($"Batch updates for {specificationBatchKey} not yet in progress.");   
+            }
+
+            return batchHashContainer;
+        }
+        
+        private static Dictionary<string, string> RemoveSpecificationBatchHashContainer(string specificationBatchKey)
+        {
+            if (!BatchHashContainers.Remove(specificationBatchKey, out Dictionary<string, string> batchHashContainer))
             {
                 throw new InvalidOperationException($"Batch updates for {specificationBatchKey} not yet in progress.");   
             }

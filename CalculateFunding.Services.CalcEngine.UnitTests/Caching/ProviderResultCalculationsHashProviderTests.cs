@@ -63,6 +63,20 @@ namespace CalculateFunding.Services.Calculator.Caching
         }
         
         [TestMethod]
+        public void EndBatch_StopsTheCurrentBatch()
+        {  
+            WhenTheBatchIsStarted();
+            
+            AndTheBatchIsEnded();
+            
+            Action invocation = AndTheBatchIsEnded; 
+
+            invocation
+                .Should()
+                .Throw<InvalidOperationException>();
+        }
+        
+        [TestMethod]
         public void StartBatch_ThrowsExceptionIfBatchAlreadyStartedForSpecificationId()
         {
             WhenTheBatchIsStarted();
