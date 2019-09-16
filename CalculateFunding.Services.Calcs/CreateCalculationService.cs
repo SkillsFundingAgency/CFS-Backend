@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO.Enumeration;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -148,7 +149,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 await _calculationVersionsRepositoryPolicy.ExecuteAsync(() => _calculationVersionRepository.SaveVersion(calculationVersion));
 
-                await UpdateSearch(calculation);
+                await UpdateSearch(calculation, model.SpecificationName, model.FundingStreamName);
 
                 string cacheKey = $"{CacheKeys.CalculationsMetadataForSpecification}{specificationId}";
 
@@ -218,7 +219,9 @@ namespace CalculateFunding.Services.Calcs
             }
         }
         
-        private async Task UpdateSearch(Calculation calculation)
+        private async Task UpdateSearch(Calculation calculation, 
+            string specificationName, 
+            string fundingStreamName)
         {
             await _searchRepository.Index(new []
             {
@@ -226,9 +229,11 @@ namespace CalculateFunding.Services.Calcs
                 {
                     Id = calculation.Id,
                     SpecificationId = calculation.SpecificationId,
+                    SpecificationName = specificationName,
                     Name = calculation.Current.Name,
                     ValueType = calculation.Current.ValueType.ToString(),
                     FundingStreamId = calculation.FundingStreamId,
+                    FundingStreamName = fundingStreamName,
                     Namespace = calculation.Current.Namespace.ToString(),
                     CalculationType = calculation.Current.CalculationType.ToString(),
                     Description = calculation.Current.Description,

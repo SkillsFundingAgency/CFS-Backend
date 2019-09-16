@@ -244,7 +244,9 @@ namespace CalculateFunding.Services.Calcs.Services
             return new CalculationCreateModel
             {
                 SpecificationId = SpecificationId,
+                SpecificationName = $"{SpecificationId}_specificationName",
                 FundingStreamId = FundingStreamId,
+                FundingStreamName = $"{FundingStreamId}_fundingStreamName", 
                 Name = CalculationName,
                 ValueType = CalculationValueType.Currency,
                 SourceCode = DefaultSourceCode,

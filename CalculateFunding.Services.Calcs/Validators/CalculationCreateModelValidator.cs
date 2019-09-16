@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -103,6 +104,7 @@ namespace CalculateFunding.Services.Calcs.Validators
                  }
                  else
                  {
+                     
                      Models.Specs.SpecificationSummary specificationSummary = _specificationRepository.GetSpecificationSummaryById(calculationCreateModel.SpecificationId).Result;
 
                      if (specificationSummary == null)
@@ -111,11 +113,18 @@ namespace CalculateFunding.Services.Calcs.Validators
                      }
                      else
                      {
-                         bool specContainsFundingStream = specificationSummary.FundingStreams.Any(m => m.Id == calculationCreateModel.FundingStreamId);
+                         //I don't want to have to fetch the spec summary again outside of this method to get the name and funding stream so we set them on input model here
+                         calculationCreateModel.SpecificationName = specificationSummary.Name;
+                         
+                         Reference fundingStream = specificationSummary.FundingStreams.FirstOrDefault(m => m.Id == calculationCreateModel.FundingStreamId);
 
-                         if (!specContainsFundingStream)
+                         if (fundingStream == null)
                          {
                              context.AddFailure("The funding stream id provided is not associated with the provided specification.");
+                         }
+                         else
+                         {
+                             calculationCreateModel.FundingStreamName = fundingStream.Name;
                          }
                      }
                  }

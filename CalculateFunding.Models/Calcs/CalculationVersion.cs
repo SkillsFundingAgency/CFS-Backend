@@ -7,16 +7,10 @@ namespace CalculateFunding.Models.Calcs
     public class CalculationVersion : VersionedItem
     {
         [JsonProperty("id")]
-        public override string Id
-        {
-            get { return $"{CalculationId}_version_{Version}"; }
-        }
+        public override string Id => $"{CalculationId}_version_{Version}";
 
         [JsonProperty("entityId")]
-        public override string EntityId
-        {
-            get { return $"{CalculationId}"; }
-        }
+        public override string EntityId => $"{CalculationId}";
 
         [JsonProperty("sourceCode")]
         public string SourceCode { get; set; }

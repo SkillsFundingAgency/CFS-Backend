@@ -466,7 +466,9 @@ namespace CalculateFunding.Services.Calcs
         {
             SpecificationVersionComparisonModel specificationVersionComparison = message.GetPayloadAsInstanceOf<SpecificationVersionComparisonModel>();
 
-            if (specificationVersionComparison == null || specificationVersionComparison.Current == null)
+            SpecificationVersion specificationVersion = specificationVersionComparison.Current;
+            
+            if (specificationVersionComparison == null || specificationVersion == null)
             {
                 _logger.Error("A null specificationVersionComparison was provided to UpdateCalculationsForSpecification");
 
@@ -489,13 +491,13 @@ namespace CalculateFunding.Services.Calcs
                 return;
             }
 
-            IEnumerable<string> fundingStreamIds = specificationVersionComparison.Current.FundingStreams?.Select(m => m.Id);
-
             IList<CalculationIndex> calcIndexes = new List<CalculationIndex>();
 
             foreach (Calculation calculation in calculations)
             {
-                calcIndexes.Add(CreateCalculationIndexItem(calculation));
+                string fundingStreamName = specificationVersion.FundingStreams?.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
+                
+                calcIndexes.Add(CreateCalculationIndexItem(calculation, specificationVersion.Name, fundingStreamName));
             }
 
             BuildProject buildProject = await _buildProjectsService.GetBuildProjectForSpecificationId(specificationId);
@@ -681,7 +683,9 @@ namespace CalculateFunding.Services.Calcs
 
             SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
 
-            await UpdateSearch(calculation);
+            string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
+
+            await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
 
             CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
             await UpdateCalculationInCache(calculation, currentVersion);
@@ -776,8 +780,10 @@ namespace CalculateFunding.Services.Calcs
             }
 
             await UpdateBuildProject(calculation.SpecificationId);
+            
+            string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
 
-            await UpdateSearch(calculation);
+            await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
 
             PublishStatusResultModel result = new PublishStatusResultModel()
             {
@@ -851,7 +857,9 @@ namespace CalculateFunding.Services.Calcs
                     }
                 }
 
-                CalculationIndex indexItem = CreateCalculationIndexItem(calculation);
+                string fundingStreamName = specification.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
+
+                CalculationIndex indexItem = CreateCalculationIndexItem(calculation, specification.Name, fundingStreamName);
                 //indexItem.CalculationType = calculation.AllocationLine == null ? CalculationType.Number.ToString() : CalculationType.Funding.ToString();
 
                 calcIndexItems.Add(indexItem);
@@ -950,23 +958,27 @@ namespace CalculateFunding.Services.Calcs
             return new OkObjectResult(calculation.Current);
         }
 
-        private async Task UpdateSearch(Calculation calculation)
+        private async Task UpdateSearch(Calculation calculation, string specificationName, string fundingStreamName)
         {
-            IEnumerable<IndexError> indexingResults = await _searchRepository.Index(new List<CalculationIndex>
+            await _searchRepository.Index(new List<CalculationIndex>
             {
-                CreateCalculationIndexItem(calculation)
+                CreateCalculationIndexItem(calculation, specificationName, fundingStreamName)
             });
         }
 
-        private CalculationIndex CreateCalculationIndexItem(Calculation calculation)
+        private CalculationIndex CreateCalculationIndexItem(Calculation calculation, 
+            string specificationName, 
+            string fundingStreamName)
         {
             return new CalculationIndex
             {
                 Id = calculation.Id,
                 SpecificationId = calculation.SpecificationId,
+                SpecificationName = specificationName,
                 Name = calculation.Current.Name,
                 ValueType = calculation.Current.ValueType.ToString(),
                 FundingStreamId = calculation.FundingStreamId,
+                FundingStreamName = fundingStreamName,
                 Namespace = calculation.Current.Namespace.ToString(),
                 CalculationType = calculation.Current.CalculationType.ToString(),
                 Description = calculation.Current.Description,
@@ -1011,7 +1023,9 @@ namespace CalculateFunding.Services.Calcs
 
                     if (specificationSummary != null)
                     {
-                        await UpdateSearch(calculation);
+                        string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
+                        
+                        await UpdateSearch(calculation, specificationSummary.Name, fundingStreamName);
 
                         CalculationCurrentVersion currentVersion = GetCurrentVersionFromCalculation(calculation);
                         await UpdateCalculationInCache(calculation, currentVersion);

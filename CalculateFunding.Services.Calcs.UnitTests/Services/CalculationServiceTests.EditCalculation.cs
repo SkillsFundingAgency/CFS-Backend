@@ -100,8 +100,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
             {
-                Id = SpecificationId,
+                Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -225,6 +229,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -337,6 +345,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -447,6 +459,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             specificationRepository
@@ -580,6 +596,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             specificationRepository
@@ -687,6 +707,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -797,6 +821,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -897,6 +925,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -1008,6 +1040,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -1120,6 +1156,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -1245,6 +1285,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -1451,6 +1495,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = calculation.SpecificationId,
                 Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();

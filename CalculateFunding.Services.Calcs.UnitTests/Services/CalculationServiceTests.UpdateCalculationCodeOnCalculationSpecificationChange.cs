@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO.Enumeration;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -51,6 +52,7 @@ namespace CalculateFunding.Services.Calcs.Services
             const string calculationId = "updatedCalc";
             const string originalCodeUpdate = "Return OriginalName()";
             const string originalCodeIgnore = "Return 10";
+            const string fundingStreamId = "fundingstreamid";
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
@@ -58,6 +60,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new Calculation
                 {
                     Id = "calcSpec1",
+                    FundingStreamId = fundingStreamId,
                     Current = new CalculationVersion
                     {
                         Name = "Calculation To Update"
@@ -66,6 +69,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Previous = new Calculation
                 {
                     Id = "calcSpec1",
+                    FundingStreamId = fundingStreamId,
                     Current = new CalculationVersion
                     {
                         Name = "Original Name"
@@ -82,6 +86,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Id = calculationId,
                     SpecificationId = specificationId,
+                    FundingStreamId = fundingStreamId,
                     Current = new CalculationVersion
                     {
                         SourceCode = originalCodeIgnore,
@@ -94,6 +99,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Id = "referenceCalc",
                     SpecificationId = specificationId,
+                    FundingStreamId = fundingStreamId,
                     Current = new CalculationVersion
                     {
                         SourceCode = originalCodeUpdate,
@@ -120,6 +126,7 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = specificationId,
                 Name = "Specification Name",
+                FundingStreams = new []{new Reference(fundingStreamId, "fundingStreamName"), }
             };
 
             specificationRepository
@@ -196,6 +203,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             const string specificationId = "specId";
             const string calculationId = "updatedCalc";
+            const string fundingStreamId = "fundingStreamId";
 
             CalculationVersionComparisonModel comparison = new CalculationVersionComparisonModel()
             {
@@ -203,6 +211,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Current = new Calculation
                 {
                     Id = "calcSpec1",
+                    FundingStreamId = fundingStreamId,
                     Current = new CalculationVersion
                     {
                         Name = "Calculation To Update"
@@ -211,6 +220,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 Previous = new Calculation
                 {
                     Id = "calcSpec1",
+                    FundingStreamId = fundingStreamId,
                     Current = new CalculationVersion
                     {
                         Name = "Original Name"
@@ -230,6 +240,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Id = calculationId,
                     SpecificationId = specificationId,
+                    FundingStreamId = fundingStreamId,
                     Current = new CalculationVersion
                     {
                         SourceCode = originalCodeIgnore,
@@ -242,6 +253,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 {
                     Id = "referenceCalc",
                     SpecificationId = specificationId,
+                    FundingStreamId = fundingStreamId,
                     Current = new CalculationVersion
                     {
                         SourceCode = originalCodeUpdate,
@@ -268,7 +280,10 @@ namespace CalculateFunding.Services.Calcs.Services
             {
                 Id = specificationId,
                 Name = "Specification Name",
+                FundingStreams = new []  { new Reference(fundingStreamId, "funding stream name"),  }
             };
+            
+            
 
             specificationRepository
                 .GetSpecificationSummaryById(Arg.Is(specificationId))

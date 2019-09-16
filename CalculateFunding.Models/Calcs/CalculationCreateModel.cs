@@ -1,4 +1,6 @@
-﻿namespace CalculateFunding.Models.Calcs
+﻿using Newtonsoft.Json;
+
+namespace CalculateFunding.Models.Calcs
 {
     public class CalculationCreateModel
     {
@@ -7,9 +9,15 @@
         public string Name { get; set; }
 
         public string SpecificationId { get; set; }
+        
+        [JsonIgnore]
+        public string SpecificationName { get; set; }
 
         public string FundingStreamId { get; set; }
 
+        [JsonIgnore]
+        public string FundingStreamName { get; set; }
+        
         public CalculationValueType? ValueType { get; set; }
 
         public string SourceCode { get; set; }

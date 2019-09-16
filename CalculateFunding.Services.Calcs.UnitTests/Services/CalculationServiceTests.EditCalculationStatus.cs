@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
@@ -499,7 +500,14 @@ namespace CalculateFunding.Services.Calcs.Services
                 .UpdateCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.OK);
 
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary();
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary
+            {
+                Name = "spec name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             specificationRepository
@@ -697,7 +705,14 @@ namespace CalculateFunding.Services.Calcs.Services
            
             ISearchRepository<CalculationIndex> searchRepository = CreateSearchRepository();
 
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary();
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary
+            {
+                Name = "spec name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
             specificationRepository

@@ -233,7 +233,8 @@ namespace CalculateFunding.Services.Calcs.Validators
 
             SpecificationSummary specificationSummary = new SpecificationSummary
             {
-                FundingStreams = new[] { new Reference(model.FundingStreamId, "any name") }
+                Name = "spec name",
+                FundingStreams = new[] { new Reference(model.FundingStreamId, "funding stream name") }
             };
 
             ISpecificationRepository specificationRepository = CreateSpecificationRepository();
@@ -252,6 +253,14 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .IsValid
                 .Should()
                 .BeTrue();
+
+            model.SpecificationName
+                .Should()
+                .Be("spec name");
+
+            model.FundingStreamName
+                .Should()
+                .Be("funding stream name");
         }
 
         private static CalculationCreateModelValidator CreateValidator(

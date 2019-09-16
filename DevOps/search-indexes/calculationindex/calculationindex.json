@@ -41,8 +41,34 @@
       "searchAnalyzer": null,
       "indexAnalyzer": null
     },
+	{
+      "name": "specificationName",
+      "type": "Edm.String",
+      "key": false,
+      "facetable": false,
+      "filterable": true,
+      "retrievable": true,
+      "searchable": false,
+      "sortable": false,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
+    },
     {
       "name": "fundingStreamId",
+      "type": "Edm.String",
+      "key": false,
+      "facetable": false,
+      "filterable": true,
+      "retrievable": true,
+      "searchable": false,
+      "sortable": false,
+      "analyzer": null,
+      "searchAnalyzer": null,
+      "indexAnalyzer": null
+    },
+	{
+      "name": "fundingStreamName",
       "type": "Edm.String",
       "key": false,
       "facetable": false,

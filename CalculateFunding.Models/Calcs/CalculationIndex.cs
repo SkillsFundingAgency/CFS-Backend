@@ -20,6 +20,10 @@ namespace CalculateFunding.Models.Calcs
         [JsonProperty("specificationId")]
         [IsFilterable, IsRetrievable(true)]
         public string SpecificationId { get; set; }
+        
+        [IsFilterable, IsRetrievable(true)]
+        [JsonProperty("specificationName")]
+        public string SpecificationName { get; set; }
 
         [IsFilterable, IsRetrievable(true)]
         [JsonProperty("valueType")]
@@ -36,6 +40,10 @@ namespace CalculateFunding.Models.Calcs
         [IsFilterable, IsRetrievable(true)]
         [JsonProperty("fundingStreamId")]
         public string FundingStreamId { get; set; }
+        
+        [IsFilterable, IsRetrievable(true)]
+        [JsonProperty("fundingStreamName")]
+        public string FundingStreamName { get; set; }
 
         [IsFilterable, IsRetrievable(true)]
         [JsonProperty("wasTemplatecalculation")]

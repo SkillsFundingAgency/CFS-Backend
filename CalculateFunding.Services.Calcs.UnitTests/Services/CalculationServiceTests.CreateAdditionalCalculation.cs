@@ -182,10 +182,12 @@ namespace CalculateFunding.Services.Calcs.Services
                        !string.IsNullOrWhiteSpace(m.First().Id) &&
                        m.First().Name == model.Name &&
                        m.First().SpecificationId == SpecificationId &&
+                       m.First().SpecificationName == model.SpecificationName &&
                        m.First().ValueType == model.ValueType.ToString() &&
                        m.First().CalculationType == CalculationType.Additional.ToString() &&
                        m.First().Namespace == CalculationNamespace.Additional.ToString() &&
                        m.First().FundingStreamId == model.FundingStreamId &&
+                       m.First().FundingStreamName == model.FundingStreamName &&
                        m.First().WasTemplateCalculation == false &&
                        m.First().Description == model.Description &&
                        m.First().Status == calculation.Current.PublishStatus.ToString() &&

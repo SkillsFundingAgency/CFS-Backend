@@ -175,13 +175,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 Date = DateTimeOffset.Now
             };
 
+            Calculation calculation = new Calculation
+            {
+                Current = calculationVersion,
+                SpecificationId = specificationId,
+                FundingStreamId = "funding stream id",
+            };
+            
             IEnumerable<Calculation> calculations = new[]
             {
-                new Calculation
-                {
-                     Current = calculationVersion,
-                     SpecificationId = specificationId
-                }
+                calculation
             };
 
             BuildProject buildProject = new BuildProject();
@@ -191,7 +194,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = new List<SourceFile>()
             };
 
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary();
+            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            {
+                Id = specificationId,
+                Name = "Test Spec Name",
+                FundingStreams = new []
+                {
+                    new Reference(calculation.FundingStreamId, "funding stream name")
+                }
+            };
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
