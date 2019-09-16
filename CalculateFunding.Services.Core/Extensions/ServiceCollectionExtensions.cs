@@ -281,6 +281,8 @@ namespace CalculateFunding.Services.Core.Extensions
 
             builder
                 .AddSingleton<ISearchRepository<CalculationIndex>, SearchRepository<CalculationIndex>>();
+            builder
+               .AddSingleton<ISearchRepository<PublishedIndex>, SearchRepository<PublishedIndex>>();
 
             builder
                 .AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();

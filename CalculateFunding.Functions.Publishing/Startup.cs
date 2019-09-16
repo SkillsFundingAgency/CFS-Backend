@@ -78,6 +78,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddCaching(config);
+            builder.AddSearch(config);
             builder.AddSingleton<OnRefreshFunding>();
             builder.AddSingleton<OnApproveFunding>();
             builder.AddSingleton<OnPublishFunding>();
@@ -104,6 +105,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>()
                 .AddSingleton<IHealthChecker, PublishedProviderStatusUpdateService>();
 
+            builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
+                    .AddSingleton<IHealthChecker, PublishedSearchService>();
             builder
                 .AddSingleton<IPublishedProviderStatusUpdateSettings>(_ =>
                     {

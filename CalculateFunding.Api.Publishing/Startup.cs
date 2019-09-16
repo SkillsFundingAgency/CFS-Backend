@@ -3,8 +3,10 @@ using System.IO;
 using System.Reflection;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
@@ -92,6 +94,9 @@ namespace CalculateFunding.Api.Publishing
         {
             builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
+            builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
+                    .AddSingleton<IHealthChecker, PublishedSearchService>();
+           
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
@@ -106,6 +111,7 @@ namespace CalculateFunding.Api.Publishing
                 });
 
             builder.AddCaching(Configuration);
+            builder.AddSearch(Configuration);
             builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Publishing");
             builder.AddLogging("CalculateFunding.Api.Publishing");

@@ -13,18 +13,22 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly ISpecificationPublishingService _specificationPublishingService;
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
         private readonly IPublishedProviderFundingService _publishedProviderFundingService;
+        private readonly IPublishedSearchService _publishedSearchService;
 
         public PublishingController(ISpecificationPublishingService specificationPublishingService,
             IProviderFundingPublishingService providerFundingPublishingService,
-            IPublishedProviderFundingService publishedProviderFundingService)
+            IPublishedProviderFundingService publishedProviderFundingService,
+            IPublishedSearchService publishedSearchService)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
             Guard.ArgumentNotNull(publishedProviderFundingService, nameof(publishedProviderFundingService));
+            Guard.ArgumentNotNull(publishedSearchService, nameof(publishedSearchService));
 
             _specificationPublishingService = specificationPublishingService;
             _providerFundingPublishingService = providerFundingPublishingService;
             _publishedProviderFundingService = publishedProviderFundingService;
+            _publishedSearchService = publishedSearchService;
         }
 
         /// <summary>
@@ -96,6 +100,13 @@ namespace CalculateFunding.Api.Publishing.Controllers
         public async Task<IActionResult> CanChooseForFunding([FromRoute] string specificationId)
         {
             return await _specificationPublishingService.CanChooseForFunding(specificationId);
+        }
+
+        [Route("api/publishedprovider/publishedprovider-search")]
+        [HttpPost]
+        public async Task<IActionResult> RunSearchPublishedProvider()
+        {
+            return await _publishedSearchService.SearchPublishedProviders(ControllerContext.HttpContext.Request);
         }
 
         private Reference GetUser()

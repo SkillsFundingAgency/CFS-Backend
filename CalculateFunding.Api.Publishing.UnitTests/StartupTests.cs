@@ -33,6 +33,8 @@ namespace CalculateFunding.Api.Publishing.UnitTests
                { "CosmosDbSettings:CollectionName", "publishedfunding" },
                { "CosmosDbSettings:DatabaseName", "calculate-funding" },
                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
+               { "SearchServiceName", "ss-t1te-cfs"},
+                { "SearchServiceKey", "test" },
             };
 
             return configData;
