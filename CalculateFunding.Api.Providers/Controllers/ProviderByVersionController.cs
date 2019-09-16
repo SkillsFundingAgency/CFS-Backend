@@ -72,7 +72,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         [ProducesResponseType(200, Type = typeof(ProviderVersion))]
         public async Task<IActionResult> GetProvidersByVersion([FromRoute]string providerVersionId)
         {
-            return await _providerVersionService.GetAllProviders(providerVersionId);
+            return await _providerVersionService.GetAllProviders(providerVersionId, true);
         }
 
         /// <summary>

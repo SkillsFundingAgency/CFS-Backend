@@ -90,8 +90,10 @@ namespace CalculateFunding.Services.Calcs
                     () => _calculationsRepository.GetTemplateMapping(specificationId, fundingStreamId));
 
                 if (templateMapping == null)
+                {
                     LogAndThrowException(
                         $"Did not locate Template Mapping for funding stream id {fundingStreamId} and specification id {specificationId}");
+                }
 
                 ApiResponse<TemplateMetadataContents> templateContentsResponse = await _policiesResiliencePolicy.ExecuteAsync(
                     () => _policiesApiClient.GetFundingTemplateContents(fundingStreamId, templateVersion));
@@ -99,8 +101,10 @@ namespace CalculateFunding.Services.Calcs
                 TemplateMetadataContents templateMetadataContents = templateContentsResponse?.Content;
 
                 if (templateMetadataContents == null)
+                {
                     LogAndThrowException(
                         $"Did not locate Template Metadata Contents for funding stream id {fundingStreamId} and template version {templateVersion}");
+                }
 
                 TemplateMappingItem[] mappingsWithoutCalculations = templateMapping.TemplateMappingItems.Where(_ => _.CalculationId.IsNullOrWhitespace())
                     .ToArray();

@@ -34,6 +34,7 @@ using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 using ApiClientProviders = CalculateFunding.Common.ApiClient.Providers;
+using VersionReference = CalculateFunding.Models.VersionReference;
 
 namespace CalculateFunding.Services.Datasets.Services
 {

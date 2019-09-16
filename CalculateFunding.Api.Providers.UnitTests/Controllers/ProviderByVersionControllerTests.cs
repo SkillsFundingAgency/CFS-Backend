@@ -68,7 +68,7 @@ namespace CalculateFunding.Api.Results.UnitTests.Controllers
 
             await providerVersionService
                 .Received(1)
-                .GetAllProviders(providerVersionId);
+                .GetAllProviders(providerVersionId, true);
         }
 
         [TestMethod]

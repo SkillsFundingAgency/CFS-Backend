@@ -41,6 +41,7 @@ using Microsoft.Azure.Storage.Blob;
 using Newtonsoft.Json;
 using Polly;
 using Serilog;
+using VersionReference = CalculateFunding.Models.VersionReference;
 
 namespace CalculateFunding.Services.Datasets
 {

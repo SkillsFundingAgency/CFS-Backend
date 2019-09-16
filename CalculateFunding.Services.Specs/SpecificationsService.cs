@@ -717,6 +717,18 @@ namespace CalculateFunding.Services.Specs
 
             specification.Current = specificationVersion;
 
+            foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
+            {
+                ApiResponse<FundingConfiguration> fundingConfigResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStreamId, specification.Current.FundingPeriod.Id));
+
+                if (!fundingConfigResponse.StatusCode.IsSuccess())
+                {
+                    return new InternalServerErrorResult($"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
+                }
+
+                await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id, fundingConfigResponse.Content.DefaultTemplateVersion, fundingStreamId));
+            }
+
             DocumentEntity<Specification> repositoryCreateResult = await _specificationsRepository.CreateSpecification(specification);
 
             if (repositoryCreateResult == null)
@@ -745,19 +757,6 @@ namespace CalculateFunding.Services.Specs
             await _specificationVersionRepository.SaveVersion(specificationVersion);
 
             await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
-
-            
-            foreach(string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
-            {
-                ApiResponse<FundingConfiguration> fundingConfigResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStreamId, specification.Current.FundingPeriod.Id));
-
-                if (!fundingConfigResponse.StatusCode.IsSuccess())
-                {
-                    return new InternalServerErrorResult($"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
-                }
-
-                await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id, fundingConfigResponse.Content.DefaultTemplateVersion, fundingStreamId));
-            }
 
             await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
 
