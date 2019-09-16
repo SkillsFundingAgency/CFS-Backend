@@ -5,8 +5,8 @@ using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
 {
-    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "publishedindex")]
-    public class PublishedIndex
+    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "publishedproviderindex")]
+    public class PublishedProviderIndex
     {
         [Key]
         [IsSearchable, IsRetrievable(true)]
@@ -33,7 +33,7 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("ukprn")]
         public string UKPRN { get; set; }
 
-        [IsFilterable, IsSearchable, IsRetrievable(true)]
+        [IsFilterable, IsSortable, IsRetrievable(true)]
         [JsonProperty("fundingValue")]
         public double FundingValue { get; set; }
 

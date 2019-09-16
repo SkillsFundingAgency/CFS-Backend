@@ -17,7 +17,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 
 namespace CalculateFunding.Services.Publishing
 {
-    public class PublishedSearchService : SearchService<PublishedIndex>, IPublishedSearchService, IHealthChecker
+    public class PublishedSearchService : SearchService<PublishedProviderIndex>, IPublishedSearchService, IHealthChecker
     {
         private readonly ILogger _logger;
 
@@ -27,7 +27,7 @@ namespace CalculateFunding.Services.Publishing
             new FacetFilterType("fundingStatus", true)
         };
 
-        public PublishedSearchService(ISearchRepository<PublishedIndex> searchRepository, ILogger logger)
+        public PublishedSearchService(ISearchRepository<PublishedProviderIndex> searchRepository, ILogger logger)
             : base(searchRepository)
         {
             _logger = logger;
@@ -60,7 +60,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 searchModel.OrderBy = new[] { "providerName desc" }; ;
 
-                IEnumerable<Task<SearchResults<PublishedIndex>>> searchTasks = await BuildSearchTasks(searchModel, Facets);
+                IEnumerable<Task<SearchResults<PublishedProviderIndex>>> searchTasks = await BuildSearchTasks(searchModel, Facets);
 
                 if (searchTasks.IsNullOrEmpty())
                 {
@@ -73,7 +73,7 @@ namespace CalculateFunding.Services.Publishing
 
                 foreach (var searchTask in searchTasks)
                 {
-                    SearchResults<PublishedIndex> searchResult = searchTask.Result;
+                    SearchResults<PublishedProviderIndex> searchResult = searchTask.Result;
 
                     if (!searchResult.Facets.IsNullOrEmpty())
                     {

@@ -1,5 +1,5 @@
 {
-	"name": "publishedindex",
+	"name": "publishedproviderindex",
 	"fields": [
 		{
 			"name": "id",
@@ -86,8 +86,8 @@
 			"facetable": false,
 			"filterable": true,
 			"retrievable": true,
-			"searchable": true,
-			"sortable": false,
+			"searchable": false,
+			"sortable": true,
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null

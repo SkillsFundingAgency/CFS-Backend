@@ -132,11 +132,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -178,11 +178,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -228,11 +228,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -281,11 +281,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -334,11 +334,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -387,11 +387,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -440,11 +440,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -487,11 +487,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -533,11 +533,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -579,11 +579,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>();
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>();
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);
@@ -624,7 +624,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Body
                 .Returns(stream);
 
-            SearchResults<PublishedIndex> searchResults = new SearchResults<PublishedIndex>
+            SearchResults<PublishedProviderIndex> searchResults = new SearchResults<PublishedProviderIndex>
             {
                 Facets = new List<Facet>
                 {
@@ -637,7 +637,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             ILogger logger = CreateLogger();
 
-            ISearchRepository<PublishedIndex> searchRepository = CreateSearchRepository();
+            ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
             searchRepository
                 .Search(Arg.Any<string>(), Arg.Any<SearchParameters>())
                 .Returns(searchResults);

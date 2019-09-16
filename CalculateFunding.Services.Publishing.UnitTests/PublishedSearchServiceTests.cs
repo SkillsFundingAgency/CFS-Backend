@@ -12,15 +12,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     [TestClass]
     public partial class PublishedSearchServiceTests
     {
-        static PublishedSearchService CreateSearchService(ISearchRepository<PublishedIndex> searchRepository = null,
+        static PublishedSearchService CreateSearchService(ISearchRepository<PublishedProviderIndex> searchRepository = null,
            ILogger logger = null)
         {
             return new PublishedSearchService(searchRepository ?? CreateSearchRepository(), logger ?? CreateLogger());
         }
 
-        static ISearchRepository<PublishedIndex> CreateSearchRepository()
+        static ISearchRepository<PublishedProviderIndex> CreateSearchRepository()
         {
-            return Substitute.For<ISearchRepository<PublishedIndex>>();
+            return Substitute.For<ISearchRepository<PublishedProviderIndex>>();
         }
 
         static ILogger CreateLogger()
