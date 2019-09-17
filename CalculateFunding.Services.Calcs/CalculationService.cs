@@ -982,7 +982,9 @@ namespace CalculateFunding.Services.Calcs
                 Namespace = calculation.Current.Namespace.ToString(),
                 CalculationType = calculation.Current.CalculationType.ToString(),
                 Description = calculation.Current.Description,
-                WasTemplateCalculation = calculation.Current.WasTemplateCalculation
+                WasTemplateCalculation = calculation.Current.WasTemplateCalculation,
+                Status = calculation.Current.PublishStatus.ToString(),
+                LastUpdatedDate = DateTimeOffset.Now
             };
         }
 
