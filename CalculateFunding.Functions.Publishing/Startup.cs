@@ -283,19 +283,6 @@ namespace CalculateFunding.Functions.Publishing
                 return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
             });
 
-            builder.AddHttpClient(HttpClientKeys.Calculations,
-                    c =>
-                    {
-                        ApiOptions apiOptions = new ApiOptions();
-
-                        config.Bind("calcsClient", apiOptions);
-
-                        ServiceCollectionExtensions.SetDefaultApiClientConfigurationOptions(c, apiOptions, builder);
-                    })
-                .ConfigurePrimaryHttpMessageHandler(() => new ApiClientHandler())
-                .AddTransientHttpErrorPolicy(c => c.WaitAndRetryAsync(new[] { TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5) }))
-                .AddTransientHttpErrorPolicy(c => c.CircuitBreakerAsync(100, TimeSpan.FromSeconds(30)));
-
             builder
                 .AddSingleton<ICalculationsApiClient, CalculationsApiClient>();
 

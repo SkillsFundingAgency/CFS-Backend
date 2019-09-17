@@ -110,6 +110,13 @@ namespace CalculateFunding.Services.Providers.Validators
                    {
                        context.AddFailure($"No trust status specified for '{providerWithEmptyTrustStatus.Name}' was{messageSuffix}");
                    }
+
+                   //Provider providerWithInvalidTrustStatus = providerVersionModel.Providers.FirstOrDefault(x => !x.TrustStatusViewModelString.IsAnEnum<TrustStatus>());
+
+                   //if (providerWithInvalidTrustStatus != null)
+                   //{
+                   //    context.AddFailure($"An Invalid trust status specified for '{providerWithInvalidTrustStatus.Name}' was{messageSuffix}");
+                   //}
                });
         }
     }

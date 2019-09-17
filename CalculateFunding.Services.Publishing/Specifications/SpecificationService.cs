@@ -50,7 +50,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return specificationSummaryResponse.Content;
             }
 
-            throw new Exception($"Failed to fetch specifications selected for funding period id: '{fundingPeriodId}' with status code {specificationSummaryResponse.StatusCode}");
+            return null;
         }
 
         public async Task SelectSpecificationForFunding(string specificationId)

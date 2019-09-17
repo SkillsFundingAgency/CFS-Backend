@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Publishing
 
             Reference author = message.GetUserDetails();
 
-            string specificationId = message.UserProperties["specificationId"] as string;
+            string specificationId = message.UserProperties["specification-id"] as string;
             string jobId = message.UserProperties["jobId"]?.ToString();
 
             JobViewModel currentJob = await RetrieveJobAndCheckCanBeProcessed(jobId);

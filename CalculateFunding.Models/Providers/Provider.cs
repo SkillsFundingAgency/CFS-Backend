@@ -86,24 +86,6 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("postcode")]
         public string Postcode { get; set; }
 
-        [JsonIgnore]
-        public TrustStatus TrustStatus
-        {
-            get
-            {
-                if (Enum.TryParse<TrustStatus>(TrustStatusViewModelString, true, out var result))
-                {
-                    return result;
-                }
-
-                return TrustStatus.NotApplicable;
-            }
-            set
-            {
-                TrustStatusViewModelString = value.ToString();
-            }
-        }
-
         [JsonProperty("trustName")]
         public string TrustName { get; set; }
 
@@ -172,5 +154,23 @@ namespace CalculateFunding.Models.Providers
 
         [JsonProperty("countryName")]
         public string CountryName { get; set; }
+
+        [JsonIgnore]
+        public TrustStatus TrustStatus
+        {
+            get
+            {
+                if (Enum.TryParse<TrustStatus>(TrustStatusViewModelString, true, out var result))
+                {
+                    return result;
+                }
+
+                return TrustStatus.NotApplicable;
+            }
+            set
+            {
+                TrustStatusViewModelString = value.ToString();
+            }
+        }
     }
 }

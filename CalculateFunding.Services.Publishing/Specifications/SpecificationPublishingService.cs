@@ -184,6 +184,11 @@ namespace CalculateFunding.Services.Publishing.Specifications
             IEnumerable<ApiSpecificationSummary> specificationsInFundingPeriod,
             IEnumerable<string> fundingStreams)
         {
+            if (specificationsInFundingPeriod.IsNullOrEmpty())
+            {
+                return false;
+            }
+
             return specificationsInFundingPeriod.Any(_ => fundingStreams.Intersect(_.FundingStreams.Select(fs => fs.Id)).Any());
         }
     }

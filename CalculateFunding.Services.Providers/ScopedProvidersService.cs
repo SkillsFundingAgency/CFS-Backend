@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.Providers
                     ReasonEstablishmentClosed = x.ReasonEstablishmentClosed,
                     ReasonEstablishmentOpened = x.ReasonEstablishmentOpened,
                     Successor = x.Successor,
-                    TrustStatus = Enum.TryParse(x.TrustStatusViewModelString, out Models.Results.TrustStatus trustStatus) ? trustStatus : Models.Results.TrustStatus.NotApplicable,
+                    TrustStatus = Enum.Parse<Models.Results.TrustStatus>(x.TrustStatus.ToString()),
                     TrustName = x.TrustName,
                     TrustCode = x.TrustCode,
                     Town = x.Town,

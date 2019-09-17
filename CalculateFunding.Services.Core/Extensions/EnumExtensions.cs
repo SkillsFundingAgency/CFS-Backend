@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 
 namespace CalculateFunding.Services.Core.Extensions
 {
@@ -62,6 +63,18 @@ namespace CalculateFunding.Services.Core.Extensions
             }
 
             throw new ArgumentException($"Enum not found for description {description}.");
+        }
+
+        public static bool IsAnEnum<T>(this string enumValue)
+        {
+            foreach (FieldInfo field in typeof(T).GetFields())
+            {
+                object[] attributes = field.GetCustomAttributes(typeof(EnumMemberAttribute), false);
+                if ((attributes.Length > 0)
+                    && ((EnumMemberAttribute)attributes[0]).Value.Equals(enumValue)
+                ) return true;
+            }
+            return false;
         }
     }
 }

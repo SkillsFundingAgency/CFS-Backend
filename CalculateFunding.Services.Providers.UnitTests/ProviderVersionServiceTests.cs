@@ -940,7 +940,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Providers = new[]
                 {
                     GetProviderViewModel()
-                }
+                },
+                
             };
         }
 
@@ -993,7 +994,8 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ParliamentaryConstituencyName = "ParliamentaryConstituencyName",
                 ParliamentaryConstituencyCode = "ParliamentaryConstituencyCode",
                 CountryCode = "CountryCode",
-                CountryName = "CountryName"
+                CountryName = "CountryName",
+                TrustStatus = TrustStatus.NotApplicable
             };
         }
     }

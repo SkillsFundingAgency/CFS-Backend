@@ -717,6 +717,8 @@ namespace CalculateFunding.Services.Specs
 
             specification.Current = specificationVersion;
 
+            IDictionary<string, FundingConfiguration> fundingConfigs = new Dictionary<string, FundingConfiguration>();
+
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
                 ApiResponse<FundingConfiguration> fundingConfigResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStreamId, specification.Current.FundingPeriod.Id));
@@ -726,7 +728,10 @@ namespace CalculateFunding.Services.Specs
                     return new InternalServerErrorResult($"No funding configuration returned for funding stream id '{fundingStreamId}' and funding period id '{specification.Current.FundingPeriod.Id}'");
                 }
 
-                await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id, fundingConfigResponse.Content.DefaultTemplateVersion, fundingStreamId));
+                if (fundingConfigResponse.Content != null)
+                {
+                    fundingConfigs.Add(fundingStreamId, fundingConfigResponse.Content);
+                }
             }
 
             DocumentEntity<Specification> repositoryCreateResult = await _specificationsRepository.CreateSpecification(specification);
@@ -758,11 +763,19 @@ namespace CalculateFunding.Services.Specs
 
             await ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id);
 
-            await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
-
             string specificationId = specification.Id;
 
             SpecificationCurrentVersion result = ConvertSpecificationToCurrentVersion(repositoryCreateResult, fundingStreamObjects);
+
+            foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
+            {
+                if (fundingConfigs.ContainsKey(fundingStreamId))
+                {
+                    await _calcsApiClientPolicy.ExecuteAsync(() => _calcsApiClient.AssociateTemplateIdWithSpecification(specification.Id, fundingConfigs[fundingStreamId].DefaultTemplateVersion, fundingStreamId));
+                }
+            }
+
+            await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
 
             return new OkObjectResult(result);
         }

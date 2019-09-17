@@ -97,7 +97,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().ReasonEstablishmentClosed == provider.ReasonEstablishmentClosed &&
                     x.First().ReasonEstablishmentOpened == provider.ReasonEstablishmentOpened &&
                     x.First().Successor == provider.Successor &&
-                    x.First().TrustStatus == Enum.Parse<Models.Results.TrustStatus>(provider.TrustStatusViewModelString) &&
+                    x.First().TrustStatus == Enum.Parse<Models.Results.TrustStatus>(provider.TrustStatus.ToString()) &&
                     x.First().TrustName == provider.TrustName &&
                     x.First().TrustCode == provider.TrustCode &&
                     x.First().Town == provider.Town &&
@@ -382,7 +382,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ReasonEstablishmentClosed = provider.ReasonEstablishmentClosed,
                 ReasonEstablishmentOpened = provider.ReasonEstablishmentOpened,
                 Successor = provider.Successor,
-                TrustStatus = Enum.Parse<Models.Results.TrustStatus>(provider.TrustStatusViewModelString),
+                TrustStatus = Enum.Parse<Models.Results.TrustStatus>(provider.TrustStatus.ToString()),
                 TrustName = provider.TrustName,
                 TrustCode = provider.TrustCode,
                 Town = provider.Town,
@@ -437,7 +437,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ReasonEstablishmentClosed = "ReasonEstablishmentClosed",
                 ReasonEstablishmentOpened = "ReasonEstablishmentOpened",
                 Successor = "Successor",
-                TrustStatusViewModelString = "NotApplicable",
+                TrustStatus = Models.Providers.TrustStatus.NotApplicable,
                 TrustName = "TrustName",
                 TrustCode = "TrustCode",
                 LocalAuthorityName = "LocalAuthorityName",
