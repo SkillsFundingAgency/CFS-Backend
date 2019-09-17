@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Jobs.Repositories
 
         public async Task<HttpStatusCode> SaveJobDefinition(JobDefinition definition)
         {
-            return await _cosmosRepository.CreateAsync(definition);
+            return await _cosmosRepository.UpsertAsync(definition);
         }
 
         public IEnumerable<JobDefinition> GetJobDefinitions()

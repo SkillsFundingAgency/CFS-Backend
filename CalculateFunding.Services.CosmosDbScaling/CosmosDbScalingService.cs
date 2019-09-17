@@ -9,7 +9,6 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.CosmosDbScaling;
-using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -400,24 +399,24 @@ namespace CalculateFunding.Services.CosmosDbScaling
         }
 
         public async Task<IActionResult> SaveConfiguration(ScalingConfigurationUpdateModel scalingConfigurationUpdate)
-        {                     
+        {
             FluentValidation.Results.ValidationResult validationResult = await _scalingConfigurationUpdateModelValidator.ValidateAsync(scalingConfigurationUpdate);
 
             if (!validationResult.IsValid)
             {
-                throw new InvalidModelException(GetType().ToString(), validationResult.Errors.Select(m => m.ErrorMessage).ToArraySafe());
+                return validationResult.AsBadRequest();
             }
 
             CosmosDbScalingCollectionSettings existingDocument = await _cosmosDbScalingConfigRepository.GetCollectionSettingsByRepositoryType(scalingConfigurationUpdate.RepositoryType);
             if (existingDocument == null)
-            {              
+            {
                 CosmosDbScalingCollectionSettings cosmosDbScalingCollectionSettings = new CosmosDbScalingCollectionSettings()
                 {
                     CosmosCollectionType = scalingConfigurationUpdate.RepositoryType,
                     MaxRequestUnits = scalingConfigurationUpdate.MaxRequestUnits,
                     MinRequestUnits = scalingConfigurationUpdate.BaseRequestUnits,
                 };
-               
+
                 HttpStatusCode statusCode = await _scalingConfigRepositoryPolicy.ExecuteAsync(
                         () => _cosmosDbScalingConfigRepository.UpdateCollectionSettings(cosmosDbScalingCollectionSettings));
 
@@ -427,17 +426,17 @@ namespace CalculateFunding.Services.CosmosDbScaling
                     _logger.Error(errorMessage);
                     throw new RetriableException(errorMessage);
                 }
-            }           
+            }
 
             await SaveScalingConfig(scalingConfigurationUpdate);
             return new OkObjectResult(scalingConfigurationUpdate);
         }
 
         private async Task SaveScalingConfig(ScalingConfigurationUpdateModel scalingConfigurationUpdate)
-        {           
+        {
             CosmosDbScalingConfig cosmosDbScalingConfig = await _cosmosDbScalingConfigRepository.GetConfigByRepositoryType(scalingConfigurationUpdate.RepositoryType);
             if (cosmosDbScalingConfig == null)
-            {                
+            {
                 cosmosDbScalingConfig = new CosmosDbScalingConfig()
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -446,7 +445,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 };
             }
             cosmosDbScalingConfig.JobRequestUnitConfigs = scalingConfigurationUpdate.JobRequestUnitConfigs;
-           
+
             HttpStatusCode statusCode = await _scalingConfigRepositoryPolicy.ExecuteAsync(
                     () => _cosmosDbScalingConfigRepository.UpdateConfigSettings(cosmosDbScalingConfig));
 
@@ -455,7 +454,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 string errorMessage = $"Failed to Insert or Update config setting repository type: '{scalingConfigurationUpdate.RepositoryType}'  with status code: '{statusCode}'";
                 _logger.Error(errorMessage);
                 throw new RetriableException(errorMessage);
-            }           
+            }
         }
     }
 }

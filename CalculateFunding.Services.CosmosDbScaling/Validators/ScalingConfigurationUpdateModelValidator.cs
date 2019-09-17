@@ -1,8 +1,5 @@
 ﻿using CalculateFunding.Models.CosmosDbScaling;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Services.CosmosDbScaling.Validators
 {
@@ -11,8 +8,8 @@ namespace CalculateFunding.Services.CosmosDbScaling.Validators
         public ScalingConfigurationUpdateModelValidator()
         {
             RuleFor(model => model.RepositoryType)
-               .NotEmpty()
-               .WithMessage("A null or empty RepositoryType was provided");
+                .IsInEnum()
+               .WithMessage("A null or empty or invalid RepositoryType was provided");
 
             RuleFor(model => model.MaxRequestUnits)
                .NotEmpty()
