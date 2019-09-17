@@ -17,6 +17,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
         [DataRow(CosmosCollectionType.CalculationProviderResults, nameof(CalculationProviderResultsScalingRepository))]
         [DataRow(CosmosCollectionType.ProviderSourceDatasets, nameof(ProviderSourceDatasetsScalingRepository))]
         [DataRow(CosmosCollectionType.PublishedProviderResults, nameof(PublishedProviderResultsScalingRepository))]
+        [DataRow(CosmosCollectionType.PublishedFundingResults, nameof(PublishedFundingResultsScalingRepository))]
         [DataRow(CosmosCollectionType.Calculations, nameof(CalculationsScalingRepository))]
         [DataRow(CosmosCollectionType.Jobs, nameof(JobsScalingRepository))]
         [DataRow(CosmosCollectionType.DatasetAggregations, nameof(DatasetAggregationsScalingRepository))]
@@ -87,6 +88,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
             serviceProvider
                 .GetService<PublishedProviderResultsScalingRepository>()
                 .Returns(new PublishedProviderResultsScalingRepository(cosmosRepository));
+
+            serviceProvider
+                .GetService<PublishedFundingResultsScalingRepository>()
+                .Returns(new PublishedFundingResultsScalingRepository(cosmosRepository));
 
             serviceProvider
                 .GetService<CalculationsScalingRepository>()

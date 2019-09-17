@@ -16,6 +16,9 @@ namespace CalculateFunding.Models.CosmosDbScaling
         [Description("publishedprovideresults")]
         PublishedProviderResults,
 
+        [Description("publishedfundingresults")]
+        PublishedFundingResults,
+
         [Description("calcs")]
         Calculations,
 

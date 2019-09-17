@@ -85,6 +85,19 @@ namespace CalculateFunding.Functions.CosmosDbScaling
                 return new ProviderSourceDatasetsScalingRepository(cosmosRepository);
             });
 
+            builder.AddSingleton<PublishedFundingResultsScalingRepository>((ctx) =>
+            {
+                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
+
+                config.Bind("CosmosDbSettings", cosmosDbSettings);
+
+                cosmosDbSettings.CollectionName = "publishedfunding";
+
+                CosmosRepository cosmosRepository = new CosmosRepository(cosmosDbSettings);
+
+                return new PublishedFundingResultsScalingRepository(cosmosRepository);
+            });
+
             builder.AddSingleton<CalculationsScalingRepository>((ctx) =>
             {
                 CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();

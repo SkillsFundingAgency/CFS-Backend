@@ -27,6 +27,9 @@ namespace CalculateFunding.Services.CosmosDbScaling.Repositories
                 case CosmosCollectionType.PublishedProviderResults:
                     return _serviceProvider.GetService<PublishedProviderResultsScalingRepository>();
 
+                case CosmosCollectionType.PublishedFundingResults:
+                    return _serviceProvider.GetService<PublishedFundingResultsScalingRepository>();
+
                 case CosmosCollectionType.Calculations:
                     return _serviceProvider.GetService<CalculationsScalingRepository>();
 
