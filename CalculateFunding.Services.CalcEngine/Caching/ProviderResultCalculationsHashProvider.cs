@@ -13,15 +13,15 @@ namespace CalculateFunding.Services.CalcEngine.Caching
     public class ProviderResultCalculationsHashProvider : IProviderResultCalculationsHashProvider
     {
         private readonly ICacheProvider _cacheProvider;
-        
-        private static readonly ConcurrentDictionary<string, Dictionary<string, string>> BatchHashContainers 
-            = new ConcurrentDictionary<string, Dictionary<string, string>>(); 
-        private static readonly ConcurrentDictionary<string, object> KeyLocks = new ConcurrentDictionary<string, object>(); 
+
+        private static readonly ConcurrentDictionary<string, Dictionary<string, string>> BatchHashContainers
+            = new ConcurrentDictionary<string, Dictionary<string, string>>();
+        private static readonly ConcurrentDictionary<string, object> KeyLocks = new ConcurrentDictionary<string, object>();
 
         public ProviderResultCalculationsHashProvider(ICacheProvider cacheProvider)
         {
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-  
+
             _cacheProvider = cacheProvider;
         }
 
@@ -55,7 +55,7 @@ namespace CalculateFunding.Services.CalcEngine.Caching
             lock (GetKeyLock(specificationBatchKey))
             {
                 Dictionary<string, string> batchHashContainer = RemoveSpecificationBatchHashContainer(specificationBatchKey);
-                
+
                 CacheCalculationResultsHashes(specificationBatchKey, batchHashContainer)
                     .GetAwaiter()
                     .GetResult();
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.CalcEngine.Caching
         {
             string providerId = providerResult.Provider.Id;
             string specificationId = providerResult.SpecificationId;
-            
+
             string specificationBatchKey = GetSpecificationResultsBatchCacheKey(partitionIndex, partitionSize, specificationId);
 
             lock (GetKeyLock(specificationBatchKey))
@@ -93,17 +93,17 @@ namespace CalculateFunding.Services.CalcEngine.Caching
         {
             if (!BatchHashContainers.TryGetValue(specificationBatchKey, out Dictionary<string, string> batchHashContainer))
             {
-                throw new InvalidOperationException($"Batch updates for {specificationBatchKey} not yet in progress.");   
+                throw new InvalidOperationException($"Batch updates for {specificationBatchKey} not yet in progress on get specification");
             }
 
             return batchHashContainer;
         }
-        
+
         private static Dictionary<string, string> RemoveSpecificationBatchHashContainer(string specificationBatchKey)
         {
             if (!BatchHashContainers.Remove(specificationBatchKey, out Dictionary<string, string> batchHashContainer))
             {
-                throw new InvalidOperationException($"Batch updates for {specificationBatchKey} not yet in progress.");   
+                throw new InvalidOperationException($"Batch updates for {specificationBatchKey} not yet in progress on remove.");
             }
 
             return batchHashContainer;

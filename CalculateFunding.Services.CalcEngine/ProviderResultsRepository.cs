@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.CalcEngine
             ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
             IFeatureToggle featureToggle,
-            EngineSettings engineSettings, 
+            EngineSettings engineSettings,
             IProviderResultCalculationsHashProvider calculationsHashProvider)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
@@ -58,9 +58,9 @@ namespace CalculateFunding.Services.CalcEngine
             _engineSettings = engineSettings;
             _calculationsHashProvider = calculationsHashProvider;
         }
-        
-        public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders)> SaveProviderResults(IEnumerable<ProviderResult> providerResults, 
-            int partitionIndex, 
+
+        public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders)> SaveProviderResults(IEnumerable<ProviderResult> providerResults,
+            int partitionIndex,
             int partitionSize,
             int degreeOfParallelism = 5)
         {
@@ -70,12 +70,13 @@ namespace CalculateFunding.Services.CalcEngine
             }
 
             string batchSpecificationId = providerResults.First().SpecificationId;
-            
+
             _calculationsHashProvider.StartBatch(batchSpecificationId, partitionIndex, partitionSize);
 
             //only leave the provider results where the calculation results have changed since they were last saved
-            providerResults = providerResults.Where(_ => ResultsHaveChanged(_, partitionIndex, partitionSize));
-            
+            // ToArray required due to reevaulation of the providerResults further down
+            providerResults = providerResults.Where(_ => ResultsHaveChanged(_, partitionIndex, partitionSize)).ToArray();
+
             _calculationsHashProvider.EndBatch(batchSpecificationId, partitionIndex, partitionSize);
 
             IEnumerable<KeyValuePair<string, ProviderResult>> results = providerResults.Select(m => new KeyValuePair<string, ProviderResult>(m.Provider.Id, m));
@@ -106,7 +107,7 @@ namespace CalculateFunding.Services.CalcEngine
         private bool ResultsHaveChanged(ProviderResult providerResult, int partitionIndex, int partitionSize)
         {
             bool hasChanged = _calculationsHashProvider.TryUpdateCalculationResultHash(providerResult, partitionIndex, partitionSize);
-            
+
             if (!hasChanged)
             {
                 _logger.Information(
@@ -114,7 +115,7 @@ namespace CalculateFunding.Services.CalcEngine
             }
 
             return hasChanged;
-        } 
+        }
 
         private async Task<long> BulkSaveProviderResults(IEnumerable<KeyValuePair<string, ProviderResult>> providerResults, int degreeOfParallelism = 5)
         {
