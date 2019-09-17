@@ -1,6 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Services.Core.Extensions;
 using FluentValidation;
 
 namespace CalculateFunding.Services.Providers.Validators
@@ -83,7 +87,24 @@ namespace CalculateFunding.Services.Providers.Validators
                        context.AddFailure($"No status specified for '{providerWithEmptyStatus.Name}' was{messageSuffix}");
                    }
 
-                   Provider providerWithEmptyTrustStatus = providerVersionModel.Providers.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.TrustStatusViewModelString));
+                   providerVersionModel.Providers.ToList().ForEach(x =>
+                   {
+                       if (x.TrustStatusViewModelString.TryParseEnum<TrustStatus>(out TrustStatus status))
+                       {
+                           // if the status string can be parsed then set the string value of the trust status
+                           x.TrustStatusViewModelString = status.ToString();
+                       }
+                       else
+                       {
+                           // we weren't able to parse the string therefore return null for the validator to use
+                           x.TrustStatusViewModelString = string.Empty;
+                       }
+                   });
+
+                   Provider providerWithEmptyTrustStatus = providerVersionModel.Providers.FirstOrDefault(x =>
+                   {
+                       return string.IsNullOrWhiteSpace(x.TrustStatusViewModelString);
+                   });
 
                    if (providerWithEmptyTrustStatus != null)
                    {

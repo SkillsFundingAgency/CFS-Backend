@@ -119,7 +119,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
-        public async Task UploadProviderVersion_WhenVersionIdEmpty_UploadFails()
+        public void UploadProviderVersion_WhenVersionIdEmpty_UploadFails()
         {
             // Arrange
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
