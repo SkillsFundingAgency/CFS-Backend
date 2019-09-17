@@ -1,21 +1,19 @@
-﻿using CalculateFunding.Models;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Repositories.Common.Search.Results;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Filtering;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Services.Core.Filtering;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -58,18 +56,18 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Error("A null or invalid search model was provided for searching calculations");
 
                 return new BadRequestObjectResult("An invalid search model was provided");
-            } 
+            }
 
             try
             {
                 SearchResults<CalculationIndex> items = await BuildItemsSearchTask(searchModel);
                 CalculationSearchResults results = new CalculationSearchResults();
 
-	           
-		       ProcessSearchResults(items, results);
-	            
 
-	            return new OkObjectResult(results);
+                ProcessSearchResults(items, results);
+
+
+                return new OkObjectResult(results);
             }
             catch (FailedToQuerySearchException exception)
             {
@@ -88,21 +86,21 @@ namespace CalculateFunding.Services.Calcs
             FilterHelper filterHelper = new FilterHelper(filters);
 
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
-			return Task.Run(() =>
-			{
-				return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
-				{
-					Skip = skip,
-					Top = searchModel.Top,
-					SearchMode = (SearchMode)searchModel.SearchMode,
-					SearchFields = new List<string> { "name" },
-					IncludeTotalResultCount = true,
+            return Task.Run(() =>
+            {
+                return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
+                {
+                    Skip = skip,
+                    Top = searchModel.Top,
+                    SearchMode = (SearchMode)searchModel.SearchMode,
+                    SearchFields = new List<string> { "name" },
+                    IncludeTotalResultCount = true,
                     Filter = filterHelper.BuildAndFilterQuery(),
                     OrderBy = searchModel.OrderBy.IsNullOrEmpty() ? DefaultOrderBy.ToList() : searchModel.OrderBy.ToList(),
-					QueryType = QueryType.Full
-				});
-			});
-		}
+                    QueryType = QueryType.Full
+                });
+            });
+        }
 
         void ProcessSearchResults(SearchResults<CalculationIndex> searchResult, CalculationSearchResults results)
         {
@@ -125,7 +123,8 @@ namespace CalculateFunding.Services.Calcs
                     WasTemplateCalculation = m.Result.WasTemplateCalculation,
                     Description = m.Result.Description,
                     Status = m.Result.Status,
-                    LastUpdatedDate = m.Result.LastUpdatedDate
+                    LastUpdatedDate = m.Result.LastUpdatedDate,
+                    SpecificationName = m.Result.SpecificationName,
                 });
             }
         }
