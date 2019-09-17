@@ -82,6 +82,13 @@ namespace CalculateFunding.Services.Providers.Validators
                    {
                        context.AddFailure($"No status specified for '{providerWithEmptyStatus.Name}' was{messageSuffix}");
                    }
+
+                   Provider providerWithEmptyTrustStatus = providerVersionModel.Providers.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.TrustStatusViewModelString));
+
+                   if (providerWithEmptyTrustStatus != null)
+                   {
+                       context.AddFailure($"No trust status specified for '{providerWithEmptyTrustStatus.Name}' was{messageSuffix}");
+                   }
                });
         }
     }

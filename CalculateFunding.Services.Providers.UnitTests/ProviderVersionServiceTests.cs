@@ -488,6 +488,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 x.LACode = null;
                 x.Name = null;
                 x.Status = null;
+                x.TrustStatusViewModelString = null;
             });
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -523,6 +524,10 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ((string[])validationErrors["Providers"])[3]
                 .Should()
                 .Be($"No status specified for '{providerVersionViewModel.Providers.First().Name}' was provided to UploadProviderVersion");
+
+            ((string[])validationErrors["Providers"])[4]
+                .Should()
+                .Be($"No trust status specified for '{providerVersionViewModel.Providers.First().Name}' was provided to UploadProviderVersion");
         }
 
         [TestMethod]
@@ -967,6 +972,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 Successor = "",
                 TrustName = "Trusts (name)",
                 TrustCode = "",
+                TrustStatusViewModelString = "Not applicable",
                 LocalAuthorityName = "LocalAuthorityName",
                 CompaniesHouseNumber = "CompaniesHouseNumber",
                 GroupIdNumber = "GroupIdNumber",
