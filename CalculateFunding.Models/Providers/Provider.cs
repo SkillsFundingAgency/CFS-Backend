@@ -14,8 +14,17 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("providerId")]
         public string ProviderId;
 
-        [JsonProperty("trustStatus")]
+        [JsonIgnore]
         public string TrustStatusViewModelString;
+
+        [JsonProperty("trustStatus")]
+        public string TrustStatusViewModelStringNotNullable
+        {
+            get
+            {
+                return !string.IsNullOrEmpty(TrustStatusViewModelString) ? TrustStatusViewModelString : TrustStatus.NotApplicable.ToString();
+            }
+        }
 
         [JsonProperty("name")]
         public string Name { get; set; }

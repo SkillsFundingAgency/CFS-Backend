@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "CalculateFunding.Generators.NavFeed": {
+      "commandName": "Project",
+      "commandLineArgs": "-v 2 -i \"C:\\Users\\Sinem\\Downloads\\dsg\\Data for CFS Oct UAT Version 1 file_Updated.csv\" -o \"C:\\Users\\Sinem\\Downloads\\dsg\\002\" -s File -p test-pipeline-1"
+    }
+  }
+}
