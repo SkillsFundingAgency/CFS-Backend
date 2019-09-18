@@ -14,6 +14,30 @@ namespace CalculateFunding.Services.CosmosDbScaling
     public class CosmosDbThrottledEventsFilterTests
     {
         [TestMethod]
+        public void GetUniqueCosmosDbCollectionNamesFromEventData_GivenEventsWhereStatusCodeDoesNotSupplied_ReturnsEmptyCollections()
+        {
+            //Arrange
+            EventData eventData1 = new EventData(Encoding.UTF8.GetBytes(""));
+            EventData eventData2 = new EventData(Encoding.UTF8.GetBytes(""));
+
+            IEnumerable<EventData> events = new[]
+            {
+                eventData1,
+                eventData2
+            };
+
+            CosmosDbThrottledEventsFilter cosmosDbThrottledEventsFilter = new CosmosDbThrottledEventsFilter();
+
+            //Act
+            IEnumerable<string> collections = cosmosDbThrottledEventsFilter.GetUniqueCosmosDbCollectionNamesFromEventData(events);
+
+            //Assert
+            collections
+                .Should()
+                .BeEmpty();
+        }
+        
+        [TestMethod]
         public void GetUniqueCosmosDbCollectionNamesFromEventData_GivenEventsWhereStatusCodeDoesNotExist_ReturnsEmptyCollections()
         {
             //Arrange
