@@ -47,6 +47,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Received(1)
                 .Error("Null published provider version supplied");
         }
+
         [TestMethod]
         public void IndexPublishedProvider_GivenSearchRepositoryCausesException_LogsAndThrowsException()
         {
@@ -87,7 +88,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task IndexPublishedProvider_GivenSearchRepositoryCausesException_NoExceptionThrownAsync()
+        public async Task IndexPublishedProvider_GivenSearchRepository_NoExceptionThrownAsync()
         {
             //Arrange           
             PublishedProviderVersion publishedProviderVersion = new PublishedProviderVersion
@@ -128,13 +129,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     d.First().FundingValue == publishedProviderVersion.TotalFunding &&
                     d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
                     d.First().FundingStreamIds.First() == "PSG" &&
-                    d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId
-                  
+                    d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId                  
               ));
         }
 
 
-public Provider GetProvider(int index)
+        public Provider GetProvider(int index)
         {
             return new Provider
             {
@@ -190,7 +190,6 @@ public Provider GetProvider(int index)
             return new PublishedProviderIndexerService(
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository()
-
                 );
         }
 
@@ -198,7 +197,5 @@ public Provider GetProvider(int index)
         {
             return Substitute.For<ISearchRepository<PublishedProviderIndex>>();
         }
-
-       
     }
 }
