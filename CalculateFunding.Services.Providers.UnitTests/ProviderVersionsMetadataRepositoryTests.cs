@@ -255,25 +255,25 @@ namespace CalculateFunding.Services.Providers.UnitTests
         [TestMethod]
         public async Task GetProviderVersions_ReturnsCorrectly()
         {
-            ProviderVersion pv1 = new ProviderVersion { Id = "1" };
-            ProviderVersion pv2 = new ProviderVersion { Id = "2" };
+            ProviderVersionMetadata pv1 = new ProviderVersionMetadata { ProviderVersionId = "1" };
+            ProviderVersionMetadata pv2 = new ProviderVersionMetadata { ProviderVersionId = "2" };
 
             //Arrange
-            IEnumerable<DocumentEntity<ProviderVersion>> providerVersions = new List<DocumentEntity<ProviderVersion>>
+            IEnumerable<DocumentEntity<ProviderVersionMetadata>> providerVersions = new List<DocumentEntity<ProviderVersionMetadata>>
             {
-                new DocumentEntity<ProviderVersion>(pv1),
-                new DocumentEntity<ProviderVersion>(pv2)
+                new DocumentEntity<ProviderVersionMetadata>(pv1),
+                new DocumentEntity<ProviderVersionMetadata>(pv2)
             };
 
             ICosmosRepository repository = Substitute.For<ICosmosRepository>();
             repository
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersion>, bool>>>())
+                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersionMetadata>, bool>>>())
                 .Returns(providerVersions);
 
             ProviderVersionsMetadataRepository providerVersionsMetadataRepository = new ProviderVersionsMetadataRepository(repository);
 
             //Act
-            IEnumerable<ProviderVersion> result = await providerVersionsMetadataRepository.GetProviderVersions("fundingStream");
+            IEnumerable<ProviderVersionMetadata> result = await providerVersionsMetadataRepository.GetProviderVersions("fundingStream");
 
             //Assert
             result
@@ -281,7 +281,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Should()
                 .Be(providerVersions.Count());
 
-            foreach (ProviderVersion pv in providerVersions.Select(x => x.Content))
+            foreach (ProviderVersionMetadata pv in providerVersions.Select(x => x.Content))
             {
                 result
                     .Count(x => x.Id == pv.Id)
@@ -292,7 +292,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             //TODO test gap around the lambda filter expressions going to cosmos
             await repository
                 .Received(1)
-                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersion>, bool>>>());
+                .GetAllDocumentsAsync(query: Arg.Any<Expression<Func<DocumentEntity<ProviderVersionMetadata>, bool>>>());
         }
 
         [TestMethod]

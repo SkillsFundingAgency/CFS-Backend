@@ -122,7 +122,7 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<IActionResult> GetProviderVersions(string fundingStream)
         {
-            IEnumerable<ProviderVersion> providerVersions = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.GetProviderVersions(fundingStream));
+            IEnumerable<ProviderVersionMetadata> providerVersions = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.GetProviderVersions(fundingStream));
 
             if(providerVersions != null)
             {

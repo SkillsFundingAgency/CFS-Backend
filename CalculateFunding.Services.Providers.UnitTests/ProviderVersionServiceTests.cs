@@ -712,6 +712,58 @@ namespace CalculateFunding.Services.Providers.UnitTests
         }
 
         [TestMethod]
+        public async Task GetProviderVersions_WhenAFundingStreamProvided_ProviderVersionsReturned()
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            string fundingStream = "funndingStream1";
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            providerVersionsMetadataRepository
+                .GetProviderVersions(Arg.Is<string>(fundingStream))
+                .Returns<IEnumerable<ProviderVersionMetadata>>(new ProviderVersionMetadata[] { new ProviderVersionMetadata { FundingStream = fundingStream, ProviderVersionId = providerVersionViewModel.ProviderVersionId } });
+
+            IProviderVersionService providerService = CreateProviderVersionService(providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act
+            IActionResult result = await providerService.GetProviderVersions(fundingStream);
+
+            result
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeAssignableTo<IEnumerable<ProviderVersionMetadata>>();
+        }
+
+        [TestMethod]
+        public async Task GetProviderVersions_WhenAFundingStreamWithNoProviderVersionAssociated_NotFoundReturned()
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            string fundingStream = "funndingStream1";
+
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            providerVersionsMetadataRepository
+                .GetProviderVersions(Arg.Is<string>(fundingStream))
+                .Returns(Task.FromResult<IEnumerable<ProviderVersionMetadata>>(null));
+
+            IProviderVersionService providerService = CreateProviderVersionService(providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act
+            IActionResult result = await providerService.GetProviderVersions(fundingStream);
+
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+        }
+
+        [TestMethod]
         [DataRow(12, 12, 2019)]
         public async Task GetAllProviders_WhenADateIsSetAgainstProviderVersion_ProviderListReturned(int day, int month, int year)
         {
