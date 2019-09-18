@@ -28,7 +28,8 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
         [FunctionName("on-publishing-refresh-funding")]
         public async Task Run([ServiceBusTrigger(
             ServiceBusConstants.QueueNames.PublishingRefreshFunding,
-            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey,
+            IsSessionsEnabled = true)] Message message)
         {
             try
             {
