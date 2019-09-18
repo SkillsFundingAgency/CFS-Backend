@@ -108,13 +108,13 @@ namespace CalculateFunding.Api.Results
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>((ctx) =>
                            {
                                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
-               
+
                                Configuration.Bind("CosmosDbSettings", calssDbSettings);
-               
+
                                calssDbSettings.CollectionName = "calculationresults";
-               
+
                                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
-               
+
                                return new CalculationResultsRepository(calcsCosmosRepostory);
                            });
 
@@ -214,7 +214,7 @@ namespace CalculateFunding.Api.Results
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Results");
+            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Results");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Results");
             builder.AddLogging("CalculateFunding.Api.Results");
             builder.AddTelemetry();

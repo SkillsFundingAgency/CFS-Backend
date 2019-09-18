@@ -82,7 +82,7 @@ namespace CalculateFunding.Api.Jobs
 
             builder.
                 AddSingleton<IValidator<CreateJobValidationModel>, CreateJobValidator>();
-  
+
             builder
                  .AddSingleton<IJobDefinitionsRepository, JobDefinitionsRepository>((ctx) =>
                  {
@@ -115,7 +115,7 @@ namespace CalculateFunding.Api.Jobs
 
             builder.AddSingleton(mappingConfig.CreateMapper());
 
-            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Jobs");
+            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Jobs");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Jobs");
             builder.AddLogging("CalculateFunding.Api.Jobs");
             builder.AddTelemetry();

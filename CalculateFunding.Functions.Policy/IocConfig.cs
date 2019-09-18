@@ -88,7 +88,7 @@ namespace CalculateFunding.Functions.Policy
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsights(config, "CalculateFunding.Functions.Policy");
+            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Policy");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Policy");
 
             builder.AddLogging("CalculateFunding.Functions.Policy");

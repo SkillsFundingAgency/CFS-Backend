@@ -230,7 +230,7 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IJobHelperService, JobHelperService>();
 
-            builder.AddApplicationInsights(config, "CalculateFunding.Functions.Publishing");
+            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Publishing");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Publishing");
 
             builder.AddLogging("CalculateFunding.Functions.Publishing");

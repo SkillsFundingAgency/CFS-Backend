@@ -150,7 +150,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsights(config, "CalculateFunding.Functions.CalcEngine");
+            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.CalcEngine");
 
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.CalcEngine");
 

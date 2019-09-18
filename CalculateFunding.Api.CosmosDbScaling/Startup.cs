@@ -1,28 +1,23 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.WebApi.Extensions;
+using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Models.CosmosDbScaling;
+using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
+using CalculateFunding.Services.Core.Options;
+using CalculateFunding.Services.CosmosDbScaling;
+using CalculateFunding.Services.CosmosDbScaling.Interfaces;
+using CalculateFunding.Services.CosmosDbScaling.Repositories;
+using CalculateFunding.Services.CosmosDbScaling.Validators;
+using FluentValidation;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
-using Serilog;
-using AutoMapper;
-using CalculateFunding.Common.CosmosDb;
-using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Models.CosmosDbScaling;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.CosmosDbScaling;
-using CalculateFunding.Services.CosmosDbScaling.Interfaces;
-using CalculateFunding.Services.CosmosDbScaling.Repositories;
-using Microsoft.AspNetCore.Http;
-using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.AspNet;
-using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Common.WebApi.Extensions;
-using CalculateFunding.Services.CosmosDbScaling.Validators;
-using FluentValidation;
-using System;
 
 namespace CalculateFunding.API.CosmosDbScaling
 {
@@ -69,7 +64,7 @@ namespace CalculateFunding.API.CosmosDbScaling
 
         public void RegisterComponents(IServiceCollection builder)
         {
-           
+
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddSingleton<ICosmosDbScalingService, CosmosDbScalingService>();
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();
@@ -96,7 +91,7 @@ namespace CalculateFunding.API.CosmosDbScaling
             builder.AddServiceBus(Configuration);
             builder.AddSearch(Configuration);
             builder.AddCaching(Configuration);
-            builder.AddJobsInterServiceClient(Configuration);     
+            builder.AddJobsInterServiceClient(Configuration);
             builder.AddPolicySettings(Configuration);
             builder.AddSingleton<ICosmosDbScalingResiliencePolicies>(m =>
             {
@@ -115,7 +110,7 @@ namespace CalculateFunding.API.CosmosDbScaling
                 return resiliencePolicies;
             });
 
-            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.CosmosDbScaling");
+            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.CosmosDbScaling");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.CosmosDbScaling");
             builder.AddLogging("CalculateFunding.Apis.CosmosDbScaling");
             builder.AddTelemetry();

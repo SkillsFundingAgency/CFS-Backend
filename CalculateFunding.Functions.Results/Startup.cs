@@ -230,7 +230,7 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddCaching(config);
 
-            builder.AddApplicationInsights(config, "CalculateFunding.Functions.Results");
+            builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Results");
             builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Results");
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();

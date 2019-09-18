@@ -29,7 +29,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
-using TemplateMetadataSchema10 = CalculateFunding.Common.TemplateMetadata.Schema10;
 
 namespace CalculateFunding.Api.Specs
 {
@@ -114,12 +113,6 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
 
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-
-            builder.AddSingleton<ICosmosRepository, CosmosRepository>();
-
             builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
             {
                 CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
@@ -176,11 +169,11 @@ namespace CalculateFunding.Api.Specs
                 {
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                    CalcsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
 
-            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Specs");
+            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Specs");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Apis.Specs");
             builder.AddLogging("CalculateFunding.Apis.Specs");
             builder.AddTelemetry();

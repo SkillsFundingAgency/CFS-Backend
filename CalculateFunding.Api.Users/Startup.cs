@@ -134,7 +134,7 @@ namespace CalculateFunding.Api.Users
 
             builder.AddCaching(Configuration);
 
-            builder.AddApplicationInsights(Configuration, "CalculateFunding.Api.Users");
+            builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.Users");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.Users");
             builder.AddLogging("CalculateFunding.Api.Users");
             builder.AddTelemetry();
