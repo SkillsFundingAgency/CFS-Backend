@@ -126,7 +126,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     d.First().FundingStatus == publishedProviderVersion.Status.ToString() &&
                     d.First().ProviderName == publishedProviderVersion.Provider.Name &&
                     d.First().UKPRN == publishedProviderVersion.Provider.UKPRN &&
-                    d.First().FundingValue == publishedProviderVersion.TotalFunding &&
+                    d.First().FundingValue == Convert.ToDouble(publishedProviderVersion.TotalFunding) &&
                     d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
                     d.First().FundingStreamIds.First() == "PSG" &&
                     d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId                  

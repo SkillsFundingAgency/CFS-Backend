@@ -55,7 +55,7 @@
   "fundingStreamCode": "PSG",
   "fundingPeriodId": "AY-1920",
   "fundingValue": {
-    "totalValue": 5050000,
+    "totalValue": 5050000.0,
     "fundingLines": [
       {
         "name": "Total funding line",

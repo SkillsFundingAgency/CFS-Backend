@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
+using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using StackExchange.Redis;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 
 namespace CalculateFunding.Services.Publishing
@@ -85,7 +87,11 @@ namespace CalculateFunding.Services.Publishing
 
         private Common.TemplateMetadata.Models.Calculation ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, Common.ApiClient.Calcs.Models.TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
         {
-            calculation.Value = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId))?.Value;
+            decimal? calculationResultValue = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId))?.Value;
+            
+            calculation.Value = calculation.Type == CalculationType.Cash && calculationResultValue.HasValue 
+                ? (object) Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero) 
+                :  calculationResultValue;
 
             calculation.Calculations = calculation.Calculations?.Select(_ => ToCalculation(_, mapping, calculationResults));
 

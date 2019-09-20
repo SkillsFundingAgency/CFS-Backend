@@ -82,12 +82,12 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("referenceData")]
         public IEnumerable<FundingReferenceData> ReferenceData { get; set; }
-
+        
         /// <summary>
-        /// Total funding for this provider in pence
+        /// Total funding for this provider in pounds and pence
         /// </summary>
         [JsonProperty("totalFunding")]
-        public int TotalFunding { get; set; }
+        public decimal TotalFunding { get; set; }
 
         /// <summary>
         /// Major version

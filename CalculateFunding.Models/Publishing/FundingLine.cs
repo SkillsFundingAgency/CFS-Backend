@@ -30,7 +30,7 @@ namespace CalculateFunding.Models.Publishing
         public string FundingLineCode { get; set; }
 
         /// <summary>
-        /// The funding value in pence.
+        /// The funding value in pounds and pence.
         /// </summary>
         [JsonProperty("value")]
         public decimal Value { get; set; }

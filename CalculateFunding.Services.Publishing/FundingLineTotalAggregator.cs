@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.TemplateMetadata.Enums;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Generators.Funding;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 using TemplateModels = CalculateFunding.Common.TemplateMetadata.Models;
+using ApiCalculationType = CalculateFunding.Common.TemplateMetadata.Enums.CalculationType;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -47,7 +49,12 @@ namespace CalculateFunding.Services.Publishing
 
         private Common.TemplateMetadata.Models.Calculation ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
         {
-            calculation.Value = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId))?.Value;
+            CalculationResult calculationResult = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId));
+            decimal? calculationResultValue = calculationResult?.Value;
+            
+            calculation.Value = calculation.Type == ApiCalculationType.Cash && calculationResultValue.HasValue 
+                ? (object) Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero) 
+                :  calculationResultValue;
 
             calculation.Calculations = calculation.Calculations?.Select(_ => ToCalculation(_, mapping, calculationResults));
 

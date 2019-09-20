@@ -164,7 +164,7 @@ namespace CalculateFunding.Generators.Schema10
             {
                 calculation.Name,
                 calculation.TemplateCalculationId,
-                Value = string.Format("{0:0}", calculationResults.Where(x => x.TemplateCalculationId == calculation.TemplateCalculationId)?.Single().Value),
+                Value = $"{calculationResults.Where(x => x.TemplateCalculationId == calculation.TemplateCalculationId)?.Single().Value}",
                 ValueFormat = calculation.ValueFormat.ToString(),
                 Type = calculation.Type.ToString(),
                 calculation.FormulaText,
@@ -181,7 +181,7 @@ namespace CalculateFunding.Generators.Schema10
                 referenceData.Name,
                 referenceData.TemplateReferenceId,
                 Format = referenceData.Format.ToString(),
-                Value = string.Format("{0:0}", fundingReferenceData.Value),
+                Value = $"{fundingReferenceData.Value}",
                 AggregationType = referenceData.AggregationType.ToString()
             };
         }

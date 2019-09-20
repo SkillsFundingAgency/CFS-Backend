@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Publishing
                 FundingStatus = publishedProviderVersion.Status.ToString(),
                 ProviderName = publishedProviderVersion.Provider.Name,                
                 UKPRN = publishedProviderVersion.Provider.UKPRN,               
-                FundingValue = publishedProviderVersion.TotalFunding,
+                FundingValue = Convert.ToDouble(publishedProviderVersion.TotalFunding),
                 SpecificationId = publishedProviderVersion.SpecificationId,
                 FundingStreamIds = new string[]{ publishedProviderVersion.FundingStreamId },
                 FundingPeriodId = publishedProviderVersion.FundingPeriodId
