@@ -327,7 +327,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
         }
-        
+
         [TestMethod]
         public async Task SaveFundingPeriod_GivenWellFormedYamlWasProvidedButFailsCustomValidation_ReturnsBadRequest()
         {
@@ -353,7 +353,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
             ILogger logger = CreateLogger();
             IFundingPeriodValidator fundingPeriodValidator = Substitute.For<IFundingPeriodValidator>();
             fundingPeriodValidator.Validate(Arg.Any<FundingPeriod>())
-                .Returns(new ValidationResult(new[] {new ValidationFailure("anything", "anything")}));
+                .Returns(new ValidationResult(new[] { new ValidationFailure("anything", "anything") }));
 
             FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, fundingPeriodValidator: fundingPeriodValidator);
 
@@ -448,7 +448,9 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             IPolicyRepository policyRepository = CreatePolicyRepository();
 
-            FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository);
+            ICacheProvider cacheProvider = CreateCacheProvider();
+
+            FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository, cacheProvider: cacheProvider);
 
             //Act
             IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
@@ -466,6 +468,10 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 policyRepository
                     .Received(1)
                     .SaveFundingPeriods(Arg.Is<FundingPeriod[]>(m => m.Count() == 4));
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<FundingPeriod[]>(CacheKeys.FundingPeriods);
         }
 
         private static FundingPeriodService CreateFundingPeriodService(
@@ -488,7 +494,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             fundingPeriodValidator.Validate(Arg.Any<FundingPeriod>())
                 .Returns(new ValidationResult());
-            
+
             return fundingPeriodValidator;
         }
 

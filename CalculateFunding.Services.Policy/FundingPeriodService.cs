@@ -10,7 +10,6 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
@@ -32,7 +31,7 @@ namespace CalculateFunding.Services.Policy
         public FundingPeriodService(ILogger logger,
             ICacheProvider cacheProvider,
             IPolicyRepository policyRepository,
-            IPolicyResiliencePolicies policyResiliencePolicies, 
+            IPolicyResiliencePolicies policyResiliencePolicies,
             IFundingPeriodValidator fundingPeriodValidator)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -121,8 +120,8 @@ namespace CalculateFunding.Services.Policy
             }
 
             IDeserializer deserializer = new DeserializerBuilder()
-                .WithNodeDeserializer(inner => new FundingPeriodValidatingYamlNodeDeserialiser(inner, _fundingPeriodValidator), 
-                    _ => _.InsteadOf<ObjectNodeDeserializer>() )
+                .WithNodeDeserializer(inner => new FundingPeriodValidatingYamlNodeDeserialiser(inner, _fundingPeriodValidator),
+                    _ => _.InsteadOf<ObjectNodeDeserializer>())
                 .WithNamingConvention(new CamelCaseNamingConvention())
                 .Build();
 
@@ -141,12 +140,12 @@ namespace CalculateFunding.Services.Policy
             try
             {
                 FundingPeriod[] fundingPeriods = fundingPeriodsYamlModel.FundingPeriods;
-                
+
                 if (!fundingPeriods.IsNullOrEmpty())
                 {
                     await _policyRepositoryPolicy.ExecuteAsync(() => _policyRepository.SaveFundingPeriods(fundingPeriods));
 
-                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.SetAsync(CacheKeys.FundingPeriods, fundingPeriods));
+                    await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.RemoveAsync<FundingPeriod[]>(CacheKeys.FundingPeriods));
 
                     _logger.Information($"Upserted {fundingPeriods.Length} funding periods into cosomos");
                 }
