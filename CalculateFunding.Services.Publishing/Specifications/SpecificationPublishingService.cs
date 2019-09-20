@@ -110,7 +110,6 @@ namespace CalculateFunding.Services.Publishing.Specifications
         public async Task<IActionResult> ApproveSpecification(string action,
             string controller,
             string specificationId,
-            HttpRequest request,
             Reference user,
             string correlationId)
         {
@@ -130,24 +129,12 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return new NotFoundResult();
             }
 
-            string json = await request.GetRawBodyStringAsync();
-
-            SpecificationApprovalModel approvalModel = JsonConvert.DeserializeObject<SpecificationApprovalModel>(json);
-
-            Guard.IsNullOrWhiteSpace(approvalModel.FundingStreamId, nameof(approvalModel.FundingStreamId));
-
             if (!specificationSummary.IsSelectedForFunding)
             {
                 return new PreconditionFailedResult($"Specification with id : {specificationId} has not been selected for funding");
             }
 
-            string cacheKey = $"{CacheKeys.ApproveFundingForSpecification}{specificationId}:{Guid.NewGuid()}";
-
-            await _cacheProvider.CreateListAsync<string>(approvalModel.Providers, cacheKey);
-
-            Dictionary<string, string> properties = new Dictionary<string, string> { { "fundingStreamId", approvalModel.FundingStreamId }, { "cacheKey", cacheKey } };
-
-            ApiJob job = await _approveFundingJobs.CreateJob(specificationId, user, correlationId, properties, json);
+            ApiJob job = await _approveFundingJobs.CreateJob(specificationId, user, correlationId);
 
             if (job != null)
             {

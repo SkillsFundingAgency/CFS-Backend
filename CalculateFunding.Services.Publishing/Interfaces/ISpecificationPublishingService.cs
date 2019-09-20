@@ -14,7 +14,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IActionResult> ApproveSpecification(string action,
             string controller,
             string specificationId,
-            HttpRequest request,
             Reference user,
             string correlationId);
 

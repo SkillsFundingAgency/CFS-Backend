@@ -28,7 +28,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         private ICreateJobsForSpecifications<ApproveFundingJobDefinition> _approvalJobs;
         private ICacheProvider _cacheProvider;
         private ISpecificationFundingStatusService _specificationFundingStatusService;
-        private bool _cacheCalled;
 
         [TestInitialize]
         public void SetUp()
@@ -179,13 +178,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             GivenTheApiResponseDetailsForTheSuppliedId(specificationSummary);
             AndTheApiResponseDetailsForApprovalJob(approveFundingJob);
-            AndTheProvidersShouldBeCached();
 
             await WhenTheSpecificationIsApproved();
-
-            _cacheCalled
-                .Should()
-                .Be(true);
 
             ThenTheResponseShouldBe<AcceptedAtActionResult>(_ => _.RouteValues["specificationId"].ToString() == SpecificationId && ReferenceEquals(_.Value, approveFundingJob));
         }
@@ -238,30 +232,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             ActionResult = await _service.CreateRefreshFundingJob(SpecificationId, User, CorrelationId);
         }
 
-        private void AndTheProvidersShouldBeCached()
-        {
-            _cacheProvider.When(x => x.CreateListAsync<string>(Arg.Is<IEnumerable<string>>(providers => providers.SequenceEqual(CreateApprovalModel.Providers)), Arg.Any<string>()))
-                .Do(y => _cacheCalled = true);
-        }
-
         private void AndTheApiResponseDetailsForApprovalJob(ApiJob job)
         {
-            _approvalJobs.CreateJob(SpecificationId, User, CorrelationId, Arg.Is<Dictionary<string, string>>(x => x["fundingStreamId"] == CreateApprovalModel.FundingStreamId) , JsonConvert.SerializeObject(CreateApprovalModel))
+            _approvalJobs.CreateJob(SpecificationId, User, CorrelationId, null, null)
                 .Returns(job);
         }
 
         private async Task WhenTheSpecificationIsApproved()
         {
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            
-            byte[] byteArray = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(CreateApprovalModel));
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            request.Body
-                .Returns(stream);
-
-            ActionResult = await _service.ApproveSpecification("", "", SpecificationId, request, User, CorrelationId);
+            ActionResult = await _service.ApproveSpecification("", "", SpecificationId, User, CorrelationId);
         }
 
         private void AndTheApiResponseDetailsForTheFundingPeriodId(string fundingPeriodId,

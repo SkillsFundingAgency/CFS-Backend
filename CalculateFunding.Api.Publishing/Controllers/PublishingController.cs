@@ -62,7 +62,6 @@ namespace CalculateFunding.Api.Publishing.Controllers
                 nameof(ApproveSpecification),
                 controllerName,
                 specificationId,
-                ControllerContext.HttpContext.Request,
                 Request.GetUser(),
                 Request.GetCorrelationId());
         }
