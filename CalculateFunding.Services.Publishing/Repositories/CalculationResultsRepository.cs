@@ -39,13 +39,13 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             IEnumerable<ProviderCalculationResult> providerResultSummaries = _cosmosRepository
-                .DynamicQueryPartionedEntity<ProviderCalculationResult>(new SqlQuerySpec
+                .DynamicQuery<ProviderCalculationResult>(new SqlQuerySpec
                 {
                     QueryText = @"
 SELECT
 	    doc.content.id AS providerId,
 	    ARRAY(  SELECT calcResult.calculation.id,
-	                   calcResult.value 
+	                   calcResult['value']
 	            FROM   calcResult IN doc.content.calcResults) AS Results
 FROM 	doc
 WHERE   doc.documentType='ProviderResult'
@@ -54,7 +54,7 @@ AND     doc.content.specificationId = @specificationId",
                     {
                         new SqlParameter("@specificationId", specificationId)
                     }
-                })
+                }, true)
                 .ToList();
 
             return Task.FromResult(providerResultSummaries);

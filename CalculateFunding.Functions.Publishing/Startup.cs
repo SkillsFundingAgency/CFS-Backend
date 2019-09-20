@@ -240,9 +240,12 @@ namespace CalculateFunding.Functions.Publishing
             PolicySettings policySettings = builder.GetPolicySettings(config);
             ResiliencePolicies publishingResiliencePolicies = CreateResiliencePolicies(policySettings);
 
+           
             builder.AddPublishingServices(config);
 
             builder.AddSingleton<IPublishingResiliencePolicies>(publishingResiliencePolicies);
+
+            builder.AddSingleton<IJobHelperResiliencePolicies>(publishingResiliencePolicies);
 
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
@@ -318,6 +321,7 @@ namespace CalculateFunding.Functions.Publishing
                 SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PublishedFundingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;

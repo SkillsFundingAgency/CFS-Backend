@@ -15,36 +15,6 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Results
     {
-        [FunctionName("on-provider-results-published")]
-        public static async Task RunPublishProviderResults([QueueTrigger(ServiceBusConstants.QueueNames.PublishProviderResults, Connection = "AzureConnectionString")] string item, ILogger log)
-        {
-            using (IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<string>(item);
-
-                OnProviderResultsPublishedEvent function = scope.ServiceProvider.GetService<OnProviderResultsPublishedEvent>();
-
-                await function.Run(message);
-
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
-        }
-
-        [FunctionName("on-provider-results-published-poisoned")]
-        public static async Task RunPublishProviderResultsPoisoned([QueueTrigger(ServiceBusConstants.QueueNames.PublishProviderResultsPoisonedLocal, Connection = "AzureConnectionString")] string item, ILogger log)
-        {
-            using (IServiceScope scope = Functions.Results.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
-            {
-                Message message = Helpers.ConvertToMessage<IEnumerable<FetchProviderProfilingMessageItem>>(item);
-
-                OnProviderResultsPublishedFailure function = scope.ServiceProvider.GetService<OnProviderResultsPublishedFailure>();
-
-                await function.Run(message);
-
-                log.LogInformation($"C# Queue trigger function processed: {item}");
-            }
-        }
-
         [FunctionName("on-fetch-provider-profile")]
         public static async Task RunFetchProviderProfile([QueueTrigger(ServiceBusConstants.QueueNames.FetchProviderProfile, Connection = "AzureConnectionString")] string item, ILogger log)
         {

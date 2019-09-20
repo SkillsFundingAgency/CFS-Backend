@@ -91,18 +91,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
 
         private void GivenTheSqlQueryResultsForSpecificationResults(string specificationId, params ProviderCalculationResult[] results)
         {
-            _cosmosRepository.DynamicQueryPartionedEntity<ProviderCalculationResult>(Arg.Is<SqlQuerySpec>(sql =>
+            _cosmosRepository.DynamicQuery<ProviderCalculationResult>(Arg.Is<SqlQuerySpec>(sql =>
                     sql.QueryText == @"
 SELECT
 	    doc.content.id AS providerId,
 	    ARRAY(  SELECT calcResult.calculation.id,
-	                   calcResult.value 
+	                   calcResult['value']
 	            FROM   calcResult IN doc.content.calcResults) AS Results
 FROM 	doc
 WHERE   doc.documentType='ProviderResult'
 AND     doc.content.specificationId = @specificationId" &&
                     sql.Parameters.First().Name == "@specificationId" &&
-                    sql.Parameters.First().Value == specificationId))
+                    sql.Parameters.First().Value == specificationId), Arg.Is(true))
                 .Returns(results.AsQueryable());
         }
 

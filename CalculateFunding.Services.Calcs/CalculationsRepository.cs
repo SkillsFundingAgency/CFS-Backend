@@ -176,7 +176,7 @@ namespace CalculateFunding.Services.Calcs
                                     c.content.current.description as Description,
                                     c.content.current.publishStatus as PublishStatus
                                     FROM c 
-                                    WHERE c.content.specificationId = @SpecificationId",
+                                    WHERE c.content.specificationId = @SpecificationId and c.documentType = 'Calculation'",
                 Parameters = new SqlParameterCollection
                 {
                     new SqlParameter("@SpecificationId", specificationId)
