@@ -30,6 +30,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
+using static CalculateFunding.Services.Core.Constants.JobConstants;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -50,6 +51,7 @@ namespace CalculateFunding.Services.Calcs
         private readonly Polly.Policy _datasetRepositoryPolicy;
         private readonly IBuildProjectsRepository _buildProjectsRepository;
         private readonly Polly.Policy _buildProjectsRepositoryPolicy;
+        private readonly ICalculationEngineRunningChecker _calculationEngineRunningChecker;
 
         public BuildProjectsService(
             ILogger logger,
@@ -64,7 +66,8 @@ namespace CalculateFunding.Services.Calcs
             EngineSettings engineSettings,
             ISourceCodeService sourceCodeService,
             IDatasetRepository datasetRepository,
-            IBuildProjectsRepository buildProjectsRepository)
+            IBuildProjectsRepository buildProjectsRepository,
+            ICalculationEngineRunningChecker calculationEngineRunningChecker)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
@@ -79,6 +82,7 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
+            Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
 
             _logger = logger;
             _telemetry = telemetry;
@@ -95,6 +99,7 @@ namespace CalculateFunding.Services.Calcs
             _datasetRepositoryPolicy = resiliencePolicies.DatasetsRepository;
             _buildProjectsRepository = buildProjectsRepository;
             _buildProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepositoryPolicy;
+            _calculationEngineRunningChecker = calculationEngineRunningChecker;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -487,6 +492,13 @@ namespace CalculateFunding.Services.Calcs
 
         private async Task<IEnumerable<Job>> CreateGenerateAllocationJobs(JobViewModel parentJob, IEnumerable<IDictionary<string, string>> jobProperties)
         {
+            bool calculationEngineRunning = await _calculationEngineRunningChecker.IsCalculationEngineRunning(parentJob.SpecificationId, new string[] { DefinitionNames.RefreshFundingJob });
+
+            if (calculationEngineRunning)
+            {
+                throw new Exception($"Can not create job for specification: {parentJob.SpecificationId} as there is an existing Refresh Funding Job running for it. Please wait for that job to finish.");
+            }
+
             HashSet<string> calculationsToAggregate = new HashSet<string>();
 
             if (parentJob.JobDefinitionId == JobConstants.DefinitionNames.CreateInstructGenerateAggregationsAllocationJob)

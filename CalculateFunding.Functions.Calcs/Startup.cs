@@ -94,6 +94,8 @@ namespace CalculateFunding.Functions.Calcs
             builder
                .AddSingleton<IDatasetDefinitionFieldChangesProcessor, DatasetDefinitionFieldChangesProcessor>();
 
+            builder.AddSingleton<ICalculationEngineRunningChecker, CalculationEngineRunningChecker>();
+
             builder.AddSingleton<IValidator<CalculationCreateModel>, CalculationCreateModelValidator>();
 
             builder

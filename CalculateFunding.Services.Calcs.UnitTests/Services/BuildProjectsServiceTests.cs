@@ -2073,6 +2073,105 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
+        public async Task UpdateAllocations_GivenRefreshFundingJobIsRunning_JobNotRun()
+        {
+            //Arrange
+            EngineSettings engineSettings = CreateEngineSettings();
+            engineSettings.MaxPartitionSize = 1;
+
+            IEnumerable<ProviderSummary> providerSummaries = new[]
+            {
+                new ProviderSummary{ Id = "1" },
+                new ProviderSummary{ Id = "2" },
+                new ProviderSummary{ Id = "3" },
+                new ProviderSummary{ Id = "4" },
+                new ProviderSummary{ Id = "5" },
+                new ProviderSummary{ Id = "6" },
+                new ProviderSummary{ Id = "7" },
+                new ProviderSummary{ Id = "8" },
+                new ProviderSummary{ Id = "9" },
+                new ProviderSummary{ Id = "10" }
+            };
+
+            string parentJobId = "job-id-1";
+
+            string specificationId = "test-spec1";
+
+            JobViewModel parentJob = new JobViewModel
+            {
+                Id = parentJobId,
+                InvokerUserDisplayName = "Username",
+                InvokerUserId = "UserId",
+                SpecificationId = specificationId,
+                CorrelationId = "correlation-id-1"
+            };
+
+            ApiResponse<JobViewModel> jobViewModelResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, parentJob);
+
+            string cacheKey = $"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}";
+
+            BuildProject buildProject = new BuildProject
+            {
+                SpecificationId = specificationId,
+                Id = Guid.NewGuid().ToString(),
+                Name = specificationId
+            };
+
+            Message message = new Message(Encoding.UTF8.GetBytes(""));
+            message.UserProperties.Add("jobId", "job-id-1");
+            message.UserProperties.Add("specification-id", specificationId);
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            cacheProvider
+                .KeyExists<ProviderSummary>(Arg.Is(cacheKey))
+                .Returns(true);
+
+            cacheProvider
+                .ListLengthAsync<ProviderSummary>(cacheKey)
+                .Returns(10);
+
+            IEnumerable<string> providerIds = providerSummaries.Select(m => m.Id);
+
+            cacheProvider
+                .ListRangeAsync<ProviderSummary>(Arg.Is(cacheKey), Arg.Is(0), Arg.Is(10))
+                .Returns(providerSummaries);
+
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
+            jobsApiClient
+                .GetJobById(Arg.Is(parentJobId))
+                .Returns(jobViewModelResponse);
+
+            jobsApiClient
+                .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
+                .Returns(CreateJobs());
+
+            ILogger logger = CreateLogger();
+
+            IProvidersApiClient providersApiClient = CreateProvidersApiClient();
+            providersApiClient
+                .GetScopedProviderIds(Arg.Is(specificationId))
+                .Returns(new ApiResponse<IEnumerable<string>>(HttpStatusCode.OK, providerIds));
+
+            ICalculationEngineRunningChecker calculationEngineRunningChecker = CreateCalculationEngineRunningChecker();
+            calculationEngineRunningChecker
+                .IsCalculationEngineRunning(specificationId, Arg.Any<IEnumerable<string>>())
+                .Returns(true);
+
+            BuildProjectsService buildProjectsService = CreateBuildProjectsService(
+                logger: logger, cacheProvider: cacheProvider,
+                jobsApiClient: jobsApiClient, engineSettings: engineSettings, providersApiClient: providersApiClient,
+                calculationEngineRunningChecker: calculationEngineRunningChecker);
+
+            //Act
+            Func<Task> test = async () => await buildProjectsService.UpdateAllocations(message);
+
+            //Assert
+
+            test
+                .Should().ThrowExactly<Exception>();
+        }
+
+        [TestMethod]
         public async Task CompileAndSaveAssembly_GivenFeatureToggleIsDynamicBuildProjectEnabledIsOff_EnsuresUpdatesCosmos()
         {
             //Arrange
@@ -2216,7 +2315,8 @@ namespace CalculateFunding.Services.Calcs.Services
             EngineSettings engineSettings = null,
             ISourceCodeService sourceCodeService = null,
             IDatasetRepository datasetRepository = null,
-            IBuildProjectsRepository buildProjectsRepository = null)
+            IBuildProjectsRepository buildProjectsRepository = null,
+            ICalculationEngineRunningChecker calculationEngineRunningChecker = null)
         {
             return new BuildProjectsService(
                 logger ?? CreateLogger(),
@@ -2231,7 +2331,8 @@ namespace CalculateFunding.Services.Calcs.Services
                 engineSettings ?? CreateEngineSettings(),
                 sourceCodeService ?? CreateSourceCodeService(),
                 datasetRepository ?? CreateDatasetRepository(),
-                buildProjectsRepository ?? CreateBuildProjectRepository());
+                buildProjectsRepository ?? CreateBuildProjectRepository(),
+                calculationEngineRunningChecker ?? CreateCalculationEngineRunningChecker());
         }
 
         private static ISourceCodeService CreateSourceCodeService()
@@ -2314,6 +2415,11 @@ namespace CalculateFunding.Services.Calcs.Services
         private static IBuildProjectsRepository CreateBuildProjectRepository()
         {
             return Substitute.For<IBuildProjectsRepository>();
+        }
+
+        private static ICalculationEngineRunningChecker CreateCalculationEngineRunningChecker()
+        {
+            return Substitute.For<ICalculationEngineRunningChecker>();
         }
 
         private static IProvidersApiClient CreateProvidersApiClient()
