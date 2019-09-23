@@ -3,13 +3,13 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true
   },
-  "profiles": {    
+  "profiles": {
     "CalculateFunding.API.CosmosDbScaling": {
       "commandName": "Project",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "https://localhost:7013"
+      "applicationUrl": "https://localhost:7014"
     }
   }
 }
