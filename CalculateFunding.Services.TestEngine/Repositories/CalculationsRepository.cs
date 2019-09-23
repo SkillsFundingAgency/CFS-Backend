@@ -6,6 +6,7 @@ using CalculateFunding.Services.TestEngine.Interfaces;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
+    [Obsolete("Replace with common nuget API client")]
     public class CalculationsRepository : ICalculationsRepository
     {
         private readonly ICalcsApiClientProxy _apiClient;

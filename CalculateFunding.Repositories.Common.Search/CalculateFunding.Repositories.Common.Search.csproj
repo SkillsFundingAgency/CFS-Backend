@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common" Version="1.34.0" />
-    <PackageReference Include="Microsoft.Azure.Search" Version="5.0.2" />
+    <PackageReference Include="Microsoft.Azure.Search" Version="10.0.0" />
     <PackageReference Include="Polly-Signed" Version="5.9.0" />
   </ItemGroup>
 

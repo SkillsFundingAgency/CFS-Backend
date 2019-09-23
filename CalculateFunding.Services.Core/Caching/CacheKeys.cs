@@ -68,7 +68,7 @@
 
         public static string CalculationAggregations { get; set; } = "calculation-aggregations:";
 
-        public static string ProviderVersionMeta { get; set; } = "provider-version-metadata";
+        public static string ProviderVersionMetadata { get; set; } = "provider-version-metadata";
 
         public static string MasterProviderVersion { get; set; } = "master-version-provider";
 

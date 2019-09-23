@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day);
         Task<MasterProviderVersion> GetMasterProviderVersion();
         Task<IActionResult> GetAllMasterProviders();
-        Task<IActionResult> GetProviderVersions(string fundingStream);
+        Task<IActionResult> GetProviderVersionsByFundingStream(string fundingStream);
         Task<ProviderVersion> GetProvidersByVersion(string providerVersionId, bool useCache = false);
         Task<IActionResult> GetAllProviders(string providerVersionId, bool useCache = false);
         Task<IActionResult> GetAllProviders(int year, int month, int day);
@@ -21,5 +21,6 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<IActionResult> UploadProviderVersion(string actionName, string controller, string providerVersionId, ProviderVersionViewModel providers);
         Task<bool> Exists(string providerVersionId);
         Task<bool> Exists(ProviderVersionViewModel providerVersionViewModel);
+        Task<IActionResult> GetProviderVersionMetadata(string providerVersionId);
     }
 }

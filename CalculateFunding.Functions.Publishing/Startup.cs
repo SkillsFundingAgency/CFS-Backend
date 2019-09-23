@@ -12,7 +12,6 @@ using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
@@ -180,9 +179,9 @@ namespace CalculateFunding.Functions.Publishing
 
             builder.AddSingleton<IInScopePublishedProviderService, InScopePublishedProviderService>();
 
-            builder.AddSingleton(new MapperConfiguration(_ => {
-                _.AddProfile<ProviderMappingProfilePublishing>();
-                _.AddProfile<GeneratorsMappingProfile>();
+            builder.AddSingleton(new MapperConfiguration(_ =>
+            {
+                _.AddProfile<PublishingServiceMappingProfile>();
             }).CreateMapper());
 
             builder.AddSingleton<IPublishedProviderDataPopulator, PublishedProviderDataPopulator>();
@@ -240,7 +239,7 @@ namespace CalculateFunding.Functions.Publishing
             PolicySettings policySettings = builder.GetPolicySettings(config);
             ResiliencePolicies publishingResiliencePolicies = CreateResiliencePolicies(policySettings);
 
-           
+
             builder.AddPublishingServices(config);
 
             builder.AddSingleton<IPublishingResiliencePolicies>(publishingResiliencePolicies);

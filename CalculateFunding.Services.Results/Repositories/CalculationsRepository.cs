@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
@@ -6,6 +7,7 @@ using CalculateFunding.Services.Results.Interfaces;
 
 namespace CalculateFunding.Services.Results.Repositories
 {
+    [Obsolete("Replace with common nuget API client")]
     public class CalculationsRepository : ICalculationsRepository
     {
         private const string calcsUrl = "calcs/calculation-by-id?calculationId=";

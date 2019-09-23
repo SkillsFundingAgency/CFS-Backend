@@ -5,9 +5,8 @@ namespace CalculateFunding.Api.External.V3.Services
 {
     public class ExternalApiResiliencePolicies : IExternalApiResiliencePolicies
     {
-        public Policy BlobRepositoryPolicy
-        {
-            get; set;
-        }
+        public Policy PublishedProviderBlobRepositoryPolicy { get; set; }
+
+        public Policy PublishedFundingBlobRepositoryPolicy { get; set; }
     }
 }

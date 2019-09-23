@@ -76,6 +76,18 @@ namespace CalculateFunding.Api.Providers.Controllers
         }
 
         /// <summary>
+        /// Get provider version metadata for the given providerVersionId key
+        /// </summary>
+        /// <param name="providerVersionId">Provider Version Id</param>
+        /// <returns></returns>
+        [HttpGet("api/providers/versions/{providerVersionId}/metadata")]
+        [ProducesResponseType(200, Type = typeof(ProviderVersionMetadata))]
+        public async Task<IActionResult> GetProviderVersionMetadata([FromRoute]string providerVersionId)
+        {
+            return await _providerVersionService.GetProviderVersionMetadata(providerVersionId);
+        }
+
+        /// <summary>
         /// Gets a single provider within a provider version
         /// </summary>
         /// <param name="providerVersionId">Provider Version Id</param>
@@ -92,7 +104,7 @@ namespace CalculateFunding.Api.Providers.Controllers
         [ProducesResponseType(200, Type = typeof(IEnumerable<ProviderVersion>))]
         public async Task<IActionResult> GetProviderVersions([FromRoute]string fundingStreamId)
         {
-            return await _providerVersionService.GetProviderVersions(fundingStreamId);
+            return await _providerVersionService.GetProviderVersionsByFundingStream(fundingStreamId);
         }
 
         /// <summary>

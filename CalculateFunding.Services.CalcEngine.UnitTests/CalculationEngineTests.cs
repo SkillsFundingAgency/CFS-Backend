@@ -57,7 +57,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             IAllocationModel allocationModel = Substitute.For<IAllocationModel>();
             allocationModel
                 .When(x => x.Execute(Arg.Any<List<ProviderSourceDataset>>(), Arg.Any<ProviderSummary>()))
-                .Do(x => { throw new Exception(); });
+                .Do(x => { throw new Exception("Test exception thrown"); });
 
             IAllocationFactory allocationFactory = Substitute.For<IAllocationFactory>();
             allocationFactory
@@ -74,7 +74,15 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             //Assert
             test
                 .Should()
-                .ThrowExactly<Exception>();
+                .ThrowExactly<AggregateException>()
+                .Which
+                .InnerException
+                .Should()
+                .BeOfType<Exception>()
+                .Which
+                .Message
+                .Should()
+                .Be("Test exception thrown");
         }
 
         [TestMethod]
@@ -157,7 +165,7 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
                 .CalculationResults
                 .Select(_ => _.Calculation.Id)
                 .Should()
-                .BeEquivalentTo(new[] {CalculationId, "calc2", "calc3"});
+                .BeEquivalentTo(new[] { CalculationId, "calc2", "calc3" });
         }
 
 

@@ -8,6 +8,7 @@ using CalculateFunding.Services.Scenarios.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios
 {
+    [Obsolete("Replace with common nuget API client")]
     public class CalcsRepository : ICalcsRepository
     {
         const string calculationsUrl = "calcs/current-calculations-for-specification?specificationId=";

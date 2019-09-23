@@ -26,6 +26,8 @@ namespace CalculateFunding.Api.External.UnitTests
             ResolveType<V3.Controllers.FundingFeedController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedController));
             ResolveType<V3.Controllers.FundingFeedItemController>().Should().NotBeNull(nameof(V3.Controllers.FundingFeedItemController));
             ResolveType<V3.Controllers.ProviderFundingVersionController>().Should().NotBeNull(nameof(V3.Controllers.ProviderFundingVersionController));
+            ResolveType<FundingFeedService>().Should().NotBeNull(nameof(FundingFeedService));
+            ResolveType<FeedItemPreLoader>().Should().NotBeNull(nameof(FeedItemPreLoader));
         }
 
         [TestMethod]
@@ -54,22 +56,7 @@ namespace CalculateFunding.Api.External.UnitTests
             {
                 { "SearchServiceName", "ss-t1te-cfs"},
                 { "SearchServiceKey", "test" },
-                { "CosmosDbSettings:CollectionName", "providerresults" },
-                { "CosmosDbSettings:DatabaseName", "calculate-funding" },
-                { "CosmosDbSettings:ConnectionString", "AccountEndpoint=https://test.documents.azure.com:443/;AccountKey=dGVzdA==;" },
                 { "AzureStorageSettings:ConnectionString", "DefaultEndpointsProtocol=https;AccountName=test;AccountKey=AccountKey=dGVzdA==;EndpointSuffix=core.windows.net" },
-                { "specificationsClient:ApiEndpoint", "https://localhost:7001/api/" },
-                { "specificationsClient:ApiKey", "Local" },
-                { "resultsClient:ApiEndpoint", "https://localhost:7005/api/" },
-                { "resultsClient:ApiKey", "Local" },
-                { "jobsClient:ApiKey", "Local" },
-                { "jobsClient:ApiEndpoint", "https://localhost:7010/api/" },
-                { "providerProfilingClient:ApiEndpoint", "https://funding-profiling/" },
-                { "providerProfilingAzureBearerTokenOptions:Url", "https://wahetever-token" },
-                { "providerProfilingAzureBearerTokenOptions:GrantType", "client_credentials" },
-                { "providerProfilingAzureBearerTokenOptions:Scope", "https://wahetever-scope" },
-                { "providerProfilingAzureBearerTokenOptions:ClientId", "client-id" },
-                { "providerProfilingAzureBearerTokenOptions:ClientSecret", "client-secret"},
             };
 
             return configData;

@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using CalculateFunding.Common.TemplateMetadata.Enums;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
 {

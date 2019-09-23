@@ -32,11 +32,11 @@ namespace CalculateFunding.Services.Providers
                 Name = nameof(ProviderVersionsMetadataRepository)
             };
             health.Dependencies.Add(new DependencyHealth
-                {
-                    HealthOk = Ok,
-                    DependencyName = _repository.GetType().GetFriendlyName(),
-                    Message = Message
-                });
+            {
+                HealthOk = Ok,
+                DependencyName = _repository.GetType().GetFriendlyName(),
+                Message = Message
+            });
 
             return health;
         }
@@ -91,6 +91,16 @@ namespace CalculateFunding.Services.Providers
 
             //HACK Ideally this would be done in the previous Linq query, but the operation needs to be case insensitive and the cosmos Linq provider doesn't support .ToLowerInvariant()
             return results.Any(r => r.Content.Name.ToLowerInvariant() == name.ToLowerInvariant());
+        }
+
+        public async Task<ProviderVersionMetadata> GetProviderVersionMetadata(string providerVersionId)
+        {
+            Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
+
+            string cosmosKey = $"providerVersion-{providerVersionId}";
+
+            IEnumerable<DocumentEntity<ProviderVersionMetadata>> providerVersions = await _repository.GetAllDocumentsAsync<ProviderVersionMetadata>(query: m => m.Id == cosmosKey);
+            return providerVersions?.Select(x => x.Content).FirstOrDefault();
         }
     }
 }

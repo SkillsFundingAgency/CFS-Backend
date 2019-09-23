@@ -10,7 +10,8 @@ namespace CalculateFunding.Api.External.UnitTests
         {
             return new ExternalApiResiliencePolicies()
             {
-                BlobRepositoryPolicy = Policy.NoOpAsync(),
+                PublishedProviderBlobRepositoryPolicy = Policy.NoOpAsync(),
+                PublishedFundingBlobRepositoryPolicy = Policy.NoOpAsync(),
             };
         }
     }

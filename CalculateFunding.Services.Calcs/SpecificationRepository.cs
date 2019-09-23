@@ -9,6 +9,7 @@ using CalculateFunding.Services.Core.Interfaces.Proxies;
 
 namespace CalculateFunding.Services.Calcs
 {
+    [Obsolete("Replace with common nuget API client")]
     public class SpecificationRepository : ISpecificationRepository
     {
         const string specsUrl = "specs/specification-summary-by-id?specificationId=";

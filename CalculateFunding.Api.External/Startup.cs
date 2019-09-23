@@ -1,25 +1,18 @@
 ﻿using System;
 using System.Linq;
-using AutoMapper;
 using CalculateFunding.Api.External.Middleware;
 using CalculateFunding.Api.External.Swagger;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
-using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
-using CalculateFunding.Common.WebApi.Middleware;
-using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Options;
-using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publising.Interfaces;
@@ -173,7 +166,7 @@ namespace CalculateFunding.Api.External
                 return settings;
             });
 
-            builder.AddSingleton<V3.Interfaces.IPublishedFundingRetrievalService>((ctx) =>
+            builder.AddSingleton<IPublishedFundingRetrievalService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
 
@@ -183,12 +176,12 @@ namespace CalculateFunding.Api.External
 
                 IBlobClient blobClient = new BlobClient(storageSettings);
 
-                IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
+                IExternalApiResiliencePolicies resiliencePolicies = ctx.GetService<IExternalApiResiliencePolicies>();
                 ILogger logger = ctx.GetService<ILogger>();
                 IFileSystemCache fileSystemCache = ctx.GetService<IFileSystemCache>();
                 IExternalApiFileSystemCacheSettings settings = ctx.GetService<IExternalApiFileSystemCacheSettings>();
 
-                return new PublishedFundingRetrievalService(blobClient, publishingResiliencePolicies, fileSystemCache, logger, settings);
+                return new PublishedFundingRetrievalService(blobClient, resiliencePolicies, fileSystemCache, logger, settings);
             });
 
             // Register dependencies
@@ -196,49 +189,17 @@ namespace CalculateFunding.Api.External
                 .AddSingleton<IFundingFeedSearchService, FundingFeedSearchService>()
                 .AddSingleton<IHealthChecker, FundingFeedSearchService>();
 
-            MapperConfiguration resultsConfig = new MapperConfiguration(c =>
-            {
-                c.AddProfile<DatasetsMappingProfile>();
-            });
-
-            builder
-                .AddSingleton(resultsConfig.CreateMapper());
-
-            builder.AddSingleton<IVersionRepository<SpecificationVersion>, VersionRepository<SpecificationVersion>>((ctx) =>
-            {
-                CosmosDbSettings specsVersioningDbSettings = new CosmosDbSettings();
-
-                Configuration.Bind("CosmosDbSettings", specsVersioningDbSettings);
-
-                specsVersioningDbSettings.CollectionName = "specs";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(specsVersioningDbSettings);
-
-                return new VersionRepository<SpecificationVersion>(resultsRepostory);
-            });
-
-            builder.AddUserProviderFromRequest();
-
             builder.AddSearch(Configuration);
-
-            builder.AddServiceBus(Configuration);
-
-            builder.AddCaching(Configuration);
 
             builder.AddApplicationInsightsForApiApp(Configuration, "CalculateFunding.Api.External");
             builder.AddApplicationInsightsTelemetryClient(Configuration, "CalculateFunding.Api.External");
             builder.AddLogging("CalculateFunding.Api.External");
             builder.AddTelemetry();
 
-            builder.AddSpecificationsInterServiceClient(Configuration);
-
-            builder.AddPolicySettings(Configuration);
 
             builder.AddHttpContextAccessor();
 
-            builder.AddJobsInterServiceClient(Configuration);
-
-            builder.AddLogging("CalculateFunding.Api.External");
+            builder.AddPolicySettings(Configuration);
 
             builder.AddSingleton<IPublishingResiliencePolicies>((ctx) =>
             {
@@ -253,7 +214,6 @@ namespace CalculateFunding.Api.External
                 };
             });
 
-
             builder.AddSingleton<IExternalApiResiliencePolicies>((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
@@ -262,15 +222,12 @@ namespace CalculateFunding.Api.External
 
                 return new ExternalApiResiliencePolicies()
                 {
-                    BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    PublishedProviderBlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
 
             builder.AddHealthCheckMiddleware();
-            builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
             builder.AddTransient<ContentTypeCheckMiddleware>();
-
-            builder.AddSingleton<IProviderFundingVersionService, ProviderFundingVersionService>();
 
             builder.AddSingleton<IProviderFundingVersionService>((ctx) =>
             {

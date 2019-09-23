@@ -174,7 +174,7 @@ namespace CalculateFunding.Repositories.Common.Search
             {
                 var azureSearchResult = await client.Documents.SearchAsync<T>(id, searchParameters ?? DefaultParameters);
 
-                if(azureSearchResult == null || azureSearchResult.Results == null)
+                if (azureSearchResult == null || azureSearchResult.Results == null)
                 {
                     return null;
                 }
@@ -217,7 +217,7 @@ namespace CalculateFunding.Repositories.Common.Search
 
             return indexResults?
                 .Where(x => !x.Succeeded)
-                .Select(x => new IndexError { Key = x.Key, ErrorMessage = x.ErrorMessage }) ?? Enumerable.Empty<IndexError>() ;
+                .Select(x => new IndexError { Key = x.Key, ErrorMessage = x.ErrorMessage }) ?? Enumerable.Empty<IndexError>();
         }
 
         public async Task<IEnumerable<IndexError>> Index(IEnumerable<T> documents)

@@ -6,7 +6,6 @@ using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Caching.FileSystem;
-using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.Storage.Blob;
 using Polly;
 using Serilog;
@@ -22,9 +21,9 @@ namespace CalculateFunding.Api.External.V3.Services
         private readonly ILogger _logger;
 
         public PublishedFundingRetrievalService(IBlobClient blobClient,
-            IPublishingResiliencePolicies resiliencePolicies,
+            IExternalApiResiliencePolicies resiliencePolicies,
             IFileSystemCache fileSystemCache,
-            ILogger logger, 
+            ILogger logger,
             IExternalApiFileSystemCacheSettings cacheSettings)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
@@ -34,7 +33,7 @@ namespace CalculateFunding.Api.External.V3.Services
             Guard.ArgumentNotNull(cacheSettings, nameof(cacheSettings));
 
             _blobClient = blobClient;
-            _publishedFundingRepositoryPolicy = resiliencePolicies.PublishedFundingBlobRepository;
+            _publishedFundingRepositoryPolicy = resiliencePolicies.PublishedFundingBlobRepositoryPolicy;
             _fileSystemCache = fileSystemCache;
             _logger = logger;
             _cacheSettings = cacheSettings;
@@ -53,12 +52,12 @@ namespace CalculateFunding.Api.External.V3.Services
             if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(fundingFileSystemCacheKey))
             {
                 if (isForPreLoad) return null;
-                
+
                 Stream fundingDocumentStream = _fileSystemCache.Get(fundingFileSystemCacheKey);
 
                 using (BinaryReader binaryReader = new BinaryReader(fundingDocumentStream))
                 {
-                    return GetDocumentContentFromBytes(binaryReader.ReadBytes((int) fundingDocumentStream.Length));
+                    return GetDocumentContentFromBytes(binaryReader.ReadBytes((int)fundingDocumentStream.Length));
                 }
             }
 

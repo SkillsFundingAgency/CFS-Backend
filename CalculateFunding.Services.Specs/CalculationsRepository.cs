@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Services.Core.Interfaces.Proxies;
@@ -6,6 +7,7 @@ using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Services.Specs
 {
+    [Obsolete("Replace with common nuget API client")]
     public class CalculationsRepository : ICalculationsRepository
     {
         const string validateCalculationNameUrl = "calcs/validate-calc-name/{0}/{1}/{2}";

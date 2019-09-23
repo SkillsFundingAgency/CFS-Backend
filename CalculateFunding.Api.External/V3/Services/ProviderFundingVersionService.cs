@@ -39,7 +39,7 @@ namespace CalculateFunding.Api.External.V3.Services
             _logger = logger;
             _fileSystemCache = fileSystemCache;
             _cacheSettings = cacheSettings;
-            _blobClientPolicy = resiliencePolicies.BlobRepositoryPolicy;
+            _blobClientPolicy = resiliencePolicies.PublishedProviderBlobRepositoryPolicy;
         }
 
         public async Task<IActionResult> GetProviderFundingVersion(string providerFundingVersion)

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -175,11 +174,9 @@ namespace CalculateFunding.Repositories.Common.Search
                     }
 
                     var jsonProperty = propertyInfo.GetCustomAttribute<JsonPropertyAttribute>();
-
-                    var field = new Field
+                    string propertyName = jsonProperty != null ? jsonProperty.PropertyName : propertyInfo.Name;
+                    var field = new Field(propertyName, dataType)
                     {
-                        Name = jsonProperty != null ? jsonProperty.PropertyName : propertyInfo.Name,
-                        Type = dataType,
                         IsKey = attributes.Any(x => x.AttributeType.Name == "KeyAttribute"),
                         IsSearchable = attributes.Any(x => x.AttributeType == typeof(IsSearchableAttribute)),
                         IsFilterable = attributes.Any(x => x.AttributeType == typeof(IsFilterableAttribute)),

@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.8" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.9" />
   </ItemGroup>
 
   <ItemGroup>

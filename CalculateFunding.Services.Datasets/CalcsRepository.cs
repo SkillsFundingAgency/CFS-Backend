@@ -9,6 +9,7 @@ using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets
 {
+    [Obsolete("Replace with common nuget API client")]
     public class CalcsRepository : ICalcsRepository
     {
         const string buildProjectsUrl = "calcs/get-buildproject-by-specification-id?specificationId=";

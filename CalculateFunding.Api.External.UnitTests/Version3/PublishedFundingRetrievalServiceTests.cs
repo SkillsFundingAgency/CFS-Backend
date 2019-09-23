@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Api.External.V3.Interfaces;
 using CalculateFunding.Api.External.V3.Services;
 using CalculateFunding.Common.Storage;
-using CalculateFunding.Models;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -109,7 +108,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .Received(1)
                 .Error($"Invalid blob returned: {documentPath}");
         }
-        
+
         [TestMethod]
         [DataRow(true, 1, 0)]
         [DataRow(false, 0, 1)]
@@ -138,7 +137,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .Returns(true);
 
             string documentName = Path.GetFileNameWithoutExtension(documentPath);
-            
+
             fileSystemCache
                 .Exists(Arg.Is<FileSystemCacheKey>(_ => _.Key == documentName))
                 .Returns(true);
@@ -190,11 +189,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
             fileSystemCache
                 .Received(expectedCacheAccessCount)
                 .Get(Arg.Any<FundingFileSystemCacheKey>());
-            
+
             fileSystemCache
                 .Received(0)
                 .Add(Arg.Is<FundingFileSystemCacheKey>(
-                    _ => _.Key == documentName), 
+                    _ => _.Key == documentName),
                     memoryStream);
         }
 
@@ -269,18 +268,18 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
                 .Get(Arg.Any<FundingFileSystemCacheKey>());
 
             string documentName = Path.GetFileNameWithoutExtension(documentPath);
-            
+
             fileSystemCache
                 .Received(expectedCacheAccessCount)
                 .Add(Arg.Is<FundingFileSystemCacheKey>(
-                    _ => _.Key == documentName), 
+                    _ => _.Key == documentName),
                     memoryStream);
         }
 
         [TestMethod]
         [DataRow("https://cfs/test/2345", "2345")]
         [DataRow("https://www.education.gov.uk/cfs/embiggen", "embiggen")]
-        [DataRow("https://strgt1dvprovcfs.blob.core.windows.net/publishedfunding/subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json", 
+        [DataRow("https://strgt1dvprovcfs.blob.core.windows.net/publishedfunding/subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json",
             "subfolder/PES-AY-1920-Payment-LocalAuthority-12345678-1_0.json")]
         public void ParseDocumentPathRelativeToBlobContainerFromFullUrl_ParsesAsExpected(string input, string output)
         {
@@ -302,7 +301,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         {
             return new PublishedFundingRetrievalService(
                 blobClient ?? CreateBlobClient(),
-                PublishingResilienceTestHelper.GenerateTestPolicies(),
+                ExternalApiResilienceTestHelper.GenerateTestPolicies(),
                 fileSystemCache ?? CreateFileSystemCache(),
                 logger ?? CreateLogger(),
                 cacheSettings ?? CreateFileSystemCacheSettings());
@@ -327,7 +326,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3
         {
             return Substitute.For<IFileSystemCache>();
         }
-        
+
         private static IExternalApiFileSystemCacheSettings CreateFileSystemCacheSettings()
         {
             IExternalApiFileSystemCacheSettings externalApiFileSystemCacheSettings

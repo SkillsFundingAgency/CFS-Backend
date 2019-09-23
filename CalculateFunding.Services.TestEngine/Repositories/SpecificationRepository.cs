@@ -7,6 +7,7 @@ using CalculateFunding.Services.TestRunner.Interfaces;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
+    [Obsolete("Replace with common nuget API client")]
     public class SpecificationRepository : ISpecificationRepository
     {
         const string specsUrl = "specs/specification-summary-by-id?specificationId=";

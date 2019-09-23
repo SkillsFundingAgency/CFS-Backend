@@ -14,5 +14,6 @@ namespace CalculateFunding.Services.Providers.Interfaces
         Task<IEnumerable<ProviderVersionMetadata>> GetProviderVersions(string fundingStream);
         Task<ProviderVersionByDate> GetProviderVersionByDate(int year, int month, int day);
         Task<bool> Exists(string name, string providerVersionTypeString, int version, string fundingStream);
+        Task<ProviderVersionMetadata> GetProviderVersionMetadata(string providerVersionId);
     }
 }

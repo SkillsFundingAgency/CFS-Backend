@@ -58,6 +58,6 @@ namespace CalculateFunding.Models.Providers
         }
 
         [JsonProperty("created")]
-        public DateTimeOffset Created { get; private set; }
+        public DateTimeOffset Created { get; set; }
     }
 }

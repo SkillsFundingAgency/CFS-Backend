@@ -170,7 +170,7 @@ namespace CalculateFunding.Services.TestRunner.Services
                     return new NoContentResult();
                 }
 
-                IEnumerable<ProviderSummary> summaries = Mapper.Map<IEnumerable<ProviderSummary>>(summariesApi);
+                IEnumerable<ProviderSummary> summaries = _mapper.Map<IEnumerable<ProviderSummary>>(summariesApi);
 
                 TestScenarioResultIndex testScenarioResultIndex = new TestScenarioResultIndex
                 {

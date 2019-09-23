@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.TestEngine.Interfaces
 {
+    [Obsolete("Replace with common nuget API client")]
     public interface ICalculationsRepository
     {
         Task<byte[]> GetAssemblyBySpecificationId(string specificationId);

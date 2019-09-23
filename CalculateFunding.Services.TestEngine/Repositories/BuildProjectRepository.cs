@@ -7,6 +7,7 @@ using CalculateFunding.Services.TestRunner.Interfaces;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
+    [Obsolete("Replace with common nuget API client")]
     public class BuildProjectRepository : IBuildProjectRepository
     {
         const string buildProjectUrl = "calcs/get-buildproject-by-specification-id?specificationId=";

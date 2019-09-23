@@ -62,7 +62,13 @@ namespace CalculateFunding.Services.Calculator
             Action serviceAction = () => { service.GenerateAllocations(message).Wait(); };
 
             // Assert
-            serviceAction.Should().ThrowExactly<ArgumentNullException>();
+            serviceAction
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .Message
+                .Should()
+                .Be("Value cannot be null.\r\nParameter name: buildProject");
         }
 
         [Ignore("This test has a provider result as null, but should be checking successful results.")]

@@ -5,11 +5,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
-using AutoMapper.Configuration;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
@@ -46,7 +45,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             {
                 Id = id,
                 ProviderVersionId = providerVersionId,
-                Description = description   
+                Description = description
             };
 
             ICacheProvider cacheProvider = CreateCacheProvider();
@@ -75,7 +74,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             // Act
             IActionResult result = await providerService.UploadProviderVersion(actionName,
                 controller,
-                inputProviderVersionId, 
+                inputProviderVersionId,
                 providerVersionViewModel);
 
             //Assert
@@ -114,7 +113,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await providerVersionsMetadataRepository
                 .Received(1)
                 .CreateProviderVersion(Arg.Is<ProviderVersionMetadata>(x =>
-                    x.ProviderVersionId==providerVersionId
+                    x.ProviderVersionId == providerVersionId
                     && x.Description == description));
         }
 
@@ -728,7 +727,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(providerVersionMetadataRepository: providerVersionsMetadataRepository);
 
             // Act
-            IActionResult result = await providerService.GetProviderVersions(fundingStream);
+            IActionResult result = await providerService.GetProviderVersionsByFundingStream(fundingStream);
 
             result
                 .Should()
@@ -756,7 +755,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(providerVersionMetadataRepository: providerVersionsMetadataRepository);
 
             // Act
-            IActionResult result = await providerService.GetProviderVersions(fundingStream);
+            IActionResult result = await providerService.GetProviderVersionsByFundingStream(fundingStream);
 
             result
                 .Should()
@@ -914,6 +913,197 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .UpsertProviderVersionByDate(Arg.Any<ProviderVersionByDate>());
         }
 
+        [TestMethod]
+        public async Task WhenProviderVersionMetadataRequestedAndNotInCacheAndExistsInRepository_ThenResponseReturned()
+        {
+            // Arrange
+            string providerVersionId = "testProvVersion";
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            string cacheKey = $"{CacheKeys.ProviderVersionMetadata}:{providerVersionId}";
+            cacheProvider
+                .GetAsync<ProviderVersionMetadataDto>(Arg.Is(cacheKey))
+                .Returns((ProviderVersionMetadataDto)null);
+
+            ProviderVersionMetadata existingProviderVersionMetadata = new ProviderVersionMetadata()
+            {
+                ProviderVersionId = providerVersionId,
+                Created = new DateTimeOffset(2019, 3, 20, 5, 6, 22, TimeSpan.Zero),
+                Description = "Test Description",
+                FundingStream = "fundingStreamId",
+                Name = "Provider Version Name",
+                TargetDate = new DateTimeOffset(2019, 5, 2, 6, 7, 23, TimeSpan.Zero),
+                Version = 22,
+                VersionType = ProviderVersionType.Custom,
+                ProviderVersionTypeString = "Custom",
+            };
+
+            providerVersionsMetadataRepository
+                .GetProviderVersionMetadata(Arg.Is(providerVersionId))
+                .Returns(existingProviderVersionMetadata);
+
+            IProviderVersionService providerService = CreateProviderVersionService(cacheProvider: cacheProvider, providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act 
+            IActionResult response = await providerService.GetProviderVersionMetadata(providerVersionId);
+
+            // Assert
+            ProviderVersionMetadataDto expectedResponse = new ProviderVersionMetadataDto()
+            {
+                ProviderVersionId = providerVersionId,
+                Created = new DateTimeOffset(2019, 3, 20, 5, 6, 22, TimeSpan.Zero),
+                Description = "Test Description",
+                FundingStream = "fundingStreamId",
+                Name = "Provider Version Name",
+                TargetDate = new DateTimeOffset(2019, 5, 2, 6, 7, 23, TimeSpan.Zero),
+                Version = 22,
+                VersionType = ProviderVersionType.Custom,
+            };
+
+            response
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(expectedResponse);
+
+            await cacheProvider
+                .Received(1)
+                .GetAsync<ProviderVersionMetadataDto>(Arg.Is(cacheKey));
+
+            await cacheProvider
+                .Received(1)
+                .SetAsync<ProviderVersionMetadataDto>(Arg.Is(cacheKey), Arg.Is<ProviderVersionMetadataDto>(r =>
+                        r.Created == expectedResponse.Created
+                        && r.Description == expectedResponse.Description
+                        && r.FundingStream == expectedResponse.FundingStream
+                        && r.Name == expectedResponse.Name
+                        && r.ProviderVersionId == expectedResponse.ProviderVersionId
+                        && r.TargetDate == expectedResponse.TargetDate
+                        && r.Version == expectedResponse.Version
+                        && r.VersionType == expectedResponse.VersionType),
+                        Arg.Is<JsonSerializerSettings>((JsonSerializerSettings)null));
+
+            await providerVersionsMetadataRepository
+                 .Received(1)
+                .GetProviderVersionMetadata(Arg.Is(providerVersionId));
+        }
+
+        [TestMethod]
+        public async Task WhenProviderVersionMetadataRequestedAnInCache_ThenResponseReturned()
+        {
+            // Arrange
+            string providerVersionId = "testProvVersion";
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            string cacheKey = $"{CacheKeys.ProviderVersionMetadata}:{providerVersionId}";
+
+            ProviderVersionMetadataDto existingCacheItem = new ProviderVersionMetadataDto()
+            {
+                ProviderVersionId = providerVersionId,
+                Created = new DateTimeOffset(2019, 3, 20, 5, 6, 22, TimeSpan.Zero),
+                Description = "Test Description",
+                FundingStream = "fundingStreamId",
+                Name = "Provider Version Name",
+                TargetDate = new DateTimeOffset(2019, 5, 2, 6, 7, 23, TimeSpan.Zero),
+                Version = 22,
+                VersionType = ProviderVersionType.Custom,
+            };
+
+            cacheProvider
+               .GetAsync<ProviderVersionMetadataDto>(Arg.Is(cacheKey))
+               .Returns(existingCacheItem);
+
+            IProviderVersionService providerService = CreateProviderVersionService(cacheProvider: cacheProvider, providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act 
+            IActionResult response = await providerService.GetProviderVersionMetadata(providerVersionId);
+
+            // Assert
+            ProviderVersionMetadataDto expectedResponse = new ProviderVersionMetadataDto()
+            {
+                ProviderVersionId = providerVersionId,
+                Created = new DateTimeOffset(2019, 3, 20, 5, 6, 22, TimeSpan.Zero),
+                Description = "Test Description",
+                FundingStream = "fundingStreamId",
+                Name = "Provider Version Name",
+                TargetDate = new DateTimeOffset(2019, 5, 2, 6, 7, 23, TimeSpan.Zero),
+                Version = 22,
+                VersionType = ProviderVersionType.Custom,
+            };
+
+            response
+                .Should()
+                .BeOfType<OkObjectResult>()
+                .Which
+                .Value
+                .Should()
+                .BeEquivalentTo(expectedResponse);
+
+            await cacheProvider
+                .Received(1)
+                .GetAsync<ProviderVersionMetadataDto>(Arg.Is(cacheKey));
+
+            await cacheProvider
+                .Received(0)
+                .SetAsync<ProviderVersionMetadataDto>(Arg.Is(cacheKey), Arg.Any<ProviderVersionMetadataDto>(), Arg.Any<JsonSerializerSettings>());
+
+            await providerVersionsMetadataRepository
+               .Received(0)
+              .GetProviderVersionMetadata(Arg.Is(providerVersionId));
+        }
+
+        [TestMethod]
+        public async Task WhenProviderVersionMetadataRequestedAndDoesNotExist_ThenNotFoundObjectReturned()
+        {
+            // Arrange
+            string providerVersionId = "testProvVersion";
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+
+            string cacheKey = $"{CacheKeys.ProviderVersionMetadata}:{providerVersionId}";
+            cacheProvider
+                .GetAsync<ProviderVersionMetadataDto>(Arg.Is(cacheKey))
+                .Returns((ProviderVersionMetadataDto)null);
+
+            ProviderVersionMetadata existingProviderVersionMetadata = null;
+
+            providerVersionsMetadataRepository
+                .GetProviderVersionMetadata(Arg.Is(providerVersionId))
+                .Returns(existingProviderVersionMetadata);
+
+            IProviderVersionService providerService = CreateProviderVersionService(cacheProvider: cacheProvider, providerVersionMetadataRepository: providerVersionsMetadataRepository);
+
+            // Act 
+            IActionResult response = await providerService.GetProviderVersionMetadata(providerVersionId);
+
+            // Assert
+            response
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            await cacheProvider
+                .Received(1)
+                .GetAsync<ProviderVersionMetadataDto>(Arg.Is(cacheKey));
+
+            await cacheProvider
+                .Received(0)
+                .SetAsync<ProviderVersionMetadataDto>(
+                        Arg.Is(cacheKey),
+                        Arg.Any<ProviderVersionMetadataDto>(),
+                        Arg.Is<JsonSerializerSettings>((JsonSerializerSettings)null));
+
+            await providerVersionsMetadataRepository
+                 .Received(1)
+                .GetProviderVersionMetadata(Arg.Is(providerVersionId));
+        }
+
         private ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();
@@ -971,12 +1161,12 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
         private IMapper CreateMapper()
         {
-            Mapper.Reset();
-            MapperConfigurationExpression mappings = new MapperConfigurationExpression();
-            mappings.AddProfile<ProviderVersionsMappingProfile>();
-            Mapper.Initialize(mappings);
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c =>
+            {
+                c.AddProfile<ProviderVersionsMappingProfile>();
+            });
 
-            return Mapper.Instance;
+            return mapperConfiguration.CreateMapper();
         }
 
         private ProviderVersionViewModel CreateProviderVersion()
@@ -993,7 +1183,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 {
                     GetProviderViewModel()
                 },
-                
+
             };
         }
 

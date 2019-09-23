@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Datasets;
@@ -9,6 +10,7 @@ using CalculateFunding.Services.Scenarios.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios
 {
+    [Obsolete("Replace with common nuget API client")]
     public class DatasetRepository : IDatasetRepository
     {
         private readonly IDatasetsApiClientProxy _datasetsApiClientProxy;

@@ -119,11 +119,11 @@ namespace CalculateFunding.Services.Providers
             return providerVersionByDate;
         }
 
-        public async Task<IActionResult> GetProviderVersions(string fundingStream)
+        public async Task<IActionResult> GetProviderVersionsByFundingStream(string fundingStream)
         {
             IEnumerable<ProviderVersionMetadata> providerVersions = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.GetProviderVersions(fundingStream));
 
-            if(providerVersions != null)
+            if (providerVersions != null)
             {
                 return new OkObjectResult(providerVersions);
             }
@@ -301,9 +301,9 @@ namespace CalculateFunding.Services.Providers
             return new NoContentResult();
         }
 
-        public async Task<IActionResult> UploadProviderVersion(string actionName, 
-            string controller, 
-            string providerVersionId, 
+        public async Task<IActionResult> UploadProviderVersion(string actionName,
+            string controller,
+            string providerVersionId,
             ProviderVersionViewModel providerVersionModel)
         {
             Guard.IsNullOrWhiteSpace(actionName, nameof(actionName));
@@ -354,6 +354,35 @@ namespace CalculateFunding.Services.Providers
             if (await Exists(providerVersionModel)) return new ConflictResult();
 
             return null;
+        }
+
+        public async Task<IActionResult> GetProviderVersionMetadata(string providerVersionId)
+        {
+            Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
+
+            string cacheKey = $"{CacheKeys.ProviderVersionMetadata}:{providerVersionId}";
+
+            ProviderVersionMetadataDto result = await _cacheProvider.GetAsync<ProviderVersionMetadataDto>(cacheKey);
+
+            if (result == null)
+            {
+                ProviderVersionMetadata providerVersionMetadata = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.GetProviderVersionMetadata(providerVersionId));
+                if (providerVersionMetadata != null)
+                {
+                    result = _mapper.Map<ProviderVersionMetadataDto>(providerVersionMetadata);
+
+                    await _cacheProvider.SetAsync<ProviderVersionMetadataDto>(cacheKey, result);
+                }
+            }
+
+            if (result == null)
+            {
+                return new NotFoundResult();
+            }
+            else
+            {
+                return new OkObjectResult(result);
+            }
         }
     }
 }

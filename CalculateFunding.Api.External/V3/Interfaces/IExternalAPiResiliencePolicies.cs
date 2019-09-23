@@ -4,6 +4,8 @@ namespace CalculateFunding.Api.External.V3.Interfaces
 {
     public interface IExternalApiResiliencePolicies
     {
-        Policy BlobRepositoryPolicy { get; set; }
+        Policy PublishedProviderBlobRepositoryPolicy { get; set; }
+
+        Policy PublishedFundingBlobRepositoryPolicy { get; set; }
     }
 }

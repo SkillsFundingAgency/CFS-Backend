@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Results.MappingProfiles
     {
         public ProviderMappingProfile()
         {
-            CreateMap<Models.Results.ProviderSummary, ProviderSummary>();
+            CreateMap<ProviderSummary, Models.Results.ProviderSummary>();
             CreateMap<Provider, Models.Results.ProviderSummary>()
                 .ForMember(c => c.Id, opt => opt.Ignore());
 

@@ -46,10 +46,10 @@ namespace CalculateFunding.Services.Publishing
             return health;
         }
 
-        public async Task<SearchFeedV3<PublishedFundingIndex>> GetFeedsV3(int? pageRef, 
-            int top, 
-            IEnumerable<string> fundingStreamIds = null, 
-            IEnumerable<string> fundingPeriodIds = null, 
+        public async Task<SearchFeedV3<PublishedFundingIndex>> GetFeedsV3(int? pageRef,
+            int top,
+            IEnumerable<string> fundingStreamIds = null,
+            IEnumerable<string> fundingPeriodIds = null,
             IEnumerable<string> groupingReasons = null,
             params string[] orderBy)
         {

@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.TestRunner
 
                     if (document.Feature?.Children != null)
                     {
-                        foreach (ScenarioDefinition scenario in document.Feature?.Children)
+                        foreach (Scenario scenario in document.Feature?.Children)
                         {
                             if (!scenario.Steps.IsNullOrEmpty())
                             {

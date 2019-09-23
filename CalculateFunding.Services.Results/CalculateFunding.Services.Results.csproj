@@ -13,7 +13,7 @@
     <PackageReference Include="CalculateFunding.Common.ApiClient.Bearer" Version="1.0.1" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.2" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.2" />
-    <PackageReference Include="LINQKit.Core" Version="1.1.15" />
+    <PackageReference Include="LINQKit.Core" Version="1.1.16" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,6 +7,7 @@ using CalculateFunding.Services.Scenarios.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios
 {
+    [Obsolete("Replace with common nuget API client")]
     public class SpecificationsRepository : ISpecificationsRepository
     {
         const string specsUrl = "specs/specification-summary-by-id?specificationId=";

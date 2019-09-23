@@ -1,22 +1,17 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -97,7 +92,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             //Act
             GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping, new CalculationResult[0]);
             IEnumerable<Models.Publishing.FundingLine> fundingLines = mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingValue.FundingLines.Flatten(_ => _.FundingLines));
-            
+
             //Assert
             fundingLines.Single(_ => _.TemplateLineId == 1).Value
                 .Should()
@@ -142,7 +137,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             MapperConfiguration config = new MapperConfiguration(c =>
             {
-                c.AddProfile<GeneratorsMappingProfile>();
+                c.AddProfile<PublishingServiceMappingProfile>();
             });
 
             return new Mapper(config);
@@ -181,7 +176,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         public decimal GetValue(uint templateId)
         {
-            switch(templateId)
+            switch (templateId)
             {
                 case 1:
                     {

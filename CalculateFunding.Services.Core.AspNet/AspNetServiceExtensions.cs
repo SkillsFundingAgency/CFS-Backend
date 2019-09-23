@@ -55,9 +55,16 @@ namespace CalculateFunding.Services.Core.AspNet
 
             builder.AddSingleton<ITelemetryInitializer>(serviceNameEnricher);
 
+            builder.Configure<TelemetryConfiguration>(
+        (c) =>
+        {
+            c.TelemetryInitializers.Add(serviceNameEnricher);
+        }
+    );
+
             // Add call to configure app insights, in order to have ITelemetryInitializer registered before calling
             // as per https://github.com/Microsoft/ApplicationInsights-aspnetcore/wiki/Custom-Configuration
-            builder.AddApplicationInsightsTelemetry(appInsightsOptions.InstrumentationKey);
+            // builder.AddApplicationInsightsTelemetry(appInsightsOptions.InstrumentationKey);
 
             return builder;
         }

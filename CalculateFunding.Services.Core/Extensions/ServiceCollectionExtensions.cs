@@ -70,6 +70,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        [Obsolete]
         public static IServiceCollection AddCalcsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
@@ -87,6 +88,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        [Obsolete]
         public static IServiceCollection AddDatasetsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
@@ -104,6 +106,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        [Obsolete]
         public static IServiceCollection AddScenariosInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
@@ -121,6 +124,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        [Obsolete]
         public static IServiceCollection AddSpecificationsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder
@@ -156,6 +160,7 @@ namespace CalculateFunding.Services.Core.Extensions
             return builder;
         }
 
+        [Obsolete]
         public static IServiceCollection AddResultsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder

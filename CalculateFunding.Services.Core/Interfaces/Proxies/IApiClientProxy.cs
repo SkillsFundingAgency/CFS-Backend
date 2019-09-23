@@ -1,9 +1,11 @@
-﻿using CalculateFunding.Models.Users;
+﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Users;
 
 namespace CalculateFunding.Services.Core.Interfaces.Proxies
 {
+    [Obsolete]
     public interface IApiClientProxy
     {
         Task<HttpStatusCode> GetAsync(string url);

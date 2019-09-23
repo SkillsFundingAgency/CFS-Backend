@@ -7,6 +7,6 @@ namespace CalculateFunding.Repositories.Common.Search
         public double Score { get; set; }
         public T Result { get; set; }
 
-        public Dictionary<string, IList<string>> HitHighLights { get; set; }
+        public IDictionary<string, IList<string>> HitHighLights { get; set; }
     }
 }

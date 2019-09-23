@@ -145,6 +145,7 @@ namespace CalculateFunding.Services.Calcs
                 return;
             }
 
+
             await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, new Common.ApiClient.Jobs.Models.JobLogUpdateModel()));
 
             IDictionary<string, string> properties = message.BuildMessageProperties();
@@ -196,7 +197,7 @@ namespace CalculateFunding.Services.Calcs
             {
                 ApiResponse<int?> totalCountFromApi = await _providersApiClient.PopulateProviderSummariesForSpecification(specificationId);
 
-                if(totalCountFromApi?.Content == null)
+                if (totalCountFromApi?.Content == null)
                 {
                     string errorMessage = $"No provider version set for specification '{specificationId}'";
                     _logger.Information(errorMessage);
