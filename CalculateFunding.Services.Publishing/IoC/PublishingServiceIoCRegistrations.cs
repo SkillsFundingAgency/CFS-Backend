@@ -42,6 +42,8 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<ISpecificationService, SpecificationService>();
             serviceCollection.AddSingleton<IProviderService, ProviderService>();
             serviceCollection.AddSingleton<IPublishedProviderIndexerService, PublishedProviderIndexerService>();
+            serviceCollection.AddSingleton<IPublishProviderExclusionCheck, PublishedProviderExclusionCheck>();
+            serviceCollection.AddSingleton<IFundingLineValueOverride, FundingLineValueOverride>();
 
             serviceCollection.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>(serviceProvider =>
             {
@@ -95,7 +97,7 @@ namespace CalculateFunding.Services.Publishing.IoC
                 SearchKey = configuration.GetValue<string>("SearchServiceKey")
             };
 
-            serviceCollection.AddSingleton<SearchRepositorySettings>(searchSettings);
+            serviceCollection.AddSingleton(searchSettings);
             serviceCollection.AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
             serviceCollection.AddSingleton<IPublishedFundingContentsPersistanceService, PublishedFundingContentsPersistanceService>();

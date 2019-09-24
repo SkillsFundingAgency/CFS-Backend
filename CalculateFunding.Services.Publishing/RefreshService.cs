@@ -18,6 +18,7 @@ using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
+using FundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -43,6 +44,8 @@ namespace CalculateFunding.Services.Publishing
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
         private readonly Policy _calculationsApiClientPolicy;
+        private readonly IPublishProviderExclusionCheck _providerExclusionCheck;
+        private readonly IFundingLineValueOverride _fundingLineValueOverride;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IPublishedFundingRepository publishedFundingRepository,
@@ -61,7 +64,9 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderIndexerService publishedProviderIndexerService,
             ICalculationsApiClient calculationsApiClient,
             IPoliciesApiClient policiesApiClient,
-            IRefreshPrerequisiteChecker refreshPrerequisiteChecker)
+            IRefreshPrerequisiteChecker refreshPrerequisiteChecker, 
+            IPublishProviderExclusionCheck providerExclusionCheck, 
+            IFundingLineValueOverride fundingLineValueOverride)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
@@ -79,6 +84,8 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
+            Guard.ArgumentNotNull(providerExclusionCheck, nameof(providerExclusionCheck));
+            Guard.ArgumentNotNull(fundingLineValueOverride, nameof(fundingLineValueOverride));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
@@ -95,6 +102,8 @@ namespace CalculateFunding.Services.Publishing
             _calculationsApiClient = calculationsApiClient;
             _policiesApiClient = policiesApiClient;
             _refreshPrerequisiteChecker = refreshPrerequisiteChecker;
+            _providerExclusionCheck = providerExclusionCheck;
+            _fundingLineValueOverride = fundingLineValueOverride;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
@@ -176,7 +185,7 @@ namespace CalculateFunding.Services.Publishing
                 throw new RetriableException(
                     $"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to updated");
 
-            // Get calculation results for specification
+            // Get calculation results for specification 
             IEnumerable<ProviderCalculationResult> allCalculationResults = await _calculationResultsRepository.GetCalculationResultsBySpecificationId(specificationId);
             Dictionary<string, IEnumerable<CalculationResult>> calculationResults = new Dictionary<string, IEnumerable<CalculationResult>>();
             foreach (var result in allCalculationResults)
@@ -202,6 +211,8 @@ namespace CalculateFunding.Services.Publishing
                 }
 
                 // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
+                
+                
                 Dictionary<string, PublishedProvider> newProviders = _inScopePublishedProviderService.GenerateMissingProviders(scopedProviders.Values, specification, fundingStream, publishedProviders, templateMetadataContents);
                 publishedProviders.AddRange(newProviders);
 
@@ -222,14 +233,35 @@ namespace CalculateFunding.Services.Publishing
                 // Profile payment funding lines
                 await _profilingService.ProfileFundingLines(fundingLinesForProfiling, fundingStream.Id, specification.FundingPeriod.Id);
 
+                FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
+                
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
                 {
+                    //At this point we can skip the published provider if there's nothing to updateL
+                    
                     PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
                     string providerId = publishedProviderVersion.ProviderId;
+
+                    GeneratedProviderResult generatedProviderResult = generatedPublishedProviderData[publishedProvider.Key];
+
+                    PublishedProviderExclusionCheckResult exclusionCheckResult =
+                        _providerExclusionCheck.ShouldBeExcluded(generatedProviderResult, flattenedTemplateFundingLines);
+
+                    if (exclusionCheckResult.ShouldBeExcluded)
+                    {
+
+                        if (!_fundingLineValueOverride.TryOverridePreviousFundingLineValues(publishedProviderVersion, generatedProviderResult))
+                        {
+                            //there are no none null payment funding line values and we didn't have to override any previous
+                            //version funding lines with a zero amount now they are all null so skip this published provider 
+                            //the updates check
+                            continue;
+                        }
+                    }
                     
                     bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, 
-                        generatedPublishedProviderData[publishedProvider.Key], 
+                        generatedProviderResult, 
                         scopedProviders[providerId],
                         specification.TemplateIds[providerId]);
 

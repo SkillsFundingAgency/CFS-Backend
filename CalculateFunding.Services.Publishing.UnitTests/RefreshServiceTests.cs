@@ -22,8 +22,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IProviderService _providerService;
         private IRefreshService _refreshService;
 
-        private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
-        private IPublishedFundingRepository _publishedFundingRepository;
         private ICalculationResultsRepository _calculationResultsRepository;
         private IPublishedProviderDataGenerator _fundingLineGenerator;
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
@@ -33,12 +31,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IInScopePublishedProviderService _inScopePublishedProviderService;
         private IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private ILogger _logger;
-        private ISpecificationFundingStatusService _specificationFundingStatusService;
         private IPublishedProviderVersionService _publishedProviderVersionService;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
         private ICalculationsApiClient _calculationsApiClient;
         private IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
         private IPoliciesApiClient _policiesApiClient;
+        private IPublishProviderExclusionCheck _publishProviderExclusionCheck;
+        private IFundingLineValueOverride _fundingLineValueOverride;
 
         [TestInitialize]
         public void SetUp()
@@ -52,6 +51,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProviderDataPopulator = Substitute.For<IPublishedProviderDataPopulator>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
+            _publishProviderExclusionCheck = Substitute.For<IPublishProviderExclusionCheck>();
+            _fundingLineValueOverride = Substitute.For<IFundingLineValueOverride>();
 
             _mapper = Substitute.For<IMapper>();
             _profilingService = Substitute.For<IProfilingService>();
@@ -78,7 +79,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedProviderIndexerService,
                 _calculationsApiClient,
                 _policiesApiClient,
-                _refreshPrerequisiteChecker);
+                _refreshPrerequisiteChecker,
+                _publishProviderExclusionCheck,
+                _fundingLineValueOverride);
         }
 
         [TestMethod]

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
 
@@ -14,6 +15,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Provider _provider;
         private int? _majorVersion;
         private int _minorVersion;
+        private IEnumerable<FundingLine> _fundingLines;
+        private IEnumerable<FundingCalculation> _calculations;
 
 
         public PublishedProviderVersionBuilder WithProvider(Provider provider)
@@ -79,6 +82,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
+        public PublishedProviderVersionBuilder WithFundingLines(params FundingLine[] fundingLines)
+        {
+            _fundingLines = fundingLines;
+
+            return this;
+        }
+
+        public PublishedProviderVersionBuilder WithFundingCalculations(params FundingCalculation[] calculations)
+        {
+            _calculations = calculations;
+
+            return this;
+        }
+        
+
         public PublishedProviderVersion Build()
         {
             return new PublishedProviderVersion
@@ -91,6 +109,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 MajorVersion = _majorVersion ?? 1,
                 MinorVersion = _minorVersion,
                 Status = _status.GetValueOrDefault(NewRandomEnum<PublishedProviderStatus>()),
+                FundingLines = _fundingLines,
+                Calculations = _calculations,
                 Provider = _provider
             };
         }
