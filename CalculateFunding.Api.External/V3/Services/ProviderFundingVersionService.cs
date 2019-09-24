@@ -26,7 +26,7 @@ namespace CalculateFunding.Api.External.V3.Services
         public ProviderFundingVersionService(IBlobClient blobClient,
             ILogger logger,
             IExternalApiResiliencePolicies resiliencePolicies,
-            IFileSystemCache fileSystemCache, 
+            IFileSystemCache fileSystemCache,
             IExternalApiFileSystemCacheSettings cacheSettings)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
@@ -34,6 +34,7 @@ namespace CalculateFunding.Api.External.V3.Services
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(cacheSettings, nameof(cacheSettings));
+            Guard.ArgumentNotNull(resiliencePolicies.PublishedProviderBlobRepositoryPolicy, nameof(resiliencePolicies.PublishedProviderBlobRepositoryPolicy));
 
             _blobClient = blobClient;
             _logger = logger;

@@ -31,6 +31,7 @@ namespace CalculateFunding.Api.External.V3.Services
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(cacheSettings, nameof(cacheSettings));
+            Guard.ArgumentNotNull(resiliencePolicies.PublishedFundingBlobRepositoryPolicy, nameof(resiliencePolicies.PublishedFundingBlobRepositoryPolicy));
 
             _blobClient = blobClient;
             _publishedFundingRepositoryPolicy = resiliencePolicies.PublishedFundingBlobRepositoryPolicy;
@@ -79,7 +80,10 @@ namespace CalculateFunding.Api.External.V3.Services
 
                 if (_cacheSettings.IsEnabled)
                 {
-                    _fileSystemCache.Add(fundingFileSystemCacheKey, fundingDocumentStream);
+                    if (!_fileSystemCache.Exists(fundingFileSystemCacheKey))
+                    {
+                        _fileSystemCache.Add(fundingFileSystemCacheKey, fundingDocumentStream);
+                    }
                 }
 
                 fundingDocumentStream.Position = 0;
