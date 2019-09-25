@@ -78,7 +78,6 @@ namespace CalculateFunding.Services.Calcs
             string correlationId, 
             bool initiateCalcRun = true)
         {
-            
             Guard.ArgumentNotNull(model, nameof(model));
             Guard.ArgumentNotNull(author, nameof(author));
 
@@ -88,6 +87,7 @@ namespace CalculateFunding.Services.Calcs
             }
 
             model.SpecificationId = specificationId;
+            model.CalculationType = calculationType;
 
             ValidationResult validationResult = await _calculationCreateModelValidator.ValidateAsync(model);
 
@@ -232,8 +232,8 @@ namespace CalculateFunding.Services.Calcs
                     SpecificationName = specificationName,
                     Name = calculation.Current.Name,
                     ValueType = calculation.Current.ValueType.ToString(),
-                    FundingStreamId = calculation.FundingStreamId,
-                    FundingStreamName = fundingStreamName,
+                    FundingStreamId = calculation.FundingStreamId ?? "N/A",
+                    FundingStreamName = fundingStreamName ?? "N/A",
                     Namespace = calculation.Current.Namespace.ToString(),
                     CalculationType = calculation.Current.CalculationType.ToString(),
                     Description = calculation.Current.Description,

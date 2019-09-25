@@ -19,6 +19,9 @@ namespace CalculateFunding.Models.Calcs
         public string FundingStreamName { get; set; }
         
         public CalculationValueType? ValueType { get; set; }
+        
+        [JsonIgnore]
+        public CalculationType? CalculationType { get; set; }
 
         public string SourceCode { get; set; }
 

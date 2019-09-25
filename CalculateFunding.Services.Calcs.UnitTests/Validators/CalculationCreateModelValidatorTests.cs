@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
@@ -72,6 +70,30 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .IsValid
                 .Should()
                 .BeFalse();
+        }
+        
+        [TestMethod]
+        public async Task ValidateAsync_WhenFundingStreamIdEmptyForAdditionalCalcs_ValidIsTrue()
+        {
+            //Arrange
+            CalculationCreateModel model = CreateModel(CalculationType.Additional);
+            model.FundingStreamId = string.Empty;
+
+            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            specificationRepository
+                .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
+                .Returns(new SpecificationSummary());
+
+            CalculationCreateModelValidator validator = CreateValidator(specificationRepository: specificationRepository);
+
+            //Act
+            ValidationResult result = await validator.ValidateAsync(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeTrue();
         }
 
         [TestMethod]
@@ -307,7 +329,7 @@ namespace CalculateFunding.Services.Calcs.Validators
             return Substitute.For<ISpecificationRepository>();
         }
 
-        private static CalculationCreateModel CreateModel()
+        private static CalculationCreateModel CreateModel(CalculationType calculationType = CalculationType.Template)
         {
             return new CalculationCreateModel
             {
@@ -316,7 +338,8 @@ namespace CalculateFunding.Services.Calcs.Validators
                 Name = "test calc",
                 SourceCode = "return 1000",
                 SpecificationId = "spec-1",
-                ValueType = CalculationValueType.Currency
+                ValueType = CalculationValueType.Currency,
+                CalculationType = calculationType
             };
         }
     }

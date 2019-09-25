@@ -764,8 +764,6 @@ namespace CalculateFunding.Services.Calcs
                 return new PreconditionFailedResult("Specification not found");
             }
 
-            Reference user = request.GetUser();
-
             CalculationVersion previousCalculationVersion = calculation.Current;
 
             CalculationVersion calculationVersion = calculation.Current.Clone() as CalculationVersion;
@@ -977,8 +975,8 @@ namespace CalculateFunding.Services.Calcs
                 SpecificationName = specificationName,
                 Name = calculation.Current.Name,
                 ValueType = calculation.Current.ValueType.ToString(),
-                FundingStreamId = calculation.FundingStreamId,
-                FundingStreamName = fundingStreamName,
+                FundingStreamId = calculation.FundingStreamId ?? "N/A",
+                FundingStreamName = fundingStreamName ?? "N/A",
                 Namespace = calculation.Current.Namespace.ToString(),
                 CalculationType = calculation.Current.CalculationType.ToString(),
                 Description = calculation.Current.Description,

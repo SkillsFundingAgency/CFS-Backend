@@ -98,9 +98,14 @@ namespace CalculateFunding.Services.Calcs.Validators
              .Custom((fs, context) =>
              {
                  CalculationCreateModel calculationCreateModel = context.ParentContext.InstanceToValidate as CalculationCreateModel;
-                 if (string.IsNullOrWhiteSpace(calculationCreateModel.FundingStreamId))
+                 
+                 //only validate funding stream id for template calcs
+                 var isTemplateCalculation = calculationCreateModel.CalculationType == CalculationType.Template;
+                 
+                 if (isTemplateCalculation && 
+                     string.IsNullOrWhiteSpace(calculationCreateModel.FundingStreamId))
                  {
-                     context.AddFailure("Null or empty source code provided.");
+                     context.AddFailure("Null or empty funding stream id provided.");
                  }
                  else
                  {
@@ -115,6 +120,12 @@ namespace CalculateFunding.Services.Calcs.Validators
                      {
                          //I don't want to have to fetch the spec summary again outside of this method to get the name and funding stream so we set them on input model here
                          calculationCreateModel.SpecificationName = specificationSummary.Name;
+
+                         //only validate funding stream ids for template calcs
+                         if (!isTemplateCalculation)
+                         {
+                             return;
+                         }
                          
                          Reference fundingStream = specificationSummary.FundingStreams.FirstOrDefault(m => m.Id == calculationCreateModel.FundingStreamId);
 
