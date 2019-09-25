@@ -69,20 +69,22 @@ namespace CalculateFunding.Services.Compiler.Languages
                     
                     AssignmentStatementSyntax assignmentStatementSyntax = (AssignmentStatementSyntax) func.Parent;
 
-                    IdentifierNameSyntax identifierNameSyntax =
-                        (IdentifierNameSyntax) assignmentStatementSyntax.Left;
+                    IdentifierNameSyntax identifierNameSyntax = assignmentStatementSyntax.Left as IdentifierNameSyntax;
 
-                    string funcName = identifierNameSyntax.Identifier.Text;
-
-                    string body = func.ToFullString();
-
-                    MatchCollection matches = Regex.Matches(body, "#ExternalSource.*?\\)(.*?)#End\\sExternalSource",
-                        RegexOptions.Singleline);
-
-                    if (matches.Count > 0 && matches[0].Groups.Count > 1)
+                    if (identifierNameSyntax != null)
                     {
-                        //we need aggregate parameters to always be fully qualified now (for calcs)
-                        functions.Add($"{namespaceName}.{funcName}", matches[0].Groups[1].Value);
+                        string funcName = identifierNameSyntax.Identifier.Text;
+
+                        string body = func.ToFullString();
+
+                        MatchCollection matches = Regex.Matches(body, "#ExternalSource.*?\\)(.*?)#End\\sExternalSource",
+                            RegexOptions.Singleline);
+
+                        if (matches.Count > 0 && matches[0].Groups.Count > 1)
+                        {
+                            //we need aggregate parameters to always be fully qualified now (for calcs)
+                            functions.Add($"{namespaceName}.{funcName}", matches[0].Groups[1].Value);
+                        }
                     }
                 }
             }

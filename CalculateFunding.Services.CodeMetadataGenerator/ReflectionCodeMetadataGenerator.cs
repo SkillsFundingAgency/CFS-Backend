@@ -39,7 +39,6 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                     List<string> filteredMethodNames = new List<string>()
                     {
-                        "MainCalc",
                         "ToString",
                         "GetHashCode",
                         "Equals",
@@ -107,7 +106,10 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                     methodInformation.Description = GetAttributeProperty(methodInfo.CustomAttributes, "Description", "Description");
                                 }
 
-                                methods.Add(methodInformation);
+                                if (methodInfo.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
+                                {
+                                    methods.Add(methodInformation);
+                                }
                             }
                         }
                     }
@@ -150,7 +152,10 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 methodInformation.Description = GetAttributeProperty(fieldInfo.CustomAttributes, "Description", "Description");
                             }
 
-                            methods.Add(methodInformation);
+                            if (fieldInfo.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
+                            {
+                                methods.Add(methodInformation);
+                            }
                         }
                     }
 
@@ -158,7 +163,7 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
 
                     foreach (PropertyInfo property in typeInfo.GetProperties())
                     {
-                        if (!property.IsSpecialName && property.MemberType == MemberTypes.Property)
+                       if (!property.IsSpecialName && property.MemberType == MemberTypes.Property)
                         {
                             PropertyInformation propertyInformation = new PropertyInformation()
                             {
@@ -191,7 +196,10 @@ namespace CalculateFunding.Services.CodeMetadataGenerator
                                 propertyInformation.IsAggregable = GetAttributeProperty(property.CustomAttributes, "IsAggregable", "IsAggregable");
                             }
 
-                            properties.Add(propertyInformation);
+                            if(property.GetCustomAttribute<System.ComponentModel.EditorBrowsableAttribute>()?.State != System.ComponentModel.EditorBrowsableState.Never)
+                            {
+                                properties.Add(propertyInformation);
+                            }
                         }
                     }
 

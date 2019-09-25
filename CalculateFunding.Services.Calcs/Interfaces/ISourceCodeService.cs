@@ -9,7 +9,7 @@ namespace CalculateFunding.Services.Calcs.Interfaces
     {
         Task SaveAssembly(BuildProject buildProject);
 
-        Task<byte[]> GetAssembly(BuildProject buildProject);
+        Task<byte[]> GetAssembly(BuildProject buildProject, bool useExistingAssembly = true);
 
         Build Compile(BuildProject buildProject, IEnumerable<Calculation> calculations, CompilerOptions compilerOptions = null);
 

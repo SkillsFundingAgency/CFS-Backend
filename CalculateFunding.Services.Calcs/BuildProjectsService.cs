@@ -478,7 +478,7 @@ namespace CalculateFunding.Services.Calcs
 
             BuildProject buildProject = await GetBuildProjectForSpecificationId(specificationId);
 
-            byte[] assembly = await _sourceCodeService.GetAssembly(buildProject);
+            byte[] assembly = await _sourceCodeService.GetAssembly(buildProject, false);
 
             if (assembly.IsNullOrEmpty())
             {

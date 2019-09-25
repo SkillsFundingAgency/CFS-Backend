@@ -89,13 +89,13 @@ namespace CalculateFunding.Services.Calcs
             }
         }
 
-        public async Task<byte[]> GetAssembly(BuildProject buildProject)
+        public async Task<byte[]> GetAssembly(BuildProject buildProject, bool useExistingAssembly = true)
         {
             Guard.ArgumentNotNull(buildProject, nameof(buildProject));
 
             byte[] rawAssembly = null;
 
-            bool assemblyExists = await _sourceFilesRepositoryPolicy.ExecuteAsync(() => _sourceFilesRepository.DoesAssemblyExist(buildProject.SpecificationId));
+            bool assemblyExists = useExistingAssembly ? await _sourceFilesRepositoryPolicy.ExecuteAsync(() => _sourceFilesRepository.DoesAssemblyExist(buildProject.SpecificationId)) : false;
 
             if (!assemblyExists)
             {

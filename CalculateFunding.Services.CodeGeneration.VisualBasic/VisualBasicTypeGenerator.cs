@@ -138,28 +138,32 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             foreach (Match match in x.Matches(sourceCode))
             {
-                string strippedText = Regex.Replace(match.Value, @"\s+", string.Empty);
-
-                string result = strippedText
-                    .Replace("Sum(", "Sum(\"")
-                    .Replace("Max(", "Max(\"")
-                    .Replace("Min(", "Min(\"")
-                    .Replace("Avg(", "Avg(\"")
-                    .Replace(")", "\")");
-
-                if (match.Success)
+                if (!match.Value.EndsWith("()"))
                 {
-                    sourceCode = sourceCode.Replace(match.Value, result);
+                    string strippedText = Regex.Replace(match.Value, @"\s+", string.Empty);
+
+                    string result = strippedText
+                        .Replace("Sum(", "Sum(\"")
+                        .Replace("Max(", "Max(\"")
+                        .Replace("Min(", "Min(\"")
+                        .Replace("Avg(", "Avg(\"")
+                        .Replace(")", "\")");
+
+                    if (match.Success)
+                    {
+                        sourceCode = sourceCode.Replace(match.Value, result);
+                    }
                 }
             }
 
             return sourceCode;
         }
 
-        protected static StatementSyntax CreateProperty(string name, string type = null)
+        protected static StatementSyntax CreateProperty(string name, string type = null, SyntaxList<AttributeListSyntax> attributes = new SyntaxList<AttributeListSyntax>())
         {
             return SyntaxFactory.PropertyStatement(GenerateIdentifier(name))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .WithAttributeLists(attributes)
                 .WithAsClause(
                     SyntaxFactory.SimpleAsClause(SyntaxFactory.IdentifierName(GenerateIdentifier(type ?? name))));
         }

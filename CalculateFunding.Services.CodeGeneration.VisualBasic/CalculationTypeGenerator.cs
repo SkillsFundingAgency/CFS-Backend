@@ -104,6 +104,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
             StringBuilder builder = new StringBuilder();
 
             builder.AppendLine();
+            builder.AppendLine("<System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>");
             builder.AppendLine("Public Function MainCalc As Dictionary(Of String, String())");
             builder.AppendLine();
 

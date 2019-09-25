@@ -67,6 +67,8 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
 
             IEnumerable<StatementSyntax> namespaceFunctionPointers = CreateNamespaceFunctionPointers(calculationsInNamespace);
 
+            StatementSyntax calcNameFunction = CreateCalculationNameFunctionPointer();
+
             StatementSyntax initialiseMethodDefinition = CreateInitialiseMethod(calculationsInNamespace,
                 propertyAssignments);
 
@@ -77,6 +79,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     .Concat(namespaceFunctionPointers)
                     .Concat(new[]
                     {
+                        calcNameFunction,
                         initialiseMethodDefinition
                     }).ToArray()),
                 SyntaxFactory.EndClassStatement());
@@ -98,9 +101,32 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             yield return CreateProperty("Provider");
             yield return CreateProperty("Datasets");
-            yield return CreateProperty("Calculations", "AdditionalCalculations");
 
-            foreach (var @namespace in namespaces) yield return CreateProperty(@namespace, $"{@namespace}Calculations");
+            SyntaxList<AttributeListSyntax> list = new SyntaxList<AttributeListSyntax>(SyntaxFactory.AttributeList(
+                            SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Attribute(null, SyntaxFactory.IdentifierName("IsAggregable"),
+                                SyntaxFactory.ArgumentList(
+                                    SyntaxFactory.SeparatedList<ArgumentSyntax>(new[]
+                                    {
+                                    SyntaxFactory.SimpleArgument(
+                                        SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName("IsAggregable")),
+                                        SyntaxFactory.LiteralExpression(
+                                            SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(@"True"))
+                                        )
+                                    }))))));
+
+            yield return CreateProperty("Calculations", "AdditionalCalculations", list);
+
+            foreach (var @namespace in namespaces) yield return CreateProperty(@namespace, $"{@namespace}Calculations", list);
+        }
+
+        private static StatementSyntax CreateCalculationNameFunctionPointer()
+        {
+            StringBuilder sourceCode = new StringBuilder();
+            sourceCode.AppendLine("Public calcname As Func(Of String)");
+            sourceCode.AppendLine();
+
+            return ParseSourceCodeToStatementSyntax(sourceCode);
         }
 
         private static IEnumerable<StatementSyntax> CreateNamespaceFunctionPointers(IEnumerable<Calculation> calculations)
@@ -131,7 +157,6 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
         {
             StringBuilder sourceCode = new StringBuilder();
 
-            sourceCode.AppendLine();
             sourceCode.AppendLine("Public Sub Initialise(calculationContext As CalculationContext)");
             sourceCode.AppendLine("Datasets = calculationContext.Datasets");
             sourceCode.AppendLine("Provider = calculationContext.Provider");
@@ -148,6 +173,10 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                 sourceCode.AppendLine();
 
                 sourceCode.AppendLine($"{calculation.Current.SourceCodeName} = Function() As decimal?");
+                sourceCode.AppendLine($"{calculation.Namespace}.calcname = Function() As String");
+                sourceCode.AppendLine($"Return \"{calculation.Namespace}.{calculation.Current.SourceCodeName}\"");
+                sourceCode.AppendLine("End Function");
+                sourceCode.AppendLine();
                 sourceCode.AppendLine("Dim existingCacheItem as String() = Nothing");
                 sourceCode.AppendLine($"If calculationContext.Dictionary.TryGetValue(\"{calculation.Id}\", existingCacheItem) Then");
                 sourceCode.AppendLine("Dim existingCalculationResultDecimal As Decimal? = Nothing");
