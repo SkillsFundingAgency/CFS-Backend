@@ -637,6 +637,8 @@ namespace CalculateFunding.Services.CosmosDbScaling
                  .Received(1)
                  .SetThroughput(Arg.Is(11000));
         }
+        
+        
 
         [TestMethod]
         public async Task ScaleUp_GivenEventsFilteredForProcessingAndIncreasingRequestUnitsWillExceedMaximum_ScalesCollectionToMaximumRequestUnits()
@@ -1833,6 +1835,36 @@ namespace CalculateFunding.Services.CosmosDbScaling
              .UpdateConfigSettings(Arg.Is<CosmosDbScalingConfig>(m =>
                   m.JobRequestUnitConfigs == request.JobRequestUnitConfigs
              ));
+        }
+
+        [TestMethod]
+        [DataRow(1000, 1001, 1000)]
+        [DataRow(1001, 1000, 1000)]
+        [DataRow(1000, 1000, 1000)]
+        public async Task ScaleCollection_NeverExceeds_SuppliedMaxValue(int requestedRUs,
+            int maxAllowedRUs,
+            int expectedRUs)
+        {
+            ICosmosDbScalingConfigRepository cosmosDbScalingConfigRepository = CreateCosmosDbScalingConfigRepository();
+            ICosmosDbScalingRepository scalingRepository = CreateCosmosDbScalingRepository();
+
+            ICosmosDbScalingRepositoryProvider cosmosDbScalingRepositoryProvider = CreateCosmosDbScalingRepositoryProvider();
+            cosmosDbScalingRepositoryProvider
+                .GetRepository(Arg.Is(CosmosCollectionType.ProviderSourceDatasets))
+                .Returns(scalingRepository);
+
+            CosmosDbScalingService cosmosDbScalingService = CreateScalingService(
+                cosmosDbScalingConfigRepository: cosmosDbScalingConfigRepository,
+                cosmosDbScalingRepositoryProvider: cosmosDbScalingRepositoryProvider);
+
+            //Act
+            await cosmosDbScalingService.ScaleCollection(CosmosCollectionType.ProviderSourceDatasets, requestedRUs, maxAllowedRUs);
+
+            //Assert
+            await
+                scalingRepository
+                .Received(1)
+                .SetThroughput(expectedRUs);
         }
 
         private static ScalingConfigurationUpdateModel CreateScalingConfigurationUpdateModel()

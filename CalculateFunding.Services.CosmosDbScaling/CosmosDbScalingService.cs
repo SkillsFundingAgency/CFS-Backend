@@ -159,7 +159,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
                     settings.CurrentRequestUnits = increasedRequestUnits;
 
-                    await ScaleCollection(cosmosRepositoryType, increasedRequestUnits);
+                    await ScaleCollection(cosmosRepositoryType, increasedRequestUnits, settings.MaxRequestUnits);
 
                     await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Up, incrementalRequestUnitsValue);
                 }
@@ -223,7 +223,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
                 {
                     try
                     {
-                        await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits);
+                        await ScaleCollection(settings.CosmosCollectionType, settings.MinRequestUnits, settings.MaxRequestUnits);
 
                         int decrementValue = settings.CurrentRequestUnits - settings.MinRequestUnits;
 
@@ -243,8 +243,6 @@ namespace CalculateFunding.Services.CosmosDbScaling
 
         public async Task ScaleDownIncrementally()
         {
-            IList<CosmosDbScalingCollectionSettings> settingsToUpdate = new List<CosmosDbScalingCollectionSettings>();
-
             IEnumerable<CosmosDbScalingCollectionSettings> collectionsToProcess = await _scalingConfigRepositoryPolicy.ExecuteAsync(() =>
                     _cosmosDbScalingConfigRepository.GetCollectionSettingsIncremented(previousMinutestoCheckForScaledCollections));
 
@@ -259,27 +257,19 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 try
                 {
-                    int requestUnitsToDecrement;
+                    int previousCurrentRequestUnits = settings.CurrentRequestUnits;
 
-                    if ((settings.CurrentRequestUnits - settings.LastScalingIncrementValue) < settings.MinRequestUnits)
-                    {
-                        requestUnitsToDecrement = (settings.CurrentRequestUnits - settings.MinRequestUnits);
+                    settings.CurrentRequestUnits =
+                        Math.Max(previousCurrentRequestUnits - settings.LastScalingIncrementValue, settings.MinRequestUnits);
 
-                        if (requestUnitsToDecrement <= 0)
-                        {
-                            continue;
-                        }
-                    }
-                    else
+                    int requestUnitsToDecrement = previousCurrentRequestUnits - settings.CurrentRequestUnits;
+
+                    if (requestUnitsToDecrement <= 0)
                     {
-                        requestUnitsToDecrement = settings.LastScalingIncrementValue;
+                        continue;
                     }
 
-                    int requestUnits = settings.CurrentRequestUnits - requestUnitsToDecrement;
-
-                    settings.CurrentRequestUnits = requestUnits;
-
-                    await ScaleCollection(settings.CosmosCollectionType, requestUnits);
+                    await ScaleCollection(settings.CosmosCollectionType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
 
                     await UpdateCollectionSettings(settings, CosmosDbScalingDirection.Down, requestUnitsToDecrement);
                 }
@@ -322,7 +312,7 @@ namespace CalculateFunding.Services.CosmosDbScaling
             }
 
             int currentRequestUnits = settings.CurrentRequestUnits;
-
+            
             if (settings.IsAtBaseLine)
             {
                 settings.CurrentRequestUnits = cosmosDbScalingJobConfig.JobRequestUnits;
@@ -331,11 +321,11 @@ namespace CalculateFunding.Services.CosmosDbScaling
             {
                 settings.CurrentRequestUnits =
                     settings.AvailableRequestUnits >= cosmosDbScalingJobConfig.JobRequestUnits ?
-                    (settings.CurrentRequestUnits + cosmosDbScalingJobConfig.JobRequestUnits) :
-                    settings.MaxRequestUnits;
+                        (settings.CurrentRequestUnits + cosmosDbScalingJobConfig.JobRequestUnits) :
+                        settings.MaxRequestUnits;
             }
 
-            await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits);
+            await ScaleCollection(cosmosDbScalingConfig.RepositoryType, settings.CurrentRequestUnits, settings.MaxRequestUnits);
 
             int incrementalRequestUnitsValue = currentRequestUnits - settings.CurrentRequestUnits;
 
@@ -366,13 +356,14 @@ namespace CalculateFunding.Services.CosmosDbScaling
             }
         }
 
-        private async Task ScaleCollection(CosmosCollectionType cosmosRepositoryType, int requestUnits)
+        public async Task ScaleCollection(CosmosCollectionType cosmosRepositoryType, int requestUnits, int maxRequestUnits)
         {
             ICosmosDbScalingRepository cosmosDbScalingRepository = _cosmosDbScalingRepositoryProvider.GetRepository(cosmosRepositoryType);
 
             try
             {
-                await _scalingRepositoryPolicy.ExecuteAsync(() => cosmosDbScalingRepository.SetThroughput(requestUnits));
+                //added brute force guard to prevent scaling beyond the configured max permitted in the settings for this collection
+                await _scalingRepositoryPolicy.ExecuteAsync(() => cosmosDbScalingRepository.SetThroughput(Math.Min(requestUnits, maxRequestUnits)));
             }
             catch (Exception ex)
             {
