@@ -231,7 +231,9 @@ namespace CalculateFunding.Services.Providers
                     ParliamentaryConstituencyCode = x.ParliamentaryConstituencyCode,
                     ParliamentaryConstituencyName = x.ParliamentaryConstituencyName,
                     CountryCode = x.CountryCode,
-                    CountryName = x.CountryName
+                    CountryName = x.CountryName,
+                    LocalGovernmentGroupTypeCode = x.LocalGovernmentGroupTypeCode,
+                    LocalGovernmentGroupTypeName = x.LocalGovernmentGroupTypeName
                 });
 
                 await _cacheProvider.CreateListAsync(providerSummaries, cacheKeyAllProviderSummaries);

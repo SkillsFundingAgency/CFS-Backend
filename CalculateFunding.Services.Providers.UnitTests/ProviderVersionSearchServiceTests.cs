@@ -785,7 +785,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ParliamentaryConstituencyName = "ParliamentaryConstituencyName",
                 ParliamentaryConstituencyCode = "ParliamentaryConstituencyCode",
                 CountryCode = "CountryCode",
-                CountryName = "CountryName"
+                CountryName = "CountryName",
+                LocalGovernmentGroupTypeCode = "LocalGovernmentGroupTypeCode",
+                LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName"
             };
         }
 

@@ -122,7 +122,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().ParliamentaryConstituencyName == provider.ParliamentaryConstituencyName &&
                     x.First().ParliamentaryConstituencyCode == provider.ParliamentaryConstituencyCode &&
                     x.First().CountryCode == provider.CountryCode &&
-                    x.First().CountryName == provider.CountryName
+                    x.First().CountryName == provider.CountryName &&
+                    x.First().LocalGovernmentGroupTypeCode == provider.LocalGovernmentGroupTypeCode &&
+                    x.First().LocalGovernmentGroupTypeName == provider.LocalGovernmentGroupTypeName
                 ), Arg.Is(cacheKey));
 
             totalCountResult
@@ -407,7 +409,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ParliamentaryConstituencyName = provider.ParliamentaryConstituencyName,
                 ParliamentaryConstituencyCode = provider.ParliamentaryConstituencyCode,
                 CountryCode = provider.CountryCode,
-                CountryName = provider.CountryName
+                CountryName = provider.CountryName,
+                LocalGovernmentGroupTypeCode = provider.LocalGovernmentGroupTypeCode,
+                LocalGovernmentGroupTypeName = provider.LocalGovernmentGroupTypeName
             };
         }
 
@@ -460,7 +464,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ParliamentaryConstituencyName = "ParliamentaryConstituencyName",
                 ParliamentaryConstituencyCode = "ParliamentaryConstituencyCode",
                 CountryCode = "CountryCode",
-                CountryName = "CountryName"
+                CountryName = "CountryName",
+                LocalGovernmentGroupTypeCode = "LocalGovernmentGroupTypeCode",
+                LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName"
             };
         }
     }

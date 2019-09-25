@@ -423,6 +423,14 @@ namespace CalculateFunding.Services.CalcEngine
                         property.SetValue(data, providerSummary.CountryName.EmptyIfNull());
                         break;
 
+                    case "LocalGovernmentGroupTypeCode":
+                        property.SetValue(data, providerSummary.LocalGovernmentGroupTypeCode.EmptyIfNull());
+                        break;
+
+                    case "LocalGovernmentGroupTypeName":
+                        property.SetValue(data, providerSummary.LocalGovernmentGroupTypeName.EmptyIfNull());
+                        break;
+
                     default:
                         break;
                 }

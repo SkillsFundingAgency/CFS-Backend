@@ -164,6 +164,12 @@ namespace CalculateFunding.Models.Providers
         [JsonProperty("countryName")]
         public string CountryName { get; set; }
 
+        [JsonProperty("localGovernmentGroupTypeCode")]
+        public string LocalGovernmentGroupTypeCode { get; set; }
+
+        [JsonProperty("localGovernmentGroupTypeName")]
+        public string LocalGovernmentGroupTypeName { get; set; }
+
         [JsonIgnore]
         public TrustStatus TrustStatus
         {

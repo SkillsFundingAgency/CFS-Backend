@@ -151,4 +151,12 @@ Public Class Provider
     <Field(Id:="CountryName", Name:="CountryName")>
     <Description(Description:="The country name")>
     Public Property CountryName() As String
+
+    <Field(Id:="LocalGovernmentGroupTypeCode", Name:="LocalGovernmentGroupTypeCode")>
+    <Description(Description:="The local government group type code")>
+    Public Property LocalGovernmentGroupTypeCode() As String
+
+    <Field(Id:="LocalGovernmentGroupTypeName", Name:="LocalGovernmentGroupTypeName")>
+    <Description(Description:="The local government group type name")>
+    Public Property LocalGovernmentGroupTypeName() As String
 End Class

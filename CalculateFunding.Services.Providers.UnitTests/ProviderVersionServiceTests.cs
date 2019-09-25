@@ -1237,7 +1237,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ParliamentaryConstituencyCode = "ParliamentaryConstituencyCode",
                 CountryCode = "CountryCode",
                 CountryName = "CountryName",
-                TrustStatus = TrustStatus.NotApplicable
+                TrustStatus = TrustStatus.NotApplicable,
+                LocalGovernmentGroupTypeCode = "LocalGovernmentGroupTypeCode",
+                LocalGovernmentGroupTypeName = "LocalGovernmentGroupTypeName"
             };
         }
     }

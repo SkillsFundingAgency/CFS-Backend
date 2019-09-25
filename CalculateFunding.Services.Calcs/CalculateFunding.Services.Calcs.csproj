@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient" Version="1.0.21" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.2" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.15" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Providers" Version="1.0.17" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.5" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.3" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.8" />
