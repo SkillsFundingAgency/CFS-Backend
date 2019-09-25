@@ -7,14 +7,14 @@ using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
+
 
 namespace CalculateFunding.Services.Policy
 {
@@ -105,30 +105,26 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.ArgumentNotNull(request, nameof(request));
 
-            string yaml = await request.GetRawBodyStringAsync();
+            string json = await request.GetRawBodyStringAsync();
 
-            string yamlFilename = request.GetYamlFileNameFromRequest();
+            string jsonFilename = request.GetJsonFileNameFromRequest();
 
-            if (string.IsNullOrEmpty(yaml))
+            if (string.IsNullOrEmpty(json))
             {
-                _logger.Error($"Null or empty yaml provided for file: {yamlFilename}");
-                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+                _logger.Error($"Null or empty json provided for file: {jsonFilename}");
+                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
             }
 
-            IDeserializer deserializer = new DeserializerBuilder()
-                .WithNamingConvention(new CamelCaseNamingConvention())
-                .Build();
-
-            FundingStream fundingStream;
+            FundingStream fundingStream = null;
 
             try
             {
-                fundingStream = deserializer.Deserialize<FundingStream>(yaml);
+                fundingStream = JsonConvert.DeserializeObject<FundingStream>(json);               
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"Invalid yaml was provided for file: {yamlFilename}");
-                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+                _logger.Error(exception, $"Invalid json was provided for file: {jsonFilename}");
+                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
             }
 
             try
@@ -139,21 +135,21 @@ namespace CalculateFunding.Services.Policy
                 {
                     int statusCode = (int)result;
 
-                    _logger.Error($"Failed to save yaml file: {yamlFilename} to cosmos db with status {statusCode}");
+                    _logger.Error($"Failed to save json file: {jsonFilename} to cosmos db with status {statusCode}");
 
                     return new StatusCodeResult(statusCode);
                 }
             }
             catch (Exception exception)
             {
-                string errorMessage = $"Exception occurred writing to yaml file: {yamlFilename} to cosmos db";
+                string errorMessage = $"Exception occurred writing to json file: {jsonFilename} to cosmos db";
 
                 _logger.Error(exception, errorMessage);
 
                 return new InternalServerErrorResult(errorMessage);
             }
 
-            _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
+            _logger.Information($"Successfully saved file: {jsonFilename} to cosmos db");
 
             bool keyExists = await _cacheProviderPolicy.ExecuteAsync(() => _cacheProvider.KeyExists<FundingStream[]>(CacheKeys.AllFundingStreams));
 

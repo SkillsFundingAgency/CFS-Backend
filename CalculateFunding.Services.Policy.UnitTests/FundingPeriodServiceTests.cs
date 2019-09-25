@@ -10,12 +10,14 @@ using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
@@ -24,7 +26,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
     [TestClass]
     public class FundingPeriodServiceTests
     {
-        private const string yamlFile = "12345.yaml";
+        private const string jsonlFile = "12345.json";
 
         [TestMethod]
         public async Task GetFundingPeriods_GivenNullOrEmptyPeriodsReturned_LogsAndReturnsOKWithEmptyList()
@@ -236,7 +238,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        public async Task SaveFundingPeriod_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
+        public async Task SaveFundingPeriod_GivenNoJsonWasProvidedWithNoFileName_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -255,16 +257,16 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Null or empty yaml provided for file: File name not provided"));
+                .Error(Arg.Is($"Null or empty json provided for file: File name not provided"));
         }
 
         [TestMethod]
-        public async Task SaveFundingPeriod_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
+        public async Task SaveFundingPeriod_GivenNoJsonWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonlFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -286,20 +288,20 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Null or empty yaml provided for file: {yamlFile}"));
+                .Error(Arg.Is($"Null or empty json provided for file: {jsonlFile}"));
         }
 
         [TestMethod]
-        public async Task SaveFundingPeriod_GivenYamlWasProvidedButIsInvalid_ReturnsBadRequest()
+        public async Task SaveFundingPeriod_GivenJsonWasProvidedButIsInvalid_ReturnsBadRequest()
         {
             //Arrange
-            string yaml = "invalid yaml";
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            string json = "invalid json";
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonlFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -325,20 +327,20 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file: {jsonlFile}"));
         }
 
         [TestMethod]
-        public async Task SaveFundingPeriod_GivenWellFormedYamlWasProvidedButFailsCustomValidation_ReturnsBadRequest()
+        public async Task SaveFundingPeriod_GivenWellFormedJsonWasProvidedButFailsCustomValidation_ReturnsBadRequest()
         {
             //Arrange
-            string yaml = CreateRawFundingPeriods();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            string json = NewRandomString();  //CreateRawFundingPeriods();            
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonlFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -367,20 +369,20 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file: {jsonlFile}"));
         }
 
         [TestMethod]
-        public async Task SaveFundingPeriod_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
+        public async Task SaveFundingPeriod_GivenValidJsonButFailedToSaveToDatabase_ReturnsStatusCode()
         {
             //Arrange
-            string yaml = CreateRawFundingPeriods();
+            string yaml = CreateRawJsonFundingPeriod();
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonlFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -403,7 +405,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingPeriodService fundingPeriodService = CreateFundingPeriodService(logger: logger, policyRepository: policyRepository);
 
-            string errorMessage = $"Exception occurred writing yaml file: {yamlFile} to cosmos db";
+            string errorMessage = $"Exception occurred writing json file: {jsonlFile} to cosmos db";
 
             //Act
             IActionResult result = await fundingPeriodService.SaveFundingPeriods(request);
@@ -426,13 +428,13 @@ namespace CalculateFunding.Services.Policy.UnitTests
         public async Task SaveFundingStream_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
         {
             //Arrange
-            string yaml = CreateRawFundingPeriods();
+            string yaml = CreateRawJsonFundingPeriod();
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonlFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -462,7 +464,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+                .Information(Arg.Is($"Successfully saved file: {jsonlFile} to cosmos db"));
 
             await
                 policyRepository
@@ -473,6 +475,8 @@ namespace CalculateFunding.Services.Policy.UnitTests
                 .Received(1)
                 .RemoveAsync<FundingPeriod[]>(CacheKeys.FundingPeriods);
         }
+
+        private string NewRandomString() => new RandomString();
 
         private static FundingPeriodService CreateFundingPeriodService(
            ILogger logger = null,
@@ -513,6 +517,44 @@ namespace CalculateFunding.Services.Policy.UnitTests
             return Substitute.For<ICacheProvider>();
         }
 
+        private string CreateRawJsonFundingPeriod()
+        {
+            List<FundingPeriod> periods = new List<FundingPeriod>
+            {
+                new FundingPeriod()
+                {
+                     Id = "AY2017181",
+                     Name = "Academic 2017/18",
+                     StartDate = DateTimeOffset.Now.Date,
+                     EndDate = DateTimeOffset.Now.Date
+                },
+                new FundingPeriod()
+                {
+                     Id = "AY2018191",
+                     Name = "Academic 2018/19",
+                     StartDate = DateTimeOffset.Now.Date,
+                     EndDate = DateTimeOffset.Now.Date
+                },
+                new FundingPeriod()
+                {
+                     Id = "FY2017181",
+                     Name = "Academic 2017/18",
+                     StartDate = DateTimeOffset.Now.Date,
+                     EndDate = DateTimeOffset.Now.Date
+                },
+                 new FundingPeriod()
+                {
+                     Id = "AY2018191",
+                     Name = "Academic 2018/19",
+                     StartDate = DateTimeOffset.Now.Date,
+                     EndDate = DateTimeOffset.Now.Date
+                }
+            };
+            FundingPeriodsJsonModel input = new FundingPeriodsJsonModel();
+            input.FundingPeriods = periods.ToArray();
+
+            return JsonConvert.SerializeObject(input);
+        }
         private string CreateRawFundingPeriods()
         {
             StringBuilder yaml = new StringBuilder();

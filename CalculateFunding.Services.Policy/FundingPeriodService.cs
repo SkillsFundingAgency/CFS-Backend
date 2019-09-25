@@ -12,10 +12,9 @@ using CalculateFunding.Services.Policy.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Serilog;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
-using YamlDotNet.Serialization.NodeDeserializers;
+
 
 namespace CalculateFunding.Services.Policy
 {
@@ -109,37 +108,31 @@ namespace CalculateFunding.Services.Policy
 
         public async Task<IActionResult> SaveFundingPeriods(HttpRequest request)
         {
-            string yaml = await request.GetRawBodyStringAsync();
+            string json = await request.GetRawBodyStringAsync();
 
-            string yamlFilename = request.GetYamlFileNameFromRequest();
+            string jsonFilename = request.GetJsonFileNameFromRequest();
 
-            if (string.IsNullOrEmpty(yaml))
+            if (string.IsNullOrEmpty(json))
             {
-                _logger.Error($"Null or empty yaml provided for file: {yamlFilename}");
-                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+                _logger.Error($"Null or empty json provided for file: {jsonFilename}");
+                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
             }
 
-            IDeserializer deserializer = new DeserializerBuilder()
-                .WithNodeDeserializer(inner => new FundingPeriodValidatingYamlNodeDeserialiser(inner, _fundingPeriodValidator),
-                    _ => _.InsteadOf<ObjectNodeDeserializer>())
-                .WithNamingConvention(new CamelCaseNamingConvention())
-                .Build();
-
-            FundingPeriodsYamlModel fundingPeriodsYamlModel = null;
+            FundingPeriodsJsonModel fundingPeriodsJsonModel = null;
 
             try
-            {
-                fundingPeriodsYamlModel = deserializer.Deserialize<FundingPeriodsYamlModel>(yaml);
+            {               
+                fundingPeriodsJsonModel = JsonConvert.DeserializeObject<FundingPeriodsJsonModel>(json);
             }
             catch (Exception exception)
             {
-                _logger.Error(exception, $"Invalid yaml was provided for file: {yamlFilename}");
-                return new BadRequestObjectResult($"Invalid yaml was provided for file: {yamlFilename}");
+                _logger.Error(exception, $"Invalid json was provided for file: {jsonFilename}");
+                return new BadRequestObjectResult($"Invalid json was provided for file: {jsonFilename}");
             }
 
             try
             {
-                FundingPeriod[] fundingPeriods = fundingPeriodsYamlModel.FundingPeriods;
+                FundingPeriod[] fundingPeriods = fundingPeriodsJsonModel.FundingPeriods;
 
                 if (!fundingPeriods.IsNullOrEmpty())
                 {
@@ -152,14 +145,14 @@ namespace CalculateFunding.Services.Policy
             }
             catch (Exception exception)
             {
-                string errorMessage = $"Exception occurred writing yaml file: {yamlFilename} to cosmos db";
+                string errorMessage = $"Exception occurred writing json file: {jsonFilename} to cosmos db";
 
                 _logger.Error(exception, errorMessage);
 
                 return new InternalServerErrorResult(errorMessage);
             }
 
-            _logger.Information($"Successfully saved file: {yamlFilename} to cosmos db");
+            _logger.Information($"Successfully saved file: {jsonFilename} to cosmos db");
 
             return new OkResult();
         }

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
 
@@ -23,7 +24,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
     [TestClass]
     public class FundingStreamServiceTests
     {
-        private const string yamlFile = "12345.yaml";
+        private const string jsonFile = "12345.json";
 
         [TestMethod]
         public async Task GetFundingStreams_GivenNullOrEmptyFundingStreamsReturned_LogsAndReturnsOKWithEmptyList()
@@ -237,7 +238,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        async public Task SaveFundingStream_GivenNoYamlWasProvidedWithNoFileName_ReturnsBadRequest()
+        async public Task SaveFundingStream_GivenNoJsonWasProvidedWithNoFileName_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -256,16 +257,16 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Null or empty yaml provided for file: File name not provided"));
+                .Error(Arg.Is($"Null or empty json provided for file: File name not provided"));
         }
 
         [TestMethod]
-        async public Task SaveFundingStream_GivenNoYamlWasProvidedButFileNameWas_ReturnsBadRequest()
+        async public Task SaveFundingStream_GivenNoJsonWasProvidedButFileNameWas_ReturnsBadRequest()
         {
             //Arrange
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -287,20 +288,20 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Null or empty yaml provided for file: {yamlFile}"));
+                .Error(Arg.Is($"Null or empty json provided for file: {jsonFile}"));
         }
 
         [TestMethod]
-        async public Task SaveFundingStream_GivenNoYamlWasProvidedButIsInvalid_ReturnsBadRequest()
+        async public Task SaveFundingStream_GivenNoJsonWasProvidedButIsInvalid_ReturnsBadRequest()
         {
             //Arrange
-            string yaml = "invalid yaml";
+            string yaml = "invalid json";
             byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
             MemoryStream stream = new MemoryStream(byteArray);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -326,20 +327,20 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid yaml was provided for file: {yamlFile}"));
+                .Error(Arg.Any<Exception>(), Arg.Is($"Invalid json was provided for file: {jsonFile}"));
         }
 
         [TestMethod]
-        async public Task SaveFundingStream_GivenValidYamlButFailedToSaveToDatabase_ReturnsStatusCode()
+        async public Task SaveFundingStream_GivenValidJsonButFailedToSaveToDatabase_ReturnsStatusCode()
         {
             //Arrange
-            string yaml = CreateRawFundingStream();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            string json = CreateRawJsonFundingStream();
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -378,20 +379,20 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Error(Arg.Is($"Failed to save yaml file: {yamlFile} to cosmos db with status 502"));
+                .Error(Arg.Is($"Failed to save json file: {jsonFile} to cosmos db with status 502"));
         }
 
         [TestMethod]
-        async public Task SaveFundingStream_GivenValidYamlButSavingToDatabaseThrowsException_ReturnsInternalServerError()
+        async public Task SaveFundingStream_GivenValidJsonButSavingToDatabaseThrowsException_ReturnsInternalServerError()
         {
             //Arrange
-            string yaml = CreateRawFundingStream();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            string json = CreateRawJsonFundingStream();
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -412,7 +413,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             FundingStreamService fundingStreamsService = CreateFundingStreamService(logger: logger, policyRepository: policyRepository);
 
-            string expectedErrorMessage = $"Exception occurred writing to yaml file: {yamlFile} to cosmos db";
+            string expectedErrorMessage = $"Exception occurred writing to json file: {jsonFile} to cosmos db";
 
             //Act
             IActionResult result = await fundingStreamsService.SaveFundingStream(request);
@@ -432,16 +433,16 @@ namespace CalculateFunding.Services.Policy.UnitTests
         }
 
         [TestMethod]
-        async public Task SaveFundingStream_GivenValidYamlAndSaveWasSuccesful_ReturnsOK()
+        async public Task SaveFundingStream_GivenValidJsonAndSaveWasSuccesful_ReturnsOK()
         {
             //Arrange
-            string yaml = CreateRawFundingStream();
-            byte[] byteArray = Encoding.UTF8.GetBytes(yaml);
+            string json = CreateRawJsonFundingStream();
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
             MemoryStream stream = new MemoryStream(byteArray);
 
             IHeaderDictionary headerDictionary = new HeaderDictionary
             {
-                { "yaml-file", new StringValues(yamlFile) }
+                { "json-file", new StringValues(jsonFile) }
             };
 
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -474,7 +475,7 @@ namespace CalculateFunding.Services.Policy.UnitTests
 
             logger
                 .Received(1)
-                .Information(Arg.Is($"Successfully saved file: {yamlFile} to cosmos db"));
+                .Information(Arg.Is($"Successfully saved file: {jsonFile} to cosmos db"));
         }
 
         private static FundingStreamService CreateFundingStreamService(
@@ -513,6 +514,16 @@ namespace CalculateFunding.Services.Policy.UnitTests
             yaml.AppendLine(@"shortName: SBS");
 
             return yaml.ToString();
+        }
+
+        private static string CreateRawJsonFundingStream()
+        {
+            FundingStream fundingStream = new FundingStream();
+            fundingStream.Id = "YPLRE";
+            fundingStream.Name = "School Budget Share";
+            fundingStream.ShortName = "SBS";
+
+            return JsonConvert.SerializeObject(fundingStream);
         }
     }
 }

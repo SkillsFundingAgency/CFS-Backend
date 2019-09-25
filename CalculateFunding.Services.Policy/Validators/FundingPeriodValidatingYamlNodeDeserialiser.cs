@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Providers.Validators
         {
             if (!_nodeDeserializer.Deserialize(reader, expectedType, nestedObjectDeserializer, out value)) return false;
 
-            if (value is FundingPeriodsYamlModel) return true;
+            if (value is FundingPeriodsJsonModel) return true;
             
             ValidationResult validationResult = _fundingPeriodValidator.Validate((FundingPeriod) value);
 
