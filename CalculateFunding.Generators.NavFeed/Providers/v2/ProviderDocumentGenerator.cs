@@ -423,7 +423,10 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                 using (CsvReader csv = new CsvReader(reader))
                 {
                     csv.Configuration.RegisterClassMap<ProviderMap>();
-                    return csv.GetRecords<Provider>().ToList();
+                    return csv
+                        .GetRecords<Provider>()
+                        .Where(x=> !string.IsNullOrEmpty(x.UKPRN))
+                        .ToList();
                 }
             }
         }
