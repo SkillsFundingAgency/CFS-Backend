@@ -203,6 +203,14 @@
     {
       "sourceFieldName": "/countryName",
       "targetFieldName": "countryName"
+    },
+    {
+      "sourceFieldName": "/localGovernmentGroupTypeCode",
+      "targetFieldName": "localGovernmentGroupTypeCode"
+    },
+    {
+      "sourceFieldName": "/localGovernmentGroupTypeName",
+      "targetFieldName": "localGovernmentGroupTypeName"
     }
   ],
   "parameters": {

@@ -215,5 +215,13 @@ namespace CalculateFunding.Models.Providers
         [IsFilterable]
         [JsonProperty("countryName")]
         public string CountryName { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("localGovernmentGroupTypeCode")]
+        public string LocalGovernmentGroupTypeCode { get; set; }
+
+        [IsFilterable]
+        [JsonProperty("localGovernmentGroupTypeName")]
+        public string LocalGovernmentGroupTypeName { get; set; }
     }
 }
