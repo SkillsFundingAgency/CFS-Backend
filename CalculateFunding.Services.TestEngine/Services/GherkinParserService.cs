@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Gherkin;
@@ -65,7 +66,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             {
                 _logger.Error($"Failed to find a valid build project for specification id: {model.SpecificationId}");
 
-                return new StatusCodeResult(412);
+                return new StatusCodeResult((int)HttpStatusCode.PreconditionFailed);
             }
 
             GherkinParseResult parseResult = await _gherkinParser.Parse(model.SpecificationId, model.Gherkin, buildProject);

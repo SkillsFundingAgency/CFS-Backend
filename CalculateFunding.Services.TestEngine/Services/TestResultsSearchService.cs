@@ -63,7 +63,6 @@ namespace CalculateFunding.Services.TestRunner.Services
 
         async public Task<IActionResult> SearchTestScenarioResults(HttpRequest request)
         {
-
             string json = await request.GetRawBodyStringAsync();
 
             SearchModel searchModel = JsonConvert.DeserializeObject<SearchModel>(json);

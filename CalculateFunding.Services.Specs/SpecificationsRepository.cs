@@ -119,6 +119,6 @@ namespace CalculateFunding.Services.Specs
         public Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId)
         {
             return Task.FromResult(_repository.QueryDocuments<Specification>().Where(c => c.Id == specificationId).AsEnumerable().FirstOrDefault());
-        }
+        }       
     }
 }

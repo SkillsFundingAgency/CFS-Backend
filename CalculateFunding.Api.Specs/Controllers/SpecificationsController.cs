@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -195,5 +197,22 @@ namespace CalculateFunding.Api.Specs.Controllers
         {
             return await _specService.SetAssignedTemplateVersion(specificationId, fundingStreamId, templateVersion);
         }
+        
+        [Route("/api/specs/{specificationId}/publishdates")]
+        [HttpGet]
+        public async Task<IActionResult> GetPublishDates([FromRoute]string specificationId)
+        {
+            return await _specService.GetPublishDates(specificationId);
+        }
+              
+
+        [Route("/api/specs/{specificationId}/publishdates")]
+        [HttpPut]
+        public async Task<IActionResult> SetPublishDates([FromRoute]string specificationId,
+           [FromBody]SpecificationPublishDateModel specificationPublishDateModel)
+        {
+            return await _specService.SetPublishDates(specificationId, specificationPublishDateModel);
+        }
+       
     }
 }

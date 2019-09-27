@@ -12,16 +12,26 @@ namespace CalculateFunding.Services.Specs.Interfaces
     public interface ISpecificationsRepository
     {
         Task<DocumentEntity<Specification>> CreateSpecification(Specification specification);
+
         Task<Specification> GetSpecificationById(string specificationId);
+
         Task<DocumentEntity<Specification>> GetSpecificationDocumentEntityById(string specificationId);
+
         Task<IEnumerable<Specification>> GetSpecificationsByQuery(Expression<Func<Specification, bool>> query = null);
+
         Task<IEnumerable<Specification>> GetSpecificationsSelectedForFundingByPeriod(string fundingPeriodId);
+
         Task<IEnumerable<Specification>> GetSpecifications();
+
         Task<Specification> GetSpecificationByQuery(Expression<Func<Specification, bool>> query);
+
         Task<HttpStatusCode> UpdateSpecification(Specification specification);
+
         [Obsolete]
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(string sql);
+
         Task<IEnumerable<T>> GetSpecificationsByRawQuery<T>(SqlQuerySpec sqlQuerySpec);
-        Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);
+
+        Task<IEnumerable<Specification>> GetApprovedOrUpdatedSpecificationsByFundingPeriodAndFundingStream(string fundingPeriodId, string fundingStreamId);       
     }
 }

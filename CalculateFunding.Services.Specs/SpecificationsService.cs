@@ -506,8 +506,7 @@ namespace CalculateFunding.Services.Specs
 
             return new OkObjectResult(specifications);
         }
-
-
+        
         public async Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out StringValues specId);
@@ -568,7 +567,6 @@ namespace CalculateFunding.Services.Specs
 
             return new NoContentResult();
         }
-
 
         public async Task<IActionResult> GetSpecificationByName(HttpRequest request)
         {
@@ -830,7 +828,8 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
+                ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => 
+                    _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
                 PolicyModels.FundingPeriod content = fundingPeriodResponse?.Content;
                 if (content == null)
                 {
@@ -855,7 +854,8 @@ namespace CalculateFunding.Services.Specs
             {
                 foreach (string fundingStreamId in editModel.FundingStreamIds)
                 {
-                    Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamId));
+                    ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => 
+                        _policiesApiClient.GetFundingStreamById(fundingStreamId));
 
                     if (fundingStreamResponse?.Content == null)
                     {
@@ -890,7 +890,6 @@ namespace CalculateFunding.Services.Specs
             if (previousFundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
                 await _cacheProvider.RemoveAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{previousFundingPeriodId}");
-
             }
 
             await SendSpecificationComparisonModelMessageToTopic(specificationId, ServiceBusConstants.TopicNames.EditSpecification, specification.Current, previousSpecificationVersion, request);
@@ -979,7 +978,6 @@ namespace CalculateFunding.Services.Specs
             }
             else
             {
-
                 specificationVersion.PublishStatus = editStatusModel.PublishStatus;
 
                 statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
@@ -1611,6 +1609,71 @@ WHERE   s.documentType = @DocumentType",
                 DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe(),
                 PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
             };
+        }
+
+        public async Task<IActionResult> GetPublishDates(string specificationId)
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            SpecificationVersion specificationVersion = specification.Current;
+
+            if (specificationVersion == null)
+            {
+                string message = $"Specification ID {specificationId} does not contains current for given specification";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            return new OkObjectResult(new SpecificationPublishDateModel() { ExternalPublicationDate = specificationVersion.ExternalPublicationDate,
+                EarliestPaymentAvailableDate = specificationVersion.EarliestPaymentAvailableDate });
+        }
+
+        public async Task<IActionResult> SetPublishDates(string specificationId,
+            SpecificationPublishDateModel specificationPublishDateModel
+            )
+        {
+            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
+            Guard.ArgumentNotNull(specificationPublishDateModel, nameof(specificationPublishDateModel));
+
+            
+
+            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
+
+            if (specification == null)
+            {
+                string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
+                _logger.Error(message);
+                return new PreconditionFailedResult(message);
+            }
+
+            SpecificationVersion currentSpecificationVersion = specification.Current;
+            SpecificationVersion newSpecificationVersion = specification.Current.Clone() as SpecificationVersion;
+
+            newSpecificationVersion.Version++;
+            newSpecificationVersion.ExternalPublicationDate = specificationPublishDateModel.ExternalPublicationDate;
+            newSpecificationVersion.EarliestPaymentAvailableDate = specificationPublishDateModel.EarliestPaymentAvailableDate;
+            
+            HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
+
+            if (!updateSpecificationResult.IsSuccess())
+            {
+                string message = $"Failed to update specification for id: {specificationId} with ExternalPublishDate {specificationPublishDateModel.ExternalPublicationDate} " +
+                    $"and EarliestPaymentAvailableDate {specificationPublishDateModel.EarliestPaymentAvailableDate}";
+                _logger.Error(message);
+
+                return new InternalServerErrorResult(message);
+            }
+
+            return new OkObjectResult(updateSpecificationResult);
         }
     }
 }

@@ -77,7 +77,7 @@ namespace CalculateFunding.Api.TestEngine.Controllers
 
         [Route("api/tests/get-testscenario-result-counts-for-specifications")]
         [HttpPost]
-        public Task<IActionResult> RunGetGetTestScenarioCountsForSpecifications()
+        public Task<IActionResult> RunGetTestScenarioCountsForSpecifications()
         {
             return _testResultsCountsService.GetTestScenarioCountsForSpecifications(ControllerContext.HttpContext.Request);
         }

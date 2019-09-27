@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
@@ -44,6 +43,12 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("templateIds")]
         public Dictionary<string, string> TemplateIds { get; set; } = new Dictionary<string, string>();
+
+        [JsonProperty("externalPublicationDate")]
+        public DateTimeOffset? ExternalPublicationDate { get; set; }
+
+        [JsonProperty("earliestPaymentAvailableDate")]
+        public DateTimeOffset? EarliestPaymentAvailableDate { get; set; }
 
         public void AddOrUpdateTemplateId(string fundingStreamId,
             string templateId)
