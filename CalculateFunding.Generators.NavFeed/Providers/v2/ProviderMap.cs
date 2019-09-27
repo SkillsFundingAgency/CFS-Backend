@@ -45,7 +45,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             Map(m => m.Type).Name("Type ");
             Map(m => m.SubType).Name("Sub Type ");
             Map(m => m.NAVVendorNo).Name("NAV Vendor No. ");
-            Map(m => m.ProviderStatus).Index(39);
+            Map(m => m.ProviderStatus).Index(38);
             Map(m => m.AllocationID).Name("Allocation ID ");
             Map(m => m.AllocationName).Name("Allocation Name ");
             Map(m => m.AllocationShortName).Name("Allocation Short Name ");

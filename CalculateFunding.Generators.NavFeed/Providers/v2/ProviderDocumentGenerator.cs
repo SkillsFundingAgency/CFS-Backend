@@ -122,10 +122,10 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             Provider anyProvider = groupingKey.FirstOrDefault();
             PublishedFundingVersion publishedFundingVersion = new PublishedFundingVersion
             {
-                FundingId = $"{groupingKey.Key.Item3}-{(PublishedFundingPeriodType)Enum.Parse(typeof(PublishedFundingPeriodType), anyProvider?.PeriodTypeID)}-{anyProvider?.PeriodID}-{GroupingReason.Payment.ToString()}-{Common.ApiClient.Policies.Models.OrganisationGroupTypeCode.LocalAuthority.ToString()}-{targetOrganisationGroup?.Identifier}-{groupingKey.Key.Item2}_{0}",
+                FundingId = $"{groupingKey.Key.Item3}-{(PublishedFundingPeriodType)Enum.Parse(typeof(PublishedFundingPeriodType), anyProvider?.PeriodTypeID)}-{anyProvider?.PeriodID}-{GroupingReason.Payment.ToString()}-{GetGroupTypeCodeText(groupingKey.Key.Item3)}-{targetOrganisationGroup?.Identifier}-{groupingKey.Key.Item2}_{0}",
                 SchemaVersion = "1.0",
                 TemplateVersion = "1.0",
-                MajorVersion = int.Parse(groupingKey.Key.Item1),
+                MajorVersion = int.Parse(groupingKey.Key.Item2),
                 MinorVersion = 0,
                 ProviderFundings = groupingKey.Select(x => GetFundingFundingId(x, groupingKey.Key.Item3)),
                 GroupingReason = GroupingReason.Payment,
@@ -149,7 +149,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                 OrganisationGroupTypeCategory = "LegalEntity",
                 OrganisationGroupIdentifierValue = targetOrganisationGroup?.Identifiers?.Where(x => x.Type == OrganisationGroupTypeIdentifier.UKPRN).FirstOrDefault()?.Value,
                 OrganisationGroupSearchableName = Helpers.SanitiseName(targetOrganisationGroup?.Name),
-                OrganisationGroupTypeCode = groupingKey.Key.Item3,
+                OrganisationGroupTypeCode = GetGroupTypeCodeText(groupingKey.Key.Item3),
                 FundingLines = new List<FundingLine>
                         {
                             new FundingLine
@@ -159,7 +159,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                                 DistributionPeriods = groupingKey
                                                         .GroupBy(la => la.PeriodID)
                                                         .Select(dp => new DistributionPeriod{
-                                                            DistributionPeriodId = dp.Key,
+                                                            DistributionPeriodId = $"FY-{dp.Key}",
                                                             Value = dp.Sum(p => decimal.Parse(p.AllocationAmount)),
                                                             ProfilePeriods = new List<ProfilePeriod>
                                                             {
@@ -170,7 +170,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                                                                     Year = int.Parse(dp.FirstOrDefault()?.EndYear),
                                                                     Occurrence = 1,
                                                                     ProfiledValue = dp.Sum(p => decimal.Parse(p.AllocationAmount)),
-                                                                    DistributionPeriodId = dp.Key
+                                                                    DistributionPeriodId = $"FY-{dp.Key}"
                                                                 }
                                                             }
                                                         })
@@ -183,6 +183,19 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
 
             publishedFundingVersion.TotalFunding = decimal.ToInt32(publishedFundingVersion.FundingLines.Sum(x => x.Value));
             return publishedFundingVersion;
+        }
+
+        private string GetGroupTypeCodeText(string allocationID)
+        {
+            switch (allocationID)
+            {
+                case "PSG-002":
+                    return "AcademyTrust";
+                case "PSG-003":
+                    return "LocalAuthority";
+                default:
+                    return string.Empty;
+            }
         }
 
         private IEnumerable<ProviderApiClient> GetApiClientProviders(IEnumerable<Provider> providers)
@@ -257,7 +270,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                     LACode = input.LACode,
                     UPIN = input.UPIN,
                     DfeEstablishmentNumber = input.DFEEstablishNo,
-                    ProviderVersionId = "psg-1",
+                    ProviderVersionId = $"{input.PeriodID}-{input.MajorVersionNo}.{input.MinorVersionNo}-Pesport",
                     ProviderType = input.Type,
                     ProviderSubType = input.SubType,
                     DateOpened = null,
@@ -293,7 +306,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                 },
                 TotalFunding = (int)decimal.Parse(input.AllocationAmount),
                 FundingStreamId = input.FundingStreamID,
-                FundingPeriodId = input.PeriodID,
+                FundingPeriodId = $"{input.PeriodTypeID}-{input.PeriodID}",
                 VariationReasons = string.IsNullOrEmpty(input.VariationReasons.Trim()) ? 
                     null : 
                     input.VariationReasons.Trim()
@@ -375,7 +388,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                             new DistributionPeriod
                             {
                                 Value = decimal.Parse(input.AllocationAmount),
-                                DistributionPeriodId = $"{input.PeriodTypeID}{input.PeriodID}",
+                                DistributionPeriodId = $"FY-{input.PeriodID}",
                                 ProfilePeriods = new List<ProfilePeriod>
                                 {
                                     new ProfilePeriod
@@ -385,7 +398,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                                         Year = int.Parse(input.EndYear),
                                         Occurrence = 1,
                                         ProfiledValue = decimal.Parse(input.AllocationAmount),
-                                        DistributionPeriodId = $"{input.PeriodTypeID}{input.PeriodID}"
+                                        DistributionPeriodId = $"FY-{input.PeriodID}"
                                     }
                                 }
                             }
