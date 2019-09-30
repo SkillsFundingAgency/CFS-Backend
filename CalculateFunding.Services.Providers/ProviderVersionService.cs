@@ -169,57 +169,41 @@ namespace CalculateFunding.Services.Providers
         {
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
-            string localCacheKey = $"{CacheKeys.ProviderVersion}{providerVersionId}";
 
-            // no harm in checking the cache even if we haven't asked to persist to cache
-            ProviderVersion providerVersion = await _cacheProvider.GetAsync<ProviderVersion>(localCacheKey);
+            string blobName = providerVersionId + ".json";
 
-            if (providerVersion == null)
+            ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
+
+            if (!blob.Exists())
             {
-                string blobName = providerVersionId + ".json";
-
-                ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
-
-                if (!blob.Exists())
-                {
-                    _logger.Error($"Failed to find blob with path: {blobName}");
-                    return new NotFoundResult();
-                }
-
-                using (Stream providerVersionStream = await _blobClient.DownloadToStreamAsync(blob))
-                {
-
-                    if (providerVersionStream == null || providerVersionStream.Length == 0)
-                    {
-                        _logger.Error($"Blob for provider version id: {providerVersionId} not found");
-                        return new PreconditionFailedResult($"Blob for provider version id: {providerVersionId}  not found");
-                    }
-
-                    StreamReader reader = new StreamReader(providerVersionStream);
-
-                    string providerVersionString = reader.ReadToEnd();
-
-                    if (!string.IsNullOrWhiteSpace(providerVersionString))
-                    {
-                        providerVersion = JsonConvert.DeserializeObject<ProviderVersion>(providerVersionString);
-
-                        // only cache the results if requested so we don't over use the cache
-                        if (useCache)
-                        {
-                            await _cacheProvider.SetAsync(localCacheKey, providerVersion, TimeSpan.FromDays(CACHE_DURATION), true);
-                        }
-
-                        return new OkObjectResult(providerVersion);
-                    }
-                    else
-                    {
-                        return new NoContentResult();
-                    }
-                }
+                _logger.Error($"Failed to find blob with path: {blobName}");
+                return new NotFoundResult();
             }
-            else
+
+            using (Stream providerVersionStream = await _blobClient.DownloadToStreamAsync(blob))
             {
-                return new OkObjectResult(providerVersion);
+
+                if (providerVersionStream == null || providerVersionStream.Length == 0)
+                {
+                    _logger.Error($"Blob for provider version id: {providerVersionId} not found");
+                    return new PreconditionFailedResult($"Blob for provider version id: {providerVersionId}  not found");
+                }
+
+                // Change this to write directly to the response stream instead of getting it back and deserializing it
+                StreamReader reader = new StreamReader(providerVersionStream);
+
+                string providerVersionString = reader.ReadToEnd();
+
+                if (!string.IsNullOrWhiteSpace(providerVersionString))
+                {
+                    ProviderVersion providerVersion = JsonConvert.DeserializeObject<ProviderVersion>(providerVersionString);
+
+                    return new OkObjectResult(providerVersion);
+                }
+                else
+                {
+                    return new NoContentResult();
+                }
             }
         }
 

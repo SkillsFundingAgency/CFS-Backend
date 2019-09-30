@@ -128,7 +128,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     d.First().UKPRN == publishedProviderVersion.Provider.UKPRN &&
                     d.First().FundingValue == Convert.ToDouble(publishedProviderVersion.TotalFunding) &&
                     d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
-                    d.First().FundingStreamIds.First() == "PSG" &&
+                    d.First().FundingStreamId == "PSG" &&
                     d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId                  
               ));
         }

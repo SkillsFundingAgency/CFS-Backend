@@ -1,0 +1,134 @@
+{
+    "$schema": "https://fundingschemas.blob.core.windows.net/schemas/logicalmodel-1.0.json#schema",
+    "schemaVersion": "1.0",
+    "funding": {
+      "templateVersion": "1.0",
+      "id": "PSG-AY-1920-Payment-LocalAuthority-10003089-1_0",
+      "fundingVersion": "1_0",
+      "status": "Released",
+      "fundingStream": {
+        "code": "PSG",
+        "name": "PE + Sport Premium"
+      },
+      "fundingPeriod": {
+        "id": "AY-1920",
+        "period": "1920",
+        "name": "Academic year 2019-20",
+        "type": "AY",
+        "startDate": "2019-09-01T01:00:00+01:00",
+        "endDate": "2020-08-31T01:00:00+01:00"
+      },
+      "organisationGroup": {
+        "groupTypeCode": "LocalAuthority",
+        "groupTypeIdentifier": "UKPRN",
+        "identifierValue": "10003089",
+        "groupTypeCategory": "LegalEntity",
+        "name": "Hillingdon",
+        "searchableName": "Hillingdon",
+        "identifiers": [
+          {
+            "type": "LACode",
+            "value": "312"
+          },
+          {
+            "type": "UKPRN",
+            "value": "10003089"
+          }
+        ]
+      },
+      "fundingValue": {
+        "totalValue": 0,
+        "fundingLines": [
+          {
+            "name": "Total Allocation",
+            "fundingLineCode": "TotalAllocation",
+            "value": 0,
+            "templateLineId": 1,
+            "type": "Payment",
+            "calculations": [
+              {
+                "name": "Total Allocation",
+                "templateCalculationId": 2,
+                "value": 0,
+                "valueFormat": "Currency",
+                "type": "Cash",
+                "formulaText": "Something * something",
+                "aggregationType": "None"
+              },
+              {
+                "name": "Eligible Pupils",
+                "templateCalculationId": 3,
+                "value": 0,
+                "valueFormat": "Number",
+                "type": "PupilNumber",
+                "formulaText": "Something * something",
+                "aggregationType": "Sum"
+              },
+              {
+                "name": "Pupil rate threshold",
+                "templateCalculationId": 4,
+                "value": 0,
+                "valueFormat": "Number",
+                "type": "PupilNumber",
+                "formulaText": "Something * something",
+                "aggregationType": "None"
+              },
+              {
+                "name": "Rate",
+                "templateCalculationId": 5,
+                "value": 0,
+                "valueFormat": "Number",
+                "type": "Rate",
+                "formulaText": "Something * something",
+                "aggregationType": "Average"
+              },
+              {
+                "name": "Additional Rate",
+                "templateCalculationId": 6,
+                "value": 0,
+                "valueFormat": "Number",
+                "type": "Rate",
+                "formulaText": "Something * something",
+                "aggregationType": "Average"
+              }
+            ],
+            "distributionPeriods": [
+              {
+                "value": 0,
+                "distributionPeriodId": "FY-1920",
+                "profilePeriods": [
+                  {
+                    "type": "CalendarMonth",
+                    "typeValue": "October",
+                    "year": 2019,
+                    "occurrence": 1,
+                    "profiledValue": 10045,
+                    "distributionPeriodId": "FY-1920"
+                  }
+                ]
+              },
+              {
+                "value": 0,
+                "distributionPeriodId": "FY-2021",
+                "profilePeriods": [
+                  {
+                    "type": "CalendarMonth",
+                    "typeValue": "April",
+                    "year": 2020,
+                    "occurrence": 1,
+                    "profiledValue": 7175,
+                    "distributionPeriodId": "FY-2021"
+                  }
+                ]
+              }
+            ]
+          }
+         ]
+      },
+      "providerFundings": [],
+      "groupingReason": "Payment",
+      "statusChangedDate": "2019-08-29T14:52:56.8436691+01:00",
+      "externalPublicationDate": "2019-09-01T00:00:00+01:00",
+      "earliestPaymentAvailableDate": "2019-08-29T14:52:56.8436659+01:00"
+    }
+  }

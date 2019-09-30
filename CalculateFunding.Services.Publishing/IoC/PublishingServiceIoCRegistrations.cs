@@ -38,23 +38,13 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();
             serviceCollection.AddSingleton<IPublishedProviderFundingService, PublishedProviderFundingService>();
             serviceCollection.AddSingleton<IHealthChecker, PublishedProviderFundingService>();
-            serviceCollection.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>();
             serviceCollection.AddSingleton<ISpecificationService, SpecificationService>();
             serviceCollection.AddSingleton<IProviderService, ProviderService>();
             serviceCollection.AddSingleton<IPublishedProviderIndexerService, PublishedProviderIndexerService>();
             serviceCollection.AddSingleton<IPublishProviderExclusionCheck, PublishedProviderExclusionCheck>();
             serviceCollection.AddSingleton<IFundingLineValueOverride, FundingLineValueOverride>();
+            serviceCollection.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
 
-            serviceCollection.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>(serviceProvider =>
-            {
-                CosmosDbSettings cosmosDbSettings = new CosmosDbSettings();
-
-                configuration.Bind("CosmosDbSettings", cosmosDbSettings);
-
-                cosmosDbSettings.CollectionName = "calculationresults";
-
-                return new PublishedFundingRepository(new CosmosRepository(cosmosDbSettings));
-            });
 
             serviceCollection.AddTransient<ICreateJobsForSpecifications<RefreshFundingJobDefinition>>(ctx =>
             {
@@ -100,8 +90,6 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton(searchSettings);
             serviceCollection.AddSingleton<ISearchRepository<PublishedFundingIndex>, SearchRepository<PublishedFundingIndex>>();
 
-            serviceCollection.AddSingleton<IPublishedFundingContentsPersistanceService, PublishedFundingContentsPersistanceService>();
-
             serviceCollection.AddSingleton<IPublishedFundingContentsPersistanceService>((ctx) =>
             {
                 BlobStorageOptions storageSettings = new BlobStorageOptions();
@@ -117,10 +105,10 @@ namespace CalculateFunding.Services.Publishing.IoC
                 ISearchRepository<PublishedFundingIndex> searchRepository = ctx.GetService<ISearchRepository<PublishedFundingIndex>>();
 
                 IPublishingResiliencePolicies publishingResiliencePolicies = ctx.GetService<IPublishingResiliencePolicies>();
-                
-                return new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver, 
-                    blobClient, 
-                    publishingResiliencePolicies, 
+
+                return new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver,
+                    blobClient,
+                    publishingResiliencePolicies,
                     searchRepository);
             });
         }

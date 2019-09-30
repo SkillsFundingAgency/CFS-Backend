@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
@@ -23,9 +22,9 @@ namespace CalculateFunding.Services.Publishing
             foreach (var organisationGroup in organisationGroups)
             {
                 // get all funding where the organisation group matches the published funding
-                PublishedFunding publishedFunding = existingPublishedFunding?.Where(_ => organisationGroup.GroupTypeCode == Enum.Parse<OrganisationGroupTypeCode>(_.Current.OrganisationGroupTypeCode) && 
-                organisationGroup.GroupTypeClassification == Enum.Parse<OrganisationGroupTypeClassification>(_.Current.OrganisationGroupTypeCategory) && 
-                organisationGroup.GroupTypeIdentifier == Enum.Parse<OrganisationGroupTypeIdentifier>(_.Current.OrganisationGroupTypeIdentifier) && 
+                PublishedFunding publishedFunding = existingPublishedFunding?.Where(_ => organisationGroup.GroupTypeCode == Enum.Parse<OrganisationGroupTypeCode>(_.Current.OrganisationGroupTypeCode) &&
+                organisationGroup.GroupTypeClassification == Enum.Parse<OrganisationGroupTypeClassification>(_.Current.OrganisationGroupTypeClassification) &&
+                organisationGroup.GroupTypeIdentifier == Enum.Parse<OrganisationGroupTypeIdentifier>(_.Current.OrganisationGroupTypeIdentifier) &&
                 organisationGroup.IdentifierValue == _.Current.OrganisationGroupIdentifierValue).OrderBy(_ => _.Current.Version).LastOrDefault();
 
                 // no existing published funding so need to yield the organisation group

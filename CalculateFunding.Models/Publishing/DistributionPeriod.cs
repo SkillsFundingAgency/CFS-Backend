@@ -9,7 +9,7 @@ namespace CalculateFunding.Models.Publishing
     public class DistributionPeriod
     {
         /// <summary>
-        /// The overall value for the distribution period in pence. Rolled up from all child Funding Lines where Type = Payment
+        /// The overall value for the distribution period in pounds and pence. Rolled up from all child Funding Lines where Type = Payment
         /// </summary>
         [JsonProperty("value")]
         public decimal Value { get; set; }

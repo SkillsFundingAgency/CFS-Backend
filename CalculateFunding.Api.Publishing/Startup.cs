@@ -15,6 +15,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.IoC;
+using CalculateFunding.Services.Publishing.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -96,6 +97,18 @@ namespace CalculateFunding.Api.Publishing
             builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()
                     .AddSingleton<IHealthChecker, PublishedSearchService>();
 
+            builder.AddSingleton<IPublishedFundingRepository, PublishedFundingRepository>((ctx) =>
+            {
+                CosmosDbSettings calssDbSettings = new CosmosDbSettings();
+
+                Configuration.Bind("CosmosDbSettings", calssDbSettings);
+
+                calssDbSettings.CollectionName = "publishedfunding";
+
+                CosmosRepository calcsCosmosRepostory = new CosmosRepository(calssDbSettings);
+
+                return new PublishedFundingRepository(calcsCosmosRepostory);
+            });
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
@@ -147,6 +160,7 @@ namespace CalculateFunding.Api.Publishing
                     PublishedFundingRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
         }

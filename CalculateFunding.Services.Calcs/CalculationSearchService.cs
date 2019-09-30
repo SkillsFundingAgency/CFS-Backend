@@ -22,6 +22,11 @@ namespace CalculateFunding.Services.Calcs
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
 
+        private FacetFilterType[] Facets = {
+            new FacetFilterType("status"),
+            new FacetFilterType("fundingPeriodName"),
+            new FacetFilterType("fundingStreamNames", true)
+        };
 
         private IEnumerable<string> DefaultOrderBy = new[] { "name" };
 

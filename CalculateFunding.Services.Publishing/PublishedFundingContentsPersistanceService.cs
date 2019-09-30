@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -55,7 +54,7 @@ namespace CalculateFunding.Services.Publishing
 
         private string GetBlobName(PublishedFundingVersion publishedFundingVersion)
         {
-            return $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason.ToString()}-{publishedFundingVersion.OrganisationGroupTypeIdentifier}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}-{publishedFundingVersion.MinorVersion}";
+            return $"{publishedFundingVersion.FundingStreamId}-{publishedFundingVersion.FundingPeriod.Id}-{publishedFundingVersion.GroupingReason.ToString()}-{publishedFundingVersion.OrganisationGroupTypeCode}-{publishedFundingVersion.OrganisationGroupIdentifierValue}-{publishedFundingVersion.MajorVersion}_{publishedFundingVersion.MinorVersion}.json";
         }
     }
 }

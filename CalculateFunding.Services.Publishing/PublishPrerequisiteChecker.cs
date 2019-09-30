@@ -33,9 +33,9 @@ namespace CalculateFunding.Services.Publishing
 
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);
 
-            if (specificationFundingStatus == SpecificationFundingStatus.AlreadyChosen)
+            if (specificationFundingStatus != SpecificationFundingStatus.AlreadyChosen)
             {
-                string errorMessage = $"Specification with id: '{specification.Id} doesn't have a chosen funding streams";
+                string errorMessage = $"Specification with id: '{specification.Id}' is not chosen for funding";
 
                 _logger.Error(errorMessage);
                 return new string[] { errorMessage };

@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IBlobClient blobClient = CreateBlobClient();
            
             blobClient
-                .When(x => x.GetBlobReferenceFromServerAsync(Arg.Is(blobName)))
+                .When(x => x.GetBlockBlobReference(Arg.Is(blobName)))
                 .Do(x => { throw new Exception("Failed to get blob reference"); });
 
             ILogger logger = CreateLogger();
@@ -220,7 +220,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             IBlobClient blobClient = CreateBlobClient();
             blobClient
-                .GetBlobReferenceFromServerAsync(Arg.Is(blobName))
+                .GetBlockBlobReference(Arg.Is(blobName))
                 .Returns(blob);
 
             PublishedProviderVersionService service = CreatePublishedProviderVersionService(blobClient: blobClient);

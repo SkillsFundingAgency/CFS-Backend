@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -73,11 +74,11 @@ namespace CalculateFunding.Services.Providers.Validators
                        context.AddFailure($"No establishment name specified for '{providerWithEmptyEstablishmentName.Name}' was{messageSuffix}");
                    }
 
-                   IGrouping<string, Provider> groupedUKPRNDuplicates = providerVersionModel.Providers.GroupBy(x => x.UKPRN).FirstOrDefault(g => g.Count() > 1);
+                   IEnumerable<IGrouping<string, Provider>> groupedUKPRNDuplicates = providerVersionModel.Providers.GroupBy(x => x.UKPRN).Where(g => g.Count() > 1);
 
                    if (groupedUKPRNDuplicates != null)
                    {
-                       context.AddFailure($"Duplicate UKPRN specified for {groupedUKPRNDuplicates.Key} was{messageSuffix}");
+                       groupedUKPRNDuplicates.ToList().ForEach(x => context.AddFailure($"Duplicate UKPRN specified for {x.Key} was{messageSuffix}"));
                    }
 
                    Provider providerWithEmptyStatus = providerVersionModel.Providers.FirstOrDefault(x => string.IsNullOrWhiteSpace(x.Status));
@@ -110,13 +111,6 @@ namespace CalculateFunding.Services.Providers.Validators
                    {
                        context.AddFailure($"No trust status specified for '{providerWithEmptyTrustStatus.Name}' was{messageSuffix}");
                    }
-
-                   //Provider providerWithInvalidTrustStatus = providerVersionModel.Providers.FirstOrDefault(x => !x.TrustStatusViewModelString.IsAnEnum<TrustStatus>());
-
-                   //if (providerWithInvalidTrustStatus != null)
-                   //{
-                   //    context.AddFailure($"An Invalid trust status specified for '{providerWithInvalidTrustStatus.Name}' was{messageSuffix}");
-                   //}
                });
         }
     }

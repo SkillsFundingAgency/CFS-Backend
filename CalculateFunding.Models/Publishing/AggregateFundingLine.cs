@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 
 namespace CalculateFunding.Models.Publishing
@@ -24,7 +23,11 @@ namespace CalculateFunding.Models.Publishing
 
         public uint TemplateLineId { get; set; }
 
+        public decimal? Value { get; set; }
+
         public IEnumerable<AggregateFundingLine> FundingLines { get; set; }
+
+        public IEnumerable<AggregateDistributionPeriod> DistributionPeriods { get; set; }
 
         public IEnumerable<AggregateFundingCalculation> Calculations { get; set; }
     }

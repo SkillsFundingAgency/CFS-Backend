@@ -43,13 +43,12 @@ namespace CalculateFunding.Services.Publishing
         {
             IEnumerable<Task> tasks = publishedFundingToSave.Select(async(_) =>
             {
-                PublishedFunding publishedFunding = _.PublishedFunding ?? new PublishedFunding();
+                PublishedFunding publishedFunding = _.PublishedFunding;
 
                 PublishedFundingVersion currentVersion = publishedFunding.Current;
 
-                string partitionKey = currentVersion != null ? publishedFunding.ParitionKey : string.Empty;
-
-                PublishedFundingVersion publishedFundingVersion = await _publishedFundingVersionRepository.CreateVersion(_.PublishedFundingVersion, currentVersion, partitionKey);
+                PublishedFundingVersion publishedFundingVersion = await _publishedFundingVersionRepository
+                    .CreateVersion(_.PublishedFundingVersion, currentVersion, currentVersion.PartitionKey);
 
                 publishedFundingVersion.Status = released;
                 publishedFundingVersion.Author = author;
@@ -59,7 +58,7 @@ namespace CalculateFunding.Services.Publishing
 
                 try
                 { 
-                    await _publishedFundingVersionRepository.SaveVersion(publishedFundingVersion);
+                    await _publishedFundingVersionRepository.SaveVersion(publishedFundingVersion, publishedFundingVersion.PartitionKey);
                 }
                 catch (Exception ex)
                 {

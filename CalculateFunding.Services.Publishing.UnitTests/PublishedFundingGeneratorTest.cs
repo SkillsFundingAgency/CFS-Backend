@@ -1,4 +1,8 @@
-﻿using AutoMapper;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using AutoMapper;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
@@ -10,11 +14,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using PublishingModels = CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
@@ -28,7 +27,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private OrganisationGroupResult _organisationGroupResult;
         private const string _schema = "1.0";
         private const string _templateVersion = "1";
-        private const string _fundingStream = "stream1";
+        private const string _fundingStreamId = "stream1";
         private string _publishedFundingPeriodId;
         private Common.TemplateMetadata.Models.TemplateMetadataContents _templateMetadataContents;
         private PublishingModels.PublishedProvider _publishedProvider;
@@ -36,6 +35,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IEnumerable<(PublishingModels.PublishedFunding PublishedFunding, PublishingModels.PublishedFundingVersion PublishedFundingVersion)> _publishedFundingAndPublishedFundingVersion;
         private IEnumerable<Common.ApiClient.Providers.Models.Provider> _scopedProviders;
         private IPublishedFundingIdGenerator _publishedFundingIdGenerator;
+        private Reference _fundingStreamObject;
+        private Common.ApiClient.Policies.Models.FundingPeriod _fundingPeriod;
+        private Reference _fundingStream;
+        private PublishedFundingDates _fundingPublishingDates;
+        private string _specificationId;
 
         [TestInitialize]
         public void SetUp()
@@ -75,6 +79,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             GivenFundingIdSet();
 
+            GivenFundingStreamSet();
+
+            GivenFundingPeriodSet();
+
+            GivenPublishingDatesSet();
+
+            GivenSpecificationIdIsSet();
+
             // Act
             WhenPublishedFundingGenerated();
 
@@ -86,6 +98,41 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingAndPublishedFundingVersion.First().PublishedFundingVersion.FundingId
                 .Should()
                 .Be($"{_organisationGroupResult.GroupTypeIdentifier}_{_organisationGroupResult.IdentifierValue}_{_publishedProvider.Current.FundingPeriodId}_{_publishedProvider.Current.FundingStreamId}_{1}");
+
+        }
+
+        private void GivenSpecificationIdIsSet()
+        {
+            _specificationId = "specId1";
+        }
+
+        private void GivenPublishingDatesSet()
+        {
+            DateTime dateTime = DateTime.Now;
+            _fundingPublishingDates = new PublishedFundingDates()
+            {
+                StatusChangedDate = dateTime,
+                EarliestPaymentAvailableDate = dateTime,
+                ExternalPublicationDate = dateTime,
+            };
+        }
+
+        private void GivenFundingPeriodSet()
+        {
+            _fundingPeriod = new Common.ApiClient.Policies.Models.FundingPeriod()
+            {
+                Id = "AY-1920",
+                EndDate = new DateTimeOffset(2019, 12, 12, 0, 0, 0, TimeSpan.Zero),
+                StartDate = new DateTimeOffset(2019, 12, 1, 0, 0, 0, TimeSpan.Zero),
+                Name = "Funding Period Test",
+                Period = "1920",
+                Type = Common.ApiClient.Policies.Models.FundingPeriodType.AY,
+            };
+        }
+
+        private void GivenFundingStreamSet()
+        {
+            _fundingStream = new Reference("FS-ID", "Funding Stream Name");
 
         }
 
@@ -112,17 +159,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _provider = new PublishingModels.Provider { ProviderId = "provider1" };
 
             _publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
-            .WithFundingStreamId(_fundingStream)
+            .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)))
+            .WithFundingStreamId(_fundingStreamId)
             .WithProviderId(_provider.ProviderId)
             .WithProvider(_provider))));
         }
 
         private void WhenPublishedFundingGenerated()
         {
-             _publishedFundingAndPublishedFundingVersion = _publishedFundingGenerator.GeneratePublishedFunding(new List<(PublishingModels.PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> { (_publishedFunding, _organisationGroupResult) }, 
-                 _templateMetadataContents, 
-                 new List<PublishingModels.PublishedProvider> { _publishedProvider }, 
-                 _templateVersion);
+            _publishedFundingAndPublishedFundingVersion = _publishedFundingGenerator.GeneratePublishedFunding(
+                new GeneratePublishedFundingInput()
+                {
+                    OrganisationGroupsToSave = new List<(PublishingModels.PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> { (_publishedFunding, _organisationGroupResult) },
+                    TemplateMetadataContents = _templateMetadataContents,
+                    PublishedProviders = new List<PublishingModels.PublishedProvider> { _publishedProvider }, //TODO; this also needs the second item in the list
+                    TemplateVersion = _templateVersion,
+                    FundingPeriod = _fundingPeriod,
+                    FundingStream = _fundingStream,
+                    PublishingDates = _fundingPublishingDates,
+                    SpecificationId = _specificationId,
+                }).ToArray();
         }
 
         private OrganisationGroupResult NewOrganisationGroupResult(Action<OrganisationGroupResultBuilder> setUp = null)
@@ -151,6 +207,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return publishedProviderVersionBuilder.Build();
         }
+
+        private FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+
+            return fundingLineBuilder.Build();
+        }
+
         private IEnumerable<Common.ApiClient.Providers.Models.Provider> GenerateScopedProviders()
         {
             List<Common.ApiClient.Providers.Models.Provider> providers = new List<Common.ApiClient.Providers.Models.Provider>();
@@ -191,10 +257,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ProviderId = "provider2",
                 Name = "Provider 2",
                 UKPRN = "1002",
-                LACode = "101",
-                Authority = "Local Authority 1",
-                TrustCode = "101",
-                TrustName = "Academy Trust 1",
+                LACode = "102",
+                Authority = "Local Authority 2",
+                TrustCode = "102",
+                TrustName = "Academy Trust 2",
                 ParliamentaryConstituencyCode = "BOS",
                 ParliamentaryConstituencyName = "Bermondsey and Old Southwark",
                 MiddleSuperOutputAreaCode = "MSOA1",

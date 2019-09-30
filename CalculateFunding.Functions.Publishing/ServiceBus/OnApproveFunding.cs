@@ -17,7 +17,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
 
         public OnApproveFunding(
             ILogger logger,
-            ApproveService approveService)
+            IApproveService approveService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(approveService, nameof(approveService));

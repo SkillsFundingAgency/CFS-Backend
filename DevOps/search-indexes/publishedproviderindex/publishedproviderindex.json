@@ -106,8 +106,8 @@
 			"indexAnalyzer": null
 		},			
 		{
-			"name": "fundingStreamIds",
-			"type": "Collection(Edm.String)",
+			"name": "fundingStreamId",
+			"type": "Edm.String",
 			"key": false,
 			"facetable": false,
 			"filterable": true,

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -9,7 +10,6 @@ using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
@@ -39,6 +39,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
         private readonly IPublishedFundingGenerator _publishedFundingGenerator;
         private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
+        private readonly IPublishedFundingDateService _publishedFundingDateService;
         private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
 
         private readonly Policy _publishingResiliencePolicy;
@@ -54,6 +55,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingChangeDetectorService publishedFundingChangeDetectorService,
             IPublishedFundingGenerator publishedFundingGenerator,
             IPublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService,
+            IPublishedFundingDateService publishedFundingDateService,
             IProviderService providerService,
             IJobsApiClient jobsApiClient,
             IPoliciesApiClient policiesApiClient,
@@ -69,10 +71,15 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedFundingChangeDetectorService, nameof(publishedFundingChangeDetectorService));
             Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedFundingGenerator));
             Guard.ArgumentNotNull(publishedFundingContentsPersistanceService, nameof(publishedFundingContentsPersistanceService));
+            Guard.ArgumentNotNull(publishedFundingDateService, nameof(publishedFundingDateService));
             Guard.ArgumentNotNull(providerService, nameof(providerService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
+
+            Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
+            Guard.ArgumentNotNull(publishingResiliencePolicies.JobsApiClient, nameof(publishingResiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(publishingResiliencePolicies.PoliciesApiClient, nameof(publishingResiliencePolicies.PoliciesApiClient));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _publishedFundingRepository = publishedFundingRepository;
@@ -82,6 +89,7 @@ namespace CalculateFunding.Services.Publishing
             _publishedFundingChangeDetectorService = publishedFundingChangeDetectorService;
             _publishedFundingGenerator = publishedFundingGenerator;
             _publishedFundingContentsPersistanceService = publishedFundingContentsPersistanceService;
+            _publishedFundingDateService = publishedFundingDateService;
             _providerService = providerService;
             _jobsApiClient = jobsApiClient;
             _policiesApiClient = policiesApiClient;
@@ -92,6 +100,11 @@ namespace CalculateFunding.Services.Publishing
             _policyApiClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
         }
 
+        /// <summary>
+        /// Not sure why this is here. Remove it at some point?
+        /// </summary>
+        /// <param name="specificationId"></param>
+        /// <returns></returns>
         public async Task<ApiSpecificationSummary> GetSpecificationSummaryById(string specificationId)
         {
             return await _specificationService.GetSpecificationSummaryById(specificationId);
@@ -109,7 +122,7 @@ namespace CalculateFunding.Services.Publishing
 
             Reference author = message.GetUserDetails();
 
-            string specificationId = message.UserProperties["specificationId"] as string;
+            string specificationId = message.UserProperties["specification-id"] as string;
             string jobId = message.UserProperties["jobId"]?.ToString();
 
             JobViewModel currentJob = await RetrieveJobAndCheckCanBeProcessed(jobId);
@@ -128,16 +141,18 @@ namespace CalculateFunding.Services.Publishing
                 throw new NonRetriableException($"Could not find specification with id '{specificationId}'");
             }
 
-            IEnumerable<PublishedProvider> publishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() =>
+            IEnumerable<PublishedProvider> publishedProvidersResult = await _publishingResiliencePolicy.ExecuteAsync(() =>
                         _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
 
-            if (publishedProviders.IsNullOrEmpty())
+            // Ensure linq query evaluates only once
+            List<PublishedProvider> publishedProvidersForSpecification = new List<PublishedProvider>(publishedProvidersResult);
+
+            if (publishedProvidersForSpecification.IsNullOrEmpty())
                 throw new RetriableException(
                         $"Null or empty published providers returned for specification id : '{specificationId}' when setting status to released");
 
-
             // Check prerequisites for this specification to be published
-            IEnumerable<string> prereqValidationErrors = await _publishPrerequisiteChecker.PerformPrerequisiteChecks(specification, publishedProviders);
+            IEnumerable<string> prereqValidationErrors = await _publishPrerequisiteChecker.PerformPrerequisiteChecks(specification, publishedProvidersForSpecification);
             if (!prereqValidationErrors.IsNullOrEmpty())
             {
                 string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
@@ -151,24 +166,54 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<PublishedFunding> publishedFunding = await _publishingResiliencePolicy.ExecuteAsync(() =>
                         _publishedFundingRepository.GetLatestPublishedFundingBySpecification(specificationId));
 
+            ApiResponse<Common.ApiClient.Policies.Models.FundingPeriod> fundingPeriod = await _policyApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(specification.FundingPeriod.Id));
+            if (fundingPeriod.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new Exception("Unable to lookup funding period from policy service");
+            }
+            if (fundingPeriod.Content == null)
+            {
+                throw new Exception("Unable to lookup funding period from policy service - content null");
+            }
+
+            PublishedFundingDates publishingDates = await _publishedFundingDateService.GetDatesForSpecification(specificationId);
+
             foreach (Reference fundingStream in specification.FundingStreams)
             {
-                Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
-
-                ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specification.TemplateIds[fundingStream.Id]);
-                
-                if(templateMetadataContentsResponse?.Content == null)
+                if (!specification.TemplateIds.ContainsKey(fundingStream.Id) || string.IsNullOrWhiteSpace(specification.TemplateIds[fundingStream.Id]))
                 {
                     continue;
                 }
 
+                List<PublishedProvider> publishedProviders = publishedProvidersForSpecification.Where(p => p.Current.FundingStreamId == fundingStream.Id).ToList();
+
+                Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+
+                ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specification.TemplateIds[fundingStream.Id]);
+
+                if (templateMetadataContentsResponse?.Content == null)
+                {
+                    throw new NonRetriableException($"Unable to get template metadata contents for funding stream. '{fundingStream.Id}'");
+                }
+
+
                 TemplateMetadataContents templateMetadataContents = templateMetadataContentsResponse.Content;
 
                 // Lookup the funding configuration to determine which groups to publish
-                var fundingConfigurationResponse = await _policyApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id));
+                ApiResponse<FundingConfiguration> fundingConfigurationResponse = await _policyApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingConfiguration(fundingStream.Id, specification.FundingPeriod.Id));
+                if (fundingConfigurationResponse.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    throw new InvalidOperationException($"Unable to get funding configuration for funding stream '{fundingStream.Id}'");
+                }
+
                 FundingConfiguration fundingConfiguration = fundingConfigurationResponse.Content;
 
                 IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders = await _providerService.GetScopedProvidersForSpecification(specificationId, specification.ProviderVersionId);
+
+                List<string> publishedProviderProviderIds = publishedProviders.Select(p => p.Current.ProviderId).Distinct().ToList();
+
+                // TODO: filter scoped providers based on the PublishedProvider's which exist to support excluded PublishedProviders
+                scopedProviders = scopedProviders.Where(p => publishedProviderProviderIds.Contains(p.ProviderId));
 
                 // Foreach group, determine the provider versions required to be latest
                 IEnumerable<OrganisationGroupResult> organisationGroups = await _organisationGroupGenerator.GenerateOrganisationGroup(fundingConfiguration, scopedProviders, specification.ProviderVersionId);
@@ -177,7 +222,19 @@ namespace CalculateFunding.Services.Publishing
                 IEnumerable<(PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> organisationGroupsToSave = _publishedFundingChangeDetectorService.GenerateOrganisationGroupsToSave(organisationGroups, publishedFunding, publishedProviders);
 
                 // Generate PublishedFundingVersion for new and updated PublishedFundings
-                IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave = _publishedFundingGenerator.GeneratePublishedFunding(organisationGroupsToSave, templateMetadataContents, publishedProviders, specification.TemplateIds[fundingStream.Id]);
+                GeneratePublishedFundingInput generatePublishedFundingInput = new GeneratePublishedFundingInput()
+                {
+                    OrganisationGroupsToSave = organisationGroupsToSave,
+                    TemplateMetadataContents = templateMetadataContents,
+                    PublishedProviders = publishedProviders,
+                    TemplateVersion = specification.TemplateIds[fundingStream.Id],
+                    FundingStream = fundingStream,
+                    FundingPeriod = fundingPeriod.Content,
+                    PublishingDates = publishingDates,
+                    SpecificationId = specification.Id,
+                };
+
+                IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave = _publishedFundingGenerator.GeneratePublishedFunding(generatePublishedFundingInput).ToList();
 
                 // Save a version of published funding and set this version to current
                 await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(publishedFundingToSave, author, PublishedFundingStatus.Released);

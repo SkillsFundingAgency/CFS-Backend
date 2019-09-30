@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(author, nameof(author));
 
             IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests =
-               _publishedProviderVersioningService.AssemblePublishedProviderCreateVersionRequests(publishedProviders, author, publishedProviderStatus);
+               _publishedProviderVersioningService.AssemblePublishedProviderCreateVersionRequests(publishedProviders.ToList(), author, publishedProviderStatus);
 
             if (publishedProviderCreateVersionRequests.IsNullOrEmpty())
             {

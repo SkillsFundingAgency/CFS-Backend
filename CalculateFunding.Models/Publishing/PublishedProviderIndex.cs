@@ -42,8 +42,8 @@ namespace CalculateFunding.Models.Publishing
         public string SpecificationId { get; set; }
 
         [IsFilterable, IsRetrievable(true)]
-        [JsonProperty("fundingStreamIds")]
-        public string[] FundingStreamIds { get; set; }
+        [JsonProperty("fundingStreamId")]
+        public string FundingStreamId { get; set; }
 
         [IsFilterable, IsRetrievable(true)]
         [JsonProperty("fundingPeriodId")]

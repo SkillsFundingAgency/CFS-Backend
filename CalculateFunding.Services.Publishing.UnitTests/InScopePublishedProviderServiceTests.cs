@@ -237,7 +237,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private ApiProvider NewApiProvider(Action<ApiProviderBuilder> setUp = null)
         {
             ApiProviderBuilder apiProviderBuilder = new ApiProviderBuilder()
-                .WithStatus(new RandomEnum<PublishedProviderStatus>().ToString());
+                .WithStatus(PublishedProviderStatus.Draft.ToString());
 
             setUp?.Invoke(apiProviderBuilder);
 

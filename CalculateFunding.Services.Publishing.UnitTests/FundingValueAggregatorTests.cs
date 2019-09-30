@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using FundingLine = CalculateFunding.Models.Publishing.FundingLine;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -78,6 +79,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     Provider = GetProvider(i),
                     Calculations = JsonConvert.DeserializeObject<IEnumerable<Models.Publishing.FundingCalculation>>(GetResourceString($"CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProvider{i}Calculations.json")),
+                    FundingLines = new FundingLine[] { NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)) },
                     ProviderId = "1234" + i,
                     FundingStreamId = "PSG",
                     FundingPeriodId = "AY-1920",
@@ -85,10 +87,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                     MajorVersion = 1,
                     MinorVersion = 0,
                     VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated }
-                });
+                }); ;
             }
 
             return providerVersions;
+        }
+
+        private static FundingLine NewFundingLine(Action<FundingLineBuilder> setUp = null)
+        {
+            FundingLineBuilder fundingLineBuilder = new FundingLineBuilder();
+
+            setUp?.Invoke(fundingLineBuilder);
+
+            return fundingLineBuilder.Build();
         }
 
         public Provider GetProvider(int index)

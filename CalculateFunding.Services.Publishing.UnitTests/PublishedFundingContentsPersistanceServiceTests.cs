@@ -1,14 +1,14 @@
-﻿using CalculateFunding.Common.Storage;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Storage;
+using CalculateFunding.Generators.OrganisationGroup.Enums;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Publishing.Interfaces;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using System;
-using System.Threading.Tasks;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Generators.OrganisationGroup.Enums;
-using System.Collections.Generic;
-using FluentAssertions;
-using CalculateFunding.Repositories.Common.Search;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -34,7 +34,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _publishedFundingContentsGenerator = Substitute.For<IPublishedFundingContentsGenerator>();
 
-            ISearchRepository<PublishedFundingIndex>  searchRepository = Substitute.For<ISearchRepository<PublishedFundingIndex>>();
+            ISearchRepository<PublishedFundingIndex> searchRepository = Substitute.For<ISearchRepository<PublishedFundingIndex>>();
 
             publishedFundingContentsGeneratorResolver.GetService(Arg.Is(_schema))
                 .Returns(_publishedFundingContentsGenerator);
@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             .WithFundingPeriod(_publishedFundingPeriod)
             .WithFundingStreamId(_fundingStream)
             .WithGroupReason(Models.Publishing.GroupingReason.Payment)
-            .WithOrganisationGroupTypeCategory(OrganisationGroupTypeClassification.LegalEntity)
+            .WithOrganisationGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithOrganisationGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode)
             .WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust)
             .WithOrganisationGroupIdentifierValue("101"));
@@ -74,7 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             .WithFundingPeriod(_publishedFundingPeriod)
             .WithFundingStreamId(_fundingStream)
             .WithGroupReason(Models.Publishing.GroupingReason.Payment)
-            .WithOrganisationGroupTypeCategory(OrganisationGroupTypeClassification.LegalEntity)
+            .WithOrganisationGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithOrganisationGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode)
             .WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust)
             .WithOrganisationGroupIdentifierValue("101"));
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private async Task ThenFileIsUploaded()
         {
-            string blobName = $"{_fundingStream}-{_publishedFundingPeriod.Id}-{Models.Publishing.GroupingReason.Payment.ToString()}-{OrganisationGroupTypeIdentifier.AcademyTrustCode}-{_publishedFundingVersion.OrganisationGroupIdentifierValue}-{1}-{0}";
+            string blobName = $"{_fundingStream}-{_publishedFundingPeriod.Id}-{Models.Publishing.GroupingReason.Payment.ToString()}-{OrganisationGroupTypeCode.AcademyTrust}-{_publishedFundingVersion.OrganisationGroupIdentifierValue}-{1}_{0}.json";
 
             await _blobClient
                 .Received(1)

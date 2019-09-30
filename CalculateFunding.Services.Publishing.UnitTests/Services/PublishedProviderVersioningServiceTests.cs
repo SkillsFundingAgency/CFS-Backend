@@ -99,7 +99,7 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
                 }
             };
 
-            string id = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}-0";
+            string id = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}-0";
 
             ILogger logger = CreateLogger();
 
@@ -178,7 +178,7 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
             const string fundingPeriodId = "456";
             const string fundingStreamId = "789";
 
-            string partitionKey = $"publishedprovider_{providerId}_{fundingPeriodId}_{fundingStreamId}";
+            string partitionKey = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
 
             PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest = new PublishedProviderCreateVersionRequest
             {
@@ -358,7 +358,7 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
             const string fundingPeriodId = "456";
             const string fundingStreamId = "789";
 
-            string partitionKey = $"publishedprovider_{providerId}_{fundingPeriodId}_{fundingStreamId}";
+            string partitionKey = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
 
             IEnumerable<PublishedProvider> publishedProviders = new[]
             {
@@ -516,7 +516,7 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
             const string fundingPeriodId = "456";
             const string fundingStreamId = "789";
 
-            string partitionKey = $"publishedprovider-{fundingStreamId}-{fundingPeriodId}-{providerId}";
+            string partitionKey = $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
 
             IEnumerable<PublishedProvider> publishedProviders = new[]
             {

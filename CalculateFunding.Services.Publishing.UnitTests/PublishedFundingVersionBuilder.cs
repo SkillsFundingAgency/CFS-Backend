@@ -1,7 +1,7 @@
+using System.Collections.Generic;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
-using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private int? _version;
         private string _specificationId;
         private PublishedFundingStatus? _status;
-        private OrganisationGroupTypeClassification? _organisationGroupTypeCategory;
+        private OrganisationGroupTypeClassification? _organisationGroupTypeClassification;
         private OrganisationGroupTypeIdentifier? _organisationGroupTypeIdentifier;
         private OrganisationGroupTypeCode? _organisationGroupTypeCode;
         private string _organisationGroupIdentifierValue;
@@ -35,7 +35,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
         public PublishedFundingVersionBuilder WithSpecificationId(string specificationId)
         {
             _specificationId = specificationId;
@@ -71,9 +71,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public PublishedFundingVersionBuilder WithOrganisationGroupTypeCategory(OrganisationGroupTypeClassification organisationGroupTypeClassification)
+        public PublishedFundingVersionBuilder WithOrganisationGroupTypeClassification(OrganisationGroupTypeClassification organisationGroupTypeClassification)
         {
-            _organisationGroupTypeCategory = organisationGroupTypeClassification;
+            _organisationGroupTypeClassification = organisationGroupTypeClassification;
 
             return this;
         }
@@ -130,7 +130,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 FundingStreamId = _fundingStreamId ?? NewRandomString(),
                 Version = _version ?? 1,
                 Status = _status.GetValueOrDefault(NewRandomEnum<PublishedFundingStatus>()),
-                OrganisationGroupTypeCategory = _organisationGroupTypeCategory.GetValueOrDefault(NewRandomEnum<OrganisationGroupTypeClassification>()).ToString(),
+                OrganisationGroupTypeClassification = _organisationGroupTypeClassification.GetValueOrDefault(NewRandomEnum<OrganisationGroupTypeClassification>()).ToString(),
                 OrganisationGroupTypeIdentifier = _organisationGroupTypeIdentifier.GetValueOrDefault(NewRandomEnum<OrganisationGroupTypeIdentifier>()).ToString(),
                 OrganisationGroupTypeCode = _organisationGroupTypeCode.GetValueOrDefault(NewRandomEnum<OrganisationGroupTypeCode>()).ToString(),
                 OrganisationGroupIdentifierValue = _organisationGroupIdentifierValue,

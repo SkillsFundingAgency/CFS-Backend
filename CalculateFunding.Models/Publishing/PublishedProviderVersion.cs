@@ -13,10 +13,10 @@ namespace CalculateFunding.Models.Publishing
         /// Cosmos ID for the document. This will be used as the document ID when saving to cosmos
         /// </summary>
         [JsonProperty("id")]
-        public override string Id => $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{Version}";
+        public override string Id => $"publishedprovider-{ProviderId}-{FundingPeriodId}-{FundingStreamId}-{Version}";
 
         [JsonProperty("fundingId")]
-        public string FundingId => $"{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{MajorVersion}_{MinorVersion}";
+        public string FundingId => $"{ProviderId}-{FundingPeriodId}-{FundingStreamId}-{MajorVersion}_{MinorVersion}";
 
         /// <summary>
         /// Funding Stream ID. eg PSG, DSG
@@ -43,7 +43,7 @@ namespace CalculateFunding.Models.Publishing
         /// Entity ID for cosmos versioning. This refers to the parent PublishedProvider cosmos ID
         /// </summary>
         [JsonProperty("entityId")]
-        public override string EntityId => $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{Version}";
+        public override string EntityId => $"publishedprovider-{ProviderId}-{FundingPeriodId}-{FundingStreamId}";
 
         /// <summary>
         /// Published Provider Approval Status
@@ -61,7 +61,7 @@ namespace CalculateFunding.Models.Publishing
         /// Partition key for cosmos - used the the publishedprovider collection. This document should be kept in the same paritition as the parent PublishedProvider, so will match the parent PublishedProvider comos ID.
         /// </summary>
         [JsonProperty("partitionKey")]
-        public string PartitionKey => $"publishedprovider-{FundingStreamId}-{FundingPeriodId}-{ProviderId}";
+        public string PartitionKey => $"publishedprovider-{ProviderId}-{FundingPeriodId}-{FundingStreamId}";
 
         /// <summary>
         /// Funding Lines - used to store the profiling result and total for all funding lines.

@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Publishing
 
             try
             {
-                ICloudBlob blob = await _blobClientPolicy.ExecuteAsync(() => _blobClient.GetBlobReferenceFromServerAsync(blobName));
+                ICloudBlob blob = _blobClient.GetBlockBlobReference(blobName);
 
                 await _blobClientPolicy.ExecuteAsync(() => _blobClient.UploadAsync(blob, publishedProviderVersionBody));
             }

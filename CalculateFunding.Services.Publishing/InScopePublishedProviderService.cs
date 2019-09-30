@@ -55,9 +55,9 @@ namespace CalculateFunding.Services.Publishing
                     {
                         Version = 1,
                         MajorVersion = 1,
+                        MinorVersion = 0,
                         FundingPeriodId = fundingPeriodId,
                         FundingStreamId = fundingStreamId,
-                        Status = _.Status.AsEnum<PublishedProviderStatus>(),
                         ProviderId = _.ProviderId,
                         Provider = _mapper.Map<Provider>(_),
                         SpecificationId = specificationId

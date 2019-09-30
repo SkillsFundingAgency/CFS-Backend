@@ -132,21 +132,40 @@ namespace CalculateFunding.Services.Core.Services
                 return Task.FromResult(currentVersion + 1);
             }
 
-            string entityId = version.EntityId;
+            SqlQuerySpec sqlQuerySpec = null;
 
-            SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
+            if (string.IsNullOrWhiteSpace(partitionKeyId))
             {
-                QueryText = @"SELECT VALUE Max(c.content.version) 
+                string entityId = version.EntityId;
+
+                sqlQuerySpec = new SqlQuerySpec
+                {
+                    QueryText = @"SELECT VALUE Max(c.content.version) 
                             FROM    c 
                             WHERE   c.content.entityId = @EntityID
                                     AND c.documentType = @DocumentType
                                     AND c.deleted = false",
-                Parameters = new SqlParameterCollection
+                    Parameters = new SqlParameterCollection
+                    {
+                        new SqlParameter("@EntityID", entityId),
+                        new SqlParameter("@DocumentType", typeof(T).Name)
+                    }
+                };
+            }
+            else
+            {
+                sqlQuerySpec = new SqlQuerySpec
                 {
-                    new SqlParameter("@EntityID", entityId),
-                    new SqlParameter("@DocumentType", typeof(T).Name)
-                }
-            };
+                    QueryText = @"SELECT VALUE Max(c.content.version) 
+                            FROM    c 
+                            WHERE   c.documentType = @DocumentType
+                                    AND c.deleted = false",
+                    Parameters = new SqlParameterCollection
+                    {
+                        new SqlParameter("@DocumentType", typeof(T).Name)
+                    }
+                };
+            }
 
             dynamic[] resultsArray = null;
 

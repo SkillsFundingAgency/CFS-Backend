@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CalculateFunding.Functions.Publishing.ServiceBus;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -23,6 +24,9 @@ namespace CalculateFunding.Functions.Publishing.UnitTests
             using (IServiceScope scope = Startup.RegisterComponents(new ServiceCollection(), configuration).CreateScope())
             {
                 // Assert
+                scope.ServiceProvider.GetService<OnPublishFunding>().Should().NotBeNull(nameof(OnPublishFunding));
+                scope.ServiceProvider.GetService<OnApproveFunding>().Should().NotBeNull(nameof(OnApproveFunding));
+                scope.ServiceProvider.GetService<OnRefreshFunding>().Should().NotBeNull(nameof(OnRefreshFunding));
                 scope.ServiceProvider.GetService<IPublishService>().Should().NotBeNull(nameof(IPublishService));
                 scope.ServiceProvider.GetService<IApproveService>().Should().NotBeNull(nameof(IApproveService));
                 scope.ServiceProvider.GetService<IRefreshService>().Should().NotBeNull(nameof(IRefreshService));

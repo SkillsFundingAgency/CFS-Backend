@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Publishing
                             UKPRN = m.Result.UKPRN,
                             FundingValue = m.Result.FundingValue,
                             SpecificationId = m.Result.SpecificationId,
-                            FundingStreamIds = m.Result.FundingStreamIds,
+                            FundingStreamId = m.Result.FundingStreamId,
                             FundingPeriodId = m.Result.FundingPeriodId
 
                         }) ;

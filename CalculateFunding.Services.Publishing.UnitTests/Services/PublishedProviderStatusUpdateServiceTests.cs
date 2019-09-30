@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IJobTracker jobTracker = CreateJobTracker();
 
             providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Is(publishedProviders), Arg.Is(author), 
+                .AssemblePublishedProviderCreateVersionRequests(Arg.Any<IEnumerable<PublishedProvider>>(), Arg.Is(author), 
                     Arg.Is(PublishedProviderStatus.Approved))
                 .Returns(publishedProviderCreateVersionRequests);
 
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IPublishedProviderVersioningService providerVersioningService = CreateVersioningService();
 
             providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Is(publishedProviders), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
+                .AssemblePublishedProviderCreateVersionRequests(Arg.Any<IEnumerable<PublishedProvider>>(), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
                 .Returns(publishedProviderCreateVersionRequests);
 
             providerVersioningService
@@ -214,7 +214,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IPublishedFundingRepository publishedFundingRepository = CreatePublishedFundingRepository();
 
             providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Is(publishedProviders), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
+                .AssemblePublishedProviderCreateVersionRequests(Arg.Any<IEnumerable<PublishedProvider>>(), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
                 .Returns(publishedProviderCreateVersionRequests);
 
             providerVersioningService
@@ -266,7 +266,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             IPublishedProviderVersioningService providerVersioningService = CreateVersioningService();
 
             providerVersioningService
-                .AssemblePublishedProviderCreateVersionRequests(Arg.Is(publishedProviders), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
+                .AssemblePublishedProviderCreateVersionRequests(Arg.Any<IEnumerable<PublishedProvider>>(), Arg.Is(author), Arg.Is(PublishedProviderStatus.Approved))
                 .Returns(publishedProviderCreateVersionRequests);
 
             providerVersioningService

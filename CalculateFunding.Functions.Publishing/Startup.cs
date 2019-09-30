@@ -88,8 +88,8 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<ISpecificationService, SpecificationService>();
             builder.AddSingleton<IProviderService, ProviderService>();
             builder.AddSingleton<IRefreshService, RefreshService>();
-            builder.AddSingleton<IApproveService, ApproveService>()
-                .AddSingleton<IJobTracker, JobTracker>();
+            builder.AddSingleton<IApproveService, ApproveService>();
+            builder.AddSingleton<IJobTracker, JobTracker>();
             builder.AddSingleton<IPublishService, PublishService>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
 
@@ -148,7 +148,7 @@ namespace CalculateFunding.Functions.Publishing
 
                 config.Bind("CosmosDbSettings", ProviderSourceDatasetVersioningDbSettings);
 
-                ProviderSourceDatasetVersioningDbSettings.CollectionName = "providersources";
+                ProviderSourceDatasetVersioningDbSettings.CollectionName = "publishedfunding";
 
                 CosmosRepository cosmosRepository = new CosmosRepository(ProviderSourceDatasetVersioningDbSettings);
 
@@ -320,7 +320,10 @@ namespace CalculateFunding.Functions.Publishing
                 SpecificationsRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 CalculationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                PublishedFundingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                PublishedFundingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                FundingFeedSearchRepository = Repositories.Common.Search.SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
+                PublishedFundingBlobRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
             };
 
             return resiliencePolicies;

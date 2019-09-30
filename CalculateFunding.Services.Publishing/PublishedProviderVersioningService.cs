@@ -58,7 +58,8 @@ namespace CalculateFunding.Services.Publishing
             {
                 Guard.ArgumentNotNull(publishedProvider.Current, nameof(publishedProvider.Current));
 
-                if (publishedProvider.Current.Status == publishedProviderStatus)
+                if (publishedProviderStatus != PublishedProviderStatus.Draft && 
+                    (publishedProvider.Current.Status == publishedProviderStatus))
                 {
                     continue;
                 }
@@ -66,6 +67,22 @@ namespace CalculateFunding.Services.Publishing
                 PublishedProviderVersion newVersion = publishedProvider.Current.Clone() as PublishedProviderVersion;
                 newVersion.Author = author;
                 newVersion.Status = publishedProviderStatus;
+
+                switch(publishedProviderStatus)
+                {
+                    case PublishedProviderStatus.Approved:
+                    case PublishedProviderStatus.Released:
+                        newVersion.PublishStatus = Models.Versioning.PublishStatus.Approved;
+                        break;
+
+                    case PublishedProviderStatus.Updated:
+                        newVersion.PublishStatus = Models.Versioning.PublishStatus.Updated;
+                        break;
+
+                    default:
+                        newVersion.PublishStatus = Models.Versioning.PublishStatus.Draft;
+                        break;
+                }
 
                 publishedProviderCreateVersionRequests.Add(new PublishedProviderCreateVersionRequest
                 {

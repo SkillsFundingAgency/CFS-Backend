@@ -6,6 +6,7 @@ using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -181,7 +182,6 @@ namespace CalculateFunding.Services.Providers
 
             if (string.IsNullOrWhiteSpace(currentProviderCount) || int.Parse(currentProviderCount) != totalCount || totalProviderListCount != totalCount)
             {
-                await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKeyAllProviderSummaries);
                 IEnumerable<ProviderSummary> providerSummaries = providerVersion.Providers.Select(x => new ProviderSummary
                 {
                     Name = x.Name,
@@ -236,7 +236,13 @@ namespace CalculateFunding.Services.Providers
                     LocalGovernmentGroupTypeName = x.LocalGovernmentGroupTypeName
                 });
 
-                await _cacheProvider.CreateListAsync(providerSummaries, cacheKeyAllProviderSummaries);
+                await _cacheProvider.KeyDeleteAsync<ProviderSummary>(cacheKeyAllProviderSummaries);
+
+                // Batch to get around redis timeouts
+                foreach (IEnumerable<ProviderSummary> batch in providerSummaries.ToBatches(1000))
+                {
+                    await _cacheProvider.CreateListAsync(batch, cacheKeyAllProviderSummaries);
+                }
 
                 await _cacheProvider.SetAsync(cacheKeyAllProviderSummaryCount, totalCount.ToString(), TimeSpan.FromDays(365), true);
                 return providerSummaries;

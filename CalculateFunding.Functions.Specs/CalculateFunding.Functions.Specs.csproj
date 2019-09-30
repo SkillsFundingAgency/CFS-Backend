@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.8" />
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.9" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.10" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.0.0" />
     <PackageReference Include="AutoMapper" Version="9.0.0" />
     <PackageReference Include="Microsoft.Azure.WebJobs.ServiceBus" Version="3.0.0-beta8" />

@@ -10,13 +10,13 @@
     <PackageReference Include="CalculateFunding.Common" Version="1.34.0" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Calcs" Version="1.0.12" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Jobs" Version="1.0.10" />
-    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.2" />
+    <PackageReference Include="CalculateFunding.Common.ApiClient.Policies" Version="2.0.4" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.5" />
     <PackageReference Include="CalculateFunding.Common.ApiClient.Specifications" Version="1.0.5" />
     <PackageReference Include="CalculateFunding.Common.WebApi" Version="1.0.2" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.3" />
     <PackageReference Include="CalculateFunding.Generators.Funding" Version="1.0.2" />
-    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="1.0.5" />
+    <PackageReference Include="CalculateFunding.Generators.OrganisationGroup" Version="1.0.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />

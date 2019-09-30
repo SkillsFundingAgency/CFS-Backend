@@ -95,7 +95,7 @@ namespace CalculateFunding.Generators.Schema10
                         GroupTypeCode = publishedFundingVersion.OrganisationGroupTypeCode,
                         GroupTypeIdentifier = publishedFundingVersion.OrganisationGroupTypeIdentifier,
                         IdentifierValue = publishedFundingVersion.OrganisationGroupIdentifierValue,
-                        GroupTypeCategory = publishedFundingVersion.OrganisationGroupTypeCategory,
+                        GroupTypeClassification = publishedFundingVersion.OrganisationGroupTypeClassification,
                         Name = publishedFundingVersion.OrganisationGroupName,
                         SearchableName = publishedFundingVersion.OrganisationGroupSearchableName,
                         Identifiers = publishedFundingVersion.OrganisationGroupIdentifiers?.Select(groupTypeIdentifier => new
@@ -110,10 +110,10 @@ namespace CalculateFunding.Generators.Schema10
                         FundingLines = templateMetadataContents.RootFundingLines?.Select(_ => BuildSchemaJsonFundingLines(publishedFundingVersion.ReferenceData, publishedFundingVersion.Calculations, publishedFundingVersion.FundingLines, _))
                     },
                     ProviderFundings = publishedFundingVersion.ProviderFundings?.ToArray(),
-                    publishedFundingVersion.GroupingReason,
-                    publishedFundingVersion.StatusChangedDate,
-                    publishedFundingVersion.ExternalPublicationDate,
-                    publishedFundingVersion.EarliestPaymentAvailableDate
+                    GroupingReason = publishedFundingVersion.GroupingReason,
+                    StatusChangedDate = publishedFundingVersion.StatusChangedDate,
+                    ExternalPublicationDate = publishedFundingVersion.ExternalPublicationDate,
+                    EarliestPaymentAvailableDate = publishedFundingVersion.EarliestPaymentAvailableDate
                 }
             };
 
@@ -126,29 +126,29 @@ namespace CalculateFunding.Generators.Schema10
             FundingLine publishedFundingLine = fundingLines.Where(_ => _.TemplateLineId == templateFundingLine.TemplateLineId).SingleOrDefault();
 
             return new SchemaJsonFundingLine
+            {
+                Name = templateFundingLine.Name,
+                FundingLineCode = templateFundingLine.FundingLineCode,
+                Value = DecimalAsObject(publishedFundingLine.Value),
+                TemplateLineId = templateFundingLine.TemplateLineId,
+                Type = templateFundingLine.Type.ToString(),
+                Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _)),
+                DistributionPeriods = publishedFundingLine.DistributionPeriods?.Select(distributionPeriod => new
                 {
-                    Name = templateFundingLine.Name,
-                    FundingLineCode = templateFundingLine.FundingLineCode,
-                    Value = DecimalAsObject(publishedFundingLine.Value),
-                    TemplateLineId = templateFundingLine.TemplateLineId,
-                    Type = templateFundingLine.Type.ToString(),
-                    Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _)),
-                    DistributionPeriods = publishedFundingLine.DistributionPeriods?.Select(distributionPeriod => new
+                    Value = Convert.ToInt32(distributionPeriod.Value),
+                    distributionPeriod.DistributionPeriodId,
+                    ProfilePeriods = distributionPeriod.ProfilePeriods?.Select(profilePeriod => new
                     {
-                        Value = Convert.ToInt32(distributionPeriod.Value),
-                        distributionPeriod.DistributionPeriodId,
-                        ProfilePeriods = distributionPeriod.ProfilePeriods?.Select(profilePeriod => new
-                        {
-                            Type = profilePeriod.Type.ToString(),
-                            profilePeriod.TypeValue,
-                            profilePeriod.Year,
-                            profilePeriod.Occurrence,
-                            ProfiledValue = DecimalAsObject(profilePeriod.ProfiledValue),
-                            profilePeriod.DistributionPeriodId
-                        }).ToArray()
-                    }).ToArray() ?? new dynamic[0],
-                    FundingLines = templateFundingLine.FundingLines?.Select(_ => BuildSchemaJsonFundingLines(referenceData, fundingCalculations, fundingLines, _))
-                };
+                        Type = profilePeriod.Type.ToString(),
+                        profilePeriod.TypeValue,
+                        profilePeriod.Year,
+                        profilePeriod.Occurrence,
+                        ProfiledValue = DecimalAsObject(profilePeriod.ProfiledValue),
+                        profilePeriod.DistributionPeriodId
+                    }).ToArray()
+                }).ToArray() ?? new dynamic[0],
+                FundingLines = templateFundingLine.FundingLines?.Select(_ => BuildSchemaJsonFundingLines(referenceData, fundingCalculations, fundingLines, _))
+            };
         }
 
         private SchemaJsonCalculation BuildSchemaJsonCalculations(IEnumerable<FundingReferenceData> referenceData, IEnumerable<FundingCalculation> fundingCalculations, Common.TemplateMetadata.Models.Calculation calculation)
@@ -192,9 +192,9 @@ namespace CalculateFunding.Generators.Schema10
         private object DecimalAsObject(decimal value)
         {
             bool isWholeNumber = value % 1M == 0M;
-            
+
             object decimalAsObject = isWholeNumber ? Convert.ToInt32(value) : (object)value;
-            
+
             return decimalAsObject;
         }
     }

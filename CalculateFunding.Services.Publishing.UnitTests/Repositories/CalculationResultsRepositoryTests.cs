@@ -94,7 +94,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
             _cosmosRepository.DynamicQuery<ProviderCalculationResult>(Arg.Is<SqlQuerySpec>(sql =>
                     sql.QueryText == @"
 SELECT
-	    doc.content.id AS providerId,
+	    doc.content.provider.id AS providerId,
 	    ARRAY(  SELECT calcResult.calculation.id,
 	                   calcResult['value']
 	            FROM   calcResult IN doc.content.calcResults) AS Results

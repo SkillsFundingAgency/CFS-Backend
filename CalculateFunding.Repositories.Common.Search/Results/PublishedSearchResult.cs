@@ -14,7 +14,7 @@ namespace CalculateFunding.Repositories.Common.Search.Results
         public string UKPRN { get; set; }
         public double FundingValue { get; set; }
         public string SpecificationId { get; set; }
-        public string[] FundingStreamIds { get; set; }
+        public string FundingStreamId { get; set; }
         public string FundingPeriodId { get; set; }
     }
 }

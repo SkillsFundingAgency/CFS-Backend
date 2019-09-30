@@ -15,7 +15,7 @@
   "organisationGroupTypeCode": "LocalAuthority",
   "organisationGroupTypeIdentifier": "LACode",
   "organisationGroupIdentifierValue": "333",
-  "organisationGroupTypeCategory": "LegalEntity",
+  "organisationGroupTypeClassification": "LegalEntity",
   "organisationGroupName": "Sandwell Metro Borough Council",
   "organisationGroupSearchableName": "SandwellMetroBoroughCouncil",
   "organisationGroupIdentifiers": [

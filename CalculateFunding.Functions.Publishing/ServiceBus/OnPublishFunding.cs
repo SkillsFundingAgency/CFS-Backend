@@ -17,7 +17,7 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
 
         public OnPublishFunding(
             ILogger logger,
-            PublishService publishService)
+            IPublishService publishService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishService, nameof(publishService));

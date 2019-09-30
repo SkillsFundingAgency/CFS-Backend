@@ -8,6 +8,7 @@ using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Polly;
 using Serilog;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
@@ -33,7 +34,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
         private IPublishedFundingGenerator _publishedFundingGenerator;
         private IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
-
+        private IPublishedFundingDateService _publishedFundingDateService;
+        private IPublishingResiliencePolicies _resiliencePolicies;
 
         [TestInitialize]
         public void SetUp()
@@ -46,20 +48,38 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingChangeDetectorService = Substitute.For<IPublishedFundingChangeDetectorService>();
             _publishedFundingGenerator = Substitute.For<IPublishedFundingGenerator>();
             _publishedFundingContentsPersistanceService = Substitute.For<IPublishedFundingContentsPersistanceService>();
+            _publishedFundingDateService = Substitute.For<IPublishedFundingDateService>();
             _providerService = Substitute.For<IProviderService>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
             _logger = Substitute.For<ILogger>();
 
+
+            _resiliencePolicies = new ResiliencePolicies()
+            {
+                BlobClient = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
+                FundingFeedSearchRepository = Policy.NoOpAsync(),
+                JobsApiClient = Policy.NoOpAsync(),
+                PoliciesApiClient = Policy.NoOpAsync(),
+                ProvidersApiClient = Policy.NoOpAsync(),
+                PublishedFundingBlobRepository = Policy.NoOpAsync(),
+                PublishedFundingRepository = Policy.NoOpAsync(),
+                PublishedProviderVersionRepository = Policy.NoOpAsync(),
+                ResultsRepository = Policy.NoOpAsync(),
+                SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
+            };
+
             _publishService = new PublishService(_publishedFundingStatusUpdateService,
                 _publishedFundingRepository,
-                Substitute.For<IPublishingResiliencePolicies>(),
+                _resiliencePolicies,
                 _specificationService,
                 _organisationGroupGenerator,
                 _publishPrerequisiteChecker,
                 _publishedFundingChangeDetectorService,
                 _publishedFundingGenerator,
                 _publishedFundingContentsPersistanceService,
+                _publishedFundingDateService,
                 _providerService,
                 _jobsApiClient,
                 _policiesApiClient,

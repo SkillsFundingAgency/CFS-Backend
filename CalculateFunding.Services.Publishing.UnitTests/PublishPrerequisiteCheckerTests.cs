@@ -1,15 +1,14 @@
-﻿using CalculateFunding.Models.Publishing;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using System.Linq;
-using FluentAssertions;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -44,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             .WithProviderId("provider"))));
 
             _specificationFundingStatusService.CheckChooseForFundingStatus(_specification)
-                .Returns(SpecificationFundingStatus.CanChoose);
+                .Returns(SpecificationFundingStatus.AlreadyChosen);
 
             _publishedProvider.Current.Status = PublishedProviderStatus.Approved;
 
@@ -66,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             .WithProviderId("provider"))));
 
             _specificationFundingStatusService.CheckChooseForFundingStatus(_specification)
-                .Returns(SpecificationFundingStatus.CanChoose);
+                .Returns(SpecificationFundingStatus.AlreadyChosen);
 
             _publishedProvider.Current.Status = PublishedProviderStatus.Draft;
 
@@ -92,7 +91,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             .WithProviderId("provider"))));
 
             _specificationFundingStatusService.CheckChooseForFundingStatus(_specification)
-                .Returns(SpecificationFundingStatus.AlreadyChosen);
+                .Returns(SpecificationFundingStatus.CanChoose);
 
             _publishedProvider.Current.Status = PublishedProviderStatus.Approved;
 
@@ -106,7 +105,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             outstandingPreReqs.First()
                 .Should()
-                .Be($"Specification with id: '{_specification.Id} doesn't have a chosen funding streams");
+                .Be($"Specification with id: '{_specification.Id}' is not chosen for funding");
         }
 
         private PublishedProvider NewPublishedProvider(Action<PublishedProviderBuilder> setUp = null)

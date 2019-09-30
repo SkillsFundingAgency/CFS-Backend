@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             // Get scoped providers for this specification
-            IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProvidersResponse = await _providerService.GetProvidersByProviderVersionsId(specification.ProviderVersionId);
+            IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProvidersResponse = await _providerService.GetScopedProvidersForSpecification(specification.Id, specification.ProviderVersionId);
 
             Dictionary<string, Common.ApiClient.Providers.Models.Provider> scopedProviders = new Dictionary<string, Common.ApiClient.Providers.Models.Provider>();
             foreach (Common.ApiClient.Providers.Models.Provider provider in scopedProvidersResponse)
@@ -181,9 +181,9 @@ namespace CalculateFunding.Services.Publishing
             IEnumerable<PublishedProvider> existingPublishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() =>
                 _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
 
-            if (existingPublishedProviders.IsNullOrEmpty())
-                throw new RetriableException(
-                    $"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to updated");
+            //if (existingPublishedProviders.IsNullOrEmpty())
+            //    throw new RetriableException(
+            //        $"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to updated");
 
             // Get calculation results for specification 
             IEnumerable<ProviderCalculationResult> allCalculationResults = await _calculationResultsRepository.GetCalculationResultsBySpecificationId(specificationId);
@@ -195,8 +195,6 @@ namespace CalculateFunding.Services.Publishing
 
             foreach (Reference fundingStream in specification.FundingStreams)
             {
-                Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
-
                 ApiResponse<TemplateMetadataContents> templateMetadataContentsResponse = await _policiesApiClient.GetFundingTemplateContents(fundingStream.Id, specification.TemplateIds[fundingStream.Id]);
                 // TODO: Null and response checking on response. If there is a null associated template, continue to next funding stream
                 TemplateMetadataContents templateMetadataContents = templateMetadataContentsResponse.Content;
@@ -229,6 +227,12 @@ namespace CalculateFunding.Services.Publishing
                 Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = _publishedProviderDataGenerator.Generate(templateMetadataContents, templateMapping, scopedProviders.Values, allCalculationResults);
 
                 Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> fundingLinesForProfiling = new Dictionary<string, IEnumerable<Models.Publishing.FundingLine>>(generatedPublishedProviderData.Select(c => new KeyValuePair<string, IEnumerable<Models.Publishing.FundingLine>>(c.Key, c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment))));
+
+                Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+
+                Dictionary<string, PublishedProvider> existingPublishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+
+                
 
                 // Profile payment funding lines
                 await _profilingService.ProfileFundingLines(fundingLinesForProfiling, fundingStream.Id, specification.FundingPeriod.Id);
@@ -263,10 +267,15 @@ namespace CalculateFunding.Services.Publishing
                     bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, 
                         generatedProviderResult, 
                         scopedProviders[providerId],
-                        specification.TemplateIds[providerId]);
+                        specification.TemplateIds[fundingStream.Id]);
 
                     if (publishedProviderUpdated)
                     {
+                        if (!newProviders.Contains(publishedProvider))
+                        {
+                            existingPublishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
+                        }
+
                         publishedProvidersToUpdate.Add(publishedProvider.Key, publishedProvider.Value);
                     }
                 }
@@ -274,7 +283,15 @@ namespace CalculateFunding.Services.Publishing
                 if (publishedProvidersToUpdate.Any())
                 {
                     // Save updated PublishedProviders to cosmos and increment version status
-                    await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(publishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated);
+                    if (existingPublishedProvidersToUpdate.Any())
+                    {
+                        await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated);
+                    }
+
+                    if (newProviders.Any())
+                    {
+                        await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft);
+                    }
 
                     // Generate contents JSON for provider and save to blob storage
                     IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);

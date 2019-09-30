@@ -1,4 +1,9 @@
-﻿using CalculateFunding.Common.ApiClient.Calcs.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Generators.NavFeed.Options;
 using CalculateFunding.Generators.OrganisationGroup;
@@ -9,11 +14,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CsvHelper;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using ProviderApiClient = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Generators.NavFeed.Providers.v1
@@ -34,7 +34,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v1
 
         private readonly DateTime hardcodedStatusDate = new DateTime(2019, 9, 16);
 
-        public ProviderDocumentGenerator(IPublishedProviderContentsGenerator publishedProviderContentsGenerator, IPublishedFundingContentsGenerator publishedFundingContentsGenerator, 
+        public ProviderDocumentGenerator(IPublishedProviderContentsGenerator publishedProviderContentsGenerator, IPublishedFundingContentsGenerator publishedFundingContentsGenerator,
             IProvidersApiClient providersApiClient, IOrganisationGroupResiliencePolicies organisationGroupResiliencePolicies, ILogger logger)
         {
             _publishedProviderContentsGenerator = publishedProviderContentsGenerator;
@@ -63,7 +63,8 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v1
             int fundingIndex = 0;
             foreach (IGrouping<string, Provider> laGroup in records.GroupBy(x => x.ProviderLaCode))
             {
-                 OrganisationGroupLookupParameters organisationGroupLookupParameters = new OrganisationGroupLookupParameters {
+                OrganisationGroupLookupParameters organisationGroupLookupParameters = new OrganisationGroupLookupParameters
+                {
                     OrganisationGroupTypeCode = Common.ApiClient.Policies.Models.OrganisationGroupTypeCode.LocalAuthority,
                     IdentifierValue = laGroup.Key,
                     GroupTypeIdentifier = Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier.LACode,
@@ -105,17 +106,18 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v1
                     Type = (PublishedFundingPeriodType)Enum.Parse(typeof(PublishedFundingPeriodType), anyProvider?.FundingStreamPeriodTypeId),
                     Period = anyProvider?.FundingPeriodId,
                     Name = anyProvider?.FundingStreamPeriodTypeName,
-                    StartDate = new DateTime(2000+int.Parse(anyProvider?.FundingPeriodId.Substring(0, 2)), int.Parse(anyProvider?.FundingStreamPeriodTypeStartMonth), int.Parse(anyProvider?.FundingStreamPeriodTypeStartDay)),
+                    StartDate = new DateTime(2000 + int.Parse(anyProvider?.FundingPeriodId.Substring(0, 2)), int.Parse(anyProvider?.FundingStreamPeriodTypeStartMonth), int.Parse(anyProvider?.FundingStreamPeriodTypeStartDay)),
                     EndDate = new DateTime(2000 + int.Parse(anyProvider?.FundingPeriodId.Substring(2, 2)), int.Parse(anyProvider?.FundingStreamPeriodTypeEndMoth), int.Parse(anyProvider?.FundingStreamPeriodTypeEndDay))
                 },
                 OrganisationGroupTypeIdentifier = targetOrganisationGroup?.Identifier,
                 OrganisationGroupName = targetOrganisationGroup?.Name,
-                OrganisationGroupIdentifiers = targetOrganisationGroup?.Identifiers?.Select(x => new PublishedOrganisationGroupTypeIdentifier {
-                                                                                                    Value = x.Value,
-                                                                                                    Type = Enum.GetName(typeof(OrganisationGroupTypeIdentifier), x.Type)
-                                                                                                }),
-                OrganisationGroupTypeCategory = "LegalEntity",
-                OrganisationGroupIdentifierValue = targetOrganisationGroup?.Identifiers?.Where(x=>x.Type == OrganisationGroupTypeIdentifier.UKPRN).FirstOrDefault()?.Value,
+                OrganisationGroupIdentifiers = targetOrganisationGroup?.Identifiers?.Select(x => new PublishedOrganisationGroupTypeIdentifier
+                {
+                    Value = x.Value,
+                    Type = Enum.GetName(typeof(OrganisationGroupTypeIdentifier), x.Type)
+                }),
+                OrganisationGroupTypeClassification = "LegalEntity",
+                OrganisationGroupIdentifierValue = targetOrganisationGroup?.Identifiers?.Where(x => x.Type == OrganisationGroupTypeIdentifier.UKPRN).FirstOrDefault()?.Value,
                 OrganisationGroupSearchableName = Helpers.SanitiseName(targetOrganisationGroup?.Name),
                 FundingLines = new List<FundingLine>
                         {
@@ -191,7 +193,8 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v1
 
         private IEnumerable<ProviderApiClient> GetApiClientProviders(IEnumerable<Provider> providers)
         {
-            return providers.Select(x => new ProviderApiClient {
+            return providers.Select(x => new ProviderApiClient
+            {
                 Authority = x.ProviderAuthority,
                 CensusWardCode = null,
                 CensusWardName = null,
@@ -351,7 +354,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v1
                 }
             };
         }
-        
+
         private GeneratedProviderResult GetGeneratedProviderResult(Provider input)
         {
             return new GeneratedProviderResult

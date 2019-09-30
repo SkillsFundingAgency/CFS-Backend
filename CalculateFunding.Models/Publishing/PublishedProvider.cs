@@ -13,7 +13,7 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("id")]
         public string Id =>
-            $"publishedprovider_{Current.ProviderId}_{Current.FundingPeriodId}_{Current.FundingStreamId}";
+            $"publishedprovider-{Current.ProviderId}-{Current.FundingPeriodId}-{Current.FundingStreamId}";
 
         /// <summary>
         /// Current version of the provider
@@ -26,6 +26,6 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("partitionKey")]
         public string ParitionKey =>
-            $"publishedprovider_{Current.ProviderId}_{Current.FundingPeriodId}_{Current.FundingStreamId}";
+            $"publishedprovider-{Current.ProviderId}-{Current.FundingPeriodId}-{Current.FundingStreamId}";
     }
 }

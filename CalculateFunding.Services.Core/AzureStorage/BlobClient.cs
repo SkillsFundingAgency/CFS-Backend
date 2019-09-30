@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Core.Options;
@@ -119,7 +120,10 @@ namespace CalculateFunding.Services.Core.AzureStorage
 
         public async Task UploadAsync(ICloudBlob blob, string data)
         {
-            await blob.UploadFromStreamAsync(data.ToStream());
+            using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(data)))
+            {
+                await blob.UploadFromStreamAsync(stream);
+            }
         }
     }
 }

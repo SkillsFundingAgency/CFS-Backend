@@ -146,7 +146,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                     Value = x.Value,
                     Type = Enum.GetName(typeof(OrganisationGroupTypeIdentifier), x.Type)
                 }),
-                OrganisationGroupTypeCategory = "LegalEntity",
+                OrganisationGroupTypeClassification = "LegalEntity",
                 OrganisationGroupIdentifierValue = targetOrganisationGroup?.Identifiers?.Where(x => x.Type == OrganisationGroupTypeIdentifier.UKPRN).FirstOrDefault()?.Value,
                 OrganisationGroupSearchableName = Helpers.SanitiseName(targetOrganisationGroup?.Name),
                 OrganisationGroupTypeCode = GetGroupTypeCodeText(groupingKey.Key.Item3),
@@ -307,12 +307,12 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                 TotalFunding = (int)decimal.Parse(input.AllocationAmount),
                 FundingStreamId = input.FundingStreamID,
                 FundingPeriodId = $"{input.PeriodTypeID}-{input.PeriodID}",
-                VariationReasons = string.IsNullOrEmpty(input.VariationReasons.Trim()) ? 
-                    null : 
+                VariationReasons = string.IsNullOrEmpty(input.VariationReasons.Trim()) ?
+                    null :
                     input.VariationReasons.Trim()
                         .Split(' ')
-                        .Select(x=> x == "LACodeField" ? "LACodeFieldUpdated" : x)
-                        .Where(x=> Enum.TryParse<VariationReason>(x, out _))
+                        .Select(x => x == "LACodeField" ? "LACodeFieldUpdated" : x)
+                        .Where(x => Enum.TryParse<VariationReason>(x, out _))
                         .Select(x => Enum.Parse<VariationReason>(x))
                         .ToList(),
                 Predecessors = string.IsNullOrEmpty(input.Precessors) ? null : new List<string> { input.Precessors }
@@ -438,7 +438,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                     csv.Configuration.RegisterClassMap<ProviderMap>();
                     return csv
                         .GetRecords<Provider>()
-                        .Where(x=> !string.IsNullOrEmpty(x.UKPRN))
+                        .Where(x => !string.IsNullOrEmpty(x.UKPRN))
                         .ToList();
                 }
             }

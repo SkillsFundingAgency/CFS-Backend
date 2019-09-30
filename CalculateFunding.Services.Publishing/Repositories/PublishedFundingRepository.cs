@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
-            IEnumerable<Task<HttpStatusCode>> tasks = publishedProviders.Select(async (_) => await _repository.UpsertAsync(_));
+            IEnumerable<Task<HttpStatusCode>> tasks = publishedProviders.Select(async (_) => await _repository.UpsertAsync(_, _.ParitionKey));
 
             await TaskHelper.WhenAllAndThrow(tasks.ToArray());
 
@@ -100,7 +100,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
         {
             Guard.ArgumentNotNull(publishedFunding, nameof(publishedFunding));
 
-            return await _repository.UpsertAsync(publishedFunding);
+            return await _repository.UpsertAsync(publishedFunding, publishedFunding.ParitionKey);
         }
     }
 }

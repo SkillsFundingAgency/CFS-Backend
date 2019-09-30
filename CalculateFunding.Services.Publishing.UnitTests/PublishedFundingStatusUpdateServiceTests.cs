@@ -75,7 +75,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             .WithProviderFundings(new List<string> { "providerfunding1", "providerfunding2" })
             .WithFundingPeriod(_publishedFundingPeriod)
             .WithFundingStreamId("stream1")
-            .WithOrganisationGroupTypeCategory(OrganisationGroupTypeClassification.LegalEntity)
+            .WithOrganisationGroupTypeClassification(OrganisationGroupTypeClassification.LegalEntity)
             .WithOrganisationGroupTypeIdentifier(OrganisationGroupTypeIdentifier.AcademyTrustCode)
             .WithOrganisationGroupTypeCode(OrganisationGroupTypeCode.AcademyTrust)
             .WithOrganisationGroupIdentifierValue("101"));
@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void GivenNewVersionCreated()
         {
-            _publishedFundingVersionRepository.CreateVersion(Arg.Is(_publishedFundingVersion), Arg.Is(_publishedFunding.Current), Arg.Is(_publishedFunding.ParitionKey))
+            _publishedFundingVersionRepository.CreateVersion(Arg.Is(_publishedFundingVersion), Arg.Is(_publishedFunding.Current), Arg.Is(_publishedFunding.Current.PartitionKey))
                 .Returns(_publishedFundingVersion);
 
         }
@@ -114,7 +114,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             await _publishedFundingVersionRepository
                 .Received(1)
-                .SaveVersion(Arg.Is(_publishedFundingVersion));
+                .SaveVersion(Arg.Is(_publishedFundingVersion), Arg.Is(_publishedFundingVersion.PartitionKey));
         }
 
         private PublishedFunding NewPublishedFunding(Action<PublishedFundingBuilder> setUp = null)

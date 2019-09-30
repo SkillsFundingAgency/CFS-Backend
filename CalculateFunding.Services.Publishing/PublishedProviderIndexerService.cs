@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Publishing
                 UKPRN = publishedProviderVersion.Provider.UKPRN,               
                 FundingValue = Convert.ToDouble(publishedProviderVersion.TotalFunding),
                 SpecificationId = publishedProviderVersion.SpecificationId,
-                FundingStreamIds = new string[]{ publishedProviderVersion.FundingStreamId },
+                FundingStreamId = publishedProviderVersion.FundingStreamId,
                 FundingPeriodId = publishedProviderVersion.FundingPeriodId
 
             };

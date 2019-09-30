@@ -22,7 +22,7 @@
       "groupTypeCode": "LocalAuthority",
       "groupTypeIdentifier": "LACode",
       "identifierValue": "333",
-      "groupTypeCategory": "LegalEntity",
+      "groupTypeClassification": "LegalEntity",
       "name": "Sandwell Metro Borough Council",
       "searchableName": "SandwellMetroBoroughCouncil ",
       "identifiers": [

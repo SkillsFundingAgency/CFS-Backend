@@ -671,8 +671,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             ProviderVersion providerVersion = mapper.Map<ProviderVersion>(providerVersionViewModel);
 
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
             UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
 
             ICloudBlob cloudBlob = CreateCloudBlob();
@@ -689,7 +687,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .DownloadToStreamAsync(cloudBlob)
                 .Returns(memoryStream);
 
-            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider, mapper: mapper);
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, mapper: mapper);
 
             // Act
             IActionResult okRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId, true);
@@ -700,10 +698,6 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             await blobClient.Received(1)
                 .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
-
-            await cacheProvider
-                .Received(1)
-                .SetAsync(Arg.Any<string>(), Arg.Any<ProviderVersion>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
 
             okRequest
                 .Should()

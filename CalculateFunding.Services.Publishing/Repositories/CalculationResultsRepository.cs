@@ -43,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                 {
                     QueryText = @"
 SELECT
-	    doc.content.id AS providerId,
+	    doc.content.provider.id AS providerId,
 	    ARRAY(  SELECT calcResult.calculation.id,
 	                   calcResult['value']
 	            FROM   calcResult IN doc.content.calcResults) AS Results

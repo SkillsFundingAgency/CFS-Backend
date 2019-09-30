@@ -11,7 +11,7 @@ namespace CalculateFunding.Models.Publishing
         /// Cosmos Document ID
         /// </summary>
         [JsonProperty("id")]
-        public override string Id => $"funding_{OrganisationGroupTypeIdentifier}_{OrganisationGroupIdentifierValue}_{FundingPeriod.Id}_{FundingStreamId}_{Version}";
+        public override string Id => $"funding-{GroupingReason}-{OrganisationGroupTypeIdentifier}-{OrganisationGroupIdentifierValue}-{FundingPeriod.Id}-{FundingStreamId}-{Version}";
 
         /// <summary>
         /// Funding Id
@@ -53,14 +53,14 @@ namespace CalculateFunding.Models.Publishing
         [JsonProperty("organisationGroupIdentifierValue")]
         public string OrganisationGroupIdentifierValue { get; set; }
 
-        [JsonProperty("organisationGroupTypeCategory")]
-        public string OrganisationGroupTypeCategory { get; set; }
-
         [JsonProperty("organisationGroupName")]
         public string OrganisationGroupName { get; set; }
 
         [JsonProperty("organisationGroupSearchableName")]
         public string OrganisationGroupSearchableName { get; set; }
+
+        [JsonProperty("organisationGroupTypeClassification")]
+        public string OrganisationGroupTypeClassification { get; set; }
 
         /// <summary>
         /// List of all additional identifiers for this organisation group
@@ -125,7 +125,7 @@ namespace CalculateFunding.Models.Publishing
         /// Total funding for this organisation group in pence
         /// </summary>
         [JsonProperty("totalFunding")]
-        public int TotalFunding { get; set; }
+        public decimal TotalFunding { get; set; }
 
         /// <summary>
         /// Major version
@@ -161,13 +161,13 @@ namespace CalculateFunding.Models.Publishing
         /// Cosmos entity ID for versioning - the parent PublishedFunding
         /// </summary>
         [JsonProperty("entityId")]
-        public override string EntityId => $"funding_{OrganisationGroupTypeIdentifier}_{OrganisationGroupIdentifierValue}_{FundingPeriod.Id}_{FundingStreamId}";
+        public override string EntityId => $"funding-{GroupingReason}-{OrganisationGroupTypeIdentifier}-{OrganisationGroupIdentifierValue}-{FundingPeriod.Id}-{FundingStreamId}";
 
         /// <summary>
         /// Cosmos partition Id. Should match the parent PublishFunding ID
         /// </summary>
-        [JsonProperty("partitionId")]
-        public string PartitionId => $"funding_{OrganisationGroupTypeIdentifier}_{OrganisationGroupIdentifierValue}_{FundingPeriod.Id}_{FundingStreamId}";
+        [JsonProperty("partitionKey")]
+        public string PartitionKey => $"funding-{GroupingReason}-{OrganisationGroupTypeIdentifier}-{OrganisationGroupIdentifierValue}-{FundingPeriod.Id}-{FundingStreamId}";
 
         /// <summary>
         /// Job ID this PublishedProvider was updated or created on
