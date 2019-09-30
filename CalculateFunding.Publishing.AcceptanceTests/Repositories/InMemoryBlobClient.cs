@@ -73,7 +73,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             _files[blobName] = fileContents;
 
-            File.WriteAllText($"c:\\dev\\output\\{blobName}.json", fileContents);
+//            File.WriteAllText($"c:\\dev\\output\\{blobName}.json", fileContents);
 
             return Task.FromResult(blobName);
         }
