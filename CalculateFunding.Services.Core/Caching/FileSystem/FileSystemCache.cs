@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using CalculateFunding.Common.Utility;
+using Microsoft.Azure.Documents;
 using Serilog;
 // ReSharper disable InconsistentlySynchronizedField
 
@@ -78,13 +79,16 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             }
         }
 
-        public void EnsureFoldersExist()
+        public void EnsureFoldersExist(params string[] folders)
         {
             string settingsPath = _settings.Path;
             
             EnsureFolderExists(settingsPath);
-            EnsureFolderExists(Path.Combine(settingsPath, ProviderFileSystemCacheKey.Folder));
-            EnsureFolderExists(Path.Combine(settingsPath, FundingFileSystemCacheKey.Folder));
+
+            foreach (string folder in folders)
+            {
+                EnsureFolderExists(Path.Combine(settingsPath, folder));
+            }
         }
 
         private void EnsureFolderExists(string path)

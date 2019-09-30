@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         private void EnsureFoldersExist()
         {
-            _cache.EnsureFoldersExist();
+            _cache.EnsureFoldersExist(ProviderFileSystemCacheKey.Folder, FundingFileSystemCacheKey.Folder);
         }
 
         private void GivenAddThrowsException(string key, Stream content, CancellationToken cancellationToken, Exception exception)

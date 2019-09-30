@@ -47,7 +47,7 @@ namespace CalculateFunding.Api.External.V3.Services
 
         public void EnsureFoldersExists()
         {
-            _cache.EnsureFoldersExist();
+            _cache.EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFileSystemCacheKey.Folder);
         }
 
         public async Task BeginFeedItemPreLoading()

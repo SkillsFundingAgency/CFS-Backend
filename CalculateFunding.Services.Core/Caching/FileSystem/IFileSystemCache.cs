@@ -11,6 +11,6 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         Stream Get(FileSystemCacheKey key);
 
-        void EnsureFoldersExist();
+        void EnsureFoldersExist(params string[] folders);
     }
 }
