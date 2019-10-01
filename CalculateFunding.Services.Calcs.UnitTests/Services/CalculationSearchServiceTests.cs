@@ -163,7 +163,7 @@ namespace CalculateFunding.Services.Calcs.Services
         }
 
         [TestMethod]
-        public async Task SearchCalculation_GivenValidModelAndIncludesGettingFacets_CallsSearchSevenTimes()
+        public async Task SearchCalculation_GivenValidModelAndIncludesGettingFacets_CallsSearchFourTimes()
         {
             //Arrange
             SearchModel model = new SearchModel
@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(1)
+                    .Received(4)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -249,7 +249,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(1)
+                    .Received(4)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -439,7 +439,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(1)
+                    .Received(4)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
