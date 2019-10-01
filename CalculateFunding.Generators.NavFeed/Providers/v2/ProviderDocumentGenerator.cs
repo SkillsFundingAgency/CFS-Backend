@@ -60,13 +60,14 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             }
 
             int fundingIndex = 0;
-            foreach (IGrouping<(string, string, string), Provider> groupingKey in records.GroupBy(x => (x.LACode, x.MajorVersionNo, x.AllocationID)))
+
+            foreach (IGrouping<(string, string, string, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode OrganisationGroupTypeCode, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier OrganisationGroupTypeIdentifier), Provider> groupingKey in records.GroupBy(x => GetGroupBy(x)))
             {
                 OrganisationGroupLookupParameters organisationGroupLookupParameters = new OrganisationGroupLookupParameters
                 {
-                    OrganisationGroupTypeCode = Common.ApiClient.Policies.Models.OrganisationGroupTypeCode.LocalAuthority,
+                    OrganisationGroupTypeCode = groupingKey.Key.OrganisationGroupTypeCode,
                     IdentifierValue = groupingKey.Key.Item1,
-                    GroupTypeIdentifier = Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier.LACode,
+                    GroupTypeIdentifier = groupingKey.Key.OrganisationGroupTypeIdentifier,
                     ProviderVersionId = options.ProviderVersion
                 };
                 IEnumerable<ProviderApiClient> apiClientProviders = GetApiClientProviders(groupingKey);
@@ -99,6 +100,18 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             return 1;
         }
 
+        private (string, string, string, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier) GetGroupBy(Provider provider)
+        {
+            if (provider.AllocationID == "PSG-002")
+            {
+                return (provider.UKPRN, provider.MajorVersionNo, provider.AllocationID, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode.AcademyTrust, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier.AcademyTrustCode);
+            }
+            else
+            {
+                return (provider.LACode, provider.MajorVersionNo, provider.AllocationID, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode.LocalAuthority, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier.LACode);
+            }
+        }
+
         private Common.TemplateMetadata.Models.TemplateMetadataContents GetFundingTemplateMetadataContents()
         {
             return new Common.TemplateMetadata.Models.TemplateMetadataContents
@@ -117,7 +130,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             };
         }
 
-        private PublishedFundingVersion GetPublishedFundingVersion(IGrouping<(string, string, string), Provider> groupingKey, TargetOrganisationGroup targetOrganisationGroup, int fundingIndex)
+        private PublishedFundingVersion GetPublishedFundingVersion(IGrouping<(string, string, string, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode OrganisationGroupTypeCode, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier OrganisationGroupTypeIdentifier), Provider> groupingKey, TargetOrganisationGroup targetOrganisationGroup, int fundingIndex)
         {
             Provider anyProvider = groupingKey.FirstOrDefault();
             PublishedFundingVersion publishedFundingVersion = new PublishedFundingVersion
@@ -139,7 +152,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                     StartDate = new DateTime(int.Parse(anyProvider?.StartYear), int.Parse(anyProvider?.StartMonth), int.Parse(anyProvider?.StartDay)),
                     EndDate = new DateTime(int.Parse(anyProvider?.EndYear), int.Parse(anyProvider?.EndMonth), int.Parse(anyProvider?.EndDay))
                 },
-                OrganisationGroupTypeIdentifier = targetOrganisationGroup?.Identifier,
+                OrganisationGroupTypeIdentifier = groupingKey.Key.OrganisationGroupTypeIdentifier.ToString(),
                 OrganisationGroupName = targetOrganisationGroup?.Name,
                 OrganisationGroupIdentifiers = targetOrganisationGroup?.Identifiers?.Select(x => new PublishedOrganisationGroupTypeIdentifier
                 {
@@ -147,7 +160,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                     Type = Enum.GetName(typeof(OrganisationGroupTypeIdentifier), x.Type)
                 }),
                 OrganisationGroupTypeClassification = "LegalEntity",
-                OrganisationGroupIdentifierValue = targetOrganisationGroup?.Identifiers?.Where(x => x.Type == OrganisationGroupTypeIdentifier.UKPRN).FirstOrDefault()?.Value,
+                OrganisationGroupIdentifierValue = targetOrganisationGroup?.Identifier,
                 OrganisationGroupSearchableName = Helpers.SanitiseName(targetOrganisationGroup?.Name),
                 OrganisationGroupTypeCode = GetGroupTypeCodeText(groupingKey.Key.Item3),
                 FundingLines = new List<FundingLine>
