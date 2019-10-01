@@ -2,9 +2,9 @@ using System;
 
 namespace CalculateFunding.Services.Core.Caching.FileSystem
 {
-    public class ProviderFileSystemCacheKey : FileSystemCacheKey
+    public class ProviderFundingFileSystemCacheKey : FileSystemCacheKey
     {
-        public ProviderFileSystemCacheKey(string key)
+        public ProviderFundingFileSystemCacheKey(string key)
             : base(key)
         {
         }

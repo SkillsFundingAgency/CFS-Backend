@@ -1,21 +1,22 @@
+using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Core.Caching.FileSystem
+namespace CalculateFunding.Services.Providers.UnitTests.Caching
 {
     [TestClass]
-    public class ProviderFileSystemCacheKeyTests
+    public class ProviderVersionFileSystemCacheKeyTests
     {
         [TestMethod]
         public void CombinesFundingFolderWithKeyToGivePath()
         {
             string key = new RandomString();
 
-            new ProviderFileSystemCacheKey(key)
+            new ProviderVersionFileSystemCacheKey(key)
                 .Path
                 .Should()
-                .Be($"provider\\{key}");
+                .Be($"providerVersion\\{key}");
         }
     }
 }

@@ -121,11 +121,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             IFileSystemCache fileSystemCache = CreateFileSystemCache();
             IBlobClient blobClient = CreateBlobClient();
 
-            fileSystemCache.Exists(Arg.Is<ProviderFileSystemCacheKey>(
+            fileSystemCache.Exists(Arg.Is<ProviderFundingFileSystemCacheKey>(
                     _ => _.Key == providerFundingVersion))
                 .Returns(true);
 
-            fileSystemCache.Get(Arg.Is<ProviderFileSystemCacheKey>(
+            fileSystemCache.Get(Arg.Is<ProviderFundingFileSystemCacheKey>(
                     _ => _.Key == providerFundingVersion))
                 .Returns(memoryStream);
 
@@ -166,7 +166,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 
             fileSystemCache
                 .Received(0)
-                .Add(Arg.Is<ProviderFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
+                .Add(Arg.Is<ProviderFundingFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
                     memoryStream,
                     CancellationToken.None);
         }
@@ -185,11 +185,11 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             IFileSystemCache fileSystemCache = CreateFileSystemCache();
             IBlobClient blobClient = CreateBlobClient();
 
-            fileSystemCache.Exists(Arg.Is<ProviderFileSystemCacheKey>(
+            fileSystemCache.Exists(Arg.Is<ProviderFundingFileSystemCacheKey>(
                     _ => _.Key == providerFundingVersion))
                 .Returns(true);
 
-            fileSystemCache.Get(Arg.Is<ProviderFileSystemCacheKey>(
+            fileSystemCache.Get(Arg.Is<ProviderFundingFileSystemCacheKey>(
                     _ => _.Key == providerFundingVersion))
                 .Returns(memoryStream);
 
@@ -245,7 +245,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 
             fileSystemCache
                 .Received(0)
-                .Add(Arg.Is<ProviderFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
+                .Add(Arg.Is<ProviderFundingFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
                     memoryStream,
                     CancellationToken.None);
         }
@@ -311,7 +311,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 
             fileSystemCache
                 .Received(expectedCacheAddCount)
-                .Add(Arg.Is<ProviderFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
+                .Add(Arg.Is<ProviderFundingFileSystemCacheKey>(_ => _.Key == providerFundingVersion),
                     memoryStream,
                     CancellationToken.None);
         }

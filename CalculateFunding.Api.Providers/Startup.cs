@@ -11,6 +11,7 @@ using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AzureStorage;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -25,6 +26,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
+using StackExchange.Redis;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace CalculateFunding.Api.Providers
@@ -166,6 +168,28 @@ namespace CalculateFunding.Api.Providers
                     BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
+            
+            builder
+                .AddSingleton<IFileSystemCache, FileSystemCache>()
+                .AddSingleton<IFileSystemAccess, FileSystemAccess>()
+                .AddSingleton<IFileSystemCacheSettings>(ctx =>
+                {
+                    FileSystemCacheSettings settings = new FileSystemCacheSettings();
+
+                    Configuration.Bind("filesystemcachesettings", settings);
+
+                    return settings;
+                });
+
+            builder
+                .AddSingleton<IProviderVersionServiceSettings>(ctx =>
+                {
+                    ProviderVersionServiceSettings settings = new ProviderVersionServiceSettings();
+
+                    Configuration.Bind("providerversionservicesettings", settings);
+
+                    return settings;
+                });
 
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 

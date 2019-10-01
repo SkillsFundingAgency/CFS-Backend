@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Services.Core.Caching;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Services.Providers.Caching;
 using CalculateFunding.Services.Providers.Interfaces;
 using CalculateFunding.Services.Providers.Validators;
 using FluentAssertions;
@@ -585,7 +588,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult notFoundRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId, true);
+            IActionResult notFoundRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId);
 
             blobClient
                 .Received(1)
@@ -657,9 +660,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Should()
                 .BeOfType<NotFoundResult>();
         }
-
+        
         [TestMethod]
-        public async Task GetAllProviders_WhenProviderVersionIdExists_ProviderListReturned()
+        public async Task GetAllProviders_WhenProviderVersionIdExistsInCacheAndFileSystemCachingEnabled_ProviderListReturned_DocumentNotCached()
         {
             // Arrange
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
@@ -681,16 +684,166 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .GetBlockBlobReference(Arg.Any<string>())
                 .Returns(cloudBlob);
 
+            IProviderVersionServiceSettings settings = CreateSettings();
+            settings
+                .IsFileSystemCacheEnabled
+                .Returns(true);
+
+            IFileSystemCache fileSystemCache = CreateFileSystemCache();
+
+            MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerVersion)));
+
+            fileSystemCache.Get(Arg.Is<ProviderVersionFileSystemCacheKey>(_ => _.Key == providerVersionViewModel.ProviderVersionId))
+                .Returns(memoryStream);
+
+            fileSystemCache.Exists(Arg.Is<ProviderVersionFileSystemCacheKey>(_ => _.Key == providerVersionViewModel.ProviderVersionId))
+                .Returns(true);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, 
+                providerVersionModelValidator: uploadProviderVersionValidator,
+                mapper: mapper,
+                fileSystemCache: fileSystemCache,
+                settings: settings);
+
+            // Act
+            IActionResult okRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId);
+
+            //Assert
+            blobClient
+                .DidNotReceive()
+                .GetBlockBlobReference(Arg.Any<string>());
+
+            await blobClient
+                .DidNotReceive()
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
+
+            okRequest
+                .Should()
+                .BeOfType<ContentResult>();
+
+            await blobClient
+                .DidNotReceive()
+                .BlobExistsAsync(Arg.Any<string>());
+
+            await blobClient
+                .DidNotReceive()
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
+            
+            fileSystemCache
+                .DidNotReceive()
+                .Add(Arg.Is<ProviderVersionFileSystemCacheKey>(_ => _.Key == providerVersionViewModel.ProviderVersionId),
+                    Arg.Is(memoryStream),
+                    Arg.Is(CancellationToken.None));
+            
+            fileSystemCache
+                .Received(1)
+                .EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
+        }
+        
+        [TestMethod]
+        public async Task GetAllProviders_WhenProviderVersionIdExistsAndFileSystemCachingEnabled_ProviderListReturned_DocumentCached()
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            providerVersionViewModel.Providers = providerVersionViewModel.Providers.Concat(new[] { GetProviderViewModel() });
+            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
+
+            IMapper mapper = CreateMapper();
+
+            ProviderVersion providerVersion = mapper.Map<ProviderVersion>(providerVersionViewModel);
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            ICloudBlob cloudBlob = CreateCloudBlob();
+            cloudBlob.Exists().Returns(true);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(cloudBlob);
+
+            IProviderVersionServiceSettings settings = CreateSettings();
+            settings
+                .IsFileSystemCacheEnabled
+                .Returns(true);
+
+            IFileSystemCache fileSystemCache = CreateFileSystemCache();
+
             MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerVersion)));
 
             blobClient
                 .DownloadToStreamAsync(cloudBlob)
                 .Returns(memoryStream);
 
-            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, mapper: mapper);
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, 
+                providerVersionModelValidator: uploadProviderVersionValidator,
+                mapper: mapper,
+                fileSystemCache: fileSystemCache,
+                settings: settings);
 
             // Act
-            IActionResult okRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId, true);
+            IActionResult okRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId);
+
+            //Assert
+            blobClient
+                .Received(1)
+                .GetBlockBlobReference(Arg.Any<string>());
+
+            await blobClient.Received(1)
+                .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
+
+            okRequest
+                .Should()
+                .BeOfType<ContentResult>();
+            
+            fileSystemCache
+                .Received(1)
+                .Add(Arg.Is<ProviderVersionFileSystemCacheKey>(_ => _.Key == providerVersionViewModel.ProviderVersionId),
+                    Arg.Is(memoryStream),
+                    Arg.Is(CancellationToken.None));
+            
+            fileSystemCache
+                .Received(1)
+                .EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
+        }
+
+        [TestMethod]
+        public async Task GetAllProviders_WhenProviderVersionIdExists_ProviderListReturned()
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+
+            providerVersionViewModel.Providers = providerVersionViewModel.Providers.Concat(new[] { GetProviderViewModel() });
+            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
+
+            IMapper mapper = CreateMapper();
+
+            ProviderVersion providerVersion = mapper.Map<ProviderVersion>(providerVersionViewModel);
+
+            IFileSystemCache fileSystemCache = CreateFileSystemCache();
+
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            ICloudBlob cloudBlob = CreateCloudBlob();
+            cloudBlob.Exists().Returns(true);
+
+            IBlobClient blobClient = CreateBlobClient();
+            blobClient
+                .GetBlockBlobReference(Arg.Any<string>())
+                .Returns(cloudBlob);
+
+            MemoryStream memoryStream = new MemoryStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(providerVersion)));
+
+            blobClient
+                .DownloadToStreamAsync(cloudBlob)
+                .Returns(memoryStream);
+
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, mapper: mapper,
+                fileSystemCache: fileSystemCache);
+
+            // Act
+            IActionResult okRequest = await providerService.GetAllProviders(providerVersionViewModel.ProviderVersionId);
 
             blobClient
                 .Received(1)
@@ -701,7 +854,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             okRequest
                 .Should()
-                .BeOfType<OkObjectResult>();
+                .BeOfType<ContentResult>();
+            
+            fileSystemCache
+                .DidNotReceive()
+                .EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
         }
 
         [TestMethod]
@@ -1141,16 +1298,29 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IValidator<ProviderVersionViewModel> providerVersionModelValidator = null,
             ICacheProvider cacheProvider = null,
             IProviderVersionsMetadataRepository providerVersionMetadataRepository = null,
-            IMapper mapper = null)
+            IMapper mapper = null,
+            IFileSystemCache fileSystemCache = null, 
+            IProviderVersionServiceSettings settings = null)
         {
-            return new ProviderVersionService(
-                cacheProvider ?? CreateCacheProvider(),
+            return new ProviderVersionService(cacheProvider ?? CreateCacheProvider(),
                 blobClient ?? CreateBlobClient(),
                 CreateLogger(),
                 providerVersionModelValidator ?? CreateProviderVersionModelValidator(),
                 providerVersionMetadataRepository ?? CreateProviderVersionMetadataRepository(),
                 CreateResiliencePolicies(),
-                mapper ?? CreateMapper());
+                mapper ?? CreateMapper(),
+                fileSystemCache ?? CreateFileSystemCache(),
+                settings ?? CreateSettings());
+        }
+
+        private IProviderVersionServiceSettings CreateSettings()
+        {
+            return Substitute.For<IProviderVersionServiceSettings>();
+        }
+
+        private IFileSystemCache CreateFileSystemCache()
+        {
+            return Substitute.For<IFileSystemCache>();
         }
 
         private IMapper CreateMapper()

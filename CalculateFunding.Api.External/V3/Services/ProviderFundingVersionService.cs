@@ -51,7 +51,7 @@ namespace CalculateFunding.Api.External.V3.Services
 
             try
             {
-                ProviderFileSystemCacheKey cacheKey = new ProviderFileSystemCacheKey(providerFundingVersion);
+                ProviderFundingFileSystemCacheKey cacheKey = new ProviderFundingFileSystemCacheKey(providerFundingVersion);
 
                 if (_cacheSettings.IsEnabled && _fileSystemCache.Exists(cacheKey))
                 {

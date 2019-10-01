@@ -115,7 +115,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             EnsureFoldersExist();
             
             ThenFolderWasCreated(_root);
-            AndFolderWasCreated(Path.Combine(_root, ProviderFileSystemCacheKey.Folder));
+            AndFolderWasCreated(Path.Combine(_root, ProviderFundingFileSystemCacheKey.Folder));
             AndFolderWasCreated(Path.Combine(_root, FundingFileSystemCacheKey.Folder));
         }
         
@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             EnsureFoldersExist();
             
             ThenFolderWasNotCreated(_root);
-            AndFolderWasCreated(Path.Combine(_root, ProviderFileSystemCacheKey.Folder));
+            AndFolderWasCreated(Path.Combine(_root, ProviderFundingFileSystemCacheKey.Folder));
             AndFolderWasCreated(Path.Combine(_root, FundingFileSystemCacheKey.Folder));
         }
 
@@ -158,7 +158,7 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
         private void EnsureFoldersExist()
         {
-            _cache.EnsureFoldersExist(ProviderFileSystemCacheKey.Folder, FundingFileSystemCacheKey.Folder);
+            _cache.EnsureFoldersExist(ProviderFundingFileSystemCacheKey.Folder, FundingFileSystemCacheKey.Folder);
         }
 
         private void GivenAddThrowsException(string key, Stream content, CancellationToken cancellationToken, Exception exception)

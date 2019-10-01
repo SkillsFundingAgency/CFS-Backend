@@ -48,7 +48,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             
             _cache
                 .Received(1)
-                .EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFileSystemCacheKey.Folder);
+                .EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFundingFileSystemCacheKey.Folder);
         }
 
         [TestMethod]

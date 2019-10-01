@@ -6,6 +6,6 @@ namespace CalculateFunding.Models.Providers
     public class MasterProviderVersion : ProviderVersionMetadata, IIdentifiable
     {
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public new string Id { get; set; }
     }
 }
