@@ -168,7 +168,8 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         {
             _searchService.GetFeedsV3(page,
                     pageSize,
-                    orderBy: "statusChangedDate desc")
+                    null, null, null,
+                    "statusChangedDate desc", "id asc")
                 .Returns(result);
         }
 

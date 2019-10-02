@@ -20,8 +20,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISearchRepository<PublishedFundingIndex> _fundingSearchRepository;
         private readonly Polly.Policy _fundingSearchRepositoryPolicy;
 
-        private IEnumerable<string> DefaultOrderBy = new[] { "dateUpdated desc" };
-
         public FundingFeedSearchService(
             ISearchRepository<PublishedFundingIndex> fundingSearchRepository,
             IPublishingResiliencePolicies resiliencePolicies)
@@ -131,7 +129,7 @@ namespace CalculateFunding.Services.Publishing
                             SearchMode = Microsoft.Azure.Search.Models.SearchMode.Any,
                             IncludeTotalResultCount = true,
                             Filter = filters,
-                            OrderBy = orderBy ?? new[] { "statusChangedDate asc" },
+                            OrderBy = orderBy?.Any() == false ? new[] { "statusChangedDate desc", "id asc" } : orderBy,
                             QueryType = QueryType.Full
                         });
                     });
