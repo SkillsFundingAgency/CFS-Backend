@@ -9,11 +9,9 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             Map(m => m.ID);
             Map(m => m.Application);
             Map(m => m.Interface);
-            Map(m => m.ImportStatus).Index(3);
             Map(m => m.DateTimeCreated).Name("DateTime Created");
             Map(m => m.Preprocessed);
             Map(m => m.Processed);
-            //Map(m => m.Archived);
             Map(m => m.ErrorText).Name("Error Text");
             Map(m => m.NavisionReference).Name("Navision Reference");
             Map(m => m.ErrorLine).Name("Error Line");
@@ -45,7 +43,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             Map(m => m.Type).Name("Type ");
             Map(m => m.SubType).Name("Sub Type ");
             Map(m => m.NAVVendorNo).Name("NAV Vendor No. ");
-            Map(m => m.ProviderStatus).Index(38);
+            Map(m => m.ProviderStatus).Name("Status ");
             Map(m => m.AllocationID).Name("Allocation ID ");
             Map(m => m.AllocationName).Name("Allocation Name ");
             Map(m => m.AllocationShortName).Name("Allocation Short Name ");
@@ -61,6 +59,8 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             Map(m => m.CloseReason).Name("Close Reason ");
             Map(m => m.VariationReasons).Name("Variation Reasons ");
             Map(m => m.AllocationAmount).Name("Allocation Amount ");
+            Map(m => m.OctoberProfileValue).Name("October Profile Amount");
+            Map(m => m.AprilProfileValue).Name("April Profile Amount");
         }
     }
 }

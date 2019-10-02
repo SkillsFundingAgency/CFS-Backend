@@ -61,13 +61,13 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
 
             int fundingIndex = 0;
 
-            foreach (IGrouping<(string, string, string, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode OrganisationGroupTypeCode, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier OrganisationGroupTypeIdentifier), Provider> groupingKey in records.GroupBy(x => GetGroupBy(x)))
+            foreach (IGrouping<(string, string, string), Provider> groupingKey in records.GroupBy(provider => (provider.LACode, provider.MajorVersionNo, provider.AllocationID)))
             {
                 OrganisationGroupLookupParameters organisationGroupLookupParameters = new OrganisationGroupLookupParameters
                 {
-                    OrganisationGroupTypeCode = groupingKey.Key.OrganisationGroupTypeCode,
+                    OrganisationGroupTypeCode = GetOrganisationGroupTypeCode(groupingKey.Key.Item3),
                     IdentifierValue = groupingKey.Key.Item1,
-                    GroupTypeIdentifier = groupingKey.Key.OrganisationGroupTypeIdentifier,
+                    GroupTypeIdentifier = CalculateFunding.Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier.LACode,
                     ProviderVersionId = options.ProviderVersion
                 };
                 IEnumerable<ProviderApiClient> apiClientProviders = GetApiClientProviders(groupingKey);
@@ -83,7 +83,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                     _logger.Error(message);
                     Console.WriteLine(message);
 
-                    continue;
+                    continue; 
                 }
 
                 PublishedFundingVersion publishedFundingVersion = GetPublishedFundingVersion(groupingKey, targetOrganisationGroup, fundingIndex);
@@ -100,15 +100,12 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             return 1;
         }
 
-        private (string, string, string, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier) GetGroupBy(Provider provider)
+        private Common.ApiClient.Policies.Models.OrganisationGroupTypeCode GetOrganisationGroupTypeCode(string allocationID)
         {
-            if (provider.AllocationID == "PSG-002")
+            switch (allocationID)
             {
-                return (provider.UKPRN, provider.MajorVersionNo, provider.AllocationID, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode.AcademyTrust, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier.AcademyTrustCode);
-            }
-            else
-            {
-                return (provider.LACode, provider.MajorVersionNo, provider.AllocationID, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode.LocalAuthority, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier.LACode);
+                default:
+                    return Common.ApiClient.Policies.Models.OrganisationGroupTypeCode.LocalAuthority;
             }
         }
 
@@ -130,17 +127,18 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             };
         }
 
-        private PublishedFundingVersion GetPublishedFundingVersion(IGrouping<(string, string, string, Common.ApiClient.Policies.Models.OrganisationGroupTypeCode OrganisationGroupTypeCode, Common.ApiClient.Policies.Models.OrganisationGroupTypeIdentifier OrganisationGroupTypeIdentifier), Provider> groupingKey, TargetOrganisationGroup targetOrganisationGroup, int fundingIndex)
+        private PublishedFundingVersion GetPublishedFundingVersion(IGrouping<(string, string, string), Provider> groupingKey, TargetOrganisationGroup targetOrganisationGroup, int fundingIndex)
         {
             Provider anyProvider = groupingKey.FirstOrDefault();
+
             PublishedFundingVersion publishedFundingVersion = new PublishedFundingVersion
             {
-                FundingId = $"{groupingKey.Key.Item3}-{(PublishedFundingPeriodType)Enum.Parse(typeof(PublishedFundingPeriodType), anyProvider?.PeriodTypeID)}-{anyProvider?.PeriodID}-{GroupingReason.Payment.ToString()}-{GetGroupTypeCodeText(groupingKey.Key.Item3)}-{targetOrganisationGroup?.Identifier}-{groupingKey.Key.Item2}_{0}",
+                FundingId = $"PSG-{(PublishedFundingPeriodType)Enum.Parse(typeof(PublishedFundingPeriodType), anyProvider?.PeriodTypeID)}-{anyProvider?.PeriodID}-{GroupingReason.Payment.ToString()}-{GetGroupTypeCodeText(groupingKey.Key.Item3)}-{targetOrganisationGroup?.Identifier}-{groupingKey.Key.Item2}_{0}",
                 SchemaVersion = "1.0",
                 TemplateVersion = "1.0",
                 MajorVersion = int.Parse(groupingKey.Key.Item2),
                 MinorVersion = 0,
-                ProviderFundings = groupingKey.Select(x => GetFundingFundingId(x, groupingKey.Key.Item3)),
+                ProviderFundings = groupingKey.Select(x => GetFundingFundingId(x)),
                 GroupingReason = GroupingReason.Payment,
                 FundingStreamId = anyProvider?.FundingStreamID,
                 FundingStreamName = anyProvider?.FundingStreamName,
@@ -152,7 +150,7 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                     StartDate = new DateTime(int.Parse(anyProvider?.StartYear), int.Parse(anyProvider?.StartMonth), int.Parse(anyProvider?.StartDay)),
                     EndDate = new DateTime(int.Parse(anyProvider?.EndYear), int.Parse(anyProvider?.EndMonth), int.Parse(anyProvider?.EndDay))
                 },
-                OrganisationGroupTypeIdentifier = groupingKey.Key.OrganisationGroupTypeIdentifier.ToString(),
+                OrganisationGroupTypeIdentifier = "UKPRN",
                 OrganisationGroupName = targetOrganisationGroup?.Name,
                 OrganisationGroupIdentifiers = targetOrganisationGroup?.Identifiers?.Select(x => new PublishedOrganisationGroupTypeIdentifier
                 {
@@ -168,25 +166,44 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                             new FundingLine
                             {
                                 TemplateLineId = TemplateLineId,
-                                Value = decimal.ToInt64(groupingKey.Sum(x=>decimal.Parse(x.AllocationAmount))),
+                                Value = decimal.ToInt64(groupingKey.Sum(x=>decimal.Parse(x.OctoberProfileValue) + decimal.Parse(x.AprilProfileValue))),
                                 DistributionPeriods = groupingKey
-                                                        .GroupBy(la => la.PeriodID)
+                                                        .GroupBy(la => la.OctoberDistributionPeriod)
                                                         .Select(dp => new DistributionPeriod{
-                                                            DistributionPeriodId = $"FY-{dp.Key}",
-                                                            Value = dp.Sum(p => decimal.Parse(p.AllocationAmount)),
+                                                            DistributionPeriodId = dp.Key,
+                                                            Value = dp.Sum(p => decimal.Parse(p.OctoberProfileValue)),
                                                             ProfilePeriods = new List<ProfilePeriod>
                                                             {
                                                                 new ProfilePeriod
                                                                 {
                                                                     Type = ProfilePeriodType.CalendarMonth,
-                                                                    TypeValue = dp.FirstOrDefault()?.EndMonth,
-                                                                    Year = int.Parse(dp.FirstOrDefault()?.EndYear),
+                                                                    TypeValue = dp.FirstOrDefault()?.OctoberPeriod,
+                                                                    Year = int.Parse(dp.FirstOrDefault()?.OctoberPeriodYear),
                                                                     Occurrence = 1,
-                                                                    ProfiledValue = dp.Sum(p => decimal.Parse(p.AllocationAmount)),
-                                                                    DistributionPeriodId = $"FY-{dp.Key}"
+                                                                    ProfiledValue = dp.Sum(p => decimal.Parse(p.OctoberProfileValue)),
+                                                                    DistributionPeriodId = dp.Key
                                                                 }
                                                             }
                                                         })
+                                                        .Concat(groupingKey
+                                                            .GroupBy(la => la.AprilDistributionPeriod)
+                                                            .Select(dp => new DistributionPeriod{
+                                                                DistributionPeriodId = dp.Key,
+                                                                Value = dp.Sum(p => decimal.Parse(p.AprilProfileValue)),
+                                                                ProfilePeriods = new List<ProfilePeriod>
+                                                                {
+                                                                    new ProfilePeriod
+                                                                    {
+                                                                        Type = ProfilePeriodType.CalendarMonth,
+                                                                        TypeValue = dp.FirstOrDefault()?.AprilPeriod,
+                                                                        Year = int.Parse(dp.FirstOrDefault()?.AprilPeriodYear),
+                                                                        Occurrence = 1,
+                                                                        ProfiledValue = dp.Sum(p => decimal.Parse(p.AprilProfileValue)),
+                                                                        DistributionPeriodId = dp.Key
+                                                                    }
+                                                                }
+                                                            })
+                                                        )
                             }
                         },
                 StatusChangedDate = hardcodedStatusDate.AddMinutes(fundingIndex),
@@ -400,18 +417,35 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                         {
                             new DistributionPeriod
                             {
-                                Value = decimal.Parse(input.AllocationAmount),
-                                DistributionPeriodId = $"FY-{input.PeriodID}",
+                                Value = decimal.Parse(input.OctoberProfileValue),
+                                DistributionPeriodId = input.OctoberDistributionPeriod,
                                 ProfilePeriods = new List<ProfilePeriod>
                                 {
                                     new ProfilePeriod
                                     {
-                                        Type = ProfilePeriodType.CalendarMonth,
-                                        TypeValue = input.EndMonth,
-                                        Year = int.Parse(input.EndYear),
+                                        Type = (ProfilePeriodType) Enum.Parse(typeof(ProfilePeriodType), input.OctoberPeriodType),
+                                        TypeValue = input.OctoberPeriod,
+                                        Year = int.Parse(input.OctoberPeriodYear),
+                                        Occurrence = int.Parse(input.OctoberOccurrence),
+                                        ProfiledValue = decimal.Parse(input.OctoberProfileValue),
+                                        DistributionPeriodId = input.OctoberDistributionPeriod
+                                    }
+                                }
+                            },
+                            new DistributionPeriod
+                            {
+                                Value = decimal.Parse(input.AprilProfileValue),
+                                DistributionPeriodId = input.AprilDistributionPeriod,
+                                ProfilePeriods = new List<ProfilePeriod>
+                                {
+                                    new ProfilePeriod
+                                    {
+                                        Type = (ProfilePeriodType) Enum.Parse(typeof(ProfilePeriodType), input.AprilPeriodType),
+                                        TypeValue = input.AprilPeriod,
+                                        Year = int.Parse(input.AprilPeriodYear),
                                         Occurrence = 1,
-                                        ProfiledValue = decimal.Parse(input.AllocationAmount),
-                                        DistributionPeriodId = $"FY-{input.PeriodID}"
+                                        ProfiledValue = decimal.Parse(input.AprilProfileValue),
+                                        DistributionPeriodId = input.AprilDistributionPeriod
                                     }
                                 }
                             }
@@ -437,9 +471,9 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
             };
         }
 
-        private static string GetFundingFundingId(Provider input, string allocationLineId)
+        private static string GetFundingFundingId(Provider input)
         {
-            return $"{allocationLineId}-{input.PeriodID}-{input.UKPRN}-{input.MajorVersionNo}_{input.MinorVersionNo}";
+            return $"PSG-{input.PeriodTypeID}-{input.PeriodID}-{input.UKPRN}-{input.MajorVersionNo}_{input.MinorVersionNo}";
         }
 
         private IEnumerable<Provider> GetRecords(string filePath)

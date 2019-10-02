@@ -57,5 +57,88 @@
         public string CloseReason { get; set; }
         public string VariationReasons { get; set; }
         public string AllocationAmount { get; set; }
+
+        public string OctoberDistributionPeriod
+        {
+            get
+            {
+                return "FY-1920";
+            }
+        }
+
+        public string OctoberPeriod
+        {
+            get
+            {
+                return "October";
+            }
+        }
+
+        public string OctoberPeriodYear
+        {
+            get
+            {
+                return "1920";
+            }
+        }
+
+        public string OctoberOccurrence
+        {
+            get
+            {
+                return "1";
+            }
+        }
+
+        public string OctoberPeriodType
+        {
+            get
+            {
+                return "CalendarMonth";
+            }
+        }
+
+        public string AprilDistributionPeriod
+        {
+            get
+            {
+                return "FY-2021";
+            }
+        }
+
+        public string AprilPeriod
+        {
+            get
+            {
+                return "April";
+            }
+        }
+
+        public string AprilPeriodYear
+        {
+            get
+            {
+                return "1920";
+            }
+        }
+
+        public string AprilOccurrence
+        {
+            get
+            {
+                return "0";
+            }
+        }
+
+        public string AprilPeriodType
+        {
+            get
+            {
+                return "CalendarMonth";
+            }
+        }
+
+        public string OctoberProfileValue { get; set; }
+        public string AprilProfileValue { get; set; }
     }
 }
