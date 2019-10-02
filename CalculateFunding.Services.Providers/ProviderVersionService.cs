@@ -173,14 +173,15 @@ namespace CalculateFunding.Services.Providers
             return new NotFoundResult();
         }
 
-        public async Task<ProviderVersion> GetProvidersByVersion(string providerVersionId)
-        {
-            Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
+       public async Task<ProviderVersion> GetProvidersByVersion(string providerVersionId)
+       {
+           Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
-            OkObjectResult okObjectResult = await GetAllProviders(providerVersionId) as OkObjectResult;
+           //this call now returns a content result so have altered this method accordingly
+           ContentResult contentResult = (ContentResult) await GetAllProviders(providerVersionId);
 
-            return okObjectResult.Value as ProviderVersion;
-        }
+           return JsonConvert.DeserializeObject<ProviderVersion>(contentResult.Content);
+       }
 
         public async Task<IActionResult> GetAllProviders(string providerVersionId)
         {
