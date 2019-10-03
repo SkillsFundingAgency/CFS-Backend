@@ -28,11 +28,13 @@ namespace CalculateFunding.Api.External.V3.Services
         private readonly IPublishedFundingRetrievalService _retrievalService;
         private readonly IFundingFeedSearchService _searchService;
         private readonly IFileSystemCache _cache;
+        private readonly IExternalApiFileSystemCacheSettings _apiFileSystemCacheSettings;
 
         public FeedItemPreLoader(IFeedItemPreloaderSettings settings,
             IPublishedFundingRetrievalService retrievalService,
             IFundingFeedSearchService searchService, 
-            IFileSystemCache cache)
+            IFileSystemCache cache, 
+            IExternalApiFileSystemCacheSettings apiFileSystemCacheSettings)
         {
             Guard.ArgumentNotNull(settings, nameof(settings));
             Guard.ArgumentNotNull(retrievalService, nameof(retrievalService));
@@ -43,16 +45,19 @@ namespace CalculateFunding.Api.External.V3.Services
             _retrievalService = retrievalService;
             _searchService = searchService;
             _cache = cache;
+            _apiFileSystemCacheSettings = apiFileSystemCacheSettings;
         }
 
         public void EnsureFoldersExists()
         {
+            if (ShouldNotPreload) return;
+            
             _cache.EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFundingFileSystemCacheKey.Folder);
         }
 
         public async Task BeginFeedItemPreLoading()
         {
-            if (!_settings.ShouldPreLoad) return;
+            if (ShouldNotPreload) return;
 
             int pageCount = (int) Math.Ceiling(_settings.PreLoadCount / (float)_settings.PageSize);
 
@@ -70,6 +75,8 @@ namespace CalculateFunding.Api.External.V3.Services
 
             await TaskHelper.WhenAllAndThrow(pagePreLoadTasks.ToArray());
         }
+
+        private bool ShouldNotPreload => !_settings.ShouldPreLoad || !_apiFileSystemCacheSettings.IsEnabled;
 
         private async Task PreLoadPage(PageNumber pageNumber, SemaphoreSlim pageThrottle)
         {

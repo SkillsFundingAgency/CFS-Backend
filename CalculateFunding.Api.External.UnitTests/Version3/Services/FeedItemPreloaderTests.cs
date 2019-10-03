@@ -10,6 +10,7 @@ using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Publising.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using StackExchange.Redis;
 
 namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 {
@@ -20,6 +21,7 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
 
         private FeedItemPreLoaderSettings _settings;
         private IPublishedFundingRetrievalService _retrievalService;
+        private IExternalApiFileSystemCacheSettings _apiFileSystemCacheSettings;
         private IFundingFeedSearchService _searchService;
         private IFileSystemCache _cache;
 
@@ -30,11 +32,13 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             _retrievalService = Substitute.For<IPublishedFundingRetrievalService>();
             _searchService = Substitute.For<IFundingFeedSearchService>();
             _cache = Substitute.For<IFileSystemCache>();
+            _apiFileSystemCacheSettings = Substitute.For<IExternalApiFileSystemCacheSettings>();
 
             _preLoader = new FeedItemPreLoader(_settings,
                 _retrievalService,
                 _searchService,
-                _cache);
+                _cache,
+                _apiFileSystemCacheSettings);
             
             _retrievalService
                 .GetFundingFeedDocument(Arg.Any<string>(), Arg.Any<bool>())
@@ -44,17 +48,39 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
         [TestMethod]
         public void EnsureFoldersExistDelegatesToCache()
         {
+             GivenTheSettings(1, 1, true, true);
+             
             _preLoader.EnsureFoldersExists();
             
             _cache
                 .Received(1)
                 .EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFundingFileSystemCacheKey.Folder);
         }
+        
+        [TestMethod]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        [DataRow(false, false)]
+        public void EnsureFoldersExistExitsEarlyIfShouldNotPreloadOrCachingDisabled(bool shouldPreLoad, 
+            bool isFileSystemCacheEnabled)
+        {
+            GivenTheSettings(1, 1, shouldPreLoad, isFileSystemCacheEnabled);
+            
+            _preLoader.EnsureFoldersExists();
+            
+            _cache
+                .DidNotReceive()
+                .EnsureFoldersExist(FundingFileSystemCacheKey.Folder, ProviderFundingFileSystemCacheKey.Folder);
+        }
 
         [TestMethod]
-        public async Task ExitsEarlyIfSettingsShouldPreloadFalse()
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        [DataRow(false, false)]
+        public async Task ExitsEarlyIfSettingsShouldPreloadFalseOrCachingDisabled(bool shouldPreLoad, 
+            bool isFileSystemCacheEnabled)
         {
-            GivenTheSettings(1, 1, false);
+            GivenTheSettings(1, 1, shouldPreLoad, isFileSystemCacheEnabled);
 
             await WhenThePreloadIsRun();
 
@@ -157,11 +183,12 @@ namespace CalculateFunding.Api.External.UnitTests.Version3.Services
             await _preLoader.BeginFeedItemPreLoading();
         }
 
-        private void GivenTheSettings(int pageSize, int preLoadCount, bool shouldPreLoad)
+        private void GivenTheSettings(int pageSize, int preLoadCount, bool shouldPreLoad, bool fileSystemCacheEnabled = true)
         {
             _settings.PageSize = pageSize;
             _settings.PreLoadCount = preLoadCount;
             _settings.ShouldPreLoad = shouldPreLoad;
+            _apiFileSystemCacheSettings.IsEnabled = fileSystemCacheEnabled;
         }
 
         private void AndTheSearchFeedPage(int page, int pageSize, SearchFeedV3<PublishedFundingIndex> result)
