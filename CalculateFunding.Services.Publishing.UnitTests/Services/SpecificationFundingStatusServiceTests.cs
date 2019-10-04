@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             //Assert
             status
                 .Should()
-                .Be(SpecificationFundingStatus.SharesAlreadyChoseFundingStream);
+                .Be(SpecificationFundingStatus.SharesAlreadyChosenFundingStream);
         }
 
         [TestMethod]
@@ -280,7 +280,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             //Assert
             status
                 .Should()
-                .Be(SpecificationFundingStatus.SharesAlreadyChoseFundingStream);
+                .Be(SpecificationFundingStatus.SharesAlreadyChosenFundingStream);
         }
 
         private static SpecificationFundingStatusService CreateSpecificationFundingStatusService(

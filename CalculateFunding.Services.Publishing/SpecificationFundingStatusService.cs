@@ -16,7 +16,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationService _specificationService;
 
         public SpecificationFundingStatusService(
-            ILogger logger, 
+            ILogger logger,
             ISpecificationService specificationService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing
 
             SpecificationSummary specificationSummary = await _specificationService.GetSpecificationSummaryById(specificationId);
 
-            if(specificationSummary == null)
+            if (specificationSummary == null)
             {
                 string errorMessage = $"Failed to find specification with for specification Id '{specificationId}'";
 
@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Publishing
 
             if (chosenFundingStreams.Intersect(fundingStreamIds).Any())
             {
-                return SpecificationFundingStatus.SharesAlreadyChoseFundingStream;
+                return SpecificationFundingStatus.SharesAlreadyChosenFundingStream;
             }
             else
             {

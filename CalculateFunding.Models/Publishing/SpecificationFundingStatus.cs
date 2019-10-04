@@ -7,7 +7,7 @@ namespace CalculateFunding.Models.Publishing
     public enum SpecificationFundingStatus
     {
         AlreadyChosen,
-        SharesAlreadyChoseFundingStream,
+        SharesAlreadyChosenFundingStream,
         CanChoose
     }
 }

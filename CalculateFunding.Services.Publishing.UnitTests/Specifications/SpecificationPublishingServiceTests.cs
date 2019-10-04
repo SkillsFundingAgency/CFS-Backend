@@ -2,22 +2,17 @@
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Caching;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Specifications;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using System.IO;
-using System.Text;
-using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Common.Caching;
-using FluentAssertions;
-using System.Linq;
-using CalculateFunding.Models.Publishing;
+using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
@@ -48,7 +43,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidation()
         {
-            string[] expectedErrors = {NewRandomString(), NewRandomString()};
+            string[] expectedErrors = { NewRandomString(), NewRandomString() };
 
             GivenTheValidationErrors(expectedErrors);
 
@@ -84,9 +79,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 NewApiSpecificationSummary(_ => _.WithFundingStreamIds(NewRandomString(), commonFundingStreamId)),
                 NewApiSpecificationSummary(_ => _.WithFundingStreamIds(NewRandomString())));
 
+            AndTheSpecificationSummaryConflictsWithAnotherForThatFundingPeriod(specificationSummary);
+
+
             await WhenTheSpecificationIsPublished();
 
             ThenTheResponseShouldBe<ConflictResult>();
+        }
+
+        private void AndTheSpecificationSummaryConflictsWithAnotherForThatFundingPeriod(ApiSpecificationSummary specificationSummary)
+        {
+            _specificationFundingStatusService
+                .CheckChooseForFundingStatus(Arg.Is(specificationSummary))
+                .Returns(SpecificationFundingStatus.SharesAlreadyChosenFundingStream);
         }
 
         [TestMethod]
@@ -202,7 +207,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         [TestMethod]
         [DataRow(SpecificationFundingStatus.CanChoose)]
         [DataRow(SpecificationFundingStatus.AlreadyChosen)]
-        [DataRow(SpecificationFundingStatus.SharesAlreadyChoseFundingStream)]
+        [DataRow(SpecificationFundingStatus.SharesAlreadyChosenFundingStream)]
         public async Task CanChooseForFunding_SpecificationSummaryStatus_ReturnsOKWithCorrectStatus(SpecificationFundingStatus status)
         {
             //Arrange

@@ -68,7 +68,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             string errorMessage = $"Specification with id: '{specificationId} already shares chosen funding streams";
             
-            GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.SharesAlreadyChoseFundingStream);
+            GivenTheSpecificationFundingStatusForTheSpecification(specificationSummary, SpecificationFundingStatus.SharesAlreadyChosenFundingStream);
             
             // Act
             await WhenThePreRequisitesAreChecked(specificationSummary);

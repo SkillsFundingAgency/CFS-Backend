@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing
 
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specification);
 
-            if (specificationFundingStatus == SpecificationFundingStatus.SharesAlreadyChoseFundingStream)
+            if (specificationFundingStatus == SpecificationFundingStatus.SharesAlreadyChosenFundingStream)
             {
                 string errorMessage = $"Specification with id: '{specification.Id} already shares chosen funding streams";
 

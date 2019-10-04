@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
@@ -9,15 +6,11 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Specs;
-using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentValidation.Results;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using ApiJob = CalculateFunding.Common.ApiClient.Jobs.Models.Job;
 using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
@@ -84,18 +77,9 @@ namespace CalculateFunding.Services.Publishing.Specifications
                 return new NotFoundResult();
             }
 
-            string fundingPeriodId = specificationSummary.FundingPeriod?.Id;
+            SpecificationFundingStatus chooseCheck = await _specificationFundingStatusService.CheckChooseForFundingStatus(specificationSummary);
 
-            Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId),
-                $"SpecificationSummary {specificationId} has no funding period id");
-
-            ApiResponse<IEnumerable<ApiSpecificationSummary>> fundingPeriodIdResponse =
-                await ResiliencePolicy.ExecuteAsync(() => Specifications.GetSpecificationsSelectedForFundingByPeriod(fundingPeriodId));
-
-            IEnumerable<ApiSpecificationSummary> specificationsInFundingPeriod = fundingPeriodIdResponse.Content;
-
-            if (AnySpecificationsInThisPeriodShareFundingStreams(specificationsInFundingPeriod,
-                specificationSummary.FundingStreams.Select(_ => _.Id)))
+            if (chooseCheck == SpecificationFundingStatus.SharesAlreadyChosenFundingStream)
             {
                 return new ConflictResult();
             }
@@ -165,18 +149,6 @@ namespace CalculateFunding.Services.Publishing.Specifications
             SpecificationFundingStatus specificationFundingStatus = await _specificationFundingStatusService.CheckChooseForFundingStatus(specificationSummary);
 
             return new OkObjectResult(new SpecificationCheckChooseForFundingResult { Status = specificationFundingStatus });
-        }
-
-        private static bool AnySpecificationsInThisPeriodShareFundingStreams(
-            IEnumerable<ApiSpecificationSummary> specificationsInFundingPeriod,
-            IEnumerable<string> fundingStreams)
-        {
-            if (specificationsInFundingPeriod.IsNullOrEmpty())
-            {
-                return false;
-            }
-
-            return specificationsInFundingPeriod.Any(_ => fundingStreams.Intersect(_.FundingStreams.Select(fs => fs.Id)).Any());
         }
     }
 }
