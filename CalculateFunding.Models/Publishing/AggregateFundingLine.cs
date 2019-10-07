@@ -27,7 +27,7 @@ namespace CalculateFunding.Models.Publishing
 
         public IEnumerable<AggregateFundingLine> FundingLines { get; set; }
 
-        public IEnumerable<AggregateDistributionPeriod> DistributionPeriods { get; set; }
+        public IEnumerable<DistributionPeriod> DistributionPeriods { get; set; }
 
         public IEnumerable<AggregateFundingCalculation> Calculations { get; set; }
     }

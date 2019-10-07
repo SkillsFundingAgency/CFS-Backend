@@ -176,23 +176,7 @@ namespace CalculateFunding.Services.Publishing
 
                 fundingLines.Add(fundingline);
 
-                fundingline.DistributionPeriods = fundingLineDefinition.DistributionPeriods?.Select(dp =>
-                {
-                    AggregateDistributionPeriod aggregateDistributionPeriod = aggregateFundingLine.DistributionPeriods.Where(_ => dp.DistributionPeriodId == _.DistributionPeriodId).FirstOrDefault();
-                    return new PublishingModels.DistributionPeriod {
-                        DistributionPeriodId = dp.DistributionPeriodId,
-                        Value = aggregateDistributionPeriod == null ? 0 : aggregateDistributionPeriod.Value,
-                        ProfilePeriods = dp.ProfilePeriods.Select(pp => new PublishingModels.ProfilePeriod
-                        {
-                            DistributionPeriodId = pp.DistributionPeriodId,
-                            Occurrence = pp.Occurrence,
-                            ProfiledValue = pp.ProfiledValue,
-                            Type = pp.Type.AsMatchingEnum<ProfilePeriodType>(),
-                            TypeValue = pp.TypeValue,
-                            Year = pp.Year
-                        })
-                    };
-                });
+                fundingline.DistributionPeriods = aggregateFundingLine.DistributionPeriods;
 
                 if (aggregateFundingLine.FundingLines.AnyWithNullCheck())
                 {

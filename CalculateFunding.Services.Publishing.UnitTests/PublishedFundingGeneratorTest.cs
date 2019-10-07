@@ -159,7 +159,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _provider = new PublishingModels.Provider { ProviderId = "provider1" };
 
             _publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
-            .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)))
+            .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)
+                .WithDistibutionPeriods(new DistributionPeriod[] { new DistributionPeriod { DistributionPeriodId = "AY-2019", ProfilePeriods = new ProfilePeriod[0], Value = 100} })))
             .WithFundingStreamId(_fundingStreamId)
             .WithProviderId(_provider.ProviderId)
             .WithProvider(_provider))));

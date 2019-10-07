@@ -133,11 +133,11 @@ namespace CalculateFunding.Generators.Schema10
                 TemplateLineId = templateFundingLine.TemplateLineId,
                 Type = templateFundingLine.Type.ToString(),
                 Calculations = templateFundingLine.Calculations?.Where(IsAggregationOrHasChildCalculations)?.Select(_ => BuildSchemaJsonCalculations(referenceData, fundingCalculations, _)),
-                DistributionPeriods = publishedFundingLine.DistributionPeriods?.Select(distributionPeriod => new
+                DistributionPeriods = publishedFundingLine.DistributionPeriods?.Where(_ => _ != null).Select(distributionPeriod => new
                 {
                     Value = Convert.ToInt32(distributionPeriod.Value),
                     distributionPeriod.DistributionPeriodId,
-                    ProfilePeriods = distributionPeriod.ProfilePeriods?.Select(profilePeriod => new
+                    ProfilePeriods = distributionPeriod.ProfilePeriods?.Where(_ => _ != null).Select(profilePeriod => new
                     {
                         Type = profilePeriod.Type.ToString(),
                         profilePeriod.TypeValue,

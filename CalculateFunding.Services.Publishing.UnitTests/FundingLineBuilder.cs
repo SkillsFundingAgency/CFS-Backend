@@ -1,5 +1,6 @@
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Tests.Common.Helpers;
+using System.Collections.Generic;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -8,6 +9,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private OrganisationGroupingReason? _organisationGroupingReason;
         private uint? _templateLineId;
         private decimal _value;
+        private IEnumerable<DistributionPeriod> _distributionPeriods;
 
         public FundingLineBuilder WithValue(decimal value)
         {
@@ -29,14 +31,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             return this;
         }
-        
+
+        public FundingLineBuilder WithDistibutionPeriods(IEnumerable<DistributionPeriod> distributionPeriods)
+        {
+            _distributionPeriods = distributionPeriods;
+
+            return this;
+        }
+
         public FundingLine Build()
         {
             return new FundingLine
             {
                 TemplateLineId = _templateLineId.GetValueOrDefault((uint)NewRandomNumberBetween(1, int.MaxValue)),
                 Type = _organisationGroupingReason.GetValueOrDefault(NewRandomEnum<OrganisationGroupingReason>()),
-                Value = _value
+                Value = _value,
+                DistributionPeriods = _distributionPeriods
             };
         }
     }
