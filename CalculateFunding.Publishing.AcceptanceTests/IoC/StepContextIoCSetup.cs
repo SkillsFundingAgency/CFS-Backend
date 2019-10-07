@@ -57,7 +57,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             ProvidersInMemoryClient providersInMemoryClient = new ProvidersInMemoryClient();
             ProviderService providerService = new ProviderService(providersInMemoryClient, publishingResiliencePolicies);
 
-            PublishedFundingDateService publishedFundingDateService = new PublishedFundingDateService();
+            SpecificationsInMemoryClient specificationsInMemoryClient = new SpecificationsInMemoryClient();
+            PublishedFundingDateService publishedFundingDateService = new PublishedFundingDateService(specificationsInMemoryClient, publishingResiliencePolicies);
 
             _objectContainer.RegisterTypeAs<PublishServiceAcceptanceStepContext, IPublishFundingStepContext>();
 
@@ -109,6 +110,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             {
                 EmulatedService = publishedFundingDateService,
                 Service = publishedFundingDateService,
+                EmulatedClient = specificationsInMemoryClient
             };
             _objectContainer.RegisterInstanceAs<IPublishingDatesStepContext>(publishingDatesStepContext);
         }

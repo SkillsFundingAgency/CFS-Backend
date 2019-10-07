@@ -24,7 +24,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         {
             PublishedFundingDates publishedFundingDates = table.CreateInstance<PublishedFundingDates>();
 
-            _publishingDatesStepContext.EmulatedService.SetDatesForSpecification(_currentSpecificationStepContext.SpecificationId, publishedFundingDates);
+            _publishingDatesStepContext.EmulatedClient.SetSpecificationPublishDateModel(_currentSpecificationStepContext.SpecificationId, publishedFundingDates);
         }
     }
 }

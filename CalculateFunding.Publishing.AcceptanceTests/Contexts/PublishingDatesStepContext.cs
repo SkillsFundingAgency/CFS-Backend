@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Publishing;
+﻿using CalculateFunding.Publishing.AcceptanceTests.Repositories;
+using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
@@ -8,5 +9,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         public IPublishedFundingDateService Service { get; set; }
 
         public PublishedFundingDateService EmulatedService { get; set; }
+        public SpecificationsInMemoryClient EmulatedClient { get; set; }
     }
 }

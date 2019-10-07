@@ -58,7 +58,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
 
             HttpStatusCode specificationForFundingResponse =
-                await _resiliencePolicy.ExecuteAsync(() => _specifications.SelectSpecificationForfunding(specificationId));
+                await _resiliencePolicy.ExecuteAsync(() => _specifications.SelectSpecificationForFunding(specificationId));
 
             if (!specificationForFundingResponse.IsSuccess())
             {

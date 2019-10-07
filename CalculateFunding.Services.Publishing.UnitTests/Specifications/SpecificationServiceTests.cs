@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             //Arrange
             string specificationId = new RandomString();
 
-            _specifications.SelectSpecificationForfunding(Arg.Is(specificationId))
+            _specifications.SelectSpecificationForFunding(Arg.Is(specificationId))
                 .Returns(HttpStatusCode.NotFound);
 
             //Act
