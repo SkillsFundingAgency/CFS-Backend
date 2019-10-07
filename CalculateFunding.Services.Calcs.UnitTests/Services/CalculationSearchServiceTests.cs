@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(4)
+                    .Received(5)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -249,7 +249,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(4)
+                    .Received(5)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
@@ -439,7 +439,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             await
                 searchRepository
-                    .Received(4)
+                    .Received(5)
                     .Search(Arg.Any<string>(), Arg.Any<SearchParameters>());
         }
 
