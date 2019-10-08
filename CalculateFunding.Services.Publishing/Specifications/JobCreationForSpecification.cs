@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
             IJobDefinition jobDefinition)
         {
             Guard.ArgumentNotNull(jobs, nameof(jobs));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(jobDefinition, nameof(jobDefinition));
 

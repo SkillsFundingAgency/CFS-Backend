@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.Specifications
         {
             Guard.ArgumentNotNull(validator, nameof(validator));
             Guard.ArgumentNotNull(specifications, nameof(specifications));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepositoryPolicy, nameof(resiliencePolicies.SpecificationsRepositoryPolicy));
 
             Validator = validator;
             Specifications = specifications;

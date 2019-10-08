@@ -51,7 +51,8 @@ namespace CalculateFunding.Services.TestRunner.Services
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
-            Guard.ArgumentNotNull(policies, nameof(policies));
+            Guard.ArgumentNotNull(policies?.TestResultsRepository, nameof(policies.TestResultsRepository));
+            Guard.ArgumentNotNull(policies?.TestResultsSearchRepository, nameof(policies.TestResultsSearchRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
 
             _testResultsRepository = testResultsRepository;

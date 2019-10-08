@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing
             ILogger logger)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
-            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(publishingResiliencePolicies?.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishedFundingVersionRepository, nameof(publishedFundingVersionRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
 

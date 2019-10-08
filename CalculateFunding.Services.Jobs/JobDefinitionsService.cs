@@ -33,6 +33,9 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobDefinitionsRepository, nameof(resiliencePolicies.JobDefinitionsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobRepositoryNonAsync, nameof(resiliencePolicies.JobRepositoryNonAsync));
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderPolicy, nameof(resiliencePolicies.CacheProviderPolicy));
 
             _jobDefinitionsRepository = jobDefinitionsRepository;
             _logger = logger;

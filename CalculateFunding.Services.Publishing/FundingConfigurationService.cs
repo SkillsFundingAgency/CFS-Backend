@@ -28,7 +28,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishingResiliencePolicies publishingResiliencePolicies)
         {
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
-            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(publishingResiliencePolicies?.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
 
             _policiesApiClient = policiesApiClient;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;

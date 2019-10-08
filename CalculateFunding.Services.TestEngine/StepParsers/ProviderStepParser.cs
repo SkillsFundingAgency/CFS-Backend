@@ -8,6 +8,7 @@ using Polly;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Utility;
 
 namespace CalculateFunding.Services.TestRunner.StepParsers
 {
@@ -18,6 +19,9 @@ namespace CalculateFunding.Services.TestRunner.StepParsers
 
         public ProviderStepParser(IProviderResultsRepository providerResultsRepository, ITestRunnerResiliencePolicies resiliencePolicies)
         {
+            Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProviderResultsRepository, nameof(providerResultsRepository));
+            
             _providerResultsRepository = providerResultsRepository;
             _providerResultsRepositoryPolicy = resiliencePolicies.ProviderResultsRepository;
         }

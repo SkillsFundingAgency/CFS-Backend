@@ -74,7 +74,9 @@ namespace CalculateFunding.Services.Scenarios
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
-            Guard.ArgumentNotNull(scenariosResiliencePolicies, nameof(scenariosResiliencePolicies));
+            Guard.ArgumentNotNull(scenariosResiliencePolicies?.JobsApiClient, nameof(scenariosResiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(scenariosResiliencePolicies?.CalcsRepository, nameof(scenariosResiliencePolicies.CalcsRepository));
+            Guard.ArgumentNotNull(scenariosResiliencePolicies?.ScenariosRepository, nameof(scenariosResiliencePolicies.ScenariosRepository));
 
             _scenariosRepository = scenariosRepository;
             _logger = logger;

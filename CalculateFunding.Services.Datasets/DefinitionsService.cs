@@ -58,6 +58,9 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(excelWriter, nameof(excelWriter));
             Guard.ArgumentNotNull(definitionChangesDetectionService, nameof(definitionChangesDetectionService));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.DatasetDefinitionSearchRepository, nameof(datasetsResiliencePolicies.DatasetDefinitionSearchRepository));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.DatasetRepository, nameof(datasetsResiliencePolicies.DatasetRepository));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.BlobClient, nameof(datasetsResiliencePolicies.BlobClient));
 
             _logger = logger;
             _datasetsRepository = dataSetsRepository;

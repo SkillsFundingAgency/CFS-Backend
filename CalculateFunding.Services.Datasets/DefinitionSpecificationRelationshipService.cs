@@ -65,8 +65,8 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(calcsRepository, nameof(calcsRepository));
             Guard.ArgumentNotNull(definitionService, nameof(definitionService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(datasetsResiliencePolicies, nameof(datasetsResiliencePolicies));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
 
             _datasetRepository = datasetRepository;
             _logger = logger;

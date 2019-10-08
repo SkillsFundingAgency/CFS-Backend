@@ -51,7 +51,10 @@ namespace CalculateFunding.Services.Users
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(policies, nameof(policies));
+            Guard.ArgumentNotNull(policies?.UserRepositoryPolicy, nameof(policies.UserRepositoryPolicy));
+            Guard.ArgumentNotNull(policies?.SpecificationRepositoryPolicy, nameof(policies.SpecificationRepositoryPolicy));
+            Guard.ArgumentNotNull(policies?.FundingStreamPermissionVersionRepositoryPolicy, nameof(policies.FundingStreamPermissionVersionRepositoryPolicy));
+            Guard.ArgumentNotNull(policies?.CacheProviderPolicy, nameof(policies.CacheProviderPolicy));
 
             _userRepository = userRepository;
             _specificationsRepository = specificationRepository;

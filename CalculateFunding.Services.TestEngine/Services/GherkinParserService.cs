@@ -27,7 +27,10 @@ namespace CalculateFunding.Services.TestRunner.Services
             IBuildProjectRepository buildProjectRepository,
             ITestRunnerResiliencePolicies resiliencePolicies)
         {
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepository, nameof(resiliencePolicies.BuildProjectRepository));
+            Guard.ArgumentNotNull(gherkinParser, nameof(gherkinParser));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
 
             _gherkinParser = gherkinParser;
             _logger = logger;

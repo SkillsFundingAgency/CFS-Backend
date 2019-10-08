@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Results
             IResultsResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(allocationNotificationsSearchRepository, nameof(allocationNotificationsSearchRepository));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.AllocationNotificationFeedSearchRepository, nameof(resiliencePolicies.AllocationNotificationFeedSearchRepository));
 
             _allocationNotificationsSearchRepository = allocationNotificationsSearchRepository;
             _allocationNotificationsSearchRepositoryPolicy = resiliencePolicies.AllocationNotificationFeedSearchRepository;

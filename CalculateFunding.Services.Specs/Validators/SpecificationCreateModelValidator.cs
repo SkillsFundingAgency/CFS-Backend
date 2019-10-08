@@ -26,7 +26,7 @@ namespace CalculateFunding.Services.Specs.Validators
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
 
             _specificationsRepository = specificationsRepository;
             _providersApiClient = providersApiClient;

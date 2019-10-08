@@ -83,6 +83,9 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(buildProjectsRepository, nameof(buildProjectsRepository));
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(calculationEngineRunningChecker, nameof(calculationEngineRunningChecker));
+            Guard.ArgumentNotNull(resiliencePolicies?.DatasetsRepository, nameof(resiliencePolicies.DatasetsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
 
             _logger = logger;
             _telemetry = telemetry;

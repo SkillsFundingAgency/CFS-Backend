@@ -47,6 +47,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(compilerFactory, nameof(compilerFactory));
             Guard.ArgumentNotNull(codeMetadataGenerator, nameof(codeMetadataGenerator));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.SourceFilesRepository, nameof(resiliencePolicies.SourceFilesRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
 
             _sourceFilesRepository = sourceFilesRepository;
             _logger = logger;

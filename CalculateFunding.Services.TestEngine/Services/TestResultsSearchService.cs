@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
@@ -43,6 +44,10 @@ namespace CalculateFunding.Services.TestRunner.Services
             ISearchRepository<TestScenarioResultIndex> searchRepository,
             ITestRunnerResiliencePolicies resiliencePolicies)
         {
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.TestResultsSearchRepository, nameof(resiliencePolicies.TestResultsSearchRepository));
+            
             _logger = logger;
             _searchRepository = searchRepository;
             _searchRepositoryPolicy = resiliencePolicies.TestResultsSearchRepository;

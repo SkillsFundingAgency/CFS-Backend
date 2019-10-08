@@ -19,8 +19,8 @@ namespace CalculateFunding.Services.Jobs
         public NotificationService(IMessengerService messengerService, IJobsResiliencePolicies resiliencePolicies, ILogger logger)
         {
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(resiliencePolicies?.MessengerServicePolicy, nameof(resiliencePolicies.MessengerServicePolicy));
 
             _messengerService = messengerService;
             _messengerServicePolicy = resiliencePolicies.MessengerServicePolicy;

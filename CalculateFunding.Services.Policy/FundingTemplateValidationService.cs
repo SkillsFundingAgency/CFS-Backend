@@ -28,7 +28,8 @@ namespace CalculateFunding.Services.Policy
             IPolicyRepository policyRepository)
         {
             Guard.ArgumentNotNull(fundingSchemaRepository, nameof(fundingSchemaRepository));
-            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies?.FundingSchemaRepository, nameof(policyResiliencePolicies.FundingSchemaRepository));
+            Guard.ArgumentNotNull(policyResiliencePolicies?.PolicyRepository, nameof(policyResiliencePolicies.PolicyRepository));
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
 
             _fundingSchemaRepository = fundingSchemaRepository;

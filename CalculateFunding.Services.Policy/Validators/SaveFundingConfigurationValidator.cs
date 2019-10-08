@@ -18,8 +18,8 @@ namespace CalculateFunding.Services.Providers.Validators
             IFundingTemplateService fundingTemplateService)
         {
             Guard.ArgumentNotNull(policyRepository, nameof(policyRepository));
-            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
             Guard.ArgumentNotNull(fundingTemplateService, nameof(fundingTemplateService));
+            Guard.ArgumentNotNull(policyResiliencePolicies?.PolicyRepository, nameof(policyResiliencePolicies.PolicyRepository));
 
             _policyRepository = policyRepository;
             _fundingTemplateService = fundingTemplateService;

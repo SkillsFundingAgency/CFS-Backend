@@ -53,7 +53,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationVersionRepository, nameof(calculationVersionRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CacheProviderPolicy, nameof(calculationsResiliencePolicies.CacheProviderPolicy));
-            Guard.ArgumentNotNull(calculationsResiliencePolicies?.JobsApiClient, nameof(calculationsResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsRepository, nameof(calculationsResiliencePolicies.CalculationsRepository));
             Guard.ArgumentNotNull(calculationsResiliencePolicies?.CalculationsVersionsRepositoryPolicy, nameof(calculationsResiliencePolicies.CalculationsVersionsRepositoryPolicy));
             

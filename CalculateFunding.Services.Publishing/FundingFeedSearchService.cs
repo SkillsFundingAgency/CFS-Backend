@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishingResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(fundingSearchRepository, nameof(fundingSearchRepository));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.FundingFeedSearchRepository, nameof(resiliencePolicies.FundingFeedSearchRepository));
 
             _fundingSearchRepository = fundingSearchRepository;
             _fundingSearchRepositoryPolicy = resiliencePolicies.FundingFeedSearchRepository;

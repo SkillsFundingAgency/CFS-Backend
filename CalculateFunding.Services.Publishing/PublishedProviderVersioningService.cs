@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.PublishedProviderVersionRepository, nameof(resiliencePolicies.PublishedProviderVersionRepository));
 
             _logger = logger;
             _versionRepository = versionRepository;

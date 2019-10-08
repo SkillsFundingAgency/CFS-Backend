@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.TestRunner.Interfaces;
+﻿using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.TestRunner.Interfaces;
 using CalculateFunding.Services.TestRunner.StepParsers;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using Polly;
@@ -17,6 +18,10 @@ namespace CalculateFunding.Services.TestRunner.Services
             IProviderResultsRepository providerResultsRepository,
             ITestRunnerResiliencePolicies resiliencePolicies)
         {
+            Guard.ArgumentNotNull(codeMetadataGeneratorService, nameof(codeMetadataGeneratorService));
+            Guard.ArgumentNotNull(providerResultsRepository, nameof(providerResultsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            
             _codeMetadataGeneratorService = codeMetadataGeneratorService;
             _providerResultsRepository = providerResultsRepository;
             _resiliencePolicies = resiliencePolicies;

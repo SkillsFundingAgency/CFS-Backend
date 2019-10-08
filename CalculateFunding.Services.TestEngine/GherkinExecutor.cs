@@ -29,7 +29,7 @@ namespace CalculateFunding.Services.TestRunner
         {
             Guard.ArgumentNotNull(parser, nameof(parser));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderRepository, nameof(resiliencePolicies.CacheProviderRepository));
 
             _parser = parser;
             _cacheProvider = cacheProvider;

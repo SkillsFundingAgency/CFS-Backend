@@ -118,6 +118,14 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(calculationNameInUseCheck, nameof(calculationNameInUseCheck));
             Guard.ArgumentNotNull(instructionAllocationJobCreation, nameof(instructionAllocationJobCreation));
             Guard.ArgumentNotNull(createCalculationService, nameof(createCalculationService));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsSearchRepository, nameof(resiliencePolicies.CalculationsSearchRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderPolicy, nameof(resiliencePolicies.CacheProviderPolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepositoryPolicy, nameof(resiliencePolicies.SpecificationsRepositoryPolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsVersionsRepositoryPolicy, nameof(resiliencePolicies.CalculationsVersionsRepositoryPolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
 
             _calculationsRepository = calculationsRepository;
             _logger = logger;

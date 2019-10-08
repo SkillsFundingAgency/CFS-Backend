@@ -60,6 +60,10 @@ namespace CalculateFunding.Services.CosmosDbScaling
             Guard.ArgumentNotNull(cosmosDbScalingRequestModelBuilder, nameof(cosmosDbScalingRequestModelBuilder));
             Guard.ArgumentNotNull(cosmosDbThrottledEventsFilter, nameof(cosmosDbThrottledEventsFilter));
             Guard.ArgumentNotNull(scalingConfigurationUpdateModelValidator, nameof(scalingConfigurationUpdateModelValidator));
+            Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.ScalingRepository, nameof(cosmosDbScalingResiliencePolicies.ScalingRepository));
+            Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.CacheProvider, nameof(cosmosDbScalingResiliencePolicies.CacheProvider));
+            Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.ScalingConfigRepository, nameof(cosmosDbScalingResiliencePolicies.ScalingConfigRepository));
+            Guard.ArgumentNotNull(cosmosDbScalingResiliencePolicies?.JobsApiClient, nameof(cosmosDbScalingResiliencePolicies.JobsApiClient));
 
             _logger = logger;
             _cosmosDbScalingRepositoryProvider = cosmosDbScalingRepositoryProvider;

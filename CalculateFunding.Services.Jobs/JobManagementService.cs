@@ -47,10 +47,13 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(jobRepository, nameof(jobRepository));
             Guard.ArgumentNotNull(notificationService, nameof(notificationService));
             Guard.ArgumentNotNull(jobDefinitionsService, nameof(jobDefinitionsService));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(createJobValidator, nameof(createJobValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobRepository, nameof(resiliencePolicies.JobRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobDefinitionsRepository, nameof(resiliencePolicies.JobDefinitionsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobRepositoryNonAsync, nameof(resiliencePolicies.JobRepositoryNonAsync));
+            Guard.ArgumentNotNull(resiliencePolicies?.MessengerServicePolicy, nameof(resiliencePolicies.MessengerServicePolicy));
 
             _jobRepository = jobRepository;
             _notificationService = notificationService;

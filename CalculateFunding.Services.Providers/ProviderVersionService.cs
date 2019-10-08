@@ -55,7 +55,8 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(providerVersionModelValidator, nameof(providerVersionModelValidator));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProviderVersionMetadataRepository, nameof(resiliencePolicies.ProviderVersionMetadataRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.BlobRepositoryPolicy, nameof(resiliencePolicies.BlobRepositoryPolicy));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(providerVersionServiceSettings, nameof(providerVersionServiceSettings));

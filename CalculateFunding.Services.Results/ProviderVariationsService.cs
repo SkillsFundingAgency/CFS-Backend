@@ -39,6 +39,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
+            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
 
             _providerVariationAssemblerService = providerVariationAssemblerService;
             _policiesApiClient = policiesApiClient;

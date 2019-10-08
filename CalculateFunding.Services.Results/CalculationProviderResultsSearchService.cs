@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
@@ -43,6 +44,10 @@ namespace CalculateFunding.Services.Results
             ISearchRepository<CalculationProviderResultsIndex> searchRepository,
             IResultsResiliencePolicies resiliencePolicies)
         {
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationProviderResultsSearchRepository, nameof(resiliencePolicies.CalculationProviderResultsSearchRepository));
+            
             _logger = logger;
             _searchRepository = searchRepository;
             _searchRepositoryPolicy = resiliencePolicies.CalculationProviderResultsSearchRepository;

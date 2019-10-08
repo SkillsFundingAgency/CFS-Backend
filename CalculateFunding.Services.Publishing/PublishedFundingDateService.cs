@@ -18,7 +18,7 @@ namespace CalculateFunding.Services.Publishing
         public PublishedFundingDateService(ISpecificationsApiClient specificationsApiClient, IPublishingResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepositoryPolicy, nameof(resiliencePolicies.SpecificationsRepositoryPolicy));
 
             _specificationsApiClient = specificationsApiClient;
             _specificationsApiPolicy = resiliencePolicies.SpecificationsRepositoryPolicy;

@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
@@ -60,6 +61,24 @@ namespace CalculateFunding.Services.TestRunner.Services
             ITestRunnerResiliencePolicies resiliencePolicies,
             ICalculationsRepository calculationsRepository)
         {
+            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
+            Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(testEngine, nameof(testEngine));
+            Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
+            Guard.ArgumentNotNull(providerSourceDatasetsRepository, nameof(providerSourceDatasetsRepository));
+            Guard.ArgumentNotNull(testResultsService, nameof(testResultsService));
+            Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
+            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
+            Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderRepository, nameof(resiliencePolicies.CacheProviderRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationRepository, nameof(resiliencePolicies.SpecificationRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.ScenariosRepository, nameof(resiliencePolicies.ScenariosRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.TestResultsRepository, nameof(resiliencePolicies.TestResultsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepository, nameof(resiliencePolicies.BuildProjectRepository));
+            Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
+            Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            
             _cacheProvider = cacheProvider;
             _specificationRepository = specificationRepository;
             _logger = logger;

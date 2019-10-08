@@ -25,6 +25,8 @@ namespace CalculateFunding.Services.Jobs
             Guard.ArgumentNotNull(jobRepository, nameof(jobRepository));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobRepository, nameof(resiliencePolicies.JobRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobRepositoryNonAsync, nameof(resiliencePolicies.JobRepositoryNonAsync));
 
             _jobRepository = jobRepository;
             _mapper = mapper;

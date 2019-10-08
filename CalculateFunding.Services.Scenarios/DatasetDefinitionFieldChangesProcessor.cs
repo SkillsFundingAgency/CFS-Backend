@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Scenarios
         {
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
-            Guard.ArgumentNotNull(scenariosResiliencePolicies, nameof(scenariosResiliencePolicies));
+            Guard.ArgumentNotNull(scenariosResiliencePolicies?.DatasetRepository, nameof(scenariosResiliencePolicies.DatasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(scenariosService, nameof(scenariosService));
 

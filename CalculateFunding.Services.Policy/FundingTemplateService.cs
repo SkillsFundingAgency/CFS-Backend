@@ -43,7 +43,8 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(fundingTemplateRepository, nameof(fundingTemplateRepository));
-            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies?.CacheProvider, nameof(policyResiliencePolicies.CacheProvider));
+            Guard.ArgumentNotNull(policyResiliencePolicies?.FundingTemplateRepository, nameof(policyResiliencePolicies.FundingTemplateRepository));
             Guard.ArgumentNotNull(fundingTemplateValidationService, nameof(fundingTemplateValidationService));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(templateMetadataResolver, nameof(templateMetadataResolver));

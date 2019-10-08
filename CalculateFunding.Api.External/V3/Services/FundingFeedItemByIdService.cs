@@ -25,7 +25,7 @@ namespace CalculateFunding.Api.External.V3.Services
             Guard.ArgumentNotNull(publishedFundingRetrievalService, nameof(publishedFundingRetrievalService));
             Guard.ArgumentNotNull(fundingSearchRepository, nameof(fundingSearchRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(resiliencePolicies.FundingFeedSearchRepository, nameof(resiliencePolicies.FundingFeedSearchRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.FundingFeedSearchRepository, nameof(resiliencePolicies.FundingFeedSearchRepository));
 
             _publishedFundingRetrievalService = publishedFundingRetrievalService;
             _fundingSearchRepository = fundingSearchRepository;

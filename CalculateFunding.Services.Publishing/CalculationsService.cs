@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing
             ILogger logger)
         {
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
-            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(publishingResiliencePolicies?.CalculationsApiClient, nameof(publishingResiliencePolicies.CalculationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
 
             _calculationsApiClient = calculationsApiClient;

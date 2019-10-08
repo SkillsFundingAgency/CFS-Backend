@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Policy
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(fundingSchemaRepository, nameof(fundingSchemaRepository));
-            Guard.ArgumentNotNull(policyResiliencePolicies, nameof(policyResiliencePolicies));
+            Guard.ArgumentNotNull(policyResiliencePolicies?.FundingSchemaRepository, nameof(policyResiliencePolicies.FundingSchemaRepository));
 
             _logger = logger;
             _fundingSchemaRepository = fundingSchemaRepository;

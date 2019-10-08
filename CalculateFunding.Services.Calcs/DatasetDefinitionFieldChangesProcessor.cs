@@ -40,6 +40,8 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(calculationService, nameof(calculationService));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.DatasetsRepository, nameof(resiliencePolicies.DatasetsRepository));
 
             _featureToggle = featureToggle;
             _datasetRepository = datasetRepository;

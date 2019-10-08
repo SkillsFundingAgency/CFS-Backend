@@ -1,8 +1,9 @@
-﻿using Polly;
+﻿using CalculateFunding.Services.Core.Interfaces;
+using Polly;
 
 namespace CalculateFunding.Services.Results.Interfaces
 {
-    public interface IResultsResiliencePolicies
+    public interface IResultsResiliencePolicies : IJobHelperResiliencePolicies
     {
         Policy CalculationProviderResultsSearchRepository { get; set; }
 
