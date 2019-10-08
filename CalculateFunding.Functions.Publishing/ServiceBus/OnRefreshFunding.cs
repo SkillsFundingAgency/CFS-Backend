@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
@@ -34,6 +35,10 @@ namespace CalculateFunding.Functions.Publishing.ServiceBus
             try
             {
                 await _refreshService.RefreshResults(message);
+            }
+            catch (NonRetriableException ex)
+            {
+                _logger.Error(ex, $"Job threw non retriable exception: {ServiceBusConstants.QueueNames.PublishingRefreshFunding}");
             }
             catch (Exception exception)
             {
