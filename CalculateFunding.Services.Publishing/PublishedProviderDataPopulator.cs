@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -35,7 +35,14 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(generatedProviderResult, nameof(generatedProviderResult));
             Guard.ArgumentNotNull(provider, nameof(provider));
 
-            PublishedProviderVersion publishedProviderVersionCloned = publishedProviderVersion.DeepCopy();
+            Provider mappedProvider = _providerMapper.Map<Provider>(provider);
+
+            bool hasChanges = !(JsonConvert.SerializeObject(publishedProviderVersion.FundingLines) == JsonConvert.SerializeObject(generatedProviderResult.FundingLines)
+                && JsonConvert.SerializeObject(publishedProviderVersion.Calculations) == JsonConvert.SerializeObject(generatedProviderResult.Calculations)
+                && JsonConvert.SerializeObject(publishedProviderVersion.ReferenceData) == JsonConvert.SerializeObject(generatedProviderResult.ReferenceData)
+                && publishedProviderVersion.TemplateVersion == templateVersion
+                && publishedProviderVersion.TotalFunding == generatedProviderResult.TotalFunding
+                && JsonConvert.SerializeObject(publishedProviderVersion.Provider) == JsonConvert.SerializeObject(mappedProvider));
 
             publishedProviderVersion.FundingLines = generatedProviderResult.FundingLines;
 
@@ -47,9 +54,9 @@ namespace CalculateFunding.Services.Publishing
 
             publishedProviderVersion.TotalFunding = generatedProviderResult.TotalFunding;
 
-            publishedProviderVersion.Provider = _providerMapper.Map<Provider>(provider);
+            publishedProviderVersion.Provider = mappedProvider;
 
-            return !publishedProviderVersion.AreEqual(publishedProviderVersionCloned);
+            return hasChanges;
         }
     }
 }
