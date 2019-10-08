@@ -37,7 +37,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingContentsGenerator generator = _publishedFundingContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach (PublishedFundingVersion publishedFundingVersion in publishedFundingToSave)
             {
                 await throttler.WaitAsync();

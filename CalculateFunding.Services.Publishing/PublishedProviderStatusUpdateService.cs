@@ -126,7 +126,7 @@ namespace CalculateFunding.Services.Publishing
                 try
                 {
                     List<Task> allTasks = new List<Task>();
-                    SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+                    SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
                     foreach (PublishedProvider publishedProvider in updatedPublishedProviders)
                     {
                         await throttler.WaitAsync();

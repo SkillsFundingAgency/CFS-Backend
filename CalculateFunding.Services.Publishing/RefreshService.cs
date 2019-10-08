@@ -338,7 +338,7 @@ namespace CalculateFunding.Services.Publishing
         {
             _logger.Information("Saving published provider contents");
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach (KeyValuePair<string, PublishedProvider> provider in publishedProvidersToUpdate)
             {
                 await throttler.WaitAsync();

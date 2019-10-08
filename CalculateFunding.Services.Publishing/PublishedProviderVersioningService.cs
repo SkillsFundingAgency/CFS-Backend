@@ -105,7 +105,7 @@ namespace CalculateFunding.Services.Publishing
             ConcurrentBag<PublishedProvider> publishedProviders = new ConcurrentBag<PublishedProvider>();
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach (PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest in publishedProviderCreateVersionRequests)
             {
                 await throttler.WaitAsync();
@@ -154,7 +154,7 @@ namespace CalculateFunding.Services.Publishing
                new KeyValuePair<string, PublishedProviderVersion>(m.ParitionKey, m.Current));
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach (var versions in versionsToSave.ToBatches(10))
             {
                 await throttler.WaitAsync();

@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing
                                     () => _publishedFundingRepository.GetPublishedProviderIdsForApproval(fundingStream.Id, specificationSummary.FundingPeriod.Id));
 
                 List<Task> allTasks = new List<Task>();
-                SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+                SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
                 foreach (var cosmosDocumentInformation in publishedProviderIds)
                 {
                     await throttler.WaitAsync();
@@ -92,7 +92,7 @@ namespace CalculateFunding.Services.Publishing
                                 () => _publishedFundingRepository.GetPublishedFundingIds(fundingStreamId, fundingPeriodId));
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach (KeyValuePair<string, string> cosmosDocumentInformation in publishedFundingIds)
             {
                 await throttler.WaitAsync();
@@ -133,7 +133,7 @@ namespace CalculateFunding.Services.Publishing
                                 () => _publishedFundingRepository.GetPublishedProviderIds(fundingStreamId, fundingPeriodId));
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach (var cosmosDocumentInformation in publishedProviderIds)
             {
                 await throttler.WaitAsync();

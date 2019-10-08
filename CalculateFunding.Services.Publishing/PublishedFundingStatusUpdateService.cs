@@ -45,7 +45,7 @@ namespace CalculateFunding.Services.Publishing
         public async Task UpdatePublishedFundingStatus(IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, Reference author, PublishedFundingStatus released)
         {
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
             foreach ((PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion) _ in publishedFundingToSave)
             {
                 await throttler.WaitAsync();

@@ -160,7 +160,7 @@ namespace CalculateFunding.Services.Publishing.Repositories
                                 SELECT c.id as id, c.content.partitionKey as partitionKey FROM c
                                 WHERE c.documentType = 'PublishedFunding'
                                 AND c.content.current.fundingStreamId = @fundingStreamId
-                                AND c.content.current.fundingPeriodId = @fundingPeriodId",
+                                AND c.content.current.fundingPeriod.id = @fundingPeriodId",
                  Parameters = new SqlParameterCollection
                  {
                                     new SqlParameter("@fundingStreamId", fundingStreamId),
