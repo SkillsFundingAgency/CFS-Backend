@@ -1,21 +1,27 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Publishing;
+using Newtonsoft.Json;
 
 namespace CalculateFunding.Services.Publishing
 {
     public class FundingValueAggregator
     {
-        private Dictionary<uint, dynamic> aggregatedCalculations;
-        private Dictionary<uint, dynamic> aggregatedFundingLines;
+        private Dictionary<uint, (decimal, int)> aggregatedCalculations;
+        private Dictionary<uint, (decimal, IEnumerable<Models.Publishing.DistributionPeriod>)> aggregatedFundingLines;
         private Dictionary<string, decimal> aggregatedDistributionPeriods;
         private Dictionary<string, decimal> aggregatedProfilePeriods;
 
+        public FundingValueAggregator()
+        {
+        }
+
         public IEnumerable<AggregateFundingLine> GetTotals(TemplateMetadataContents templateMetadataContent, IEnumerable<PublishedProviderVersion> publishedProviders)
         {
-            aggregatedCalculations = new Dictionary<uint, dynamic>();
-            aggregatedFundingLines = new Dictionary<uint, dynamic>();
+            aggregatedCalculations = new Dictionary<uint, (decimal, int)>();
+            aggregatedFundingLines = new Dictionary<uint, (decimal, IEnumerable<Models.Publishing.DistributionPeriod>)>();
             aggregatedDistributionPeriods = new Dictionary<string, decimal>();
             aggregatedProfilePeriods = new Dictionary<string, decimal>();
 
@@ -52,21 +58,21 @@ namespace CalculateFunding.Services.Publishing
             {
                 AggregateFundingLine(fundingLine.TemplateLineId, fundingLine.Value, fundingLine.DistributionPeriods);
 
-                fundingLine.DistributionPeriods?.ToList().ForEach(_ => AggregateDistributionPeriod(_));
+                fundingLine.DistributionPeriods?.Where(_ => _ != null).ToList().ForEach(_ => AggregateDistributionPeriod(_));
             }
         }
 
         public void AggregateFundingLine(uint key, decimal value, IEnumerable<Models.Publishing.DistributionPeriod> distributionPeriods)
         {
-            if (aggregatedFundingLines.TryGetValue(key, out dynamic aggregate))
+            if (aggregatedFundingLines.TryGetValue(key, out (decimal Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
             {
-                aggregate = new { Total = aggregate.Total + value, DistributionPeriods = aggregate.DistributionPeriods };
+                aggregate = ( aggregate.Total + value, aggregate.DistributionPeriods );
                 // aggregate the value
                 aggregatedFundingLines[key] = aggregate;
             }
             else
             {
-                aggregatedFundingLines.Add(key, new { Total = value, DistributionPeriods = distributionPeriods });
+                aggregatedFundingLines.Add(key, ( value, distributionPeriods ));
             }
         }
 
@@ -82,7 +88,7 @@ namespace CalculateFunding.Services.Publishing
                 aggregatedDistributionPeriods.Add(distributionPeriod.DistributionPeriodId, distributionPeriod.Value);
             }
 
-            distributionPeriod.ProfilePeriods?.ToList().ForEach(_ => AggregateProfilePeriod(_));
+            distributionPeriod.ProfilePeriods?.Where(_ => _ != null).ToList().ForEach(_ => AggregateProfilePeriod(_));
         }
 
         public void AggregateProfilePeriod(Models.Publishing.ProfilePeriod profilePeriod)
@@ -100,20 +106,20 @@ namespace CalculateFunding.Services.Publishing
 
         public void AggregateCalculation(uint key, decimal value)
         {
-            if (aggregatedCalculations.TryGetValue(key, out dynamic aggregate))
+            if (aggregatedCalculations.TryGetValue(key, out (decimal Total, int Count) aggregate))
             {
                 // aggregate the value
-                aggregatedCalculations[key] = new { total = aggregate.total + value, items = aggregate.items + 1 };
+                aggregatedCalculations[key] = ( aggregate.Total + value, aggregate.Count + 1 );
             }
             else
             {
-                aggregatedCalculations.Add(key, new { total = value, items = 1 });
+                aggregatedCalculations.Add(key, ( value, 1 ));
             }
         }
 
         public AggregateFundingCalculation GetAggregateCalculation(Common.TemplateMetadata.Models.Calculation calculation)
         {
-            if (aggregatedCalculations.TryGetValue(calculation.TemplateCalculationId, out dynamic aggregate))
+            if (aggregatedCalculations.TryGetValue(calculation.TemplateCalculationId, out (decimal Total, int Count) aggregate))
             {
                 decimal aggregateValue = 0;
 
@@ -121,12 +127,12 @@ namespace CalculateFunding.Services.Publishing
                 {
                     case Common.TemplateMetadata.Enums.AggregationType.Average:
                         {
-                            aggregateValue = aggregate.items == 0 ? 0 : aggregate.total / aggregate.items;
+                            aggregateValue = aggregate.Count == 0 ? 0 : aggregate.Total / aggregate.Count;
                             break;
                         }
                     case Common.TemplateMetadata.Enums.AggregationType.Sum:
                         {
-                            aggregateValue = aggregate.total;
+                            aggregateValue = aggregate.Total;
                             break;
                         }
                 }
@@ -146,7 +152,7 @@ namespace CalculateFunding.Services.Publishing
 
         public AggregateFundingLine GetAggregateFundingLine(Common.TemplateMetadata.Models.FundingLine fundingLine)
         {
-            if (aggregatedFundingLines.TryGetValue(fundingLine.TemplateLineId, out dynamic aggregate))
+            if (aggregatedFundingLines.TryGetValue(fundingLine.TemplateLineId, out (decimal Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
             {
                 return new AggregateFundingLine
                 {
@@ -154,7 +160,7 @@ namespace CalculateFunding.Services.Publishing
                     TemplateLineId = fundingLine.TemplateLineId,
                     Calculations = fundingLine.Calculations?.Select(calculation => GetAggregateCalculation(calculation)).Where(x => x != null),
                     FundingLines = fundingLine.FundingLines?.Select(x => GetAggregateFundingLine(x)),
-                    DistributionPeriods = ((IEnumerable<Models.Publishing.DistributionPeriod>)aggregate.DistributionPeriods)?.Select(x => GetAggregatePeriods(x)),
+                    DistributionPeriods = aggregate.DistributionPeriods?.Select(x => GetAggregatePeriods(x)),
                     Value = aggregate.Total
                 };
             }
@@ -168,25 +174,22 @@ namespace CalculateFunding.Services.Publishing
         {
             if (period != null && aggregatedDistributionPeriods.TryGetValue(period.DistributionPeriodId, out decimal total))
             {
-                period.Value = total;
-                period.ProfilePeriods = period.ProfilePeriods?.Select(x => GetAggregateProfilePeriods(x));
-                return period;
+                Models.Publishing.DistributionPeriod distributionPeriod = period.Clone();
+
+                distributionPeriod.Value = total;
+                distributionPeriod.ProfilePeriods?.ToList().ForEach(x => SetAggregateProfilePeriods(x));
+                return distributionPeriod;
             }
             else
             {
                 return null;
             }
         }
-        public Models.Publishing.ProfilePeriod GetAggregateProfilePeriods(Models.Publishing.ProfilePeriod period)
+        public void SetAggregateProfilePeriods(Models.Publishing.ProfilePeriod period)
         {
             if (period != null && aggregatedProfilePeriods.TryGetValue(period.DistributionPeriodId, out decimal total))
             {
                 period.ProfiledValue = total;
-                return period;
-            }
-            else
-            {
-                return null;
             }
         }
 

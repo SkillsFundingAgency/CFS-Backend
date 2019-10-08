@@ -101,7 +101,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IPublishedFundingContentsGenerator v10Generator = new CalculateFunding.Generators.Schema10.PublishedFundingContentsGenerator();
             resolver.Register("1.0", v10Generator);
 
-            PublishedFundingGenerator publishedFundingGenerator = new PublishedFundingGenerator(mapper);
+            PublishedFundingGenerator publishedFundingGenerator = new PublishedFundingGenerator(mapper, idGeneratorResolver);
 
             InMemoryBlobClient inMemoryBlobClient = new InMemoryBlobClient();
 

@@ -16,17 +16,22 @@ namespace CalculateFunding.Services.Publishing
     public class PublishedFundingGenerator : IPublishedFundingGenerator
     {
         private readonly IMapper _mapper;
+        private readonly IPublishedFundingIdGeneratorResolver _publishedFundingIdGeneratorResolver;
 
-        public PublishedFundingGenerator(IMapper mapper)
+        public PublishedFundingGenerator(IMapper mapper,
+            IPublishedFundingIdGeneratorResolver publishedFundingIdGeneratorResolver)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _mapper = mapper;
+            _publishedFundingIdGeneratorResolver = publishedFundingIdGeneratorResolver;
         }
-
         /// <summary>
         /// Generate instances of the PublishedFundingVersion to save into cosmos for the Organisation Group Results
         /// </summary>
+        /// <param name="organisationGroupsToSave"></param>
+        /// <param name="templateMetadataContents"></param>
+        /// <param name="publishedProviders"></param>
         /// <returns></returns>
         public IEnumerable<(PublishingModels.PublishedFunding, PublishingModels.PublishedFundingVersion)> GeneratePublishedFunding(GeneratePublishedFundingInput generatePublishedFundingInput)
         {
@@ -47,11 +52,11 @@ namespace CalculateFunding.Services.Publishing
             string templateVersion = generatePublishedFundingInput.TemplateVersion;
             FundingPeriod fundingPeriod = generatePublishedFundingInput.FundingPeriod;
 
+            FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
 
-            foreach ((PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult) organisationGroup in organisationGroupsToSave)
+            foreach (var organisationGroup in organisationGroupsToSave)
             {
-                FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
-
+                // TODO: extract interface
                 IEnumerable<string> providerIds = organisationGroup.OrganisationGroupResult.Providers.Select(p => p.ProviderId);
                 IEnumerable<string> publishedProvidersIds = publishedProviders.Select(p => p.Current.ProviderId);
 
@@ -65,7 +70,6 @@ namespace CalculateFunding.Services.Publishing
                     string providerIdsString = string.Join(", ", missingProviders);
                     throw new Exception($"Missing PublishedProvider result for organisation group '{organisationGroup.OrganisationGroupResult.GroupReason}' '{organisationGroup.OrganisationGroupResult.GroupTypeCode}' '{organisationGroup.OrganisationGroupResult.GroupTypeIdentifier}' '{organisationGroup.OrganisationGroupResult.IdentifierValue}'. Provider IDs={providerIdsString}");
                 }
-
 
                 IEnumerable<AggregateFundingLine> fundingLineAggregates = fundingValueAggregator.GetTotals(templateMetadataContents, publishedProviderVersionsForOrganisationGroup);
 
@@ -112,6 +116,8 @@ namespace CalculateFunding.Services.Publishing
                     ExternalPublicationDate = generatePublishedFundingInput.PublishingDates.ExternalPublicationDate,
                 };
 
+                publishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver.GetService(templateMetadataContents.SchemaVersion).GetFundingId(publishedFundingVersion);
+
                 PublishedFunding publishedFundingResult = organisationGroup.PublishedFunding;
 
                 if (publishedFundingResult == null)
@@ -121,7 +127,6 @@ namespace CalculateFunding.Services.Publishing
                         Current = publishedFundingVersion,
                     };
                 }
-
 
                 yield return (publishedFundingResult, publishedFundingVersion);
             }
@@ -170,7 +175,7 @@ namespace CalculateFunding.Services.Publishing
 
                 fundingLines.Add(fundingline);
 
-                fundingline.DistributionPeriods = aggregateFundingLine.DistributionPeriods;
+                fundingline.DistributionPeriods = aggregateFundingLine.DistributionPeriods.ToList();
 
                 if (aggregateFundingLine.FundingLines.AnyWithNullCheck())
                 {

@@ -25,5 +25,10 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("profilePeriods", NullValueHandling = NullValueHandling.Ignore)]
         public IEnumerable<ProfilePeriod> ProfilePeriods { get; set; }
+
+        public DistributionPeriod Clone()
+        {
+            return JsonConvert.DeserializeObject<DistributionPeriod>(JsonConvert.SerializeObject(this));
+        }
     }
 }
