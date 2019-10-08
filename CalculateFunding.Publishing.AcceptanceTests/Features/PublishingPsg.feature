@@ -1157,19 +1157,45 @@ Scenario Outline: Successful publishing of funding
 	When funding is published
 	Then publishing succeeds
 	And the following published funding is produced
-	| Field                            | Value             |
-	| GroupingReason                   | Payment           |
-	| OrganisationGroupTypeCode        | LocalAuthority    |
-	| OrganisationGroupIdentifierValue | 9000000           |
-	| FUndingPeriodId                  | <FundingPeriodId> |
-	| FundingStreamId                  | <FundingStreamId> |
+		| Field                            | Value             |
+		| GroupingReason                   | Payment           |
+		| OrganisationGroupTypeCode        | LocalAuthority    |
+		| OrganisationGroupIdentifierValue | 9000000           |
+		| FUndingPeriodId                  | <FundingPeriodId> |
+		| FundingStreamId                  | <FundingStreamId> |
 	And the total funding is '36000'
 	And the published funding contains the following published provider ids
-	| FundingIds                                     |
-	| <FundingStreamId>-<FundingPeriodId>-1000000-1_0 |
-	| <FundingStreamId>-<FundingPeriodId>-1000002-1_0 |
+		| FundingIds                                      |
+		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0 |
+		| <FundingStreamId>-<FundingPeriodId>-1000002-1_0 |
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '21000'
 	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '15000'
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the following profiles
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 21000         |
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the following profiles
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 15000         |
+	And the following published funding is produced
+		| Field                            | Value             |
+		| GroupingReason                   | Payment           |
+		| OrganisationGroupTypeCode        | AcademyTrust      |
+		| OrganisationGroupIdentifierValue | 8000001           |
+		| FUndingPeriodId                  | <FundingPeriodId> |
+		| FundingStreamId                  | <FundingStreamId> |
+	And the total funding is '48000'
+	And the published funding contains the following published provider ids
+		| FundingIds                                      |
+		| <FundingStreamId>-<FundingPeriodId>-1000101-1_0 |
+		| <FundingStreamId>-<FundingPeriodId>-1000102-1_0 |
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '28000'
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '20000'
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the following profiles
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 28000         |
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the following profiles
+		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
 
 	Examples:
 		| FundingStreamId | FundingPeriodId | FundingPeriodName     | TemplateVersion | ProviderVersionId |

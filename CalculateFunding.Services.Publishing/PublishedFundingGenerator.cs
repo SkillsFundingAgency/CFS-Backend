@@ -47,10 +47,11 @@ namespace CalculateFunding.Services.Publishing
             string templateVersion = generatePublishedFundingInput.TemplateVersion;
             FundingPeriod fundingPeriod = generatePublishedFundingInput.FundingPeriod;
 
-            FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
 
-            foreach (var organisationGroup in organisationGroupsToSave)
+            foreach ((PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult) organisationGroup in organisationGroupsToSave)
             {
+                FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
+
                 IEnumerable<string> providerIds = organisationGroup.OrganisationGroupResult.Providers.Select(p => p.ProviderId);
                 IEnumerable<string> publishedProvidersIds = publishedProviders.Select(p => p.Current.ProviderId);
 
@@ -64,6 +65,7 @@ namespace CalculateFunding.Services.Publishing
                     string providerIdsString = string.Join(", ", missingProviders);
                     throw new Exception($"Missing PublishedProvider result for organisation group '{organisationGroup.OrganisationGroupResult.GroupReason}' '{organisationGroup.OrganisationGroupResult.GroupTypeCode}' '{organisationGroup.OrganisationGroupResult.GroupTypeIdentifier}' '{organisationGroup.OrganisationGroupResult.IdentifierValue}'. Provider IDs={providerIdsString}");
                 }
+
 
                 IEnumerable<AggregateFundingLine> fundingLineAggregates = fundingValueAggregator.GetTotals(templateMetadataContents, publishedProviderVersionsForOrganisationGroup);
 

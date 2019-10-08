@@ -41,9 +41,9 @@ namespace CalculateFunding.Services.Publishing
                 return new string[] { errorMessage };
             }
 
-            if (publishedProviders?.Any(_ => _.Current.Status != PublishedProviderStatus.Approved) ?? false)
+            if (publishedProviders?.Any(_ => _.Current.Status == PublishedProviderStatus.Draft || _.Current.Status == PublishedProviderStatus.Updated) ?? false)
             {
-                IEnumerable<string> results = publishedProviders.Where(_ => _.Current.Status != PublishedProviderStatus.Approved).Select(_ => $"Provider with id:{_.Id} has current status:{_.Current.Status} so cannot be published.");
+                IEnumerable<string> results = publishedProviders.Where(_ => _.Current.Status == PublishedProviderStatus.Draft || _.Current.Status == PublishedProviderStatus.Updated).Select(_ => $"Provider with id:{_.Id} has current status:{_.Current.Status} so cannot be published.");
                 _logger.Error(string.Join(Environment.NewLine, results));
                 return results;
             }

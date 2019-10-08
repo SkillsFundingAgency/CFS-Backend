@@ -12,16 +12,13 @@ namespace CalculateFunding.Services.Publishing
         private Dictionary<string, decimal> aggregatedDistributionPeriods;
         private Dictionary<string, decimal> aggregatedProfilePeriods;
 
-        public FundingValueAggregator()
+        public IEnumerable<AggregateFundingLine> GetTotals(TemplateMetadataContents templateMetadataContent, IEnumerable<PublishedProviderVersion> publishedProviders)
         {
             aggregatedCalculations = new Dictionary<uint, dynamic>();
             aggregatedFundingLines = new Dictionary<uint, dynamic>();
             aggregatedDistributionPeriods = new Dictionary<string, decimal>();
             aggregatedProfilePeriods = new Dictionary<string, decimal>();
-        }
 
-        public IEnumerable<AggregateFundingLine> GetTotals(TemplateMetadataContents templateMetadataContent, IEnumerable<PublishedProviderVersion> publishedProviders)
-        {
             publishedProviders?.ToList().ForEach(provider =>
             {
                 Dictionary<uint, decimal> calculations = new Dictionary<uint, decimal>();
@@ -30,7 +27,7 @@ namespace CalculateFunding.Services.Publishing
 
                 Dictionary<uint, decimal> fundingLines = new Dictionary<uint, decimal>();
 
-                provider.FundingLines?.ToList().ForEach(fundingLine => GetFundigLine(fundingLines, fundingLine));
+                provider.FundingLines?.ToList().ForEach(fundingLine => GetFundingLine(fundingLines, fundingLine));
             });
 
             return templateMetadataContent.RootFundingLines?.Select(fundingLine => GetAggregateFundingLine(fundingLine));
@@ -48,7 +45,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public void GetFundigLine(Dictionary<uint, decimal> fundingLines, Models.Publishing.FundingLine fundingLine)
+        public void GetFundingLine(Dictionary<uint, decimal> fundingLines, Models.Publishing.FundingLine fundingLine)
         {
             // if the calculation for the current provider has not been added to the aggregated total then add it only once.
             if (fundingLines.TryAdd(fundingLine.TemplateLineId, fundingLine.Value))

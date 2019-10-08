@@ -52,7 +52,7 @@ namespace CalculateFunding.Services.Publishing
         public async Task IndexPublishedProviders(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
         {
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 5);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 3);
             foreach (IEnumerable<PublishedProviderVersion> batch in publishedProviderVersions.ToBatches(100))
             {
                 await throttler.WaitAsync();

@@ -109,6 +109,32 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Be(expectedValue);
         }
 
+        [Then(@"the published funding contains a distribution period in funding line '(.*)' with id of '(.*)' has the following profiles")]
+        public void ThenThePublishedFundingContainsADistributionPeriodInFundingLineWithIdOfHasTheFollowingProfiles(string fundingLineCode, string distributionPeriodId, Table table)
+        {
+            PublishedFunding publishedFunding = _publishedFundingResultStepContext.CurrentPublishedFunding;
+
+            publishedFunding.Should()
+                .NotBeNull();
+
+            var fundingLine = publishedFunding.Current.FundingLines.SingleOrDefault(c => c.FundingLineCode == fundingLineCode);
+
+            fundingLine
+                .Should()
+                .NotBeNull("funding line not found");
+
+            var distributionPeriod = fundingLine.DistributionPeriods.SingleOrDefault(c => c.DistributionPeriodId == distributionPeriodId);
+            distributionPeriod
+                .Should()
+                .NotBeNull("distribution period could not be found");
+
+            IEnumerable<ProfilePeriod> periods = table.CreateSet<ProfilePeriod>();
+
+            distributionPeriod
+                .ProfilePeriods
+                .Should()
+                .BeEquivalentTo(periods);
+        }
 
     }
 }
