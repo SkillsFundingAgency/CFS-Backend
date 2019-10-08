@@ -31,6 +31,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private Common.TemplateMetadata.Models.TemplateMetadataContents _templateMetadataContents;
         private PublishingModels.PublishedProvider _publishedProvider;
         private PublishingModels.Provider _provider;
+        private PublishingModels.PublishedProvider _publishedProvider2;
+        private PublishingModels.Provider _provider2;
         private IEnumerable<(PublishingModels.PublishedFunding PublishedFunding, PublishingModels.PublishedFundingVersion PublishedFundingVersion)> _publishedFundingAndPublishedFundingVersion;
         private IEnumerable<Common.ApiClient.Providers.Models.Provider> _scopedProviders;
         private Common.ApiClient.Policies.Models.FundingPeriod _fundingPeriod;
@@ -87,6 +89,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .BeNullOrWhiteSpace();
 
+            _publishedFundingAndPublishedFundingVersion.First().PublishedFundingVersion.FundingLines.First().DistributionPeriods.First().Value
+                .Should()
+                .Be(150);
+
+            _publishedFundingAndPublishedFundingVersion.First().PublishedFundingVersion.FundingLines.First().DistributionPeriods.First().ProfilePeriods.First().ProfiledValue
+                .Should()
+                .Be(300);
         }
 
         private void GivenSpecificationIdIsSet()
@@ -142,10 +151,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _publishedProvider = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
             .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)
-                .WithDistibutionPeriods(new DistributionPeriod[] { new DistributionPeriod { DistributionPeriodId = "AY-2019", ProfilePeriods = new ProfilePeriod[0], Value = 100} })))
+                .WithDistributionPeriods(new DistributionPeriod[] { new DistributionPeriod { DistributionPeriodId = _publishedFundingPeriodId, ProfilePeriods = new ProfilePeriod[] { new ProfilePeriod { TypeValue = "April", DistributionPeriodId = _publishedFundingPeriodId, ProfiledValue = 200, Type = ProfilePeriodType.CalendarMonth, Year = 2019 } }, Value = 100} })))
             .WithFundingStreamId(_fundingStreamId)
             .WithProviderId(_provider.ProviderId)
             .WithProvider(_provider))));
+
+            _provider2 = new PublishingModels.Provider { ProviderId = "provider2" };
+
+            _publishedProvider2 = NewPublishedProvider(_ => _.WithCurrent(NewPublishedProviderVersion(version => version.WithFundingPeriodId(_publishedFundingPeriodId)
+            .WithFundingLines(NewFundingLine(fl => fl.WithTemplateLineId(1).WithValue(0)
+                .WithDistributionPeriods(new DistributionPeriod[] { new DistributionPeriod { DistributionPeriodId = _publishedFundingPeriodId, ProfilePeriods = new ProfilePeriod[] { new ProfilePeriod { TypeValue = "April", DistributionPeriodId = _publishedFundingPeriodId, ProfiledValue = 100, Type = ProfilePeriodType.CalendarMonth, Year = 2019 } }, Value = 50 } })))
+            .WithFundingStreamId(_fundingStreamId)
+            .WithProviderId(_provider2.ProviderId)
+            .WithProvider(_provider2))));
         }
 
         private void WhenPublishedFundingGenerated()
@@ -155,7 +173,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 {
                     OrganisationGroupsToSave = new List<(PublishingModels.PublishedFunding PublishedFunding, OrganisationGroupResult OrganisationGroupResult)> { (_publishedFunding, _organisationGroupResult) },
                     TemplateMetadataContents = _templateMetadataContents,
-                    PublishedProviders = new List<PublishingModels.PublishedProvider> { _publishedProvider }, //TODO; this also needs the second item in the list
+                    PublishedProviders = new List<PublishingModels.PublishedProvider> { _publishedProvider, _publishedProvider2 }, //TODO; this also needs the second item in the list
                     TemplateVersion = _templateVersion,
                     FundingPeriod = _fundingPeriod,
                     FundingStream = _fundingStream,
@@ -242,7 +260,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 UKPRN = "1002",
                 LACode = "102",
                 Authority = "Local Authority 2",
-                TrustCode = "102",
+                TrustCode = "101",
                 TrustName = "Academy Trust 2",
                 ParliamentaryConstituencyCode = "BOS",
                 ParliamentaryConstituencyName = "Bermondsey and Old Southwark",

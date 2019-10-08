@@ -84,6 +84,8 @@ namespace CalculateFunding.Services.Publishing
             {
                 aggregatedDistributionPeriods.Add(distributionPeriod.DistributionPeriodId, distributionPeriod.Value);
             }
+
+            distributionPeriod.ProfilePeriods?.ToList().ForEach(_ => AggregateProfilePeriod(_));
         }
 
         public void AggregateProfilePeriod(Models.Publishing.ProfilePeriod profilePeriod)

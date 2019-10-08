@@ -32,7 +32,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return this;
         }
 
-        public FundingLineBuilder WithDistibutionPeriods(IEnumerable<DistributionPeriod> distributionPeriods)
+        public FundingLineBuilder WithDistributionPeriods(IEnumerable<DistributionPeriod> distributionPeriods)
         {
             _distributionPeriods = distributionPeriods;
 
