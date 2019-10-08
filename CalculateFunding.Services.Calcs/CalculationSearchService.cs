@@ -26,8 +26,7 @@ namespace CalculateFunding.Services.Calcs
         private FacetFilterType[] Facets = {
             new FacetFilterType("status"),
             new FacetFilterType("specificationName"),
-            new FacetFilterType("fundingStreamName"),
-            new FacetFilterType("specificationId")
+            new FacetFilterType("fundingStreamName")
         };
 
         private IEnumerable<string> DefaultOrderBy = new[] { "lastUpdatedDate desc" };
