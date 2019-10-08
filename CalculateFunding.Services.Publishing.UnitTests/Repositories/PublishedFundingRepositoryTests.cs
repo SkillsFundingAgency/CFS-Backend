@@ -68,16 +68,23 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
         }
 
         [TestMethod]
+        [Ignore("This method isn't being used since the optimisation")]
         public async Task FetchesPublishedProvidersWithTheSuppliedSpecificationIdAndStatusOfUpdatedOrHeld()
         {
             string specificationId = new RandomString();
+            string fundingStreamId = new RandomString();
+            string fundingPeriodId = new RandomString();
 
             PublishedProvider firstExpectedPublishedProvider = NewPublishedProvider(_ =>
                 _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId)
-                    .WithPublishedProviderStatus(PublishedProviderStatus.Draft))));
+                    .WithPublishedProviderStatus(PublishedProviderStatus.Draft)
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithFundingPeriodId(fundingPeriodId))));
             PublishedProvider secondExpectedPublishedProvider = NewPublishedProvider(_ =>
                 _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId)
-                    .WithPublishedProviderStatus(PublishedProviderStatus.Updated))));
+                    .WithPublishedProviderStatus(PublishedProviderStatus.Updated)
+                    .WithFundingStreamId(fundingStreamId)
+                    .WithFundingPeriodId(fundingPeriodId))));
 
             GivenThePublishedProviders(NewPublishedProvider(),
                 firstExpectedPublishedProvider,
@@ -90,59 +97,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Repositories
                     ppv.WithSpecificationId(specificationId)
                         .WithPublishedProviderStatus(PublishedProviderStatus.Released)))));
 
-            IEnumerable<PublishedProvider> matches = await _repository.GetPublishedProvidersForApproval(specificationId);
+            var matches = await _repository.GetPublishedProviderIdsForApproval(fundingStreamId, fundingPeriodId);
 
             matches
                 .Should()
                 .BeEquivalentTo(firstExpectedPublishedProvider, secondExpectedPublishedProvider);
-        }
-
-        [TestMethod]
-        public async Task FetchesPublishedProvidersWithTheSuppliedSpecificationId()
-        {
-            string specificationId = new RandomString();
-
-            PublishedProvider firstExpectedPublishedProvider = NewPublishedProvider(_ =>
-                _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId))));
-            PublishedProvider secondExpectedPublishedProvider = NewPublishedProvider(_ =>
-                _.WithCurrent(NewPublishedProviderVersion(ppv => ppv.WithSpecificationId(specificationId))));
-
-            GivenThePublishedProviders(NewPublishedProvider(),
-                firstExpectedPublishedProvider,
-                NewPublishedProvider(),
-                NewPublishedProvider(),
-                secondExpectedPublishedProvider,
-                NewPublishedProvider());
-
-            IEnumerable<PublishedProvider> matches = await _repository.GetLatestPublishedProvidersBySpecification(specificationId);
-
-            matches
-                .Should()
-                .BeEquivalentTo(firstExpectedPublishedProvider, secondExpectedPublishedProvider);
-        }
-
-        [TestMethod]
-        public async Task FetchesPublishedFundingWithTheSuppliedSpecificationId()
-        {
-            string specificationId = new RandomString();
-
-            PublishedFunding firstExpectedPublishedFunding = NewPublishedFunding(_ =>
-                _.WithCurrent(NewPublishedFundingVersion(ppv => ppv.WithSpecificationId(specificationId))));
-            PublishedFunding secondExpectedPublishedFunding = NewPublishedFunding(_ =>
-                _.WithCurrent(NewPublishedFundingVersion(ppv => ppv.WithSpecificationId(specificationId))));
-
-            GivenThePublishedFunding(NewPublishedFunding(),
-                firstExpectedPublishedFunding,
-                NewPublishedFunding(),
-                NewPublishedFunding(),
-                secondExpectedPublishedFunding,
-                NewPublishedFunding());
-
-            IEnumerable<PublishedFunding> matches = await _repository.GetLatestPublishedFundingBySpecification(specificationId);
-
-            matches
-                .Should()
-                .BeEquivalentTo(firstExpectedPublishedFunding, secondExpectedPublishedFunding);
         }
 
         private void GivenThePublishedFunding(params PublishedFunding[] publishedFinding)

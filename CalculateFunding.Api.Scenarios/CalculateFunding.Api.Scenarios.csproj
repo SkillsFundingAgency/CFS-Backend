@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.WebApi" Version="1.0.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.7.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>

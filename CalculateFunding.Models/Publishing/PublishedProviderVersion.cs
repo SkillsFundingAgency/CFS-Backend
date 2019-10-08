@@ -16,7 +16,7 @@ namespace CalculateFunding.Models.Publishing
         public override string Id => $"publishedprovider-{ProviderId}-{FundingPeriodId}-{FundingStreamId}-{Version}";
 
         [JsonProperty("fundingId")]
-        public string FundingId => $"{ProviderId}-{FundingPeriodId}-{FundingStreamId}-{MajorVersion}_{MinorVersion}";
+        public string FundingId => $"{FundingStreamId}-{FundingPeriodId}-{ProviderId}-{MajorVersion}_{MinorVersion}";
 
         /// <summary>
         /// Funding Stream ID. eg PSG, DSG
@@ -35,7 +35,7 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("specificationId")]
         public string SpecificationId { get; set; }
-        
+
         [JsonProperty("templateVersion")]
         public string TemplateVersion { get; set; }
 
@@ -82,7 +82,7 @@ namespace CalculateFunding.Models.Publishing
         /// </summary>
         [JsonProperty("referenceData")]
         public IEnumerable<FundingReferenceData> ReferenceData { get; set; }
-        
+
         /// <summary>
         /// Total funding for this provider in pounds and pence
         /// </summary>

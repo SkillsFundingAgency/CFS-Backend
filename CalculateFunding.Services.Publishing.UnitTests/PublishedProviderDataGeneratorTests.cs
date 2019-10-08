@@ -30,7 +30,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             IMapper mapper = CreateMapper();
 
-            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator(mapper);
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
 
             TemplateMapping mapping = CreateTemplateMappings();
 
@@ -41,7 +41,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             //Assert
             generatedProviderResult["1234"].FundingLines.Single(_ => _.TemplateLineId == 1).Value
-                .Should() 
+                .Should()
                 .Be(16500.64M); //the 5000.635 figure should be midpoint rounded away from zero to 5000.64
 
             generatedProviderResult["1234"].Calculations.Single(_ => _.TemplateCalculationId == 1).Value
@@ -125,14 +125,16 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             IMapper mapper = CreateMapper();
 
-            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator(mapper);
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
 
             TemplateMapping mapping = CreateTemplateMappings();
 
             PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
 
             //Act
-            Dictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), new ProviderCalculationResult[0]);
+            Dictionary<string, ProviderCalculationResult> providerCalculationResults = new Dictionary<string, ProviderCalculationResult>();
+
+            Dictionary<string, GeneratedProviderResult> generatedProviderResult = publishedProviderDataGenerator.Generate(contents, mapping, GetProviders(), providerCalculationResults);
 
             generatedProviderResult.Any()
                 .Should()
@@ -140,7 +142,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         }
 
 
-        public ITemplateMetadataGenerator CreateTemplateGenerator(ILogger logger = null)
+        public ITemplateMetadataGenerator CreateTemplateGenerator(ILogger logger)
         {
             return new TemplateMetadataGenerator(logger ?? CreateLogger());
         }
@@ -155,7 +157,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return new Mapper(config);
         }
 
-        public ILogger CreateLogger()
+        public static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
         }
@@ -186,9 +188,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             return mapping;
         }
 
-        public IEnumerable<ProviderCalculationResult> CreateCalculations(TemplateMapping mapping)
+        public IDictionary<string, ProviderCalculationResult> CreateCalculations(TemplateMapping mapping)
         {
-            return new List<ProviderCalculationResult> { new ProviderCalculationResult { ProviderId = "1234", Results = mapping.TemplateMappingItems.Select(_ => new CalculationResult { Id = _.CalculationId, Value = GetValue(_.TemplateId) }) } };
+            Dictionary<string, ProviderCalculationResult> providerCalculationResult = new Dictionary<string, ProviderCalculationResult>();
+
+            providerCalculationResult.Add("1234", new ProviderCalculationResult { ProviderId = "1234", Results = mapping.TemplateMappingItems.Select(_ => new CalculationResult { Id = _.CalculationId, Value = GetValue(_.TemplateId) }) });
+
+            return providerCalculationResult;
         }
 
         public decimal GetValue(uint templateId)

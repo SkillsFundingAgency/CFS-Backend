@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -21,11 +21,13 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly Policy _publishingResiliencePolicy;
         private readonly IVersionRepository<PublishedFundingVersion> _publishedFundingVersionRepository;
+        private readonly IPublishedFundingIdGeneratorResolver _publishedFundingIdGeneratorResolver;
         private readonly ILogger _logger;
 
         public PublishedFundingStatusUpdateService(IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             IVersionRepository<PublishedFundingVersion> publishedFundingVersionRepository,
+            IPublishedFundingIdGeneratorResolver publishedFundingIdGeneratorResolver,
             ILogger logger)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
@@ -36,52 +38,68 @@ namespace CalculateFunding.Services.Publishing
             _publishedFundingRepository = publishedFundingRepository;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _publishedFundingVersionRepository = publishedFundingVersionRepository;
+            _publishedFundingIdGeneratorResolver = publishedFundingIdGeneratorResolver;
             _logger = logger;
         }
 
-        public Task UpdatePublishedFundingStatus(IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, Reference author, PublishedFundingStatus released)
+        public async Task UpdatePublishedFundingStatus(IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, Reference author, PublishedFundingStatus released)
         {
-            IEnumerable<Task> tasks = publishedFundingToSave.Select(async(_) =>
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            foreach ((PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion) _ in publishedFundingToSave)
             {
-                PublishedFunding publishedFunding = _.PublishedFunding;
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            PublishedFunding publishedFunding = _.PublishedFunding;
 
-                PublishedFundingVersion currentVersion = publishedFunding.Current;
+                            PublishedFundingVersion currentVersion = publishedFunding.Current;
 
-                PublishedFundingVersion publishedFundingVersion = await _publishedFundingVersionRepository
-                    .CreateVersion(_.PublishedFundingVersion, currentVersion, currentVersion.PartitionKey);
+                            PublishedFundingVersion publishedFundingVersion = await _publishedFundingVersionRepository
+                                .CreateVersion(_.PublishedFundingVersion, currentVersion, currentVersion.PartitionKey);
 
-                publishedFundingVersion.Status = released;
-                publishedFundingVersion.Author = author;
-                publishedFundingVersion.MajorVersion = publishedFundingVersion.Version;
+                            publishedFundingVersion.Status = released;
+                            publishedFundingVersion.Author = author;
+                            publishedFundingVersion.MajorVersion = publishedFundingVersion.Version;
 
-                publishedFunding.Current = publishedFundingVersion;
+                            publishedFunding.Current = publishedFundingVersion;
 
-                try
-                { 
-                    await _publishedFundingVersionRepository.SaveVersion(publishedFundingVersion, publishedFundingVersion.PartitionKey);
-                }
-                catch (Exception ex)
-                {
-                    string errorMessage = $"Failed to save version when updating status:' {released}' on published funding: {publishedFundingVersion.FundingId}.";
+                            publishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver.GetService(publishedFundingVersion.SchemaVersion).GetFundingId(publishedFundingVersion);
 
-                    _logger.Error(ex, errorMessage);
+                            try
+                            {
+                                await _publishedFundingVersionRepository.SaveVersion(publishedFundingVersion, publishedFundingVersion.PartitionKey);
+                            }
+                            catch (Exception ex)
+                            {
+                                string errorMessage = $"Failed to save version when updating status:' {released}' on published funding: {publishedFundingVersion.FundingId}.";
 
-                    throw new RetriableException(errorMessage, ex);
-                }
+                                _logger.Error(ex, errorMessage);
 
-                HttpStatusCode statusCode = await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingRepository.UpsertPublishedFunding(publishedFunding));
+                                throw new RetriableException(errorMessage, ex);
+                            }
 
-                if (!statusCode.IsSuccess())
-                {
-                    string errorMessage = $"Failed to save published funding for id: {publishedFunding.Id} with status code {statusCode.ToString()}";
+                            HttpStatusCode statusCode = await _publishingResiliencePolicy.ExecuteAsync(() => _publishedFundingRepository.UpsertPublishedFunding(publishedFunding));
 
-                    _logger.Warning(errorMessage);
+                            if (!statusCode.IsSuccess())
+                            {
+                                string errorMessage = $"Failed to save published funding for id: {publishedFunding.Id} with status code {statusCode.ToString()}";
 
-                    throw new InvalidOperationException(errorMessage);
-                }
-            });
+                                _logger.Warning(errorMessage);
 
-            return TaskHelper.WhenAllAndThrow(tasks.ToArray());
+                                throw new InvalidOperationException(errorMessage);
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
         }
     }
 }

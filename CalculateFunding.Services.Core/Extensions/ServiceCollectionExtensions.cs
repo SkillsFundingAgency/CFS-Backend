@@ -355,9 +355,9 @@ namespace CalculateFunding.Services.Core.Extensions
         {
             builder.AddSingleton<ILogger>((ctx) =>
             {
-                TelemetryClient client = ctx.GetService<TelemetryClient>();
+                // TelemetryClient client = ctx.GetService<TelemetryClient>();
 
-                LoggerConfiguration loggerConfiguration = GetLoggerConfiguration(client, serviceName);
+                LoggerConfiguration loggerConfiguration = GetLoggerConfiguration(serviceName);
 
                 if (config != null && !string.IsNullOrWhiteSpace(config.GetValue<string>("FileLoggingPath")))
                 {
@@ -365,6 +365,10 @@ namespace CalculateFunding.Services.Core.Extensions
 
                     loggerConfiguration.WriteTo.RollingFile(folderPath + "log-{Date}-" + Environment.MachineName + ".txt", LogEventLevel.Verbose);
                 }
+
+#if DEBUG
+                loggerConfiguration.WriteTo.Console(LogEventLevel.Verbose);
+#endif
 
                 return loggerConfiguration.CreateLogger();
             });
@@ -377,6 +381,7 @@ namespace CalculateFunding.Services.Core.Extensions
             builder.AddSingleton<ITelemetry, ApplicationInsightsTelemetrySink>((ctx) =>
             {
                 TelemetryClient client = ctx.GetService<TelemetryClient>();
+                //
 
                 return new ApplicationInsightsTelemetrySink(client);
             });
@@ -452,9 +457,9 @@ namespace CalculateFunding.Services.Core.Extensions
             return serviceProvider.CreateScope();
         }
 
-        public static LoggerConfiguration GetLoggerConfiguration(TelemetryClient telemetryClient, string serviceName)
+        public static LoggerConfiguration GetLoggerConfiguration(string serviceName)
         {
-            Guard.ArgumentNotNull(telemetryClient, nameof(telemetryClient));
+            // Guard.ArgumentNotNull(telemetryClient, nameof(telemetryClient));
             Guard.IsNullOrWhiteSpace(serviceName, nameof(serviceName));
 
             return new LoggerConfiguration()
@@ -463,7 +468,7 @@ namespace CalculateFunding.Services.Core.Extensions
                 new ServiceNameLogEnricher(serviceName)
             })
             .Enrich.FromLogContext()
-            .WriteTo.ApplicationInsights(telemetryClient, TelemetryConverter.Traces);
+            .WriteTo.ApplicationInsights(TelemetryConfiguration.Active, TelemetryConverter.Traces);
         }
 
         public static IServiceCollection AddCaching(this IServiceCollection builder, IConfiguration config)

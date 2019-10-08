@@ -25,7 +25,11 @@ namespace CalculateFunding.Models.Publishing
         /// Cosmos partition to store this document in. The cosmos collection uses /content/partitionKey as partition key
         /// </summary>
         [JsonProperty("partitionKey")]
-        public string ParitionKey =>
-            $"publishedprovider-{Current.ProviderId}-{Current.FundingPeriodId}-{Current.FundingStreamId}";
+        public string ParitionKey => GeneratePartitionKey(Current.FundingStreamId, Current.FundingPeriodId, Current.ProviderId);
+
+        public static string GeneratePartitionKey(string fundingStreamId, string fundingPeriodId, string providerId)
+        {
+            return $"publishedprovider-{providerId}-{fundingPeriodId}-{fundingStreamId}";
+        }
     }
 }

@@ -17,7 +17,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 ProvidersApiClient = Policy.NoOpAsync(),
                 PublishedFundingBlobRepository = Policy.NoOpAsync(),
                 PublishedFundingRepository = Policy.NoOpAsync(),
-                ResultsRepository = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
             };
         }

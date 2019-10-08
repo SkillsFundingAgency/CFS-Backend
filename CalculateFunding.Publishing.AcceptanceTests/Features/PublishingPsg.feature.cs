@@ -3016,13 +3016,13 @@ this.ScenarioInitialize(scenarioInfo);
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("VariantName", "PSG")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingStreamId", "PSG")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodId", "AY-1920")]
-        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodName", "Schools Academic Year 2019-20")]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:FundingPeriodName", "Academic Year 2019-20")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:TemplateVersion", "1.0")]
         [Microsoft.VisualStudio.TestTools.UnitTesting.TestPropertyAttribute("Parameter:ProviderVersionId", "psg-providers-1.0")]
         public virtual void SuccessfulPublishingOfFunding_PSG()
         {
 #line 6
-this.SuccessfulPublishingOfFunding("PSG", "AY-1920", "Schools Academic Year 2019-20", "1.0", "psg-providers-1.0", ((string[])(null)));
+this.SuccessfulPublishingOfFunding("PSG", "AY-1920", "Academic Year 2019-20", "1.0", "psg-providers-1.0", ((string[])(null)));
 #line hidden
         }
     }

@@ -33,8 +33,6 @@ namespace CalculateFunding.Functions.CosmosDbScaling.EventHubs
             try
             {
                 await _scalingService.ScaleUp(events);
-
-                _logger.Information("Generate allocations complete");
             }
             catch (NonRetriableException nrEx)
             {

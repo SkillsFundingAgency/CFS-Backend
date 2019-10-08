@@ -1,16 +1,19 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -25,7 +28,7 @@ namespace CalculateFunding.Services.Publishing
         public PublishedProviderStatusUpdateService(IPublishedProviderVersioningService publishedProviderVersioningService,
             IPublishedFundingRepository publishedFundingRepository,
             IJobTracker jobTracker,
-            ILogger logger, 
+            ILogger logger,
             IPublishedProviderStatusUpdateSettings settings)
         {
             Guard.ArgumentNotNull(publishedProviderVersioningService, nameof(publishedProviderVersioningService));
@@ -55,9 +58,9 @@ namespace CalculateFunding.Services.Publishing
             return health;
         }
 
-        public async Task UpdatePublishedProviderStatus(IEnumerable<PublishedProvider> publishedProviders, 
-            Reference author, 
-            PublishedProviderStatus publishedProviderStatus, 
+        public async Task UpdatePublishedProviderStatus(IEnumerable<PublishedProvider> publishedProviders,
+            Reference author,
+            PublishedProviderStatus publishedProviderStatus,
             string jobId = null)
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
@@ -76,18 +79,18 @@ namespace CalculateFunding.Services.Publishing
             }
 
             bool shouldNotifyProgress = !jobId.IsNullOrWhitespace();
-            
+
             if (shouldNotifyProgress)
             {
                 await CreatePublishedProviderVersionsInBatches(publishedProviderStatus, publishedProviderCreateVersionRequests.ToList(), jobId);
             }
             else
             {
-                await CreateLatestPublishedProviderVersions(publishedProviderStatus, publishedProviderCreateVersionRequests);  
+                await CreateLatestPublishedProviderVersions(publishedProviderStatus, publishedProviderCreateVersionRequests);
             }
         }
 
-        private async Task CreatePublishedProviderVersionsInBatches(PublishedProviderStatus publishedProviderStatus, 
+        private async Task CreatePublishedProviderVersionsInBatches(PublishedProviderStatus publishedProviderStatus,
             List<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests,
             string jobId)
         {
@@ -109,7 +112,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task CreateLatestPublishedProviderVersions(PublishedProviderStatus publishedProviderStatus, 
+        private async Task CreateLatestPublishedProviderVersions(PublishedProviderStatus publishedProviderStatus,
             IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests)
         {
             IEnumerable<PublishedProvider> updatedPublishedProviders = await CreateVersions(publishedProviderCreateVersionRequests, publishedProviderStatus);
@@ -118,11 +121,34 @@ namespace CalculateFunding.Services.Publishing
             {
                 string errorMessage = $"Failed to create published Providers when updating status:' {publishedProviderStatus}' on published providers.";
 
-                IEnumerable<HttpStatusCode> results;
+                ConcurrentBag<HttpStatusCode> results = new ConcurrentBag<HttpStatusCode>();
 
                 try
                 {
-                    results = await _publishedFundingRepository.UpsertPublishedProviders(updatedPublishedProviders);
+                    List<Task> allTasks = new List<Task>();
+                    SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+                    foreach (PublishedProvider publishedProvider in updatedPublishedProviders)
+                    {
+                        await throttler.WaitAsync();
+                        allTasks.Add(
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    IEnumerable<PublishedProvider> publishedProviders = new[] { publishedProvider };
+                                    IEnumerable<HttpStatusCode> result = await _publishedFundingRepository.UpsertPublishedProviders(publishedProviders);
+                                    foreach (HttpStatusCode httpStatusCode in result)
+                                    {
+                                        results.Add(httpStatusCode);
+                                    }
+                                }
+                                finally
+                                {
+                                    throttler.Release();
+                                }
+                            }));
+                    }
+                    await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
                     if (results.All(_ => _.IsSuccess()))
                     {
@@ -133,7 +159,7 @@ namespace CalculateFunding.Services.Publishing
                         throw new Exception();
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     _logger.Error(ex, errorMessage);
 
@@ -142,7 +168,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        private async Task<IEnumerable<PublishedProvider>> CreateVersions(IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests, 
+        private async Task<IEnumerable<PublishedProvider>> CreateVersions(IEnumerable<PublishedProviderCreateVersionRequest> publishedProviderCreateVersionRequests,
             PublishedProviderStatus publishedProviderStatus)
         {
             IEnumerable<PublishedProvider> updatedPublishedProviders = null;

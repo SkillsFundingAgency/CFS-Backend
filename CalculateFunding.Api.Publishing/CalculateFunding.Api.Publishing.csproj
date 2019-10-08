@@ -13,7 +13,6 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common.WebApi" Version="1.0.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.7.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />

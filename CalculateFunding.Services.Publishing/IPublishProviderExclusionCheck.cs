@@ -1,3 +1,4 @@
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Models.Publishing;
 using TemplateFundingLine = CalculateFunding.Common.TemplateMetadata.Models.FundingLine;
 
@@ -7,5 +8,7 @@ namespace CalculateFunding.Services.Publishing
     {
         PublishedProviderExclusionCheckResult ShouldBeExcluded(GeneratedProviderResult generatedProviderResult,
             TemplateFundingLine[] flattenedTemplateFundingLines);
+
+        PublishedProviderExclusionCheckResult ShouldBeExcluded(ProviderCalculationResult providerCalculationResult, TemplateMapping templateMapping, Common.TemplateMetadata.Models.Calculation[] flattedCalculations);
     }
 }

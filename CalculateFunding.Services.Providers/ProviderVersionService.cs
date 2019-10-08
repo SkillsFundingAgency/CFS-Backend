@@ -40,7 +40,7 @@ namespace CalculateFunding.Services.Providers
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IProviderVersionServiceSettings _providerVersionServiceSettings;
         private static volatile bool _haveCheckedFileSystemCacheFolder;
-        
+
 
         public ProviderVersionService(ICacheProvider cacheProvider,
             IBlobClient blobClient,
@@ -76,7 +76,7 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<ServiceHealth> IsHealthOk()
         {
-            ServiceHealth providerVersionMetadataRepoHealth = await ((IHealthChecker) _providerVersionMetadataRepository).IsHealthOk();
+            ServiceHealth providerVersionMetadataRepoHealth = await ((IHealthChecker)_providerVersionMetadataRepository).IsHealthOk();
             (bool Ok, string Message) blobClientRepoHealth = await _blobClient.IsHealthOk();
 
             ServiceHealth health = new ServiceHealth
@@ -87,7 +87,8 @@ namespace CalculateFunding.Services.Providers
             health.Dependencies.Add(new DependencyHealth
             {
                 HealthOk = blobClientRepoHealth.Ok,
-                DependencyName = blobClientRepoHealth.GetType().GetFriendlyName(), Message = blobClientRepoHealth.Message
+                DependencyName = blobClientRepoHealth.GetType().GetFriendlyName(),
+                Message = blobClientRepoHealth.Message
             });
 
             return health;
@@ -173,32 +174,32 @@ namespace CalculateFunding.Services.Providers
             return new NotFoundResult();
         }
 
-       public async Task<ProviderVersion> GetProvidersByVersion(string providerVersionId)
-       {
-           Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
+        public async Task<ProviderVersion> GetProvidersByVersion(string providerVersionId)
+        {
+            Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
-           //this call now returns a content result so have altered this method accordingly
-           ContentResult contentResult = (ContentResult) await GetAllProviders(providerVersionId);
+            //this call now returns a content result so have altered this method accordingly
+            ContentResult contentResult = (ContentResult)await GetAllProviders(providerVersionId);
 
-           return JsonConvert.DeserializeObject<ProviderVersion>(contentResult.Content);
-       }
+            return JsonConvert.DeserializeObject<ProviderVersion>(contentResult.Content);
+        }
 
         public async Task<IActionResult> GetAllProviders(string providerVersionId)
         {
             Guard.IsNullOrWhiteSpace(providerVersionId, nameof(providerVersionId));
 
             string blobName = $"{providerVersionId}.json";
-            
+
             bool fileSystemCacheEnabled = _providerVersionServiceSettings.IsFileSystemCacheEnabled;
 
             if (fileSystemCacheEnabled && !_haveCheckedFileSystemCacheFolder)
             {
                 _fileSystemCache.EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
             }
-            
+
             ProviderVersionFileSystemCacheKey cacheKey = new ProviderVersionFileSystemCacheKey(providerVersionId);
-         
-            
+
+
             if (fileSystemCacheEnabled && _fileSystemCache.Exists(cacheKey))
             {
                 using (Stream cachedStream = _fileSystemCache.Get(cacheKey))
@@ -212,9 +213,9 @@ namespace CalculateFunding.Services.Providers
             if (!blob.Exists())
             {
                 _logger.Error($"Failed to find blob with path: {blobName}");
-                
+
                 return new NotFoundResult();
-                
+
             }
 
             using (Stream blobClientStream = await _blobClient.DownloadToStreamAsync(blob))
@@ -223,7 +224,7 @@ namespace CalculateFunding.Services.Providers
                 {
                     _fileSystemCache.Add(cacheKey, blobClientStream);
                 }
-                
+
                 return GetActionResultForStream(blobClientStream, providerVersionId);
             }
         }
@@ -237,7 +238,7 @@ namespace CalculateFunding.Services.Providers
             }
 
             stream.Position = 0;
-            
+
             using (StreamReader reader = new StreamReader(stream))
             {
                 string providerVersionString = reader.ReadToEnd();
@@ -253,7 +254,7 @@ namespace CalculateFunding.Services.Providers
                 }
 
                 return new NoContentResult();
-            } 
+            }
         }
 
         public async Task<bool> Exists(string providerVersionId)
@@ -286,7 +287,7 @@ namespace CalculateFunding.Services.Providers
 
             if (exists)
             {
-                ProviderVersionByDate newProviderVersionByDate = new ProviderVersionByDate {ProviderVersionId = providerVersionId, Day = day, Month = month, Year = year};
+                ProviderVersionByDate newProviderVersionByDate = new ProviderVersionByDate { ProviderVersionId = providerVersionId, Day = day, Month = month, Year = year };
 
                 string localCacheKey = $"{CacheKeys.ProviderVersionByDate}{year}{month:00}{day:00}";
 
@@ -358,7 +359,7 @@ namespace CalculateFunding.Services.Providers
 
             await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.CreateProviderVersion(providerVersionMetadata));
 
-            return new CreatedAtActionResult(actionName, controller, new {providerVersionId}, providerVersionId);
+            return new CreatedAtActionResult(actionName, controller, new { providerVersionId }, providerVersionId);
         }
 
         private async Task UploadProviderVersionBlob(string providerVersionId, ProviderVersion providerVersion)

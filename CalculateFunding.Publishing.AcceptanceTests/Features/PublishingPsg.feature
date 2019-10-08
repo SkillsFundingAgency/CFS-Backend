@@ -105,8 +105,7 @@ Scenario Outline: Successful publishing of funding
 		| TargetDate        | 2019-12-12 00:00     |
 		| FundingStream     | <FundingStreamId>    |
 		| Created           | 2019-12-11 00:00     |
-
-			# Maintained schools - PublishedProviders
+	# Maintained schools - PublishedProviders
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
 		| ProviderId      | 1000000           |
@@ -135,8 +134,58 @@ Scenario Outline: Successful publishing of funding
 		| 4                     | 500   |
 		| 5                     | 1000  |
 		| 6                     | 20    |
+	And the Published Provider has the following provider information
+		| Field                         | Value                    |
+		| ProviderId                    | 1000000                  |
+		| Name                          | Maintained School 1      |
+		| Authority                     | Local Authority 1        |
+		| CensusWardCode                |                          |
+		| CensusWardName                |                          |
+		| CompaniesHouseNumber          |                          |
+		| CountryCode                   |                          |
+		| CountryName                   |                          |
+		| CrmAccountId                  |                          |
+		| DateClosed                    |                          |
+		| DateOpened                    | 2012-03-15               |
+		| DfeEstablishmentNumber        |                          |
+		| DistrictCode                  |                          |
+		| DistrictName                  |                          |
+		| EstablishmentNumber           |                          |
+		| GovernmentOfficeRegionCode    |                          |
+		| GovernmentOfficeRegionName    |                          |
+		| GroupIdNumber                 |                          |
+		| LACode                        | 200                      |
+		| LegalName                     |                          |
+		| LocalAuthorityName            | Maintained School 1      |
+		| LowerSuperOutputAreaCode      |                          |
+		| LowerSuperOutputAreaName      |                          |
+		| MiddleSuperOutputAreaCode     |                          |
+		| MiddleSuperOutputAreaName     |                          |
+		| NavVendorNo                   |                          |
+		| ParliamentaryConstituencyCode |                          |
+		| ParliamentaryConstituencyName |                          |
+		| PhaseOfEducation              |                          |
+		| Postcode                      |                          |
+		| ProviderProfileIdType         |                          |
+		| ProviderType                  | LA maintained schools    |
+		| ProviderSubType               | Community school         |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| ReasonEstablishmentClosed     |                          |
+		| ReasonEstablishmentOpened     |                          |
+		| RscRegionCode                 |                          |
+		| RscRegionName                 |                          |
+		| Status                        |                          |
+		| Successor                     |                          |
+		| Town                          |                          |
+		| TrustCode                     |                          |
+		| TrustName                     |                          |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 1000000                  |
+		| UPIN                          |                          |
+		| URN                           |                          |
+		| WardCode                      |                          |
+		| WardName                      |                          |
 	And the Published Provider is available in the repository for this specification
-
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
 		| ProviderId      | 1000002           |
@@ -152,8 +201,8 @@ Scenario Outline: Successful publishing of funding
 		| Total Allocation | TotalAllocation | 24000 | 1              | Payment |
 	And the Published Provider has the following distribution period for funding line 'TotalAllocation'
 		| DistributionPeriodId | Value |
-		| FY-1920              | 14000  |
-		| FY-2021              | 10000  |
+		| FY-1920              | 14000 |
+		| FY-2021              | 10000 |
 	And the Published Providers distribution period has the following profiles for funding line 'TotalAllocation'
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
@@ -165,8 +214,58 @@ Scenario Outline: Successful publishing of funding
 		| 4                     | 500   |
 		| 5                     | 1000  |
 		| 6                     | 20    |
+	And the Published Provider has the following provider information
+		| Field                         | Value                    |
+		| ProviderId                    | 1000002                  |
+		| Name                          | Maintained School 2      |
+		| Authority                     | Local Authority 1        |
+		| CensusWardCode                |                          |
+		| CensusWardName                |                          |
+		| CompaniesHouseNumber          |                          |
+		| CountryCode                   |                          |
+		| CountryName                   |                          |
+		| CrmAccountId                  |                          |
+		| DateClosed                    |                          |
+		| DateOpened                    | 2013-04-16               |
+		| DfeEstablishmentNumber        |                          |
+		| DistrictCode                  |                          |
+		| DistrictName                  |                          |
+		| EstablishmentNumber           |                          |
+		| GovernmentOfficeRegionCode    |                          |
+		| GovernmentOfficeRegionName    |                          |
+		| GroupIdNumber                 |                          |
+		| LACode                        | 200                      |
+		| LegalName                     |                          |
+		| LocalAuthorityName            | Local Authority 1        |
+		| LowerSuperOutputAreaCode      |                          |
+		| LowerSuperOutputAreaName      |                          |
+		| MiddleSuperOutputAreaCode     |                          |
+		| MiddleSuperOutputAreaName     |                          |
+		| NavVendorNo                   |                          |
+		| ParliamentaryConstituencyCode |                          |
+		| ParliamentaryConstituencyName |                          |
+		| PhaseOfEducation              |                          |
+		| Postcode                      |                          |
+		| ProviderProfileIdType         |                          |
+		| ProviderType                  | LA maintained schools    |
+		| ProviderSubType               | Community school         |
+		| ProviderVersionId             | <ProviderVersionId>      |
+		| ReasonEstablishmentClosed     |                          |
+		| ReasonEstablishmentOpened     |                          |
+		| RscRegionCode                 |                          |
+		| RscRegionName                 |                          |
+		| Status                        |                          |
+		| Successor                     |                          |
+		| Town                          |                          |
+		| TrustCode                     |                          |
+		| TrustName                     |                          |
+		| TrustStatus                   | Not Supported By A Trust |
+		| UKPRN                         | 1000002                  |
+		| UPIN                          |                          |
+		| URN                           |                          |
+		| WardCode                      |                          |
+		| WardName                      |                          |
 	And the Published Provider is available in the repository for this specification
-
 	# PublishedProviders - Academy Trusts
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
@@ -183,12 +282,12 @@ Scenario Outline: Successful publishing of funding
 		| Total Allocation | TotalAllocation | 24000 | 1              | Payment |
 	And the Published Provider has the following distribution period for funding line 'TotalAllocation'
 		| DistributionPeriodId | Value |
-		| FY-1920              | 14000  |
-		| FY-2021              | 10000  |
+		| FY-1920              | 14000 |
+		| FY-2021              | 10000 |
 	And the Published Providers distribution period has the following profiles for funding line 'TotalAllocation'
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000          |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000          |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
 		| 2                     | 24000 |
@@ -196,8 +295,58 @@ Scenario Outline: Successful publishing of funding
 		| 4                     | 500   |
 		| 5                     | 1000  |
 		| 6                     | 20    |
+	And the Published Provider has the following provider information
+		| Field                         | Value                         |
+		| ProviderId                    | 1000101                       |
+		| Name                          | Academy 1                     |
+		| Authority                     | Local Authority 1             |
+		| CensusWardCode                |                               |
+		| CensusWardName                |                               |
+		| CompaniesHouseNumber          |                               |
+		| CountryCode                   |                               |
+		| CountryName                   |                               |
+		| CrmAccountId                  |                               |
+		| DateClosed                    |                               |
+		| DateOpened                    | 2013-04-16                    |
+		| DfeEstablishmentNumber        |                               |
+		| DistrictCode                  |                               |
+		| DistrictName                  |                               |
+		| EstablishmentNumber           |                               |
+		| GovernmentOfficeRegionCode    |                               |
+		| GovernmentOfficeRegionName    |                               |
+		| GroupIdNumber                 |                               |
+		| LACode                        | 200                           |
+		| LegalName                     |                               |
+		| LocalAuthorityName            | Local Authority 1             |
+		| LowerSuperOutputAreaCode      |                               |
+		| LowerSuperOutputAreaName      |                               |
+		| MiddleSuperOutputAreaCode     |                               |
+		| MiddleSuperOutputAreaName     |                               |
+		| NavVendorNo                   |                               |
+		| ParliamentaryConstituencyCode |                               |
+		| ParliamentaryConstituencyName |                               |
+		| PhaseOfEducation              |                               |
+		| Postcode                      |                               |
+		| ProviderProfileIdType         |                               |
+		| ProviderType                  | Academies                     |
+		| ProviderSubType               | Academy special sponsor led   |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| ReasonEstablishmentClosed     |                               |
+		| ReasonEstablishmentOpened     |                               |
+		| RscRegionCode                 |                               |
+		| RscRegionName                 |                               |
+		| Status                        |                               |
+		| Successor                     |                               |
+		| Town                          |                               |
+		| TrustCode                     | 1001                          |
+		| TrustName                     |                               |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| UKPRN                         | 1000101                       |
+		| UPIN                          |                               |
+		| URN                           |                               |
+		| WardCode                      |                               |
+		| WardName                      |                               |
 	And the Published Provider is available in the repository for this specification
-
 	And the following Published Provider has been previously generated for the current specification
 		| Field           | Value             |
 		| ProviderId      | 1000102           |
@@ -213,12 +362,12 @@ Scenario Outline: Successful publishing of funding
 		| Total Allocation | TotalAllocation | 24000 | 1              | Payment |
 	And the Published Provider has the following distribution period for funding line 'TotalAllocation'
 		| DistributionPeriodId | Value |
-		| FY-1920              | 14000  |
-		| FY-2021              | 10000  |
+		| FY-1920              | 14000 |
+		| FY-2021              | 10000 |
 	And the Published Providers distribution period has the following profiles for funding line 'TotalAllocation'
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
-		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000          |
-		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000          |
+		| FY-1920              | CalendarMonth | October   | 1920 | 1          | 14000         |
+		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 10000         |
 	And the Published Provider contains the following calculation results
 		| TemplateCalculationId | Value |
 		| 2                     | 24000 |
@@ -226,8 +375,58 @@ Scenario Outline: Successful publishing of funding
 		| 4                     | 500   |
 		| 5                     | 1000  |
 		| 6                     | 20    |
+	And the Published Provider has the following provider information
+		| Field                         | Value                         |
+		| ProviderId                    | 1000102                       |
+		| Name                          | Academy 2                     |
+		| Authority                     | Local Authority 1             |
+		| CensusWardCode                |                               |
+		| CensusWardName                |                               |
+		| CompaniesHouseNumber          |                               |
+		| CountryCode                   |                               |
+		| CountryName                   |                               |
+		| CrmAccountId                  |                               |
+		| DateClosed                    |                               |
+		| DateOpened                    | 2013-04-16                    |
+		| DfeEstablishmentNumber        |                               |
+		| DistrictCode                  |                               |
+		| DistrictName                  |                               |
+		| EstablishmentNumber           |                               |
+		| GovernmentOfficeRegionCode    |                               |
+		| GovernmentOfficeRegionName    |                               |
+		| GroupIdNumber                 |                               |
+		| LACode                        | 200                           |
+		| LegalName                     |                               |
+		| LocalAuthorityName            | Local Authority 1             |
+		| LowerSuperOutputAreaCode      |                               |
+		| LowerSuperOutputAreaName      |                               |
+		| MiddleSuperOutputAreaCode     |                               |
+		| MiddleSuperOutputAreaName     |                               |
+		| NavVendorNo                   |                               |
+		| ParliamentaryConstituencyCode |                               |
+		| ParliamentaryConstituencyName |                               |
+		| PhaseOfEducation              |                               |
+		| Postcode                      |                               |
+		| ProviderProfileIdType         |                               |
+		| ProviderType                  | Academies                     |
+		| ProviderSubType               | Academy special sponsor led   |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| ReasonEstablishmentClosed     |                               |
+		| ReasonEstablishmentOpened     |                               |
+		| RscRegionCode                 |                               |
+		| RscRegionName                 |                               |
+		| Status                        |                               |
+		| Successor                     |                               |
+		| Town                          |                               |
+		| TrustCode                     | 1001                          |
+		| TrustName                     |                               |
+		| TrustStatus                   | SupportedByAMultiAcademyTrust |
+		| UKPRN                         | 1000102                       |
+		| UPIN                          |                               |
+		| URN                           |                               |
+		| WardCode                      |                               |
+		| WardName                      |                               |
 	And the Published Provider is available in the repository for this specification
-
 	# Maintained schools in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
@@ -303,7 +502,7 @@ Scenario Outline: Successful publishing of funding
 		| GroupIdNumber                 |                          |
 		| LACode                        | 200                      |
 		| LegalName                     |                          |
-		| LocalAuthorityName            | Local Authority 1      |
+		| LocalAuthorityName            | Local Authority 1        |
 		| LowerSuperOutputAreaCode      |                          |
 		| LowerSuperOutputAreaName      |                          |
 		| MiddleSuperOutputAreaCode     |                          |
@@ -333,7 +532,6 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                          |
 		| WardName                      |                          |
 	And the provider with id '1000002' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-	
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 1000003                  |
@@ -356,7 +554,7 @@ Scenario Outline: Successful publishing of funding
 		| GroupIdNumber                 |                          |
 		| LACode                        | 200                      |
 		| LegalName                     |                          |
-		| LocalAuthorityName            | Local Authority 1      |
+		| LocalAuthorityName            | Local Authority 1        |
 		| LowerSuperOutputAreaCode      |                          |
 		| LowerSuperOutputAreaName      |                          |
 		| MiddleSuperOutputAreaCode     |                          |
@@ -386,7 +584,6 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                          |
 		| WardName                      |                          |
 	And the provider with id '1000003' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 1000004                  |
@@ -409,7 +606,7 @@ Scenario Outline: Successful publishing of funding
 		| GroupIdNumber                 |                          |
 		| LACode                        | 202                      |
 		| LegalName                     |                          |
-		| LocalAuthorityName            | Local Authority 2      |
+		| LocalAuthorityName            | Local Authority 2        |
 		| LowerSuperOutputAreaCode      |                          |
 		| LowerSuperOutputAreaName      |                          |
 		| MiddleSuperOutputAreaCode     |                          |
@@ -439,7 +636,6 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                          |
 		| WardName                      |                          |
 	And the provider with id '1000004' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 1000005                  |
@@ -460,9 +656,9 @@ Scenario Outline: Successful publishing of funding
 		| GovernmentOfficeRegionCode    |                          |
 		| GovernmentOfficeRegionName    |                          |
 		| GroupIdNumber                 |                          |
-		| LACode                        | 202                     |
+		| LACode                        | 202                      |
 		| LegalName                     |                          |
-		| LocalAuthorityName            | Local Authority 2      |
+		| LocalAuthorityName            | Local Authority 2        |
 		| LowerSuperOutputAreaCode      |                          |
 		| LowerSuperOutputAreaName      |                          |
 		| MiddleSuperOutputAreaCode     |                          |
@@ -492,7 +688,6 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                          |
 		| WardName                      |                          |
 	And the provider with id '1000005' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                                                                       |
 		| ProviderId                    | 1000009                                                                     |
@@ -545,7 +740,6 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                                                                             |
 		| WardName                      |                                                                             |
 	And the provider with id '1000009' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-	
 	# Academy providers
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                         |
@@ -599,7 +793,6 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                               |
 		| WardName                      |                               |
 	And the provider with id '1000101' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                         |
 		| ProviderId                    | 1000102                       |
@@ -652,61 +845,58 @@ Scenario Outline: Successful publishing of funding
 		| WardCode                      |                               |
 		| WardName                      |                               |
 	And the provider with id '1000102' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
-		| Field                         | Value                              |
-		| ProviderId                    | 1000103                            |
-		| Name                          | Academy 3                          |
-		| Authority                     | Local Authority 2                  |
-		| CensusWardCode                |                                    |
-		| CensusWardName                |                                    |
-		| CompaniesHouseNumber          |                                    |
-		| CountryCode                   |                                    |
-		| CountryName                   |                                    |
-		| CrmAccountId                  |                                    |
-		| DateClosed                    |                                    |
-		| DateOpened                    | 2013-04-16                         |
-		| DfeEstablishmentNumber        |                                    |
-		| DistrictCode                  |                                    |
-		| DistrictName                  |                                    |
-		| EstablishmentNumber           |                                    |
-		| GovernmentOfficeRegionCode    |                                    |
-		| GovernmentOfficeRegionName    |                                    |
-		| GroupIdNumber                 |                                    |
-		| LACode                        | 200                                |
-		| LegalName                     |                                    |
-		| LocalAuthorityName            | Local Authority 2                  |
-		| LowerSuperOutputAreaCode      |                                    |
-		| LowerSuperOutputAreaName      |                                    |
-		| MiddleSuperOutputAreaCode     |                                    |
-		| MiddleSuperOutputAreaName     |                                    |
-		| NavVendorNo                   |                                    |
-		| ParliamentaryConstituencyCode |                                    |
-		| ParliamentaryConstituencyName |                                    |
-		| PhaseOfEducation              |                                    |
-		| Postcode                      |                                    |
-		| ProviderProfileIdType         |                                    |
-		| ProviderType                  | Free Schools                       |
-		| ProviderSubType               | Free Schools                       |
-		| ProviderVersionId             | <ProviderVersionId>                |
-		| ReasonEstablishmentClosed     |                                    |
-		| ReasonEstablishmentOpened     |                                    |
-		| RscRegionCode                 |                                    |
-		| RscRegionName                 |                                    |
-		| Status                        |                                    |
-		| Successor                     |                                    |
-		| Town                          |                                    |
-		| TrustCode                     | 1002                               |
-		| TrustName                     |                                    |
+		| Field                         | Value                         |
+		| ProviderId                    | 1000103                       |
+		| Name                          | Academy 3                     |
+		| Authority                     | Local Authority 2             |
+		| CensusWardCode                |                               |
+		| CensusWardName                |                               |
+		| CompaniesHouseNumber          |                               |
+		| CountryCode                   |                               |
+		| CountryName                   |                               |
+		| CrmAccountId                  |                               |
+		| DateClosed                    |                               |
+		| DateOpened                    | 2013-04-16                    |
+		| DfeEstablishmentNumber        |                               |
+		| DistrictCode                  |                               |
+		| DistrictName                  |                               |
+		| EstablishmentNumber           |                               |
+		| GovernmentOfficeRegionCode    |                               |
+		| GovernmentOfficeRegionName    |                               |
+		| GroupIdNumber                 |                               |
+		| LACode                        | 200                           |
+		| LegalName                     |                               |
+		| LocalAuthorityName            | Local Authority 2             |
+		| LowerSuperOutputAreaCode      |                               |
+		| LowerSuperOutputAreaName      |                               |
+		| MiddleSuperOutputAreaCode     |                               |
+		| MiddleSuperOutputAreaName     |                               |
+		| NavVendorNo                   |                               |
+		| ParliamentaryConstituencyCode |                               |
+		| ParliamentaryConstituencyName |                               |
+		| PhaseOfEducation              |                               |
+		| Postcode                      |                               |
+		| ProviderProfileIdType         |                               |
+		| ProviderType                  | Free Schools                  |
+		| ProviderSubType               | Free Schools                  |
+		| ProviderVersionId             | <ProviderVersionId>           |
+		| ReasonEstablishmentClosed     |                               |
+		| ReasonEstablishmentOpened     |                               |
+		| RscRegionCode                 |                               |
+		| RscRegionName                 |                               |
+		| Status                        |                               |
+		| Successor                     |                               |
+		| Town                          |                               |
+		| TrustCode                     | 1002                          |
+		| TrustName                     |                               |
 		| TrustStatus                   | SupportedByAMultiAcademyTrust |
-		| UKPRN                         | 1000103                            |
-		| UPIN                          |                                    |
-		| URN                           |                                    |
-		| WardCode                      |                                    |
-		| WardName                      |                                    |
+		| UKPRN                         | 1000103                       |
+		| UPIN                          |                               |
+		| URN                           |                               |
+		| WardCode                      |                               |
+		| WardName                      |                               |
 	And the provider with id '1000103' should be a scoped provider in the current specification in provider version '<ProviderVersionId>'
-
-
 	# Local Authorities in Core Provider Data
 	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
@@ -759,7 +949,7 @@ Scenario Outline: Successful publishing of funding
 		| URN                           |                          |
 		| WardCode                      |                          |
 		| WardName                      |                          |
-		And the following provider exists within core provider data in provider version '<ProviderVersionId>'
+	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 9000002                  |
 		| Name                          | Local Authority 2        |
@@ -810,7 +1000,7 @@ Scenario Outline: Successful publishing of funding
 		| URN                           |                          |
 		| WardCode                      |                          |
 		| WardName                      |                          |
-		And the following provider exists within core provider data in provider version '<ProviderVersionId>'
+	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 9000003                  |
 		| Name                          | Local Authority 3        |
@@ -861,13 +1051,12 @@ Scenario Outline: Successful publishing of funding
 		| URN                           |                          |
 		| WardCode                      |                          |
 		| WardName                      |                          |
-
-		# Academy Trusts
-		And the following provider exists within core provider data in provider version '<ProviderVersionId>'
+	# Academy Trusts
+	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 8000001                  |
 		| Name                          | Academy Trust 1          |
-		| Authority                     | Local Authority 1          |
+		| Authority                     | Local Authority 1        |
 		| CensusWardCode                |                          |
 		| CensusWardName                |                          |
 		| CompaniesHouseNumber          |                          |
@@ -885,7 +1074,7 @@ Scenario Outline: Successful publishing of funding
 		| GroupIdNumber                 |                          |
 		| LACode                        | 202                      |
 		| LegalName                     |                          |
-		| LocalAuthorityName            | Local Authority 1          |
+		| LocalAuthorityName            | Local Authority 1        |
 		| LowerSuperOutputAreaCode      |                          |
 		| LowerSuperOutputAreaName      |                          |
 		| MiddleSuperOutputAreaCode     |                          |
@@ -914,7 +1103,7 @@ Scenario Outline: Successful publishing of funding
 		| URN                           |                          |
 		| WardCode                      |                          |
 		| WardName                      |                          |
-		And the following provider exists within core provider data in provider version '<ProviderVersionId>'
+	And the following provider exists within core provider data in provider version '<ProviderVersionId>'
 		| Field                         | Value                    |
 		| ProviderId                    | 8000002                  |
 		| Name                          | Academy Trust 2          |
@@ -967,7 +1156,21 @@ Scenario Outline: Successful publishing of funding
 		| WardName                      |                          |
 	When funding is published
 	Then publishing succeeds
+	And the following published funding is produced
+	| Field                            | Value             |
+	| GroupingReason                   | Payment           |
+	| OrganisationGroupTypeCode        | LocalAuthority    |
+	| OrganisationGroupIdentifierValue | 9000000           |
+	| FUndingPeriodId                  | <FundingPeriodId> |
+	| FundingStreamId                  | <FundingStreamId> |
+	And the total funding is '36000'
+	And the published funding contains the following published provider ids
+	| FundingIds                                     |
+	| <FundingStreamId>-<FundingPeriodId>-1000000-1_0 |
+	| <FundingStreamId>-<FundingPeriodId>-1000002-1_0 |
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-1920' has the value of '21000'
+	And the published funding contains a distribution period in funding line 'TotalAllocation' with id of 'FY-2021' has the value of '15000'
 
 	Examples:
-		| FundingStreamId | FundingPeriodId | FundingPeriodName             | TemplateVersion | ProviderVersionId |
-		| PSG             | AY-1920         | Schools Academic Year 2019-20 | 1.0             | psg-providers-1.0 |
+		| FundingStreamId | FundingPeriodId | FundingPeriodName     | TemplateVersion | ProviderVersionId |
+		| PSG             | AY-1920         | Academic Year 2019-20 | 1.0             | psg-providers-1.0 |

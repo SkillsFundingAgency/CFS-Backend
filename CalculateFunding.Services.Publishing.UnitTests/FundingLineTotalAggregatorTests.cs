@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.TemplateMetadata;
 using CalculateFunding.Common.TemplateMetadata.Models;
@@ -29,18 +28,58 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             TemplateMetadataContents contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleFundingLineTemplate1.json"));
 
-            IMapper mapper = CreateMapper();
-
-            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator(mapper);
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
 
             TemplateMapping mapping = CreateTemplateMappings();
 
             //Act
             GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping, CreateCalculations(mapping));
 
-            IEnumerable<Models.Publishing.FundingLine> fundingLines = mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingValue.FundingLines.Flatten(_ => _.FundingLines));
-
             //Assert
+            List<Models.Publishing.FundingLine> fundingLines = new List<Models.Publishing.FundingLine>()
+            {
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 1,
+                    Value = 16500.63M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 2,
+                    Value = 8000M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 3,
+                    Value = 3500M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 4,
+                    Value =5000.63M
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 5,
+                    Value = 0M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 6,
+                    Value = 8000M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 7,
+                    Value = 500M
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 8,
+                    Value = 1500M,
+                }
+            };
+
             fundingLines.Single(_ => _.TemplateLineId == 1).Value
                 .Should()
                 .Be(16500.63M);
@@ -83,17 +122,58 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             TemplateMetadataContents contents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleFundingLineTemplate1.json"));
 
-            IMapper mapper = CreateMapper();
-
-            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator(mapper);
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
 
             TemplateMapping mapping = CreateTemplateMappings();
 
             //Act
             GeneratorModels.FundingValue fundingValue = fundingLineTotalAggregator.GenerateTotals(contents, mapping, new CalculationResult[0]);
-            IEnumerable<Models.Publishing.FundingLine> fundingLines = mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingValue.FundingLines.Flatten(_ => _.FundingLines));
 
             //Assert
+            List<Models.Publishing.FundingLine> fundingLines = new List<Models.Publishing.FundingLine>()
+            {
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 1,
+                    Value = 0M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 2,
+                    Value = 8000M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 3,
+                    Value = 3500M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 4,
+                    Value =5000.63M
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 5,
+                    Value = 0M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 6,
+                    Value = 8000M,
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 7,
+                    Value = 500M
+                },
+                new Models.Publishing.FundingLine()
+                {
+                    TemplateLineId = 8,
+                    Value = 1500M,
+                }
+            };
+
             fundingLines.Single(_ => _.TemplateLineId == 1).Value
                 .Should()
                 .Be(0M);
@@ -131,16 +211,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public ITemplateMetadataGenerator CreateTemplateGenerator(ILogger logger = null)
         {
             return new TemplateMetadataGenerator(logger ?? CreateLogger());
-        }
-
-        public IMapper CreateMapper()
-        {
-            MapperConfiguration config = new MapperConfiguration(c =>
-            {
-                c.AddProfile<PublishingServiceMappingProfile>();
-            });
-
-            return new Mapper(config);
         }
 
         public ILogger CreateLogger()

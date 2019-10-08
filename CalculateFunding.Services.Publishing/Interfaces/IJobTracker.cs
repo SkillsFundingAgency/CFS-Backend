@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace CalculateFunding.Services.Publishing
+namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IJobTracker
     {

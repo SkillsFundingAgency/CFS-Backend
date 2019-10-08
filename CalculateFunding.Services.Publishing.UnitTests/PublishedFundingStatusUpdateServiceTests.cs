@@ -1,18 +1,16 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Repositories;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -26,6 +24,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private PublishedFunding _publishedFunding;
         private PublishedFundingPeriod _publishedFundingPeriod;
         private Reference _author;
+        private IPublishedFundingIdGeneratorResolver _publishedFundingIdGeneratorResolver;
 
         [TestInitialize]
         public void SetUp()
@@ -34,8 +33,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
             _publishedFundingVersionRepository = Substitute.For<IVersionRepository<PublishedFundingVersion>>();
 
+            _publishedFundingIdGeneratorResolver = Substitute.For<IPublishedFundingIdGeneratorResolver>();
+
             _author = new Reference { Id = "authorId", Name = "author" };
-            _publishedFundingStatusUpdateService = new PublishedFundingStatusUpdateService(_publishedFundingRepository, PublishingResilienceTestHelper.GenerateTestPolicies(), _publishedFundingVersionRepository, logger);
+            _publishedFundingStatusUpdateService = new PublishedFundingStatusUpdateService(_publishedFundingRepository,
+                                                                                           PublishingResilienceTestHelper.GenerateTestPolicies(),
+                                                                                           _publishedFundingVersionRepository,
+                                                                                           _publishedFundingIdGeneratorResolver,
+                                                                                           logger);
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
         }
@@ -97,7 +102,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Returns(HttpStatusCode.OK);
         }
 
-        private async Task  WhenStatusUpdated()
+        private async Task WhenStatusUpdated()
         {
             await _publishedFundingStatusUpdateService.UpdatePublishedFundingStatus(new List<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> { (_publishedFunding, _publishedFundingVersion) }, _author, PublishedFundingStatus.Released);
         }

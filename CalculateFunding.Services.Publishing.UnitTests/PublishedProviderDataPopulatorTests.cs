@@ -37,12 +37,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 .Should()
                 .BeTrue();
         }
-        
+
         [TestMethod]
         public void UpdatePublishedProvider_GivenNoChanges_ReturnsFalse()
         {
             string templateVersion = NewRandomString();
-            
+
             PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
             GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
             Common.ApiClient.Providers.Models.Provider provider = CreateProvider();
@@ -65,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void UpdatePublishedProvider_GivenChangedProvider_ReturnsTrue()
         {
             string templateVersion = NewRandomString();
-            
+
             PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
 
             PublishedProviderVersion publishedProviderVersionForMapping = publishedProviderVersion.Clone() as PublishedProviderVersion;
@@ -93,7 +93,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void UpdatePublishedProvider_GivenFundingLineChanges_ReturnsFalse()
         {
             string templateVersion = NewRandomString();
-            
+
             PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
 
             GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
@@ -119,7 +119,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void UpdatePublishedProvider_GivenCalculationChanges_ReturnsFalse()
         {
             string templateVersion = NewRandomString();
-            
+
             PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
 
             GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
@@ -137,7 +137,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             bool result = publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, generatedProviderResult, provider, templateVersion);
 
             //NB - test title says should return false but assertion is returns true
-            
+
             result
                 .Should()
                 .BeTrue();
@@ -147,7 +147,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         public void UpdatePublishedProvider_GivenReferenceDataChanges_ReturnsFalse()
         {
             string templateVersion = NewRandomString();
-            
+
             PublishedProviderVersion publishedProviderVersion = CreateProviderVersion(templateVersion);
 
             GeneratedProviderResult generatedProviderResult = CreateGeneratedProviderResult();
@@ -165,7 +165,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             bool result = publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, generatedProviderResult, provider, templateVersion);
 
             //NB - test title says should return false but assertion is returns true
-            
+
             result
                 .Should()
                 .BeTrue();
@@ -213,7 +213,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             {
                 FundingLines = CreateFundingLines(),
                 Calculations = CreateCalculations(),
-                ReferenceData = CreateReferenceData()
+                ReferenceData = CreateReferenceData(),
+                TotalFunding = 5050000,
             };
         }
 

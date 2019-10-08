@@ -8,7 +8,6 @@ using CalculateFunding.Common.TemplateMetadata.Schema10;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Generators.OrganisationGroup.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,8 +33,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private PublishingModels.Provider _provider;
         private IEnumerable<(PublishingModels.PublishedFunding PublishedFunding, PublishingModels.PublishedFundingVersion PublishedFundingVersion)> _publishedFundingAndPublishedFundingVersion;
         private IEnumerable<Common.ApiClient.Providers.Models.Provider> _scopedProviders;
-        private IPublishedFundingIdGenerator _publishedFundingIdGenerator;
-        private Reference _fundingStreamObject;
         private Common.ApiClient.Policies.Models.FundingPeriod _fundingPeriod;
         private Reference _fundingStream;
         private PublishedFundingDates _fundingPublishingDates;
@@ -49,20 +46,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 c.AddProfile<PublishingServiceMappingProfile>();
             }).CreateMapper();
 
-            IPublishedFundingIdGeneratorResolver publishedFundingIdGeneratorResolver = Substitute.For<IPublishedFundingIdGeneratorResolver>();
-
-            _publishedFundingGenerator = new PublishedFundingGenerator(_mapper, publishedFundingIdGeneratorResolver);
+            _publishedFundingGenerator = new PublishedFundingGenerator(_mapper);
 
             ILogger logger = Substitute.For<ILogger>();
 
             ITemplateMetadataGenerator templateMetaDataGenerator = new TemplateMetadataGenerator(logger);
 
             _templateMetadataContents = templateMetaDataGenerator.GetMetadata(GetResourceString("CalculateFunding.Services.Publishing.UnitTests.Resources.exampleProviderTemplate1.json"));
-
-            _publishedFundingIdGenerator = Substitute.For<IPublishedFundingIdGenerator>();
-
-            publishedFundingIdGeneratorResolver.GetService(Arg.Is(_templateMetadataContents.SchemaVersion))
-                .Returns(_publishedFundingIdGenerator);
 
             _publishedFunding = Substitute.For<PublishingModels.PublishedFunding>();
 
@@ -76,8 +66,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             GivenOrganisationGroupResult();
 
             GivenPublishedProvider();
-
-            GivenFundingIdSet();
 
             GivenFundingStreamSet();
 
@@ -97,7 +85,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _publishedFundingAndPublishedFundingVersion.First().PublishedFundingVersion.FundingId
                 .Should()
-                .Be($"{_organisationGroupResult.GroupTypeIdentifier}_{_organisationGroupResult.IdentifierValue}_{_publishedProvider.Current.FundingPeriodId}_{_publishedProvider.Current.FundingStreamId}_{1}");
+                .BeNullOrWhiteSpace();
 
         }
 
@@ -134,12 +122,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _fundingStream = new Reference("FS-ID", "Funding Stream Name");
 
-        }
-
-        private void GivenFundingIdSet()
-        {
-            _publishedFundingIdGenerator.GetFundingId(Arg.Any<PublishedFundingVersion>())
-                .Returns($"{_organisationGroupResult.GroupTypeIdentifier}_{_organisationGroupResult.IdentifierValue}_{_publishedProvider.Current.FundingPeriodId}_{_publishedProvider.Current.FundingStreamId}_{1}");
         }
 
         private void GivenOrganisationGroupResult()

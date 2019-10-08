@@ -3,7 +3,6 @@ using System.Net.Http;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Bearer;
-using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.Caching;
@@ -169,7 +168,7 @@ namespace CalculateFunding.Functions.Publishing
                 return new CalculationResultsRepository(calcsCosmosRepostory);
             });
 
-            builder.AddSingleton<IPublishedResultService, PublishedResultService>();
+            builder.AddSingleton<ICalculationResultsService, CalculationResultsService>();
 
             builder.AddSingleton<IPublishedProviderDataGenerator, PublishedProviderDataGenerator>();
 
@@ -230,9 +229,9 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IJobHelperService, JobHelperService>();
 
             builder.AddApplicationInsightsForFunctionApps(config, "CalculateFunding.Functions.Publishing");
-            builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Publishing");
+            // builder.AddApplicationInsightsTelemetryClient(config, "CalculateFunding.Functions.Publishing");
 
-            builder.AddLogging("CalculateFunding.Functions.Publishing");
+            builder.AddLogging("CalculateFunding.Functions.Publishing", config);
 
             builder.AddTelemetry();
 
@@ -285,9 +284,6 @@ namespace CalculateFunding.Functions.Publishing
                 return new ProfilingApiClient(httpClientFactory, HttpClientKeys.Profiling, logger, bearerTokenProvider, cancellationTokenProvider);
             });
 
-            builder
-                .AddSingleton<ICalculationsApiClient, CalculationsApiClient>();
-
             builder.AddHttpClient(HttpClientKeys.Policies,
                    c =>
                    {
@@ -313,7 +309,7 @@ namespace CalculateFunding.Functions.Publishing
 
             ResiliencePolicies resiliencePolicies = new ResiliencePolicies
             {
-                ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                CalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PublishedProviderVersionRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
@@ -324,6 +320,7 @@ namespace CalculateFunding.Functions.Publishing
                 PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 FundingFeedSearchRepository = Repositories.Common.Search.SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 PublishedFundingBlobRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                PublishedProviderSearchRepository = Repositories.Common.Search.SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
             };
 
             return resiliencePolicies;

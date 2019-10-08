@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using CalculateFunding.Common.Models.HealthCheck;
+using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Tests.Common.Helpers;
@@ -20,7 +19,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
     [TestClass]
     public class PublishedProviderFundingServiceTests
     {
-        private IPublishedFundingRepository _publishedFunding;
+        private IPublishedFundingDataService _publishedFunding;
+        private ISpecificationService _specificationService;
         private ISpecificationIdServiceRequestValidator _validator;
         private ValidationResult _validationResult;
 
@@ -28,31 +28,38 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
         private string _specificationId;
         private IActionResult _actionResult;
+        private string _fundingStreamId;
+        private string _fundingPeriodId;
+        private SpecificationSummary _specificationSummary;
 
         [TestInitialize]
         public void SetUp()
         {
             _specificationId = NewRandomString();
             _validationResult = new ValidationResult();
-            
+            _fundingPeriodId = NewRandomString();
+            _fundingStreamId = NewRandomString();
+
             _validator = Substitute.For<ISpecificationIdServiceRequestValidator>();
             _validator.Validate(_specificationId)
                 .Returns(_validationResult);
-            
-            _publishedFunding = Substitute.For<IPublishedFundingRepository>();
+
+            _publishedFunding = Substitute.For<IPublishedFundingDataService>();
+            _specificationService = Substitute.For<ISpecificationService>();
 
             _service = new PublishedProviderFundingService(new ResiliencePolicies
-                {
-                    PublishedFundingRepository = Polly.Policy.NoOpAsync()
-                },
+            {
+                PublishedFundingRepository = Polly.Policy.NoOpAsync()
+            },
                 _publishedFunding,
+                _specificationService,
                 _validator);
         }
 
         [TestMethod]
         public async Task ReturnsBadRequestWhenSuppliedSpecificationIdFailsValidation()
         {
-            string[] expectedErrors = {NewRandomString(), NewRandomString()};
+            string[] expectedErrors = { NewRandomString(), NewRandomString() };
 
             GivenTheValidationErrors(expectedErrors);
 
@@ -73,43 +80,30 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
                 NewPublishedProvider(_ => _.WithCurrent(secondExpectedVersion)),
                 NewPublishedProvider(_ => _.WithCurrent(thirdExpectedVersion)));
 
+            AndTheSpecificationSummaryIsRetrieved(NewSpecificationSummary(s =>
+            {
+                s.WithId(_specificationId);
+                s.WithFundingPeriodId(_fundingPeriodId);
+                s.WithFundingStreamIds(new[] { _fundingStreamId });
+            }));
+
             await WhenThePublishedProvidersAreQueried();
 
             ThenTheResponseShouldBe<OkObjectResult>(_ =>
-                ((IEnumerable<PublishedProviderVersion>) _.Value).SequenceEqual(new[]
+                ((IEnumerable<PublishedProviderVersion>)_.Value).SequenceEqual(new[]
                 {
                     firstExpectedVersion,
                     secondExpectedVersion,
                     thirdExpectedVersion
                 }));
         }
-        
-        [TestMethod]
-        public async Task HealthCheckCollectsStatusFromRepository()
+
+        private void AndTheSpecificationSummaryIsRetrieved(SpecificationSummary specificationSummary)
         {
-            DependencyHealth firstExpectedDependency = new DependencyHealth();
-            DependencyHealth secondExpectedDependency = new DependencyHealth();
-            DependencyHealth thirdExpectedDependency = new DependencyHealth();
-
-            GivenTheRepositoryServiceHealth(firstExpectedDependency,
-                secondExpectedDependency,
-                thirdExpectedDependency);
-
-            ServiceHealth isHealthOk = await _service.IsHealthOk();
-
-            isHealthOk
-                .Should()
-                .NotBeNull();
-
-            isHealthOk
-                .Name
-                .Should()
-                .Be(nameof(PublishedProviderFundingService));
-
-            isHealthOk
-                .Dependencies
-                .Should()
-                .BeEquivalentTo(firstExpectedDependency, secondExpectedDependency, thirdExpectedDependency);
+            _specificationSummary = specificationSummary;
+            _specificationService
+                .GetSpecificationSummaryById(Arg.Is(_specificationId))
+                .Returns(_specificationSummary);
         }
 
         private async Task WhenThePublishedProvidersAreQueried()
@@ -136,14 +130,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             if (matcher == null) return;
 
-            ((TActionResult) _actionResult)
+            ((TActionResult)_actionResult)
                 .Should()
                 .Match(matcher);
         }
 
         private void GivenThePublishedProvidersForTheSpecificationId(params PublishedProvider[] publishedProviders)
         {
-            _publishedFunding.GetLatestPublishedProvidersBySpecification(_specificationId)
+            _publishedFunding.GetCurrentPublishedProviders(_fundingStreamId, _fundingPeriodId)
                 .Returns(publishedProviders);
         }
 
@@ -165,14 +159,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             return builder.Build();
         }
-        
-        private void GivenTheRepositoryServiceHealth(params DependencyHealth[] dependencies)
+
+        private SpecificationSummary NewSpecificationSummary(Action<SpecificationSummaryBuilder> setUp = null)
         {
-            ServiceHealth serviceHealth = new ServiceHealth();
+            SpecificationSummaryBuilder builder = new SpecificationSummaryBuilder();
 
-            serviceHealth.Dependencies.AddRange(dependencies);
+            setUp?.Invoke(builder);
 
-            _publishedFunding.IsHealthOk().Returns(serviceHealth);
+            return builder.Build();
         }
     }
 }

@@ -6,11 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CalculateFunding.Common" Version="1.34.0" />
-    <PackageReference Include="CalculateFunding.Common.Models" Version="1.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Repositories.Common.Search\CalculateFunding.Repositories.Common.Search.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.CodeGeneration.VisualBasic\CalculateFunding.Services.CodeGeneration.VisualBasic.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Compiler\CalculateFunding.Services.Compiler.csproj" />

@@ -32,6 +32,16 @@ namespace CalculateFunding.Models
             return attr.Value;
         }
 
+        public static IEnumerable<IEnumerable<KeyValuePair<TKey, TValue>>> ToBatches<TKey, TValue>(this IDictionary<TKey,TValue> items, int batchSize)
+        {
+            int total = 0;
+            while (total < items.Count())
+            {
+                yield return items.Skip(total).Take(batchSize);
+                total += batchSize;
+            }
+        }
+
         public static IEnumerable<IEnumerable<T>> ToBatches<T>(this IEnumerable<T> items, int batchSize)
         {
             int total = 0;

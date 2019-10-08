@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Publishing.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,12 +33,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
             _publishedFundingContentsGenerator = Substitute.For<IPublishedFundingContentsGenerator>();
 
-            ISearchRepository<PublishedFundingIndex> searchRepository = Substitute.For<ISearchRepository<PublishedFundingIndex>>();
-
             publishedFundingContentsGeneratorResolver.GetService(Arg.Is(_schema))
                 .Returns(_publishedFundingContentsGenerator);
 
-            _publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver, _blobClient, PublishingResilienceTestHelper.GenerateTestPolicies(), searchRepository);
+            _publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver, _blobClient, PublishingResilienceTestHelper.GenerateTestPolicies());
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
         }

@@ -1,16 +1,14 @@
-using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Tests.Common.Helpers;
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
 using Serilog;
-using ApiSpecificationSummary = CalculateFunding.Common.ApiClient.Specifications.Models.SpecificationSummary;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -20,7 +18,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishService _publishService;
 
         private IPublishedFundingStatusUpdateService _publishedFundingStatusUpdateService;
-        private IPublishedFundingRepository _publishedFundingRepository;
+        private IPublishedFundingDataService _publishedFundingDataService;
         private ISpecificationService _specificationService;
 
         // TODO: Change to IOrganisationGroupGenerator once common is updated
@@ -35,13 +33,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedFundingGenerator _publishedFundingGenerator;
         private IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
         private IPublishedFundingDateService _publishedFundingDateService;
+        private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private IPublishingResiliencePolicies _resiliencePolicies;
+
+        ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
+        private IPublishedProviderIndexerService _publishedProviderIndexerService;
 
         [TestInitialize]
         public void SetUp()
         {
             _publishedFundingStatusUpdateService = Substitute.For<IPublishedFundingStatusUpdateService>();
-            _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
+            _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _specificationService = Substitute.For<ISpecificationService>();
             _organisationGroupGenerator = new OrganisationGroupGenerator(Substitute.For<IOrganisationGroupTargetProviderLookup>());
             _publishPrerequisiteChecker = Substitute.For<IPublishPrerequisiteChecker>();
@@ -49,7 +51,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedFundingGenerator = Substitute.For<IPublishedFundingGenerator>();
             _publishedFundingContentsPersistanceService = Substitute.For<IPublishedFundingContentsPersistanceService>();
             _publishedFundingDateService = Substitute.For<IPublishedFundingDateService>();
+            _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
             _providerService = Substitute.For<IProviderService>();
+            _publishedFundingSearchRepository = Substitute.For<ISearchRepository<PublishedFundingIndex>>();
+            _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
             _jobsApiClient = Substitute.For<IJobsApiClient>();
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
             _logger = Substitute.For<ILogger>();
@@ -66,12 +71,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 PublishedFundingBlobRepository = Policy.NoOpAsync(),
                 PublishedFundingRepository = Policy.NoOpAsync(),
                 PublishedProviderVersionRepository = Policy.NoOpAsync(),
-                ResultsRepository = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
+                PublishedProviderSearchRepository = Policy.NoOpAsync(),
             };
 
             _publishService = new PublishService(_publishedFundingStatusUpdateService,
-                _publishedFundingRepository,
+                _publishedFundingDataService,
                 _resiliencePolicies,
                 _specificationService,
                 _organisationGroupGenerator,
@@ -80,31 +86,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedFundingGenerator,
                 _publishedFundingContentsPersistanceService,
                 _publishedFundingDateService,
+                _publishedProviderStatusUpdateService,
                 _providerService,
+                _publishedFundingSearchRepository,
+                _publishedProviderIndexerService,
                 _jobsApiClient,
                 _policiesApiClient,
                 _logger);
         }
 
-        [TestMethod]
-        public async Task SpecificationQueryMethodDelegatesToSpecificationService()
-        {
-            string specificationId = new RandomString();
-            ApiSpecificationSummary expectedSpecificationSummary = new ApiSpecificationSummary();
 
-            GivenTheSpecificationSummaryForId(specificationId, expectedSpecificationSummary);
-
-            ApiSpecificationSummary response = await _publishService.GetSpecificationSummaryById(specificationId);
-
-            response
-                .Should()
-                .BeSameAs(expectedSpecificationSummary);
-        }
-
-        private void GivenTheSpecificationSummaryForId(string specificationId, ApiSpecificationSummary specificationSummary)
-        {
-            _specificationService.GetSpecificationSummaryById(specificationId)
-                .Returns(specificationSummary);
-        }
     }
 }

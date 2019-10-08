@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using AutoMapper;
+﻿using AutoMapper;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CommonProvider = CalculateFunding.Common.ApiClient.Providers.Models.Provider;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -29,8 +26,8 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="provider">Core provider information</param>
         /// <param name="templateVersion">The template version used for the specification and provider</param>
         /// <returns>True when the PublishedProviderVersion has been updated, false if not</returns>
-        public bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion, 
-            GeneratedProviderResult generatedProviderResult, 
+        public bool UpdatePublishedProvider(PublishedProviderVersion publishedProviderVersion,
+            GeneratedProviderResult generatedProviderResult,
             Common.ApiClient.Providers.Models.Provider provider,
             string templateVersion)
         {
@@ -47,6 +44,8 @@ namespace CalculateFunding.Services.Publishing
             publishedProviderVersion.ReferenceData = generatedProviderResult.ReferenceData;
 
             publishedProviderVersion.TemplateVersion = templateVersion;
+
+            publishedProviderVersion.TotalFunding = generatedProviderResult.TotalFunding;
 
             publishedProviderVersion.Provider = _providerMapper.Map<Provider>(provider);
 

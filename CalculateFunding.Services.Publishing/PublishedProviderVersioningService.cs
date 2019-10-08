@@ -1,15 +1,19 @@
-﻿using CalculateFunding.Common.Models;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing
 {
@@ -58,7 +62,7 @@ namespace CalculateFunding.Services.Publishing
             {
                 Guard.ArgumentNotNull(publishedProvider.Current, nameof(publishedProvider.Current));
 
-                if (publishedProviderStatus != PublishedProviderStatus.Draft && 
+                if (publishedProviderStatus != PublishedProviderStatus.Draft &&
                     (publishedProvider.Current.Status == publishedProviderStatus))
                 {
                     continue;
@@ -68,7 +72,7 @@ namespace CalculateFunding.Services.Publishing
                 newVersion.Author = author;
                 newVersion.Status = publishedProviderStatus;
 
-                switch(publishedProviderStatus)
+                switch (publishedProviderStatus)
                 {
                     case PublishedProviderStatus.Approved:
                     case PublishedProviderStatus.Released:
@@ -98,31 +102,46 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(publishedProviderCreateVersionRequests, nameof(publishedProviderCreateVersionRequests));
 
-            IList<PublishedProvider> publishedProviders = new List<PublishedProvider>();
+            ConcurrentBag<PublishedProvider> publishedProviders = new ConcurrentBag<PublishedProvider>();
 
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
             foreach (PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest in publishedProviderCreateVersionRequests)
             {
-                Guard.ArgumentNotNull(publishedProviderCreateVersionRequest.PublishedProvider, nameof(publishedProviderCreateVersionRequest.PublishedProvider));
-                Guard.ArgumentNotNull(publishedProviderCreateVersionRequest.NewVersion, nameof(publishedProviderCreateVersionRequest.NewVersion));
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            Guard.ArgumentNotNull(publishedProviderCreateVersionRequest.PublishedProvider, nameof(publishedProviderCreateVersionRequest.PublishedProvider));
+                            Guard.ArgumentNotNull(publishedProviderCreateVersionRequest.NewVersion, nameof(publishedProviderCreateVersionRequest.NewVersion));
 
-                PublishedProviderVersion currentVersion = publishedProviderCreateVersionRequest.PublishedProvider.Current;
+                            PublishedProviderVersion currentVersion = publishedProviderCreateVersionRequest.PublishedProvider.Current;
 
-                PublishedProviderVersion newVersion = publishedProviderCreateVersionRequest.NewVersion;
+                            PublishedProviderVersion newVersion = publishedProviderCreateVersionRequest.NewVersion;
 
-                string partitionKey = currentVersion != null ? publishedProviderCreateVersionRequest.PublishedProvider.ParitionKey : string.Empty;
+                            string partitionKey = currentVersion != null ? publishedProviderCreateVersionRequest.PublishedProvider.ParitionKey : string.Empty;
 
-                try
-                {
-                    publishedProviderCreateVersionRequest.PublishedProvider.Current = 
-                        await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.CreateVersion(newVersion, currentVersion, partitionKey));
-                }
-                catch(Exception ex)
-                {
-                    _logger.Error(ex, $"Failed to create new version for published provider version id: {newVersion.Id}");
+                            try
+                            {
+                                publishedProviderCreateVersionRequest.PublishedProvider.Current =
+                                    await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.CreateVersion(newVersion, currentVersion, partitionKey));
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(ex, $"Failed to create new version for published provider version id: {newVersion.Id}");
 
-                    throw;
-                }
+                                throw;
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
             }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
 
             return publishedProviderCreateVersionRequests.Select(m => m.PublishedProvider);
         }
@@ -131,19 +150,39 @@ namespace CalculateFunding.Services.Publishing
         {
             Guard.ArgumentNotNull(publishedProviders, nameof(publishedProviders));
 
-            IEnumerable<KeyValuePair<string, PublishedProviderVersion>> versions = publishedProviders.Select(m =>
+            IEnumerable<KeyValuePair<string, PublishedProviderVersion>> versionsToSave = publishedProviders.Select(m =>
                new KeyValuePair<string, PublishedProviderVersion>(m.ParitionKey, m.Current));
 
-            try
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            foreach (var versions in versionsToSave.ToBatches(10))
             {
-                await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.SaveVersions(versions));
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to save new published provider versions");
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            try
+                            {
+                                await _versionRepositoryPolicy.ExecuteAsync(() => _versionRepository.SaveVersions(versions));
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.Error(ex, "Failed to save new published provider versions");
 
-                throw;
+                                throw;
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
             }
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+
+
         }
     }
 }

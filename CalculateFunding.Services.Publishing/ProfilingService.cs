@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="fundingStreamId">Funding Stream ID</param>
         /// <param name="fundingPeriodId">Funding Period ID</param>
         /// <returns></returns>
-        public async Task ProfileFundingLines(Dictionary<string, IEnumerable<FundingLine>> fundingLineTotals, string fundingStreamId, string fundingPeriodId)
+        public async Task ProfileFundingLines(IEnumerable<FundingLine> fundingLineTotals, string fundingStreamId, string fundingPeriodId)
         {
             Guard.ArgumentNotNull(fundingLineTotals, nameof(fundingLineTotals));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
@@ -48,16 +48,12 @@ namespace CalculateFunding.Services.Publishing
             Dictionary<string, Dictionary<decimal, ProviderProfilingResponseModel>> profilingResponses =
                 new Dictionary<string, Dictionary<decimal, ProviderProfilingResponseModel>>();
 
-                
             if (fundingLineTotals.IsNullOrEmpty())
             {
                 throw new ArgumentNullException($"Null or empty publsihed profiling fundingLineTotals.");
             }
 
             var fundingValues = fundingLineTotals
-                .Values
-                .SelectMany(m => m)
-                .Where(kvp => kvp.Type == OrganisationGroupingReason.Payment)
                 .Select(k => new { FundingLineCode = k.FundingLineCode, Value = k.Value })
                 .Distinct()
                 .ToList();
@@ -130,12 +126,12 @@ namespace CalculateFunding.Services.Publishing
             }            
         }
 
-        private void SaveFundingLineTotals(ref Dictionary<string, IEnumerable<FundingLine>> fundingLineTotals,
+        private void SaveFundingLineTotals(ref IEnumerable<FundingLine> fundingLineTotals,
              Dictionary<string, Dictionary<decimal, ProviderProfilingResponseModel>> profilingResponses)
         {
             try
             {
-                foreach (var paymentFundingLine in fundingLineTotals.Values.SelectMany(m => m).Where(kvp => kvp.Type == OrganisationGroupingReason.Payment))
+                foreach (var paymentFundingLine in fundingLineTotals)
                 {
                     
                     List<DistributionPeriod> distributionPeriod = new List<DistributionPeriod>();

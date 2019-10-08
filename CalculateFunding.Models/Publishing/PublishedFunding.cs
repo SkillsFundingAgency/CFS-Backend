@@ -6,7 +6,7 @@ namespace CalculateFunding.Models.Publishing
     public class PublishedFunding : IIdentifiable
     {
         [JsonProperty("id")]
-        public string Id => $"funding-{Current.GroupingReason}-{Current.OrganisationGroupTypeIdentifier}-{Current.OrganisationGroupIdentifierValue}-{Current.FundingPeriod.Id}-{Current.FundingStreamId}";
+        public string Id => $"funding-{Current.FundingStreamId}-{Current.FundingPeriod.Id}-{Current.GroupingReason}-{Current.OrganisationGroupTypeCode}-{Current.OrganisationGroupIdentifierValue}";
 
         [JsonProperty("current")]
         public PublishedFundingVersion Current { get; set; }

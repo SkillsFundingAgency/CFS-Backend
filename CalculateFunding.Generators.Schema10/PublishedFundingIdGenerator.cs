@@ -1,8 +1,5 @@
 ﻿using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CalculateFunding.Generators.Schema10
 {
@@ -10,7 +7,7 @@ namespace CalculateFunding.Generators.Schema10
     {
         public string GetFundingId(PublishedFundingVersion publishedFunding)
         {
-            return $"{publishedFunding.OrganisationGroupTypeIdentifier}_{publishedFunding.OrganisationGroupIdentifierValue}_{publishedFunding.FundingPeriod.Id}_{publishedFunding.FundingStreamId}_{publishedFunding.Version}";
+            return $"{publishedFunding.FundingStreamId}-{publishedFunding.FundingPeriod.Id}-{publishedFunding.GroupingReason}-{publishedFunding.OrganisationGroupTypeCode}-{publishedFunding.OrganisationGroupIdentifierValue}-{publishedFunding.MajorVersion}_{publishedFunding.MinorVersion}";
         }
     }
 }

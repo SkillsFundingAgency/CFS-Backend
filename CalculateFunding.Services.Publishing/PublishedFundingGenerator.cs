@@ -16,22 +16,17 @@ namespace CalculateFunding.Services.Publishing
     public class PublishedFundingGenerator : IPublishedFundingGenerator
     {
         private readonly IMapper _mapper;
-        private readonly IPublishedFundingIdGeneratorResolver _publishedFundingIdGeneratorResolver;
 
-        public PublishedFundingGenerator(IMapper mapper,
-            IPublishedFundingIdGeneratorResolver publishedFundingIdGeneratorResolver)
+        public PublishedFundingGenerator(IMapper mapper)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _mapper = mapper;
-            _publishedFundingIdGeneratorResolver = publishedFundingIdGeneratorResolver;
         }
+
         /// <summary>
         /// Generate instances of the PublishedFundingVersion to save into cosmos for the Organisation Group Results
         /// </summary>
-        /// <param name="organisationGroupsToSave"></param>
-        /// <param name="templateMetadataContents"></param>
-        /// <param name="publishedProviders"></param>
         /// <returns></returns>
         public IEnumerable<(PublishingModels.PublishedFunding, PublishingModels.PublishedFundingVersion)> GeneratePublishedFunding(GeneratePublishedFundingInput generatePublishedFundingInput)
         {
@@ -52,11 +47,10 @@ namespace CalculateFunding.Services.Publishing
             string templateVersion = generatePublishedFundingInput.TemplateVersion;
             FundingPeriod fundingPeriod = generatePublishedFundingInput.FundingPeriod;
 
+            FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
+
             foreach (var organisationGroup in organisationGroupsToSave)
             {
-                // TODO: extract interface
-                FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
-
                 IEnumerable<string> providerIds = organisationGroup.OrganisationGroupResult.Providers.Select(p => p.ProviderId);
                 IEnumerable<string> publishedProvidersIds = publishedProviders.Select(p => p.Current.ProviderId);
 
@@ -115,8 +109,6 @@ namespace CalculateFunding.Services.Publishing
                     EarliestPaymentAvailableDate = generatePublishedFundingInput.PublishingDates.EarliestPaymentAvailableDate,
                     ExternalPublicationDate = generatePublishedFundingInput.PublishingDates.ExternalPublicationDate,
                 };
-
-                publishedFundingVersion.FundingId = _publishedFundingIdGeneratorResolver.GetService(templateMetadataContents.SchemaVersion).GetFundingId(publishedFundingVersion);
 
                 PublishedFunding publishedFundingResult = organisationGroup.PublishedFunding;
 

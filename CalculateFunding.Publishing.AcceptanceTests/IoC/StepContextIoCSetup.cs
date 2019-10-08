@@ -40,7 +40,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 PublishedFundingBlobRepository = Policy.NoOpAsync(),
                 PublishedFundingRepository = Policy.NoOpAsync(),
                 PublishedProviderVersionRepository = Policy.NoOpAsync(),
-                ResultsRepository = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
             };
 
@@ -113,6 +113,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 EmulatedClient = specificationsInMemoryClient
             };
             _objectContainer.RegisterInstanceAs<IPublishingDatesStepContext>(publishingDatesStepContext);
+
+            PublishedFundingResultStepContext publishedFundingResultStepContext = new PublishedFundingResultStepContext();
+            _objectContainer.RegisterInstanceAs<IPublishedFundingResultStepContext>(publishedFundingResultStepContext);
         }
 
 

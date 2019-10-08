@@ -51,18 +51,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 PublishedFundingBlobRepository = Policy.NoOpAsync(),
                 PublishedFundingRepository = Policy.NoOpAsync(),
                 PublishedProviderVersionRepository = Policy.NoOpAsync(),
-                ResultsRepository = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
+                PublishedProviderSearchRepository = Policy.NoOpAsync(),
             };
 
-            InMemoryPublishedFundingRepository publishFundingRepository = _publishedFundingRepositoryStepContext.Repo;
-            PublishedFundingRepository = publishFundingRepository;
-
-            PublishedVersionInMemoryRepository publishedVersionInMemoryRepository = new PublishedVersionInMemoryRepository();
+            PublishedFundingVersionInMemoryRepository publishedVersionInMemoryRepository = new PublishedFundingVersionInMemoryRepository();
 
             ILogger logger = _loggerStepContext.Logger;
 
-            PublishedFundingStatusUpdateService publishedFundingStatusUpdateService = new PublishedFundingStatusUpdateService(publishFundingRepository, resiliencePolicies, publishedVersionInMemoryRepository, logger);
+            PublishedFundingIdGeneratorResolver idGeneratorResolver = new PublishedFundingIdGeneratorResolver();
+            IPublishedFundingIdGenerator idGeneratorResolver10 = new Generators.Schema10.PublishedFundingIdGenerator();
+            idGeneratorResolver.Register("1.0", idGeneratorResolver10);
+
+            PublishedFundingStatusUpdateService publishedFundingStatusUpdateService = new PublishedFundingStatusUpdateService(
+                _publishedFundingRepositoryStepContext.Repo,
+                resiliencePolicies,
+                publishedVersionInMemoryRepository,
+                idGeneratorResolver,
+                logger);
 
             SpecificationInMemoryRepository specificationInMemoryRepository = _currentSpecificationStepContext.Repo;
 
@@ -79,8 +86,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
             SpecificationFundingStatusService specificationFundingStatusService = new SpecificationFundingStatusService(logger, specificationInMemoryRepository);
 
-
-
             PublishPrerequisiteChecker publishPrerequisiteChecker = new PublishPrerequisiteChecker(specificationFundingStatusService, logger);
 
             PublishedFundingChangeDetectorService publishedFundingChangeDetectorService = new PublishedFundingChangeDetectorService();
@@ -96,25 +101,39 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IPublishedFundingContentsGenerator v10Generator = new CalculateFunding.Generators.Schema10.PublishedFundingContentsGenerator();
             resolver.Register("1.0", v10Generator);
 
-
-            PublishedFundingIdGeneratorResolver idGeneratorResolver = new PublishedFundingIdGeneratorResolver();
-            IPublishedFundingIdGenerator idGeneratorResolver10 = new Generators.Schema10.PublishedFundingIdGenerator();
-            idGeneratorResolver.Register("1.0", idGeneratorResolver10);
-
-
-
-            PublishedFundingGenerator publishedFundingGenerator = new PublishedFundingGenerator(mapper, idGeneratorResolver);
+            PublishedFundingGenerator publishedFundingGenerator = new PublishedFundingGenerator(mapper);
 
             InMemoryBlobClient inMemoryBlobClient = new InMemoryBlobClient();
 
             PublishedFundingInMemorySearchRepository publishedFundingInMemorySearchRepository = new PublishedFundingInMemorySearchRepository();
+            PublishedProviderInMemorySearchRepository publishedProviderInMemorySearchRepository = new PublishedProviderInMemorySearchRepository();
 
-            PublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(resolver, inMemoryBlobClient, resiliencePolicies, publishedFundingInMemorySearchRepository);
+            PublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(resolver, inMemoryBlobClient, resiliencePolicies);
+            PublishedProviderVersionInMemoryRepository publishedProviderVersionInMemoryRepository = new PublishedProviderVersionInMemoryRepository();
+
+            IPublishedProviderVersioningService publishedProviderVersioningService = new PublishedProviderVersioningService(logger, publishedProviderVersionInMemoryRepository, resiliencePolicies);
+
+            IJobTracker jobTracker = new JobTracker(_jobStepContext.JobsClient, resiliencePolicies, logger);
+            PublishedProviderStatusUpdateSettings publishedProviderStatusUpdateSettings = new PublishedProviderStatusUpdateSettings();
+
+            PublishedProviderIndexerService publishedProviderIndexerService = new PublishedProviderIndexerService(logger, publishedProviderInMemorySearchRepository, resiliencePolicies);
+
+            IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService = new PublishedProviderStatusUpdateService(
+                publishedProviderVersioningService,
+                _publishedFundingRepositoryStepContext.Repo,
+                jobTracker,
+                logger,
+                publishedProviderStatusUpdateSettings);
 
             Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
 
+            PublishedFundingDataService publishedFundingDataService = new PublishedFundingDataService(
+                _publishedFundingRepositoryStepContext.Repo,
+                specificationInMemoryRepository,
+                resiliencePolicies);
+
             PublishService publishService = new PublishService(publishedFundingStatusUpdateService,
-                publishFundingRepository,
+                publishedFundingDataService,
                 resiliencePolicies,
                 specificationInMemoryRepository,
                 organisationGroupGenerator,
@@ -123,7 +142,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 publishedFundingGenerator,
                 publishedFundingContentsPersistanceService,
                 _publishingDatesStepContext.Service,
+                publishedProviderStatusUpdateService,
                 _providersStepContext.Service,
+                publishedFundingInMemorySearchRepository,
+                publishedProviderIndexerService,
                 _jobStepContext.JobsClient,
                 policiesInMemoryRepository,
                 logger

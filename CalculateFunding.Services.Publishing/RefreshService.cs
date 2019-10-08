@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -14,6 +15,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -25,10 +27,10 @@ namespace CalculateFunding.Services.Publishing
     public class RefreshService : IRefreshService
     {
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
-        private readonly IPublishedFundingRepository _publishedFundingRepository;
+        private readonly IPublishedFundingDataService _publishedFundingDataService;
         private readonly ISpecificationService _specificationService;
         private readonly IProviderService _providerService;
-        private readonly ICalculationResultsRepository _calculationResultsRepository;
+        private readonly ICalculationResultsService _calculationResultsService;
         private readonly IPublishedProviderDataGenerator _publishedProviderDataGenerator;
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private readonly IInScopePublishedProviderService _inScopePublishedProviderService;
@@ -48,11 +50,11 @@ namespace CalculateFunding.Services.Publishing
         private readonly IFundingLineValueOverride _fundingLineValueOverride;
 
         public RefreshService(IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
-            IPublishedFundingRepository publishedFundingRepository,
+            IPublishedFundingDataService publishedFundingDataService,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             ISpecificationService specificationService,
             IProviderService providerService,
-            ICalculationResultsRepository calculationResultsRepository,
+            ICalculationResultsService calculationResultsService,
             IPublishedProviderDataGenerator publishedProviderDataGenerator,
             IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
             IProfilingService profilingService,
@@ -64,16 +66,16 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderIndexerService publishedProviderIndexerService,
             ICalculationsApiClient calculationsApiClient,
             IPoliciesApiClient policiesApiClient,
-            IRefreshPrerequisiteChecker refreshPrerequisiteChecker, 
-            IPublishProviderExclusionCheck providerExclusionCheck, 
+            IRefreshPrerequisiteChecker refreshPrerequisiteChecker,
+            IPublishProviderExclusionCheck providerExclusionCheck,
             IFundingLineValueOverride fundingLineValueOverride)
         {
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
-            Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
+            Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(providerService, nameof(providerService));
-            Guard.ArgumentNotNull(calculationResultsRepository, nameof(calculationResultsRepository));
+            Guard.ArgumentNotNull(calculationResultsService, nameof(calculationResultsService));
             Guard.ArgumentNotNull(publishedProviderDataGenerator, nameof(publishedProviderDataGenerator));
             Guard.ArgumentNotNull(publishedProviderContentsGeneratorResolver, nameof(publishedProviderContentsGeneratorResolver));
             Guard.ArgumentNotNull(inScopePublishedProviderService, nameof(inScopePublishedProviderService));
@@ -88,10 +90,10 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(fundingLineValueOverride, nameof(fundingLineValueOverride));
 
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
-            _publishedFundingRepository = publishedFundingRepository;
+            _publishedFundingDataService = publishedFundingDataService;
             _specificationService = specificationService;
             _providerService = providerService;
-            _calculationResultsRepository = calculationResultsRepository;
+            _calculationResultsService = calculationResultsService;
             _publishedProviderDataGenerator = publishedProviderDataGenerator;
             _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
             _inScopePublishedProviderService = inScopePublishedProviderService;
@@ -124,12 +126,6 @@ namespace CalculateFunding.Services.Publishing
 
         public async Task RefreshResults(Message message)
         {
-            // Ignore this for now in the pr, its just place holder stuff for the next stories
-            // We will be getting the job if from the message and the spec id
-            // We will be adding telemtry
-            // Updating cache with percentage comeplete
-            // and whatever else
-
             Guard.ArgumentNotNull(message, nameof(message));
 
             Reference author = message.GetUserDetails();
@@ -137,10 +133,10 @@ namespace CalculateFunding.Services.Publishing
             string specificationId = message.UserProperties["specification-id"] as string;
             string jobId = message.UserProperties["jobId"]?.ToString();
 
-            JobViewModel currentJob = await RetrieveJobAndCheckCanBeProcessed(jobId);
+            (JobViewModel currentJob, string jobErrorMessage) = await RetrieveJobAndCheckCanBeProcessed(jobId);
             if (currentJob == null)
             {
-                throw new NonRetriableException("Job can not be run");
+                throw new NonRetriableException($"Job can not be run. {jobErrorMessage}");
             }
 
             // Update job to set status to processing
@@ -173,25 +169,23 @@ namespace CalculateFunding.Services.Publishing
                 scopedProviders.Add(provider.ProviderId, provider);
             }
 
-            // TODO: update job with number of providers * number of funding streams
-            //             await UpdateJobStatus(jobId, TOTAL NUMBER OF ITEMS, 0, null, null);
-
-            // Get existing published providers for this specification
-            // TODO: Change to lookup per fundingstream for the specification to reduce load time and memory
-            IEnumerable<PublishedProvider> existingPublishedProviders = await _publishingResiliencePolicy.ExecuteAsync(() =>
-                _publishedFundingRepository.GetLatestPublishedProvidersBySpecification(specificationId));
-
-            //if (existingPublishedProviders.IsNullOrEmpty())
-            //    throw new RetriableException(
-            //        $"Null or empty publsihed providers returned for specification id : '{specificationId}' when setting status to updated");
+            _logger.Information($"Found {scopedProviders.Count} scoped providers for refresh");
 
             // Get calculation results for specification 
-            IEnumerable<ProviderCalculationResult> allCalculationResults = await _calculationResultsRepository.GetCalculationResultsBySpecificationId(specificationId);
-            Dictionary<string, IEnumerable<CalculationResult>> calculationResults = new Dictionary<string, IEnumerable<CalculationResult>>();
-            foreach (var result in allCalculationResults)
+            _logger.Information($"Looking up calculation results");
+
+            IDictionary<string, ProviderCalculationResult> allCalculationResults;
+            try
             {
-                calculationResults.Add(result.ProviderId, result.Results);
+                allCalculationResults = await _calculationResultsService.GetCalculationResultsBySpecificationId(specificationId, scopedProviders.Keys);
             }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Exception during calculation result lookup");
+                throw;
+            }
+
+            _logger.Information($"Found calculation results for {allCalculationResults.Count} providers from cosmos for refresh job");
 
             foreach (Reference fundingStream in specification.FundingStreams)
             {
@@ -200,6 +194,13 @@ namespace CalculateFunding.Services.Publishing
                 TemplateMetadataContents templateMetadataContents = templateMetadataContentsResponse.Content;
 
                 Dictionary<string, PublishedProvider> publishedProviders = new Dictionary<string, PublishedProvider>();
+
+                // Get existing published providers for this specification
+                _logger.Information("Looking up existing published providers from cosmos for refresh job");
+                List<PublishedProvider> existingPublishedProviders = (await _publishingResiliencePolicy.ExecuteAsync(() =>
+                    _publishedFundingDataService.GetCurrentPublishedProviders(fundingStream.Id, specification.FundingPeriod.Id))).ToList();
+                _logger.Information($"Found {existingPublishedProviders.Count} existing published providers from cosmos for refresh job");
+
                 foreach (PublishedProvider publishedProvider in existingPublishedProviders)
                 {
                     if (publishedProvider.Current.FundingStreamId == fundingStream.Id)
@@ -209,8 +210,6 @@ namespace CalculateFunding.Services.Publishing
                 }
 
                 // Create PublishedProvider for providers which don't already have a record (eg ProviderID-FundingStreamId-FundingPeriodId)
-                
-                
                 Dictionary<string, PublishedProvider> newProviders = _inScopePublishedProviderService.GenerateMissingProviders(scopedProviders.Values, specification, fundingStream, publishedProviders, templateMetadataContents);
                 publishedProviders.AddRange(newProviders);
 
@@ -223,49 +222,74 @@ namespace CalculateFunding.Services.Publishing
 
                 Common.ApiClient.Calcs.Models.TemplateMapping templateMapping = calculationMappingResult.Content;
 
-                // Generate populated data for each provider in this funding line
-                Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = _publishedProviderDataGenerator.Generate(templateMetadataContents, templateMapping, scopedProviders.Values, allCalculationResults);
+                _logger.Information("Generating PublishedProviders for refresh");
 
-                Dictionary<string, IEnumerable<Models.Publishing.FundingLine>> fundingLinesForProfiling = new Dictionary<string, IEnumerable<Models.Publishing.FundingLine>>(generatedPublishedProviderData.Select(c => new KeyValuePair<string, IEnumerable<Models.Publishing.FundingLine>>(c.Key, c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment))));
+                // Generate populated data for each provider in this funding line
+                Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData;
+                try
+                {
+                    generatedPublishedProviderData = _publishedProviderDataGenerator.Generate(templateMetadataContents, templateMapping, scopedProviders.Values, allCalculationResults);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Exception during generating provider data");
+                    throw;
+                }
+                _logger.Information("Populated PublishedProviders for refresh");
 
                 Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
 
                 Dictionary<string, PublishedProvider> existingPublishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
 
-                
+                FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
+                Calculation[] flattedCalculations = flattenedTemplateFundingLines.SelectMany(_ => _.Calculations).ToArray();
+
+                _logger.Information("Profiling providers for refresh");
 
                 // Profile payment funding lines
-                await _profilingService.ProfileFundingLines(fundingLinesForProfiling, fundingStream.Id, specification.FundingPeriod.Id);
+                try
+                {
+                    await _profilingService.ProfileFundingLines(generatedPublishedProviderData.SelectMany(c => c.Value.FundingLines.Where(f => f.Type == OrganisationGroupingReason.Payment)), fundingStream.Id, specification.FundingPeriod.Id);
+                }
+                catch (Exception ex)
+                {
 
-                FundingLine[] flattenedTemplateFundingLines = templateMetadataContents.RootFundingLines.Flatten(_ => _.FundingLines).ToArray();
-                
+                    _logger.Error(ex, "Exception during generating provider profiling");
+                    throw;
+                }
+
+                _logger.Information("Finished profiling providers for refresh");
+
                 // Set generated data on the Published provider
                 foreach (KeyValuePair<string, PublishedProvider> publishedProvider in publishedProviders)
                 {
-                    //At this point we can skip the published provider if there's nothing to updateL
-                    
                     PublishedProviderVersion publishedProviderVersion = publishedProvider.Value.Current;
                     string providerId = publishedProviderVersion.ProviderId;
 
                     GeneratedProviderResult generatedProviderResult = generatedPublishedProviderData[publishedProvider.Key];
 
                     PublishedProviderExclusionCheckResult exclusionCheckResult =
-                        _providerExclusionCheck.ShouldBeExcluded(generatedProviderResult, flattenedTemplateFundingLines);
+                        _providerExclusionCheck.ShouldBeExcluded(allCalculationResults[providerId], templateMapping, flattedCalculations);
 
                     if (exclusionCheckResult.ShouldBeExcluded)
                     {
+                        if (newProviders.ContainsKey(publishedProvider.Key))
+                        {
+                            newProviders.Remove(publishedProvider.Key);
+                        }
 
                         if (!_fundingLineValueOverride.TryOverridePreviousFundingLineValues(publishedProviderVersion, generatedProviderResult))
                         {
                             //there are no none null payment funding line values and we didn't have to override any previous
                             //version funding lines with a zero amount now they are all null so skip this published provider 
                             //the updates check
+
                             continue;
                         }
                     }
-                    
-                    bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion, 
-                        generatedProviderResult, 
+
+                    bool publishedProviderUpdated = _publishedProviderDataPopulator.UpdatePublishedProvider(publishedProviderVersion,
+                        generatedProviderResult,
                         scopedProviders[providerId],
                         specification.TemplateIds[fundingStream.Id]);
 
@@ -280,76 +304,108 @@ namespace CalculateFunding.Services.Publishing
                     }
                 }
 
+                _logger.Information($"Updating a total of {publishedProvidersToUpdate.Count} published providers");
+
+
                 if (publishedProvidersToUpdate.Any())
                 {
                     // Save updated PublishedProviders to cosmos and increment version status
                     if (existingPublishedProvidersToUpdate.Any())
                     {
+                        _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
                         await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated);
                     }
 
                     if (newProviders.Any())
                     {
+                        _logger.Information($"Saving new published providers. Total={newProviders.Count}");
                         await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft);
                     }
 
                     // Generate contents JSON for provider and save to blob storage
                     IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
-                    foreach (KeyValuePair<string, PublishedProvider> provider in publishedProvidersToUpdate)
-                    {
-                        PublishedProviderVersion publishedProviderVersion = provider.Value.Current;
-
-                        string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[provider.Key]);
-
-                        if (string.IsNullOrWhiteSpace(contents))
-                        {
-                            throw new RetriableException($"Generator failed to generate content for published provider version with id: '{publishedProviderVersion.Id}'");
-                        }
-
-                        try
-                        {
-                            await _publishedProviderVersionService.SavePublishedProviderVersionBody(publishedProviderVersion.Id, contents);
-                        }
-                        catch (Exception ex)
-                        {
-                            throw new RetriableException(ex.Message);
-                        }
-
-                        try
-                        {
-                            await _publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
-                        }
-                        catch (Exception ex)
-                        {
-                            throw new RetriableException(ex.Message);
-                        }
-                    }
+                    await SavePublishedProviderContents(templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToUpdate, generator);
                 }
             }
 
+            _logger.Information("Marking job as complete");
             // Mark job as complete
             await UpdateJobStatus(jobId, 0, 0, true, null);
+            _logger.Information("Refresh complete");
         }
 
-        private async Task<JobViewModel> RetrieveJobAndCheckCanBeProcessed(string jobId)
+        private async Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData, Dictionary<string, PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator)
+        {
+            _logger.Information("Saving published provider contents");
+            List<Task> allTasks = new List<Task>();
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 30);
+            foreach (KeyValuePair<string, PublishedProvider> provider in publishedProvidersToUpdate)
+            {
+                await throttler.WaitAsync();
+                allTasks.Add(
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            PublishedProviderVersion publishedProviderVersion = provider.Value.Current;
+
+                            string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[provider.Key]);
+
+                            if (string.IsNullOrWhiteSpace(contents))
+                            {
+                                throw new RetriableException($"Generator failed to generate content for published provider version with id: '{publishedProviderVersion.Id}'");
+                            }
+
+                            try
+                            {
+                                await _publishedProviderVersionService.SavePublishedProviderVersionBody(publishedProviderVersion.FundingId, contents);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new RetriableException(ex.Message);
+                            }
+
+                            try
+                            {
+                                await _publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new RetriableException(ex.Message);
+                            }
+                        }
+                        finally
+                        {
+                            throttler.Release();
+                        }
+                    }));
+            }
+
+            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
+        }
+
+        private async Task<(JobViewModel, string)> RetrieveJobAndCheckCanBeProcessed(string jobId)
         {
             ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
 
             if (response == null || response.Content == null)
             {
-                _logger.Error($"Could not find the job with id: '{jobId}'");
-                return null;
+                string error = $"Could not find the job with id: '{jobId}'";
+                _logger.Error(error);
+                return (null, error);
             }
 
             JobViewModel job = response.Content;
 
             if (job.CompletionStatus.HasValue)
             {
-                _logger.Information($"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus.ToString()}");
-                return null;
+                string error = $"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus.ToString()}";
+                _logger.Information(error);
+
+                return (null, error);
             }
 
-            return job;
+            return (job, null);
         }
 
         private async Task UpdateJobStatus(string jobId, int percentComplete = 0, bool? completedSuccessfully = null, string outcome = null)

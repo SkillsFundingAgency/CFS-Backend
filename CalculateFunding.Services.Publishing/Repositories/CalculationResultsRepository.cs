@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
-using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -28,36 +27,33 @@ namespace CalculateFunding.Services.Publishing.Repositories
             {
                 Name = nameof(CalculationResultsRepository)
             };
-            health.Dependencies.Add(new DependencyHealth {HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message});
+            health.Dependencies.Add(new DependencyHealth { HealthOk = Ok, DependencyName = _cosmosRepository.GetType().GetFriendlyName(), Message = Message });
 
             return health;
         }
 
-
-        public Task<IEnumerable<ProviderCalculationResult>> GetCalculationResultsBySpecificationId(string specificationId)
+        public async Task<ProviderCalculationResult> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId)
         {
-            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+            List<ProviderCalculationResult> providerResultSummaries = _cosmosRepository
+             .DynamicQueryPartionedEntity<ProviderCalculationResult>(new SqlQuerySpec
+             {
+                 QueryText = @"
+                                SELECT
+	                                    doc.content.provider.id AS providerId,
+	                                    ARRAY(  SELECT calcResult.calculation.id,
+	                                                   calcResult['value']
+	                                            FROM   calcResult IN doc.content.calcResults) AS Results
+                                FROM 	doc
+                                WHERE   doc.documentType='ProviderResult'
+                                AND     doc.content.specificationId = @specificationId",
+                 Parameters = new SqlParameterCollection
+                 {
+                                    new SqlParameter("@specificationId", specificationId)
+                 }
+             }, providerId)
+             .ToList();
 
-            IEnumerable<ProviderCalculationResult> providerResultSummaries = _cosmosRepository
-                .DynamicQuery<ProviderCalculationResult>(new SqlQuerySpec
-                {
-                    QueryText = @"
-SELECT
-	    doc.content.provider.id AS providerId,
-	    ARRAY(  SELECT calcResult.calculation.id,
-	                   calcResult['value']
-	            FROM   calcResult IN doc.content.calcResults) AS Results
-FROM 	doc
-WHERE   doc.documentType='ProviderResult'
-AND     doc.content.specificationId = @specificationId",
-                    Parameters = new SqlParameterCollection
-                    {
-                        new SqlParameter("@specificationId", specificationId)
-                    }
-                }, true)
-                .ToList();
-
-            return Task.FromResult(providerResultSummaries);
+            return await Task.FromResult(providerResultSummaries.FirstOrDefault());
         }
     }
 }

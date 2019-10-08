@@ -8,5 +8,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
     {
         Task<IEnumerable<Provider>> GetProvidersByProviderVersionsId(string providerVersionId);
         Task<IEnumerable<Provider>> GetScopedProvidersForSpecification(string specificationId, string providerVersionId);
+        Task<IEnumerable<string>> GetScopedProviderIdsForSpecification(string specificationId);
     }
 }

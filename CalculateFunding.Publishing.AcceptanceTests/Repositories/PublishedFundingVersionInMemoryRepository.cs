@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core.Interfaces;
@@ -7,9 +9,11 @@ using CalculateFunding.Services.Core.Services;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
-    public class PublishedVersionInMemoryRepository : IVersionRepository<PublishedFundingVersion>
+    public class PublishedFundingVersionInMemoryRepository : IVersionRepository<PublishedFundingVersion>
     {
-        Dictionary<string, PublishedFundingVersion> _publishedFundingVersions = new Dictionary<string, PublishedFundingVersion>();
+        private readonly ReaderWriterLockSlim lockVersionObject = new ReaderWriterLockSlim();
+
+        ConcurrentDictionary<string, PublishedFundingVersion> _publishedFundingVersions = new ConcurrentDictionary<string, PublishedFundingVersion>();
 
         VersionRepository<PublishedFundingVersion> _realImplementation = new VersionRepository<PublishedFundingVersion>(new InMemoryCosmosRepository());
 

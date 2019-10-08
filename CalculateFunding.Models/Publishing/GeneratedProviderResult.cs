@@ -26,5 +26,10 @@ namespace CalculateFunding.Models.Publishing
         /// Provider informations
         /// </summary>
         public Provider Provider { get; set; }
+
+        /// <summary>
+        /// Total Funding
+        /// </summary>
+        public decimal TotalFunding { get; set; }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Specifications.Models;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -12,6 +11,7 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests
 {
@@ -20,11 +20,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
     {
         private const string JobType = "ApproveResults";
         private IJobTracker _jobTracker;
-        private ISpecificationService _specificationService;
         private IApproveService _approveService;
-        private IPublishedFundingRepository _publishedFundingRepository;
+        private IPublishedFundingDataService _publishedFundingDataService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
-
+        private IPublishedProviderIndexerService _publishedProviderIndexerService;
+        private ILogger _logger;
         private Message _message;
         private string _jobId;
         private string _userId;
@@ -34,19 +34,21 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         [TestInitialize]
         public void SetUp()
         {
-            _specificationService = Substitute.For<ISpecificationService>();
             _jobTracker = Substitute.For<IJobTracker>();
-            _publishedFundingRepository = Substitute.For<IPublishedFundingRepository>();
+            _publishedFundingDataService = Substitute.For<IPublishedFundingDataService>();
             _publishedProviderStatusUpdateService = Substitute.For<IPublishedProviderStatusUpdateService>();
+            _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
+            _logger = Substitute.For<ILogger>();
 
             _approveService = new ApproveService(_publishedProviderStatusUpdateService,
-                _publishedFundingRepository,
+                _publishedFundingDataService,
+                _publishedProviderIndexerService,
                 new ResiliencePolicies
                 {
                     PublishedFundingRepository = Policy.NoOpAsync()
                 },
-                _specificationService,
-                _jobTracker);
+                _jobTracker,
+                _logger);
 
             _jobId = NewRandomString();
             _userId = NewRandomString();
@@ -57,28 +59,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             SetUserProperty("user-id", _userId);
             SetUserProperty("user-name", _userName);
 
-            _publishedFundingRepository.GetPublishedProvidersForApproval(Arg.Any<string>())
-                .Returns(new[] {new PublishedProvider()});
+            _publishedFundingDataService.GetPublishedProvidersForApproval(Arg.Any<string>())
+                .Returns(new[] { new PublishedProvider() });
         }
 
         private static RandomString NewRandomString()
         {
             return new RandomString();
-        }
-
-        [TestMethod]
-        public async Task SpecificationQueryMethodDelegatesToSpecificationService()
-        {
-            string specificationId = new RandomString();
-            SpecificationSummary expectedSpecificationSummary = new SpecificationSummary();
-
-            GivenTheSpecificationSummaryForId(specificationId, expectedSpecificationSummary);
-
-            SpecificationSummary response = await _approveService.GetSpecificationSummaryById(specificationId);
-
-            response
-                .Should()
-                .BeSameAs(expectedSpecificationSummary);
         }
 
         [TestMethod]
@@ -170,19 +157,13 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         private void AndTheSpecificationHasTheHeldUnApprovedPublishedProviders(string specificationId, params PublishedProvider[] publishedProviders)
         {
-            _publishedFundingRepository.GetPublishedProvidersForApproval(specificationId)
+            _publishedFundingDataService.GetPublishedProvidersForApproval(specificationId)
                 .Returns(publishedProviders);
         }
 
         private async Task WhenTheResultsAreApproved()
         {
             await _approveService.ApproveResults(_message);
-        }
-
-        private void GivenTheSpecificationSummaryForId(string specificationId, SpecificationSummary specificationSummary)
-        {
-            _specificationService.GetSpecificationSummaryById(specificationId)
-                .Returns(specificationSummary);
         }
 
         private void ThenThePublishedProvidersWereApproved(IEnumerable<PublishedProvider> publishedProviders)

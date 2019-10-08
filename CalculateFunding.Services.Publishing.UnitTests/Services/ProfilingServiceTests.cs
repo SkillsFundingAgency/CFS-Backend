@@ -1,22 +1,18 @@
-﻿using CalculateFunding.Common.ApiClient.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
-using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Publishing.UnitTests;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
@@ -29,9 +25,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public void SaveFundingTotals_GivenNullPublishedProfilingFundlingTotalsRequests_ThrowsArgumentException()
         {
             //Arrange
-            List<FundingLine> fundingLine = new List<FundingLine>();
-
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = new Dictionary<string, IEnumerable<FundingLine>>();
+            List<FundingLine> fundingLines = new List<FundingLine>();
 
             ProfilingService service = CreateProfilingService();
 
@@ -48,12 +42,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public void SaveFundingTotals_GivenPublishedProfilingRequestsButProfilingAPICausesException_LogsAndThrows()
         {
             //Arrange
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = SetUpInput();
+            IEnumerable<FundingLine> fundingLines = SetUpInput();
 
             ILogger logger = CreateLogger();
 
             IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
-            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel = 
+            ValidatedApiResponse<ProviderProfilingResponseModel> providerProfilingResponseModel =
                 new ValidatedApiResponse<ProviderProfilingResponseModel>(HttpStatusCode.InternalServerError);
 
             providerProfilingRepository
@@ -85,21 +79,15 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public void SaveFundingTotals_GivenPublishedProfilingRequestsButNoPaymentTypeinFundingTotals_LogsAndThrows()
         {
             //Arrange
-            List<FundingLine> fundingLine = new List<FundingLine>
+            List<FundingLine> fundingLines = new List<FundingLine>
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Information,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
 
             };
 
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = new Dictionary<string, IEnumerable<FundingLine>>
-            {
-                { "test", fundingLine }
-
-            };
-
             ILogger logger = CreateLogger();
 
-            ProfilingService service = CreateProfilingService(logger: logger);           
+            ProfilingService service = CreateProfilingService(logger: logger);
 
             //Act
             Func<Task> test = async () => await service.ProfileFundingLines(fundingLines, "PSG", "AY-1819");
@@ -115,7 +103,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public void SaveFundingTotals_GivenPublishedProfilingRequestsButProfilingAPIReturnNoResults_LogsAndThrows()
         {
             //Arrange
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = SetUpInput();
+            IEnumerable<FundingLine> fundingLines = SetUpInput();
 
             ILogger logger = CreateLogger();
 
@@ -141,14 +129,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
 
         [TestMethod]
-        public async Task  SaveFundingTotals_GivenPublishedProfilingRequests()
+        public async Task SaveFundingTotals_GivenPublishedProfilingRequests()
         {
             //Arrange
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = SetUpInput();
+            IEnumerable<FundingLine> fundingLines = SetUpInput();
 
             ILogger logger = CreateLogger();
 
-            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse =  SetUpProviderProfilingResponse();
+            ValidatedApiResponse<ProviderProfilingResponseModel> profileResponse = SetUpProviderProfilingResponse();
 
             IProfilingApiClient providerProfilingRepository = Substitute.For<IProfilingApiClient>();
             providerProfilingRepository
@@ -163,16 +151,17 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await serviceapi.ProfileFundingLines(fundingLines, "PSG", "AY-1819");
 
             //Assert 
-            fundingLines.Values
-                .SelectMany(x => x)
-                .Where(y => y.Type == OrganisationGroupingReason.Payment)
+            fundingLines.Where(y => y.Type == OrganisationGroupingReason.Payment)
                 .Select(r => r.DistributionPeriods)
                 .Should()
                 .NotBeNullOrEmpty();
 
-            Dictionary<string, IEnumerable<FundingLine>> expectedFudingLines;
-            expectedFudingLines = ExpectedOutput();
-            JsonConvert.SerializeObject(expectedFudingLines).Should().BeEquivalentTo(JsonConvert.SerializeObject(fundingLines));
+            IEnumerable<FundingLine> expectedFundingLines;
+            expectedFundingLines = ExpectedOutput();
+            JsonConvert
+                .SerializeObject(expectedFundingLines)
+                .Should()
+                .BeEquivalentTo(JsonConvert.SerializeObject(fundingLines));
 
             await providerProfilingRepository
                 .Received(1)
@@ -184,16 +173,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public async Task SaveMultipleFundinglines_GivenPublishedProfilingRequests()
         {
             //Arrange
-            List<FundingLine> fundingLine = new List<FundingLine>
+            List<FundingLine> fundingLines = new List<FundingLine>
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null},
                 new FundingLine { Name="Xyz",FundingLineCode = "AB1", Type = OrganisationGroupingReason.Payment,Value = 600, TemplateLineId = 123, DistributionPeriods = null}
-
-            };
-
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = new Dictionary<string, IEnumerable<FundingLine>>
-            {
-                { "test", fundingLine }
 
             };
 
@@ -213,18 +196,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await serviceapi.ProfileFundingLines(fundingLines, "PSG", "AY-1819");
 
             //Assert            
-            fundingLines.Values
-                .SelectMany(x => x)
-                .Where(y => y.Value == 500)
+            fundingLines.Where(y => y.Value == 500)
                 .Select(r => r.DistributionPeriods)
                 .Should()
                 .NotBeNullOrEmpty();
 
-            fundingLines.Values
-               .SelectMany(x => x)
-               .Where(y => y.Value == 600)
+            fundingLines.Where(y => y.Value == 600)
                .Select(r => r.DistributionPeriods)
-               .Should()              
+               .Should()
                .NotBeNullOrEmpty();
 
             await providerProfilingRepository
@@ -242,16 +221,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         public async Task SaveMultipleSameFundinglines_GivenPublishedProfilingRequests()
         {
             //Arrange
-            List<FundingLine> fundingLine = new List<FundingLine>
+            List<FundingLine> fundingLines = new List<FundingLine>
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null},
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
-
-            };
-
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = new Dictionary<string, IEnumerable<FundingLine>>
-            {
-                { "test", fundingLine }
 
             };
 
@@ -262,7 +235,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             providerProfilingRepository
                 .GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(Task.FromResult<ValidatedApiResponse<ProviderProfilingResponseModel>>(profileResponse));
-           
+
             ProfilingService serviceapi = CreateProfilingService(
             logger: logger,
                profilingApiClient: providerProfilingRepository);
@@ -271,8 +244,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             await serviceapi.ProfileFundingLines(fundingLines, "PSG", "AY-1819");
 
             //Assert  
-            fundingLines.Values
-                .SelectMany(x => x)
+            fundingLines
                 .Where(y => y.Value == 500)
                 .Select(r => r.DistributionPeriods)
                 .Should()
@@ -285,23 +257,18 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         }
 
 
-        private static Dictionary<string, IEnumerable<FundingLine>> SetUpInput()
+        private static IEnumerable<FundingLine> SetUpInput()
         {
-            List<FundingLine> fundingLine = new List<FundingLine>
+            List<FundingLine> fundingLines = new List<FundingLine>
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123, DistributionPeriods = null}
 
             };
 
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = new Dictionary<string, IEnumerable<FundingLine>>
-            {
-                { "test", fundingLine }
-
-            };
             return fundingLines;
         }
 
-        private static Dictionary<string, IEnumerable<FundingLine>> ExpectedOutput()
+        private static IEnumerable<FundingLine> ExpectedOutput()
         {
             List<DistributionPeriod> distributionPeriod = new List<DistributionPeriod>();
 
@@ -319,16 +286,10 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 Value = 82190.0M
             });
 
-            List<FundingLine> fundingLine = new List<FundingLine>
+            List<FundingLine> fundingLines = new List<FundingLine>
             {
                 new FundingLine { Name="Abc",FundingLineCode = "FL1", Type = OrganisationGroupingReason.Payment,Value = 500, TemplateLineId = 123,
                     DistributionPeriods = distributionPeriod}
-
-            };
-
-            Dictionary<string, IEnumerable<FundingLine>> fundingLines = new Dictionary<string, IEnumerable<FundingLine>>
-            {
-                { "test", fundingLine }
 
             };
 
@@ -345,7 +306,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                  },
                 DistributionPeriods = new List<Common.ApiClient.Profiling.Models.DistributionPeriods>
                  {
-                    new Common.ApiClient.Profiling.Models.DistributionPeriods { DistributionPeriodCode = "2018-2019",   Value = 82190.0M }                    
+                    new Common.ApiClient.Profiling.Models.DistributionPeriods { DistributionPeriodCode = "2018-2019",   Value = 82190.0M }
                  }
             });
         }
@@ -353,19 +314,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         protected void GivenTheApiResponseDetailsForTheProfileRequest(ProviderProfilingResponseModel providerProfilingResponseModel,
             HttpStatusCode statusCode = HttpStatusCode.OK)
         {
-            profilingClient1  = CreateProfilingRepository();
+            profilingClient1 = CreateProfilingRepository();
             profilingClient1.GetProviderProfilePeriods(Arg.Any<ProviderProfilingRequestModel>())
                 .Returns(new ValidatedApiResponse<ProviderProfilingResponseModel>(statusCode,
                     providerProfilingResponseModel));
         }
 
-        static ProfilingService CreateProfilingService(ILogger logger = null,            
+        static ProfilingService CreateProfilingService(ILogger logger = null,
             IProfilingApiClient profilingApiClient = null)
         {
             return new ProfilingService(
-                logger ?? CreateLogger(),               
+                logger ?? CreateLogger(),
                 profilingApiClient ?? CreateProfilingRepository()
-               
+
                 );
         }
 

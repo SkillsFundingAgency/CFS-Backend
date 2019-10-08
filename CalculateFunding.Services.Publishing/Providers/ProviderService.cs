@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -5,6 +6,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Polly;
 using ApiProviderVersion = CalculateFunding.Common.ApiClient.Providers.Models.ProviderVersion;
@@ -36,6 +38,31 @@ namespace CalculateFunding.Services.Publishing.Providers
             Guard.ArgumentNotNull(providerVersionsResponse?.Content, nameof(providerVersionsResponse));
 
             return providerVersionsResponse.Content.Providers?.ToArray() ?? new Provider[0];
+        }
+
+        public async Task<IEnumerable<string>> GetScopedProviderIdsForSpecification(string specificationId)
+        {
+            Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
+
+            ApiResponse<IEnumerable<string>> scopedProviderIdResponse =
+                 await _resiliencePolicy.ExecuteAsync(() => _providers.GetScopedProviderIds(specificationId));
+
+            if (scopedProviderIdResponse == null)
+            {
+                throw new InvalidOperationException("Scoped provider response was null");
+            }
+
+            if (scopedProviderIdResponse.StatusCode != System.Net.HttpStatusCode.OK)
+            {
+                throw new RetriableException($"Scoped provider response was not OK, but instead '{scopedProviderIdResponse.StatusCode}'");
+            }
+
+            if (scopedProviderIdResponse.Content == null)
+            {
+                throw new InvalidOperationException("Scoped provider response content was null");
+            }
+
+            return scopedProviderIdResponse.Content;
         }
 
         public async Task<IEnumerable<Provider>> GetScopedProvidersForSpecification(string specificationId, string providerVersionId)

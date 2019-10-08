@@ -1,5 +1,4 @@
 ﻿using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Generators.OrganisationGroup;
@@ -11,7 +10,6 @@ using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Services.Publishing.Providers;
-using CalculateFunding.Services.Publishing.Repositories;
 using CalculateFunding.Services.Publishing.Specifications;
 using CalculateFunding.Services.Publishing.Validators;
 using Microsoft.Extensions.Configuration;
@@ -37,13 +35,13 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IHealthChecker, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<ISpecificationIdServiceRequestValidator, PublishSpecificationValidator>();
             serviceCollection.AddSingleton<IPublishedProviderFundingService, PublishedProviderFundingService>();
-            serviceCollection.AddSingleton<IHealthChecker, PublishedProviderFundingService>();
             serviceCollection.AddSingleton<ISpecificationService, SpecificationService>();
             serviceCollection.AddSingleton<IProviderService, ProviderService>();
             serviceCollection.AddSingleton<IPublishedProviderIndexerService, PublishedProviderIndexerService>();
             serviceCollection.AddSingleton<IPublishProviderExclusionCheck, PublishedProviderExclusionCheck>();
             serviceCollection.AddSingleton<IFundingLineValueOverride, FundingLineValueOverride>();
             serviceCollection.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
+            serviceCollection.AddSingleton<IPublishedFundingDataService, PublishedFundingDataService>();
 
 
             serviceCollection.AddTransient<ICreateJobsForSpecifications<RefreshFundingJobDefinition>>(ctx =>
@@ -108,8 +106,7 @@ namespace CalculateFunding.Services.Publishing.IoC
 
                 return new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver,
                     blobClient,
-                    publishingResiliencePolicies,
-                    searchRepository);
+                    publishingResiliencePolicies);
             });
         }
 

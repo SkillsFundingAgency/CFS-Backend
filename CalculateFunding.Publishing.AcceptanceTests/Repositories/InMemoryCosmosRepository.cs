@@ -233,6 +233,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
+        public Task<T> ReadByIdAsync<T>(string id) where T : IIdentifiable
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<T> ReadByIdPartitionedAsync<T>(string id, string partitionKey) where T : IIdentifiable
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<DocumentEntity<T>> ReadDocumentByIdAsync<T>(string id) where T : IIdentifiable
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SetThroughput(int requestUnits)
         {
             throw new NotImplementedException();

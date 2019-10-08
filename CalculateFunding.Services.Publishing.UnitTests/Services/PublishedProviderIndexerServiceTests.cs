@@ -1,29 +1,23 @@
-﻿using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Profiling;
-using CalculateFunding.Common.ApiClient.Profiling.Models;
-using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Versioning;
-using CalculateFunding.Repositories.Common.Search;
-using CalculateFunding.Services.Core;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Publishing.UnitTests;
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
-using NSubstitute;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Repositories.Common.Search;
+using CalculateFunding.Services.Core;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
+using Polly;
+using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
 {
     [TestClass]
     public class PublishedProviderIndexerServiceTests
     {
+        private ResiliencePolicies _resiliencePolicies;
+
         [TestMethod]
         public void IndexPublishedProvider_GivenANullDefinitionPublishedProviderSupplied_LogsAndThrowsException()
         {
@@ -55,7 +49,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             const string errorMessage = "Encountered error 802 code";
             PublishedProviderVersion publishedProviderVersion = new PublishedProviderVersion
             {
-                Provider = GetProvider(1),                
+                Provider = GetProvider(1),
                 ProviderId = "1234",
                 FundingStreamId = "PSG",
                 FundingPeriodId = "AY-1920",
@@ -63,7 +57,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 MajorVersion = 1,
                 MinorVersion = 0,
                 VariationReasons = new List<VariationReason> { VariationReason.NameFieldUpdated, VariationReason.FundingUpdated }
-            }; 
+            };
 
             ILogger logger = CreateLogger();
             ISearchRepository<PublishedProviderIndex> searchRepository = CreateSearchRepository();
@@ -71,7 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Index(Arg.Any<IEnumerable<PublishedProviderIndex>>())
                 .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
 
-            PublishedProviderIndexerService publishedProviderIndexerService = CreatePublishedProviderIndexerService(logger: logger, 
+            PublishedProviderIndexerService publishedProviderIndexerService = CreatePublishedProviderIndexerService(logger: logger,
                                                                                     searchRepository: searchRepository);
 
             //Act
@@ -84,7 +78,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             logger
                 .Received(1)
-                .Error($"Could not index Published Provider {publishedProviderVersion.Id} because: {errorMessage}");
+                .Error($"Could not index Published Providers because: {errorMessage}");
         }
 
         [TestMethod]
@@ -119,8 +113,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             await searchRepository
                 .Received(1)
-                .Index(Arg.Is<IList<PublishedProviderIndex>>(
-                    d => d.First().Id == publishedProviderVersion.Id &&
+                .Index(Arg.Is<IEnumerable<PublishedProviderIndex>>(
+                    d => d.First().Id == $"{publishedProviderVersion.ProviderId}-{publishedProviderVersion.FundingPeriodId}-{publishedProviderVersion.FundingStreamId}" &&
                     d.First().ProviderType == publishedProviderVersion.Provider.ProviderType &&
                     d.First().LocalAuthority == publishedProviderVersion.Provider.LocalAuthorityName &&
                     d.First().FundingStatus == publishedProviderVersion.Status.ToString() &&
@@ -129,7 +123,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     d.First().FundingValue == Convert.ToDouble(publishedProviderVersion.TotalFunding) &&
                     d.First().SpecificationId == publishedProviderVersion.SpecificationId &&
                     d.First().FundingStreamId == "PSG" &&
-                    d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId                  
+                    d.First().FundingPeriodId == publishedProviderVersion.FundingPeriodId
               ));
         }
 
@@ -187,9 +181,26 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         private PublishedProviderIndexerService CreatePublishedProviderIndexerService(ILogger logger = null,
             ISearchRepository<PublishedProviderIndex> searchRepository = null)
         {
+            _resiliencePolicies = new ResiliencePolicies()
+            {
+                BlobClient = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
+                FundingFeedSearchRepository = Policy.NoOpAsync(),
+                JobsApiClient = Policy.NoOpAsync(),
+                PoliciesApiClient = Policy.NoOpAsync(),
+                ProvidersApiClient = Policy.NoOpAsync(),
+                PublishedFundingBlobRepository = Policy.NoOpAsync(),
+                PublishedFundingRepository = Policy.NoOpAsync(),
+                PublishedProviderVersionRepository = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
+                SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
+                PublishedProviderSearchRepository = Policy.NoOpAsync(),
+            };
+
             return new PublishedProviderIndexerService(
                 logger ?? CreateLogger(),
-                searchRepository ?? CreateSearchRepository()
+                searchRepository ?? CreateSearchRepository(),
+                _resiliencePolicies
                 );
         }
 

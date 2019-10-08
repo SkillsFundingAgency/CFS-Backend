@@ -12,6 +12,7 @@
     <None Remove="Resources\implementation-test-with-aggregates.dll" />
     <None Remove="Resources\implementation-test-with-datasets.dll" />
     <None Remove="Resources\implementation.dll" />
+    <None Remove="Resources\pages.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,9 +8,6 @@ namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface IPublishedFundingRepository : IHealthChecker
     {
-        Task<IEnumerable<PublishedProvider>> GetLatestPublishedProvidersBySpecification(
-            string specificationId);
-
         Task<IEnumerable<HttpStatusCode>> UpsertPublishedProviders(IEnumerable<PublishedProvider> publishedProviders);
 
         Task<PublishedProviderVersion> GetPublishedProviderVersion(string fundingStreamId,
@@ -18,11 +15,16 @@ namespace CalculateFunding.Services.Publishing.Interfaces
                 string providerId,
                 string version);
 
-        Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(
-            string specificationId);
-
-        Task<IEnumerable<PublishedFunding>> GetLatestPublishedFundingBySpecification(string specificationId);
-
         Task<HttpStatusCode> UpsertPublishedFunding(PublishedFunding publishedFunding);
+
+        Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId);
+
+        Task<PublishedProvider> GetPublishedProviderById(string cosmosId, string partitionKey);
+
+        Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId);
+
+        Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string fundingStreamId, string fundingPeriodId);
+
+        Task<PublishedFunding> GetPublishedFundingById(string cosmosId, string partitionKey);
     }
 }

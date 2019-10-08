@@ -7,7 +7,6 @@ using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
-using StackExchange.Redis;
 using GeneratorModels = CalculateFunding.Generators.Funding.Models;
 
 namespace CalculateFunding.Services.Publishing
@@ -33,7 +32,7 @@ namespace CalculateFunding.Services.Publishing
         /// <param name="scopedProviders">Scoped providers for a specification</param>
         /// <param name="calculationResults">Calculation Results</param>
         /// <returns>Dictionary of Generated Provider Results, keyed on ProviderId</returns>
-        public Dictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IEnumerable<ProviderCalculationResult> calculationResults)
+        public Dictionary<string, GeneratedProviderResult> Generate(TemplateMetadataContents templateMetadata, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, IEnumerable<Common.ApiClient.Providers.Models.Provider> scopedProviders, IDictionary<string, ProviderCalculationResult> calculationResults)
         {
             Guard.ArgumentNotNull(templateMetadata, nameof(templateMetadata));
             Guard.ArgumentNotNull(templateMapping, nameof(templateMapping));
@@ -45,7 +44,8 @@ namespace CalculateFunding.Services.Publishing
             {
                 GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
-                ProviderCalculationResult calculationResultsForProvider = calculationResults.FirstOrDefault(p => p.ProviderId == provider.ProviderId);
+                ProviderCalculationResult calculationResultsForProvider = null;
+                calculationResults.TryGetValue(provider.ProviderId, out calculationResultsForProvider);
 
                 if (calculationResultsForProvider != null)
                 {
@@ -55,6 +55,11 @@ namespace CalculateFunding.Services.Publishing
                     IEnumerable<GeneratorModels.FundingLine> fundingLines = fundingValue.FundingLines?.Flatten(_ => _.FundingLines) ?? new GeneratorModels.FundingLine[0];
 
                     generatedProviderResult.FundingLines = _mapper.Map<IEnumerable<Models.Publishing.FundingLine>>(fundingLines);
+
+                    // Set total funding
+                    generatedProviderResult.TotalFunding = generatedProviderResult.FundingLines
+                        .Where(f => f.Type == Models.Publishing.OrganisationGroupingReason.Payment)
+                        .Sum(p => p.Value);
 
                     // Get calculations
                     IEnumerable<GeneratorModels.Calculation> fundingCalculations = fundingLines?.SelectMany(_ => _.Calculations.Flatten(calc => calc.Calculations)) ?? new GeneratorModels.Calculation[0];
@@ -88,10 +93,10 @@ namespace CalculateFunding.Services.Publishing
         private Common.TemplateMetadata.Models.Calculation ToCalculation(Common.TemplateMetadata.Models.Calculation calculation, Common.ApiClient.Calcs.Models.TemplateMapping mapping, IEnumerable<CalculationResult> calculationResults)
         {
             decimal? calculationResultValue = calculationResults.SingleOrDefault(calc => calc.Id == GetCalculationId(mapping, calculation.TemplateCalculationId))?.Value;
-            
-            calculation.Value = calculation.Type == CalculationType.Cash && calculationResultValue.HasValue 
-                ? (object) Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero) 
-                :  calculationResultValue;
+
+            calculation.Value = calculation.Type == CalculationType.Cash && calculationResultValue.HasValue
+                ? (object)Math.Round(calculationResultValue.Value, 2, MidpointRounding.AwayFromZero)
+                : calculationResultValue;
 
             calculation.Calculations = calculation.Calculations?.Select(_ => ToCalculation(_, mapping, calculationResults));
 

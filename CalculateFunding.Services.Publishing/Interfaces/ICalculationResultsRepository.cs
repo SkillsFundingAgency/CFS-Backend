@@ -1,11 +1,10 @@
-﻿using CalculateFunding.Models.Publishing;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using CalculateFunding.Models.Publishing;
 
 namespace CalculateFunding.Services.Publishing.Interfaces
 {
     public interface ICalculationResultsRepository
     {
-        Task<IEnumerable<ProviderCalculationResult>> GetCalculationResultsBySpecificationId(string specificationId);
+        Task<ProviderCalculationResult> GetCalculationResultsBySpecificationAndProvider(string specificationId, string providerId);
     }
 }

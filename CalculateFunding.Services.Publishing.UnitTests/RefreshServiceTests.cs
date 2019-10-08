@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IProviderService _providerService;
         private IRefreshService _refreshService;
 
-        private ICalculationResultsRepository _calculationResultsRepository;
+        private ICalculationResultsService _calculationResultsService;
         private IPublishedProviderDataGenerator _fundingLineGenerator;
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private IJobsApiClient _jobsApiClient;
@@ -44,7 +44,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         {
             _specificationService = Substitute.For<ISpecificationService>();
             _providerService = Substitute.For<IProviderService>();
-            _calculationResultsRepository = Substitute.For<ICalculationResultsRepository>();
+            _calculationResultsService = Substitute.For<ICalculationResultsService>();
             _fundingLineGenerator = Substitute.For<IPublishedProviderDataGenerator>();
             _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
             _inScopePublishedProviderService = Substitute.For<IInScopePublishedProviderService>();
@@ -63,11 +63,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
 
             _refreshService = new RefreshService(Substitute.For<IPublishedProviderStatusUpdateService>(),
-                Substitute.For<IPublishedFundingRepository>(),
+                Substitute.For<IPublishedFundingDataService>(),
                 Substitute.For<IPublishingResiliencePolicies>(),
                 _specificationService,
                 _providerService,
-                _calculationResultsRepository,
+                _calculationResultsService,
                 _fundingLineGenerator,
                 _publishedProviderContentsGeneratorResolver,
                 _profilingService,

@@ -133,6 +133,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Select(c => new FundingCalculation() { TemplateCalculationId = c.TemplateCalculationId, Value = c.Value });
         }
 
+        [Given(@"the Published Provider has the following provider information")]
+        public void GivenThePublishedProviderHasTheFollowingProviderInformation(Table table)
+        {
+            _publishedFundingRepositoryStepContext.CurrentPublishedProvider
+                            .Should()
+                            .NotBeNull();
+
+            Provider provider = table.CreateInstance<Provider>();
+
+            _publishedFundingRepositoryStepContext.CurrentPublishedProvider.Current.Provider = provider;
+        }
 
         [Given(@"the Published Provider is available in the repository for this specification")]
         public void GivenThePublishedProviderIsAvailableInTheRepositoryForThisSpecification()
