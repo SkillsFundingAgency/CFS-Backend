@@ -50,6 +50,10 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                         .GetResult();
                 }
             }
+            catch(IOException ioException) when (_fileSystemAccess.Exists(CachePathForKey(key)))
+            {
+                _logger.Warning("Detected file collision for CachePathForKey(key). Swallowing exception");
+            }
             catch (Exception exception)
             {
                 string message = $"Unable to write content for file system cache item with key {key.Key}";

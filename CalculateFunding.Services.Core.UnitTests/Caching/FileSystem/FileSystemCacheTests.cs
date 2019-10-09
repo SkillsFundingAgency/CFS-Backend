@@ -59,6 +59,38 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
             ThenTheBytesWereWritten(key, content, cancellationToken);
         }
+        
+        [TestMethod]
+        public void AddSwallowsFileCollisions()
+        {
+            string key = NewRandomString();
+            Stream content = new MemoryStream();
+            CancellationToken cancellationToken = new CancellationToken();
+            IOException ioException = new IOException();
+
+            GivenAddThrowsException(key, content, cancellationToken, ioException);
+            AndTheExistsFlagForPath(key, true);
+
+            WhenTheContentIsAdded(key, content, cancellationToken);
+        }
+        
+        [TestMethod]
+        public void AddThrowsIOExceptionsWhereNotCollision()
+        {
+            string key = NewRandomString();
+            Stream content = new MemoryStream();
+            CancellationToken cancellationToken = new CancellationToken();
+            IOException expectedInnerException = new IOException();
+
+            GivenAddThrowsException(key, content, cancellationToken, expectedInnerException);
+
+            Action invocation = () => WhenTheContentIsAdded(key, content, cancellationToken);
+
+            invocation
+                .Should()
+                .Throw<Exception>()
+                .WithMessage($"Unable to write content for file system cache item with key {key}");
+        }
 
         [TestMethod]
         public void AddThrowsExceptionIfFileSystemAccessFails()
@@ -207,6 +239,11 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
         {
             _fileSystemAccess.Exists(Path.Combine(_root, path))
                 .Returns(flag);
+        }
+        
+        private void AndTheExistsFlagForPath(string path, bool flag)
+        {
+            GivenTheExistsFlagForPath(path, flag);
         }
 
         private string NewRandomString()
