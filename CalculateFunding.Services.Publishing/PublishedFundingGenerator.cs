@@ -52,10 +52,10 @@ namespace CalculateFunding.Services.Publishing
             string templateVersion = generatePublishedFundingInput.TemplateVersion;
             FundingPeriod fundingPeriod = generatePublishedFundingInput.FundingPeriod;
 
-            FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
-
             foreach (var organisationGroup in organisationGroupsToSave)
             {
+                FundingValueAggregator fundingValueAggregator = new FundingValueAggregator();
+
                 // TODO: extract interface
                 IEnumerable<string> providerIds = organisationGroup.OrganisationGroupResult.Providers.Select(p => p.ProviderId);
                 IEnumerable<string> publishedProvidersIds = publishedProviders.Select(p => p.Current.ProviderId);

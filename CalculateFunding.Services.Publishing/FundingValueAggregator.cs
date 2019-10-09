@@ -170,28 +170,28 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public Models.Publishing.DistributionPeriod GetAggregatePeriods(Models.Publishing.DistributionPeriod period)
+        public Models.Publishing.DistributionPeriod GetAggregatePeriods(Models.Publishing.DistributionPeriod distributionPeriod)
         {
-            if (period != null && aggregatedDistributionPeriods.TryGetValue(period.DistributionPeriodId, out decimal total))
+            if (distributionPeriod != null && aggregatedDistributionPeriods.TryGetValue(distributionPeriod.DistributionPeriodId, out decimal total))
             {
-                Models.Publishing.DistributionPeriod distributionPeriod = period.Clone();
+                Models.Publishing.DistributionPeriod localDistributionPeriod = distributionPeriod.Clone();
 
-                distributionPeriod.Value = total;
-                distributionPeriod.ProfilePeriods?.ToList().ForEach(x => SetAggregateProfilePeriods(x));
-                return distributionPeriod;
+                localDistributionPeriod.Value = total;
+                localDistributionPeriod.ProfilePeriods?.ToList().ForEach(x => SetAggregateProfilePeriods(x));
+                return localDistributionPeriod;
             }
             else
             {
                 return null;
             }
         }
-        public void SetAggregateProfilePeriods(Models.Publishing.ProfilePeriod period)
+
+        public void SetAggregateProfilePeriods(Models.Publishing.ProfilePeriod profilePeriod)
         {
-            if (period != null && aggregatedProfilePeriods.TryGetValue(period.DistributionPeriodId, out decimal total))
+            if (profilePeriod != null && aggregatedProfilePeriods.TryGetValue(profilePeriod.DistributionPeriodId, out decimal total))
             {
-                period.ProfiledValue = total;
+                profilePeriod.ProfiledValue = total;
             }
         }
-
     }
 }
