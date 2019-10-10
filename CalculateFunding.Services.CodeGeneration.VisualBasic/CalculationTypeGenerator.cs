@@ -153,7 +153,7 @@ namespace CalculateFunding.Services.CodeGeneration.VisualBasic
                     builder.AppendLine($"Dictionary.Add(\"{calc.Id}\", {{If(calcResult.HasValue, calcResult.ToString(), \"\"),\"\", \"\", sw.Elapsed.ToString()}})");
                     builder.AppendLine("Catch ex as System.Exception");
                     builder.AppendLine("    sw.stop()");
-                    builder.AppendLine($"Dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message, sw.Elapsed.ToString(), ex.StackTrace }})");
+                    builder.AppendLine($"Dictionary.Add(\"{calc.Id}\", {{\"\", ex.GetType().Name, ex.Message, ex.StackTrace.Replace(Environment.NewLine, \" \"), sw.Elapsed.ToString() }})");
                     builder.AppendLine("End Try");
                 }
 
