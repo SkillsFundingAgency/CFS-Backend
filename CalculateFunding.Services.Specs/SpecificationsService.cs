@@ -1228,37 +1228,6 @@ WHERE   s.documentType = @DocumentType",
             }
         }
 
-        public async Task<IActionResult> RefreshPublishedResults(HttpRequest request)
-        {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Warning("No specification Id was provided to SelectSpecificationForFunding");
-                return new BadRequestObjectResult("Null or empty specification Id provided");
-            }
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-
-            if (specification == null)
-            {
-                return new BadRequestObjectResult($"Specification {specificationId} - was not found");
-            }
-
-            try
-            {
-                await PublishProviderResults(request, specificationId, "Refreshing published provider results for specification");
-
-                return new NoContentResult();
-            }
-            catch (Exception e)
-            {
-                return new InternalServerErrorResult(e.Message);
-            }
-        }
-
         public async Task<IActionResult> SelectSpecificationForFunding(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out StringValues specId);
@@ -1324,9 +1293,7 @@ WHERE   s.documentType = @DocumentType",
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
                 await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>(
-                    $"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
-
-                await PublishProviderResults(request, specificationId, "Selecting specification for funding");
+                    $"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");               
             }
             catch (Exception ex)
             {
@@ -1380,48 +1347,7 @@ WHERE   s.documentType = @DocumentType",
         {
             return specificationsInFundingPeriod.Any(_ =>
                 fundingStreams.Intersect(_.Current?.FundingStreams?.Select(fs => fs.Id)).Any());
-        }
-
-        private async Task PublishProviderResults(HttpRequest request, string specificationId, string triggerMessage)
-        {
-            try
-            {
-                Reference user = request.GetUser();
-
-                Trigger trigger = new Trigger
-                {
-                    EntityId = specificationId,
-                    EntityType = nameof(Specification),
-                    Message = triggerMessage
-                };
-
-                string correlationId = request.GetCorrelationId();
-
-                JobCreateModel job = new JobCreateModel
-                {
-                    InvokerUserDisplayName = user.Name,
-                    InvokerUserId = user.Id,
-                    JobDefinitionId = JobConstants.DefinitionNames.PublishProviderResultsJob,
-                    Properties = new Dictionary<string, string>
-                    {
-                        { "specification-id", specificationId }
-                    },
-                    SpecificationId = specificationId,
-                    Trigger = trigger,
-                    CorrelationId = correlationId
-                };
-
-                UpdateCacheWithCalculationStarted(specificationId);
-                await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
-            }
-            catch (Exception ex)
-            {
-                string error = $"Failed to queue publishing of provider results for specification id: {specificationId}";
-                UpdateCacheWithCalculationError(specificationId, error);
-                _logger.Error(error);
-                throw new Exception(error);
-            }
-        }
+        }             
 
         public async Task<IActionResult> CheckPublishResultStatus(HttpRequest request)
         {

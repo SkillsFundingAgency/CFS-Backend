@@ -368,10 +368,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .BeOfType<NoContentResult>();
 
-            await jobsApiClient
-                .Received(1)
-                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.PublishProviderResultsJob && j.SpecificationId == SpecificationId && j.Trigger.Message == $"Selecting specification for funding"));
-
             await cacheProvider
                 .Received(1)
                 .RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");

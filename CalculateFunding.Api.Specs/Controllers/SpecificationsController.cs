@@ -170,13 +170,6 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.CheckPublishResultStatus(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/refresh-published-results")]
-        [HttpPost]
-        public async Task<IActionResult> RunRefreshPublishedResults()
-        {
-            return await _specService.RefreshPublishedResults(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/specs/update-published-refreshed-date")]
         [HttpPost]
         public async Task<IActionResult> RunUpdatePublishedRefreshedDate()

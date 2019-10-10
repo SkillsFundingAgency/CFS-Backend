@@ -45,9 +45,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(HttpRequest request);
 
-        Task<IActionResult> SelectSpecificationForFunding(HttpRequest request);
-
-        Task<IActionResult> RefreshPublishedResults(HttpRequest request);
+        Task<IActionResult> SelectSpecificationForFunding(HttpRequest request);       
 
         Task<IActionResult> CheckPublishResultStatus(HttpRequest request);
 
