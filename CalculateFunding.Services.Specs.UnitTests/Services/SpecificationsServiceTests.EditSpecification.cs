@@ -10,6 +10,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
@@ -914,6 +915,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                     .RemoveAsync<List<SpecificationSummary>>(Arg.Is($"{CacheKeys.SpecificationSummariesByFundingPeriodId}fp10"));
 
             await
+                cacheProvider
+                    .Received(1)
+                    .RemoveAsync<List<ProviderSummary>>(Arg.Is($"{CacheKeys.ScopedProviderSummariesPrefix}{specification.Id}"));
+
+            await
                 versionRepository
                  .Received(1)
                  .SaveVersion(Arg.Is(newSpecVersion));
@@ -1014,6 +1020,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 cacheProvider
                     .Received(1)
                     .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{specification.Id}"));
+
+            await
+                cacheProvider
+                    .Received(1)
+                    .RemoveAsync<List<ProviderSummary>>(Arg.Is($"{CacheKeys.ScopedProviderSummariesPrefix}{specification.Id}"));
 
             await
                 cacheProvider

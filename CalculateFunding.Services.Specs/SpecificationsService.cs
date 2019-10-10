@@ -18,6 +18,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Obsoleted;
+using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Models.Versioning;
@@ -889,7 +890,9 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-            await TaskHelper.WhenAllAndThrow(ReindexSpecification(specification), ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id));
+            await TaskHelper.WhenAllAndThrow(ReindexSpecification(specification), 
+                ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
+                _cacheProvider.RemoveAsync<List<ProviderSummary>>($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}"));
 
             if (previousFundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
@@ -1551,7 +1554,7 @@ WHERE   s.documentType = @DocumentType",
             await TaskHelper.WhenAllAndThrow(
                 _cacheProvider.RemoveAsync<List<SpecificationSummary>>(CacheKeys.SpecificationSummaries),
                 _cacheProvider.RemoveAsync<List<SpecificationSummary>>($"{CacheKeys.SpecificationSummariesByFundingPeriodId}{fundingPeriodId}")
-                );
+            );
         }
 
         private IDictionary<string, string> CreateMessageProperties(HttpRequest request)
