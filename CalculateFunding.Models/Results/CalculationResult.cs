@@ -24,6 +24,9 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("exceptionMessage")]
         public string ExceptionMessage { get; set; }
 
+        [JsonProperty("exceptionStackTrace")]
+        public string ExceptionStackTrace { get; set; }
+
         /// <summary>
         /// Elapsed time, used for debugging locally and shouldn't be stored in cosmos
         /// </summary>

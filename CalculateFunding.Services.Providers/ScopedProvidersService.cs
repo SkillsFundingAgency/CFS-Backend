@@ -132,7 +132,7 @@ namespace CalculateFunding.Services.Providers
 
         public async Task<IActionResult> GetScopedProviderIds(string specificationId)
         {
-            IEnumerable<string> providerIds = await this.GetScopedProviderIdsBySpecification(specificationId);
+            IEnumerable<string> providerIds = await GetScopedProviderIdsBySpecification(specificationId);
 
             if (providerIds.IsNullOrEmpty())
             {

@@ -50,16 +50,23 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<PropertyInfo> allocationTypeCalculationProperties = allocationType.GetTypeInfo().DeclaredProperties.Where(m => m.PropertyType.BaseType.Name == "BaseCalculation");
 
-            List<FieldInfo> executeFuncs = new List<FieldInfo>();
-
-            foreach (PropertyInfo propertyInfo in allocationTypeCalculationProperties)
-            {
-                IEnumerable<FieldInfo> fieldInfos = propertyInfo.PropertyType.GetTypeInfo().DeclaredFields.Where(x => x.FieldType == typeof(Func<decimal?>));
-
-                executeFuncs.AddRange(fieldInfos);
-            }
+            List<FieldInfo> executeFuncs = GetExecuteFuncs(allocationTypeCalculationProperties);
 
             _mainMethod = allocationType.GetMethods().FirstOrDefault(x => x.Name == "MainCalc");
+
+            _funcs = PopulateFuncs(executeFuncs);
+
+            _instance = Activator.CreateInstance(allocationType);
+            _datasetsInstance = Activator.CreateInstance(datasetType);
+            datasetsSetter.SetValue(_instance, _datasetsInstance);
+            _providerInstance = Activator.CreateInstance(providerType);
+            _logger = logger;
+            _featureToggle = featureToggle;
+        }
+
+        private List<Tuple<FieldInfo, CalculationResult>> PopulateFuncs(List<FieldInfo> executeFuncs)
+        {
+            List<Tuple<FieldInfo, CalculationResult>> funcs = new List<Tuple<FieldInfo, CalculationResult>>();
 
             foreach (FieldInfo executeFunc in executeFuncs)
             {
@@ -72,16 +79,24 @@ namespace CalculateFunding.Services.CalcEngine
                         Calculation = GetReference(attributes, "Calculation"),
                     };
 
-                    _funcs.Add(new Tuple<FieldInfo, CalculationResult>(executeFunc, result));
+                    funcs.Add(new Tuple<FieldInfo, CalculationResult>(executeFunc, result));
                 }
             }
 
-            _instance = Activator.CreateInstance(allocationType);
-            _datasetsInstance = Activator.CreateInstance(datasetType);
-            datasetsSetter.SetValue(_instance, _datasetsInstance);
-            _providerInstance = Activator.CreateInstance(providerType);
-            _logger = logger;
-            _featureToggle = featureToggle;
+            return funcs;
+        }
+
+        private List<FieldInfo> GetExecuteFuncs(IEnumerable<PropertyInfo> allocationTypeCalculationProperties)
+        {
+            List<FieldInfo> executeFuncs = new List<FieldInfo>();
+            foreach (PropertyInfo propertyInfo in allocationTypeCalculationProperties)
+            {
+                IEnumerable<FieldInfo> fieldInfos = propertyInfo.PropertyType.GetTypeInfo().DeclaredFields.Where(x => x.FieldType == typeof(Func<decimal?>));
+
+                executeFuncs.AddRange(fieldInfos);
+            }
+
+            return executeFuncs;
         }
 
         public object Instance
@@ -125,46 +140,13 @@ namespace CalculateFunding.Services.CalcEngine
             HashSet<string> datasetNamesUsed = new HashSet<string>();
             foreach (ProviderSourceDataset dataset in datasets)
             {
-                Type type = null;
-
-                if (_featureToggle.IsUseFieldDefinitionIdsInSourceDatasetsEnabled())
-                {
-                    if (!string.IsNullOrWhiteSpace(dataset.DataDefinitionId))
-                    {
-                        type = GetDatasetType(dataset.DataDefinitionId);
-                    }
-                    else
-                    {
-                        type = GetDatasetType(dataset.DataDefinition.Id);
-                    }
-                }
-                else
-                {
-                    type = GetDatasetType(dataset.DataDefinition.Name);
-                }
+                Type type = GetDatasetType(dataset);
 
                 if (_datasetSetters.TryGetValue(dataset.DataRelationship.Name, out PropertyInfo setter))
                 {
                     datasetNamesUsed.Add(dataset.DataRelationship.Name);
-                    if (dataset.DataGranularity == DataGranularity.SingleRowPerProvider)
-                    {
-                        object row = PopulateRow(type, dataset.Current.Rows.First());
-                        setter.SetValue(_datasetsInstance, row);
-                    }
-                    else
-                    {
-                        Type constructGeneric = typeof(List<>).MakeGenericType(type);
-                        object list = Activator.CreateInstance(constructGeneric);
-                        MethodInfo addMethod = list.GetType().GetMethod("Add");
-                        Type itemType = list.GetType().GenericTypeArguments.First();
-                        object[] rows = dataset.Current.Rows.Select(x => PopulateRow(itemType, x)).ToArray();
-                        foreach (object row in rows)
-                        {
-                            addMethod.Invoke(list, new[] { row });
-                        }
 
-                        setter.SetValue(_datasetsInstance, list);
-                    }
+                    SetDatasetInstanceValue(dataset, type, setter, _datasetsInstance);
                 }
             }
 
@@ -172,42 +154,24 @@ namespace CalculateFunding.Services.CalcEngine
 
             object provider = PopulateProvider(providerSummary, providerSetter);
             providerSetter.SetValue(_instance, provider);
-
-
+            
             if (!aggregationValues.IsNullOrEmpty())
             {
-                PropertyInfo aggregationsSetter = _instance.GetType().GetProperty("Aggregations");
-
-                if (aggregationsSetter != null)
-                {
-                    Type propType = aggregationsSetter.PropertyType;
-
-                    object data = Activator.CreateInstance(propType);
-
-                    MethodInfo add = data.GetType().GetMethod("Add", new[] { typeof(String), typeof(Decimal) });
-
-                    foreach (CalculationAggregation aggregations in aggregationValues)
-                    {
-                        foreach (AggregateValue aggregatedValue in aggregations.Values)
-                        {
-                            add.Invoke(data, new object[] { aggregatedValue.FieldReference, aggregatedValue.Value.HasValue ? aggregatedValue.Value.Value : 0 });
-                        }
-                    }
-
-                    aggregationsSetter.SetValue(_instance, data);
-                }
+                SetInstanceAggregationsValues(aggregationValues);
             }
 
-            // Add default object for any missing datasets to help reduce null exceptions
-            foreach (string key in _datasetSetters.Keys.Where(x => !datasetNamesUsed.Contains(x)))
-            {
-                if (_datasetSetters.TryGetValue(key, out PropertyInfo setter))
-                {
-                    setter.SetValue(_datasetsInstance, Activator.CreateInstance(setter.PropertyType));
-                }
-            }
+            SetMissingDatasetDefaultObjects(datasetNamesUsed, _datasetSetters, _datasetsInstance);
 
-            PropertyInfo calcResultsSetter = _instance.GetType().GetProperty("CalcResultsCache");
+            SetInstanceCalcResults(_instance);
+
+            Dictionary<string, string[]> results = (Dictionary<string, string[]>)_mainMethod.Invoke(_instance, null);
+
+            return ProcessCalculationResults(results, _funcs);
+        }
+
+        private void SetInstanceCalcResults(object instance)
+        {
+            PropertyInfo calcResultsSetter = instance.GetType().GetProperty("CalcResultsCache");
 
             if (calcResultsSetter != null)
             {
@@ -215,12 +179,28 @@ namespace CalculateFunding.Services.CalcEngine
 
                 object data = Activator.CreateInstance(propType);
 
-                calcResultsSetter.SetValue(_instance, data);
+                calcResultsSetter.SetValue(instance, data);
             }
+        }
 
+        /// <summary>
+        /// Add default object for any missing datasets to help reduce null exceptions
+        /// </summary>
+        private void SetMissingDatasetDefaultObjects(HashSet<string> datasetNamesUsed, Dictionary<string, PropertyInfo> datasetSetters, object datasetsInstance)
+        {
+            foreach (string key in datasetSetters.Keys.Where(x => !datasetNamesUsed.Contains(x)))
+            {
+                if (datasetSetters.TryGetValue(key, out PropertyInfo setter))
+                {
+                    setter.SetValue(datasetsInstance, Activator.CreateInstance(setter.PropertyType));
+                }
+            }
+        }
+
+        private IList<CalculationResult> ProcessCalculationResults(Dictionary<string, string[]> results,
+            List<Tuple<FieldInfo, CalculationResult>> funcs)
+        {
             IList<CalculationResult> calculationResults = new List<CalculationResult>();
-
-            Dictionary<string, string[]> results = (Dictionary<string, string[]>)_mainMethod.Invoke(_instance, null);
 
             foreach (KeyValuePair<string, string[]> calcResult in results)
             {
@@ -230,34 +210,119 @@ namespace CalculateFunding.Services.CalcEngine
                     continue;
                 }
 
-                Tuple<FieldInfo, CalculationResult> func = _funcs.FirstOrDefault(m => string.Equals(m.Item2.Calculation.Id, calcResult.Key, StringComparison.InvariantCultureIgnoreCase));
+                Tuple<FieldInfo, CalculationResult> func = funcs.FirstOrDefault(m =>
+                    string.Equals(m.Item2.Calculation.Id, calcResult.Key, StringComparison.InvariantCultureIgnoreCase));
 
                 if (func != null)
                 {
                     CalculationResult calculationResult = func.Item2;
 
-                    calculationResult.Value = calcResult.Value[0].GetValueOrNull<decimal>();
-
-                    if (calcResult.Value.Length >= 3)
-                    {
-                        calculationResult.ExceptionType = calcResult.Value[1];
-
-                        calculationResult.ExceptionMessage = calcResult.Value[2];
-
-                        if (calcResult.Value.Count() == 4)
-                        {
-                            if (TimeSpan.TryParse(calcResult.Value[3], out TimeSpan ts))
-                            {
-                                calculationResult.ElapsedTime = ts.Ticks;
-                            }
-                        }
-                    }
+                    ProcessCalculationResult(calculationResult, calcResult);
 
                     calculationResults.Add(calculationResult);
                 }
             }
 
             return calculationResults;
+        }
+
+        private static void ProcessCalculationResult(CalculationResult calculationResult, KeyValuePair<string, string[]> calcResult)
+        {
+            const int valueIndex = 0;
+            const int exceptionTypeIndex = 1;
+            const int exceptionMessageIndex = 2;
+            const int exceptionStackTraceIndex = 3;
+            const int exceptionElapsedTimeIndex = 4;
+
+            calculationResult.Value = calcResult.Value[valueIndex].GetValueOrNull<decimal>();
+
+            if (calcResult.Value.Length > exceptionMessageIndex)
+            {
+                calculationResult.ExceptionType = calcResult.Value[exceptionTypeIndex];
+                calculationResult.ExceptionMessage = calcResult.Value[exceptionMessageIndex];
+
+                if(calcResult.Value.Length > exceptionStackTraceIndex) calculationResult.ExceptionStackTrace = calcResult.Value[exceptionStackTraceIndex];
+
+                if (calcResult.Value.Length > exceptionElapsedTimeIndex)
+                {
+                    if (TimeSpan.TryParse(calcResult.Value[exceptionElapsedTimeIndex], out TimeSpan ts))
+                    {
+                        calculationResult.ElapsedTime = ts.Ticks;
+                    }
+                }
+            }
+        }
+
+        private void SetInstanceAggregationsValues(IEnumerable<CalculationAggregation> aggregationValues)
+        {
+            PropertyInfo aggregationsSetter = _instance.GetType().GetProperty("Aggregations");
+
+            if (aggregationsSetter != null)
+            {
+                Type propType = aggregationsSetter.PropertyType;
+
+                object data = Activator.CreateInstance(propType);
+
+                MethodInfo add = data.GetType().GetMethod("Add", new[] {typeof(String), typeof(Decimal)});
+
+                foreach (CalculationAggregation aggregations in aggregationValues)
+                {
+                    foreach (AggregateValue aggregatedValue in aggregations.Values)
+                    {
+                        add.Invoke(data, new object[] {aggregatedValue.FieldReference, aggregatedValue.Value.HasValue ? aggregatedValue.Value.Value : 0});
+                    }
+                }
+
+                aggregationsSetter.SetValue(_instance, data);
+            }
+        }
+
+        private void SetDatasetInstanceValue(ProviderSourceDataset dataset, Type type, PropertyInfo setter, object datasetsInstance)
+        {
+            if (dataset.DataGranularity == DataGranularity.SingleRowPerProvider)
+            {
+                object row = PopulateRow(type, dataset.Current.Rows.First());
+
+                setter.SetValue(datasetsInstance, row);
+            }
+            else
+            {
+                Type constructGeneric = typeof(List<>).MakeGenericType(type);
+
+                object list = Activator.CreateInstance(constructGeneric);
+
+                MethodInfo addMethod = list.GetType().GetMethod("Add");
+
+                Type itemType = list.GetType().GenericTypeArguments.First();
+
+                object[] rows = dataset.Current.Rows.Select(x => PopulateRow(itemType, x)).ToArray();
+
+                foreach (object row in rows)
+                {
+                    addMethod.Invoke(list, new[] {row});
+                }
+
+                setter.SetValue(datasetsInstance, list);
+            }
+        }
+
+        private Type GetDatasetType(ProviderSourceDataset dataset)
+        {
+            if (_featureToggle.IsUseFieldDefinitionIdsInSourceDatasetsEnabled())
+            {
+                if (!string.IsNullOrWhiteSpace(dataset.DataDefinitionId))
+                {
+                    return GetDatasetType(dataset.DataDefinitionId);
+                }
+                else
+                {
+                    return GetDatasetType(dataset.DataDefinition.Id);
+                }
+            }
+            else
+            {
+                return GetDatasetType(dataset.DataDefinition.Name);
+            }
         }
 
         private object PopulateProvider(ProviderSummary providerSummary, PropertyInfo providerSetter)

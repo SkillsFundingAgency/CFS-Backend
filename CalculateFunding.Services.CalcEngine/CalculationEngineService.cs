@@ -203,7 +203,7 @@ namespace CalculateFunding.Services.CalcEngine
 
                 CalculationResultsModel calculationResults = await CalculateResults(summaries, calculations, aggregations, buildProject, messageProperties, providerBatchSize, i, providerSourceDatasetsStopwatch, calculationStopwatch);
 
-                _logger.Information($"calculating results complete for specification id {messageProperties.SpecificationId}");
+                _logger.Information($"Calculating results complete for specification id {messageProperties.SpecificationId}");
 
                 long saveCosmosElapsedMs = -1;
                 long saveSearchElapsedMs = -1;
@@ -234,13 +234,10 @@ namespace CalculateFunding.Services.CalcEngine
 
                         if (calculationResults.ResultsContainExceptions)
                         {
-                            if (!calculationResultsHaveExceptions)
-                            {
-                                calculationResultsHaveExceptions = true;
-                            }
+                            _logger.Warning($"Exception(s) executing specification id '{messageProperties.SpecificationId}:  {calculationResults.ExceptionMessages}");
+                            calculationResultsHaveExceptions = true;
                         }
                     }
-
                 }
 
                 calcTiming.Stop();
@@ -308,11 +305,11 @@ namespace CalculateFunding.Services.CalcEngine
 
             providerSourceDatasetsStopwatch.Stop();
 
-            _logger.Information($"fetched provider sources found for specification id {messageProperties.SpecificationId}");
+            _logger.Information($"Fetched provider sources found for specification id {messageProperties.SpecificationId}");
 
             calculationStopwatch.Start();
 
-            _logger.Information($"calculating results for specification id {messageProperties.SpecificationId}");
+            _logger.Information($"Calculating results for specification id {messageProperties.SpecificationId}");
 
             Assembly assembly = Assembly.Load(buildProject.Build.Assembly);
 
@@ -333,7 +330,7 @@ namespace CalculateFunding.Services.CalcEngine
             });
 
 
-            _logger.Information($"calculating results complete for specification id {messageProperties.SpecificationId}");
+            _logger.Information($"Calculating results complete for specification id {messageProperties.SpecificationId}");
 
             calculationStopwatch.Stop();
 

@@ -48,7 +48,7 @@ namespace CalculateFunding.Services.CalcEngine
             IEnumerable<CalculationSummaryModel> calculations = await _calculationsRepository.GetCalculationSummariesForSpecification(buildProject.SpecificationId);
 
             Parallel.ForEach(providers, new ParallelOptions { MaxDegreeOfParallelism = 5 }, provider =>
-           {
+            {
                var stopwatch = new Stopwatch();
                stopwatch.Start();
 
@@ -128,14 +128,15 @@ namespace CalculateFunding.Services.CalcEngine
 
                         result.ExceptionType = calculationResult.ExceptionType;
                         result.ExceptionMessage = calculationResult.ExceptionMessage;
+                        result.ExceptionStackTrace = calculationResult.ExceptionStackTrace;
                     }
 
                     results.Add(result);
                 }
             }
-            
+
             //we need a stable sort of results to enable the cache checks by overall SHA hash on the results json
-            providerResult.CalculationResults = results.OrderBy(_ => _.Calculation.Id).ToList(); 
+            providerResult.CalculationResults = results.OrderBy(_ => _.Calculation.Id).ToList();
 
             return providerResult;
         }
