@@ -195,7 +195,7 @@ namespace CalculateFunding.Services.Calcs
                     WasTemplateCalculation = m.Result.WasTemplateCalculation,
                     Description = m.Result.Description,
                     Status = m.Result.Status,
-                    LastUpdatedDate = m.Result.LastUpdatedDate,
+                    LastUpdatedDate = m.Result.LastUpdatedDate?.LocalDateTime,
                     SpecificationName = m.Result.SpecificationName,
                 });
             }
