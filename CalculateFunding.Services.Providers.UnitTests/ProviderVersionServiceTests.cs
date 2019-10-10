@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -31,53 +33,28 @@ namespace CalculateFunding.Services.Providers.UnitTests
     [TestClass]
     public class ProviderVersionServiceTests
     {
+        private const string ActionName = "Action";
+        private const string Description = "Hello, world!";
+        private const string Controller = "Fat";
+        private const string ProviderVersionId = "2";
+        private const string InputProviderVersionId = "3";
+
         [TestMethod]
         public async Task UploadProviderVersion_WhenAllPropertiesPopulated()
         {
             // Arrange
-            string id = "1";
-            string providerVersionId = "2";
-            string actionName = "Action";
-            string controller = "Fat";
-            string description = "Hello, world!";
-            string inputProviderVersionId = "3";
-
             ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
-
-            ProviderVersion providerVersion = new ProviderVersion
-            {
-                Id = id,
-                ProviderVersionId = providerVersionId,
-                Description = description
-            };
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
-
-            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
-
             ICloudBlob cloudBlob = CreateCloudBlob();
-
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
             IBlobClient blobClient = CreateBlobClient();
-            blobClient.GetBlockBlobReference(Arg.Any<string>()).Returns(cloudBlob);
-
-            IMapper mapper = Substitute.For<IMapper>();
-            mapper
-                .Map<ProviderVersion>(providerVersionViewModel)
-                .Returns(providerVersion);
-
             IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
-
-            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient,
-                providerVersionModelValidator: uploadProviderVersionValidator,
-                cacheProvider: cacheProvider,
-                mapper: mapper,
-                providerVersionMetadataRepository: providerVersionsMetadataRepository);
+            IProviderVersionService providerService = SetupAnAllPropertiesPopulatedProviderVersionService(
+                ProviderVersionId, Description, providerVersionViewModel, cloudBlob, searchRepository, blobClient, providerVersionsMetadataRepository);
 
             // Act
-            IActionResult result = await providerService.UploadProviderVersion(actionName,
-                controller,
-                inputProviderVersionId,
+            IActionResult result = await providerService.UploadProviderVersion(ActionName,
+                Controller,
+                InputProviderVersionId,
                 providerVersionViewModel);
 
             //Assert
@@ -86,11 +63,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
             CreatedAtActionResult typedResult = result as CreatedAtActionResult;
             typedResult.ActionName
                 .Should()
-                .Be(actionName);
+                .Be(ActionName);
 
             typedResult.ControllerName
                 .Should()
-                .Be(controller);
+                .Be(Controller);
 
             typedResult.RouteValues.Count.Should().Be(1);
             typedResult.RouteValues.Single().Key
@@ -99,11 +76,11 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             typedResult.RouteValues.Single().Value
                 .Should()
-                .Be(inputProviderVersionId);
+                .Be(InputProviderVersionId);
 
             typedResult.Value
                 .Should()
-                .Be(inputProviderVersionId);
+                .Be(InputProviderVersionId);
 
             blobClient
                 .Received(1)
@@ -116,8 +93,71 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await providerVersionsMetadataRepository
                 .Received(1)
                 .CreateProviderVersion(Arg.Is<ProviderVersionMetadata>(x =>
-                    x.ProviderVersionId == providerVersionId
-                    && x.Description == description));
+                    x.ProviderVersionId == ProviderVersionId
+                    && x.Description == Description));
+        }
+
+        [TestMethod]
+        [DataRow(HttpStatusCode.OK, 1)]
+        [DataRow(HttpStatusCode.Accepted, 1)]
+        [DataRow(HttpStatusCode.BadRequest, 0)]
+        [DataRow(HttpStatusCode.BadGateway, 0)]
+        public async Task RunIndexer_WhenCreateProviderVersionIsSuccessful(HttpStatusCode resultStatusCode, int timesToRunIndexer)
+        {
+            // Arrange
+            ProviderVersionViewModel providerVersionViewModel = CreateProviderVersion();
+            ICloudBlob cloudBlob = CreateCloudBlob();
+            ISearchRepository<ProvidersIndex> searchRepository = CreateSearchRepository();
+            IBlobClient blobClient = CreateBlobClient();
+            IProviderVersionsMetadataRepository providerVersionsMetadataRepository = CreateProviderVersionMetadataRepository();
+            providerVersionsMetadataRepository.CreateProviderVersion(Arg.Any<ProviderVersionMetadata>()).Returns(resultStatusCode);
+            IProviderVersionService providerService = SetupAnAllPropertiesPopulatedProviderVersionService(
+                ProviderVersionId, Description, providerVersionViewModel, cloudBlob, searchRepository, blobClient, providerVersionsMetadataRepository);
+
+            // Act
+            await providerService.UploadProviderVersion(ActionName,
+                Controller,
+                InputProviderVersionId,
+                providerVersionViewModel);
+
+            //Assert
+            await searchRepository
+                .Received(timesToRunIndexer)
+                .RunIndexer();
+        }
+
+        private IProviderVersionService SetupAnAllPropertiesPopulatedProviderVersionService(
+            string providerVersionId, string description, ProviderVersionViewModel providerVersionViewModel,
+            ICloudBlob cloudBlob, ISearchRepository<ProvidersIndex> searchRepository, IBlobClient blobClient, IProviderVersionsMetadataRepository providerVersionsMetadataRepository)
+        {
+            const string id = "1";
+
+            ProviderVersion providerVersion = new ProviderVersion
+            {
+                Id = id,
+                ProviderVersionId = providerVersionId,
+                Description = description
+            };
+
+            ICacheProvider cacheProvider = CreateCacheProvider();
+            providerVersionViewModel.VersionType = ProviderVersionType.Custom;
+            UploadProviderVersionValidator uploadProviderVersionValidator = new UploadProviderVersionValidator();
+
+            blobClient.GetBlockBlobReference(Arg.Any<string>()).Returns(cloudBlob);
+
+            IMapper mapper = Substitute.For<IMapper>();
+            mapper
+                .Map<ProviderVersion>(providerVersionViewModel)
+                .Returns(providerVersion);
+
+
+
+            return CreateProviderVersionService(blobClient: blobClient,
+                providerVersionModelValidator: uploadProviderVersionValidator,
+                cacheProvider: cacheProvider,
+                mapper: mapper,
+                providerVersionMetadataRepository: providerVersionsMetadataRepository,
+                searchRepository: searchRepository);
         }
 
         [TestMethod]
@@ -140,7 +180,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
 
             // Act
             Func<Task> result = async () =>
-                await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+                await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             result
                 .Should()
@@ -165,7 +205,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -201,7 +241,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator);
 
             // Act
-            IActionResult conflictResponse = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult conflictResponse = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             // Assert
             conflictResponse
@@ -229,7 +269,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 providerVersionMetadataRepository: repository);
 
             // Act
-            IActionResult conflictResponse = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult conflictResponse = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             // Assert
             conflictResponse
@@ -289,7 +329,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -323,7 +363,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -361,7 +401,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -397,7 +437,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -433,7 +473,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -469,7 +509,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult request = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult request = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             request
                 .Should()
@@ -502,7 +542,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -550,7 +590,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, providerVersionModelValidator: uploadProviderVersionValidator, cacheProvider: cacheProvider);
 
             // Act
-            IActionResult badRequest = await providerService.UploadProviderVersion("Action", "Controller", providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
+            IActionResult badRequest = await providerService.UploadProviderVersion(ActionName, Controller, providerVersionViewModel.ProviderVersionId, providerVersionViewModel);
 
             badRequest
                 .Should()
@@ -660,7 +700,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .Should()
                 .BeOfType<NotFoundResult>();
         }
-        
+
         [TestMethod]
         public async Task GetAllProviders_WhenProviderVersionIdExistsInCacheAndFileSystemCachingEnabled_ProviderListReturned_DocumentNotCached()
         {
@@ -699,7 +739,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             fileSystemCache.Exists(Arg.Is<ProviderVersionFileSystemCacheKey>(_ => _.Key == providerVersionViewModel.ProviderVersionId))
                 .Returns(true);
 
-            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, 
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient,
                 providerVersionModelValidator: uploadProviderVersionValidator,
                 mapper: mapper,
                 fileSystemCache: fileSystemCache,
@@ -728,18 +768,18 @@ namespace CalculateFunding.Services.Providers.UnitTests
             await blobClient
                 .DidNotReceive()
                 .DownloadToStreamAsync(Arg.Any<ICloudBlob>());
-            
+
             fileSystemCache
                 .DidNotReceive()
                 .Add(Arg.Is<ProviderVersionFileSystemCacheKey>(_ => _.Key == providerVersionViewModel.ProviderVersionId),
                     Arg.Is(memoryStream),
                     Arg.Is(CancellationToken.None));
-            
+
             fileSystemCache
                 .Received(1)
                 .EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
         }
-        
+
         [TestMethod]
         public async Task GetAllProviders_WhenProviderVersionIdExistsAndFileSystemCachingEnabled_ProviderListReturned_DocumentCached()
         {
@@ -776,7 +816,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 .DownloadToStreamAsync(cloudBlob)
                 .Returns(memoryStream);
 
-            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient, 
+            IProviderVersionService providerService = CreateProviderVersionService(blobClient: blobClient,
                 providerVersionModelValidator: uploadProviderVersionValidator,
                 mapper: mapper,
                 fileSystemCache: fileSystemCache,
@@ -796,13 +836,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
             okRequest
                 .Should()
                 .BeOfType<ContentResult>();
-            
+
             fileSystemCache
                 .Received(1)
                 .Add(Arg.Is<ProviderVersionFileSystemCacheKey>(_ => _.Key == providerVersionViewModel.ProviderVersionId),
                     Arg.Is(memoryStream),
                     Arg.Is(CancellationToken.None));
-            
+
             fileSystemCache
                 .Received(1)
                 .EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
@@ -855,7 +895,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
             okRequest
                 .Should()
                 .BeOfType<ContentResult>();
-            
+
             fileSystemCache
                 .DidNotReceive()
                 .EnsureFoldersExist(ProviderVersionFileSystemCacheKey.Folder);
@@ -1299,8 +1339,9 @@ namespace CalculateFunding.Services.Providers.UnitTests
             ICacheProvider cacheProvider = null,
             IProviderVersionsMetadataRepository providerVersionMetadataRepository = null,
             IMapper mapper = null,
-            IFileSystemCache fileSystemCache = null, 
-            IProviderVersionServiceSettings settings = null)
+            IFileSystemCache fileSystemCache = null,
+            IProviderVersionServiceSettings settings = null,
+            ISearchRepository<ProvidersIndex> searchRepository = null)
         {
             return new ProviderVersionService(cacheProvider ?? CreateCacheProvider(),
                 blobClient ?? CreateBlobClient(),
@@ -1310,7 +1351,13 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 CreateResiliencePolicies(),
                 mapper ?? CreateMapper(),
                 fileSystemCache ?? CreateFileSystemCache(),
-                settings ?? CreateSettings());
+                settings ?? CreateSettings(),
+                searchRepository ?? CreateSearchRepository());
+        }
+
+        private ISearchRepository<ProvidersIndex> CreateSearchRepository()
+        {
+            return Substitute.For<ISearchRepository<ProvidersIndex>>();
         }
 
         private IProviderVersionServiceSettings CreateSettings()

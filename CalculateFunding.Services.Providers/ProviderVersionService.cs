@@ -10,6 +10,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
+using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
@@ -40,6 +41,7 @@ namespace CalculateFunding.Services.Providers
         private readonly IFileSystemCache _fileSystemCache;
         private readonly IProviderVersionServiceSettings _providerVersionServiceSettings;
         private static volatile bool _haveCheckedFileSystemCacheFolder;
+        private readonly ISearchRepository<ProvidersIndex> _searchRepository;
 
 
         public ProviderVersionService(ICacheProvider cacheProvider,
@@ -50,7 +52,8 @@ namespace CalculateFunding.Services.Providers
             IProvidersResiliencePolicies resiliencePolicies,
             IMapper mapper,
             IFileSystemCache fileSystemCache,
-            IProviderVersionServiceSettings providerVersionServiceSettings)
+            IProviderVersionServiceSettings providerVersionServiceSettings,
+            ISearchRepository<ProvidersIndex> searchRepository)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -61,6 +64,7 @@ namespace CalculateFunding.Services.Providers
             Guard.ArgumentNotNull(fileSystemCache, nameof(fileSystemCache));
             Guard.ArgumentNotNull(providerVersionServiceSettings, nameof(providerVersionServiceSettings));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
+            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
 
             _cacheProvider = cacheProvider;
             _blobClient = blobClient;
@@ -69,10 +73,10 @@ namespace CalculateFunding.Services.Providers
             _providerVersionMetadataRepository = providerVersionMetadataRepository;
             _providerVersionMetadataRepositoryPolicy = resiliencePolicies.ProviderVersionMetadataRepository;
             _blobRepositoryPolicy = resiliencePolicies.BlobRepositoryPolicy;
-
             _mapper = mapper;
             _fileSystemCache = fileSystemCache;
             _providerVersionServiceSettings = providerVersionServiceSettings;
+            _searchRepository = searchRepository;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -358,7 +362,10 @@ namespace CalculateFunding.Services.Providers
 
             ProviderVersionMetadata providerVersionMetadata = providerVersion;
 
-            await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.CreateProviderVersion(providerVersionMetadata));
+            HttpStatusCode result = await _providerVersionMetadataRepositoryPolicy.ExecuteAsync(() => _providerVersionMetadataRepository.CreateProviderVersion(providerVersionMetadata));
+
+            if (result.IsSuccess())
+                await _searchRepository.RunIndexer();
 
             return new CreatedAtActionResult(actionName, controller, new { providerVersionId }, providerVersionId);
         }

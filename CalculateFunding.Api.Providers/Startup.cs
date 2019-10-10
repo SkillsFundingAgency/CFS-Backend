@@ -7,6 +7,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
+using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
@@ -112,6 +113,8 @@ namespace CalculateFunding.Api.Providers
 
             builder.AddSingleton<IValidator<ProviderVersionViewModel>, UploadProviderVersionValidator>();
 
+            builder.AddSearch(this.Configuration);
+
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
                 {
@@ -168,7 +171,7 @@ namespace CalculateFunding.Api.Providers
                     BlobRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
-            
+
             builder
                 .AddSingleton<IFileSystemCache, FileSystemCache>()
                 .AddSingleton<IFileSystemAccess, FileSystemAccess>()
@@ -198,6 +201,8 @@ namespace CalculateFunding.Api.Providers
             ServiceProvider = builder.BuildServiceProvider();
 
             builder.AddSearch(Configuration);
+
+
         }
     }
 }
