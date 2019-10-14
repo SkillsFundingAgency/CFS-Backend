@@ -36,7 +36,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             string fundingId = $"funding-{lookupModel.FundingStreamId}-{lookupModel.FundingPeriodId}-{lookupModel.GroupingReason}-{lookupModel.OrganisationGroupTypeCode}-{lookupModel.OrganisationGroupIdentifierValue}";
 
-            CalculateFunding.Models.Publishing.PublishedFunding publishedFunding = await _publishedFundingRepositoryStepContext.Repo
+            PublishedFunding publishedFunding = await _publishedFundingRepositoryStepContext.Repo
                 .GetPublishedFundingById(fundingId, "partitionNotUesd");
 
             publishedFunding

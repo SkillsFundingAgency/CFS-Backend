@@ -1,10 +1,15 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
+using CalculateFunding.Services.Publishing.Repositories;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -21,6 +26,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         private readonly IPublishingDatesStepContext _publishingDatesStepContext;
         private readonly ILoggerStepContext _loggerStepContext;
 
+        public IEnumerable<CalculationResult> CalculationResults { get; set; }
+
+        public TemplateMapping TemplateMapping { get; set; }
+
         public PublishServiceAcceptanceStepContext(IJobStepContext jobStepContext,
             ICurrentSpecificationStepContext currentSpecificationStepContext,
             IPublishedFundingRepositoryStepContext publishedFundingRepositoryStepContext,
@@ -36,6 +45,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             _providersStepContext = providersStepContext;
             _publishingDatesStepContext = publishingDatesStepContext;
             _loggerStepContext = loggerStepContext;
+            TemplateMapping = new TemplateMapping();
         }
 
         public async Task PublishFunding(string specificationId, string jobId, string userId, string userName)
@@ -125,6 +135,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 logger,
                 publishedProviderStatusUpdateSettings);
 
+            InMemoryAzureBlobClient inMemoryAzureBlobClient = new InMemoryAzureBlobClient();
+            ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults);
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
+            PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
+            PublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
+            IPublishedProviderContentsGenerator v10ProviderGenerator = new CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator();
+            publishedProviderContentsGeneratorResolver.Register("1.0", v10ProviderGenerator);
+            CalculationResultsService calculationResultsService = new CalculationResultsService(resiliencePolicies, calculationResultsRepository, logger);
+            PublishedProviderVersionService publishedProviderVersionService = new PublishedProviderVersionService(logger, inMemoryAzureBlobClient, resiliencePolicies);
+            Common.ApiClient.Calcs.ICalculationsApiClient calculationsApiClient = new CalculationsInMemoryClient(TemplateMapping);
+
             Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
 
             PublishedFundingDataService publishedFundingDataService = new PublishedFundingDataService(
@@ -140,14 +161,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 publishPrerequisiteChecker,
                 publishedFundingChangeDetectorService,
                 publishedFundingGenerator,
+                publishedProviderDataGenerator,
+                publishedProviderContentsGeneratorResolver,
                 publishedFundingContentsPersistanceService,
                 _publishingDatesStepContext.Service,
                 publishedProviderStatusUpdateService,
                 _providersStepContext.Service,
+                calculationResultsService,
                 publishedFundingInMemorySearchRepository,
+                publishedProviderVersionService,
                 publishedProviderIndexerService,
                 _jobStepContext.JobsClient,
                 policiesInMemoryRepository,
+                calculationsApiClient,
                 logger
                 );
 

@@ -22,7 +22,8 @@ namespace CalculateFunding.Services.Publishing
                 .ForMember(c => c.ValueFormat, opt => opt.Ignore());
             CreateMap<GeneratorModels.FundingLine, TemplateModels.FundingLine>();
 
-            CreateMap<GeneratorModels.FundingLine, FundingLine>();
+            CreateMap<GeneratorModels.FundingLine, FundingLine>()
+                .ForMember(c => c.DistributionPeriods, opt => opt.Ignore());
             CreateMap<GeneratorModels.ReferenceData, FundingReferenceData>();
             CreateMap<GeneratorModels.Calculation, FundingCalculation>();
 

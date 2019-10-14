@@ -1,3 +1,4 @@
+using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Generators.OrganisationGroup;
@@ -35,6 +36,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedFundingDateService _publishedFundingDateService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private IPublishingResiliencePolicies _resiliencePolicies;
+        private IPublishedProviderDataGenerator _publishedProviderDataGenerator;
+        private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
+        private ICalculationResultsService _calculationResultsService;
+        private IPublishedProviderVersionService _publishedProviderVersionService;
+        private ICalculationsApiClient _calculationsApiClient;
 
         ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
@@ -59,6 +65,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
             _logger = Substitute.For<ILogger>();
 
+            _publishedProviderDataGenerator = Substitute.For<IPublishedProviderDataGenerator>();
+            _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
+            _calculationResultsService = Substitute.For<ICalculationResultsService>();
+            _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
+            _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
 
             _resiliencePolicies = new ResiliencePolicies()
             {
@@ -84,14 +95,19 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishPrerequisiteChecker,
                 _publishedFundingChangeDetectorService,
                 _publishedFundingGenerator,
+                _publishedProviderDataGenerator,
+                _publishedProviderContentsGeneratorResolver,
                 _publishedFundingContentsPersistanceService,
                 _publishedFundingDateService,
                 _publishedProviderStatusUpdateService,
                 _providerService,
+                _calculationResultsService,
                 _publishedFundingSearchRepository,
+                _publishedProviderVersionService,
                 _publishedProviderIndexerService,
                 _jobsApiClient,
                 _policiesApiClient,
+                _calculationsApiClient,
                 _logger);
         }
 

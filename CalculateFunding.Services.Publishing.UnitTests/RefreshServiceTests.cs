@@ -31,8 +31,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IInScopePublishedProviderService _inScopePublishedProviderService;
         private IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private ILogger _logger;
-        private IPublishedProviderVersionService _publishedProviderVersionService;
-        private IPublishedProviderIndexerService _publishedProviderIndexerService;
         private ICalculationsApiClient _calculationsApiClient;
         private IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
         private IPoliciesApiClient _policiesApiClient;
@@ -57,8 +55,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _mapper = Substitute.For<IMapper>();
             _profilingService = Substitute.For<IProfilingService>();
             _logger = Substitute.For<ILogger>();
-            _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
-            _publishedProviderIndexerService = Substitute.For<IPublishedProviderIndexerService>();
             _refreshPrerequisiteChecker = Substitute.For<IRefreshPrerequisiteChecker>();
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
 
@@ -75,8 +71,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedProviderDataPopulator,
                 _jobsApiClient,
                 _logger,
-                _publishedProviderVersionService,
-                _publishedProviderIndexerService,
                 _calculationsApiClient,
                 _policiesApiClient,
                 _refreshPrerequisiteChecker,

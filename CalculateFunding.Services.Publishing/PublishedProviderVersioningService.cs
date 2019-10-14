@@ -71,6 +71,20 @@ namespace CalculateFunding.Services.Publishing
                 PublishedProviderVersion newVersion = publishedProvider.Current.Clone() as PublishedProviderVersion;
                 newVersion.Author = author;
                 newVersion.Status = publishedProviderStatus;
+                int minorVersion = publishedProvider.Current.MinorVersion;
+                int majorVersion = publishedProvider.Current.MajorVersion;
+
+                if (publishedProvider.Current.PublishStatus == Models.Versioning.PublishStatus.Approved && publishedProviderStatus == PublishedProviderStatus.Updated)
+                {
+                    Interlocked.Increment(ref minorVersion);
+                    newVersion.MinorVersion = minorVersion;
+                }
+                else if (publishedProviderStatus == PublishedProviderStatus.Released)
+                {
+                    Interlocked.Increment(ref majorVersion);
+                    newVersion.MajorVersion = majorVersion;
+                    newVersion.MinorVersion = 0;
+                }
 
                 switch (publishedProviderStatus)
                 {

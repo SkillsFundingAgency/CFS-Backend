@@ -1,7 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using FluentAssertions;
 using TechTalk.SpecFlow;
+using TechTalk.SpecFlow.Assist;
 
 namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 {
@@ -23,6 +29,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _currentJobStepContext = currentJobStepContext;
             _currentUserStepContext = currentUserStepContext;
         }
+
+        [Given(@"template mapping exists")]
+        public void GivenTemplateMappingExists(Table table)
+        {
+            IEnumerable<TemplateMappingItem> templateMappingItems = table.CreateSet<TemplateMappingItem>();
+
+            _publishFundingStepContext.TemplateMapping.TemplateMappingItems = templateMappingItems;
+        }
+
+
+        [Given(@"calculations exists")]
+        public void GivenCalculationsExists(Table table)
+        {
+            _publishFundingStepContext.CalculationResults = table.CreateSet<CalculationResult>();
+        }
+
 
         [When(@"funding is published")]
         public async Task WhenFundingIsPublished()

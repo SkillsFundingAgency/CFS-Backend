@@ -114,8 +114,8 @@ Scenario Outline: Successful publishing of funding
 		| TemplateVersion | <TemplateVersion> |
 		| Status          | Approved          |
 		| TotalFunding    | 12000             |
-		| MajorVersion    | 1                 |
-		| MinorVersion    | 0                 |
+		| MajorVersion    | 0                 |
+		| MinorVersion    | 1                 |
 	And the Published Provider has the following funding lines
 		| Name             | FundingLineCode | Value | TemplateLineId | Type    |
 		| Total Allocation | TotalAllocation | 12000 | 1              | Payment |
@@ -194,8 +194,8 @@ Scenario Outline: Successful publishing of funding
 		| TemplateVersion | <TemplateVersion> |
 		| Status          | Approved          |
 		| TotalFunding    | 24000             |
-		| MajorVersion    | 1                 |
-		| MinorVersion    | 0                 |
+		| MajorVersion    | 0                 |
+		| MinorVersion    | 1                 |
 	And the Published Provider has the following funding lines
 		| Name             | FundingLineCode | Value | TemplateLineId | Type    |
 		| Total Allocation | TotalAllocation | 24000 | 1              | Payment |
@@ -275,8 +275,8 @@ Scenario Outline: Successful publishing of funding
 		| TemplateVersion | <TemplateVersion> |
 		| Status          | Approved          |
 		| TotalFunding    | 24000             |
-		| MajorVersion    | 1                 |
-		| MinorVersion    | 0                 |
+		| MajorVersion    | 0                 |
+		| MinorVersion    | 1                 |
 	And the Published Provider has the following funding lines
 		| Name             | FundingLineCode | Value | TemplateLineId | Type    |
 		| Total Allocation | TotalAllocation | 24000 | 1              | Payment |
@@ -355,8 +355,8 @@ Scenario Outline: Successful publishing of funding
 		| TemplateVersion | <TemplateVersion> |
 		| Status          | Approved          |
 		| TotalFunding    | 24000             |
-		| MajorVersion    | 1                 |
-		| MinorVersion    | 0                 |
+		| MajorVersion    | 0                 |
+		| MinorVersion    | 1                 |
 	And the Published Provider has the following funding lines
 		| Name             | FundingLineCode | Value | TemplateLineId | Type    |
 		| Total Allocation | TotalAllocation | 24000 | 1              | Payment |
@@ -1154,6 +1154,20 @@ Scenario Outline: Successful publishing of funding
 		| URN                           |                          |
 		| WardCode                      |                          |
 		| WardName                      |                          |
+	And template mapping exists
+		| EntityType  | CalculationId | TemplateId | Name				|
+		| Calculation | calculation1 | 2		  | Total Allocation	|
+		| Calculation | calculation2 | 3		  | Eligible Pupils		|
+		| Calculation | calculation3 | 4	      | Pupil rate threshold|
+		| Calculation | calculation4 | 5		  | Rate				|
+		| Calculation | calculation5 | 6		  | Additional Rate		|
+	And calculations exists
+		| Value         | CalculationId    |
+		| 24000         | calculation1	   |
+		| 120			| calculation2	   |
+		| 500			| calculation3	   |
+		| 1000			| calculation4	   |
+		| 20			| calculation5	   |
 	When funding is published
 	Then publishing succeeds
 	And the following published funding is produced
