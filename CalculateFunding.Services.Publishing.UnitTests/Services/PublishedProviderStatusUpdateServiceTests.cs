@@ -302,7 +302,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                     publishedFundingRepository ?? CreatePublishedFundingRepository(),
                     jobTracker ?? CreateJobTracker(),
                     logger ?? CreateLogger(),
-                    new PublishedProviderStatusUpdateSettings()
+                    new PublishedProviderStatusUpdateSettings(),
+                    new PublishingEngineOptions()
                 );
         }
 

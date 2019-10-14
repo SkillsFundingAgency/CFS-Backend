@@ -22,18 +22,22 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
         private readonly IVersionRepository<PublishedProviderVersion> _versionRepository;
         private readonly Polly.Policy _versionRepositoryPolicy;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedProviderVersioningService(
             ILogger logger,
             IVersionRepository<PublishedProviderVersion> versionRepository,
-            IPublishingResiliencePolicies resiliencePolicies)
+            IPublishingResiliencePolicies resiliencePolicies,
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(versionRepository, nameof(versionRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedProviderVersionRepository, nameof(resiliencePolicies.PublishedProviderVersionRepository));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _logger = logger;
             _versionRepository = versionRepository;
+            _publishingEngineOptions = publishingEngineOptions;
             _versionRepositoryPolicy = resiliencePolicies.PublishedProviderVersionRepository;
         }
 
@@ -119,7 +123,7 @@ namespace CalculateFunding.Services.Publishing
             ConcurrentBag<PublishedProvider> publishedProviders = new ConcurrentBag<PublishedProvider>();
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderCreateVersionsConcurrencyCount);
             foreach (PublishedProviderCreateVersionRequest publishedProviderCreateVersionRequest in publishedProviderCreateVersionRequests)
             {
                 await throttler.WaitAsync();
@@ -168,7 +172,7 @@ namespace CalculateFunding.Services.Publishing
                new KeyValuePair<string, PublishedProviderVersion>(m.ParitionKey, m.Current));
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.PublishedProviderSaveVersionsConcurrencyCount);
             foreach (var versions in versionsToSave.ToBatches(10))
             {
                 await throttler.WaitAsync();

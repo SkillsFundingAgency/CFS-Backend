@@ -16,19 +16,23 @@ namespace CalculateFunding.Services.Publishing
         private readonly Polly.Policy _resultsRepositoryPolicy;
         private readonly ICalculationResultsRepository _calculationResultsRepository;
         private readonly ILogger _logger;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public CalculationResultsService(
             IPublishingResiliencePolicies resiliencePolicies,
             ICalculationResultsRepository calculationResultsRepository,
-            ILogger logger)
+            ILogger logger, 
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(calculationResultsRepository, nameof(calculationResultsRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _resultsRepositoryPolicy = resiliencePolicies.CalculationResultsRepository;
             _calculationResultsRepository = calculationResultsRepository;
             _logger = logger;
+            _publishingEngineOptions = publishingEngineOptions;
         }
 
         public async Task<IDictionary<string, ProviderCalculationResult>> GetCalculationResultsBySpecificationId(string specificationId, IEnumerable<string> scopedProviderIds)
@@ -39,7 +43,7 @@ namespace CalculateFunding.Services.Publishing
                 List<string> providerIds = new List<string>(scopedProviderIds.Distinct());
 
                 List<Task> allTasks = new List<Task>();
-                SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+                SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetCalculationResultsConcurrencyCount);
                 foreach (string providerId in providerIds)
                 {
                     await throttler.WaitAsync();

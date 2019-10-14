@@ -23,29 +23,33 @@ namespace CalculateFunding.Services.Publishing
         private readonly IVersionRepository<PublishedFundingVersion> _publishedFundingVersionRepository;
         private readonly IPublishedFundingIdGeneratorResolver _publishedFundingIdGeneratorResolver;
         private readonly ILogger _logger;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedFundingStatusUpdateService(IPublishedFundingRepository publishedFundingRepository,
             IPublishingResiliencePolicies publishingResiliencePolicies,
             IVersionRepository<PublishedFundingVersion> publishedFundingVersionRepository,
             IPublishedFundingIdGeneratorResolver publishedFundingIdGeneratorResolver,
-            ILogger logger)
+            ILogger logger,
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies?.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishedFundingVersionRepository, nameof(publishedFundingVersionRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _publishedFundingRepository = publishedFundingRepository;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _publishedFundingVersionRepository = publishedFundingVersionRepository;
             _publishedFundingIdGeneratorResolver = publishedFundingIdGeneratorResolver;
             _logger = logger;
+            _publishingEngineOptions = publishingEngineOptions;
         }
 
         public async Task UpdatePublishedFundingStatus(IEnumerable<(PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion)> publishedFundingToSave, Reference author, PublishedFundingStatus released)
         {
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.UpdatePublishedFundingStatusConcurrencyCount);
             foreach ((PublishedFunding PublishedFunding, PublishedFundingVersion PublishedFundingVersion) _ in publishedFundingToSave)
             {
                 await throttler.WaitAsync();

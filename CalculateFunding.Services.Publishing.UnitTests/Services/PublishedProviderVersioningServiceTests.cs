@@ -559,7 +559,8 @@ namespace CalculateFunding.Services.Publishing.Services.UnitTests
             return new PublishedProviderVersioningService(
                 logger ?? CreateLogger(),
                 versionRepository ?? CreateVersionRepository(),
-                PublishingResilienceTestHelper.GenerateTestPolicies());
+                PublishingResilienceTestHelper.GenerateTestPolicies(),
+                new PublishingEngineOptions());
         }
 
         private static ILogger CreateLogger()

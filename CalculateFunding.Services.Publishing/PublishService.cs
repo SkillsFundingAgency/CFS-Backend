@@ -56,6 +56,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly Policy _jobsApiClientPolicy;
         private readonly Policy _calculationsApiClientPolicy;
         private readonly Policy _policyApiClientPolicy;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -78,8 +79,8 @@ namespace CalculateFunding.Services.Publishing
             IJobsApiClient jobsApiClient,
             IPoliciesApiClient policiesApiClient,
             ICalculationsApiClient calculationsApiClient,
-            ILogger logger
-            )
+            ILogger logger, 
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -103,6 +104,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.JobsApiClient, nameof(publishingResiliencePolicies.JobsApiClient));
@@ -128,6 +130,7 @@ namespace CalculateFunding.Services.Publishing
             _jobsApiClient = jobsApiClient;
             _policiesApiClient = policiesApiClient;
             _logger = logger;
+            _publishingEngineOptions = publishingEngineOptions;
             _calculationsApiClient = calculationsApiClient;
 
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
@@ -367,7 +370,7 @@ namespace CalculateFunding.Services.Publishing
         {
             _logger.Information("Saving published provider contents");
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.SavePublishedProviderContentsConcurrencyCount);
             foreach (PublishedProvider provider in publishedProvidersToUpdate)
             {
                 await throttler.WaitAsync();

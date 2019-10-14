@@ -40,7 +40,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                                                                                            PublishingResilienceTestHelper.GenerateTestPolicies(),
                                                                                            _publishedFundingVersionRepository,
                                                                                            _publishedFundingIdGeneratorResolver,
-                                                                                           logger);
+                                                                                           logger,
+                                                                                           new PublishingEngineOptions());
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
         }

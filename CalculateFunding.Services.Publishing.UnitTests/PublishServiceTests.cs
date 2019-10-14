@@ -108,7 +108,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _jobsApiClient,
                 _policiesApiClient,
                 _calculationsApiClient,
-                _logger);
+                _logger,
+                new PublishingEngineOptions());
         }
 
 

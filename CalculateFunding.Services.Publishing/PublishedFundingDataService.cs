@@ -18,20 +18,24 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISpecificationService _specificationService;
         private readonly Policy _publishedFundingRepositoryPolicy;
         private readonly Policy _specificationsRepositoryPolicy;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedFundingDataService(
             IPublishedFundingRepository publishedFundingRepository,
             ISpecificationService specificationService,
-            IPublishingResiliencePolicies publishingResiliencePolicies)
+            IPublishingResiliencePolicies publishingResiliencePolicies, 
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(specificationService, nameof(specificationService));
             Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.SpecificationsRepositoryPolicy, nameof(publishingResiliencePolicies.SpecificationsRepositoryPolicy));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _publishedFundingRepository = publishedFundingRepository;
             _specificationService = specificationService;
+            _publishingEngineOptions = publishingEngineOptions;
             _publishedFundingRepositoryPolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _specificationsRepositoryPolicy = publishingResiliencePolicies.SpecificationsRepositoryPolicy;
         }
@@ -51,7 +55,7 @@ namespace CalculateFunding.Services.Publishing
                                     () => _publishedFundingRepository.GetPublishedProviderIdsForApproval(fundingStream.Id, specificationSummary.FundingPeriod.Id));
 
                 List<Task> allTasks = new List<Task>();
-                SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+                SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetPublishedProvidersForApprovalConcurrencyCount);
                 foreach (var cosmosDocumentInformation in publishedProviderIds)
                 {
                     await throttler.WaitAsync();
@@ -92,7 +96,7 @@ namespace CalculateFunding.Services.Publishing
                                 () => _publishedFundingRepository.GetPublishedFundingIds(fundingStreamId, fundingPeriodId));
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetCurrentPublishedFundingConcurrencyCount);
             foreach (KeyValuePair<string, string> cosmosDocumentInformation in publishedFundingIds)
             {
                 await throttler.WaitAsync();
@@ -133,7 +137,7 @@ namespace CalculateFunding.Services.Publishing
                                 () => _publishedFundingRepository.GetPublishedProviderIds(fundingStreamId, fundingPeriodId));
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.GetCurrentPublishedProvidersConcurrencyCount);
             foreach (var cosmosDocumentInformation in publishedProviderIds)
             {
                 await throttler.WaitAsync();

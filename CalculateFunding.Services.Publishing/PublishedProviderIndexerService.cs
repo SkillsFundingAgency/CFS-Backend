@@ -20,20 +20,22 @@ namespace CalculateFunding.Services.Publishing
         private readonly ISearchRepository<PublishedProviderIndex> _searchRepository;
         private readonly Policy _searchPolicy;
         private readonly ILogger _logger;
-
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedProviderIndexerService(
             ILogger logger,
             ISearchRepository<PublishedProviderIndex> searchRepository,
-            IPublishingResiliencePolicies publishingResiliencePolicies
-            )
+            IPublishingResiliencePolicies publishingResiliencePolicies, 
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
-            Guard.ArgumentNotNull(publishingResiliencePolicies, nameof(publishingResiliencePolicies));
+            Guard.ArgumentNotNull(publishingResiliencePolicies?.PublishedProviderSearchRepository, nameof(publishingResiliencePolicies.PublishedProviderSearchRepository));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _logger = logger;
             _searchRepository = searchRepository;
+            _publishingEngineOptions = publishingEngineOptions;
             _searchPolicy = publishingResiliencePolicies.PublishedProviderSearchRepository;
         }
 
@@ -52,7 +54,7 @@ namespace CalculateFunding.Services.Publishing
         public async Task IndexPublishedProviders(IEnumerable<PublishedProviderVersion> publishedProviderVersions)
         {
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 3);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.IndexPublishedProvidersConcurrencyCount);
             foreach (IEnumerable<PublishedProviderVersion> batch in publishedProviderVersions.ToBatches(100))
             {
                 await throttler.WaitAsync();

@@ -200,7 +200,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             return new PublishedProviderIndexerService(
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
-                _resiliencePolicies
+                _resiliencePolicies,
+                new PublishingEngineOptions()
                 );
         }
 

@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Polly.Bulkhead;
 using Serilog;
+using StackExchange.Redis;
 
 namespace CalculateFunding.Services.Publishing.IoC
 {
@@ -30,6 +31,15 @@ namespace CalculateFunding.Services.Publishing.IoC
 
         private static void RegisterSpecificationServiceComponents(IServiceCollection serviceCollection, IConfiguration configuration)
         {
+            serviceCollection.AddSingleton<IPublishingEngineOptions>(ctx =>
+            {
+                PublishingEngineOptions options = new PublishingEngineOptions();
+
+                configuration.Bind("publishingengineoptions", options);
+
+                return options;
+            });
+            
             serviceCollection.AddSingleton<ISpecificationPublishingService, SpecificationPublishingService>();
             serviceCollection.AddSingleton<IProviderFundingPublishingService, ProviderFundingPublishingService>();
             serviceCollection.AddSingleton<IHealthChecker, ProviderFundingPublishingService>();
@@ -106,7 +116,8 @@ namespace CalculateFunding.Services.Publishing.IoC
 
                 return new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver,
                     blobClient,
-                    publishingResiliencePolicies);
+                    publishingResiliencePolicies,
+                    ctx.GetService<IPublishingEngineOptions>());
             });
         }
 

@@ -24,23 +24,27 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderVersioningService _publishedProviderVersioningService;
         private readonly IPublishedFundingRepository _publishedFundingRepository;
         private readonly ILogger _logger;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedProviderStatusUpdateService(IPublishedProviderVersioningService publishedProviderVersioningService,
             IPublishedFundingRepository publishedFundingRepository,
             IJobTracker jobTracker,
             ILogger logger,
-            IPublishedProviderStatusUpdateSettings settings)
+            IPublishedProviderStatusUpdateSettings settings, 
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(publishedProviderVersioningService, nameof(publishedProviderVersioningService));
             Guard.ArgumentNotNull(publishedFundingRepository, nameof(publishedFundingRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(jobTracker, nameof(jobTracker));
             Guard.ArgumentNotNull(settings, nameof(settings));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _publishedProviderVersioningService = publishedProviderVersioningService;
             _publishedFundingRepository = publishedFundingRepository;
             _logger = logger;
             _settings = settings;
+            _publishingEngineOptions = publishingEngineOptions;
             _jobTracker = jobTracker;
         }
 
@@ -126,7 +130,7 @@ namespace CalculateFunding.Services.Publishing
                 try
                 {
                     List<Task> allTasks = new List<Task>();
-                    SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+                    SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.CreateLatestPublishedProviderVersionsConcurrencyCount);
                     foreach (PublishedProvider publishedProvider in updatedPublishedProviders)
                     {
                         await throttler.WaitAsync();

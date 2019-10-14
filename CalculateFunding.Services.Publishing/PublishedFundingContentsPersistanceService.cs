@@ -17,18 +17,23 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedFundingContentsGeneratorResolver _publishedFundingContentsGeneratorResolver;
         private readonly IBlobClient _blobClient;
         private readonly Policy _publishedFundingRepositoryPolicy;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
 
         public PublishedFundingContentsPersistanceService(
             IPublishedFundingContentsGeneratorResolver publishedFundingContentsGeneratorResolver,
             IBlobClient blobClient,
-            IPublishingResiliencePolicies publishingResiliencePolicies)
+            IPublishingResiliencePolicies publishingResiliencePolicies, 
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(publishedFundingContentsGeneratorResolver, nameof(publishedFundingContentsGeneratorResolver));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
+            Guard.ArgumentNotNull(publishingResiliencePolicies?.PublishedFundingBlobRepository, nameof(publishingResiliencePolicies.PublishedFundingBlobRepository));
 
             _publishedFundingContentsGeneratorResolver = publishedFundingContentsGeneratorResolver;
             _blobClient = blobClient;
+            _publishingEngineOptions = publishingEngineOptions;
             _publishedFundingRepositoryPolicy = publishingResiliencePolicies.PublishedFundingBlobRepository;
         }
 
@@ -37,7 +42,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedFundingContentsGenerator generator = _publishedFundingContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
 
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.SavePublishedFundingContentsConcurrencyCount);
             foreach (PublishedFundingVersion publishedFundingVersion in publishedFundingToSave)
             {
                 await throttler.WaitAsync();

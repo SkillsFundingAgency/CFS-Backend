@@ -115,6 +115,17 @@ namespace CalculateFunding.Functions.Publishing
                         return settings;
                     }
                 );
+            
+            builder
+                .AddSingleton<IPublishingEngineOptions>(_ =>
+                    {
+                        PublishingEngineOptions settings = new PublishingEngineOptions();
+
+                        config.Bind("publishingengineoptions", settings);
+
+                        return settings;
+                    }
+                );
 
             builder
                .AddSingleton<IBlobClient, BlobClient>((ctx) =>

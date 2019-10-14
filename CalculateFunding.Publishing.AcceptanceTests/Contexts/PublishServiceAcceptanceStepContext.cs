@@ -81,7 +81,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 resiliencePolicies,
                 publishedVersionInMemoryRepository,
                 idGeneratorResolver,
-                logger);
+                logger,
+                new PublishingEngineOptions());
 
             SpecificationInMemoryRepository specificationInMemoryRepository = _currentSpecificationStepContext.Repo;
 
@@ -120,22 +121,23 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             PublishedFundingInMemorySearchRepository publishedFundingInMemorySearchRepository = new PublishedFundingInMemorySearchRepository();
             PublishedProviderInMemorySearchRepository publishedProviderInMemorySearchRepository = new PublishedProviderInMemorySearchRepository();
 
-            PublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(resolver, inMemoryBlobClient, resiliencePolicies);
+            PublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(resolver, inMemoryBlobClient, resiliencePolicies, new PublishingEngineOptions());
             PublishedProviderVersionInMemoryRepository publishedProviderVersionInMemoryRepository = new PublishedProviderVersionInMemoryRepository();
 
-            IPublishedProviderVersioningService publishedProviderVersioningService = new PublishedProviderVersioningService(logger, publishedProviderVersionInMemoryRepository, resiliencePolicies);
+            IPublishedProviderVersioningService publishedProviderVersioningService = new PublishedProviderVersioningService(logger, publishedProviderVersionInMemoryRepository, resiliencePolicies, new PublishingEngineOptions());
 
             IJobTracker jobTracker = new JobTracker(_jobStepContext.JobsClient, resiliencePolicies, logger);
             PublishedProviderStatusUpdateSettings publishedProviderStatusUpdateSettings = new PublishedProviderStatusUpdateSettings();
 
-            PublishedProviderIndexerService publishedProviderIndexerService = new PublishedProviderIndexerService(logger, publishedProviderInMemorySearchRepository, resiliencePolicies);
+            PublishedProviderIndexerService publishedProviderIndexerService = new PublishedProviderIndexerService(logger, publishedProviderInMemorySearchRepository, resiliencePolicies, new PublishingEngineOptions());
 
             IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService = new PublishedProviderStatusUpdateService(
                 publishedProviderVersioningService,
                 _publishedFundingRepositoryStepContext.Repo,
                 jobTracker,
                 logger,
-                publishedProviderStatusUpdateSettings);
+                publishedProviderStatusUpdateSettings,
+                new PublishingEngineOptions());
             
             IJobsApiClient jobsApiClient = new JobsInMemoryRepository();
 
@@ -146,7 +148,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             PublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
             IPublishedProviderContentsGenerator v10ProviderGenerator = new CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator();
             publishedProviderContentsGeneratorResolver.Register("1.0", v10ProviderGenerator);
-            CalculationResultsService calculationResultsService = new CalculationResultsService(resiliencePolicies, calculationResultsRepository, logger);
+            CalculationResultsService calculationResultsService = new CalculationResultsService(resiliencePolicies, calculationResultsRepository, logger, new PublishingEngineOptions());
             PublishedProviderVersionService publishedProviderVersionService = new PublishedProviderVersionService(logger, inMemoryAzureBlobClient, resiliencePolicies, jobsApiClient);
             Common.ApiClient.Calcs.ICalculationsApiClient calculationsApiClient = new CalculationsInMemoryClient(TemplateMapping);
 
@@ -155,7 +157,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             PublishedFundingDataService publishedFundingDataService = new PublishedFundingDataService(
                 _publishedFundingRepositoryStepContext.Repo,
                 specificationInMemoryRepository,
-                resiliencePolicies);
+                resiliencePolicies,
+                new PublishingEngineOptions());
 
             PublishService publishService = new PublishService(publishedFundingStatusUpdateService,
                 publishedFundingDataService,
@@ -178,8 +181,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 _jobStepContext.JobsClient,
                 policiesInMemoryRepository,
                 calculationsApiClient,
-                logger
-                );
+                logger,
+                new PublishingEngineOptions());
 
             Message message = new Message();
 

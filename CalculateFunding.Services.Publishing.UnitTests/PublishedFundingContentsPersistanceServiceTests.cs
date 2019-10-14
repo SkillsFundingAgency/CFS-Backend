@@ -36,7 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             publishedFundingContentsGeneratorResolver.GetService(Arg.Is(_schema))
                 .Returns(_publishedFundingContentsGenerator);
 
-            _publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver, _blobClient, PublishingResilienceTestHelper.GenerateTestPolicies());
+            _publishedFundingContentsPersistanceService = new PublishedFundingContentsPersistanceService(publishedFundingContentsGeneratorResolver, _blobClient, PublishingResilienceTestHelper.GenerateTestPolicies(), new PublishingEngineOptions());
 
             _publishedFundingPeriod = new PublishedFundingPeriod { Type = PublishedFundingPeriodType.AY, Period = "123" };
         }
