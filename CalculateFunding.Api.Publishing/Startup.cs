@@ -7,6 +7,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -92,6 +93,9 @@ namespace CalculateFunding.Api.Publishing
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder.AddSingleton<IPublishedProviderVersionService, PublishedProviderVersionService>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
             builder.AddSingleton<IPublishedSearchService, PublishedSearchService>()

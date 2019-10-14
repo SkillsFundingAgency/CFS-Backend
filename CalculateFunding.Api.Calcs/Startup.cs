@@ -19,6 +19,7 @@ using CalculateFunding.Services.Compiler;
 using CalculateFunding.Services.Compiler.Interfaces;
 using CalculateFunding.Services.Compiler.Languages;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -30,6 +31,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using Polly.Bulkhead;
 
 namespace CalculateFunding.Api.Calcs
@@ -76,6 +78,9 @@ namespace CalculateFunding.Api.Calcs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder
                 .AddSingleton<ICalculationsRepository, CalculationsRepository>();
 

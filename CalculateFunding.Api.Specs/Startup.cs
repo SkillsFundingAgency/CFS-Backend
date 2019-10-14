@@ -9,6 +9,7 @@ using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -74,6 +75,9 @@ namespace CalculateFunding.Api.Specs
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder.AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
             builder
                 .AddSingleton<ISpecificationsService, SpecificationsService>()

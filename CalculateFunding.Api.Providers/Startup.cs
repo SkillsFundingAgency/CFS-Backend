@@ -11,6 +11,7 @@ using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Providers.ViewModels;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
@@ -97,6 +98,9 @@ namespace CalculateFunding.Api.Providers
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder.AddCaching(Configuration);
 
             builder

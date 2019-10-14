@@ -8,6 +8,7 @@ using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.AzureStorage;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -74,6 +75,9 @@ namespace CalculateFunding.Api.Results
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder
                 .AddSingleton<IResultsService, ResultsService>()

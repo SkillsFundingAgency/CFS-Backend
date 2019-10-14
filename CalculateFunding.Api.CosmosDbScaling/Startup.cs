@@ -1,9 +1,11 @@
 ﻿using System;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.CosmosDbScaling;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
@@ -64,7 +66,9 @@ namespace CalculateFunding.API.CosmosDbScaling
 
         public void RegisterComponents(IServiceCollection builder)
         {
-
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder.AddSingleton<ICosmosRepository, CosmosRepository>();
             builder.AddSingleton<ICosmosDbScalingService, CosmosDbScalingService>();
             builder.AddSingleton<ICosmosDbScalingRepositoryProvider, CosmosDbScalingRepositoryProvider>();

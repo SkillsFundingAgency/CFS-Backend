@@ -9,6 +9,7 @@ using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
@@ -126,6 +127,9 @@ namespace CalculateFunding.Api.External
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder.AddFeatureToggling(Configuration);
 
             // Register v3 services

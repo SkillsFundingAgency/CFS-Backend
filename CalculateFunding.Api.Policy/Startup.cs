@@ -10,6 +10,7 @@ using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
@@ -94,6 +95,9 @@ namespace CalculateFunding.Api.Policy
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder
                 .AddSingleton<IFundingStreamService, FundingStreamService>()
                 .AddSingleton<IHealthChecker, FundingStreamService>();

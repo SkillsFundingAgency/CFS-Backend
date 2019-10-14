@@ -6,6 +6,7 @@ using CalculateFunding.Common.WebApi.Middleware;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -66,6 +67,9 @@ namespace CalculateFunding.Api.Users
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder

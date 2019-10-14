@@ -9,6 +9,7 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CodeMetadataGenerator;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.AspNet.HealthChecks;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
@@ -69,6 +70,9 @@ namespace CalculateFunding.Api.TestRunner
 
         public void RegisterComponents(IServiceCollection builder)
         {
+            builder
+                .AddSingleton<IHealthChecker, ControllerResolverHealthCheck>();
+            
             builder.AddApiKeyMiddlewareSettings((IConfigurationRoot)Configuration);
 
             builder
