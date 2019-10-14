@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -182,6 +183,32 @@ namespace CalculateFunding.Services.Publishing.Repositories
             Guard.IsNullOrWhiteSpace(partitionKey, nameof(partitionKey));
 
             return await _repository.ReadByIdPartitionedAsync<PublishedFunding>(cosmosId, partitionKey);
+        }
+
+        public async Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)
+        {
+             SqlQuerySpec query = new SqlQuerySpec
+            {
+                QueryText = @"SELECT
+                                        c.content.id,
+                                        { 
+                                           'providerType' : c.content.provider.providerType,
+                                           'localAuthorityName' : c.content.provider.localAuthorityName,
+                                           'name' : c.content.provider.name
+                                        } AS Provider,
+                                        c.content.status,
+                                        c.content.totalFunding,
+                                        c.content.specificationId,
+                                        c.content.fundingStreamId,
+                                        c.content.fundingPeriodId
+                               FROM     publishedProviders c
+                               WHERE    c.documentType = 'PublishedProviderVersion' 
+                               AND      c.deleted = false"
+            };
+
+            await _repository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch, 
+                sqlQuerySpec: query, 
+                itemsPerPage: batchSize);
         }
     }
 }

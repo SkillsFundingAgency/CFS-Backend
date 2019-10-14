@@ -10,6 +10,39 @@ namespace CalculateFunding.Functions.DebugQueue
 {
     public static class Publishing
     {
+        [FunctionName("on-publishing-reindex-published-providers")]
+        public static async Task RunReIndexPublishedProviders([QueueTrigger(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProviders, 
+            Connection = "AzureConnectionString")] string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnReIndexPublishedProviders function = scope.ServiceProvider.GetService<OnReIndexPublishedProviders>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+
+        [FunctionName("on-publishing-reindex-published-providers-poisoned")]
+        public static async Task RunReIndexPublishedProvidersFailure([QueueTrigger(ServiceBusConstants.QueueNames.PublishingReIndexPublishedProvidersPoisonedLocal, 
+                Connection = "AzureConnectionString")]
+            string item, ILogger log)
+        {
+            using (IServiceScope scope = Functions.Publishing.Startup.RegisterComponents(new ServiceCollection()).CreateScope())
+            {
+                Message message = Helpers.ConvertToMessage<string>(item);
+
+                OnReIndexPublishedProvidersFailure function = scope.ServiceProvider.GetService<OnReIndexPublishedProvidersFailure>();
+
+                await function.Run(message);
+
+                log.LogInformation($"C# Queue trigger function processed: {item}");
+            }
+        }
+        
         [FunctionName("on-publishing-approve-funding")]
         public static async Task RunApproveFunding([QueueTrigger(ServiceBusConstants.QueueNames.PublishingApproveFunding, Connection = "AzureConnectionString")] string item, ILogger log)
         {

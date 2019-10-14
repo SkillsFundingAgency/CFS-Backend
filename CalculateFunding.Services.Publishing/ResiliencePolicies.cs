@@ -19,6 +19,8 @@ namespace CalculateFunding.Services.Publishing
         public Policy PublishedProviderVersionRepository { get; set; }
 
         public Policy FundingFeedSearchRepository { get; set; }
+        
+        public Policy PublishedProviderSearchRepository { get; set; }
 
         public Policy PublishedFundingBlobRepository { get; set; }
 
@@ -26,7 +28,5 @@ namespace CalculateFunding.Services.Publishing
 
         public Policy CalculationsApiClient { get; set; }
         public Policy PoliciesApiClient { get; set; }
-
-        public Policy PublishedProviderSearchRepository { get; set; }
     }
 }

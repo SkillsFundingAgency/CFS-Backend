@@ -1,15 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Storage.Blob;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using Polly;
 using Serilog;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Services
@@ -18,10 +23,31 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
     public class PublishedProviderVersionServiceTests
     {
         private const string publishedProviderVersionId = "id1";
-
-        private string blobName = $"{publishedProviderVersionId}.json";
-
         private const string body = "just a string";
+
+        private readonly string blobName = $"{publishedProviderVersionId}.json";
+
+        private PublishedProviderVersionService _service;
+        private IBlobClient _blobClient;
+        private IJobsApiClient _jobsApiClient;
+        private ILogger _logger;
+
+        [TestInitialize]
+        public void SetUp()
+        {
+            _blobClient = Substitute.For<IBlobClient>();
+            _jobsApiClient = Substitute.For<IJobsApiClient>();
+            _logger = Substitute.For<ILogger>();
+
+            _service = new PublishedProviderVersionService(_logger,
+                _blobClient,
+                new ResiliencePolicies
+                {
+                    BlobClient = Policy.NoOpAsync(),
+                    JobsApiClient = Policy.NoOpAsync()
+                },
+                _jobsApiClient);
+        }
 
         [TestMethod]
         public async Task GetPublishedProviderVersionBody_GivenNullOrEmptyId_ReturnsBadRequest()
@@ -29,10 +55,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
             //Arrange
             string id = "";
 
-            PublishedProviderVersionService service = CreatePublishedProviderVersionService();
-
             //Act
-            IActionResult result = await service.GetPublishedProviderVersionBody(id);
+            IActionResult result = await _service.GetPublishedProviderVersionBody(id);
 
             //Assert
             result
@@ -47,50 +71,35 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public async Task GetPublishedProviderVersionBody_GivenBlobDoesNotExists_ReturnsNotFound()
         {
-            //Arrange
-            ILogger logger = CreateLogger();
-
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
-                .BlobExistsAsync(Arg.Is(blobName))
-                .Returns(false);
-
-            PublishedProviderVersionService service = CreatePublishedProviderVersionService(logger, blobClient);
-
             //Act
-            IActionResult result = await service.GetPublishedProviderVersionBody(publishedProviderVersionId);
+            IActionResult result = await _service.GetPublishedProviderVersionBody(publishedProviderVersionId);
 
             //Assert
             result
                 .Should()
                 .BeAssignableTo<NotFoundResult>();
 
-            logger
+            _logger
                 .Received(1)
-                .Error(Arg.Is($"Blob '{blobName}' does not exist."));  
+                .Error(Arg.Is($"Blob '{blobName}' does not exist."));
         }
 
         [TestMethod]
         public async Task GetPublishedProviderVersionBody_GivenGetBlobReferenceCausesException_LogsAndReturnsInternalServerError()
         {
             //Arrange
-            ILogger logger = CreateLogger();
-
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
+            _blobClient
                 .BlobExistsAsync(Arg.Is(blobName))
                 .Returns(true);
 
-            blobClient
+            _blobClient
                 .When(x => x.GetBlobReferenceFromServerAsync(Arg.Is(blobName)))
                 .Do(x => { throw new Exception(); });
 
             string errorMessage = $"Failed to fetch blob '{blobName}' from azure storage";
 
-            PublishedProviderVersionService service = CreatePublishedProviderVersionService(logger, blobClient);
-
             //Act
-            IActionResult result = await service.GetPublishedProviderVersionBody(publishedProviderVersionId);
+            IActionResult result = await _service.GetPublishedProviderVersionBody(publishedProviderVersionId);
 
             //Assert
             result
@@ -101,7 +110,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be(errorMessage);
 
-            logger
+            _logger
                 .Received(1)
                 .Error(Arg.Any<Exception>(), Arg.Is(errorMessage));
         }
@@ -114,27 +123,22 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
 
             Stream memoryStream = new MemoryStream(bytes);
 
-            ILogger logger = CreateLogger();
-
             ICloudBlob cloudBlob = CreateBlob();
 
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
+            _blobClient
                 .BlobExistsAsync(Arg.Is(blobName))
                 .Returns(true);
 
-            blobClient
-                 .GetBlobReferenceFromServerAsync(Arg.Is(blobName))
-                 .Returns(cloudBlob);
+            _blobClient
+                .GetBlobReferenceFromServerAsync(Arg.Is(blobName))
+                .Returns(cloudBlob);
 
-            blobClient
-                  .DownloadToStreamAsync(Arg.Is(cloudBlob))
-                  .Returns(memoryStream);
-
-            PublishedProviderVersionService service = CreatePublishedProviderVersionService(logger, blobClient);
+            _blobClient
+                .DownloadToStreamAsync(Arg.Is(cloudBlob))
+                .Returns(memoryStream);
 
             //Act
-            IActionResult result = await service.GetPublishedProviderVersionBody(publishedProviderVersionId);
+            IActionResult result = await _service.GetPublishedProviderVersionBody(publishedProviderVersionId);
 
             //Assert
             result
@@ -149,21 +153,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void SavePublishedProviderVersionBody_GivenGetBlobReferenceFromServerAsyncThrowsException_ThrowsNewException()
         {
-            //Arrange
-            IBlobClient blobClient = CreateBlobClient();
-           
-            blobClient
+            _blobClient
                 .When(x => x.GetBlockBlobReference(Arg.Is(blobName)))
                 .Do(x => { throw new Exception("Failed to get blob reference"); });
 
-            ILogger logger = CreateLogger();
-
             string errorMessage = $"Failed to save blob '{blobName}' to azure storage";
 
-            PublishedProviderVersionService service = CreatePublishedProviderVersionService(logger, blobClient);
-
             //Act
-            Func<Task> test = async () => await service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+            Func<Task> test = async () => await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
 
             //Assert
             test
@@ -174,7 +171,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be(errorMessage);
 
-            logger
+            _logger
                 .Received(1)
                 .Error(Arg.Is<Exception>(m => m.Message == "Failed to get blob reference"), Arg.Is(errorMessage));
         }
@@ -182,21 +179,14 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
         [TestMethod]
         public void SavePublishedProviderVersionBody_GivenUoloadAsyncThrowsException_ThrowsNewException()
         {
-            //Arrange
-            IBlobClient blobClient = CreateBlobClient();
-
-            blobClient
+            _blobClient
                 .When(x => x.UploadAsync(Arg.Any<ICloudBlob>(), Arg.Is(body)))
                 .Do(x => { throw new Exception("Failed to upload blob"); });
 
-            ILogger logger = CreateLogger();
-
             string errorMessage = $"Failed to save blob '{blobName}' to azure storage";
 
-            PublishedProviderVersionService service = CreatePublishedProviderVersionService(logger, blobClient);
-
             //Act
-            Func<Task> test = async () => await service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+            Func<Task> test = async () => await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
 
             //Assert
             test
@@ -207,53 +197,97 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Services
                 .Should()
                 .Be(errorMessage);
 
-            logger
+            _logger
                 .Received(1)
                 .Error(Arg.Is<Exception>(m => m.Message == "Failed to upload blob"), Arg.Is(errorMessage));
         }
 
         [TestMethod]
-        public async Task SavePublishedProviderVersionBody_GivenUoloadAsyncSuccessful_EnsuresCalledWithCorrectParameters()
+        public async Task SavePublishedProviderVersionBody_GivenUploadAsyncSuccessful_EnsuresCalledWithCorrectParameters()
         {
             //Arrange
             ICloudBlob blob = Substitute.For<ICloudBlob>();
 
-            IBlobClient blobClient = CreateBlobClient();
-            blobClient
+            _blobClient
                 .GetBlockBlobReference(Arg.Is(blobName))
                 .Returns(blob);
 
-            PublishedProviderVersionService service = CreatePublishedProviderVersionService(blobClient: blobClient);
-
             //Act
-            await service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
+            await _service.SavePublishedProviderVersionBody(publishedProviderVersionId, body);
 
             //Assert
             await
-                blobClient
+                _blobClient
+                    .Received(1)
+                    .UploadAsync(Arg.Is(blob), Arg.Is(body));
+        }
+
+        [TestMethod]
+        public void ReIndex_ThrowsExceptionIfNoUserSupplied()
+        {
+            Func<Task<IActionResult>> invocation = () => WhenThePublishedProviderVersionsAreReIndexed(correlationId: NewRandomString());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("user");
+        }
+
+        [TestMethod]
+        public void ReIndex_ThrowsExceptionIfNoCorrelationIdSupplied()
+        {
+            Func<Task<IActionResult>> invocation = () => WhenThePublishedProviderVersionsAreReIndexed(NewUser());
+
+            invocation
+                .Should()
+                .Throw<ArgumentNullException>()
+                .Which
+                .ParamName
+                .Should()
+                .Be("correlationId");
+        }
+
+        [TestMethod]
+        public async Task ReIndex_CreatesReIndexPublishedProviderJob()
+        {
+            Reference user = NewUser(_ => _.WithId(NewRandomString())
+                .WithName(NewRandomString()));
+            string correlationId = NewRandomString();
+
+            IActionResult result = await WhenThePublishedProviderVersionsAreReIndexed(user, correlationId);
+
+            result
+                .Should()
+                .BeOfType<NoContentResult>();
+
+            await _jobsApiClient
                 .Received(1)
-                .UploadAsync(Arg.Is(blob), Arg.Is(body));
-         }
-
-        private static PublishedProviderVersionService CreatePublishedProviderVersionService(
-                ILogger logger = null,
-                IBlobClient blobClient = null)
-        {
-            return new PublishedProviderVersionService(
-                logger ?? CreateLogger(),
-                blobClient ?? CreateBlobClient(),
-                PublishingResilienceTestHelper.GenerateTestPolicies());
+                .CreateJob(Arg.Is<JobCreateModel>(_ =>
+                    _.CorrelationId == correlationId &&
+                    _.InvokerUserId == user.Id &&
+                    _.InvokerUserDisplayName == user.Name &&
+                    _.JobDefinitionId == JobConstants.DefinitionNames.ReIndexPublishedProvidersJob));
         }
 
-        private static ILogger CreateLogger()
+        private async Task<IActionResult> WhenThePublishedProviderVersionsAreReIndexed(Reference user = null,
+            string correlationId = null)
         {
-            return Substitute.For<ILogger>();
+            return await _service.ReIndex(user, correlationId);
         }
 
-        private static IBlobClient CreateBlobClient()
+        private Reference NewUser(Action<ReferenceBuilder> setUp = null)
         {
-            return Substitute.For<IBlobClient>();
+            ReferenceBuilder userBuilder = new ReferenceBuilder();
+
+            setUp?.Invoke(userBuilder);
+            
+            return userBuilder.Build();
         }
+        
+        private string NewRandomString() => new RandomString();
 
         private static ICloudBlob CreateBlob()
         {

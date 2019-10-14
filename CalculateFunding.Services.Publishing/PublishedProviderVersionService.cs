@@ -2,8 +2,13 @@
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Publishing;
+using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using CalculateFunding.Services.Publishing.Interfaces;
@@ -18,21 +23,31 @@ namespace CalculateFunding.Services.Publishing
     {
         private readonly ILogger _logger;
         private readonly IBlobClient _blobClient;
+        private readonly IJobsApiClient _jobs;
         private readonly Policy _blobClientPolicy;
+        private readonly Policy _jobsClientPolicy;
 
         public PublishedProviderVersionService(
             ILogger logger,
             IBlobClient blobClient,
-            IPublishingResiliencePolicies resiliencePolicies)
+            IPublishingResiliencePolicies resiliencePolicies, 
+            IJobsApiClient jobs)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
+            Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
             Guard.ArgumentNotNull(resiliencePolicies?.BlobClient, nameof(resiliencePolicies.BlobClient));
+            Guard.ArgumentNotNull(jobs, nameof(jobs));
+            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
 
             _logger = logger;
             _blobClient = blobClient;
+            _jobs = jobs;
+            _jobsClientPolicy = resiliencePolicies.JobsApiClient;
             _blobClientPolicy = resiliencePolicies.BlobClient;
         }
+
+
 
         public async Task<ServiceHealth> IsHealthOk()
         {
@@ -112,6 +127,27 @@ namespace CalculateFunding.Services.Publishing
 
                 throw new Exception(errorMessage, ex);
             }
+        }
+        
+        public async Task<IActionResult> ReIndex(Reference user, string correlationId)
+        {
+            Guard.ArgumentNotNull(user, nameof(user));
+            Guard.IsNullOrWhiteSpace(correlationId, nameof(correlationId));
+
+            await _jobsClientPolicy.ExecuteAsync(() => _jobs.CreateJob(new JobCreateModel
+            {
+                JobDefinitionId = JobConstants.DefinitionNames.ReIndexPublishedProvidersJob,
+                InvokerUserId = user.Id,
+                InvokerUserDisplayName = user.Name,
+                CorrelationId = correlationId,
+                Trigger = new Trigger
+                {
+                    Message = "ReIndexing PublishedProviders",
+                    EntityType = nameof(PublishedProviderIndex),
+                }
+            }));
+            
+            return new NoContentResult();
         }
     }
 }

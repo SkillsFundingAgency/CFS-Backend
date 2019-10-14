@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -26,5 +27,7 @@ namespace CalculateFunding.Services.Publishing.Interfaces
         Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string fundingStreamId, string fundingPeriodId);
 
         Task<PublishedFunding> GetPublishedFundingById(string cosmosId, string partitionKey);
+
+        Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize);
     }
 }

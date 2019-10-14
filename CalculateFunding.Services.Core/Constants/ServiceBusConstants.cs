@@ -94,6 +94,12 @@
             public const string IncrementalScaleDownCosmosdbCollection = "incremental-scale-down-cosmosdb-collection";
 
             public const string CalculationResultsCsvGenerationTimer = "calculation-results-csv-generation-timer";
+            
+            public const string PublishingReIndexPublishedProviders = "on-publishing-reindex-published-providers";
+            
+            public const string PublishingReIndexPublishedProvidersPoisoned = "on-publishing-reindex-published-providers/$DeadLetterQueue";
+            
+            public const string PublishingReIndexPublishedProvidersPoisonedLocal = "on-publishing-reindex-published-providers-poison";
         }
 
         public static class TopicNames

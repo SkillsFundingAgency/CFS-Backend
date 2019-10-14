@@ -101,6 +101,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(HttpStatusCode.OK);
         }
 
+        public Task AllPublishedProviderBatchProcessing(Func<List<PublishedProviderVersion>, Task> persistIndexBatch, int batchSize)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<IEnumerable<HttpStatusCode>> UpsertPublishedProviders(IEnumerable<PublishedProvider> publishedProviders)
         {
             List<HttpStatusCode> results = new List<HttpStatusCode>();

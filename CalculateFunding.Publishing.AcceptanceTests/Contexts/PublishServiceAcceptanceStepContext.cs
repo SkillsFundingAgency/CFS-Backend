@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
+using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
@@ -134,6 +136,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 jobTracker,
                 logger,
                 publishedProviderStatusUpdateSettings);
+            
+            IJobsApiClient jobsApiClient = new JobsInMemoryRepository();
 
             InMemoryAzureBlobClient inMemoryAzureBlobClient = new InMemoryAzureBlobClient();
             ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults);
@@ -143,7 +147,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IPublishedProviderContentsGenerator v10ProviderGenerator = new CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator();
             publishedProviderContentsGeneratorResolver.Register("1.0", v10ProviderGenerator);
             CalculationResultsService calculationResultsService = new CalculationResultsService(resiliencePolicies, calculationResultsRepository, logger);
-            PublishedProviderVersionService publishedProviderVersionService = new PublishedProviderVersionService(logger, inMemoryAzureBlobClient, resiliencePolicies);
+            PublishedProviderVersionService publishedProviderVersionService = new PublishedProviderVersionService(logger, inMemoryAzureBlobClient, resiliencePolicies, jobsApiClient);
             Common.ApiClient.Calcs.ICalculationsApiClient calculationsApiClient = new CalculationsInMemoryClient(TemplateMapping);
 
             Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;

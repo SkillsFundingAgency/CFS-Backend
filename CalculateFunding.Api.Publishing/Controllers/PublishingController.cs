@@ -14,21 +14,25 @@ namespace CalculateFunding.Api.Publishing.Controllers
         private readonly IProviderFundingPublishingService _providerFundingPublishingService;
         private readonly IPublishedProviderFundingService _publishedProviderFundingService;
         private readonly IPublishedSearchService _publishedSearchService;
+        private readonly IPublishedProviderVersionService _publishedProviderVersionService;
 
         public PublishingController(ISpecificationPublishingService specificationPublishingService,
             IProviderFundingPublishingService providerFundingPublishingService,
             IPublishedProviderFundingService publishedProviderFundingService,
-            IPublishedSearchService publishedSearchService)
+            IPublishedSearchService publishedSearchService, 
+            IPublishedProviderVersionService publishedProviderVersionService)
         {
             Guard.ArgumentNotNull(specificationPublishingService, nameof(specificationPublishingService));
             Guard.ArgumentNotNull(providerFundingPublishingService, nameof(providerFundingPublishingService));
             Guard.ArgumentNotNull(publishedProviderFundingService, nameof(publishedProviderFundingService));
             Guard.ArgumentNotNull(publishedSearchService, nameof(publishedSearchService));
+            Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
 
             _specificationPublishingService = specificationPublishingService;
             _providerFundingPublishingService = providerFundingPublishingService;
             _publishedProviderFundingService = publishedProviderFundingService;
             _publishedSearchService = publishedSearchService;
+            _publishedProviderVersionService = publishedProviderVersionService;
         }
 
         /// <summary>
@@ -106,6 +110,14 @@ namespace CalculateFunding.Api.Publishing.Controllers
         public async Task<IActionResult> RunSearchPublishedProvider()
         {
             return await _publishedSearchService.SearchPublishedProviders(ControllerContext.HttpContext.Request);
+        }
+
+        [HttpGet("api/publishedprovider/reindex")]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> ReIndex()
+        {
+            return await _publishedProviderVersionService.ReIndex(GetUser(), 
+                GetCorrelationId());
         }
 
         private Reference GetUser()
