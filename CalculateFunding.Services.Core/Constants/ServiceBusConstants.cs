@@ -95,11 +95,11 @@
 
             public const string CalculationResultsCsvGenerationTimer = "calculation-results-csv-generation-timer";
             
-            public const string PublishingReIndexPublishedProviders = "on-publishing-reindex-published-providers";
+            public const string PublishingReIndexPublishedProviders = "publishing-reindex-published-providers";
             
-            public const string PublishingReIndexPublishedProvidersPoisoned = "on-publishing-reindex-published-providers/$DeadLetterQueue";
+            public const string PublishingReIndexPublishedProvidersPoisoned = "publishing-reindex-published-providers/$DeadLetterQueue";
             
-            public const string PublishingReIndexPublishedProvidersPoisonedLocal = "on-publishing-reindex-published-providers-poison";
+            public const string PublishingReIndexPublishedProvidersPoisonedLocal = "publishing-reindex-published-providers-poison";
         }
 
         public static class TopicNames

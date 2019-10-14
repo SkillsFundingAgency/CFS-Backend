@@ -1647,6 +1647,28 @@
           "dependsOn": [
             "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
           ]
+        },
+        {
+          "type": "queues",
+          "name": "publishing-reindex-published-providers",
+          "apiVersion": "2017-04-01",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "lockDuration": "PT5M",
+            "maxSizeInMegabytes": 1024,
+            "requiresDuplicateDetection": false,
+            "requiresSession": true,
+            "defaultMessageTimeToLive": "P1D",
+            "deadLetteringOnMessageExpiration": false,
+            "enableBatchedOperations": true,
+            "duplicateDetectionHistoryTimeWindow": "PT10M",
+            "maxDeliveryCount": 5,
+            "enablePartitioning": false,
+            "enableExpress": false
+          },
+          "dependsOn": [
+            "[concat('Microsoft.ServiceBus/namespaces/', variables('serviceBusNamespaceName'))]"
+          ]
         }
       ]
     },
