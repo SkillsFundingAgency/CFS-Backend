@@ -70,7 +70,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedProviderDataPopulator,
                 _jobsApiClient,
                 _logger,
-                _publishedProviderContentPersistanceService,
                 _calculationsApiClient,
                 _policiesApiClient,
                 _refreshPrerequisiteChecker,

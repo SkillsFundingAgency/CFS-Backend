@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
+using CalculateFunding.Models.Versioning;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
 using FluentAssertions;
@@ -16,15 +18,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
     {
         private readonly IPublishedFundingRepositoryStepContext _publishedFundingRepositoryStepContext;
         private readonly IPublishedFundingResultStepContext _publishedFundingResultStepContext;
+        private readonly ICurrentSpecificationStepContext _currentSpecificationStepContext;
 
         public PublishedFundingStepDefinitions(IPublishedFundingRepositoryStepContext publishedFundingRepositoryStepContext,
-            IPublishedFundingResultStepContext publishedFundingResultStepContext)
+            IPublishedFundingResultStepContext publishedFundingResultStepContext,
+            ICurrentSpecificationStepContext currentSpecificationStepContext)
         {
             Guard.ArgumentNotNull(publishedFundingRepositoryStepContext, nameof(publishedFundingRepositoryStepContext));
             Guard.ArgumentNotNull(publishedFundingResultStepContext, nameof(publishedFundingResultStepContext));
+            Guard.ArgumentNotNull(currentSpecificationStepContext, nameof(currentSpecificationStepContext));
 
             _publishedFundingRepositoryStepContext = publishedFundingRepositoryStepContext;
             _publishedFundingResultStepContext = publishedFundingResultStepContext;
+            _currentSpecificationStepContext = currentSpecificationStepContext;
         }
 
         [Then(@"the following published funding is produced")]
@@ -67,6 +73,27 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .BeEquivalentTo(expectedPublishedProviderIds);
         }
+
+        [Then(@"the following published provider ids are upserted")]
+        public async Task ThenTheFollowingPublishedProviderIdsAreUpserted(Table table)
+        {
+            IEnumerable<PublishedProvider> publishedProviders = await _publishedFundingRepositoryStepContext.Repo
+                .GetLatestPublishedProvidersBySpecification(_currentSpecificationStepContext.SpecificationId);
+
+            List<(string, PublishedProviderStatus)> expectedPublishedProviderIds = new List<(string, PublishedProviderStatus)>();
+
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                expectedPublishedProviderIds.Add((table.Rows[i][0], table.Rows[i][1].AsEnum<PublishedProviderStatus>()));
+            }
+
+            publishedProviders
+                .Select(_ => (_.Id, _.Current.Status))
+                .OrderBy(_ => _.Id)
+                .Should()
+                .BeEquivalentTo(expectedPublishedProviderIds);
+        }
+
 
 
         [Then(@"the total funding is '(.*)'")]

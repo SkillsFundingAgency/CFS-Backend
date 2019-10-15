@@ -122,10 +122,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                     var existingProvider = _publishedProviders[specificationId].FirstOrDefault(p => p.Id == publishedProvider.Id);
                     if (existingProvider != null)
                     {
-                        _publishedProviders[specificationId].TryTake(out existingProvider);
+                        existingProvider.Current = publishedProvider.Current;
                     }
-
-                    _publishedProviders[specificationId].Add(publishedProvider);
+                    else
+                    {
+                        _publishedProviders[specificationId].Add(publishedProvider);
+                    }
 
                     results.Add(HttpStatusCode.OK);
                 }

@@ -45,12 +45,12 @@ namespace CalculateFunding.Services.Publishing
         private readonly IPublishedProviderDataGenerator _publishedProviderDataGenerator;
         private readonly ICalculationResultsService _calculationResultsService;
         private readonly IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
+        private readonly IPublishedProviderContentPersistanceService _publishedProviderContentsPersistanceService;
         private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private readonly IPublishedFundingDateService _publishedFundingDateService;
         private readonly IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private readonly IOrganisationGroupGenerator _organisationGroupGenerator;
         private readonly ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
-        private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
@@ -69,17 +69,17 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderDataGenerator publishedProviderDataGenerator,
             IPublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver,
             IPublishedFundingContentsPersistanceService publishedFundingContentsPersistanceService,
+            IPublishedProviderContentPersistanceService publishedProviderContentsPersistanceService,
             IPublishedFundingDateService publishedFundingDateService,
             IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService,
             IProviderService providerService,
             ICalculationResultsService calculationResultsService,
             ISearchRepository<PublishedFundingIndex> publishedFundingSearchRepository,
-            IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedProviderIndexerService publishedProviderIndexerService,
             IJobsApiClient jobsApiClient,
             IPoliciesApiClient policiesApiClient,
             ICalculationsApiClient calculationsApiClient,
-            ILogger logger, 
+            ILogger logger,
             IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
@@ -94,10 +94,10 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(calculationResultsService, nameof(calculationResultsService));
             Guard.ArgumentNotNull(publishedFundingGenerator, nameof(publishedProviderContentsGeneratorResolver));
             Guard.ArgumentNotNull(publishedFundingContentsPersistanceService, nameof(publishedFundingContentsPersistanceService));
+            Guard.ArgumentNotNull(publishedProviderContentsPersistanceService, nameof(publishedProviderContentsPersistanceService));
             Guard.ArgumentNotNull(publishedFundingDateService, nameof(publishedFundingDateService));
             Guard.ArgumentNotNull(publishedProviderStatusUpdateService, nameof(publishedProviderStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingSearchRepository, nameof(publishedFundingSearchRepository));
-            Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
             Guard.ArgumentNotNull(providerService, nameof(providerService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
@@ -120,12 +120,12 @@ namespace CalculateFunding.Services.Publishing
             _publishedProviderDataGenerator = publishedProviderDataGenerator;
             _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
             _publishedFundingContentsPersistanceService = publishedFundingContentsPersistanceService;
+            _publishedProviderContentsPersistanceService = publishedProviderContentsPersistanceService;
             _calculationResultsService = calculationResultsService;
             _publishedFundingDateService = publishedFundingDateService;
             _publishedProviderStatusUpdateService = publishedProviderStatusUpdateService;
             _providerService = providerService;
             _publishedFundingSearchRepository = publishedFundingSearchRepository;
-            _publishedProviderVersionService = publishedProviderVersionService;
             _publishedProviderIndexerService = publishedProviderIndexerService;
             _jobsApiClient = jobsApiClient;
             _policiesApiClient = policiesApiClient;
@@ -353,7 +353,7 @@ namespace CalculateFunding.Services.Publishing
 
                 // Generate contents JSON for provider and save to blob storage
                 IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
-                await SavePublishedProviderContents(templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToSaveAsReleased, generator);
+                await _publishedProviderContentsPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToSaveAsReleased, generator);
             }
 
             _logger.Information($"Running search reindexer for published funding");
@@ -366,56 +366,7 @@ namespace CalculateFunding.Services.Publishing
             _logger.Information($"Publish funding job complete");
         }
 
-        private async Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData, IEnumerable<PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator)
-        {
-            _logger.Information("Saving published provider contents");
-            List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.SavePublishedProviderContentsConcurrencyCount);
-            foreach (PublishedProvider provider in publishedProvidersToUpdate)
-            {
-                await throttler.WaitAsync();
-                allTasks.Add(
-                    Task.Run(async () =>
-                    {
-                        try
-                        {
-                            PublishedProviderVersion publishedProviderVersion = provider.Current;
-
-                            string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[provider.Current.ProviderId]);
-
-                            if (string.IsNullOrWhiteSpace(contents))
-                            {
-                                throw new RetriableException($"Generator failed to generate content for published provider version with id: '{publishedProviderVersion.Id}'");
-                            }
-
-                            try
-                            {
-                                await _publishedProviderVersionService.SavePublishedProviderVersionBody(publishedProviderVersion.FundingId, contents);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new RetriableException(ex.Message);
-                            }
-
-                            try
-                            {
-                                await _publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
-                            }
-                            catch (Exception ex)
-                            {
-                                throw new RetriableException(ex.Message);
-                            }
-                        }
-                        finally
-                        {
-                            throttler.Release();
-                        }
-                    }));
-            }
-
-            await TaskHelper.WhenAllAndThrow(allTasks.ToArray());
-        }
-
+        
         private async Task<JobViewModel> RetrieveJobAndCheckCanBeProcessed(string jobId)
         {
             ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));

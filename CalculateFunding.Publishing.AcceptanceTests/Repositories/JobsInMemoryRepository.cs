@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -156,7 +157,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<ApiResponse<JobSummary>> GetLatestJobForSpecification(string specificationId, IEnumerable<string> jobTypes)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(new ApiResponse<JobSummary>(HttpStatusCode.OK, new JobSummary()));
         }
 
         public Task<ApiResponse<IEnumerable<JobSummary>>> GetNonCompletedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo)

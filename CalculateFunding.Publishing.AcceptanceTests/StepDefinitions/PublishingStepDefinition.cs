@@ -30,6 +30,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _currentUserStepContext = currentUserStepContext;
         }
 
+
         [Given(@"template mapping exists")]
         public void GivenTemplateMappingExists(Table table)
         {
@@ -38,6 +39,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             _publishFundingStepContext.TemplateMapping.TemplateMappingItems = templateMappingItems;
         }
 
+        [Given(@"calculation meta data exists for '(.*)'")]
+        public void GivenCalculationMetaDataExistsFor(string fundingStreamId, Table table)
+        {
+            IEnumerable<CalculationMetadata> calculationMetadata = table.CreateSet<CalculationMetadata>();
+
+            _publishFundingStepContext.CalculationMetadata = calculationMetadata.Select(_ =>
+            {
+                _.FundingStreamId = fundingStreamId;
+                return _;
+            });
+        }
 
         [Given(@"calculations exists")]
         public void GivenCalculationsExists(Table table)

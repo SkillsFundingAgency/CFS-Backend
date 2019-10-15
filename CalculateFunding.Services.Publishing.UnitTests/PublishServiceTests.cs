@@ -33,6 +33,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedFundingChangeDetectorService _publishedFundingChangeDetectorService;
         private IPublishedFundingGenerator _publishedFundingGenerator;
         private IPublishedFundingContentsPersistanceService _publishedFundingContentsPersistanceService;
+        private IPublishedProviderContentPersistanceService _publishedProviderContentPersistanceService;
         private IPublishedFundingDateService _publishedFundingDateService;
         private IPublishedProviderStatusUpdateService _publishedProviderStatusUpdateService;
         private IPublishingResiliencePolicies _resiliencePolicies;
@@ -64,6 +65,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _jobsApiClient = Substitute.For<IJobsApiClient>();
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
             _logger = Substitute.For<ILogger>();
+            _publishedProviderContentPersistanceService = Substitute.For<IPublishedProviderContentPersistanceService>();
 
             _publishedProviderDataGenerator = Substitute.For<IPublishedProviderDataGenerator>();
             _publishedProviderContentsGeneratorResolver = Substitute.For<IPublishedProviderContentsGeneratorResolver>();
@@ -98,12 +100,12 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedProviderDataGenerator,
                 _publishedProviderContentsGeneratorResolver,
                 _publishedFundingContentsPersistanceService,
+                _publishedProviderContentPersistanceService,
                 _publishedFundingDateService,
                 _publishedProviderStatusUpdateService,
                 _providerService,
                 _calculationResultsService,
                 _publishedFundingSearchRepository,
-                _publishedProviderVersionService,
                 _publishedProviderIndexerService,
                 _jobsApiClient,
                 _policiesApiClient,

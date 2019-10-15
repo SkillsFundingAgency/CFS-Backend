@@ -22,7 +22,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedProviderVersionService _publishedProviderVersionService;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
 
-        private const string key = "ProviderKey";
+        private const string key = "providerVersionProviderId";
         private const string ProviderVersionProviderId = "providerVersionProviderId";
         private const string ProviderVersionFundingPeriodId = "providerVersionFundingPeriodId";
         private const string ProviderVersionFundingStreamId = "providerVersionFundingStreamId";
@@ -38,8 +38,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProviderContentPersistanceService = new PublishedProviderContentPersistanceService(
                 _publishedProviderVersionService,
                 _publishedProviderIndexerService,
-                _logger
-                );
+                _logger,
+                new PublishingEngineOptions());
         }
 
         [TestMethod]
@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             IPublishedProviderContentsGenerator publishedProviderContentsGenerator = Substitute.For<IPublishedProviderContentsGenerator>();
 
             Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = new Dictionary<string, GeneratedProviderResult>();
-            Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+            List<PublishedProvider> publishedProvidersToUpdate = new List<PublishedProvider>();
 
             GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
@@ -64,7 +64,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
             generatedPublishedProviderData.Add(key, generatedProviderResult);
-            publishedProvidersToUpdate.Add(key, publishedProvider);
+            publishedProvidersToUpdate.Add(publishedProvider);
 
             // Act
             Func<Task> invocation = async () => await _publishedProviderContentPersistanceService.SavePublishedProviderContents(
@@ -83,7 +83,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             IPublishedProviderContentsGenerator publishedProviderContentsGenerator = Substitute.For<IPublishedProviderContentsGenerator>();
 
             Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = new Dictionary<string, GeneratedProviderResult>();
-            Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+            List<PublishedProvider> publishedProvidersToUpdate = new List<PublishedProvider>();
 
             GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
@@ -96,7 +96,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
             generatedPublishedProviderData.Add(key, generatedProviderResult);
-            publishedProvidersToUpdate.Add(key, publishedProvider);
+            publishedProvidersToUpdate.Add(publishedProvider);
 
             publishedProviderContentsGenerator
                 .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[key])
@@ -125,7 +125,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             IPublishedProviderContentsGenerator publishedProviderContentsGenerator = Substitute.For<IPublishedProviderContentsGenerator>();
 
             Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = new Dictionary<string, GeneratedProviderResult>();
-            Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+            List<PublishedProvider> publishedProvidersToUpdate = new List<PublishedProvider>();
 
             GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
@@ -138,7 +138,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
             generatedPublishedProviderData.Add(key, generatedProviderResult);
-            publishedProvidersToUpdate.Add(key, publishedProvider);
+            publishedProvidersToUpdate.Add(publishedProvider);
 
             publishedProviderContentsGenerator
                 .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[key])
@@ -167,7 +167,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             IPublishedProviderContentsGenerator publishedProviderContentsGenerator = Substitute.For<IPublishedProviderContentsGenerator>();
 
             Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData = new Dictionary<string, GeneratedProviderResult>();
-            Dictionary<string, PublishedProvider> publishedProvidersToUpdate = new Dictionary<string, PublishedProvider>();
+            List<PublishedProvider> publishedProvidersToUpdate = new List<PublishedProvider>();
 
             GeneratedProviderResult generatedProviderResult = new GeneratedProviderResult();
 
@@ -180,7 +180,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             PublishedProvider publishedProvider = NewPublishedProvider(provider => provider.WithCurrent(publishedProviderVersion));
 
             generatedPublishedProviderData.Add(key, generatedProviderResult);
-            publishedProvidersToUpdate.Add(key, publishedProvider);
+            publishedProvidersToUpdate.Add(publishedProvider);
 
             publishedProviderContentsGenerator
                 .GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[key])

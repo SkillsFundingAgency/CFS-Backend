@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
-using CalculateFunding.Common.ApiClient;
-using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Generators.OrganisationGroup;
@@ -11,7 +9,6 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Services.Publishing;
 using CalculateFunding.Services.Publishing.Interfaces;
-using CalculateFunding.Services.Publishing.Repositories;
 using Microsoft.Azure.ServiceBus;
 using Polly;
 using Serilog;
@@ -29,6 +26,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         private readonly ILoggerStepContext _loggerStepContext;
 
         public IEnumerable<CalculationResult> CalculationResults { get; set; }
+
+        public IEnumerable<CalculationMetadata> CalculationMetadata { get; set; }
 
         public TemplateMapping TemplateMapping { get; set; }
 
@@ -81,7 +80,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 resiliencePolicies,
                 publishedVersionInMemoryRepository,
                 idGeneratorResolver,
-                logger,
+                logger, 
                 new PublishingEngineOptions());
 
             SpecificationInMemoryRepository specificationInMemoryRepository = _currentSpecificationStepContext.Repo;
@@ -136,7 +135,15 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 _publishedFundingRepositoryStepContext.Repo,
                 jobTracker,
                 logger,
-                publishedProviderStatusUpdateSettings,
+                publishedProviderStatusUpdateSettings
+                , new PublishingEngineOptions());
+
+            Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
+
+            PublishedFundingDataService publishedFundingDataService = new PublishedFundingDataService(
+                _publishedFundingRepositoryStepContext.Repo,
+                specificationInMemoryRepository,
+                resiliencePolicies,
                 new PublishingEngineOptions());
             
             IJobsApiClient jobsApiClient = new JobsInMemoryRepository();
@@ -152,13 +159,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             PublishedProviderVersionService publishedProviderVersionService = new PublishedProviderVersionService(logger, inMemoryAzureBlobClient, resiliencePolicies, jobsApiClient);
             Common.ApiClient.Calcs.ICalculationsApiClient calculationsApiClient = new CalculationsInMemoryClient(TemplateMapping);
 
-            Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
-
-            PublishedFundingDataService publishedFundingDataService = new PublishedFundingDataService(
-                _publishedFundingRepositoryStepContext.Repo,
-                specificationInMemoryRepository,
-                resiliencePolicies,
-                new PublishingEngineOptions());
+            PublishedProviderContentPersistanceService publishedProviderContentsPersistanceService = new PublishedProviderContentPersistanceService(publishedProviderVersionService, publishedProviderIndexerService, logger, new PublishingEngineOptions());
 
             PublishService publishService = new PublishService(publishedFundingStatusUpdateService,
                 publishedFundingDataService,
@@ -171,12 +172,12 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 publishedProviderDataGenerator,
                 publishedProviderContentsGeneratorResolver,
                 publishedFundingContentsPersistanceService,
+                publishedProviderContentsPersistanceService,
                 _publishingDatesStepContext.Service,
                 publishedProviderStatusUpdateService,
                 _providersStepContext.Service,
                 calculationResultsService,
                 publishedFundingInMemorySearchRepository,
-                publishedProviderVersionService,
                 publishedProviderIndexerService,
                 _jobStepContext.JobsClient,
                 policiesInMemoryRepository,
@@ -194,8 +195,135 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             await publishService.PublishResults(message);
         }
 
+        public async Task RefreshFunding(string specificationId, string jobId, string userId, string userName)
+        {
+            ResiliencePolicies resiliencePolicies = new ResiliencePolicies()
+            {
+                BlobClient = Policy.NoOpAsync(),
+                CalculationsApiClient = Policy.NoOpAsync(),
+                FundingFeedSearchRepository = Policy.NoOpAsync(),
+                JobsApiClient = Policy.NoOpAsync(),
+                PoliciesApiClient = Policy.NoOpAsync(),
+                ProvidersApiClient = Policy.NoOpAsync(),
+                PublishedFundingBlobRepository = Policy.NoOpAsync(),
+                PublishedFundingRepository = Policy.NoOpAsync(),
+                PublishedProviderVersionRepository = Policy.NoOpAsync(),
+                CalculationResultsRepository = Policy.NoOpAsync(),
+                SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
+                PublishedProviderSearchRepository = Policy.NoOpAsync(),
+            };
+
+            PublishedFundingVersionInMemoryRepository publishedVersionInMemoryRepository = new PublishedFundingVersionInMemoryRepository();
+
+            ILogger logger = _loggerStepContext.Logger;
+
+            PublishedFundingIdGeneratorResolver idGeneratorResolver = new PublishedFundingIdGeneratorResolver();
+            IPublishedFundingIdGenerator idGeneratorResolver10 = new Generators.Schema10.PublishedFundingIdGenerator();
+            idGeneratorResolver.Register("1.0", idGeneratorResolver10);
+
+            PublishedFundingStatusUpdateService publishedFundingStatusUpdateService = new PublishedFundingStatusUpdateService(
+                _publishedFundingRepositoryStepContext.Repo,
+                resiliencePolicies,
+                publishedVersionInMemoryRepository,
+                idGeneratorResolver,
+                logger,
+                new PublishingEngineOptions());
+
+            SpecificationInMemoryRepository specificationInMemoryRepository = _currentSpecificationStepContext.Repo;
+
+            SpecificationFundingStatusService specificationFundingStatusService = new SpecificationFundingStatusService(logger, specificationInMemoryRepository);
+
+            CalculationEngineRunningChecker calculationEngineRunningChecker = new CalculationEngineRunningChecker(_jobStepContext.JobsClient, resiliencePolicies);
+
+            Common.ApiClient.Calcs.ICalculationsApiClient calculationsApiClient = new CalculationsInMemoryClient(TemplateMapping, CalculationMetadata);
+
+            CalculationPrerequisiteCheckerService calculationApprovalCheckerService = new CalculationPrerequisiteCheckerService(calculationsApiClient, resiliencePolicies, logger);
+
+            RefreshPrerequisiteChecker refreshPrerequisiteChecker = new RefreshPrerequisiteChecker(specificationFundingStatusService, specificationInMemoryRepository, calculationEngineRunningChecker, calculationApprovalCheckerService, logger);
+
+            MapperConfiguration mapperConfiguration = new MapperConfiguration(c =>
+            {
+                c.AddProfile<PublishingServiceMappingProfile>();
+            });
+
+            IMapper mapper = mapperConfiguration.CreateMapper();
+
+            PublishedFundingContentsGeneratorResolver resolver = new PublishedFundingContentsGeneratorResolver();
+            IPublishedFundingContentsGenerator v10Generator = new CalculateFunding.Generators.Schema10.PublishedFundingContentsGenerator();
+            resolver.Register("1.0", v10Generator);
+
+            PublishedProviderVersionInMemoryRepository publishedProviderVersionInMemoryRepository = new PublishedProviderVersionInMemoryRepository();
+
+            IPublishedProviderVersioningService publishedProviderVersioningService = new PublishedProviderVersioningService(logger, publishedProviderVersionInMemoryRepository, resiliencePolicies, new PublishingEngineOptions());
+
+            IJobTracker jobTracker = new JobTracker(_jobStepContext.JobsClient, resiliencePolicies, logger);
+            PublishedProviderStatusUpdateSettings publishedProviderStatusUpdateSettings = new PublishedProviderStatusUpdateSettings();
+
+            IPublishedProviderStatusUpdateService publishedProviderStatusUpdateService = new PublishedProviderStatusUpdateService(
+                publishedProviderVersioningService,
+                _publishedFundingRepositoryStepContext.Repo,
+                jobTracker,
+                logger,
+                publishedProviderStatusUpdateSettings,
+                new PublishingEngineOptions());
+
+            ICalculationResultsRepository calculationResultsRepository = new CalculationInMemoryRepository(CalculationResults);
+            FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
+            PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
+            PublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
+            IPublishedProviderContentsGenerator v10ProviderGenerator = new CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator();
+            publishedProviderContentsGeneratorResolver.Register("1.0", v10ProviderGenerator);
+            CalculationResultsService calculationResultsService = new CalculationResultsService(resiliencePolicies, calculationResultsRepository, logger, new PublishingEngineOptions());
+
+            PublishedProviderExclusionCheck providerExclusionCheck = new PublishedProviderExclusionCheck();
+
+            PublishedFundingDataService publishedFundingDataService = new PublishedFundingDataService(_publishedFundingRepositoryStepContext.Repo, specificationInMemoryRepository, resiliencePolicies, new PublishingEngineOptions());
+
+            ProfilingInMemoryClient profilingApiClient = new ProfilingInMemoryClient();
+
+            ProfilingService profilingService = new ProfilingService(logger, profilingApiClient);
+
+            PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
+
+            InScopePublishedProviderService inScopePublishedProviderService = new InScopePublishedProviderService(mapper, logger);
+
+            FundingLineValueOverride fundingLineValueOverride = new FundingLineValueOverride();
+
+            Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
+
+            RefreshService refreshService = new RefreshService(publishedProviderStatusUpdateService,
+                publishedFundingDataService,
+                resiliencePolicies,
+                specificationInMemoryRepository,
+                _providersStepContext.Service,
+                calculationResultsService,
+                publishedProviderDataGenerator,
+                publishedProviderContentsGeneratorResolver,
+                profilingService,
+                inScopePublishedProviderService,
+                publishedProviderDataPopulator,
+                _jobStepContext.JobsClient,
+                logger,
+                calculationsApiClient,
+                policiesInMemoryRepository,
+                refreshPrerequisiteChecker,
+                providerExclusionCheck,
+                fundingLineValueOverride
+            );
+
+            Message message = new Message();
+
+            message.UserProperties.Add("user-id", userId);
+            message.UserProperties.Add("user-name", userName);
+            message.UserProperties.Add("specification-id", specificationId);
+            message.UserProperties.Add("jobId", jobId);
+
+            await refreshService.RefreshResults(message);
+        }
+
         public InMemoryPublishedFundingRepository PublishedFundingRepository { get; set; }
 
         public bool PublishSuccessful { get; set; }
+        public bool RefreshSuccessful { get; set; }
     }
 }

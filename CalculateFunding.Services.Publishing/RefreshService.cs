@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -14,6 +15,7 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
+using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -39,7 +41,6 @@ namespace CalculateFunding.Services.Publishing
         private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
-        private readonly IPublishedProviderContentPersistanceService _publishedProviderContentPersistanceService;
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
         private readonly Policy _calculationsApiClientPolicy;
@@ -59,7 +60,6 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderDataPopulator publishedProviderDataPopulator,
             IJobsApiClient jobsApiClient,
             ILogger logger,
-            IPublishedProviderContentPersistanceService publishedProviderContentPersistanceService,
             ICalculationsApiClient calculationsApiClient,
             IPoliciesApiClient policiesApiClient,
             IRefreshPrerequisiteChecker refreshPrerequisiteChecker,
@@ -78,7 +78,6 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviderDataPopulator, nameof(publishedProviderDataPopulator));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
-            Guard.ArgumentNotNull(publishedProviderContentPersistanceService, nameof(publishedProviderContentPersistanceService));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(providerExclusionCheck, nameof(providerExclusionCheck));
@@ -90,6 +89,7 @@ namespace CalculateFunding.Services.Publishing
             _providerService = providerService;
             _calculationResultsService = calculationResultsService;
             _publishedProviderDataGenerator = publishedProviderDataGenerator;
+            _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
             _inScopePublishedProviderService = inScopePublishedProviderService;
             _publishedProviderDataPopulator = publishedProviderDataPopulator;
             _profilingService = profilingService;
@@ -100,11 +100,10 @@ namespace CalculateFunding.Services.Publishing
             _refreshPrerequisiteChecker = refreshPrerequisiteChecker;
             _providerExclusionCheck = providerExclusionCheck;
             _fundingLineValueOverride = fundingLineValueOverride;
-            _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
+
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
-            _publishedProviderContentPersistanceService = publishedProviderContentPersistanceService;
         }
 
         public async Task<IEnumerable<Common.ApiClient.Providers.Models.Provider>> GetProvidersByProviderVersionId(string providerVersionId)
@@ -306,19 +305,14 @@ namespace CalculateFunding.Services.Publishing
                     if (existingPublishedProvidersToUpdate.Any())
                     {
                         _logger.Information($"Saving updates to existing published providers. Total={existingPublishedProvidersToUpdate.Count}");
-                        await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated);
+                        await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(existingPublishedProvidersToUpdate.Values, author, PublishedProviderStatus.Updated, jobId);
                     }
 
                     if (newProviders.Any())
                     {
                         _logger.Information($"Saving new published providers. Total={newProviders.Count}");
-                        await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft);
-                    }
-
-                    // Generate contents JSON for provider and save to blob storage
-                    IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
-                    await _publishedProviderContentPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToUpdate, generator);
-                }
+                        await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft, jobId);
+                    }}
             }
 
             _logger.Information("Marking job as complete");

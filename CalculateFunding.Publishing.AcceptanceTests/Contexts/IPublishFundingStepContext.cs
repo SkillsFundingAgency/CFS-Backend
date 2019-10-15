@@ -9,10 +9,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
     {
         bool PublishSuccessful { get; set; }
 
+        bool RefreshSuccessful { get; set; }
+
         TemplateMapping TemplateMapping { get; set; }
 
         IEnumerable<CalculationResult> CalculationResults { get; set; }
 
+        IEnumerable<CalculationMetadata> CalculationMetadata { get; set; }
+
         Task PublishFunding(string specificationId, string jobId, string userId, string userName);
+
+        Task RefreshFunding(string specificationId, string jobId, string userId, string userName);
     }
 }

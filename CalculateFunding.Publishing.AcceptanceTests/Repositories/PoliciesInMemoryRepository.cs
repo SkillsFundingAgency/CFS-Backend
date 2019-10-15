@@ -98,7 +98,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
 
             Common.TemplateMetadata.Schema10.TemplateMetadataGenerator templateGenerator = new Common.TemplateMetadata.Schema10.TemplateMetadataGenerator(_logger);
-            return new ApiResponse<TemplateMetadataContents>(System.Net.HttpStatusCode.OK, templateGenerator.GetMetadata(fundingSourceFile.Content));
+            return await Task.FromResult(new ApiResponse<TemplateMetadataContents>(System.Net.HttpStatusCode.OK, templateGenerator.GetMetadata(fundingSourceFile.Content)));
         }
 
         public Task<ApiResponse<string>> GetFundingTemplateSourceFile(string fundingStreamId, string templateVersion)

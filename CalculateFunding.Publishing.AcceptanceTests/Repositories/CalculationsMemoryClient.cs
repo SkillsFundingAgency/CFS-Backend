@@ -21,11 +21,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
     {
         private Dictionary<string, Dictionary<string, CalculationResult>> _calculations = new Dictionary<string, Dictionary<string, CalculationResult>>();
         private Dictionary<string, Dictionary<string, Provider>> _scopedProviders = new Dictionary<string, Dictionary<string, Provider>>();
+        private IEnumerable<CalculationMetadata> _calculationMetadata;
         private TemplateMapping _templateMapping;
 
-        public CalculationsInMemoryClient(TemplateMapping templateMapping)
+        public CalculationsInMemoryClient(TemplateMapping templateMapping, IEnumerable<CalculationMetadata> calculationMetadata = null)
         {
             _templateMapping = templateMapping;
+            _calculationMetadata = calculationMetadata;
         }
 
         public Task<ApiResponse<TemplateMapping>> AssociateTemplateIdWithSpecification(string specificationId, string templateVersion, string fundingStreamId)
@@ -78,9 +80,13 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             throw new NotImplementedException();
         }
 
-        public Task<ApiResponse<IEnumerable<CalculationMetadata>>> GetCalculations(string specificationId)
+        public async Task<ApiResponse<IEnumerable<CalculationMetadata>>> GetCalculations(string specificationId)
         {
-            throw new NotImplementedException();
+            return await Task.FromResult(new ApiResponse<IEnumerable<CalculationMetadata>>(HttpStatusCode.OK, _calculationMetadata.Select(_ =>
+            {
+                _.SpecificationId = specificationId;
+                return _;
+            })));
         }
 
         public Task<ApiResponse<IEnumerable<CalculationStatusCounts>>> GetCalculationStatusCounts(SpecificationIdsRequestModel request)

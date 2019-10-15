@@ -18,27 +18,31 @@ namespace CalculateFunding.Services.Publishing
         private readonly ILogger _logger;
         private readonly IPublishedProviderVersionService _publishedProviderVersionService;
         private readonly IPublishedProviderIndexerService _publishedProviderIndexerService;
+        private readonly IPublishingEngineOptions _publishingEngineOptions;
 
         public PublishedProviderContentPersistanceService(
             IPublishedProviderVersionService publishedProviderVersionService,
             IPublishedProviderIndexerService publishedProviderIndexerService,
-            ILogger logger)
+            ILogger logger,
+            IPublishingEngineOptions publishingEngineOptions)
         {
             Guard.ArgumentNotNull(publishedProviderVersionService, nameof(publishedProviderVersionService));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(publishedProviderIndexerService, nameof(publishedProviderIndexerService));
+            Guard.ArgumentNotNull(publishingEngineOptions, nameof(publishingEngineOptions));
 
             _publishedProviderIndexerService = publishedProviderIndexerService;
             _publishedProviderVersionService = publishedProviderVersionService;
             _logger = logger;
+            _publishingEngineOptions = publishingEngineOptions;
         }
 
-        public async Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, TemplateMapping templateMapping, Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData, Dictionary<string, PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator)
+        public async Task SavePublishedProviderContents(TemplateMetadataContents templateMetadataContents, Common.ApiClient.Calcs.Models.TemplateMapping templateMapping, Dictionary<string, GeneratedProviderResult> generatedPublishedProviderData, IEnumerable<PublishedProvider> publishedProvidersToUpdate, IPublishedProviderContentsGenerator generator)
         {
             _logger.Information("Saving published provider contents");
             List<Task> allTasks = new List<Task>();
-            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: 15);
-            foreach (KeyValuePair<string, PublishedProvider> provider in publishedProvidersToUpdate)
+            SemaphoreSlim throttler = new SemaphoreSlim(initialCount: _publishingEngineOptions.SavePublishedProviderContentsConcurrencyCount);
+            foreach (PublishedProvider provider in publishedProvidersToUpdate)
             {
                 await throttler.WaitAsync();
                 allTasks.Add(
@@ -46,9 +50,9 @@ namespace CalculateFunding.Services.Publishing
                     {
                         try
                         {
-                            PublishedProviderVersion publishedProviderVersion = provider.Value.Current;
+                            PublishedProviderVersion publishedProviderVersion = provider.Current;
 
-                            string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[provider.Key]);
+                            string contents = generator.GenerateContents(publishedProviderVersion, templateMetadataContents, templateMapping, generatedPublishedProviderData[provider.Current.ProviderId]);
 
                             if (string.IsNullOrWhiteSpace(contents))
                             {
@@ -58,6 +62,14 @@ namespace CalculateFunding.Services.Publishing
                             try
                             {
                                 await _publishedProviderVersionService.SavePublishedProviderVersionBody(publishedProviderVersion.FundingId, contents);
+                            }
+                            catch (Exception ex)
+                            {
+                                throw new RetriableException(ex.Message);
+                            }
+
+                            try
+                            {
                                 await _publishedProviderIndexerService.IndexPublishedProvider(publishedProviderVersion);
                             }
                             catch (Exception ex)
