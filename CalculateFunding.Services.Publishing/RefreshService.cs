@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
@@ -15,7 +14,6 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Publishing.Interfaces;
 using Microsoft.Azure.ServiceBus;
 using Polly;
@@ -32,6 +30,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly IProviderService _providerService;
         private readonly ICalculationResultsService _calculationResultsService;
         private readonly IPublishedProviderDataGenerator _publishedProviderDataGenerator;
+        private readonly IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private readonly IInScopePublishedProviderService _inScopePublishedProviderService;
         private readonly IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private readonly IProfilingService _profilingService;
@@ -40,6 +39,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly ICalculationsApiClient _calculationsApiClient;
         private readonly IPoliciesApiClient _policiesApiClient;
         private readonly IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
+        private readonly IPublishedProviderContentPersistanceService _publishedProviderContentPersistanceService;
         private readonly Policy _publishingResiliencePolicy;
         private readonly Policy _jobsApiClientPolicy;
         private readonly Policy _calculationsApiClientPolicy;
@@ -59,6 +59,7 @@ namespace CalculateFunding.Services.Publishing
             IPublishedProviderDataPopulator publishedProviderDataPopulator,
             IJobsApiClient jobsApiClient,
             ILogger logger,
+            IPublishedProviderContentPersistanceService publishedProviderContentPersistanceService,
             ICalculationsApiClient calculationsApiClient,
             IPoliciesApiClient policiesApiClient,
             IRefreshPrerequisiteChecker refreshPrerequisiteChecker,
@@ -77,6 +78,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishedProviderDataPopulator, nameof(publishedProviderDataPopulator));
             Guard.ArgumentNotNull(profilingService, nameof(profilingService));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
+            Guard.ArgumentNotNull(publishedProviderContentPersistanceService, nameof(publishedProviderContentPersistanceService));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(calculationsApiClient, nameof(calculationsApiClient));
             Guard.ArgumentNotNull(providerExclusionCheck, nameof(providerExclusionCheck));
@@ -98,10 +100,11 @@ namespace CalculateFunding.Services.Publishing
             _refreshPrerequisiteChecker = refreshPrerequisiteChecker;
             _providerExclusionCheck = providerExclusionCheck;
             _fundingLineValueOverride = fundingLineValueOverride;
-
+            _publishedProviderContentsGeneratorResolver = publishedProviderContentsGeneratorResolver;
             _publishingResiliencePolicy = publishingResiliencePolicies.PublishedFundingRepository;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
+            _publishedProviderContentPersistanceService = publishedProviderContentPersistanceService;
         }
 
         public async Task<IEnumerable<Common.ApiClient.Providers.Models.Provider>> GetProvidersByProviderVersionId(string providerVersionId)
@@ -311,6 +314,10 @@ namespace CalculateFunding.Services.Publishing
                         _logger.Information($"Saving new published providers. Total={newProviders.Count}");
                         await _publishedProviderStatusUpdateService.UpdatePublishedProviderStatus(newProviders.Values, author, PublishedProviderStatus.Draft);
                     }
+
+                    // Generate contents JSON for provider and save to blob storage
+                    IPublishedProviderContentsGenerator generator = _publishedProviderContentsGeneratorResolver.GetService(templateMetadataContents.SchemaVersion);
+                    await _publishedProviderContentPersistanceService.SavePublishedProviderContents(templateMetadataContents, templateMapping, generatedPublishedProviderData, publishedProvidersToUpdate, generator);
                 }
             }
 

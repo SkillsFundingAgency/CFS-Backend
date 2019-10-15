@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
@@ -26,11 +25,11 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPublishedProviderDataGenerator _fundingLineGenerator;
         private IPublishedProviderContentsGeneratorResolver _publishedProviderContentsGeneratorResolver;
         private IJobsApiClient _jobsApiClient;
-        private IMapper _mapper;
         private IProfilingService _profilingService;
         private IInScopePublishedProviderService _inScopePublishedProviderService;
         private IPublishedProviderDataPopulator _publishedProviderDataPopulator;
         private ILogger _logger;
+        private IPublishedProviderContentPersistanceService _publishedProviderContentPersistanceService;
         private ICalculationsApiClient _calculationsApiClient;
         private IRefreshPrerequisiteChecker _refreshPrerequisiteChecker;
         private IPoliciesApiClient _policiesApiClient;
@@ -52,9 +51,9 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishProviderExclusionCheck = Substitute.For<IPublishProviderExclusionCheck>();
             _fundingLineValueOverride = Substitute.For<IFundingLineValueOverride>();
 
-            _mapper = Substitute.For<IMapper>();
             _profilingService = Substitute.For<IProfilingService>();
             _logger = Substitute.For<ILogger>();
+            _publishedProviderContentPersistanceService = Substitute.For<IPublishedProviderContentPersistanceService>();
             _refreshPrerequisiteChecker = Substitute.For<IRefreshPrerequisiteChecker>();
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
 
@@ -71,6 +70,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _publishedProviderDataPopulator,
                 _jobsApiClient,
                 _logger,
+                _publishedProviderContentPersistanceService,
                 _calculationsApiClient,
                 _policiesApiClient,
                 _refreshPrerequisiteChecker,

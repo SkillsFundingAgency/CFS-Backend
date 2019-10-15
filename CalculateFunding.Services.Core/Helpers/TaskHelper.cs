@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using CalculateFunding.Models.Results;
-using Microsoft.AspNetCore.Routing.Tree;
+﻿using System.Threading.Tasks;
 
 namespace CalculateFunding.Services.Core.Helpers
 {

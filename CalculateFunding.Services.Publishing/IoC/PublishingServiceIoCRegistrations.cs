@@ -52,6 +52,7 @@ namespace CalculateFunding.Services.Publishing.IoC
             serviceCollection.AddSingleton<IFundingLineValueOverride, FundingLineValueOverride>();
             serviceCollection.AddSingleton<IPublishedFundingDateService, PublishedFundingDateService>();
             serviceCollection.AddSingleton<IPublishedFundingDataService, PublishedFundingDataService>();
+            serviceCollection.AddSingleton<IPublishedProviderContentPersistanceService, PublishedProviderContentPersistanceService>();
 
 
             serviceCollection.AddTransient<ICreateJobsForSpecifications<RefreshFundingJobDefinition>>(ctx =>
