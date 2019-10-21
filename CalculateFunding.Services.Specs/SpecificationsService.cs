@@ -656,6 +656,8 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null policy create model provided");
             }
 
+            createModel.Name = createModel.Name?.Trim();
+
             BadRequestObjectResult validationResult = (await _specificationCreateModelvalidator.ValidateAsync(createModel)).PopulateModelState();
 
             if (validationResult != null)
@@ -800,6 +802,7 @@ namespace CalculateFunding.Services.Specs
                 return new BadRequestObjectResult("Null edit specification model provided");
             }
 
+            editModel.Name = editModel.Name?.Trim();
             editModel.SpecificationId = specificationId;
 
             BadRequestObjectResult validationResult = (await _specificationEditModelValidator.ValidateAsync(editModel)).PopulateModelState();

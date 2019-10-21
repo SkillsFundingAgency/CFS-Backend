@@ -85,7 +85,7 @@ namespace CalculateFunding.Services.Specs.Validators
                .WithMessage("You must give a unique specification name")
                .Custom((name, context) => {
                    SpecificationCreateModel specModel = context.ParentContext.InstanceToValidate as SpecificationCreateModel;
-                   Specification specification = _specificationsRepository.GetSpecificationByQuery(m => m.Name.ToLower() == specModel.Name.ToLower()).Result;
+                   Specification specification = _specificationsRepository.GetSpecificationByQuery(m => m.Name.Trim().ToLower() == specModel.Name.ToLower()).Result;
                    if (specification != null)
                        context.AddFailure($"You must give a unique specification name");
                });
