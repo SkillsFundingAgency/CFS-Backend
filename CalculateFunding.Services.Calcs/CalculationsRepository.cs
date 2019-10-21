@@ -144,6 +144,7 @@ namespace CalculateFunding.Services.Calcs
                 QueryText = @"SELECT VALUE COUNT(1)
                             FROM    c 
                             WHERE   c.documentType = 'Calculation' 
+                                    AND c.content.current.calculationType = 'Template'
                                     AND c.content.current.publishStatus = @PublishStatus
                                     AND c.content.specificationId = @SpecificationId"
             };
