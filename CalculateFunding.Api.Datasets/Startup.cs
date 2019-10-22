@@ -208,7 +208,7 @@ namespace CalculateFunding.Api.Datasets
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);

@@ -131,8 +131,6 @@ namespace CalculateFunding.Services.Calcs
                     {
                         Task.Run(() =>
                         {
-                            var s = facetDictionary.Where(x => x.Key != filterPair.Key && !string.IsNullOrWhiteSpace(x.Value)).Select(x => x.Value);
-
                             return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters
                             {
                                 Facets = new[]{ $"{filterPair.Key},count:{searchModel.FacetCount}" },
@@ -158,6 +156,9 @@ namespace CalculateFunding.Services.Calcs
         Task<SearchResults<CalculationIndex>> BuildItemsSearchTask(IDictionary<string, string> facetDictionary, SearchModel searchModel)
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
+
+            searchModel.Filters.Where(_ => !facetDictionary.ContainsKey(_.Key)).ToList().ForEach(_ => facetDictionary.Add(_.Key, string.Join(" or ", _.Value.Select(x => $"{_.Key} eq '{x}'"))));
+
             return Task.Run(() =>
             {
                 return _searchRepository.Search(searchModel.SearchTerm, new SearchParameters

@@ -1,31 +1,31 @@
 ﻿using System;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.TestEngine.Interfaces;
 
 namespace CalculateFunding.Services.TestRunner.Repositories
 {
-    [Obsolete("Replace with common nuget API client")]
     public class CalculationsRepository : ICalculationsRepository
     {
-        private readonly ICalcsApiClientProxy _apiClient;
+        private readonly ICalculationsApiClient _apiClient;
 
-        public CalculationsRepository(ICalcsApiClientProxy apiClient)
+        public CalculationsRepository(ICalculationsApiClient apiClient)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 
             _apiClient = apiClient;
         }
 
-        public Task<byte[]> GetAssemblyBySpecificationId(string specificationId)
+        public async Task<byte[]> GetAssemblyBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            string url = $"calcs/{specificationId}/assembly";
+            ApiResponse<byte[]> apiResponse = await _apiClient.GetAssemblyBySpecificationId(specificationId);
 
-            return _apiClient.GetAsync<byte[]>(url);
+            return apiResponse?.Content;
         }
     }
 }

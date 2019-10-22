@@ -1,9 +1,11 @@
-﻿using CalculateFunding.Common.CosmosDb;
+﻿using AutoMapper;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Http;
 using CalculateFunding.Common.WebApi.Middleware;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.AspNet.HealthChecks;
@@ -115,7 +117,15 @@ namespace CalculateFunding.Api.Scenarios
 
             builder.AddUserProviderFromRequest();
 
-            builder.AddCalcsInterServiceClient(Configuration);
+            MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(calculationsConfig.CreateMapper());
+
+            builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddDatasetsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);

@@ -1,8 +1,10 @@
 ﻿using System;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Functions.Scenarios.ServiceBus;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Services.Core.AspNet;
 using CalculateFunding.Services.Core.Extensions;
@@ -84,7 +86,15 @@ namespace CalculateFunding.Functions.Scenarios
                 return new VersionRepository<TestScenarioVersion>(resultsRepostory);
             });
 
-            builder.AddCalcsInterServiceClient(config);
+            MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(calculationsConfig.CreateMapper());
+
+            builder.AddCalculationsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddDatasetsInterServiceClient(config);
 

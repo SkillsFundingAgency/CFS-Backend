@@ -1,25 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Scenarios.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios
 {
-    [Obsolete("Replace with common nuget API client")]
     public class CalcsRepository : ICalcsRepository
     {
-        const string calculationsUrl = "calcs/current-calculations-for-specification?specificationId=";
+        private readonly IMapper _mapper;
+        private readonly ICalculationsApiClient _apiClient;
 
-        private readonly ICalcsApiClientProxy _apiClient;
-
-        public CalcsRepository(ICalcsApiClientProxy apiClient)
+        public CalcsRepository(ICalculationsApiClient apiClient, IMapper mapper)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _apiClient = apiClient;
+            _mapper = mapper;
         }
 
         public async Task<IEnumerable<CalculationCurrentVersion>> GetCurrentCalculationsBySpecificationId(string specificationId)
@@ -29,9 +31,9 @@ namespace CalculateFunding.Services.Scenarios
                 throw new ArgumentNullException(nameof(specificationId));
             }
 
-            string url = $"{calculationsUrl}{specificationId}";
+            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationCurrentVersion>> apiResponse = await _apiClient.GetCurrentCalculationsBySpecificationId(specificationId);
 
-            return await _apiClient.GetAsync<IEnumerable<CalculationCurrentVersion>>(url);
+            return _mapper.Map<IEnumerable<CalculationCurrentVersion>>(apiResponse?.Content);
         }
     }
 }

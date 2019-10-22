@@ -71,24 +71,6 @@ namespace CalculateFunding.Services.Core.Extensions
         }
 
         [Obsolete]
-        public static IServiceCollection AddCalcsInterServiceClient(this IServiceCollection builder, IConfiguration config)
-        {
-            builder
-                .AddSingleton<ICalcsApiClientProxy, CalcsApiProxy>((ctx) =>
-                {
-                    ApiOptions apiOptions = new ApiOptions();
-
-                    config.Bind("calcsClient", apiOptions);
-
-                    ILogger logger = ctx.GetService<ILogger>();
-
-                    return new CalcsApiProxy(apiOptions, logger);
-                });
-
-            return builder;
-        }
-
-        [Obsolete]
         public static IServiceCollection AddDatasetsInterServiceClient(this IServiceCollection builder, IConfiguration config)
         {
             builder

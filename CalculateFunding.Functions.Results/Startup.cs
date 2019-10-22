@@ -235,7 +235,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddLogging("CalculateFunding.Functions.Results");
             builder.AddTelemetry();
 
-            builder.AddCalcsInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);

@@ -224,7 +224,7 @@ namespace CalculateFunding.Api.Results
             builder.AddTelemetry();
 
             builder.AddSpecificationsInterServiceClient(Configuration);
-            builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
 

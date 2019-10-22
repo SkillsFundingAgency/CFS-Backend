@@ -170,7 +170,7 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddSearch(Configuration);
 
-            builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddScenariosInterServiceClient(Configuration);
             builder.AddResultsInterServiceClient(Configuration);

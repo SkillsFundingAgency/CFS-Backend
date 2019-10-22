@@ -154,10 +154,9 @@ namespace CalculateFunding.Api.Specs
 
             builder.AddResultsInterServiceClient(Configuration);
             builder.AddJobsInterServiceClient(Configuration);
-            builder.AddCalcsInterServiceClient(Configuration);
+            builder.AddCalculationsInterServiceClient(Configuration);
             builder.AddProvidersInterServiceClient(Configuration);
             builder.AddPoliciesInterServiceClient(Configuration);
-            builder.AddCalculationsInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 

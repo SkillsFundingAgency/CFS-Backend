@@ -1315,40 +1315,13 @@ namespace CalculateFunding.Services.Calcs
 
             List<FundingLine> allFundingLines = fundingTemplateContents
                 .RootFundingLines
-                .ToList();
-
-            allFundingLines
-                .AddRange(allFundingLines.SelectMany(f =>
-                {
-                    if (f.FundingLines.IsNullOrEmpty())
-                    {
-                        return Enumerable.Empty<FundingLine>();
-                    }
-
-                    return f.FundingLines;
-                })
-                .ToList());
+                .Flatten(_ => _.FundingLines).ToList();
 
             List<Common.TemplateMetadata.Models.Calculation> templateCalculations = allFundingLines
                 .SelectMany(c =>
                 {
-                    if (c.Calculations.IsNullOrEmpty())
-                    {
-                        return Enumerable.Empty<Common.TemplateMetadata.Models.Calculation>();
-                    }
-
-                    return c.Calculations;
+                    return c.Calculations.Flatten(_ => _.Calculations);
                 }).ToList();
-
-            templateCalculations.AddRange(templateCalculations.SelectMany(c =>
-            {
-                if (c.Calculations.IsNullOrEmpty())
-                {
-                    return Enumerable.Empty<Common.TemplateMetadata.Models.Calculation>();
-                }
-
-                return c.Calculations;
-            }));
 
             IEnumerable<ReferenceData> templateReferenceData = templateCalculations
                 .SelectMany(c =>

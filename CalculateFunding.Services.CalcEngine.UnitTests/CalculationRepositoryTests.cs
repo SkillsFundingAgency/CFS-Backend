@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
+using CalculateFunding.Models.MappingProfiles;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -16,8 +20,9 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         public void GetCalculationSummariesForSpecification_WhenSpeficationIdIsEmpty_ShouldThrowException()
         {
             // Arrange 
-            ICalcsApiClientProxy apiClientProxy = Substitute.For<ICalcsApiClientProxy>();
-            CalculationsRepository calculationsRepository = new CalculationsRepository(apiClientProxy);
+            ICalculationsApiClient apiClientProxy = Substitute.For<ICalculationsApiClient>();
+            IMapper mapper = CreateMapper();
+            CalculationsRepository calculationsRepository = new CalculationsRepository(apiClientProxy, CreateMapper());
             ArgumentNullException exception = null;
 
             // Act
@@ -34,29 +39,29 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Assert
             exception.Should().NotBeNull();
             exception.Should().BeOfType<ArgumentNullException>();
-            apiClientProxy.DidNotReceive().GetAsync<CalculationSummaryModel>(Arg.Any<string>());
+            apiClientProxy.DidNotReceive().GetCalculationSummariesForSpecification(Arg.Any<string>());
         }
 
         [TestMethod]
         public void GetCalculationSummariesForSpecification_WhenGivenASpecificationIdInValidFormat_ShouldReturnResult()
         {
             // Arrange 
-            List<CalculationSummaryModel> summaryModels = new List<CalculationSummaryModel>()
+            List<Common.ApiClient.Calcs.Models.CalculationSummaryModel> summaryModels = new List<Common.ApiClient.Calcs.Models.CalculationSummaryModel>()
             {
-                new CalculationSummaryModel()
+                new Common.ApiClient.Calcs.Models.CalculationSummaryModel()
                 {
                     Name = "TestCalc",
-                    CalculationType = CalculationType.Template,
+                    CalculationType = Common.ApiClient.Calcs.Models.CalculationType.Template,
                     Id = "CalcId"
                 }
             };
 
-            ICalcsApiClientProxy mockApi = Substitute.For<ICalcsApiClientProxy>();
+            ICalculationsApiClient mockApi = Substitute.For<ICalculationsApiClient>();
             mockApi
-                .GetAsync<IEnumerable<CalculationSummaryModel>>(Arg.Any<string>())
-                .Returns(summaryModels);
+                .GetCalculationSummariesForSpecification(Arg.Any<string>())
+                .Returns(new ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationSummaryModel>>(HttpStatusCode.OK, summaryModels));
 
-            CalculationsRepository calculationsRepository = new CalculationsRepository(mockApi);
+            CalculationsRepository calculationsRepository = new CalculationsRepository(mockApi, CreateMapper());
             ArgumentNullException exception = null;
 
             // Act
@@ -66,15 +71,15 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Assert
             calculationSummaryModels.Should().NotBeNull();
             calculationSummaryModels.Should().BeEquivalentTo(summaryModels);
-            mockApi.Received(1).GetAsync<IEnumerable<CalculationSummaryModel>>(Arg.Any<string>());
+            mockApi.Received(1).GetCalculationSummariesForSpecification(Arg.Any<string>());
         }
 
         [TestMethod]
         public void GetBuildProjectBySpecificationId_WhenSpeficationIdIsEmpty_ShouldThrowException()
         {
             // Arrange 
-            ICalcsApiClientProxy apiClientProxy = Substitute.For<ICalcsApiClientProxy>();
-            CalculationsRepository calculationsRepository = new CalculationsRepository(apiClientProxy);
+            ICalculationsApiClient apiClientProxy = Substitute.For<ICalculationsApiClient>();
+            CalculationsRepository calculationsRepository = new CalculationsRepository(apiClientProxy, CreateMapper());
             ArgumentNullException exception = null;
 
             // Act
@@ -91,19 +96,19 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Assert
             exception.Should().NotBeNull();
             exception.Should().BeOfType<ArgumentNullException>();
-            apiClientProxy.DidNotReceive().GetAsync<BuildProject>(Arg.Any<string>());
+            apiClientProxy.DidNotReceive().GetBuildProjectBySpecificationId(Arg.Any<string>());
         }
 
         [TestMethod]
         public void GetBuildProjectBySpecificationId_WhenSpeficationIdIsInValidFormat_ShouldReturnResult()
         {
             // Arrange 
-            ICalcsApiClientProxy mockApi = Substitute.For<ICalcsApiClientProxy>();
+            ICalculationsApiClient mockApi = Substitute.For<ICalculationsApiClient>();
             mockApi
-                .GetAsync<BuildProject>(Arg.Any<string>())
-                .Returns(new BuildProject());
+                .GetBuildProjectBySpecificationId(Arg.Any<string>())
+                .Returns(new ApiResponse<Common.ApiClient.Calcs.Models.BuildProject>(HttpStatusCode.OK, new Common.ApiClient.Calcs.Models.BuildProject()));
 
-            CalculationsRepository calculationsRepository = new CalculationsRepository(mockApi);
+            CalculationsRepository calculationsRepository = new CalculationsRepository(mockApi, CreateMapper());
             ArgumentNullException exception = null;
 
             // Act
@@ -112,7 +117,17 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
 
             // Assert
             buildProject.Should().NotBeNull();
-            mockApi.Received(1).GetAsync<BuildProject>(Arg.Any<string>());
+            mockApi.Received(1).GetBuildProjectBySpecificationId(Arg.Any<string>());
+        }
+
+        private static IMapper CreateMapper()
+        {
+            MapperConfiguration mapperConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();
+            });
+
+            return mapperConfig.CreateMapper();
         }
     }
 }

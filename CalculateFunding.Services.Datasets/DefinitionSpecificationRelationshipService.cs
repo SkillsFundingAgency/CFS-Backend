@@ -177,7 +177,7 @@ namespace CalculateFunding.Services.Datasets
                 DefinesScope = relationship.IsSetAsProviderData
             };
 
-            BuildProject buildProject = await _calcsRepository.UpdateBuildProjectRelationships(specification.Id, relationshipSummary);
+            await _calcsRepository.UpdateBuildProjectRelationships(specification.Id, relationshipSummary);
 
             await _cacheProvider.RemoveAsync<IEnumerable<DatasetSchemaRelationshipModel>>($"{CacheKeys.DatasetRelationshipFieldsForSpecification}{specification.Id}");
 

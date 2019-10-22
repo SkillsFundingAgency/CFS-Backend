@@ -158,7 +158,7 @@ namespace CalculateFunding.Functions.TestEngine
 
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddScenariosInterServiceClient(config);
-            builder.AddCalcsInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
             builder.AddProvidersInterServiceClient(config);
 

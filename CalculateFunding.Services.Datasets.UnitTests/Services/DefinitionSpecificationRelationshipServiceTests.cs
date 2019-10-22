@@ -6,17 +6,23 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Datasets.Interfaces;
+using CalculateFunding.Services.Datasets.MappingProfiles;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -305,6 +311,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinition(Arg.Is(datasetDefinitionId))
                 .Returns(definition);
 
+            ICalculationsApiClient calcsClient = Substitute.For<ICalculationsApiClient>();
+            calcsClient
+                .UpdateBuildProjectRelationships(Arg.Is(specificationId), Arg.Any<DatasetRelationshipSummary>())
+                .Returns(new ApiResponse<BuildProject>(HttpStatusCode.OK, new BuildProject()));
+
+            ICalcsRepository calcsRepository = new CalcsRepository(calcsClient, CreateMapper());
+
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository
                 .GetSpecificationSummaryById(Arg.Any<string>())
@@ -317,7 +330,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider);
+                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider, calcsRepository: calcsRepository);
 
             //Act
             IActionResult result = await service.CreateRelationship(request);
@@ -1993,7 +2006,7 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         private static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
-            ILogger logger = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
+            ILogger logger = null, IMapper mapper = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
             IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null,
             IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null, IJobsApiClient jobsApiClient = null)
         {
@@ -2043,6 +2056,15 @@ namespace CalculateFunding.Services.Datasets.Services
         private static ILogger CreateLogger()
         {
             return Substitute.For<ILogger>();
+        }
+        private static IMapper CreateMapper()
+        {
+            MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();
+            });
+
+            return calculationsConfig.CreateMapper();
         }
 
         private static IDatasetService CreateDatasetService()

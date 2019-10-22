@@ -180,7 +180,7 @@ namespace CalculateFunding.Functions.Datasets
                 return new DatasetsAggregationsRepository(aggsCosmosRepostory);
             });
 
-            builder.AddCalcsInterServiceClient(config);
+            builder.AddCalculationsInterServiceClient(config);
             builder.AddResultsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
             builder.AddJobsInterServiceClient(config);

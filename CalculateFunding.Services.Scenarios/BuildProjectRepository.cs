@@ -1,34 +1,35 @@
-﻿using CalculateFunding.Common.Utility;
-using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
-using CalculateFunding.Services.Scenarios.Interfaces;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
+using CalculateFunding.Services.Scenarios.Interfaces;
 
 namespace CalculateFunding.Services.Scenarios
 {
     public class BuildProjectRepository : IBuildProjectRepository
     {
-        const string buildProjectUrl = "calcs/get-buildproject-by-specification-id?specificationId=";
+        private readonly IMapper _mapper;
+        private readonly ICalculationsApiClient _apiClient;
 
-        private readonly ICalcsApiClientProxy _apiClient;
-
-        public BuildProjectRepository(ICalcsApiClientProxy apiClient)
+        public BuildProjectRepository(ICalculationsApiClient apiClient, IMapper mapper)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 
             _apiClient = apiClient;
+            _mapper = mapper;
         }
 
-        public Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId)
+        public async Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId)
         {
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            string url = $"{buildProjectUrl}{specificationId}";
+            ApiResponse<Common.ApiClient.Calcs.Models.BuildProject> apiResponse = await _apiClient.GetBuildProjectBySpecificationId(specificationId);
 
-            return _apiClient.GetAsync<BuildProject>(url);
+            return _mapper.Map<BuildProject>(apiResponse?.Content);
         }
     }
 }

@@ -2,29 +2,28 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Datasets.Interfaces;
 
 namespace CalculateFunding.Services.Datasets
 {
-    [Obsolete("Replace with common nuget API client")]
     public class CalcsRepository : ICalcsRepository
     {
-        const string buildProjectsUrl = "calcs/get-buildproject-by-specification-id?specificationId=";
+        private IMapper _mapper;
 
-        const string updateRelationshipsUrl = "calcs/update-buildproject-relationships?specificationId=";
+        private readonly ICalculationsApiClient _apiClient;
 
-        const string calculationsUrl = "calcs/current-calculations-for-specification?specificationId=";
-
-        private readonly ICalcsApiClientProxy _apiClient;
-
-        public CalcsRepository(ICalcsApiClientProxy apiClient)
+        public CalcsRepository(ICalculationsApiClient apiClient, IMapper mapper)
         {
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
+            Guard.ArgumentNotNull(mapper, nameof(mapper));
 
             _apiClient = apiClient;
+            _mapper = mapper;
         }
 
         public async Task<BuildProject> GetBuildProjectBySpecificationId(string specificationId)
@@ -32,9 +31,9 @@ namespace CalculateFunding.Services.Datasets
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            string url = $"{buildProjectsUrl}{specificationId}";
+            ApiResponse<Common.ApiClient.Calcs.Models.BuildProject> apiResponse = await _apiClient.GetBuildProjectBySpecificationId(specificationId);
 
-            return await _apiClient.GetAsync<BuildProject>(url);
+            return _mapper.Map<BuildProject>(apiResponse?.Content);
         }
 
         public async Task<BuildProject> UpdateBuildProjectRelationships(string specificationId, DatasetRelationshipSummary datasetRelationshipSummary)
@@ -44,9 +43,9 @@ namespace CalculateFunding.Services.Datasets
 
             Guard.ArgumentNotNull(datasetRelationshipSummary, nameof(datasetRelationshipSummary));
 
-            string url = $"{updateRelationshipsUrl}{specificationId}";
+            ApiResponse<Common.ApiClient.Calcs.Models.BuildProject> apiResponse = await _apiClient.UpdateBuildProjectRelationships(specificationId, _mapper.Map<Common.ApiClient.Calcs.Models.DatasetRelationshipSummary>(datasetRelationshipSummary));
 
-            return await _apiClient.PostAsync<BuildProject, DatasetRelationshipSummary>(url, datasetRelationshipSummary);
+            return _mapper.Map<BuildProject>(apiResponse?.Content);
         }
 
         public async Task<IEnumerable<CalculationCurrentVersion>> GetCurrentCalculationsBySpecificationId(string specificationId)
@@ -54,9 +53,9 @@ namespace CalculateFunding.Services.Datasets
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            string url = $"{calculationsUrl}{specificationId}";
+            ApiResponse<IEnumerable<Common.ApiClient.Calcs.Models.CalculationCurrentVersion>> apiResponse = await _apiClient.GetCurrentCalculationsBySpecificationId(specificationId);
 
-            return await _apiClient.GetAsync<IEnumerable<CalculationCurrentVersion>>(url);
+            return _mapper.Map<IEnumerable<CalculationCurrentVersion>>(apiResponse?.Content);
         }
 
         public async Task<HttpStatusCode> CompileAndSaveAssembly(string specificationId)
@@ -64,9 +63,9 @@ namespace CalculateFunding.Services.Datasets
             if (string.IsNullOrWhiteSpace(specificationId))
                 throw new ArgumentNullException(nameof(specificationId));
 
-            string url = $"calcs/{specificationId}/compileAndSaveAssembly";
+            ApiResponse<HttpStatusCode> apiResponse = await _apiClient.CompileAndSaveAssembly(specificationId);
 
-            return await _apiClient.GetAsync(url);
+            return apiResponse.Content;
         }
     }
 }

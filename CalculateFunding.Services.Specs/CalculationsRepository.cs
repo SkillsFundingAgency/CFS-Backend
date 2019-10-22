@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Calcs;
+using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Services.Core.Interfaces.Proxies;
 using CalculateFunding.Services.Specs.Interfaces;
 
 namespace CalculateFunding.Services.Specs
@@ -12,9 +13,9 @@ namespace CalculateFunding.Services.Specs
     {
         const string validateCalculationNameUrl = "calcs/validate-calc-name/{0}/{1}/{2}";
 
-        private readonly ICalcsApiClientProxy _apiClientProxy;
+        private readonly ICalculationsApiClient _apiClientProxy;
 
-        public CalculationsRepository(ICalcsApiClientProxy apiClientProxy)
+        public CalculationsRepository(ICalculationsApiClient apiClientProxy)
         {
             Guard.ArgumentNotNull(apiClientProxy, nameof(apiClientProxy));
 
@@ -23,18 +24,9 @@ namespace CalculateFunding.Services.Specs
 
         public async Task<bool> IsCalculationNameValid(string specificationId, string calculationName, string existingCalculationId = null)
         {
-            string url = string.Format(validateCalculationNameUrl, specificationId, calculationName, existingCalculationId);
+            ApiResponse<bool> apiResponse = await _apiClientProxy.IsCalculationNameValid(specificationId, calculationName, existingCalculationId);
 
-            HttpStatusCode result = await _apiClientProxy.GetAsync(url);
-
-            if (result == HttpStatusCode.OK)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return apiResponse.Content;
         }
     }
 }

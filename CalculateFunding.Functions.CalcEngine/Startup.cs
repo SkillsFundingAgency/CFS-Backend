@@ -1,10 +1,12 @@
 ﻿using System;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Functions.CalcEngine.ServiceBus;
+using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine;
@@ -137,7 +139,15 @@ namespace CalculateFunding.Functions.CalcEngine
             builder
                 .AddSingleton<ISourceCodeService, SourceCodeService>();
 
-            builder.AddCalcsInterServiceClient(config);
+            MapperConfiguration calculationsConfig = new MapperConfiguration(c =>
+            {
+                c.AddProfile<CalculationsMappingProfile>();
+            });
+
+            builder
+                .AddSingleton(calculationsConfig.CreateMapper());
+
+            builder.AddCalculationsInterServiceClient(config);
             builder.AddSpecificationsInterServiceClient(config);
 
             builder.AddJobsInterServiceClient(config);
