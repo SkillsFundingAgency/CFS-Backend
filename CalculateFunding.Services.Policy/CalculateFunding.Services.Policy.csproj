@@ -11,7 +11,7 @@
     <PackageReference Include="CalculateFunding.Common" Version="1.34.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.3" />
     <PackageReference Include="CalculateFunding.Common.TemplateMetadata" Version="1.0.8" />
-    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.10" />
+    <PackageReference Include="CalculateFunding.Common.TemplateMetadata.Schema10" Version="1.0.11" />
     <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.7" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="Newtonsoft.Json.Schema" Version="3.0.11" />
