@@ -63,6 +63,106 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] PSG_AY_1920_1000000_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_1000000_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_1000002_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_1000002_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_1000101_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_1000101_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_1000102_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_1000102_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_1000201_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_1000201_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_1000202_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_1000202_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_Information_Provider_1000201_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_Information_Provider_1000201_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_Information_Provider_1000202_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_Information_Provider_1000202_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_Payment_AcademyTrust_8000001_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_Payment_AcademyTrust_8000001_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] PSG_AY_1920_Payment_LocalAuthority_9000000_1_0 {
+            get {
+                object obj = ResourceManager.GetObject("PSG_AY_1920_Payment_LocalAuthority_9000000_1_0", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] PSG1_0 {
             get {
                 object obj = ResourceManager.GetObject("PSG1.0", resourceCulture);

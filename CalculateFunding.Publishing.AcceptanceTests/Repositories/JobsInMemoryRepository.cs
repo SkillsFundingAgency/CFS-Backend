@@ -160,6 +160,18 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             return Task.FromResult(new ApiResponse<JobSummary>(HttpStatusCode.OK, new JobSummary()));
         }
 
+        public Task<List<JobLog>> GetLatestJobForSpecification(string jobId)
+        {
+            var result = _jobLogs.Values;
+            List<JobLog> job = null;
+            foreach(var item in result)
+            {
+                job = item;
+            }
+            
+            return Task.FromResult(job);
+        }
+
         public Task<ApiResponse<IEnumerable<JobSummary>>> GetNonCompletedJobsWithinTimeFrame(DateTimeOffset dateTimeFrom, DateTimeOffset dateTimeTo)
         {
             throw new NotImplementedException();

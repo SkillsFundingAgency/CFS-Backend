@@ -39,7 +39,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             if (_publishedProviderVersions.ContainsKey(newVersion.Id))
             {
                 throw new InvalidOperationException("Unable to save version, existing one already exists");
-            }
+            }         
 
             _publishedProviderVersions[newVersion.Id] = newVersion;
 

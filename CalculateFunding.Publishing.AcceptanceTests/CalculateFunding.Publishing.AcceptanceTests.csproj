@@ -7,11 +7,31 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\PSG-AY-1920-Information-Provider-1000201-1_0.json" />
+    <None Remove="Resources\PSG-AY-1920-Information-Provider-1000202-1_0.json" />
+    <None Remove="Resources\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
+    <None Remove="Resources\PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json" />
     <None Remove="Resources\psg1.0.json" />
+    <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000000-1_0.json" />
+    <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000002-1_0.json" />
+    <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000101-1_0.json" />
+    <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000102-1_0.json" />
+    <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000201-1_0.json" />
+    <None Remove="Resources\PublishedProviders\PSG-AY-1920-1000202-1_0.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Information-Provider-1000201-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Information-Provider-1000202-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedFunding\PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json" />
     <EmbeddedResource Include="Resources\PSG1.0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000000-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000002-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000101-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000102-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000201-1_0.json" />
+    <EmbeddedResource Include="Resources\PublishedProviders\PSG-AY-1920-1000202-1_0.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,5 +65,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties /></VisualStudio></ProjectExtensions>
 
 </Project>

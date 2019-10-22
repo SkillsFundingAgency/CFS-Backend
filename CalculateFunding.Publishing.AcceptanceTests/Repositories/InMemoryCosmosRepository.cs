@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,6 +7,7 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Publishing;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 
@@ -13,6 +15,23 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class InMemoryCosmosRepository : ICosmosRepository
     {
+        public ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedFundingVersion>> PublishedFundingVersions { get; private set; }
+
+        public ConcurrentDictionary<string, ConcurrentDictionary<string,PublishedProviderVersion>> PublishedProviderVersions { get; private set; }
+
+       public ConcurrentDictionary<string, ConcurrentBag<PublishedProvider>> PublishedProviders { get; private set; }
+
+        // Keyed on SpecificationId
+      public  ConcurrentDictionary<string, ConcurrentBag<PublishedFunding>> PublishedFunding { get; private set; }
+
+        public InMemoryCosmosRepository()
+        {
+            PublishedFundingVersions = new ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedFundingVersion>>();
+            PublishedProviders = new ConcurrentDictionary<string, ConcurrentBag<PublishedProvider>>();
+            PublishedFunding = new ConcurrentDictionary<string, ConcurrentBag<PublishedFunding>>();
+            PublishedProviderVersions = new ConcurrentDictionary<string, ConcurrentDictionary<string, PublishedProviderVersion>>();
+        }
+
         public Task BulkCreateAsync<T>(IList<T> entities, int degreeOfParallelism = 5) where T : IIdentifiable
         {
             throw new NotImplementedException();
@@ -104,7 +123,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         }
 
         public IQueryable<dynamic> DynamicQueryPartionedEntity<dynamic>(SqlQuerySpec sqlQuerySpec, string partitionEntityId = null)
-        {
+        {           
+            if (sqlQuerySpec.Parameters.Count == 1)
+            {
+                if( string.Equals(sqlQuerySpec.Parameters[0].Value?.ToString(),  "PublishedFundingVersion", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var existingVersions = PublishedFundingVersions.Values.SelectMany(c=>c.Values)
+                                      .Where(c => c.EntityId == partitionEntityId);
+
+                    if (existingVersions.AnyWithNullCheck())
+                    {
+                        int maxVersion = existingVersions.Select(p => p.Version)
+                                      .Max();
+                        IQueryable<dynamic> result = new[] { maxVersion }.AsQueryable() as IQueryable<dynamic>;
+
+                        return result;
+                    }
+                }
+            }
+
             return new dynamic[] { }.AsQueryable();
         }
 
@@ -260,7 +297,29 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<HttpStatusCode> UpsertAsync<T>(T entity, string partitionKey = null, bool enableCrossPartitionQuery = false, bool undelete = false, bool maintainCreatedDate = true) where T : IIdentifiable
         {
-            throw new NotImplementedException();
+            if (typeof(T).Name == "PublishedProviderVersion")
+            {
+                PublishedProviderVersion publishedProviderVersion = entity as PublishedProviderVersion;
+                if (!PublishedProviderVersions.ContainsKey(publishedProviderVersion.SpecificationId))
+                {
+                    PublishedProviderVersions.TryAdd(publishedProviderVersion.SpecificationId, new ConcurrentDictionary<string, PublishedProviderVersion>());
+                }
+
+                PublishedProviderVersions[publishedProviderVersion.SpecificationId][publishedProviderVersion.Id] = publishedProviderVersion;
+                return Task.FromResult(HttpStatusCode.OK);
+            } else if (typeof(T).Name == "PublishedFundingVersion")
+            {
+                PublishedFundingVersion publishedFundingVersion = entity as PublishedFundingVersion;
+                if (!PublishedFundingVersions.ContainsKey(publishedFundingVersion.SpecificationId))
+                {
+                    PublishedFundingVersions.TryAdd(publishedFundingVersion.SpecificationId, new ConcurrentDictionary<string, PublishedFundingVersion>());
+                }
+
+                PublishedFundingVersions[publishedFundingVersion.SpecificationId][publishedFundingVersion.Id] = publishedFundingVersion;
+                return Task.FromResult(HttpStatusCode.OK);
+            }
+
+            return Task.FromResult(HttpStatusCode.BadRequest);
         }
     }
 }

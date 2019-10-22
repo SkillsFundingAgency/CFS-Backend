@@ -5,6 +5,7 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
 using FluentAssertions;
+using Newtonsoft.Json;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -151,6 +152,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             Guard.IsNullOrWhiteSpace(_currentSpecificationStepContext.SpecificationId, nameof(_currentSpecificationStepContext.SpecificationId));
             Guard.ArgumentNotNull(_publishedFundingRepositoryStepContext.CurrentPublishedProvider, nameof(_publishedFundingRepositoryStepContext.CurrentPublishedProvider));
 
+            var json = JsonConvert.SerializeObject(_publishedFundingRepositoryStepContext.CurrentPublishedProvider);
             _publishedFundingRepositoryStepContext.Repo.AddPublishedProvider(_currentSpecificationStepContext.SpecificationId, _publishedFundingRepositoryStepContext.CurrentPublishedProvider);
         }
 

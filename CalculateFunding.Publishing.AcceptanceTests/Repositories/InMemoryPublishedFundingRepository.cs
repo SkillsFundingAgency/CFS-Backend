@@ -13,18 +13,21 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class InMemoryPublishedFundingRepository : IPublishedFundingRepository
     {
-        ConcurrentDictionary<string, ConcurrentBag<PublishedProvider>> _publishedProviders = new ConcurrentDictionary<string, ConcurrentBag<PublishedProvider>>();
+        public InMemoryPublishedFundingRepository(InMemoryCosmosRepository inMemoryCosmosRepository)
+        {
+            _repo = inMemoryCosmosRepository;
+        }
 
-        // Keyed on SpecificationId
-        ConcurrentDictionary<string, ConcurrentBag<PublishedFunding>> _publishedFunding = new ConcurrentDictionary<string, ConcurrentBag<PublishedFunding>>();
+     
+        private readonly InMemoryCosmosRepository _repo;
 
         public Task<IEnumerable<PublishedFunding>> GetLatestPublishedFundingBySpecification(string specificationId)
         {
             IEnumerable<PublishedFunding> result = null;
 
-            if (_publishedFunding.ContainsKey(specificationId))
+            if (_repo.PublishedFunding.ContainsKey(specificationId))
             {
-                result = _publishedFunding[specificationId];
+                result = _repo.PublishedFunding[specificationId];
             }
 
             return Task.FromResult(result);
@@ -33,9 +36,9 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         public Task<IEnumerable<PublishedProvider>> GetLatestPublishedProvidersBySpecification(string specificationId)
         {
             IEnumerable<PublishedProvider> result = null;
-            if (_publishedProviders.ContainsKey(specificationId))
+            if (_repo.PublishedProviders.ContainsKey(specificationId))
             {
-                result = _publishedProviders[specificationId];
+                result = _repo.PublishedProviders[specificationId];
             }
 
             return Task.FromResult(result);
@@ -43,7 +46,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<IEnumerable<PublishedProvider>> GetPublishedProvidersForApproval(string specificationId)
         {
-            IEnumerable<PublishedProvider> results = _publishedProviders[specificationId].Where(p =>
+            IEnumerable<PublishedProvider> results = _repo.PublishedProviders[specificationId].Where(p =>
              p.Current.Status == PublishedProviderStatus.Draft || p.Current.Status == PublishedProviderStatus.Updated);
 
             return Task.FromResult(results);
@@ -51,7 +54,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<PublishedProviderVersion> GetPublishedProviderVersion(string fundingStreamId, string fundingPeriodId, string providerId, string version)
         {
-            PublishedProvider publishedProvider = _publishedProviders.SelectMany(c => c.Value).Where(p =>
+            PublishedProvider publishedProvider = _repo.PublishedProviders.SelectMany(c => c.Value).Where(p =>
               p.Current.FundingStreamId == fundingStreamId
               && p.Current.FundingPeriodId == fundingPeriodId
               && p.Current.ProviderId == providerId).FirstOrDefault();
@@ -80,14 +83,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
             string specificationId = publishedFunding.Current.SpecificationId;
 
-            if (!_publishedFunding.ContainsKey(specificationId))
+            if (!_repo.PublishedFunding.ContainsKey(specificationId))
             {
-                _publishedFunding.TryAdd(specificationId, new ConcurrentBag<PublishedFunding>());
+                _repo.PublishedFunding.TryAdd(specificationId, new ConcurrentBag<PublishedFunding>());
             }
 
             List<PublishedFunding> itemsToRemove = new List<PublishedFunding>();
 
-            PublishedFunding existingFunding = _publishedFunding[specificationId].Where(p => p.Id == publishedFunding.Id).FirstOrDefault();
+            PublishedFunding existingFunding = _repo.PublishedFunding[specificationId].Where(p => p.Id == publishedFunding.Id).FirstOrDefault();
 
             if (existingFunding != null)
             {
@@ -95,7 +98,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             }
             else
             {
-                _publishedFunding[specificationId].Add(publishedFunding);
+                _repo.PublishedFunding[specificationId].Add(publishedFunding);
             }
 
             return Task.FromResult(HttpStatusCode.OK);
@@ -114,21 +117,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
                 foreach (PublishedProvider publishedProvider in publishedProviders)
                 {
                     string specificationId = publishedProvider.Current.SpecificationId;
-                    if (!_publishedProviders.ContainsKey(specificationId))
+                    if (!_repo.PublishedProviders.ContainsKey(specificationId))
                     {
-                        _publishedProviders.TryAdd(specificationId, new ConcurrentBag<PublishedProvider>());
+                        _repo.PublishedProviders.TryAdd(specificationId, new ConcurrentBag<PublishedProvider>());
                     }
 
-                    var existingProvider = _publishedProviders[specificationId].FirstOrDefault(p => p.Id == publishedProvider.Id);
+                    var existingProvider = _repo.PublishedProviders[specificationId].FirstOrDefault(p => p.Id == publishedProvider.Id);
                     if (existingProvider != null)
                     {
+
                         existingProvider.Current = publishedProvider.Current;
                     }
                     else
                     {
-                        _publishedProviders[specificationId].Add(publishedProvider);
-                    }
+                        _repo.PublishedProviders[specificationId].Add(publishedProvider);
 
+                    }
                     results.Add(HttpStatusCode.OK);
                 }
             }
@@ -141,19 +145,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(publishedProvider, nameof(publishedProvider));
 
-            if (!_publishedProviders.ContainsKey(specificationId))
+            if (!_repo.PublishedProviders.ContainsKey(specificationId))
             {
-                _publishedProviders[specificationId] = new ConcurrentBag<PublishedProvider>();
+                _repo.PublishedProviders[specificationId] = new ConcurrentBag<PublishedProvider>();
             }
 
-            _publishedProviders[specificationId].Add(publishedProvider);
+            _repo.PublishedProviders[specificationId].Add(publishedProvider);
 
             return Task.FromResult(publishedProvider);
         }
 
         public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIdsForApproval(string fundingStreamId, string fundingPeriodId)
         {
-            IEnumerable<KeyValuePair<string, string>> results = _publishedProviders
+            IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedProviders
                 .SelectMany(c => c.Value)
                 .Where(p =>
                     (p.Current.Status == PublishedProviderStatus.Draft || p.Current.Status == PublishedProviderStatus.Updated)
@@ -166,14 +170,14 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<PublishedProvider> GetPublishedProviderById(string cosmosId, string partitionKey)
         {
-            PublishedProvider result = _publishedProviders.SelectMany(c => c.Value).FirstOrDefault(p => p.Id == cosmosId);
+            PublishedProvider result = _repo.PublishedProviders.SelectMany(c => c.Value).FirstOrDefault(p => p.Id == cosmosId);
 
             return Task.FromResult(result);
         }
 
         public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedProviderIds(string fundingStreamId, string fundingPeriodId)
         {
-            IEnumerable<KeyValuePair<string, string>> results = _publishedProviders
+            IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedProviders
                             .SelectMany(c => c.Value)
                             .Where(p => p.Current.FundingStreamId == fundingStreamId
                                 && p.Current.FundingPeriodId == fundingPeriodId)
@@ -184,7 +188,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<IEnumerable<KeyValuePair<string, string>>> GetPublishedFundingIds(string fundingStreamId, string fundingPeriodId)
         {
-            IEnumerable<KeyValuePair<string, string>> results = _publishedFunding
+            IEnumerable<KeyValuePair<string, string>> results = _repo.PublishedFunding
                 .SelectMany(c => c.Value)
                 .Where(p => p.Current.FundingStreamId == fundingStreamId
                     && p.Current.FundingPeriod.Id == fundingPeriodId)
@@ -195,7 +199,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 
         public Task<PublishedFunding> GetPublishedFundingById(string cosmosId, string partitionKey)
         {
-            PublishedFunding publishedFunding = _publishedFunding.SelectMany(c => c.Value).FirstOrDefault(p => p.Id == cosmosId);
+            PublishedFunding publishedFunding = _repo.PublishedFunding.SelectMany(c => c.Value).FirstOrDefault(p => p.Id == cosmosId);
 
             return Task.FromResult(publishedFunding);
         }

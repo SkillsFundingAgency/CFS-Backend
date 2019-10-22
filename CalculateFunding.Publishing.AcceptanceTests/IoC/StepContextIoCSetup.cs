@@ -1,5 +1,6 @@
 ﻿using BoDi;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Services.Publishing;
@@ -44,14 +45,25 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 SpecificationsRepositoryPolicy = Policy.NoOpAsync(),
             };
 
+            InMemoryBlobClient inMemoryBlobClient = new InMemoryBlobClient();
+            _objectContainer.RegisterInstanceAs<InMemoryBlobClient>(inMemoryBlobClient);
+
+            InMemoryAzureBlobClient inMemoryAzureBlobClient = new InMemoryAzureBlobClient();
+            _objectContainer.RegisterInstanceAs<InMemoryAzureBlobClient>(inMemoryAzureBlobClient);
+
+            InMemoryCosmosRepository inMemoryCosmosRepository = new InMemoryCosmosRepository();
+            _objectContainer.RegisterInstanceAs<ICosmosRepository>(inMemoryCosmosRepository);
+
             SpecificationInMemoryRepository specificationInMemoryRepository = new SpecificationInMemoryRepository();
             _objectContainer.RegisterInstanceAs<ISpecificationService>(specificationInMemoryRepository);
 
             JobsInMemoryRepository jobsInMemoryRepository = new JobsInMemoryRepository();
             _objectContainer.RegisterInstanceAs<IJobsApiClient>(jobsInMemoryRepository);
 
-            InMemoryPublishedFundingRepository inMemoryPublishedFundingRepository = new InMemoryPublishedFundingRepository();
+            InMemoryPublishedFundingRepository inMemoryPublishedFundingRepository = new InMemoryPublishedFundingRepository(inMemoryCosmosRepository);
             _objectContainer.RegisterInstanceAs<IPublishedFundingRepository>(inMemoryPublishedFundingRepository);
+
+            PublishedProviderInMemorySearchRepository publishedProviderInMemorySearchRepository = new PublishedProviderInMemorySearchRepository();           
 
             PoliciesInMemoryRepository policiesInMemoryRepository = new PoliciesInMemoryRepository(logger);
             ProvidersInMemoryClient providersInMemoryClient = new ProvidersInMemoryClient();
@@ -81,6 +93,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             PublishedFundingRepositoryStepContext publishedFundingRepositoryStepContext = new PublishedFundingRepositoryStepContext()
             {
                 Repo = inMemoryPublishedFundingRepository,
+                CosmosRepo = inMemoryCosmosRepository,
+                BlobRepo = inMemoryBlobClient,
             };
             _objectContainer.RegisterInstanceAs<IPublishedFundingRepositoryStepContext>(publishedFundingRepositoryStepContext);
 
@@ -103,6 +117,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
                 Client = providersInMemoryClient,
                 EmulatedClient = providersInMemoryClient,
                 Service = providerService,
+                BlobRepo = inMemoryAzureBlobClient,
             };
             _objectContainer.RegisterInstanceAs<IProvidersStepContext>(providersStepContext);
 
@@ -116,6 +131,16 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
 
             PublishedFundingResultStepContext publishedFundingResultStepContext = new PublishedFundingResultStepContext();
             _objectContainer.RegisterInstanceAs<IPublishedFundingResultStepContext>(publishedFundingResultStepContext);
+
+            PublishedProviderStepContext publishedProviderStepContext = new PublishedProviderStepContext()
+            {
+                Client = providersInMemoryClient,
+                EmulatedClient = providersInMemoryClient,
+                Service = providerService,
+                BlobRepo = inMemoryAzureBlobClient,
+                SearchRepo = publishedProviderInMemorySearchRepository,
+            };
+            _objectContainer.RegisterInstanceAs<IPublishedProviderStepContext>(publishedProviderStepContext);
         }
 
 

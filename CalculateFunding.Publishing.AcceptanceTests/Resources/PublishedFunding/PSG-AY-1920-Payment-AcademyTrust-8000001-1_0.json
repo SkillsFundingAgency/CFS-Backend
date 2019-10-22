@@ -1,0 +1,119 @@
+{
+  "$schema": "https://fundingschemas.blob.core.windows.net/schemas/logicalmodel-1.0.json#schema",
+  "schemaVersion": "1.0",
+  "funding": {
+    "templateVersion": "1.0",
+    "id": "PSG-AY-1920-Payment-AcademyTrust-8000001-1_0",
+    "fundingVersion": "1_0",
+    "status": "Released",
+    "fundingStream": {
+      "code": "PSG",
+      "name": "PE and Sports"
+    },
+    "fundingPeriod": {
+      "id": "AY-1920",
+      "period": "1920",
+      "name": "Academic Year 2019-20",
+      "type": "AY",
+      "startDate": "2019-08-01T00:00:00+00:00",
+      "endDate": "2020-07-31T00:00:00+00:00"
+    },
+    "organisationGroup": {
+      "groupTypeCode": "AcademyTrust",
+      "groupTypeIdentifier": "UKPRN",
+      "identifierValue": "8000001",
+      "groupTypeClassification": "LegalEntity",
+      "name": "Academy Trust 1",
+      "searchableName": "AcademyTrust1",
+      "identifiers": [
+        {
+          "type": "UKPRN",
+          "value": "8000001"
+        },
+        {
+          "type": "AcademyTrustCode",
+          "value": "1001"
+        }
+      ]
+    },
+    "fundingValue": {
+      "totalValue": 48000,
+      "fundingLines": [
+        {
+          "name": "Total Allocation",
+          "fundingLineCode": "TotalAllocation",
+          "value": 48000,
+          "templateLineId": 1,
+          "type": "Payment",
+          "calculations": [
+            {
+              "name": "Eligible Pupils",
+              "type": "PupilNumber",
+              "aggregationType": "Sum",
+              "formulaText": "Something * something",
+              "templateCalculationId": 3,
+              "value": 240,
+              "valueFormat": "Number"
+            },
+            {
+              "name": "Rate",
+              "type": "Rate",
+              "aggregationType": "Average",
+              "formulaText": "Something * something",
+              "templateCalculationId": 5,
+              "value": 1000,
+              "valueFormat": "Number"
+            },
+            {
+              "name": "Additional Rate",
+              "type": "Rate",
+              "aggregationType": "Average",
+              "formulaText": "Something * something",
+              "templateCalculationId": 6,
+              "value": 20,
+              "valueFormat": "Number"
+            }
+          ],
+          "distributionPeriods": [
+            {
+              "value": 28000,
+              "distributionPeriodId": "FY-1920",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "October",
+                  "year": 1920,
+                  "occurrence": 1,
+                  "profiledValue": 28000,
+                  "distributionPeriodId": "FY-1920"
+                }
+              ]
+            },
+            {
+              "value": 20000,
+              "distributionPeriodId": "FY-2021",
+              "profilePeriods": [
+                {
+                  "type": "CalendarMonth",
+                  "typeValue": "April",
+                  "year": 2021,
+                  "occurrence": 1,
+                  "profiledValue": 20000,
+                  "distributionPeriodId": "FY-2021"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "providerFundings": [
+      "PSG-AY-1920-1000102-1_0",
+      "PSG-AY-1920-1000101-1_0"
+    ],
+    "groupingReason": "Payment",
+    "statusChangedDate": "2019-10-18T11:55:58.1567667+00:00",
+    "externalPublicationDate": "2019-09-28T00:00:00Z",
+    "earliestPaymentAvailableDate": "2019-09-29T00:00:00Z"
+  }
+}

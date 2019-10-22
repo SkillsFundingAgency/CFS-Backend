@@ -1,0 +1,131 @@
+{
+  "id": "PSG-AY-1920-1000102-1_0",
+  "fundingVersion": "1_0",
+  "provider": {
+    "identifier": "1000102",
+    "name": "Academy 2",
+    "searchableName": "Academy2",
+    "otherIdentifiers": [
+      {
+        "type": "UKPRN",
+        "value": "1000102"
+      },
+      {
+        "type": "LACode",
+        "value": "400"
+      }
+    ],
+    "providerVersionId": "psg-providers-1.0",
+    "providerType": "Academies",
+    "providerSubType": "Academy special sponsor led",
+    "providerDetails": {
+      "dateOpened": "2013-04-16T00:00:00+00:00",
+      "dateClosed": null,
+      "status": "",
+      "phaseOfEducation": "",
+      "localAuthorityName": "Local Authority 1",
+      "openReason": "",
+      "closeReason": "",
+      "trustStatus": "Supported by a multi-academy trust",
+      "trustName": "",
+      "town": "",
+      "postcode": "",
+      "companiesHouseNumber": "",
+      "groupIdNumber": "",
+      "rscRegionName": "",
+      "rscRegionCode": "",
+      "governmentOfficeRegionName": "",
+      "governmentOfficeRegionCode": "",
+      "districtName": "",
+      "districtCode": "",
+      "wardName": "",
+      "wardCode": "",
+      "censusWardName": "",
+      "censusWardCode": "",
+      "middleSuperOutputAreaName": "",
+      "middleSuperOutputAreaCode": "",
+      "lowerSuperOutputAreaName": "",
+      "lowerSuperOutputAreaCode": "",
+      "parliamentaryConstituencyName": "",
+      "parliamentaryConstituencyCode": "",
+      "countryCode": "",
+      "countryName": ""
+    }
+  },
+  "fundingStreamCode": "PSG",
+  "fundingPeriodId": "AY-1920",
+  "fundingValue": {
+    "totalValue": 24000,
+    "fundingLines": [
+      {
+        "name": "Total Allocation",
+        "fundingLineCode": "TotalAllocation",
+        "value": 0,
+        "templateLineId": 1,
+        "type": "Payment",
+        "calculations": [
+          {
+            "name": "Total Allocation",
+            "templateCalculationId": 2,
+            "value": "0",
+            "valueFormat": "Currency",
+            "type": "Cash",
+            "formulaText": "Something * something",
+            "aggregationType": "None",
+            "calculations": null,
+            "referenceData": null
+          },
+          {
+            "name": "Eligible Pupils",
+            "templateCalculationId": 3,
+            "value": "0",
+            "valueFormat": "Number",
+            "type": "PupilNumber",
+            "formulaText": "Something * something",
+            "aggregationType": "Sum",
+            "calculations": null,
+            "referenceData": null
+          },
+          {
+            "name": "Pupil rate threshold",
+            "templateCalculationId": 4,
+            "value": "0",
+            "valueFormat": "Number",
+            "type": "PupilNumber",
+            "formulaText": "Something * something",
+            "aggregationType": "None",
+            "calculations": null,
+            "referenceData": null
+          },
+          {
+            "name": "Rate",
+            "templateCalculationId": 5,
+            "value": "0",
+            "valueFormat": "Number",
+            "type": "Rate",
+            "formulaText": "Something * something",
+            "aggregationType": "Average",
+            "calculations": null,
+            "referenceData": null
+          },
+          {
+            "name": "Additional Rate",
+            "templateCalculationId": 6,
+            "value": "0",
+            "valueFormat": "Number",
+            "type": "Rate",
+            "formulaText": "Something * something",
+            "aggregationType": "Average",
+            "calculations": null,
+            "referenceData": null
+          }
+        ],
+        "fundingLines": null,
+        "distributionPeriods": null
+      }
+    ]
+  },
+  "variationReasons": null,
+  "successors": null,
+  "predecessors": null
+}

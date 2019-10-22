@@ -121,4 +121,34 @@
   <data name="PSG1.0" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\psg1.0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="PSG_AY_1920_1000000_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedProviders\PSG-AY-1920-1000000-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_1000002_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedProviders\PSG-AY-1920-1000002-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_1000101_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedProviders\PSG-AY-1920-1000101-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_1000102_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedProviders\PSG-AY-1920-1000102-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_1000201_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedProviders\PSG-AY-1920-1000201-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_1000202_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedProviders\PSG-AY-1920-1000202-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_Information_Provider_1000201_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedFunding\PSG-AY-1920-Information-Provider-1000201-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_Information_Provider_1000202_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedFunding\PSG-AY-1920-Information-Provider-1000202-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_Payment_AcademyTrust_8000001_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedFunding\PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="PSG_AY_1920_Payment_LocalAuthority_9000000_1_0" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PublishedFunding\PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

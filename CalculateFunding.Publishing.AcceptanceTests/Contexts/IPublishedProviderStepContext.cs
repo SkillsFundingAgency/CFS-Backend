@@ -2,9 +2,10 @@
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Services.Publishing.Interfaces;
 
+
 namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 {
-    public interface IProvidersStepContext
+    public interface IPublishedProviderStepContext
     {
         IProviderService Service { get; set; }
 
@@ -13,5 +14,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         ProvidersInMemoryClient EmulatedClient { get; set; }
 
         InMemoryAzureBlobClient BlobRepo { get; set; }
+
+        PublishedProviderInMemorySearchRepository SearchRepo { get; set; }
     }
 }

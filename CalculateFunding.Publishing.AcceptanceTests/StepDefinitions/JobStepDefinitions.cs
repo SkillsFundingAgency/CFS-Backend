@@ -1,6 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
+using CalculateFunding.Services.Core.Constants;
+using FluentAssertions;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -38,6 +42,18 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         {
             Job job = await _jobStepContext.JobsClient.CreateJob(_jobStepContext.JobToCreate);
             _currentJobStepContext.JobId = job.Id;
+        }
+
+        [Then(@"the following job is requested is completed for the current specification")]
+        public async Task ThenTheFollowingJobIsRequestedIsCompletedForTheCurrentSpecificationAsync(Table table)
+        {
+            JobCreateModel job = table.CreateInstance<JobCreateModel>();
+            string jobId = _currentJobStepContext.JobId;
+            List<JobLog> status = await _jobStepContext.InMemoryRepo.GetLatestJobForSpecification(jobId);
+
+            var completeStatusLog = status.SingleOrDefault(c => c.CompletedSuccessfully == true);
+
+            completeStatusLog.Should().NotBeNull();
         }
 
     }

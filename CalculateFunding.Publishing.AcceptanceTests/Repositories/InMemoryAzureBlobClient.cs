@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Services.Core.Interfaces.AzureStorage;
+﻿using CalculateFunding.Common.Utility;
+using CalculateFunding.Services.Core.Interfaces.AzureStorage;
 using Microsoft.Azure.Storage.Blob;
 using System;
 using System.Collections.Generic;
@@ -56,6 +57,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             //            File.WriteAllText($"c:\\dev\\output\\{blobName}.json", fileContents);
 
             await Task.CompletedTask;
+        }
+
+        public Task<string> UploadFileAsync(string blobName, string fileContents)
+        {
+            Guard.IsNullOrWhiteSpace(blobName, nameof(blobName));
+
+            _files[blobName] = fileContents;
+
+            //            File.WriteAllText($"c:\\dev\\output\\{blobName}.json", fileContents);
+
+            return Task.FromResult(blobName);
+        }
+
+        public Dictionary<string, string> GetFiles()
+        {
+            return _files;
         }
     }
 }

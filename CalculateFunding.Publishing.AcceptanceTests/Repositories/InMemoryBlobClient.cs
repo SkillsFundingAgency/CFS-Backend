@@ -82,5 +82,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Dictionary<string, string> GetFiles()
+        {
+            return _files;
+        }
     }
 }

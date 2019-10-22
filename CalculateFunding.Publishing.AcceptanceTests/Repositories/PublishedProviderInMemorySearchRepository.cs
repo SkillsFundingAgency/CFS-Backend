@@ -12,7 +12,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
 {
     public class PublishedProviderInMemorySearchRepository : ISearchRepository<PublishedProviderIndex>
     {
-        private ConcurrentDictionary<string, PublishedProviderIndex> _items = new ConcurrentDictionary<string, PublishedProviderIndex>();
+        public ConcurrentDictionary<string, PublishedProviderIndex> PublishedProviderIndex = new ConcurrentDictionary<string, PublishedProviderIndex>();
 
         public Task DeleteIndex()
         {
@@ -28,7 +28,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             foreach (PublishedProviderIndex item in documents)
             {
-                _items[item.Id] = item;
+                PublishedProviderIndex[item.Id] = item;
             }
 
             return Task.FromResult(Enumerable.Empty<IndexError>());
