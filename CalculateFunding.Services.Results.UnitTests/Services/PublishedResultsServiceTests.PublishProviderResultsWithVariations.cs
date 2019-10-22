@@ -11,6 +11,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Obsoleted;
@@ -84,6 +85,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IJobManagement jobManagement = CreateJobManagement();
 
             PublishedResultsService resultsService = InitialisePublishedResultsService(
                 specificationsRepository,
@@ -92,6 +94,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerResultsAssembler,
                 publishedProviderResultsRepository,
                 providerVariationAssemblerService,
+                jobManagement,
                 logger);
 
             Message message = new Message();
@@ -108,6 +111,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await specificationsRepository
                 .DidNotReceive()
                 .GetCurrentSpecificationById(Arg.Any<string>());
+
+            await CheckJobManagementWasCalledUnsuccessfully(jobManagement, jobId, "Failed to Process - no specification id provided");
         }
 
         [TestMethod]
@@ -121,8 +126,16 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IJobManagement jobManagement = CreateJobManagement();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssemblerService,
+                jobManagement,
+                logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = "-1";
@@ -139,6 +152,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await calculationResultsRepository
                 .DidNotReceive()
                 .GetProviderResultsBySpecificationId(Arg.Is("-1"), Arg.Any<int>());
+
+            await CheckJobManagementWasCalledUnsuccessfully(jobManagement, jobId, "Failed to process - specification not found");
         }
 
         [TestMethod]
@@ -160,13 +175,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Returns(Task.FromResult(providerResults));
 
             IPublishedProviderResultsAssemblerService resultsAssembler = CreateResultsAssembler();
-
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-
             IProviderVariationAssemblerService providerVariationAssembler = CreateProviderVariationAssemblerService();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
+            IJobManagement jobManagement = CreateJobManagement();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, resultsRepository, resultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                resultsRepository,
+                resultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement,
+                logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -179,10 +200,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             logger
                 .Received(1)
                 .Error(Arg.Is($"Provider results not found for specification id {specificationId}"));
+
+            await CheckJobManagementWasCalledUnsuccessfully(jobManagement, jobId, "Failed to process - could not find any provider results");
         }
 
         [TestMethod]
-        public void PublishProviderResultsWithVariations_WhenErrorSavingPublishedResults_ThenExceptionThrown()
+        public async Task PublishProviderResultsWithVariations_WhenErrorSavingPublishedResults_ThenExceptionThrown()
         {
             // Arrange
             string specificationId = "1";
@@ -240,15 +263,16 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
             resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
+
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
             specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specificationCurrentVersion);
+
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
             publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
                 .Returns(ex => { throw new Exception("Error saving published results"); });
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
-
             assembler
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, Enumerable.Empty<PublishedProviderResultExisting>()));
@@ -256,7 +280,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                resultsRepository,
+                assembler,
+                publishedProviderResultsRepository,
+                providerVariationAssemblerService,
+                jobManagement);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -266,14 +302,26 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             Func<Task> test = () => resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-            Exception thrownException = test.Should().ThrowExactly<RetriableException>().Subject.First();
-            thrownException.Message.Should().Be($"Failed to create published provider results for specification: {specificationId}");
-            thrownException.InnerException.Should().NotBeNull();
-            thrownException.InnerException.Message.Should().Be("Error saving published results");
+            Exception thrownException = test
+                .Should()
+                .ThrowExactly<RetriableException>()
+                .Subject.First();
+
+            thrownException.Message
+                .Should()
+                .Be($"Failed to create published provider results for specification: {specificationId}");
+            thrownException.InnerException
+                .Should()
+                .NotBeNull();
+            thrownException.InnerException.Message
+                .Should()
+                .Be("Error saving published results");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23 });
         }
 
         [TestMethod]
-        public void PublishProviderResultsWithVariations_WhenErrorSavingPublishedResultsVersionHistory_ThenExceptionThrown()
+        public async Task PublishProviderResultsWithVariations_WhenErrorSavingPublishedResultsVersionHistory_ThenExceptionThrown()
         {
             // Arrange
             string specificationId = "1";
@@ -331,17 +379,23 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             };
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+            resultsRepository
+                .GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
+
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specificationCurrentVersion);
+
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+            publishedProviderResultsRepository
+                .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
                 .Returns(Task.CompletedTask);
 
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository.SaveVersions(Arg.Any<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>())
+            versionRepository
+                .SaveVersions(Arg.Any<IEnumerable<KeyValuePair<string, PublishedAllocationLineResultVersion>>>())
                 .Returns(ex => { throw new Exception("Error saving published results version history"); });
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
@@ -352,12 +406,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService resultsService = CreateResultsService(
                 resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 publishedProviderResultsVersionRepository: versionRepository,
+                jobManagement: jobManagement,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -368,16 +429,28 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             Func<Task> test = () => resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-            Exception thrownException = test.Should().ThrowExactly<RetriableException>().Subject.First();
-            thrownException.Message.Should().Be($"Failed to create published provider results for specification: {specificationId}");
-            thrownException.InnerException.Should().NotBeNull();
-            thrownException.InnerException.Message.Should().Be("Error saving published results version history");
+            Exception thrownException = test
+                .Should()
+                .ThrowExactly<RetriableException>().Subject.First();
+            thrownException.Message
+                .Should()
+                .Be($"Failed to create published provider results for specification: {specificationId}");
+            thrownException.InnerException
+                .Should()
+                .NotBeNull();
+            thrownException.InnerException.Message
+                .Should()
+                .Be("Error saving published results version history");
 
-            publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current.FeedIndexId.Should().Be("AAAAA-fp-1-99999-v2-1");
+            publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current.FeedIndexId
+                .Should()
+                .Be("AAAAA-fp-1-99999-v2-1");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 38 });
         }
 
         [TestMethod]
-        public void PublishProviderResultsWithVariations_WhenCompletesSuccessfully_ThenNoExceptionThrown()
+        public async Task PublishProviderResultsWithVariations_WhenCompletesSuccessfully_ThenNoExceptionThrown()
         {
             // Arrange
             string specificationId = "1";
@@ -421,7 +494,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ILogger logger = CreateLogger();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                resultsRepository,
+                assembler,
+                publishedProviderResultsRepository,
+                providerVariationAssemblerService,
+                jobManagement,
+                logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -431,13 +517,23 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             Func<Task> test = () => resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-            test.Should().NotThrow();
-            logger.DidNotReceive().Error(Arg.Any<string>());
-            logger.Received(1).Information(Arg.Is($"Finished processing PublishProviderResult message for specification '{specificationId}' and job '{jobId}'"));
+            test
+                .Should()
+                .NotThrow();
+
+            logger
+                .DidNotReceive()
+                .Error(Arg.Any<string>());
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Finished processing PublishProviderResult message for specification '{specificationId}' and job '{jobId}'"));
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 }, "Published Provider Results Updated");
         }
 
         [TestMethod]
-        public void PublishProviderResultsWithVariations_WhenNoExceptionThrown_ShouldReportProgressOnCacheCorrectly()
+        public async Task PublishProviderResultsWithVariations_WhenNoExceptionThrown_ShouldReportProgressOnCacheCorrectly()
         {
             // Arrange
             string specificationId = SpecificationId1;
@@ -498,21 +594,35 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ICacheProvider mockCacheProvider = CreateCacheProvider();
 
-            SpecificationCalculationExecutionStatus expectedProgressCall1 = CreateSpecificationCalculationProgress(c =>
+            List<SpecificationCalculationExecutionStatus> expectedProgressCalls = new List<SpecificationCalculationExecutionStatus>();
+
+            List<int> percentagesComplete = new List<int> { 0, 5, 10, 23, 38, 53, 63, 73 };
+
+            expectedProgressCalls.Add(CreateSpecificationCalculationProgress(c =>
             {
                 c.PercentageCompleted = 0;
                 c.CalculationProgress = CalculationProgressStatus.InProgress;
-            });
-            SpecificationCalculationExecutionStatus expectedProgressCall2 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 5);
-            SpecificationCalculationExecutionStatus expectedProgressCall3 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 10);
-            SpecificationCalculationExecutionStatus expectedProgressCall4 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 23);
-            SpecificationCalculationExecutionStatus expectedProgressCall5 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 38);
-            SpecificationCalculationExecutionStatus expectedProgressCall6 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 53);
-            SpecificationCalculationExecutionStatus expectedProgressCall7 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 63);
-            SpecificationCalculationExecutionStatus expectedProgressCall8 = CreateSpecificationCalculationProgress(c => c.PercentageCompleted = 73);
+            }));
+            foreach (int percentageCompleted in percentagesComplete.Where(x => x > 0))
+            {
+                expectedProgressCalls.Add(CreateSpecificationCalculationProgress(c => c.PercentageCompleted = percentageCompleted));
+            }
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService, cacheProvider: mockCacheProvider);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                resultsRepository,
+                assembler,
+                publishedProviderResultsRepository,
+                providerVariationAssemblerService,
+                jobManagement,
+                cacheProvider: mockCacheProvider);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = SpecificationId1;
@@ -522,24 +632,36 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             Func<Task> publishProviderResultsAction = () => resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-            publishProviderResultsAction.Should().NotThrow();
+            publishProviderResultsAction
+                .Should()
+                .NotThrow();
 
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall1, TimeSpan.FromHours(6), false);
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall2, TimeSpan.FromHours(6), false);
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall3, TimeSpan.FromHours(6), false);
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall4, TimeSpan.FromHours(6), false);
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall5, TimeSpan.FromHours(6), false);
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall6, TimeSpan.FromHours(6), false);
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall7, TimeSpan.FromHours(6), false);
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall8, TimeSpan.FromHours(6), false);
+            foreach (SpecificationCalculationExecutionStatus expectedProgressCall in expectedProgressCalls)
+            {
+                await mockCacheProvider
+                    .Received(1)
+                    .SetAsync($"{RedisPrependKey}{SpecificationId1}", expectedProgressCall, TimeSpan.FromHours(6), false);
+            }
 
-            mockCacheProvider.Received(10).SetAsync(Arg.Any<string>(), Arg.Any<SpecificationCalculationExecutionStatus>(), Arg.Any<TimeSpan>(), Arg.Any<bool>());
+            await mockCacheProvider
+                .Received(9)
+                .SetAsync($"{RedisPrependKey}{SpecificationId1}", Arg.Any<SpecificationCalculationExecutionStatus>(), TimeSpan.FromHours(6), false);
 
-            publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current.FeedIndexId.Should().Be("AAAAA-fp-1-99999-v1-2");
+            await mockCacheProvider
+                .Received(1)
+                .SetAsync(RedisPrependKey, Arg.Any<SpecificationCalculationExecutionStatus>(), TimeSpan.FromHours(6), false);
+
+            publishedProviderResults.First().FundingStreamResult.AllocationLineResult.Current.FeedIndexId
+                .Should()
+                .Be("AAAAA-fp-1-99999-v1-2");
+
+            percentagesComplete.Add(68);
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, percentagesComplete);
         }
 
         [TestMethod]
-        public void PublishProviderResultsWithVariations_WhenAnExceptionIsSavingPublishedResults_ThenErrorIsReportedOnCache()
+        public async Task PublishProviderResultsWithVariations_WhenAnExceptionIsSavingPublishedResults_ThenErrorIsReportedOnCache()
         {
             // Arrange
             IEnumerable<ProviderResult> providerResults = new List<ProviderResult>
@@ -611,6 +733,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             SpecificationCalculationExecutionStatus expectedErrorProgress = CreateSpecificationCalculationProgress(c =>
             {
                 c.PercentageCompleted = 15;
@@ -624,7 +752,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 cacheProvider: mockCacheProvider,
                 publishedProviderResultsAssemblerService: assemblerService,
                 publishedProviderResultsVersionRepository: versionRepository,
-                jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = SpecificationId1;
@@ -634,8 +763,15 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             Func<Task> publishProviderAction = () => resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-            publishProviderAction.Should().ThrowExactly<RetriableException>();
-            mockCacheProvider.Received().SetAsync($"{RedisPrependKey}{SpecificationId1}", Arg.Any<SpecificationCalculationExecutionStatus>(), TimeSpan.FromHours(6), false);
+            publishProviderAction
+                .Should()
+                .ThrowExactly<RetriableException>();
+
+            await mockCacheProvider
+                .Received()
+                .SetAsync($"{RedisPrependKey}{SpecificationId1}", Arg.Any<SpecificationCalculationExecutionStatus>(), TimeSpan.FromHours(6), false);
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23 });
         }
 
         [TestMethod]
@@ -725,7 +861,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, resultsRepository, assembler, publishedProviderResultsRepository, providerVariationAssemblerService);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                resultsRepository,
+                assembler,
+                publishedProviderResultsRepository,
+                providerVariationAssemblerService,
+                jobManagement);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -735,18 +883,18 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-            await
-                publishedProviderResultsRepository
-                    .Received(1)
-                    .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a =>
+            await publishedProviderResultsRepository
+                .Received(1)
+                .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a =>
                     a.First().ProviderId == providerId &&
                     a.First().FundingStreamResult.AllocationLineResult.Current.Value == 1 &&
                     a.First().FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Held));
 
-            await
-                publishedProviderResultsRepository
-                    .Received(1)
-                    .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a => a.Count() == 1));
+            await publishedProviderResultsRepository
+                .Received(1)
+                .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a => a.Count() == 1));
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 38, 53, 63, 68, 73 });
         }
 
         [TestMethod]
@@ -838,17 +986,27 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
 
             ICalculationResultsRepository resultsRepository = CreateResultsRepository();
-            resultsRepository.GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
+            resultsRepository
+                .GetProviderResultsBySpecificationId(Arg.Is(specificationId), Arg.Is(-1))
                 .Returns(Task.FromResult(providerResults));
+
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository.GetCurrentSpecificationById(Arg.Is(specificationId))
+            specificationsRepository
+                .GetCurrentSpecificationById(Arg.Is(specificationId))
                 .Returns(specificationCurrentVersion);
+
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
-            publishedProviderResultsRepository.SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
+            publishedProviderResultsRepository
+                .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>())
                 .Returns(Task.CompletedTask);
 
+            publishedProviderResultsRepository
+                .GetPublishedProviderResultForId("c3BlYy0xMTIzQUFBQUE=", "123")
+                .Returns(existingProviderResultToRemove);
+
             IVersionRepository<PublishedAllocationLineResultVersion> versionRepository = CreatePublishedProviderResultsVersionRepository();
-            versionRepository.SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
+            versionRepository
+                .SaveVersions(Arg.Any<IEnumerable<PublishedAllocationLineResultVersion>>())
                 .Returns(Task.CompletedTask);
 
             IPublishedProviderResultsAssemblerService assembler = CreateResultsAssembler();
@@ -860,17 +1018,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .GeneratePublishedProviderResultsToSave(Arg.Any<IEnumerable<PublishedProviderResult>>(), Arg.Any<IEnumerable<PublishedProviderResultExisting>>())
                 .Returns((publishedProviderResults, existingToRemove));
 
-            publishedProviderResultsRepository
-                .GetPublishedProviderResultForId("c3BlYy0xMTIzQUFBQUE=", "123")
-                .Returns(existingProviderResultToRemove);
-
             IJobsApiClient jobsApiClient = InitialiseJobsApiClient();
+
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
 
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 publishedProviderResultsVersionRepository: versionRepository,
+                jobManagement: jobManagement,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -881,21 +1042,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-
             decimal? expectedValue = 0;
 
-            await
-                publishedProviderResultsRepository
-                    .Received(1)
-                    .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a =>
+            await publishedProviderResultsRepository
+                .Received(1)
+                .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a =>
                     a.First().ProviderId == "123" &&
                     a.First().FundingStreamResult.AllocationLineResult.Current.Value == expectedValue &&
                     a.First().FundingStreamResult.AllocationLineResult.Current.Status == AllocationLineStatus.Updated));
 
-            await
-                publishedProviderResultsRepository
-                    .Received(1)
-                    .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a => a.Count() == 1));
+            await publishedProviderResultsRepository
+                .Received(1)
+                .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(a => a.Count() == 1));
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 38, 53, 63, 68, 73 });
         }
 
         [TestMethod]
@@ -942,7 +1102,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IPublishedProviderResultsAssemblerService providerResultsAssembler = CreateRealResultsAssembler(policiesApiClient);
             IProviderVariationAssemblerService providerVariationAssemblerService = CreateProviderVariationAssemblerService();
 
-            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssemblerService, logger);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
+            PublishedResultsService resultsService = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssemblerService,
+                jobManagement,
+                logger);
 
             Message message = new Message();
             message.UserProperties["specification-id"] = specificationId;
@@ -1034,10 +1204,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob))
                 .Returns(new Job { Id = "job-34" });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
+                jobManagement: jobManagement,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -1048,18 +1225,14 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-            logger.DidNotReceive().Error(Arg.Any<string>());
-            logger.Received(1).Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
+            logger
+                .DidNotReceive()
+                .Error(Arg.Any<string>());
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
 
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 0));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 5));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 10));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 23));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 38));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 53));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 63));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 73));
-            await jobsApiClient.Received(0).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue && l.CompletedSuccessfully.Value && l.ItemsProcessed.Value == 100));
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 38, 53, 63, 68, 73 });
         }
 
         [TestMethod]
@@ -1142,10 +1315,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob))
                 .Returns(new Job { Id = "fpp-job" });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
+                jobManagement: jobManagement,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -1156,10 +1336,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await resultsService.PublishProviderResultsWithVariations(message);
 
             //Assert
-            logger.DidNotReceive().Error(Arg.Any<string>());
-            logger.Received(1).Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
+            logger
+                .DidNotReceive()
+                .Error(Arg.Any<string>());
 
-            await jobsApiClient.Received(6).CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob && j.SpecificationId == specificationId && j.ParentJobId == jobId));
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
+
+            await jobsApiClient
+                .Received(6)
+                .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob
+                                                       && j.SpecificationId == specificationId && j.ParentJobId == jobId));
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 38, 53, 63, 68, 73 });
         }
 
         [TestMethod]
@@ -1226,11 +1416,18 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             IPublishedProviderResultsRepository publishedProviderResultsRepository = CreatePublishedProviderResultsRepository();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 logger: logger,
+                jobManagement: jobManagement,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -1248,6 +1445,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 }, "Published Provider Results Updated");
         }
 
         [TestMethod]
@@ -1346,13 +1545,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsRepository: specificationsRepository,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1419,13 +1622,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1512,13 +1719,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Store results to be saved to assert on them later
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1611,13 +1822,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Store results to be saved to assert on them later
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1710,13 +1925,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Store results to be saved to assert on them later
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -1786,13 +2005,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
             await publishedProviderResultsRepository
@@ -1932,13 +2155,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 specificationsRepository,
                 policiesApiClient,
                 calculationResultsRepository,
                 providerResultsAssembler,
                 publishedProviderResultsRepository,
-                providerVariationAssembler);
+                providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2009,12 +2236,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, policiesApiClient);
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = CreateResultsService(
                 jobsApiClient: jobsApiClient,
                 resultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
+                jobManagement: jobManagement,
                 providerVariationsService: providerVariationsService);
 
             // Act
@@ -2024,6 +2258,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await jobsApiClient
                 .DidNotReceive()
                 .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob));
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23 });
         }
 
         [TestMethod]
@@ -2061,12 +2297,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, policiesApiClient);
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = CreateResultsService(
                 jobsApiClient: jobsApiClient,
                 resultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: providerResultsAssembler,
-                publishedProviderResultsRepository: publishedProviderResultsRepository, providerVariationsService: providerVariationsService);
+                publishedProviderResultsRepository: publishedProviderResultsRepository,
+                jobManagement: jobManagement,
+                providerVariationsService: providerVariationsService);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -2075,6 +2319,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -2193,13 +2439,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             List<PublishedProviderResult> resultsBeingSaved = new List<PublishedProviderResult>();
@@ -2339,13 +2589,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             List<PublishedProviderResult> resultsBeingSaved = new List<PublishedProviderResult>();
             await publishedProviderResultsRepository
@@ -2409,6 +2663,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             IProviderVariationsService providerVariationsService = CreateProviderVariationsService(providerVariationAssembler, policiesApiClient, logger);
 
+            JobViewModel jobViewModel = new JobViewModel { Id = jobId };
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = CreateResultsService(
                 jobsApiClient: jobsApiClient,
                 resultsRepository: calculationResultsRepository,
@@ -2416,6 +2676,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 publishedProviderResultsAssemblerService: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationsService: providerVariationsService,
+                jobManagement: jobManagement,
                 logger: logger);
 
             // Act
@@ -2429,6 +2690,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             logger
                 .Received(1)
                 .Information(Arg.Is($"Not processing variations for specification '{specificationId}' as job '{jobId}' is not for Refresh."));
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -2475,6 +2738,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
@@ -2482,7 +2751,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationAssembler: providerVariationAssembler,
-                logger: logger);
+                logger: logger,
+                jobManagement: jobManagement);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -2495,6 +2765,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23 });
         }
 
         [TestMethod]
@@ -2525,6 +2797,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
@@ -2532,7 +2810,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationAssembler: providerVariationAssembler,
-                logger: logger);
+                logger: logger,
+                jobManagement: jobManagement);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -2545,6 +2824,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23 });
         }
 
         [TestMethod]
@@ -2609,6 +2890,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
@@ -2616,7 +2903,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationAssembler: providerVariationAssembler,
-                logger: logger);
+                logger: logger,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2631,6 +2919,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             logger
                 .Received(1)
                 .Information($"No existing result for provider prov1 and allocation line alloc1 to vary. Specification '{specificationId}'");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -2692,6 +2982,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
@@ -2699,7 +2995,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationAssembler: providerVariationAssembler,
-                logger: logger);
+                logger: logger,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2714,6 +3011,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             logger
                 .Received(1)
                 .Information($"Provider 'prov1' has closed without successor but has no existing result. Specification '{specificationId}' and allocation line 'alloc1'");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -2761,6 +3060,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
@@ -2768,7 +3073,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationAssembler: providerVariationAssembler,
-                logger: logger);
+                logger: logger,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2787,6 +3093,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23 });
         }
 
         [TestMethod]
@@ -2831,6 +3139,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
@@ -2838,7 +3152,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationAssembler: providerVariationAssembler,
-                logger: logger);
+                logger: logger,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -2857,6 +3172,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23 });
         }
 
         [TestMethod]
@@ -3070,13 +3387,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3085,6 +3409,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -3128,13 +3454,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3143,6 +3476,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -3188,6 +3523,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
@@ -3195,7 +3536,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationAssembler: providerVariationAssembler,
-                logger: logger);
+                logger: logger,
+                jobManagement: jobManagement);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3208,6 +3550,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await publishedProviderResultsRepository
                 .DidNotReceive()
                 .SavePublishedResults(Arg.Any<IEnumerable<PublishedProviderResult>>());
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23 });
         }
 
         [TestMethod]
@@ -3358,13 +3702,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 specificationsRepository,
                 policiesApiClient,
                 calculationResultsRepository,
                 providerResultsAssembler,
                 publishedProviderResultsRepository,
-                providerVariationAssembler);
+                providerVariationAssembler,
+                jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -3538,13 +3886,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 specificationsRepository,
                 policiesApiClient,
                 calculationResultsRepository,
                 providerResultsAssembler,
                 publishedProviderResultsRepository,
-                providerVariationAssembler);
+                providerVariationAssembler,
+                jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -3568,6 +3923,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 15, AllocationLineStatus.Held, 1, 0, 1, "Alloc 1", new[] { "prov1u", "prov2u" });
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         [TestMethod]
@@ -3698,7 +4055,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement,
+                logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3719,6 +4089,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             logger
                 .Received(1)
                 .Information($"No existing result for provider prov1 and allocation line alloc2 to vary. Specification '{specificationId}'");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -3872,7 +4244,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement,
+                logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -3889,6 +4274,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             logger
                 .Received(1)
                 .Information($"Result for provider prov2 and allocation line alloc2 has already been varied. Specification '{specificationId}'");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10 ,23, 28 });
         }
 
         [TestMethod]
@@ -4040,7 +4427,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement,
+                logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -4057,6 +4457,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             logger
                 .Received(1)
                 .Information($"There are no affected profiling periods for the allocation line result alloc2 and provider prov2");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -4150,7 +4552,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4172,6 +4586,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 1, 0, 1, "Alloc 2");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         [TestMethod]
@@ -4265,7 +4681,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4287,6 +4715,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Held, 2, 0, 2, "Alloc 2");
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 1, 0, 1, "Alloc 1");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         [TestMethod]
@@ -4380,7 +4810,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4402,6 +4844,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Updated, 4, 1, 1, "Alloc 2");
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov3", specVariationDate, 0, 5, AllocationLineStatus.Held, 1, 0, 1, "Alloc 1");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         [TestMethod]
@@ -4448,13 +4892,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4476,6 +4927,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov1", specVariationDate, 7, 0, AllocationLineStatus.Updated, 4, 1, 1, "Alloc 1");
 
             AssertProviderAllocationLineCorrect(resultsBeingSaved, "prov2", specVariationDate, 14, 15, AllocationLineStatus.Updated, 4, 1, 1, "Alloc 1", new[] { "prov1u" });
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         [TestMethod]
@@ -4588,7 +5041,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler, logger);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement,
+                logger);
 
             // Act
             await service.PublishProviderResultsWithVariations(message);
@@ -4601,6 +5067,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             logger
                 .Received(1)
                 .Information($"Result for provider prov1 and allocation line alloc2 has already been varied. Specification '{specificationId}'");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0, 5, 10, 23, 28 });
         }
 
         [TestMethod]
@@ -4649,13 +5117,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4685,6 +5160,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             PublishedProviderResult prov2Result = resultsBeingSaved.First(r => r.ProviderId == "prov2");
             prov2Result.FundingStreamResult.AllocationLineResult.Current.Predecessors
                 .Should().Contain("prov1");
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         [TestMethod]
@@ -4731,13 +5208,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
             await publishedProviderResultsRepository
@@ -4760,6 +5244,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Should().Be("Closed for test");
             prov1Result.FundingStreamResult.AllocationLineResult.Current.VariationReasons
                 .Should().BeNullOrEmpty();
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         [TestMethod]
@@ -4914,7 +5400,19 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
-            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository, policiesApiClient, calculationResultsRepository, providerResultsAssembler, publishedProviderResultsRepository, providerVariationAssembler);
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
+            PublishedResultsService service = InitialisePublishedResultsService(specificationsRepository,
+                policiesApiClient,
+                calculationResultsRepository,
+                providerResultsAssembler,
+                publishedProviderResultsRepository,
+                providerVariationAssembler,
+                jobManagement);
 
             // Setup saving results being saved - makes asserting easier
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -4952,6 +5450,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             PublishedProviderResult prov3Result = resultsBeingSaved.First(r => r.ProviderId == "prov3");
             prov3Result.FundingStreamResult.AllocationLineResult.Current.Predecessors
                 .Should().Contain(new[] { "prov1u", "prov2u" });
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         [TestMethod]
@@ -5017,13 +5517,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     }
                 });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService service = InitialisePublishedResultsService(
                 calculationResultsRepository: calculationResultsRepository,
                 specificationsRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 providerResultsAssembler: providerResultsAssembler,
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
-                providerVariationAssembler: providerVariationAssembler);
+                providerVariationAssembler: providerVariationAssembler,
+                jobManagement: jobManagement);
 
             // Store results to be saved to assert on them later
             IEnumerable<PublishedProviderResult> resultsBeingSaved = null;
@@ -5048,6 +5555,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             // The provider details on the result should be updated
             prov1Result.FundingStreamResult.AllocationLineResult.Current.VariationReasons
                 .Should().Contain(VariationReason.AuthorityFieldUpdated);
+
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, new[] { 0 });
         }
 
         private static void AssertProviderAllocationLineCorrect(
@@ -5120,6 +5629,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IPublishedProviderResultsAssemblerService providerResultsAssembler,
             IPublishedProviderResultsRepository publishedProviderResultsRepository,
             IProviderVariationAssemblerService providerVariationAssembler,
+            IJobManagement jobManagement,
             ILogger logger = null,
             ICacheProvider cacheProvider = null)
         {
@@ -5134,6 +5644,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 publishedProviderResultsRepository: publishedProviderResultsRepository,
                 providerVariationsService: providerVariationsService,
                 publishedAllocationLineLogicalResultVersionService: versionService,
+                jobManagement: jobManagement,
                 logger: logger ?? CreateLogger(),
                 cacheProvider: cacheProvider ?? CreateCacheProvider());
         }
@@ -5342,8 +5853,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             policiesApiClient
             .GetFundingPeriodById(Arg.Is("1819"))
-            .Returns(new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, new PolicyModels.FundingPeriod 
-                { EndDate = DateTimeOffset.Parse("2019-08-31T23:59:59"), Id = "1819", Name = "AY1819", StartDate = DateTimeOffset.Parse("2018-09-01T00:00:00") }));
+            .Returns(new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, new PolicyModels.FundingPeriod
+            { EndDate = DateTimeOffset.Parse("2019-08-31T23:59:59"), Id = "1819", Name = "AY1819", StartDate = DateTimeOffset.Parse("2018-09-01T00:00:00") }));
             policiesApiClient
                 .GetFundingStreams()
                 .Returns(new ApiResponse<IEnumerable<PolicyModels.FundingStream>>(HttpStatusCode.OK, new List<PolicyModels.FundingStream>
@@ -5419,6 +5930,43 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Returns(new Job { Id = Guid.NewGuid().ToString() });
 
             return jobsApiClient;
+        }
+
+        private async Task CheckJobManagementWasCalledSuccessfully(IJobManagement jobManagement, string jobId, IEnumerable<int> completionPercentages)
+        {
+            await jobManagement
+                .Received(1)
+                .RetrieveJobAndCheckCanBeProcessed(jobId);
+
+            foreach (int percent in completionPercentages ?? new int[] { })
+            {
+                await jobManagement
+                    .Received(1)
+                    .UpdateJobStatus(jobId, percent, Arg.Any<bool?>());
+            }
+            await jobManagement
+                .Received(completionPercentages?.Count() ?? 0)
+                .UpdateJobStatus(jobId, Arg.Any<int>(), Arg.Any<bool?>());
+        }
+
+        private async Task CheckJobManagementWasCalledSuccessfully(IJobManagement jobManagement, string jobId, IEnumerable<int> completionPercentages, string successMessage)
+        {
+            await CheckJobManagementWasCalledSuccessfully(jobManagement, jobId, completionPercentages);
+
+            await jobManagement
+                .Received(1)
+                .UpdateJobStatus(jobId, 100, true, successMessage);
+        }
+
+        private async Task CheckJobManagementWasCalledUnsuccessfully(IJobManagement jobManagement, string jobId, string errorMessage)
+        {
+            await jobManagement
+                .Received()
+                .RetrieveJobAndCheckCanBeProcessed(jobId);
+
+            await jobManagement
+                .Received(1)
+                .UpdateJobStatus(jobId, 100, false, errorMessage);
         }
     }
 }

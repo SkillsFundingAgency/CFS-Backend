@@ -15,7 +15,9 @@ using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Constants;
 using System.Linq;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Results.Interfaces;
+using NSubstitute.ExceptionExtensions;
 
 namespace CalculateFunding.Services.Results.UnitTests.Services
 {
@@ -48,7 +50,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task CreateAllocationLineResultStatusUpdateJobs_GivenJobIdButJobResponseIsNull_LogsAndDoesNotProcess()
+        public async Task CreateAllocationLineResultStatusUpdateJobs_GivenJobIdButRaisesException_DoesNotProcess()
         {
             //Arrange
             Message message = new Message();
@@ -56,93 +58,21 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ILogger logger = CreateLogger();
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(jobId)
-                .Returns((ApiResponse<JobViewModel>)null);
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Throws(new Exception());
 
-            PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
-
-            //Act
-            await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
-
-            //Assert
-            logger
-                .Received(1)
-                .Error(Arg.Is($"Could not find the job with id: '{jobId}'"));
-
-            await jobsApiClient
-                .DidNotReceive()
-                .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
-        }
-
-        [TestMethod]
-        public async Task CreateAllocationLineResultStatusUpdateJobs_GivenJobIdButJobResponseIsNotFound_LogsAndDoesNotProcess()
-        {
-            //Arrange
-            Message message = new Message();
-            message.UserProperties.Add("jobId", jobId);
-
-            ILogger logger = CreateLogger();
-
-            ApiResponse<JobViewModel> apiResponse = new ApiResponse<JobViewModel>(HttpStatusCode.NotFound);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(jobId)
-                .Returns(apiResponse);
-
-            PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
+            PublishedResultsService publishedResultsService = CreateResultsService(logger, 
+                jobManagement: jobManagement);
 
             //Act
             await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
 
             //Assert
-            logger
+            await jobManagement
                 .Received(1)
-                .Error(Arg.Is($"Could not find the job with id: '{jobId}'"));
-
-            await jobsApiClient
-                .DidNotReceive()
-                .AddJobLog(Arg.Is(jobId), Arg.Any<JobLogUpdateModel>());
-        }
-
-        [TestMethod]
-        public async Task CreateAllocationLineResultStatusUpdateJobs_GivenJobFoundButAlreadyCompleted_LogsAndReturnsDoesNotAddJobLog()
-        {
-            //Arrange
-            Message message = new Message();
-            message.UserProperties.Add("jobId", jobId);
-
-            ILogger logger = CreateLogger();
-
-            JobViewModel job = new JobViewModel
-            {
-                Id = jobId,
-                CompletionStatus = CompletionStatus.Cancelled
-            };
-
-            ApiResponse<JobViewModel> apiResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, job);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(jobId)
-                .Returns(apiResponse);
-
-            PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient);
-
-            //Act
-            await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
-
-            //Assert
-            logger
-                .Received(1)
-                .Information(Arg.Is($"Received job with id: '{job.Id}' is already in a completed state with status {job.CompletionStatus.ToString()}"));
-
-            await
-                jobsApiClient
-                    .DidNotReceive()
-                    .AddJobLog(Arg.Any<string>(), Arg.Any<JobLogUpdateModel>());
+                .RetrieveJobAndCheckCanBeProcessed(jobId);
         }
 
         [TestMethod]
@@ -172,12 +102,20 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .GetJobById(jobId)
                 .Returns(apiResponse);
 
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement   
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(job);
+
             ICacheProvider cacheProvider = CreateCacheProvider();
             cacheProvider
                 .GetAsync<UpdatePublishedAllocationLineResultStatusModel>(Arg.Is(cacheKey))
                 .Returns((UpdatePublishedAllocationLineResultStatusModel)null);
 
-            PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient, cacheProvider: cacheProvider);
+            PublishedResultsService publishedResultsService = CreateResultsService(logger,
+                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
+                cacheProvider: cacheProvider);
 
             //Act
             Func<Task> test = async () => await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
@@ -197,7 +135,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task CreateAllocationLineResultStatusUpdateJobs_GivenUpateModelWith10ProvidersAndDefaultMaxPartitionSize_CreatesOneChildJob()
+        public async Task CreateAllocationLineResultStatusUpdateJobs_GivenUpdateModelWith10ProvidersAndDefaultMaxPartitionSize_CreatesOneChildJob()
         {
             //Arrange
             const string cacheKey = "cache-key";
@@ -227,18 +165,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 Providers = CreateProviderAllocationLineResults()
             };
 
-            ApiResponse<JobViewModel> apiResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, job);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(jobId)
-                .Returns(apiResponse);
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(job);
 
             IEnumerable<Job> newJobs = new[]
             {
                 new Job()
             };
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(newJobs);
@@ -248,30 +185,35 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .GetAsync<UpdatePublishedAllocationLineResultStatusModel>(Arg.Is(cacheKey))
                 .Returns(updateModel);
 
-            PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient, cacheProvider: cacheProvider);
+            PublishedResultsService publishedResultsService = CreateResultsService(logger, 
+                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
+                cacheProvider: cacheProvider);
 
             //Act
             await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
 
             //Assert
-            await
-                jobsApiClient
-                    .Received(1)
-                    .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
-                            m => m.First().Trigger.EntityId == jobId &&
-                                 m.First().Trigger.EntityType == "Job" &&
-                                 m.First().Trigger.Message == $"Triggered by parent job" &&
-                                 m.First().SpecificationId == specificationId &&
-                                 m.First().ParentJobId == jobId &&
-                                 m.First().InvokerUserId == job.InvokerUserId &&
-                                 m.First().InvokerUserDisplayName == job.InvokerUserDisplayName &&
-                                 m.First().CorrelationId == job.CorrelationId &&
-                                 !string.IsNullOrWhiteSpace(m.First().MessageBody)));
+            await jobsApiClient
+                .Received(1)
+                .CreateJobs(Arg.Is<IEnumerable<JobCreateModel>>(
+                        m => m.First().Trigger.EntityId == jobId &&
+                             m.First().Trigger.EntityType == "Job" &&
+                             m.First().Trigger.Message == $"Triggered by parent job" &&
+                             m.First().SpecificationId == specificationId &&
+                             m.First().ParentJobId == jobId &&
+                             m.First().InvokerUserId == job.InvokerUserId &&
+                             m.First().InvokerUserDisplayName == job.InvokerUserDisplayName &&
+                             m.First().CorrelationId == job.CorrelationId &&
+                             !string.IsNullOrWhiteSpace(m.First().MessageBody)));
 
-            await
-                cacheProvider
-                    .Received(1)
-                    .RemoveAsync<UpdatePublishedAllocationLineResultStatusModel>(Arg.Is(cacheKey));
+            await jobManagement
+                .Received(1)
+                .RetrieveJobAndCheckCanBeProcessed(jobId);
+
+            await cacheProvider
+                .Received(1)
+                .RemoveAsync<UpdatePublishedAllocationLineResultStatusModel>(Arg.Is(cacheKey));
         }
 
         [TestMethod]
@@ -305,12 +247,10 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 Providers = CreateProviderAllocationLineResults()
             };
 
-            ApiResponse<JobViewModel> apiResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, job);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(jobId)
-                .Returns(apiResponse);
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(job);
 
             IEnumerable<Job> newJobs = new[]
             {
@@ -321,6 +261,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 new Job(),
             };
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(newJobs);
@@ -335,7 +276,11 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .UpdateAllocationLineResultStatusBatchCount
                 .Returns(2);
 
-            PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient, cacheProvider: cacheProvider, publishedProviderResultsSettings: settings);
+            PublishedResultsService publishedResultsService = CreateResultsService(logger, 
+                jobsApiClient: jobsApiClient, 
+                jobManagement: jobManagement, 
+                cacheProvider: cacheProvider, 
+                publishedProviderResultsSettings: settings);
 
             //Act
             await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);
@@ -383,12 +328,10 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 Providers = CreateProviderAllocationLineResults()
             };
 
-            ApiResponse<JobViewModel> apiResponse = new ApiResponse<JobViewModel>(HttpStatusCode.OK, job);
-
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(jobId)
-                .Returns(apiResponse);
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(job);
 
             IEnumerable<Job> newJobs = new[]
             {
@@ -397,6 +340,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 new Job()
             };
 
+            IJobsApiClient jobsApiClient = CreateJobsApiClient();
             jobsApiClient
                 .CreateJobs(Arg.Any<IEnumerable<JobCreateModel>>())
                 .Returns(newJobs);
@@ -411,7 +355,11 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .UpdateAllocationLineResultStatusBatchCount
                 .Returns(2);
 
-            PublishedResultsService publishedResultsService = CreateResultsService(logger, jobsApiClient: jobsApiClient, cacheProvider: cacheProvider, publishedProviderResultsSettings: settings);
+            PublishedResultsService publishedResultsService = CreateResultsService(logger, 
+                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
+                cacheProvider: cacheProvider, 
+                publishedProviderResultsSettings: settings);
 
             //Act
             Func<Task> test = async () => await publishedResultsService.CreateAllocationLineResultStatusUpdateJobs(message);

@@ -6,6 +6,7 @@ using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Results;
@@ -53,7 +54,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IPublishedProviderResultsSettings publishedProviderResultsSettings = null,
             IProviderChangesRepository providerChangesRepository = null,
             IProviderVariationsService providerVariationsService = null,
-            IProviderVariationsStorageRepository providerVariationsStorageRepository = null)
+            IProviderVariationsStorageRepository providerVariationsStorageRepository = null,
+            IJobManagement jobManagement = null)
         {
             ISpecificationsRepository specsRepo = specificationsRepository ?? CreateSpecificationsRepository();
 
@@ -77,8 +79,13 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 publishedProviderResultsSettings ?? CreatePublishedProviderResultsSettings(),
                 providerChangesRepository ?? CreateProviderChangesRepository(),
                 providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService(), policiesApiClient ?? CreatePoliciesApiClient()),
-                providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository()
-                );
+                providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository(),
+                jobManagement ?? CreateJobManagement());
+        }
+
+        private static IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
         }
 
         static IProviderVariationsStorageRepository CreateProviderVariationsStorageRepository()

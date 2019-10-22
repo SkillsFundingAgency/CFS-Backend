@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.WebApi.Extensions;
 using CalculateFunding.Common.WebApi.Middleware;
@@ -85,6 +86,9 @@ namespace CalculateFunding.Api.Results
             builder
               .AddSingleton<IPublishedResultsService, PublishedResultsService>()
               .AddSingleton<IHealthChecker, PublishedResultsService>();
+
+            builder
+                .AddSingleton<IJobManagement, JobManagement>();
 
             builder
                 .AddSingleton<IProviderCalculationResultsSearchService, ProviderCalculationResultsSearchService>()
@@ -257,6 +261,18 @@ namespace CalculateFunding.Api.Results
                     ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                };
+            });
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
             });
 

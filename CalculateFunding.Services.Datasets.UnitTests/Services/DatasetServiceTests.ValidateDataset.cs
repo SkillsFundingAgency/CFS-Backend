@@ -13,10 +13,10 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
-using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
@@ -32,8 +32,8 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Azure.Storage.Blob;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using OfficeOpenXml;
@@ -2857,6 +2857,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 }
             });
 
+            IJobManagement jobManagement = CreateJobManagement();
+
             IProvidersApiClient providersApiClient = CreateProvidersApiClient();
             providersApiClient
                 .GetAllMasterProviders()
@@ -2868,6 +2870,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 searchRepository: searchRepository,
                 cacheProvider: cacheProvider,
                 jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement,
                 providersApiClient: providersApiClient);
 
             // Act
@@ -2927,21 +2930,15 @@ namespace CalculateFunding.Services.Datasets.Services
                      s.OperationId == operationId
                      ));
 
-            await jobsApiClient
+            for (int percentComplete = 0; percentComplete < 75; percentComplete += 25)
+            {
+                await jobManagement
+                    .Received(1)
+                    .UpdateJobStatus(Arg.Is(jobId), percentComplete, null, null);
+            }
+            await jobManagement
                 .Received(1)
-                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 0 && !j.CompletedSuccessfully.HasValue));
-            await jobsApiClient
-                .Received(1)
-                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 25 && !j.CompletedSuccessfully.HasValue));
-            await jobsApiClient
-                .Received(1)
-                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 50 && !j.CompletedSuccessfully.HasValue));
-            await jobsApiClient
-                .Received(1)
-                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 75 && !j.CompletedSuccessfully.HasValue));
-            await jobsApiClient
-                .Received(1)
-                .AddJobLog(Arg.Is<string>(jobId), Arg.Is<JobLogUpdateModel>(j => j.ItemsProcessed == 100 && j.CompletedSuccessfully == true));
+                .UpdateJobStatus(Arg.Is(jobId), 100, true, "Dataset passed validation");
         }
     }
 }

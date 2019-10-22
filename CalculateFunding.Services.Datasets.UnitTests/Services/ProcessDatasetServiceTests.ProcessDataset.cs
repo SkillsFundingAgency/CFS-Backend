@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
@@ -3700,6 +3701,8 @@ namespace CalculateFunding.Services.Datasets.Services
                 .CreateJob(Arg.Any<JobCreateModel>())
                 .Returns(new Job { Id = "job-id-2", JobDefinitionId = JobConstants.DefinitionNames.CreateInstructAllocationJob });
 
+            IJobManagement jobManagement = CreateJobManagement();
+
             ProcessDatasetService service = CreateProcessDatasetService(
                 datasetRepository: datasetRepository,
                 logger: logger,
@@ -3709,21 +3712,24 @@ namespace CalculateFunding.Services.Datasets.Services
                 providersApiClient: providersApiClient,
                 providerResultsRepository: providerResultsRepository,
                 excelDatasetReader: excelDatasetReader,
-                jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement);
 
             // Act
             await service.ProcessDataset(message);
 
             // Assert
-            await
-                jobsApiClient
-                    .Received(1)
-                    .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == null && l.ItemsProcessed == 0 && string.IsNullOrEmpty(l.Outcome)));
+            await jobsApiClient
+                .Received(1)
+                .CreateJob(Arg.Any<JobCreateModel>());
 
-            await
-                 jobsApiClient
-                     .Received(1)
-                     .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == true && l.ItemsProcessed == 100 && l.Outcome == "Processed Dataset"));
+            await jobManagement
+                .Received(1)
+                .UpdateJobStatus(Arg.Is(jobId), 0, null, null);
+
+            await jobManagement
+                .Received(1)
+                .UpdateJobStatus(Arg.Is(jobId), 100, true, "Processed Dataset");
         }
 
 

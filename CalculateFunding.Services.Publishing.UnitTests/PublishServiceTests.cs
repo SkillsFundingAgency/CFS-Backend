@@ -1,6 +1,7 @@
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
@@ -45,6 +46,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
 
         ISearchRepository<PublishedFundingIndex> _publishedFundingSearchRepository;
         private IPublishedProviderIndexerService _publishedProviderIndexerService;
+        private IJobManagement _jobManagement;
 
         [TestInitialize]
         public void SetUp()
@@ -72,6 +74,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _calculationResultsService = Substitute.For<ICalculationResultsService>();
             _publishedProviderVersionService = Substitute.For<IPublishedProviderVersionService>();
             _calculationsApiClient = Substitute.For<ICalculationsApiClient>();
+            _jobManagement = Substitute.For<IJobManagement>();
 
             _resiliencePolicies = new ResiliencePolicies()
             {
@@ -111,7 +114,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _policiesApiClient,
                 _calculationsApiClient,
                 _logger,
-                new PublishingEngineOptions());
+                new PublishingEngineOptions(),
+                _jobManagement);
         }
 
 

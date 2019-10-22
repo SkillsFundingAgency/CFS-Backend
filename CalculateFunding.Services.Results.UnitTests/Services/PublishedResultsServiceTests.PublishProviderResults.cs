@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Obsoleted;
@@ -1249,10 +1250,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .CreateJob(Arg.Is<JobCreateModel>(j => j.JobDefinitionId == JobConstants.DefinitionNames.FetchProviderProfileJob))
                 .Returns(new Job { Id = "job-34" });
 
+            JobViewModel jobViewModel = new JobViewModel();
+            IJobManagement jobManagement = CreateJobManagement();
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(jobViewModel);
+
             PublishedResultsService resultsService = CreateResultsService(resultsRepository: resultsRepository,
                 specificationsRepository: specificationsRepository,
                 publishedProviderResultsAssemblerService: assembler,
                 logger: logger,
+                jobManagement: jobManagement,
                 jobsApiClient: jobsApiClient);
 
             Message message = new Message();
@@ -1263,17 +1271,28 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await resultsService.PublishProviderResults(message);
 
             //Assert
-            logger.DidNotReceive().Error(Arg.Any<string>());
-            logger.Received(1).Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
+            logger
+                .DidNotReceive()
+                .Error(Arg.Any<string>());
+            logger
+                .Received(1)
+                .Information(Arg.Is($"Updated the published refresh date on the specification with id: {specificationId}"));
 
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 0));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 5));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 10));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 28));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 43));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 58));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 73));
-            await jobsApiClient.Received(1).AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully.HasValue == false && l.ItemsProcessed == 78));
+            await jobManagement
+                .DidNotReceive()
+                .UpdateJobStatus(jobId, 100, true, "Published Provider Results Updated");
+
+            int[] itemsProcessedCounts = new[] {0, 5, 10, 28, 43, 58, 73, 78};
+            await jobManagement
+                .Received(itemsProcessedCounts.Length)
+                .UpdateJobStatus(jobId, Arg.Any<int>(), null);
+
+            foreach (int itemsProcessed in itemsProcessedCounts)
+            {
+                await jobManagement
+                    .Received(1)
+                    .UpdateJobStatus(jobId, itemsProcessed, null);
+            }
         }
 
         [TestMethod]

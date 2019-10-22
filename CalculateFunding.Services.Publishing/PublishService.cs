@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Common.Utility;
@@ -57,6 +58,7 @@ namespace CalculateFunding.Services.Publishing
         private readonly Policy _calculationsApiClientPolicy;
         private readonly Policy _policyApiClientPolicy;
         private readonly IPublishingEngineOptions _publishingEngineOptions;
+        private readonly IJobManagement _jobManagement;
 
         public PublishService(IPublishedFundingStatusUpdateService publishedFundingStatusUpdateService,
             IPublishedFundingDataService publishedFundingDataService,
@@ -80,7 +82,8 @@ namespace CalculateFunding.Services.Publishing
             IPoliciesApiClient policiesApiClient,
             ICalculationsApiClient calculationsApiClient,
             ILogger logger,
-            IPublishingEngineOptions publishingEngineOptions)
+            IPublishingEngineOptions publishingEngineOptions,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(publishedFundingStatusUpdateService, nameof(publishedFundingStatusUpdateService));
             Guard.ArgumentNotNull(publishedFundingDataService, nameof(publishedFundingDataService));
@@ -109,6 +112,7 @@ namespace CalculateFunding.Services.Publishing
             Guard.ArgumentNotNull(publishingResiliencePolicies.PublishedFundingRepository, nameof(publishingResiliencePolicies.PublishedFundingRepository));
             Guard.ArgumentNotNull(publishingResiliencePolicies.JobsApiClient, nameof(publishingResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(publishingResiliencePolicies.PoliciesApiClient, nameof(publishingResiliencePolicies.PoliciesApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _publishedFundingStatusUpdateService = publishedFundingStatusUpdateService;
             _publishedFundingDataService = publishedFundingDataService;
@@ -137,6 +141,7 @@ namespace CalculateFunding.Services.Publishing
             _jobsApiClientPolicy = publishingResiliencePolicies.JobsApiClient;
             _calculationsApiClientPolicy = publishingResiliencePolicies.CalculationsApiClient;
             _policyApiClientPolicy = publishingResiliencePolicies.PoliciesApiClient;
+            _jobManagement = jobManagement;
         }
 
         public async Task PublishResults(Message message)
@@ -148,8 +153,12 @@ namespace CalculateFunding.Services.Publishing
             string specificationId = message.UserProperties["specification-id"] as string;
             string jobId = message.UserProperties["jobId"]?.ToString();
 
-            JobViewModel currentJob = await RetrieveJobAndCheckCanBeProcessed(jobId);
-            if (currentJob == null)
+            JobViewModel currentJob;
+            try
+            {
+                currentJob = await _jobManagement.RetrieveJobAndCheckCanBeProcessed(jobId);
+            }
+            catch (Exception e)
             {
                 string errorMessage = "Job can not be run";
                 _logger.Error(errorMessage);
@@ -158,7 +167,7 @@ namespace CalculateFunding.Services.Publishing
             }
 
             // Update job to set status to processing
-            await UpdateJobStatus(jobId, 0, 0, null, null);
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, null, null);
 
             SpecificationSummary specification = await _specificationService.GetSpecificationSummaryById(specificationId);
 
@@ -210,7 +219,7 @@ namespace CalculateFunding.Services.Publishing
                 {
                     string errorMessage = $"Specification with id: '{specificationId} has prerequisites which aren't complete.";
 
-                    await UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
+                    await _jobManagement.UpdateJobStatus(jobId, completedSuccessfully: false, outcome: string.Join(", ", prereqValidationErrors));
 
                     throw new NonRetriableException(errorMessage);
                 }
@@ -362,66 +371,10 @@ namespace CalculateFunding.Services.Publishing
             // Mark job as complete
             _logger.Information($"Marking publish funding job complete");
 
-            await UpdateJobStatus(jobId, 0, 0, true, null);
+            await _jobManagement.UpdateJobStatus(jobId, 0, 0, true, null);
             _logger.Information($"Publish funding job complete");
         }
 
         
-        private async Task<JobViewModel> RetrieveJobAndCheckCanBeProcessed(string jobId)
-        {
-            ApiResponse<JobViewModel> response = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.GetJobById(jobId));
-
-            if (response == null || response.Content == null)
-            {
-                _logger.Error($"Could not find the job with id: '{jobId}'");
-                return null;
-            }
-
-            JobViewModel job = response.Content;
-
-            if (job.CompletionStatus.HasValue)
-            {
-                _logger.Information($"Received job with id: '{jobId}' is already in a completed state with status {job.CompletionStatus.ToString()}");
-                return null;
-            }
-
-            return job;
-        }
-
-        private async Task UpdateJobStatus(string jobId, int percentComplete = 0, bool? completedSuccessfully = null, string outcome = null)
-        {
-            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-            {
-                CompletedSuccessfully = completedSuccessfully,
-                ItemsProcessed = percentComplete,
-                Outcome = outcome
-            };
-
-            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
-
-            if (jobLogResponse == null || jobLogResponse.Content == null)
-            {
-                _logger.Error($"Failed to add a job log for job id '{jobId}'");
-            }
-        }
-
-        private async Task UpdateJobStatus(string jobId, int totalItemsCount, int failedItemsCount, bool? completedSuccessfully = null, string outcome = null)
-        {
-            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-            {
-                CompletedSuccessfully = completedSuccessfully,
-                ItemsProcessed = totalItemsCount,
-                ItemsFailed = failedItemsCount,
-                ItemsSucceeded = totalItemsCount - failedItemsCount,
-                Outcome = outcome
-            };
-
-            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
-
-            if (jobLogResponse == null || jobLogResponse.Content == null)
-            {
-                _logger.Error($"Failed to add a job log for job id '{jobId}'");
-            }
-        }
     }
 }

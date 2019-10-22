@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Functions.Datasets.ServiceBus;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
@@ -69,6 +70,9 @@ namespace CalculateFunding.Functions.Datasets
 
             builder
                 .AddSingleton<IDatasetService, DatasetService>();
+
+            builder
+                .AddSingleton<IJobManagement, JobManagement>();
 
             builder
                 .AddSingleton<IProcessDatasetService, ProcessDatasetService>();
@@ -231,6 +235,20 @@ namespace CalculateFunding.Functions.Datasets
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     ProvidersApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
                 };
+            });
+
+
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                PolicySettings policySettings = ctx.GetService<PolicySettings>();
+
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+
             });
 
             return builder.BuildServiceProvider();

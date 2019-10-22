@@ -1,7 +1,9 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
@@ -46,7 +48,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IValidator<ExcelPackage> datasetWorksheetValidator = null,
             IValidator<DatasetUploadValidationModel> datasetUploadValidator = null,
             IJobsApiClient jobsApiClient = null,
-            IProvidersApiClient providersApiClient = null)
+            IProvidersApiClient providersApiClient = null,
+            IJobManagement jobManagement = null)
         {
             return new DatasetService(
                 blobClient ?? CreateBlobClient(),
@@ -64,7 +67,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 DatasetsResilienceTestHelper.GenerateTestPolicies(),
                 jobsApiClient ?? CreateJobsApiClient(),
                 datasetVersionIndex ?? CreateDatasetVersionRepository(),
-                providersApiClient ?? CreateProvidersApiClient());
+                providersApiClient ?? CreateProvidersApiClient(),
+                jobManagement ?? CreateJobManagement());
+        }
+
+        protected IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
         }
 
         protected IVersionRepository<ProviderSourceDatasetVersion> CreateVersionRepository()

@@ -1,8 +1,10 @@
-﻿using AutoMapper;
+﻿using System;
+using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.AzureStorage;
@@ -42,7 +44,8 @@ namespace CalculateFunding.Services.Datasets.Services
             IDatasetsAggregationsRepository datasetsAggregationsRepository = null,
             IFeatureToggle featureToggle = null,
             IJobsApiClient jobsApiClient = null,
-            IMapper mapper = null)
+            IMapper mapper = null,
+            IJobManagement jobManagement = null)
         {
 
             return new ProcessDatasetService(
@@ -61,7 +64,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 datasetsAggregationsRepository ?? CreateDatasetsAggregationsRepository(),
                 featureToggle ?? CreateFeatureToggle(),
                 jobsApiClient ?? CreateJobsApiClient(),
-                mapper ?? CreateMapper());
+                mapper ?? CreateMapper(),
+                jobManagement ?? CreateJobManagement());
+        }
+
+        protected static IJobManagement CreateJobManagement()
+        {
+            return Substitute.For<IJobManagement>();
         }
 
         protected static IFeatureToggle CreateFeatureToggle()

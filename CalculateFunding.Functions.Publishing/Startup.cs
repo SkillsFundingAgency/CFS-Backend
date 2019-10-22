@@ -8,6 +8,7 @@ using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Functions.Publishing;
 using CalculateFunding.Functions.Publishing.ServiceBus;
@@ -90,6 +91,7 @@ namespace CalculateFunding.Functions.Publishing
             builder.AddSingleton<IApproveService, ApproveService>();
             builder.AddSingleton<IJobTracker, JobTracker>();
             builder.AddSingleton<IPublishService, PublishService>();
+            builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ISpecificationFundingStatusService, SpecificationFundingStatusService>();
 
             builder
@@ -249,6 +251,16 @@ namespace CalculateFunding.Functions.Publishing
             PolicySettings policySettings = builder.GetPolicySettings(config);
             ResiliencePolicies publishingResiliencePolicies = CreateResiliencePolicies(policySettings);
 
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+
+            });
 
             builder.AddPublishingServices(config);
 

@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -62,6 +63,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly Policy _providersApiClientPolicy;
+        private readonly IJobManagement _jobManagement;
 
         public DatasetService(
             IBlobClient blobClient,
@@ -79,7 +81,8 @@ namespace CalculateFunding.Services.Datasets
             IDatasetsResiliencePolicies datasetsResiliencePolicies,
             IJobsApiClient jobsApiClient,
             ISearchRepository<DatasetVersionIndex> datasetVersionIndexRepository,
-            IProvidersApiClient providersApiClient)
+            IProvidersApiClient providersApiClient,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
@@ -98,6 +101,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(providersApiClient, nameof(providersApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProvidersApiClient, nameof(datasetsResiliencePolicies.ProvidersApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _blobClient = blobClient;
             _logger = logger;
@@ -116,6 +120,7 @@ namespace CalculateFunding.Services.Datasets
             _providersApiClient = providersApiClient;
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
             _providersApiClientPolicy = datasetsResiliencePolicies.ProvidersApiClient;
+            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -423,7 +428,7 @@ namespace CalculateFunding.Services.Datasets
 
             string jobId = message.UserProperties["jobId"].ToString();
 
-            await UpdateJobStatus(jobId, null, 0);
+            await _jobManagement.UpdateJobStatus(jobId, 0, null);
 
             GetDatasetBlobModel model = message.GetPayloadAsInstanceOf<GetDatasetBlobModel>();
 
@@ -431,7 +436,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error("Null model was provided to ValidateDataset");
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, "Null model was provided to ValidateDataset");
-                await UpdateJobStatus(jobId, false, 100, "Failed Validation - Null model was provided to ValidateDataset");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - Null model was provided to ValidateDataset");
 
                 return;
             }
@@ -441,7 +446,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"{nameof(GetDatasetBlobModel)} validation result returned null");
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} validation result returned null");
-                await UpdateJobStatus(jobId, false, 100, "Failed Validation - no validation result");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - no validation result");
 
                 return;
             }
@@ -449,7 +454,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"{nameof(GetDatasetBlobModel)} model error: {{0}}", validationResult.Errors);
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"{nameof(GetDatasetBlobModel)} model error", ConvertToErrorDictionary(validationResult));
-                await UpdateJobStatus(jobId, false, 100, "Failed Validation - model errors");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - model errors");
 
                 return;
             }
@@ -461,7 +466,7 @@ namespace CalculateFunding.Services.Datasets
             {
                 _logger.Error($"Failed to find blob with path: {fullBlobName}");
                 await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Failed to find blob with path: {fullBlobName}");
-                await UpdateJobStatus(jobId, false, 100, "Failed Validation - file not found in blob storage");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - file not found in blob storage");
                 return;
             }
 
@@ -473,7 +478,7 @@ namespace CalculateFunding.Services.Datasets
                 {
                     _logger.Error($"Blob {blob.Name} contains no data");
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, $"Blob {blob.Name} contains no data");
-                    await UpdateJobStatus(jobId, false, 100, "Failed validation - file contains no data");
+                    await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - file contains no data");
 
                     return;
                 }
@@ -481,7 +486,7 @@ namespace CalculateFunding.Services.Datasets
                 try
                 {
                     await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingExcelWorkbook);
-                    await UpdateJobStatus(jobId, null, 25);
+                    await _jobManagement.UpdateJobStatus(jobId, 25, null);
 
                     using (ExcelPackage excel = new ExcelPackage(datasetStream))
                     {
@@ -490,7 +495,7 @@ namespace CalculateFunding.Services.Datasets
                         if (validationResult != null && (!validationResult.IsValid || validationResult.Errors.Count > 0))
                         {
                             await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                            await UpdateJobStatus(jobId, false, 100, "Failed validation - with validation errors");
+                            await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - with validation errors");
                             return;
                         }
                     }
@@ -506,7 +511,7 @@ namespace CalculateFunding.Services.Datasets
                     validationResult.Errors.Add(new ValidationFailure(nameof(model.Filename), errorMessage));
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, null, ConvertToErrorDictionary(validationResult));
-                    await UpdateJobStatus(jobId, false, 100, "Failed validation - the data source file type is invalid");
+                    await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - the data source file type is invalid");
 
                     return;
                 }
@@ -521,13 +526,13 @@ namespace CalculateFunding.Services.Datasets
                     _logger.Error(errorMessage);
 
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, errorMessage);
-                    await UpdateJobStatus(jobId, false, 100, "Failed Validation - invalid data definition");
+                    await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed Validation - invalid data definition");
 
                     return;
                 }
 
                 await SetValidationStatus(operationId, DatasetValidationStatus.ValidatingTableResults);
-                await UpdateJobStatus(jobId, null, 50);
+                await _jobManagement.UpdateJobStatus(jobId, 50, null);
 
                 (IDictionary<string, IEnumerable<string>> validationFailures, int rowCount) = await ValidateTableResults(datasetDefinition, blob);
 
@@ -541,7 +546,7 @@ namespace CalculateFunding.Services.Datasets
                         };
 
                         await SetValidationStatus(operationId, DatasetValidationStatus.SavingResults);
-                        await UpdateJobStatus(jobId, null, 75);
+                        await _jobManagement.UpdateJobStatus(jobId, 75, null);
 
                         Dataset dataset;
 
@@ -566,7 +571,7 @@ namespace CalculateFunding.Services.Datasets
                         }
 
                         await SetValidationStatus(operationId, DatasetValidationStatus.Validated, datasetId: dataset.Id);
-                        await UpdateJobStatus(jobId, true, 100, "Dataset passed validation");
+                        await _jobManagement.UpdateJobStatus(jobId, 100, true, "Dataset passed validation");
                     }
                     catch (Exception exception)
                     {
@@ -579,7 +584,7 @@ namespace CalculateFunding.Services.Datasets
                 else
                 {
                     await SetValidationStatus(operationId, DatasetValidationStatus.FailedValidation, validationFailures: validationFailures);
-                    await UpdateJobStatus(jobId, false, 100, "Failed validation - table validation");
+                    await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed validation - table validation");
                 }
             }
         }
@@ -623,23 +628,6 @@ namespace CalculateFunding.Services.Datasets
             };
 
             await _cacheProvider.SetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{status.OperationId}", status);
-        }
-
-        private async Task UpdateJobStatus(string jobId, bool? completedSuccessfully, int percentComplete, string outcome = null)
-        {
-            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-            {
-                CompletedSuccessfully = completedSuccessfully,
-                ItemsProcessed = percentComplete,
-                Outcome = outcome
-            };
-
-            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
-
-            if (jobLogResponse == null || jobLogResponse.Content == null)
-            {
-                _logger.Error($"Failed to add a job log for job id '{jobId}'");
-            }
         }
 
         public async Task<IActionResult> DownloadDatasetFile(HttpRequest request)

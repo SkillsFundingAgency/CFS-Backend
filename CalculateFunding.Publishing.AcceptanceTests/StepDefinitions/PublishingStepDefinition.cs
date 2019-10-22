@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,7 +69,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 _currentUserStepContext.UserId,
                 _currentUserStepContext.UserName);
             }
-            catch (System.Exception)
+            catch (Exception)
             {
                 _publishFundingStepContext.PublishSuccessful = false;
                 throw;
@@ -85,6 +85,5 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .BeTrue();
         }
-
     }
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Interfaces;
 using CalculateFunding.Models.Publishing;
@@ -27,6 +28,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         private readonly IPublishedProviderStepContext _publishedProviderStepContext;
         private readonly IPublishingDatesStepContext _publishingDatesStepContext;
         private readonly ILoggerStepContext _loggerStepContext;
+        private readonly IJobManagement _jobManagement;
 
         public IEnumerable<CalculationResult> CalculationResults { get; set; }
 
@@ -41,6 +43,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             IProvidersStepContext providersStepContext,
             IPublishingDatesStepContext publishingDatesStepContext,
             ILoggerStepContext loggerStepContext,
+            IJobManagement jobManagement,
             IPublishedProviderStepContext publishedProviderStepContext)
         {
             _jobStepContext = jobStepContext;
@@ -50,6 +53,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             _providersStepContext = providersStepContext;
             _publishingDatesStepContext = publishingDatesStepContext;
             _loggerStepContext = loggerStepContext;
+            _jobManagement = jobManagement;
             TemplateMapping = new TemplateMapping();
             _publishedProviderStepContext = publishedProviderStepContext;
         }
@@ -193,7 +197,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 policiesInMemoryRepository,
                 calculationsApiClient,
                 logger,
-                new PublishingEngineOptions());
+                new PublishingEngineOptions(),
+                _jobManagement);
 
             Message message = new Message();
 
@@ -281,7 +286,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             FundingLineTotalAggregator fundingLineTotalAggregator = new FundingLineTotalAggregator();
             PublishedProviderDataGenerator publishedProviderDataGenerator = new PublishedProviderDataGenerator(fundingLineTotalAggregator, mapper);
             PublishedProviderContentsGeneratorResolver publishedProviderContentsGeneratorResolver = new PublishedProviderContentsGeneratorResolver();
-            IPublishedProviderContentsGenerator v10ProviderGenerator = new CalculateFunding.Generators.Schema10.PublishedProviderContentsGenerator();
+            IPublishedProviderContentsGenerator v10ProviderGenerator = new Generators.Schema10.PublishedProviderContentsGenerator();
             publishedProviderContentsGeneratorResolver.Register("1.0", v10ProviderGenerator);
             CalculationResultsService calculationResultsService = new CalculationResultsService(resiliencePolicies, calculationResultsRepository, logger, new PublishingEngineOptions());
 
@@ -296,7 +301,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
             PublishedProviderDataPopulator publishedProviderDataPopulator = new PublishedProviderDataPopulator(mapper);
 
             InScopePublishedProviderService inScopePublishedProviderService = new InScopePublishedProviderService(mapper, logger);
-
             FundingLineValueOverride fundingLineValueOverride = new FundingLineValueOverride();
 
             Common.ApiClient.Policies.IPoliciesApiClient policiesInMemoryRepository = _policiesStepContext.Client;
@@ -318,8 +322,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
                 policiesInMemoryRepository,
                 refreshPrerequisiteChecker,
                 providerExclusionCheck,
-                fundingLineValueOverride
-            );
+                fundingLineValueOverride,
+                _jobManagement);
 
             Message message = new Message();
 

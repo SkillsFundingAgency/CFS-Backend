@@ -1,6 +1,7 @@
 ﻿using BoDi;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.CosmosDb;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Repositories;
 using CalculateFunding.Services.Publishing;
@@ -60,10 +61,20 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             JobsInMemoryRepository jobsInMemoryRepository = new JobsInMemoryRepository();
             _objectContainer.RegisterInstanceAs<IJobsApiClient>(jobsInMemoryRepository);
 
+            JobManagementResiliencePolicies jobManagementResiliencePolicies = new JobManagementResiliencePolicies()
+            {
+                JobsApiClient = Policy.NoOpAsync(),
+            };
+
+            JobManagement jobManagement = new JobManagement(jobsApiClient: jobsInMemoryRepository,
+                logger: logger,
+                jobManagementResiliencePolicies: jobManagementResiliencePolicies);
+            _objectContainer.RegisterInstanceAs<IJobManagement>(jobManagement);
+
             InMemoryPublishedFundingRepository inMemoryPublishedFundingRepository = new InMemoryPublishedFundingRepository(inMemoryCosmosRepository);
             _objectContainer.RegisterInstanceAs<IPublishedFundingRepository>(inMemoryPublishedFundingRepository);
 
-            PublishedProviderInMemorySearchRepository publishedProviderInMemorySearchRepository = new PublishedProviderInMemorySearchRepository();           
+            PublishedProviderInMemorySearchRepository publishedProviderInMemorySearchRepository = new PublishedProviderInMemorySearchRepository();
 
             PoliciesInMemoryRepository policiesInMemoryRepository = new PoliciesInMemoryRepository(logger);
             ProvidersInMemoryClient providersInMemoryClient = new ProvidersInMemoryClient();
@@ -142,7 +153,5 @@ namespace CalculateFunding.Publishing.AcceptanceTests.IoC
             };
             _objectContainer.RegisterInstanceAs<IPublishedProviderStepContext>(publishedProviderStepContext);
         }
-
-
     }
 }

@@ -5,6 +5,7 @@ using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Providers.Models;
 using CalculateFunding.Common.ApiClient.Specifications.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Services.Publishing.Interfaces;
 using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
@@ -35,6 +36,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
         private IPoliciesApiClient _policiesApiClient;
         private IPublishProviderExclusionCheck _publishProviderExclusionCheck;
         private IFundingLineValueOverride _fundingLineValueOverride;
+        private IJobManagement _jobManagement;
 
         [TestInitialize]
         public void SetUp()
@@ -56,6 +58,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests
             _publishedProviderContentPersistanceService = Substitute.For<IPublishedProviderContentPersistanceService>();
             _refreshPrerequisiteChecker = Substitute.For<IRefreshPrerequisiteChecker>();
             _policiesApiClient = Substitute.For<IPoliciesApiClient>();
+            _jobManagement = Substitute.For<IJobManagement>();
 
             _refreshService = new RefreshService(Substitute.For<IPublishedProviderStatusUpdateService>(),
                 Substitute.For<IPublishedFundingDataService>(),
@@ -74,7 +77,8 @@ namespace CalculateFunding.Services.Publishing.UnitTests
                 _policiesApiClient,
                 _refreshPrerequisiteChecker,
                 _publishProviderExclusionCheck,
-                _fundingLineValueOverride);
+                _fundingLineValueOverride,
+                _jobManagement);
         }
 
         [TestMethod]

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="CalculateFunding.Common.ApiClient.Profiling" Version="1.0.2" />
+    <PackageReference Include="CalculateFunding.Common.JobManagement" Version="1.0.0" />
     <PackageReference Include="CalculateFunding.Common.Storage" Version="1.0.2" />
     <PackageReference Include="LINQKit.Core" Version="1.1.16" />
   </ItemGroup>

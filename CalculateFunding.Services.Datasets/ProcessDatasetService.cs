@@ -13,10 +13,10 @@ using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
@@ -64,6 +64,7 @@ namespace CalculateFunding.Services.Datasets
         private readonly Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
         private readonly IMapper _mapper;
+        private readonly IJobManagement _jobManagement;
 
         public ProcessDatasetService(
             IDatasetRepository datasetRepository,
@@ -81,7 +82,8 @@ namespace CalculateFunding.Services.Datasets
             IDatasetsAggregationsRepository datasetsAggregationsRepository,
             IFeatureToggle featureToggle,
             IJobsApiClient jobsApiClient,
-            IMapper mapper)
+            IMapper mapper,
+            IJobManagement jobManagement)
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(excelDatasetReader, nameof(excelDatasetReader));
@@ -98,6 +100,7 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.ProviderResultsRepository, nameof(datasetsResiliencePolicies.ProviderResultsRepository));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
 
             _datasetRepository = datasetRepository;
             _excelDatasetReader = excelDatasetReader;
@@ -116,6 +119,7 @@ namespace CalculateFunding.Services.Datasets
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
             _messengerService = messengerService;
             _mapper = mapper;
+            _jobManagement = jobManagement;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -148,19 +152,19 @@ namespace CalculateFunding.Services.Datasets
 
             string jobId = message.UserProperties["jobId"].ToString();
 
-            await UpdateJobStatus(jobId, null, 0);
+            await _jobManagement.UpdateJobStatus(jobId, 0, null);
 
             if (dataset == null)
             {
                 _logger.Error("A null dataset was provided to ProcessData");
-                await UpdateJobStatus(jobId, false, 100, "Failed to Process - null dataset provided");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - null dataset provided");
                 return;
             }
 
             if (!message.UserProperties.ContainsKey("specification-id"))
             {
                 _logger.Error("Specification Id key is missing in ProcessDataset message properties");
-                await UpdateJobStatus(jobId, false, 100, "Failed to Process - specification id not provided");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - specification id not provided");
                 return;
             }
 
@@ -169,14 +173,14 @@ namespace CalculateFunding.Services.Datasets
             if (string.IsNullOrWhiteSpace(specificationId))
             {
                 _logger.Error("A null or empty specification id was provided to ProcessData");
-                await UpdateJobStatus(jobId, false, 100, "Failed to Process - specification if is null or empty");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - specification if is null or empty");
                 return;
             }
 
             if (!message.UserProperties.ContainsKey("relationship-id"))
             {
                 _logger.Error("Relationship Id key is missing in ProcessDataset message properties");
-                await UpdateJobStatus(jobId, false, 100, "Failed to Process - relationship id not provided");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - relationship id not provided");
                 return;
             }
 
@@ -184,16 +188,15 @@ namespace CalculateFunding.Services.Datasets
             if (string.IsNullOrWhiteSpace(relationshipId))
             {
                 _logger.Error("A null or empty relationship id was provided to ProcessDataset");
-                await UpdateJobStatus(jobId, false, 100, "Failed to Process - relationship id is null or empty");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - relationship id is null or empty");
                 return;
             }
 
             DefinitionSpecificationRelationship relationship = await _datasetRepository.GetDefinitionSpecificationRelationshipById(relationshipId);
-
             if (relationship == null)
             {
                 _logger.Error($"Relationship not found for relationship id: {relationshipId}");
-                await UpdateJobStatus(jobId, false, 100, "Failed to Process - relationship not found");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, "Failed to Process - relationship not found");
                 return;
             }
 
@@ -205,13 +208,13 @@ namespace CalculateFunding.Services.Datasets
             {
                 buildProject = await ProcessDataset(dataset, specificationId, relationshipId, relationship.DatasetVersion.Version, user);
 
-                await UpdateJobStatus(jobId, true, 100, "Processed Dataset");
+                await _jobManagement.UpdateJobStatus(jobId, 100, true, "Processed Dataset");
             }
             catch (NonRetriableException argEx)
             {
                 // This type of exception is not retriable so fail
                 _logger.Error(argEx, $"Failed to run ProcessDataset with exception: {argEx.Message} for relationship ID '{relationshipId}'");
-                await UpdateJobStatus(jobId, false, 100, $"Failed to run Process - {argEx.Message}");
+                await _jobManagement.UpdateJobStatus(jobId, 100, false, $"Failed to run Process - {argEx.Message}");
                 return;
             }
             catch (Exception exception)
@@ -249,7 +252,9 @@ namespace CalculateFunding.Services.Datasets
 
                     IEnumerable<CalculationCurrentVersion> allCalculations = await _calcsRepository.GetCurrentCalculationsBySpecificationId(specificationId);
 
-                    bool generateCalculationAggregations = allCalculations.IsNullOrEmpty() ? false : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
+                    bool generateCalculationAggregations = allCalculations.IsNullOrEmpty()
+                        ? false
+                        : SourceCodeHelpers.HasCalculationAggregateFunctionParameters(allCalculations.Select(m => m.SourceCode));
 
                     await SendInstructAllocationsToJobService($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}", specificationId, userId, userName, trigger, correlationId, generateCalculationAggregations);
                 }
@@ -568,7 +573,7 @@ namespace CalculateFunding.Services.Datasets
                                     newVersion = await _sourceDatasetsVersionRepository.CreateVersion(newVersion, existingCurrent[providerId].Current, providerId);
                                     newVersion.Author = user;
                                     newVersion.Rows = sourceDataset.Current.Rows;
-                                    
+
                                     sourceDataset.Current = newVersion;
 
                                     updateCurrentDatasets.TryAdd(providerId, sourceDataset);
@@ -606,7 +611,7 @@ namespace CalculateFunding.Services.Datasets
 
             if (_featureToggle.IsProviderResultsSpecificationCleanupEnabled() && existingCurrent.Any())
             {
-                 _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
+                _logger.Information($"Removing {existingCurrent.Count()} missing source datasets");
 
                 await _providerResultsRepositoryPolicy.ExecuteAsync(() =>
                 _providersResultsRepository.DeleteCurrentProviderSourceDatasets(existingCurrent.Values));
@@ -675,7 +680,7 @@ namespace CalculateFunding.Services.Datasets
 
             ApiResponse<IEnumerable<string>> providerIdsAll = await _providersApiClient.GetScopedProviderIds(specificationId);
 
-            if(providerIdsAll?.Content == null || providerIdsAll.Content.IsNullOrEmpty())
+            if (providerIdsAll?.Content == null || providerIdsAll.Content.IsNullOrEmpty())
             {
                 return;
             }
@@ -772,23 +777,6 @@ namespace CalculateFunding.Services.Datasets
             Job createdJob = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
             _logger.Information($"New job of type '{createdJob.JobDefinitionId}' created with id: '{createdJob.Id}'");
             return;
-        }
-
-        private async Task UpdateJobStatus(string jobId, bool? completedSuccessfully, int percentComplete, string outcome = null)
-        {
-            JobLogUpdateModel jobLogUpdateModel = new JobLogUpdateModel
-            {
-                CompletedSuccessfully = completedSuccessfully,
-                ItemsProcessed = percentComplete,
-                Outcome = outcome
-            };
-
-            ApiResponse<JobLog> jobLogResponse = await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.AddJobLog(jobId, jobLogUpdateModel));
-
-            if (jobLogResponse == null || jobLogResponse.Content == null)
-            {
-                _logger.Error($"Failed to add a job log for job id '{jobId}'");
-            }
         }
 
         private async Task SendProviderSourceDatasetCleanupMessageToTopic(string specificationId, string topicName, IEnumerable<ProviderSourceDataset> providers)

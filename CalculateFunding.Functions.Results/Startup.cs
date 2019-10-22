@@ -9,6 +9,7 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Storage;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Functions.Results.ServiceBus;
@@ -98,6 +99,7 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
             builder.AddSingleton<IPublishedResultsService, PublishedResultsService>();
+            builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
             builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
@@ -295,6 +297,16 @@ namespace CalculateFunding.Functions.Results
 
             builder.AddSingleton<IResultsResiliencePolicies>(resultsResiliencePolicies);
             builder.AddSingleton<IJobHelperResiliencePolicies>(resultsResiliencePolicies);
+            
+            builder.AddSingleton<IJobManagementResiliencePolicies>((ctx) =>
+            {
+                BulkheadPolicy totalNetworkRequestsPolicy = ResiliencePolicyHelpers.GenerateTotalNetworkRequestsPolicy(policySettings);
+
+                return new JobManagementResiliencePolicies()
+                {
+                    JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                };
+            });
 
             return builder.BuildServiceProvider();
         }

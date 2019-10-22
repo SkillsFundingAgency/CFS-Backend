@@ -9,6 +9,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Common.JobManagement;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Messages;
@@ -890,17 +891,23 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 Id = specificationId
             };
 
-            IEnumerable<FetchProviderProfilingMessageItem> requestModel = new[]
+            int models = 3;
+            List<FetchProviderProfilingMessageItem> requestModel = new List<FetchProviderProfilingMessageItem>();
+            for (int i = 0; i < models; i++)
             {
-                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(0).ProviderId, AllocationLineResultId = results.ElementAt(0).Id },
-                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(1).ProviderId, AllocationLineResultId = results.ElementAt(1).Id },
-                new FetchProviderProfilingMessageItem { ProviderId = results.ElementAt(2).ProviderId, AllocationLineResultId = results.ElementAt(2).Id }
-            };
+                requestModel.Add(new FetchProviderProfilingMessageItem
+                {
+                    ProviderId = results.ElementAt(i).ProviderId,
+                    AllocationLineResultId = results.ElementAt(i).Id
+                });
+            }
 
             IJobsApiClient jobsApiClient = CreateJobsApiClient();
-            jobsApiClient
-                .GetJobById(Arg.Is(jobId))
-                .Returns(new ApiResponse<JobViewModel>(HttpStatusCode.OK, new JobViewModel { Id = jobId }));
+            IJobManagement jobManagement = CreateJobManagement();
+
+            jobManagement
+                .RetrieveJobAndCheckCanBeProcessed(jobId)
+                .Returns(new JobViewModel {Id = jobId});
 
             PublishedResultsService service = CreateResultsService(
                 logger: logger,
@@ -908,7 +915,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 profilingApiClient: providerProfilingRepository,
                 specificationsRepository: specificationsRepository,
                 allocationNotificationFeedSearchRepository: feedsSearchRepository,
-                jobsApiClient: jobsApiClient);
+                jobsApiClient: jobsApiClient,
+                jobManagement: jobManagement);
 
             string json = JsonConvert.SerializeObject(requestModel);
 
@@ -920,35 +928,42 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             await service.FetchProviderProfile(message);
 
             // Assert
-            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
-            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
-            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.ProfilingPeriods.Should().NotBeNullOrEmpty();
-
-            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
-            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
-            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
-
-            results.ElementAt(0).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
-            results.ElementAt(1).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
-            results.ElementAt(2).FundingStreamResult.AllocationLineResult.Current.FinancialEnvelopes.Should().HaveCount(1);
+            for (int i = 0; i < models; i++)
+            {
+                PublishedAllocationLineResultVersion current = results.ElementAt(i).FundingStreamResult.AllocationLineResult.Current;
+                    
+                current.ProfilingPeriods.Should().NotBeNullOrEmpty();
+                current.FinancialEnvelopes.Should().NotBeNullOrEmpty();
+                current.FinancialEnvelopes.Should().HaveCount(1);
+            }
 
             IEnumerable<PublishedProviderResult> toBeSavedResults = new List<PublishedProviderResult> { results.ElementAt(0), results.ElementAt(1), results.ElementAt(2) };
 
-            await publishedProviderResultsRepository.Received(1).SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(m => m.Count() == 3));
-            await feedsSearchRepository.Received(1).Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
-            await providerProfilingRepository.Received(1).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
-                m.AllocationValueByDistributionPeriod.First().AllocationValue == 50
-            ));
-            await providerProfilingRepository.Received(2).GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
-                m.AllocationValueByDistributionPeriod.First().AllocationValue == 100
-            ));
+            await publishedProviderResultsRepository
+                .Received(1)
+                .SavePublishedResults(Arg.Is<IEnumerable<PublishedProviderResult>>(m => m.Count() == 3));
 
-            await jobsApiClient
+            await feedsSearchRepository
                 .Received(1)
-                .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == null && l.ItemsProcessed == 0));
-            await jobsApiClient
+                .Index(Arg.Is<IEnumerable<AllocationNotificationFeedIndex>>(m => m.Count() == 3));
+
+            await providerProfilingRepository
                 .Received(1)
-                .AddJobLog(Arg.Is(jobId), Arg.Is<JobLogUpdateModel>(l => l.CompletedSuccessfully == true && l.ItemsProcessed == 3 && l.ItemsFailed == 0 && l.ItemsSucceeded == 3));
+                .GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m => 
+                    m.AllocationValueByDistributionPeriod.First().AllocationValue == 50));
+
+            await providerProfilingRepository
+                .Received(2)
+                .GetProviderProfilePeriods(Arg.Is<ProviderProfilingRequestModel>(m =>
+                    m.AllocationValueByDistributionPeriod.First().AllocationValue == 100));
+
+            await jobManagement
+                .Received(1)
+                .RetrieveJobAndCheckCanBeProcessed(jobId);
+
+            await jobManagement
+                .Received(1)
+                .UpdateJobStatus(Arg.Is(jobId), models, 0, true, "Profile periods fetched");
         }
 
         private static ProviderProfilingRequestModel CreateProviderProfilingRequestModel()
