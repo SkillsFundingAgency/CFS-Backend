@@ -25,7 +25,7 @@ namespace CalculateFunding.Services.Core.AspNet.HealthChecks
             Type[] controllerTypes = ControllerTypesAccessor.Value;
             ServiceHealth serviceHealth = new ServiceHealth
             {
-                Name = "Service Resolution Checks"
+                Name = "Service Resolution Checks",
             };
 
             foreach (Type controllerType in controllerTypes)
@@ -51,6 +51,16 @@ namespace CalculateFunding.Services.Core.AspNet.HealthChecks
                 }
             }
 
+            //if there are no controllers then we're healthy I guess as the common component for this doesn't handle empty dependency lists
+            if (!serviceHealth.Dependencies.Any())
+            {
+                serviceHealth.Dependencies.Add(new DependencyHealth
+                {
+                    DependencyName = "No controller types located to resolve",
+                    HealthOk = true
+                });
+            }
+
             return Task.FromResult(serviceHealth);
         }
 
@@ -60,7 +70,7 @@ namespace CalculateFunding.Services.Core.AspNet.HealthChecks
                 .GetAssemblies()
                 .SelectMany(_ => _.GetTypes())
                 .Where(_ => !_.IsAbstract &&
-                            _.IsSubclassOf(typeof(Controller)))
+                            _.IsSubclassOf(typeof(ControllerBase)))//We have some controllers that don't inherit Controller but instead use ControllerBase
                 .ToArray();
         }
     }

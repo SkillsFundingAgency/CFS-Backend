@@ -66,7 +66,7 @@ namespace CalculateFunding.Services.Core.AspNet.UnitTests.HealthChecks
         {
         }
 
-        private class ControllerTwo : Controller
+        private class ControllerTwo : ControllerBase
         {
         }
     }
