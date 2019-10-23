@@ -57,14 +57,14 @@ namespace CalculateFunding.Api.Results.Controllers
         [HttpGet]
         public async Task<IActionResult> RunProviderResultsByCalculationTypeTemplate(string providerId, string specificationId)
         {
-            return await _resultsService.GetProviderResultByCalculationType(specificationId, providerId, CalculationType.Template);
+            return await _resultsService.GetProviderResultByCalculationType(providerId, specificationId, CalculationType.Template);
         }
 
         [Route("api/results/specifications/{specificationId}/provider-result-by-calculationtype/{providerId}/additional")]
         [HttpGet]
         public async Task<IActionResult> RunProviderResultsByCalculationTypeAdditional(string providerId, string specificationId)
         {
-            return await _resultsService.GetProviderResultByCalculationType(specificationId, providerId, CalculationType.Additional);
+            return await _resultsService.GetProviderResultByCalculationType(providerId, specificationId, CalculationType.Additional);
         }
 
         [Route("api/results/get-provider-source-datasets")]

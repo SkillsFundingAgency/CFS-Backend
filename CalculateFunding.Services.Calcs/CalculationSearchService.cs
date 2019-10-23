@@ -107,9 +107,9 @@ namespace CalculateFunding.Services.Calcs
                 if (searchModel.Filters.ContainsKey(facet.Name) && searchModel.Filters[facet.Name].AnyWithNullCheck())
                 {
                     if (facet.IsMulti)
-                        filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x}'"))}))";
+                        filter = $"({facet.Name}/any(x: {string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"x eq '{x.Replace("'","''")}'"))}))";
                     else
-                        filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x}'"))})";
+                        filter = $"({string.Join(" or ", searchModel.Filters[facet.Name].Select(x => $"{facet.Name} eq '{x.Replace("'", "''")}'"))})";
                 }
                 facetDictionary.Add(facet.Name, filter);
             }
@@ -157,7 +157,7 @@ namespace CalculateFunding.Services.Calcs
         {
             int skip = (searchModel.PageNumber - 1) * searchModel.Top;
 
-            searchModel.Filters.Where(_ => !facetDictionary.ContainsKey(_.Key)).ToList().ForEach(_ => facetDictionary.Add(_.Key, string.Join(" or ", _.Value.Select(x => $"{_.Key} eq '{x}'"))));
+            searchModel.Filters.Where(_ => !facetDictionary.ContainsKey(_.Key)).ToList().ForEach(_ => facetDictionary.Add(_.Key, $"({string.Join(" or ", _.Value.Select(x => $"{_.Key} eq '{x.Replace("'", "''")}'"))})"));
 
             return Task.Run(() =>
             {

@@ -46,7 +46,6 @@ namespace CalculateFunding.Services.Results.Repositories
             IEnumerable<ProviderResult> result = _cosmosRepository
                 .Query<ProviderResult>()
                 .Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId)
-                .ToList()
                 .Take(1);
 
             return Task.FromResult(result.FirstOrDefault());
@@ -57,12 +56,11 @@ namespace CalculateFunding.Services.Results.Repositories
             IEnumerable<ProviderResult> result = _cosmosRepository
                 .Query<ProviderResult>()
                 .Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId)
-                .ToList()
                 .Take(1);
 
             ProviderResult providerResult = result.FirstOrDefault();
 
-            providerResult.CalculationResults = providerResult.CalculationResults.Where(_ => _.CalculationType == calculationType).ToList();
+            providerResult?.CalculationResults.RemoveAll(_ => _.CalculationType != calculationType);
 
             return Task.FromResult(providerResult);
         }
