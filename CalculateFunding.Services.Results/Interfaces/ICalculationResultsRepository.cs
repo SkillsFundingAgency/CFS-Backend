@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 
 namespace CalculateFunding.Services.Results.Interfaces
@@ -10,6 +11,7 @@ namespace CalculateFunding.Services.Results.Interfaces
     public interface ICalculationResultsRepository
     {
         Task<ProviderResult> GetProviderResult(string providerId, string specificationId);
+        Task<ProviderResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType);
         Task<IEnumerable<ProviderResult>> GetSpecificationResults(string providerId);
         Task<HttpStatusCode> UpdateProviderResults(List<ProviderResult> results);
         Task<IEnumerable<ProviderResult>> GetProviderResultsBySpecificationId(string specificationId, int maxItemCount = -1);

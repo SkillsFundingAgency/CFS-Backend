@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,6 +51,20 @@ namespace CalculateFunding.Api.Results.Controllers
         public async Task<IActionResult> RunGetProviderResults()
         {
             return await _resultsService.GetProviderResults(ControllerContext.HttpContext.Request);
+        }
+
+        [Route("api/results/specifications/{specificationId}/provider-result-by-calculationtype/{providerId}/template")]
+        [HttpGet]
+        public async Task<IActionResult> RunProviderResultsByCalculationTypeTemplate(string providerId, string specificationId)
+        {
+            return await _resultsService.GetProviderResultByCalculationType(specificationId, providerId, CalculationType.Template);
+        }
+
+        [Route("api/results/specifications/{specificationId}/provider-result-by-calculationtype/{providerId}/additional")]
+        [HttpGet]
+        public async Task<IActionResult> RunProviderResultsByCalculationTypeAdditional(string providerId, string specificationId)
+        {
+            return await _resultsService.GetProviderResultByCalculationType(specificationId, providerId, CalculationType.Additional);
         }
 
         [Route("api/results/get-provider-source-datasets")]

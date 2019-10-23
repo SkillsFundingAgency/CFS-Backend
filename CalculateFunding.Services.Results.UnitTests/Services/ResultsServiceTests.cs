@@ -8,6 +8,7 @@ using AutoMapper;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
@@ -45,7 +46,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         const string fundingPeriodId = "fp-1";
 
         [TestMethod]
-        async public Task GetProviderResults_GivenNullOrEmptyProviderId_ReturnsBadRequest()
+        public async Task GetProviderResults_GivenNullOrEmptyProviderId_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -68,7 +69,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderResults_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
+        public async Task GetProviderResults_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -100,7 +101,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderResults_GivenNullProviderResultReturned_ReturnsNotFoundResult()
+        public async Task GetProviderResults_GivenNullProviderResultReturned_ReturnsNotFoundResult()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -137,7 +138,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderResults_GivenProviderResultReturned_ReturnsOK()
+        public async Task GetProviderResults_GivenProviderResultReturned_ReturnsOK()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -172,7 +173,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderSpecifications_GivenNullOrEmptyProviderId_ReturnsBadRequest()
+        public async Task GetProviderSpecifications_GivenNullOrEmptyProviderId_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -195,7 +196,101 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderSpecifications_GivenEmptyProviderResultsReturned_ReturnsOKWithEmptyCollection()
+        public async Task GetProviderResultsByCalculationType_GivenNullOrEmptyProviderId_ReturnsBadRequest()
+        {
+            //Arrange
+            HttpRequest request = Substitute.For<HttpRequest>();
+
+            ILogger logger = CreateLogger();
+
+            ResultsService service = CreateResultsService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetProviderResultByCalculationType(string.Empty, string.Empty, CalculationType.Template);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No provider Id was provided to GetProviderResults"));
+        }
+
+        [TestMethod]
+        public async Task GetProviderResultsByCalculationType_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+
+            ResultsService service = CreateResultsService(logger: logger);
+
+            //Act
+            IActionResult result = await service.GetProviderResultByCalculationType(providerId, string.Empty, CalculationType.Template);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<BadRequestObjectResult>();
+
+            logger
+                .Received(1)
+                .Error(Arg.Is("No specification Id was provided to GetProviderResults"));
+        }
+
+        [TestMethod]
+        public async Task GetProviderResultsByCalculationType_GivenNullProviderResultReturned_ReturnsNotFoundResult()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetProviderResult(Arg.Is(providerId), Arg.Is(specificationId))
+                .Returns((ProviderResult)null);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            IActionResult result = await service.GetProviderResultByCalculationType(providerId, specificationId, CalculationType.Additional);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<NotFoundResult>();
+
+            logger
+                .Received(1)
+                .Information(Arg.Is($"A result was not found for provider id {providerId}, specification id {specificationId}"));
+        }
+
+        [TestMethod]
+        public async Task GetProviderResultsByCalculationType_GivenProviderResultReturned_ReturnsOK()
+        {
+            //Arrange
+            ILogger logger = CreateLogger();
+
+            ProviderResult providerResult = new ProviderResult();
+
+            ICalculationResultsRepository resultsRepository = CreateResultsRepository();
+            resultsRepository
+                .GetProviderResultByCalculationType(Arg.Is(providerId), Arg.Is(specificationId), Arg.Is(CalculationType.Additional))
+                .Returns(providerResult);
+
+            ResultsService service = CreateResultsService(logger, resultsRepository);
+
+            //Act
+            IActionResult result = await service.GetProviderResultByCalculationType(providerId, specificationId, CalculationType.Additional);
+
+            //Assert
+            result
+                .Should()
+                .BeOfType<OkObjectResult>();
+        }
+
+        [TestMethod]
+        public async Task GetProviderSpecifications_GivenEmptyProviderResultsReturned_ReturnsOKWithEmptyCollection()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -240,7 +335,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderSpecifications_GivenProviderResultsReturned_ReturnsOK()
+        public async Task GetProviderSpecifications_GivenProviderResultsReturned_ReturnsOK()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -287,7 +382,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderSpecifications_GivenProviderResultsWithDuplicateSummariesReturned_ReturnsOK()
+        public async Task GetProviderSpecifications_GivenProviderResultsWithDuplicateSummariesReturned_ReturnsOK()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -342,7 +437,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderResultsBySpecificationId_GivenNoSpecificationIsProvided_ReturnsBadRequest()
+        public async Task GetProviderResultsBySpecificationId_GivenNoSpecificationIsProvided_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -361,7 +456,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderResultsBySpecificationId_GivenSpecificationIsProvided_ReturnsResults()
+        public async Task GetProviderResultsBySpecificationId_GivenSpecificationIsProvided_ReturnsResults()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -408,7 +503,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderResultsBySpecificationId_GivenSpecificationIsProvidedAndTopIsProvided_ReturnsResults()
+        public async Task GetProviderResultsBySpecificationId_GivenSpecificationIsProvidedAndTopIsProvided_ReturnsResults()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -456,7 +551,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
+        public async Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptySpecificationId_ReturnsBadRequest()
         {
             //Arrange
             HttpRequest request = Substitute.For<HttpRequest>();
@@ -479,7 +574,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptyProviderId_ReturnsBadRequest()
+        public async Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenNullOrEmptyProviderId_ReturnsBadRequest()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -510,7 +605,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        async public Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenResultsReturned_ReturnsOKResult()
+        public async Task GetProviderSourceDatasetsByProviderIdAndSpecificationId_GivenResultsReturned_ReturnsOKResult()
         {
             //Arrange
             IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
@@ -554,7 +649,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResultsButSearchRetuensErrors_ReturnsStatusCode500()
+       public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResultsButSearchRetuensErrors_ReturnsStatusCode500()
         {
             //Arrange
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
@@ -602,7 +697,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResults_UpdatesSearchWithTwoDocumentsReturnsNoContent()
+       public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResults_UpdatesSearchWithTwoDocumentsReturnsNoContent()
         {
             //Arrange
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
@@ -685,7 +780,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithCalcResultWithNullValue_UpdatesSearch_AndSetsIsExcluded_ThenReturnsNoContent()
+       public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithCalcResultWithNullValue_UpdatesSearch_AndSetsIsExcluded_ThenReturnsNoContent()
         {
             //Arrange
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntityWithNullCalculationResult();
@@ -748,7 +843,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task CleanupProviderResultsForSpecification_GivenProviderResultsBySpecificationIdAndProviders_ThenCallsDelete()
+       public async Task CleanupProviderResultsForSpecification_GivenProviderResultsBySpecificationIdAndProviders_ThenCallsDelete()
         {
             //Arrange
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntityWithNullCalculationResult();
@@ -783,7 +878,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task HasCalculationResults_GivenCalculationNotFound_ReturnNotFoundResult()
+       public async Task HasCalculationResults_GivenCalculationNotFound_ReturnNotFoundResult()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -815,7 +910,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task HasCalculationResults_GivenProviderResultNotFoundForSpecification_ReturnHasCalculationResultsFalse()
+       public async Task HasCalculationResults_GivenProviderResultNotFoundForSpecification_ReturnHasCalculationResultsFalse()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -853,7 +948,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoCalculations_ReturnHasCalculationResultsFalse()
+       public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoCalculations_ReturnHasCalculationResultsFalse()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -893,7 +988,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoMatchingCalculations_ReturnHasCalculationResultsFalse()
+       public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoMatchingCalculations_ReturnHasCalculationResultsFalse()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -946,7 +1041,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationWithMatchingCalculation_ReturnHasCalculationResultsTrue()
+       public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationWithMatchingCalculation_ReturnHasCalculationResultsTrue()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -1001,7 +1096,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         [TestMethod]
         [DataRow(true, 1)]
         [DataRow(false, 0)]
-        public async Task QueueCsvGenerationMessage_RunsAsExpected(bool hasResults, int expectedOperations)
+       public async Task QueueCsvGenerationMessage_RunsAsExpected(bool hasResults, int expectedOperations)
         {
             //Arrange
             string specificationId = "12345";
@@ -1041,7 +1136,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task GenerateCalculationResultsCsv_MessageHasNoSpecificationId_ThrowsException()
+       public async Task GenerateCalculationResultsCsv_MessageHasNoSpecificationId_ThrowsException()
         {
             //Arrange
             string errorMessage = "Specification id missing";
@@ -1085,7 +1180,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-        public async Task GenerateCalculationResultsCsv_InputIsValid_RunsCorrectly()
+       public async Task GenerateCalculationResultsCsv_InputIsValid_RunsCorrectly()
         {
             //Arrange
             string specificationId = "123";

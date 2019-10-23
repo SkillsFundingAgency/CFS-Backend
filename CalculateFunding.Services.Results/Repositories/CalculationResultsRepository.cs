@@ -9,6 +9,7 @@ using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Results.Interfaces;
@@ -49,6 +50,21 @@ namespace CalculateFunding.Services.Results.Repositories
                 .Take(1);
 
             return Task.FromResult(result.FirstOrDefault());
+        }
+
+        public Task<ProviderResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType)
+        {
+            IEnumerable<ProviderResult> result = _cosmosRepository
+                .Query<ProviderResult>()
+                .Where(x => x.Provider.Id == providerId && x.SpecificationId == specificationId)
+                .ToList()
+                .Take(1);
+
+            ProviderResult providerResult = result.FirstOrDefault();
+
+            providerResult.CalculationResults = providerResult.CalculationResults.Where(_ => _.CalculationType == calculationType).ToList();
+
+            return Task.FromResult(providerResult);
         }
 
         public Task<IEnumerable<DocumentEntity<ProviderResult>>> GetAllProviderResults()

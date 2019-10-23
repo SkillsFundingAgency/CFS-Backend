@@ -11,6 +11,7 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Aggregations;
+using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
@@ -139,6 +140,34 @@ namespace CalculateFunding.Services.Results
             }
 
             ProviderResult providerResult = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResult(providerId, specificationId));
+
+            if (providerResult != null)
+            {
+                _logger.Information($"A result was found for provider id {providerId}, specification id {specificationId}");
+
+                return new OkObjectResult(providerResult);
+            }
+
+            _logger.Information($"A result was not found for provider id {providerId}, specification id {specificationId}");
+
+            return new NotFoundResult();
+        }
+
+        public async Task<IActionResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType)
+        {
+            if (string.IsNullOrWhiteSpace(providerId))
+            {
+                _logger.Error("No provider Id was provided to GetProviderResults");
+                return new BadRequestObjectResult("Null or empty provider Id provided");
+            }
+
+            if (string.IsNullOrWhiteSpace(specificationId))
+            {
+                _logger.Error("No specification Id was provided to GetProviderResults");
+                return new BadRequestObjectResult("Null or empty specification Id provided");
+            }
+
+            ProviderResult providerResult = await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultByCalculationType(providerId, specificationId, calculationType));
 
             if (providerResult != null)
             {

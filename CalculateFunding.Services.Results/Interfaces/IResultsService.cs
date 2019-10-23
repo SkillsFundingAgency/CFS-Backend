@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using CalculateFunding.Models.Calcs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -8,6 +9,8 @@ namespace CalculateFunding.Services.Results.Interfaces
     public interface IResultsService
     {
 	    Task<IActionResult> GetProviderResults(HttpRequest request);
+
+        Task<IActionResult> GetProviderResultByCalculationType(string providerId, string specificationId, CalculationType calculationType);
 
         Task<IActionResult> GetProviderSpecifications(HttpRequest request);
 

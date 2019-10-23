@@ -1354,8 +1354,8 @@ Scenario Outline: Successful publishing of funding
 		| PhaseOfEducation              |                          |
 		| Postcode                      |                          |
 		| ProviderProfileIdType         |                          |
-		| ProviderType                  | Academy Trust            |
-		| ProviderSubType               | Academy Trust            |
+		| ProviderType                  | Multi-academy trust      |
+		| ProviderSubType               | Multi-academy trust      |
 		| ProviderVersionId             | <ProviderVersionId>      |
 		| ReasonEstablishmentClosed     |                          |
 		| ReasonEstablishmentOpened     |                          |
@@ -1445,7 +1445,7 @@ Scenario Outline: Successful publishing of funding
 		| GroupingReason                   | Payment           |
 		| OrganisationGroupTypeCode        | LocalAuthority    |
 		| OrganisationGroupIdentifierValue | 9000000           |
-		| FUndingPeriodId                  | <FundingPeriodId> |
+		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |	
 	And the total funding is '36000'
 	And the published funding contains the following published provider ids
@@ -1465,7 +1465,7 @@ Scenario Outline: Successful publishing of funding
 		| GroupingReason                   | Payment           |
 		| OrganisationGroupTypeCode        | AcademyTrust      |
 		| OrganisationGroupIdentifierValue | 8000001           |
-		| FUndingPeriodId                  | <FundingPeriodId> |
+		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |
 	And the total funding is '48000'
 	And the published funding contains the following published provider ids
@@ -1485,7 +1485,7 @@ Scenario Outline: Successful publishing of funding
 		| GroupingReason                   | Information       |
 		| OrganisationGroupTypeCode        | Provider		   |
 		| OrganisationGroupIdentifierValue | 1000201           |
-		| FUndingPeriodId                  | <FundingPeriodId> |
+		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |	
 	And the total funding is '44000'
 	And the published funding contains the following published provider ids
@@ -1511,7 +1511,7 @@ Scenario Outline: Successful publishing of funding
 		| GroupingReason                   | Information       |
 		| OrganisationGroupTypeCode        | Provider		   |
 		| OrganisationGroupIdentifierValue | 1000202           |
-		| FUndingPeriodId                  | <FundingPeriodId> |
+		| FundingPeriodId                  | <FundingPeriodId> |
 		| FundingStreamId                  | <FundingStreamId> |	
 	And the total funding is '44000'
 	And the published funding contains the following published provider ids

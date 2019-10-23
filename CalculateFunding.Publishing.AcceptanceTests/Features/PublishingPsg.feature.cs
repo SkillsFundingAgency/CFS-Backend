@@ -4248,10 +4248,10 @@ this.ScenarioInitialize(scenarioInfo);
                         ""});
             table66.AddRow(new string[] {
                         "ProviderType",
-                        "Academy Trust"});
+                        "Multi-academy trust"});
             table66.AddRow(new string[] {
                         "ProviderSubType",
-                        "Academy Trust"});
+                        "Multi-academy trust"});
             table66.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
@@ -4529,7 +4529,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "OrganisationGroupIdentifierValue",
                         "9000000"});
             table70.AddRow(new string[] {
-                        "FUndingPeriodId",
+                        "FundingPeriodId",
                         string.Format("{0}", fundingPeriodId)});
             table70.AddRow(new string[] {
                         "FundingStreamId",
@@ -4603,7 +4603,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "OrganisationGroupIdentifierValue",
                         "8000001"});
             table74.AddRow(new string[] {
-                        "FUndingPeriodId",
+                        "FundingPeriodId",
                         string.Format("{0}", fundingPeriodId)});
             table74.AddRow(new string[] {
                         "FundingStreamId",
@@ -4677,7 +4677,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "OrganisationGroupIdentifierValue",
                         "1000201"});
             table78.AddRow(new string[] {
-                        "FUndingPeriodId",
+                        "FundingPeriodId",
                         string.Format("{0}", fundingPeriodId)});
             table78.AddRow(new string[] {
                         "FundingStreamId",
@@ -4771,7 +4771,7 @@ this.ScenarioInitialize(scenarioInfo);
                         "OrganisationGroupIdentifierValue",
                         "1000202"});
             table83.AddRow(new string[] {
-                        "FUndingPeriodId",
+                        "FundingPeriodId",
                         string.Format("{0}", fundingPeriodId)});
             table83.AddRow(new string[] {
                         "FundingStreamId",
