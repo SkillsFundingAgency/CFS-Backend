@@ -149,6 +149,7 @@ namespace CalculateFunding.Functions.Datasets
             MapperConfiguration dataSetsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<DatasetsMappingProfile>();
+                c.AddProfile<CalculationsMappingProfile>();
                 c.AddProfile<ProviderMappingProfile>();
             });
 
