@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
+using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Options;
+using Polly;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.CalcEngine
 {
@@ -23,40 +27,45 @@ namespace CalculateFunding.Services.CalcEngine
     {
         private readonly ICosmosRepository _cosmosRepository;
         private readonly ISearchRepository<CalculationProviderResultsIndex> _searchRepository;
-        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
         private readonly IFeatureToggle _featureToggle;
         private readonly EngineSettings _engineSettings;
         private readonly IProviderResultCalculationsHashProvider _calculationsHashProvider;
+        private readonly Policy _specificationsApiClientPolicy;
 
         public ProviderResultsRepository(
             ICosmosRepository cosmosRepository,
             ISearchRepository<CalculationProviderResultsIndex> searchRepository,
-            ISpecificationsRepository specificationsRepository,
+            ISpecificationsApiClient specificationsApiClient,
             ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
             IFeatureToggle featureToggle,
             EngineSettings engineSettings,
-            IProviderResultCalculationsHashProvider calculationsHashProvider)
+            IProviderResultCalculationsHashProvider calculationsHashProvider,
+            ICalculatorResiliencePolicies calculatorResiliencePolicies)
         {
             Guard.ArgumentNotNull(cosmosRepository, nameof(cosmosRepository));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(engineSettings, nameof(engineSettings));
             Guard.ArgumentNotNull(calculationsHashProvider, nameof(calculationsHashProvider));
+            Guard.ArgumentNotNull(calculatorResiliencePolicies, nameof(calculatorResiliencePolicies));
+            Guard.ArgumentNotNull(calculatorResiliencePolicies?.SpecificationsApiClient, nameof(calculatorResiliencePolicies.SpecificationsApiClient));
 
             _cosmosRepository = cosmosRepository;
             _searchRepository = searchRepository;
-            _specificationsRepository = specificationsRepository;
+            _specificationsApiClient = specificationsApiClient;
             _logger = logger;
             _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
             _featureToggle = featureToggle;
             _engineSettings = engineSettings;
             _calculationsHashProvider = calculationsHashProvider;
+            _specificationsApiClientPolicy = calculatorResiliencePolicies.SpecificationsApiClient;
         }
 
         public async Task<(long saveToCosmosElapsedMs, long saveToSearchElapsedMs, int savedProviders)> SaveProviderResults(IEnumerable<ProviderResult> providerResults,
@@ -83,16 +92,19 @@ namespace CalculateFunding.Services.CalcEngine
 
             IEnumerable<string> specificationIds = providerResults.Select(s => s.SpecificationId).Distinct();
 
-            Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
+            Dictionary<string, SpecModel.SpecificationSummary> specifications = new Dictionary<string, SpecModel.SpecificationSummary>();
 
             foreach (string specificationId in specificationIds)
             {
-                SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
-                if (specification == null)
+                ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse = 
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+                if(!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
                 {
                     throw new InvalidOperationException($"Result for Specification Summary lookup was null with ID '{specificationId}'");
                 }
 
+                SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
                 specifications.Add(specificationId, specification);
             }
 
@@ -128,7 +140,7 @@ namespace CalculateFunding.Services.CalcEngine
             return stopwatch.ElapsedMilliseconds;
         }
 
-        private async Task<long> UpdateSearch(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecificationSummary> specifications)
+        private async Task<long> UpdateSearch(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecModel.SpecificationSummary> specifications)
         {
             if (_featureToggle.IsNewProviderCalculationResultsIndexEnabled())
             {
@@ -143,7 +155,7 @@ namespace CalculateFunding.Services.CalcEngine
                 {
                     foreach (CalculationResult calculationResult in providerResult.CalculationResults.Where(m => m.Calculation != null))
                     {
-                        SpecificationSummary specification = specifications[providerResult.SpecificationId];
+                        SpecModel.SpecificationSummary specification = specifications[providerResult.SpecificationId];
 
                         results.Add(new CalculationProviderResultsIndex
                         {
@@ -192,7 +204,7 @@ namespace CalculateFunding.Services.CalcEngine
             return stopwatch.ElapsedMilliseconds;
         }
 
-        private async Task<long> UpdateCalculationProviderResultsIndex(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecificationSummary> specifications)
+        private async Task<long> UpdateCalculationProviderResultsIndex(IEnumerable<ProviderResult> providerResults, IDictionary<string, SpecModel.SpecificationSummary> specifications)
         {
             Stopwatch assembleStopwatch = Stopwatch.StartNew();
 
@@ -202,7 +214,7 @@ namespace CalculateFunding.Services.CalcEngine
             {
                 if (!providerResult.CalculationResults.IsNullOrEmpty())
                 {
-                    SpecificationSummary specification = specifications[providerResult.SpecificationId];
+                    SpecModel.SpecificationSummary specification = specifications[providerResult.SpecificationId];
 
                     ProviderCalculationResultsIndex providerCalculationResultsIndex = new ProviderCalculationResultsIndex
                     {

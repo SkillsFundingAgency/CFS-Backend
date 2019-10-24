@@ -15,5 +15,7 @@ namespace CalculateFunding.Services.CalcEngine.Interfaces
         Policy CalculationsRepository { get; set; }
 
         Policy JobsApiClient { get; set; }
+
+        Policy SpecificationsApiClient { get; set; }
     }
 }

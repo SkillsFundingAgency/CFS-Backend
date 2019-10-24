@@ -4,6 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -20,25 +22,26 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Users
 {
     public class FundingStreamPermissionService : IFundingStreamPermissionService, IHealthChecker
     {
         private readonly IUserRepository _userRepository;
-        private readonly ISpecificationRepository _specificationsRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IVersionRepository<FundingStreamPermissionVersion> _fundingStreamPermissionVersionRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMapper _mapper;
         private readonly ILogger _logger;
         private readonly Polly.Policy _userRepositoryPolicy;
-        private readonly Polly.Policy _specificationsRepositoryPolicy;
+        private readonly Polly.Policy _specificationsApiClientPolicy;
         private readonly Polly.Policy _fundingStreamPermissionVersionRepositoryPolicy;
         private readonly Polly.Policy _cacheProviderPolicy;
 
         public FundingStreamPermissionService(
             IUserRepository userRepository,
-            ISpecificationRepository specificationRepository,
+            ISpecificationsApiClient specificationsApiClient,
             IVersionRepository<FundingStreamPermissionVersion> fundingStreamPermissionVersionRepository,
             ICacheProvider cacheProvider,
             IMapper mapper,
@@ -46,25 +49,25 @@ namespace CalculateFunding.Services.Users
             IUsersResiliencePolicies policies)
         {
             Guard.ArgumentNotNull(userRepository, nameof(userRepository));
-            Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(fundingStreamPermissionVersionRepository, nameof(fundingStreamPermissionVersionRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(policies?.UserRepositoryPolicy, nameof(policies.UserRepositoryPolicy));
-            Guard.ArgumentNotNull(policies?.SpecificationRepositoryPolicy, nameof(policies.SpecificationRepositoryPolicy));
+            Guard.ArgumentNotNull(policies?.SpecificationApiClient, nameof(policies.SpecificationApiClient));
             Guard.ArgumentNotNull(policies?.FundingStreamPermissionVersionRepositoryPolicy, nameof(policies.FundingStreamPermissionVersionRepositoryPolicy));
             Guard.ArgumentNotNull(policies?.CacheProviderPolicy, nameof(policies.CacheProviderPolicy));
 
             _userRepository = userRepository;
-            _specificationsRepository = specificationRepository;
+            _specificationsApiClient = specificationsApiClient;
             _fundingStreamPermissionVersionRepository = fundingStreamPermissionVersionRepository;
             _cacheProvider = cacheProvider;
             _mapper = mapper;
             _logger = logger;
 
             _userRepositoryPolicy = policies.UserRepositoryPolicy;
-            _specificationsRepositoryPolicy = policies.SpecificationRepositoryPolicy;
+            _specificationsApiClientPolicy = policies.SpecificationApiClient;
             _fundingStreamPermissionVersionRepositoryPolicy = policies.FundingStreamPermissionVersionRepositoryPolicy;
             _cacheProviderPolicy = policies.CacheProviderPolicy;
         }
@@ -238,11 +241,15 @@ namespace CalculateFunding.Services.Users
             }
             else
             {
-                SpecificationSummary specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaryById(specificationId));
-                if (specification == null)
+                ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
+
+                if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
                 {
                     return new PreconditionFailedResult("Specification not found");
                 }
+
+                SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
 
                 List<FundingStreamPermission> permissionsForUser = new List<FundingStreamPermission>();
                 foreach (Reference fundingStream in specification.FundingStreams)

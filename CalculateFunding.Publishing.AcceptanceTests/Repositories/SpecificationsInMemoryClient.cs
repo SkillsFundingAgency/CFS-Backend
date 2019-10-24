@@ -81,5 +81,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<ApiResponse<IEnumerable<SpecificationSummary>>> GetSpecificationSummaries()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

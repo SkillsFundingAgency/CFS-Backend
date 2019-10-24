@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -32,6 +33,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Scenarios
 {
@@ -39,7 +41,7 @@ namespace CalculateFunding.Services.Scenarios
     {
         private readonly IScenariosRepository _scenariosRepository;
         private readonly ILogger _logger;
-        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IValidator<CreateNewTestScenarioVersion> _createNewTestScenarioVersionValidator;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly ICacheProvider _cacheProvider;
@@ -50,11 +52,12 @@ namespace CalculateFunding.Services.Scenarios
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly Polly.Policy _calcsRepositoryPolicy;
         private readonly Polly.Policy _scenariosRepositoryPolicy;
+        private readonly Polly.Policy _specificationsApiClientPolicy;
 
         public ScenariosService(
             ILogger logger,
             IScenariosRepository scenariosRepository,
-            ISpecificationsRepository specificationsRepository,
+            ISpecificationsApiClient specificationsApiClient,
             IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator,
             ISearchRepository<ScenarioIndex> searchRepository,
             ICacheProvider cacheProvider,
@@ -66,7 +69,7 @@ namespace CalculateFunding.Services.Scenarios
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(createNewTestScenarioVersionValidator, nameof(createNewTestScenarioVersionValidator));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
@@ -77,10 +80,11 @@ namespace CalculateFunding.Services.Scenarios
             Guard.ArgumentNotNull(scenariosResiliencePolicies?.JobsApiClient, nameof(scenariosResiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(scenariosResiliencePolicies?.CalcsRepository, nameof(scenariosResiliencePolicies.CalcsRepository));
             Guard.ArgumentNotNull(scenariosResiliencePolicies?.ScenariosRepository, nameof(scenariosResiliencePolicies.ScenariosRepository));
+            Guard.ArgumentNotNull(scenariosResiliencePolicies?.SpecificationsApiClient, nameof(scenariosResiliencePolicies.SpecificationsApiClient));
 
             _scenariosRepository = scenariosRepository;
             _logger = logger;
-            _specificationsRepository = specificationsRepository;
+            _specificationsApiClient = specificationsApiClient;
             _createNewTestScenarioVersionValidator = createNewTestScenarioVersionValidator;
             _searchRepository = searchRepository;
             _cacheProvider = cacheProvider;
@@ -92,6 +96,7 @@ namespace CalculateFunding.Services.Scenarios
             _jobsApiClientPolicy = scenariosResiliencePolicies.JobsApiClient;
             _calcsRepositoryPolicy = scenariosResiliencePolicies.CalcsRepository;
             _scenariosRepositoryPolicy = scenariosResiliencePolicies.ScenariosRepository;
+            _specificationsApiClientPolicy = scenariosResiliencePolicies.SpecificationsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -140,14 +145,16 @@ namespace CalculateFunding.Services.Scenarios
 
             bool saveAsVersion = true;
 
-            SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(scenarioVersion.SpecificationId);
+            Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+        await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(scenarioVersion.SpecificationId));
 
-            if (specification == null)
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
                 _logger.Error($"Unable to find a specification for specification id : {scenarioVersion.SpecificationId}");
-
                 return new StatusCodeResult(412);
             }
+
+            SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
 
             Reference user = request.GetUserOrDefault();
 
@@ -369,7 +376,7 @@ namespace CalculateFunding.Services.Scenarios
 
                 scenarioVersions.Add(newVersion);
 
-                ScenarioIndex scenarioIndex = CreateScenarioIndexFromScenario(scenario, new SpecificationSummary
+                ScenarioIndex scenarioIndex = CreateScenarioIndexFromScenario(scenario, new SpecModel.SpecificationSummary
                 {
                     Id = specificationVersionComparison.Id,
                     Name = specificationVersionComparison.Current.Name,
@@ -527,7 +534,7 @@ namespace CalculateFunding.Services.Scenarios
             return await _jobsApiClientPolicy.ExecuteAsync(() => _jobsApiClient.CreateJob(job));
         }
 
-        private ScenarioIndex CreateScenarioIndexFromScenario(TestScenario testScenario, SpecificationSummary specification)
+        private ScenarioIndex CreateScenarioIndexFromScenario(TestScenario testScenario, SpecModel.SpecificationSummary specification)
         {
             return new ScenarioIndex
             {

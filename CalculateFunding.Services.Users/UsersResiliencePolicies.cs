@@ -7,7 +7,7 @@ namespace CalculateFunding.Services.Users
     {
         public Policy UserRepositoryPolicy { get; set; }
 
-        public Policy SpecificationRepositoryPolicy { get; set; }
+        public Policy SpecificationApiClient { get; set; }
 
         public Policy FundingStreamPermissionVersionRepositoryPolicy { get; set; }
 

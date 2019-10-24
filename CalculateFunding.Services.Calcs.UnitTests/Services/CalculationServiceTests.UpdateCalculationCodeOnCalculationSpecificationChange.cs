@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.IO.Enumeration;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
@@ -11,6 +11,7 @@ using CalculateFunding.Services.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -37,13 +38,13 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = FakeCalculationCodeReferenceUpdate();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
-                specificationRepository: specificationRepository,
+                specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 buildProjectsService: buildProjectsService,
                 calculationCodeReferenceUpdate: calculationCodeReferenceUpdate);
@@ -122,16 +123,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(calculations[0].Id))
                 .Returns(calculations[0]);
 
-            Models.Specs.SpecificationSummary specification = new Models.Specs.SpecificationSummary()
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary()
             {
                 Id = specificationId,
                 Name = "Specification Name",
                 FundingStreams = new []{new Reference(fundingStreamId, "fundingStreamName"), }
             };
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             CalculationVersion calculationVersion = new CalculationVersion
             {
@@ -190,13 +191,13 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = FakeCalculationCodeReferenceUpdate();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
-                specificationRepository: specificationRepository,
+                specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 buildProjectsService: buildProjectsService,
                 calculationCodeReferenceUpdate: calculationCodeReferenceUpdate);
@@ -276,18 +277,16 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(calculations[0].Id))
                 .Returns(calculations[0]);
 
-            Models.Specs.SpecificationSummary specification = new Models.Specs.SpecificationSummary()
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary()
             {
                 Id = specificationId,
                 Name = "Specification Name",
                 FundingStreams = new []  { new Reference(fundingStreamId, "funding stream name"),  }
             };
-            
-            
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             CalculationVersion calculationVersion = new CalculationVersion
             {
@@ -349,12 +348,12 @@ namespace CalculateFunding.Services.Calcs.Services
         {
             // Arrange
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IVersionRepository<CalculationVersion> versionRepository = CreateCalculationVersionRepository();
             ICalculationCodeReferenceUpdate calculationCodeReferenceUpdate = FakeCalculationCodeReferenceUpdate();
 
             CalculationService service = CreateCalculationService(calculationsRepository: calculationsRepository,
-                specificationRepository: specificationRepository,
+                specificationsApiClient: specificationsApiClient,
                 calculationVersionRepository: versionRepository,
                 calculationCodeReferenceUpdate: calculationCodeReferenceUpdate);
 
@@ -425,15 +424,15 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationById(Arg.Is(calculations[0].Id))
                 .Returns(calculations[0]);
 
-            Models.Specs.SpecificationSummary specification = new Models.Specs.SpecificationSummary()
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary()
             {
                 Id = specificationId,
                 Name = "Specification Name",
             };
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             CalculationVersion calculationVersion = new CalculationVersion
             {

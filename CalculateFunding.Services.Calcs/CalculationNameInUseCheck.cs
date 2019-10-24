@@ -1,34 +1,37 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
+using CalculateFunding.Services.Core.Extensions;
 using Polly;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
     public class CalculationNameInUseCheck : ICalculationNameInUseCheck
     {
         private readonly ICalculationsRepository _calculationsRepository;
-        private readonly ISpecificationRepository _specsRepository;
-        private readonly Policy _specificationsRepositoryPolicy;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly Policy _specificationsApiClientPolicy;
         private readonly Policy _calculationRepositoryPolicy;
 
-        public CalculationNameInUseCheck(ICalculationsRepository calculationsRepository, 
-            ISpecificationRepository specsRepository,
+        public CalculationNameInUseCheck(ICalculationsRepository calculationsRepository,
+            ISpecificationsApiClient specificationsApiClient,
             ICalcsResiliencePolicies resiliencePolicies)
         {
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
-            Guard.ArgumentNotNull(specsRepository, nameof(specsRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepositoryPolicy, nameof(resiliencePolicies.SpecificationsRepositoryPolicy));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             
             _calculationsRepository = calculationsRepository;
-            _specsRepository = specsRepository;
-            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepositoryPolicy;
+            _specificationsApiClient = specificationsApiClient;
+            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsRepositoryPolicy;
             _calculationRepositoryPolicy = resiliencePolicies.CalculationsRepository;
         }
 
@@ -37,12 +40,14 @@ namespace CalculateFunding.Services.Calcs
             Guard.IsNullOrWhiteSpace(specificationId, nameof(specificationId));
             Guard.IsNullOrWhiteSpace(calculationName, nameof(calculationName));
 
-            SpecificationSummary specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetSpecificationSummaryById(specificationId));
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
-            if (specification == null)
+            if(specificationApiResponse == null || !specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
                 return null;
             }
+
+            SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
 
             IEnumerable<Calculation> existingCalculations = await _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetCalculationsBySpecificationId(specificationId));
 

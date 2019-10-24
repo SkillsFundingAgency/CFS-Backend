@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.TestRunner.Interfaces
 
         Policy CacheProviderRepository { get; set; }
 
-        Policy SpecificationRepository { get; set; }
+        Policy SpecificationsApiClient { get; set; }
 
         Policy ScenariosRepository { get; set; }
 

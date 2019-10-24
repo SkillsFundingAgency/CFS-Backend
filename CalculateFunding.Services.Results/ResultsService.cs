@@ -5,6 +5,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -14,7 +15,6 @@ using CalculateFunding.Models.Aggregations;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
@@ -31,6 +31,7 @@ using Microsoft.Azure.Search.Models;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.Storage.Blob;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results
 {
@@ -43,9 +44,9 @@ namespace CalculateFunding.Services.Results
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _calculationProviderResultsSearchRepository;
         private readonly Polly.Policy _resultsRepositoryPolicy;
-        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.Policy _resultsSearchRepositoryPolicy;
-        private readonly Polly.Policy _specificationsRepositoryPolicy;
+        private readonly Polly.Policy _specificationsApiClientPolicy;
         private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
@@ -61,7 +62,7 @@ namespace CalculateFunding.Services.Results
             ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository,
-            ISpecificationsRepository specificationsRepository,
+            ISpecificationsApiClient specificationsApiClient,
             IResultsResiliencePolicies resiliencePolicies,
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
@@ -74,10 +75,10 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
             Guard.ArgumentNotNull(calculationProviderResultsSearchRepository, nameof(calculationProviderResultsSearchRepository));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsRepository, nameof(resiliencePolicies.ResultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsSearchRepository, nameof(resiliencePolicies.ResultsSearchRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepository, nameof(resiliencePolicies.SpecificationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
@@ -93,9 +94,9 @@ namespace CalculateFunding.Services.Results
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
             _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
-            _specificationsRepository = specificationsRepository;
+            _specificationsApiClient = specificationsApiClient;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
-            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
+            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _cacheProvider = cacheProvider;
             _messengerService = messengerService;
             _calculationRepository = calculationRepository;
@@ -360,7 +361,7 @@ namespace CalculateFunding.Services.Results
 
             IList<ProviderCalculationResultsIndex> searchItems = new List<ProviderCalculationResultsIndex>();
 
-            Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
+            Dictionary<string, SpecModel.SpecificationSummary> specifications = new Dictionary<string, SpecModel.SpecificationSummary>();
 
             foreach (DocumentEntity<ProviderResult> documentEntity in providerResults)
             {
@@ -368,14 +369,18 @@ namespace CalculateFunding.Services.Results
 
                 foreach (CalculationResult calculationResult in providerResult.CalculationResults)
                 {
-                    SpecificationSummary specificationSummary = null;
+                    SpecModel.SpecificationSummary specificationSummary = null;
                     if (!specifications.ContainsKey(providerResult.SpecificationId))
                     {
-                        specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaryById(providerResult.SpecificationId));
-                        if (specificationSummary == null)
+                        Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                            await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(providerResult.SpecificationId));
+
+                        if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
                         {
                             throw new InvalidOperationException($"Specification Summary returned null for specification ID '{providerResult.SpecificationId}'");
                         }
+
+                        specificationSummary = specificationApiResponse.Content;
 
                         specifications.Add(providerResult.SpecificationId, specificationSummary);
                     }
@@ -508,9 +513,10 @@ namespace CalculateFunding.Services.Results
 
         public async Task QueueCsvGenerationMessages()
         {
-            IEnumerable<SpecificationSummary> specificationSummaries = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
+            Common.ApiClient.Models.ApiResponse<IEnumerable<SpecModel.SpecificationSummary>> specificationApiResponse =
+                            await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaries());
 
-            if (specificationSummaries.IsNullOrEmpty())
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content.IsNullOrEmpty())
             {
                 string errorMessage = "No specification summaries found to generate calculation results csv.";
 
@@ -519,7 +525,9 @@ namespace CalculateFunding.Services.Results
                 throw new RetriableException(errorMessage);
             }
 
-            foreach (SpecificationSummary specificationSummary in specificationSummaries)
+            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = specificationApiResponse.Content;
+
+            foreach (SpecModel.SpecificationSummary specificationSummary in specificationSummaries)
             {
                 await QueueCsvGenerationMessage(specificationSummary.Id);
             }

@@ -4,6 +4,7 @@ using AutoMapper;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Profiling;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.JobManagement;
@@ -55,7 +56,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             IProviderChangesRepository providerChangesRepository = null,
             IProviderVariationsService providerVariationsService = null,
             IProviderVariationsStorageRepository providerVariationsStorageRepository = null,
-            IJobManagement jobManagement = null)
+            IJobManagement jobManagement = null,
+            ISpecificationsApiClient specificationsApiClient = null)
         {
             ISpecificationsRepository specsRepo = specificationsRepository ?? CreateSpecificationsRepository();
 
@@ -80,7 +82,8 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 providerChangesRepository ?? CreateProviderChangesRepository(),
                 providerVariationsService ?? CreateProviderVariationsService(CreateProviderVariationAssemblerService(), policiesApiClient ?? CreatePoliciesApiClient()),
                 providerVariationsStorageRepository ?? CreateProviderVariationsStorageRepository(),
-                jobManagement ?? CreateJobManagement());
+                jobManagement ?? CreateJobManagement(),
+                specificationsApiClient ?? CreateSpecificationsApiClient());
         }
 
         private static IJobManagement CreateJobManagement()
@@ -136,6 +139,11 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         static IJobsApiClient CreateJobsApiClient()
         {
             return Substitute.For<IJobsApiClient>();
+        }
+
+        static ISpecificationsApiClient CreateSpecificationsApiClient()
+        {
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         static IPublishedAllocationLineLogicalResultVersionService CreatePublishedAllocationLineLogicalResultVersionService()

@@ -7,10 +7,10 @@ using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.TestRunner.Interfaces;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.TestRunner
 {
@@ -42,7 +42,7 @@ namespace CalculateFunding.Services.TestRunner
         }
 
         public async Task<IEnumerable<TestScenarioResult>> RunTests(IEnumerable<TestScenario> testScenarios, IEnumerable<ProviderResult> providerResults,
-            IEnumerable<ProviderSourceDataset> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, SpecificationSummary specification, BuildProject buildProject)
+            IEnumerable<ProviderSourceDataset> sourceDatasets, IEnumerable<TestScenarioResult> currentResults, SpecModel.SpecificationSummary specification, BuildProject buildProject)
         {
             Guard.ArgumentNotNull(testScenarios, nameof(testScenarios));
             Guard.ArgumentNotNull(providerResults, nameof(providerResults));

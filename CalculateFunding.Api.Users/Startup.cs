@@ -95,9 +95,6 @@ namespace CalculateFunding.Api.Users
                 return new UserRepository(usersCosmosRepostory);
             });
 
-            builder
-                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
-
             MapperConfiguration mappingConfig = new MapperConfiguration(c => c.AddProfile<UsersMappingProfile>());
 
             builder.AddSingleton(mappingConfig.CreateMapper());
@@ -127,7 +124,7 @@ namespace CalculateFunding.Api.Users
                 {
                     FundingStreamPermissionVersionRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     CacheProviderPolicy = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
-                    SpecificationRepositoryPolicy = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    SpecificationApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     UserRepositoryPolicy = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 };
             });

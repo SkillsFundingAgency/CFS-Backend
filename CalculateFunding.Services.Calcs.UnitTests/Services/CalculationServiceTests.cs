@@ -38,7 +38,6 @@ namespace CalculateFunding.Services.Calcs.Services
             ISearchRepository<CalculationIndex> searchRepository = null,
             IValidator<Calculation> calcValidator = null,
             IBuildProjectsService buildProjectsService = null,
-            ISpecificationRepository specificationRepository = null,
             IPoliciesApiClient policiesApiClient = null,
             ICacheProvider cacheProvider = null,
             ICalcsResiliencePolicies resiliencePolicies = null,
@@ -53,7 +52,7 @@ namespace CalculateFunding.Services.Calcs.Services
             ISpecificationsApiClient specificationsApiClient = null)
         {
             CalculationNameInUseCheck calculationNameInUseCheck = new CalculationNameInUseCheck(calculationsRepository ?? CreateCalculationsRepository(),
-                specificationRepository ?? CreateSpecificationRepository(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies());
 
             InstructionAllocationJobCreation instructionAllocationJobCreation = new InstructionAllocationJobCreation(calculationsRepository ?? CreateCalculationsRepository(),
@@ -67,7 +66,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 logger ?? CreateLogger(),
                 searchRepository ?? CreateSearchRepository(),
                 buildProjectsService ?? CreateBuildProjectsService(),
-                specificationRepository ?? CreateSpecificationRepository(),
                 policiesApiClient ?? CreatePoliciesApiClient(),
                 cacheProvider ?? CreateCacheProvider(),
                 resiliencePolicies ?? CalcsResilienceTestHelper.GenerateTestPolicies(),

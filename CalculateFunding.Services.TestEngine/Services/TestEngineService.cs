@@ -4,13 +4,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.Logging;
@@ -23,13 +24,14 @@ using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Polly;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.TestRunner.Services
 {
     public class TestEngineService : ITestEngineService, IHealthChecker
     {
         private readonly ICacheProvider _cacheProvider;
-        private readonly ISpecificationRepository _specificationRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly ILogger _logger;
         private readonly ITestEngine _testEngine;
         private readonly IScenariosRepository _scenariosRepository;
@@ -41,15 +43,15 @@ namespace CalculateFunding.Services.TestRunner.Services
         private readonly ICalculationsRepository _calculationsRepository;
 
         private readonly Policy _cacheProviderPolicy;
-        private readonly Policy _specificationRepositoryPolicy;
         private readonly Policy _scenariosRepositoryPolicy;
         private readonly Policy _providerSourceDatasetsRepositoryPolicy;
         private readonly Policy _testResultsRepositoryPolicy;
         private readonly Policy _builProjectsRepositoryPolicy;
+        private readonly Policy _specificationsApiClientPolicy;
 
         public TestEngineService(
             ICacheProvider cacheProvider,
-            ISpecificationRepository specificationRepository,
+            ISpecificationsApiClient specificationsApiClient,
             ILogger logger,
             ITestEngine testEngine,
             IScenariosRepository scenariosRepository,
@@ -62,7 +64,7 @@ namespace CalculateFunding.Services.TestRunner.Services
             ICalculationsRepository calculationsRepository)
         {
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(testEngine, nameof(testEngine));
             Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
@@ -71,16 +73,17 @@ namespace CalculateFunding.Services.TestRunner.Services
             Guard.ArgumentNotNull(testResultsRepository, nameof(testResultsRepository));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderRepository, nameof(resiliencePolicies.CacheProviderRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationRepository, nameof(resiliencePolicies.SpecificationRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ScenariosRepository, nameof(resiliencePolicies.ScenariosRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ProviderSourceDatasetsRepository, nameof(resiliencePolicies.ProviderSourceDatasetsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.TestResultsRepository, nameof(resiliencePolicies.TestResultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepository, nameof(resiliencePolicies.BuildProjectRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(buildProjectRepository, nameof(buildProjectRepository));
             Guard.ArgumentNotNull(calculationsRepository, nameof(calculationsRepository));
             
             _cacheProvider = cacheProvider;
-            _specificationRepository = specificationRepository;
+            _specificationsApiClient = specificationsApiClient;
             _logger = logger;
             _testEngine = testEngine;
             _scenariosRepository = scenariosRepository;
@@ -90,13 +93,13 @@ namespace CalculateFunding.Services.TestRunner.Services
             _telemetry = telemetry;
 
             _cacheProviderPolicy = resiliencePolicies.CacheProviderRepository;
-            _specificationRepositoryPolicy = resiliencePolicies.SpecificationRepository;
             _scenariosRepositoryPolicy = resiliencePolicies.ScenariosRepository;
             _providerSourceDatasetsRepositoryPolicy = resiliencePolicies.ProviderSourceDatasetsRepository;
             _testResultsRepositoryPolicy = resiliencePolicies.TestResultsRepository;
             _builProjectsRepositoryPolicy = resiliencePolicies.BuildProjectRepository;
             _buildProjectRepository = buildProjectRepository;
             _calculationsRepository = calculationsRepository;
+            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -172,14 +175,17 @@ namespace CalculateFunding.Services.TestRunner.Services
             }
 
             Stopwatch specificationLookupStopwatch = Stopwatch.StartNew();
-            SpecificationSummary specification = await _specificationRepositoryPolicy.ExecuteAsync(() => _specificationRepository.GetSpecificationSummaryById(specificationId));
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
             specificationLookupStopwatch.Stop();
 
-            if (specification == null)
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
                 _logger.Error($"No specification found for specification id: {specificationId}");
                 return;
             }
+
+            SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id);
 
@@ -290,13 +296,16 @@ namespace CalculateFunding.Services.TestRunner.Services
                 return new PreconditionFailedResult(string.Empty);
             }
 
-            SpecificationSummary specification = await _specificationRepository.GetSpecificationSummaryById(specificationId);
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
-            if (specification == null)
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
                 _logger.Error($"No specification found for specification id: {specificationId}");
                 return new PreconditionFailedResult(string.Empty);
             }
+
+            SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
 
             IEnumerable<string> providerIds = providerResults.Select(m => m.Provider.Id).ToList();
 

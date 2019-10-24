@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Services.CodeMetadataGenerator.Interfaces;
 using CalculateFunding.Services.TestRunner;
 using CalculateFunding.Services.TestRunner.Interfaces;
@@ -29,7 +30,7 @@ namespace CalculateFunding.Functions.TestEngine.UnitTests
                 scope.ServiceProvider.GetService<ICodeMetadataGeneratorService>().Should().NotBeNull(nameof(ICodeMetadataGeneratorService));
                 scope.ServiceProvider.GetService<IStepParserFactory>().Should().NotBeNull(nameof(IStepParserFactory));
                 scope.ServiceProvider.GetService<ITestResultsRepository>().Should().NotBeNull(nameof(ITestResultsRepository));
-                scope.ServiceProvider.GetService<ISpecificationRepository>().Should().NotBeNull(nameof(ISpecificationRepository));
+                scope.ServiceProvider.GetService<ISpecificationsApiClient>().Should().NotBeNull(nameof(ISpecificationsApiClient));
                 scope.ServiceProvider.GetService<IScenariosRepository>().Should().NotBeNull(nameof(IScenariosRepository));
                 scope.ServiceProvider.GetService<ITestEngineService>().Should().NotBeNull(nameof(ITestEngineService));
                 scope.ServiceProvider.GetService<ITestEngine>().Should().NotBeNull(nameof(ITestEngine));

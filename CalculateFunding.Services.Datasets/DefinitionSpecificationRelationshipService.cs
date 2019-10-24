@@ -5,6 +5,8 @@ using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -13,7 +15,6 @@ using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
 using CalculateFunding.Services.CodeGeneration.VisualBasic;
 using CalculateFunding.Services.Core;
@@ -27,6 +28,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Datasets
 {
@@ -34,7 +36,7 @@ namespace CalculateFunding.Services.Datasets
     {
         private readonly IDatasetRepository _datasetRepository;
         private readonly ILogger _logger;
-        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly IValidator<CreateDefinitionSpecificationRelationshipModel> _relationshipModelValidator;
         private readonly IMessengerService _messengerService;
         private readonly IDatasetService _datasetService;
@@ -43,10 +45,11 @@ namespace CalculateFunding.Services.Datasets
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _jobsApiClientPolicy;
         private readonly IJobsApiClient _jobsApiClient;
+        private readonly Polly.Policy _specificationsApiClientPolicy;
 
         public DefinitionSpecificationRelationshipService(IDatasetRepository datasetRepository,
             ILogger logger,
-            ISpecificationsRepository specificationsRepository,
+            ISpecificationsApiClient specificationsApiClient,
             IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator,
             IMessengerService messengerService,
             IDatasetService datasetService,
@@ -58,7 +61,7 @@ namespace CalculateFunding.Services.Datasets
         {
             Guard.ArgumentNotNull(datasetRepository, nameof(datasetRepository));
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(relationshipModelValidator, nameof(relationshipModelValidator));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(datasetService, nameof(datasetService));
@@ -67,10 +70,11 @@ namespace CalculateFunding.Services.Datasets
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(datasetsResiliencePolicies?.JobsApiClient, nameof(datasetsResiliencePolicies.JobsApiClient));
+            Guard.ArgumentNotNull(datasetsResiliencePolicies?.SpecificationsApiClient, nameof(datasetsResiliencePolicies.SpecificationsApiClient));
 
             _datasetRepository = datasetRepository;
             _logger = logger;
-            _specificationsRepository = specificationsRepository;
+            _specificationsApiClient = specificationsApiClient;
             _relationshipModelValidator = relationshipModelValidator;
             _messengerService = messengerService;
             _datasetService = datasetService;
@@ -79,6 +83,7 @@ namespace CalculateFunding.Services.Datasets
             _cacheProvider = cacheProvider;
             _jobsApiClient = jobsApiClient;
             _jobsApiClientPolicy = datasetsResiliencePolicies.JobsApiClient;
+            _specificationsApiClientPolicy = datasetsResiliencePolicies.SpecificationsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -126,13 +131,16 @@ namespace CalculateFunding.Services.Datasets
                 return new StatusCodeResult(412);
             }
 
-            SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(model.SpecificationId);
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(model.SpecificationId));
 
-            if (specification == null)
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
                 _logger.Error($"Specification was not found for id {model.SpecificationId}");
                 return new StatusCodeResult(412);
             }
+
+            SpecModel.SpecificationSummary specification = specificationApiResponse.Content;
 
             string relationshipId = Guid.NewGuid().ToString();
 
@@ -384,9 +392,10 @@ namespace CalculateFunding.Services.Datasets
                 return new BadRequestObjectResult($"Null or empty {nameof(specificationId)} provided");
             }
 
-            SpecificationSummary specification = await _specificationsRepository.GetSpecificationSummaryById(specificationId);
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
-            if (specification == null)
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
                 _logger.Error($"Failed to find specification for id: {specificationId}");
 

@@ -13,7 +13,7 @@ namespace CalculateFunding.Services.Datasets
 
         public Policy DatasetSearchService { get; set; }
 
-        public Policy SpecificationsRepository { get; set; }
+        public Policy SpecificationsApiClient { get; set; }
 
         public Policy CacheProviderRepository { get; set; }
 

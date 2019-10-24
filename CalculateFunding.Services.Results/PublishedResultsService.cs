@@ -12,6 +12,7 @@ using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Profiling;
 using CalculateFunding.Common.ApiClient.Profiling.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.JobManagement;
@@ -42,6 +43,7 @@ using Microsoft.Azure.ServiceBus;
 using Newtonsoft.Json;
 using Serilog;
 using Reference = CalculateFunding.Common.Models.Reference;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results
 {
@@ -54,6 +56,8 @@ namespace CalculateFunding.Services.Results
         private readonly Polly.Policy _resultsRepositoryPolicy;
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly Polly.Policy _specificationsRepositoryPolicy;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly Polly.Policy _specificationsApiClientPolicy;
         private readonly IPublishedProviderResultsAssemblerService _publishedProviderResultsAssemblerService;
         private readonly IPublishedProviderResultsRepository _publishedProviderResultsRepository;
         private readonly ICacheProvider _cacheProvider;
@@ -95,13 +99,15 @@ namespace CalculateFunding.Services.Results
           IJobsApiClient jobsApiClient,
           IPublishedProviderResultsSettings publishedProviderResultsSettings,
           IProviderChangesRepository providerChangesRepository,
-          IJobManagement jobManagement)
+          IJobManagement jobManagement,
+          ISpecificationsApiClient specificationsApiClient)
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepository, nameof(resiliencePolicies.SpecificationsRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.AllocationNotificationFeedSearchRepository, nameof(resiliencePolicies.AllocationNotificationFeedSearchRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedProviderCalculationResultsRepository, nameof(resiliencePolicies.PublishedProviderCalculationResultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedProviderResultsRepository, nameof(resiliencePolicies.PublishedProviderResultsRepository));
@@ -123,7 +129,7 @@ namespace CalculateFunding.Services.Results
 
             _logger = logger;
             _mapper = mapper;
-            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
+            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsApiClient;
             _resultsRepository = resultsRepository;
             _telemetry = telemetry;
             _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
@@ -145,6 +151,7 @@ namespace CalculateFunding.Services.Results
             _providerChangesRepository = providerChangesRepository;
             _providerChangesRepositoryPolicy = resiliencePolicies.ProviderChangesRepository;
             _jobManagement = jobManagement;
+            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
         }
 
         // This constructor is used from the Results Function project
@@ -169,13 +176,15 @@ namespace CalculateFunding.Services.Results
             IProviderChangesRepository providerChangesRepository,
             IProviderVariationsService providerVariationsService,
             IProviderVariationsStorageRepository providerVariationsStorageRepository,
-            IJobManagement jobManagement)
+            IJobManagement jobManagement,
+            ISpecificationsApiClient specificationsApiClient
+            )
         {
             Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepository, nameof(resiliencePolicies.SpecificationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.AllocationNotificationFeedSearchRepository, nameof(resiliencePolicies.AllocationNotificationFeedSearchRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedProviderCalculationResultsRepository, nameof(resiliencePolicies.PublishedProviderCalculationResultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.PublishedProviderResultsRepository, nameof(resiliencePolicies.PublishedProviderResultsRepository));
@@ -198,6 +207,7 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(providerVariationsStorageRepository, nameof(providerVariationsStorageRepository));
             Guard.ArgumentNotNull(providerChangesRepository, nameof(providerChangesRepository));
             Guard.ArgumentNotNull(jobManagement, nameof(jobManagement));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
 
             _logger = logger;
             _mapper = mapper;
@@ -205,7 +215,7 @@ namespace CalculateFunding.Services.Results
             _resultsRepository = resultsRepository;
             _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
             _specificationsRepository = specificationsRepository;
-            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
+            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsApiClient;
             _publishedProviderResultsAssemblerService = publishedProviderResultsAssemblerService;
             _publishedProviderResultsRepository = publishedProviderResultsRepository;
             _cacheProvider = cacheProvider;
@@ -227,6 +237,7 @@ namespace CalculateFunding.Services.Results
             _providerVariationsService = providerVariationsService;
             _providerVariationsStorageRepository = providerVariationsStorageRepository;
             _jobManagement = jobManagement;
+            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -2034,9 +2045,9 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> MigrateFeedIndexId(HttpRequest request)
         {
-            IEnumerable<SpecificationSummary> specificationSummaries = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
+            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = (await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaries())).Content;
 
-            foreach (SpecificationSummary specificationSummary in specificationSummaries)
+            foreach (SpecModel.SpecificationSummary specificationSummary in specificationSummaries)
             {
                 IDictionary<string, string> properties = request.BuildMessageProperties();
                 properties["specification-id"] = specificationSummary.Id;
@@ -2049,9 +2060,9 @@ namespace CalculateFunding.Services.Results
 
         public async Task<IActionResult> MigrateVersionNumbers(HttpRequest request)
         {
-            IEnumerable<SpecificationSummary> specificationSummaries = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
+            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = (await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaries())).Content;
 
-            foreach (SpecificationSummary specificationSummary in specificationSummaries)
+            foreach (SpecModel.SpecificationSummary specificationSummary in specificationSummaries)
             {
                 IDictionary<string, string> properties = request.BuildMessageProperties();
                 properties["specification-id"] = specificationSummary.Id;

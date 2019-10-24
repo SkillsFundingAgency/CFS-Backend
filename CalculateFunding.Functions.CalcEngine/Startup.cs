@@ -1,6 +1,7 @@
 ﻿using System;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Interfaces;
@@ -92,7 +93,7 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = ctx.GetService<ISearchRepository<ProviderCalculationResultsIndex>>();
 
-                ISpecificationsRepository specificationsRepository = ctx.GetService<ISpecificationsRepository>();
+                ISpecificationsApiClient specificationsApiClient = ctx.GetService<ISpecificationsApiClient>();
 
                 ILogger logger = ctx.GetService<ILogger>();
 
@@ -102,15 +103,18 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 IProviderResultCalculationsHashProvider calculationsHashProvider = ctx.GetService<IProviderResultCalculationsHashProvider>();
 
+                ICalculatorResiliencePolicies calculatorResiliencePolicies = ctx.GetService<ICalculatorResiliencePolicies>();
+
                 return new ProviderResultsRepository(
                     calcsCosmosRepostory,
                     calculationProviderResultsSearchRepository,
-                    specificationsRepository,
+                    specificationsApiClient,
                     logger,
                     providerCalculationResultsSearchRepository,
                     featureToggle,
                     engineSettings,
-                    calculationsHashProvider);
+                    calculationsHashProvider,
+                    calculatorResiliencePolicies);
             });
 
             builder.AddSingleton<ISourceFileRepository, SourceFileRepository>((ctx) =>
@@ -123,9 +127,6 @@ namespace CalculateFunding.Functions.CalcEngine
 
                 return new SourceFileRepository(blobStorageOptions);
             });
-
-            builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
                 .AddSingleton<Services.CalcEngine.Interfaces.ICalculationsRepository, Services.CalcEngine.CalculationsRepository>();
@@ -194,7 +195,8 @@ namespace CalculateFunding.Functions.CalcEngine
                 CacheProvider = ResiliencePolicyHelpers.GenerateRedisPolicy(totalNetworkRequestsPolicy),
                 Messenger = ResiliencePolicyHelpers.GenerateMessagingPolicy(totalNetworkRequestsPolicy),
                 CalculationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
             };
 
             return resiliencePolicies;

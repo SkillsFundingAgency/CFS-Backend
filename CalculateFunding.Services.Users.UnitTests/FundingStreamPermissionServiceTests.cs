@@ -7,6 +7,7 @@ using CalculateFunding.Services.Users.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using CalculateFunding.Common.ApiClient.Specifications;
 
 namespace CalculateFunding.Services.Users
 {
@@ -19,7 +20,7 @@ namespace CalculateFunding.Services.Users
 
         public FundingStreamPermissionService CreateService(
             IUserRepository userRepository = null,
-            ISpecificationRepository specificationRepository = null,
+            ISpecificationsApiClient specificationsApiClient = null,
             IVersionRepository<FundingStreamPermissionVersion> fundingStreamPermissionVersionRepository = null,
             ICacheProvider cacheProvider = null,
             IMapper mapper = null,
@@ -28,7 +29,7 @@ namespace CalculateFunding.Services.Users
         {
             return new FundingStreamPermissionService(
                 userRepository ?? CreateUserRepository(),
-                specificationRepository ?? CreateSpecificationRepository(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
                 fundingStreamPermissionVersionRepository ?? CreateFundingStreamPermissionRepository(),
                 cacheProvider ?? CreateCacheProvider(),
                 mapper ?? CreateMappingConfiguration(),
@@ -42,9 +43,9 @@ namespace CalculateFunding.Services.Users
             return Substitute.For<IUserRepository>();
         }
 
-        public ISpecificationRepository CreateSpecificationRepository()
+        static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
-            return Substitute.For<ISpecificationRepository>();
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         public IVersionRepository<FundingStreamPermissionVersion> CreateFundingStreamPermissionRepository()

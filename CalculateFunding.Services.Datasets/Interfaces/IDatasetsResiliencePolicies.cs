@@ -12,7 +12,7 @@ namespace CalculateFunding.Services.Datasets.Interfaces
 
         Policy DatasetSearchService { get; set; }
 
-        Policy SpecificationsRepository { get; set; }
+        Policy SpecificationsApiClient { get; set; }
 
         Policy CacheProviderRepository { get; set; }
 

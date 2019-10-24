@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
@@ -12,8 +11,6 @@ namespace CalculateFunding.Services.Results.Repositories
     [Obsolete("Replace with common nuget API client")]
     public class SpecificationsRepository : ISpecificationsRepository
     {
-        private const string specsUrl = "specs/specification-summary-by-id?specificationId=";
-        private const string allSpecsUrl = "specs/specification-summaries";
         private const string currentSpecsUrl = "specs/specification-current-version-by-id?specificationId=";
 
         private const string updatePublishedRefreshedDateUrl = "specs/update-published-refreshed-date?specificationId=";
@@ -25,15 +22,6 @@ namespace CalculateFunding.Services.Results.Repositories
             Guard.ArgumentNotNull(apiClient, nameof(apiClient));
 
             _apiClient = apiClient;
-        }
-
-        public async Task<SpecificationSummary> GetSpecificationSummaryById(string specificationId)
-        {
-            Guard.ArgumentNotNull(specificationId, nameof(specificationId));
-
-            string url = $"{specsUrl}{specificationId}";
-
-            return await _apiClient.GetAsync<SpecificationSummary>(url);
         }
 
         public async Task<SpecificationCurrentVersion> GetCurrentSpecificationById(string specificationId)
@@ -57,11 +45,6 @@ namespace CalculateFunding.Services.Results.Repositories
             };
 
             return await _apiClient.PostAsync(url, model);
-        }
-
-        public async Task<IEnumerable<SpecificationSummary>> GetSpecificationSummaries()
-        {
-            return await _apiClient.GetAsync<IEnumerable<SpecificationSummary>>(allSpecsUrl);
         }
     }
 }

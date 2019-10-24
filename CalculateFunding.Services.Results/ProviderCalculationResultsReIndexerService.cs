@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
@@ -16,14 +18,8 @@ using CalculateFunding.Services.Results.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results
 {
@@ -31,10 +27,10 @@ namespace CalculateFunding.Services.Results
     {
         private readonly ILogger _logger;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _providerCalculationResultsSearchRepository;
-        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly Polly.Policy _resultsRepositoryPolicy;
-        private readonly Polly.Policy _specificationsRepositoryPolicy;
+        private readonly Polly.Policy _specificationsApiClientPolicy;
         private readonly Polly.Policy _resultsSearchRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
 
@@ -44,7 +40,7 @@ namespace CalculateFunding.Services.Results
         public ProviderCalculationResultsReIndexerService(
             ILogger logger,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository,
-            ISpecificationsRepository specificationsRepository,
+            ISpecificationsApiClient specificationsApiClient,
             ICalculationResultsRepository resultsRepository,
             IResultsResiliencePolicies resiliencePolicies,
             IFeatureToggle featureToggle,
@@ -52,20 +48,20 @@ namespace CalculateFunding.Services.Results
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(providerCalculationResultsSearchRepository, nameof(providerCalculationResultsSearchRepository));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsRepository, nameof(resiliencePolicies.ResultsRepository));
-            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepository, nameof(resiliencePolicies.SpecificationsRepository));
+            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsSearchRepository, nameof(resiliencePolicies.ResultsSearchRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
 
             _logger = logger;
             _providerCalculationResultsSearchRepository = providerCalculationResultsSearchRepository;
-            _specificationsRepository = specificationsRepository;
+            _specificationsApiClient = specificationsApiClient;
             _resultsRepository = resultsRepository;
             _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
-            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepository;
+            _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
             _featureToggle = featureToggle;
             _messengerService = messengerService;
@@ -90,13 +86,19 @@ namespace CalculateFunding.Services.Results
 
             _logger.Information($"{nameof(ReIndexCalculationResults)} initiated by: '{user.Name}'");
 
-            IEnumerable<SpecificationSummary> specifications = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specificationsRepository.GetSpecificationSummaries());
+            ApiResponse<IEnumerable<SpecModel.SpecificationSummary>> specificationsApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaries());
 
-            foreach (SpecificationSummary specification in specifications)
+            if (specificationsApiResponse == null || !specificationsApiResponse.StatusCode.IsSuccess() || specificationsApiResponse.Content == null)
+            {
+                return;
+            }
+
+            IEnumerable<SpecModel.SpecificationSummary> specifications = specificationsApiResponse.Content;
+
+            foreach (SpecModel.SpecificationSummary specification in specifications)
             {
                 await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.ProviderResultsBatchProcessing(specification.Id, async (x) =>
                 {
-
                     IList<ProviderCalculationResultsIndex> results = new List<ProviderCalculationResultsIndex>();
 
                     foreach (ProviderResult providerResult in x)

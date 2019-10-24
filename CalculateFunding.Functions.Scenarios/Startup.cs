@@ -55,8 +55,6 @@ namespace CalculateFunding.Functions.Scenarios
             builder.AddSingleton<IScenariosSearchService, ScenariosSearchService>();
             builder
                 .AddSingleton<IValidator<CreateNewTestScenarioVersion>, CreateNewTestScenarioVersionValidator>();
-            builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
                .AddSingleton<IBuildProjectRepository, BuildProjectRepository>();
@@ -139,7 +137,8 @@ namespace CalculateFunding.Functions.Scenarios
                     CalcsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     DatasetRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    ScenariosRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy)
+                    ScenariosRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 };
             });
 

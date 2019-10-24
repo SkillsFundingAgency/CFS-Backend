@@ -11,7 +11,7 @@ namespace CalculateFunding.Services.Users
             {
                 CacheProviderPolicy = Policy.NoOpAsync(),
                 FundingStreamPermissionVersionRepositoryPolicy = Policy.NoOpAsync(),
-                SpecificationRepositoryPolicy = Policy.NoOpAsync(),
+                SpecificationApiClient = Policy.NoOpAsync(),
                 UserRepositoryPolicy = Policy.NoOpAsync(),
             };
         }

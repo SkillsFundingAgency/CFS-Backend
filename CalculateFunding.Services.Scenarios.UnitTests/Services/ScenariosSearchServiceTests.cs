@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Models;
+﻿using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Models;
 using CalculateFunding.Models.Scenarios;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Scenarios.Interfaces;
@@ -242,14 +243,16 @@ namespace CalculateFunding.Services.Scenarios.Services
         static ScenariosSearchService CreateSearchService(
             ISearchRepository<ScenarioIndex> searchRepository = null,
             IScenariosRepository scenariosRepository = null,
-            ISpecificationsRepository specificationsRepository = null,
-            ILogger logger = null)
+            ISpecificationsApiClient specificationsApiClient = null,
+            ILogger logger = null,
+            IScenariosResiliencePolicies scenariosResiliencePolicies = null)
         {
             return new ScenariosSearchService(
                 searchRepository ?? CreateSearchRepository(), 
-                scenariosRepository ?? CreateScenariosRepository(), 
-                 specificationsRepository ?? CreateSpecificationsRepository(),
-                logger ?? CreateLogger());
+                scenariosRepository ?? CreateScenariosRepository(),
+                 specificationsApiClient ?? CreateSpecificationsApiClient(),
+                logger ?? CreateLogger(),
+                scenariosResiliencePolicies ?? ScenariosResilienceTestHelper.GenerateTestPolicies());
         }
 
         static ISearchRepository<ScenarioIndex> CreateSearchRepository()
@@ -262,9 +265,9 @@ namespace CalculateFunding.Services.Scenarios.Services
             return Substitute.For<IScenariosRepository>();
         }
 
-        static ISpecificationsRepository CreateSpecificationsRepository()
+        static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
-            return Substitute.For<ISpecificationsRepository>();
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         static ILogger CreateLogger()

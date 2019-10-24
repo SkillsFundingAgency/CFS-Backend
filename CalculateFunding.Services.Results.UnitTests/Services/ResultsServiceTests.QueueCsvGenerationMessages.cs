@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Models.Specs;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
@@ -11,6 +13,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results.UnitTests.Services
 {
@@ -22,16 +25,16 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             //Arrange
             string errorMessage = "No specification summaries found to generate calculation results csv.";
 
-            IEnumerable<SpecificationSummary> specificationSummaries = Enumerable.Empty<SpecificationSummary>();
+            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = Enumerable.Empty<SpecModel.SpecificationSummary>();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaries()
-                .Returns(specificationSummaries);
+                .Returns(new ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
 
             ILogger logger = CreateLogger();
 
-            ResultsService resultsService = CreateResultsService(logger, specificationsRepository: specificationsRepository);
+            ResultsService resultsService = CreateResultsService(logger, specificationsApiClient: specificationsApiClient);
 
             //Act
             Func<Task> test = async () => await resultsService.QueueCsvGenerationMessages();
@@ -54,15 +57,15 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task QueueCsvGenerationMessages_GivenSpecificationSummariesFoundButNoResults_DoesNotCreateNewMessages()
         {
             //Arrange
-            IEnumerable<SpecificationSummary> specificationSummaries = new[]
+            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecificationSummary { Id = "spec-1" }
+                new SpecModel.SpecificationSummary { Id = "spec-1" }
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaries()
-                .Returns(specificationSummaries);
+                .Returns(new ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
@@ -78,7 +81,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ResultsService resultsService = CreateResultsService(
                 logger,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 resultsRepository: calculationResultsRepository,
                 messengerService: messengerService);
 
@@ -100,15 +103,15 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task QueueCsvGenerationMessages_GivenSpecificationSummariesFoundAndHasNewResults_CreatesNewMessage()
         {
             //Arrange
-            IEnumerable<SpecificationSummary> specificationSummaries = new[]
+            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecificationSummary { Id = "spec-1" }
+                new SpecModel.SpecificationSummary { Id = "spec-1" }
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaries()
-                .Returns(specificationSummaries);
+                .Returns(new ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
@@ -124,7 +127,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ResultsService resultsService = CreateResultsService(
                 logger,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 resultsRepository: calculationResultsRepository,
                 messengerService: messengerService);
 
@@ -149,16 +152,16 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public async Task QueueCsvGenerationMessages_GivenSpecificationSummariesFoundAndHasNewResultsForTwoSpecifications_CreatesNewMessage()
         {
             //Arrange
-            IEnumerable<SpecificationSummary> specificationSummaries = new[]
+            IEnumerable<SpecModel.SpecificationSummary> specificationSummaries = new[]
             {
-                new SpecificationSummary { Id = "spec-1" },
-                new SpecificationSummary { Id = "spec-2" }
+                new SpecModel.SpecificationSummary { Id = "spec-1" },
+                new SpecModel.SpecificationSummary { Id = "spec-2" }
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaries()
-                .Returns(specificationSummaries);
+                .Returns(new ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>(HttpStatusCode.OK, specificationSummaries));
 
             ICalculationResultsRepository calculationResultsRepository = CreateResultsRepository();
             calculationResultsRepository
@@ -180,7 +183,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ResultsService resultsService = CreateResultsService(
                 logger,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 resultsRepository: calculationResultsRepository,
                 messengerService: messengerService);
 

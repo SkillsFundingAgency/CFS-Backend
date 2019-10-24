@@ -42,6 +42,7 @@ using Newtonsoft.Json;
 using Serilog;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
 using CalculationCurrentVersion = CalculateFunding.Models.Calcs.CalculationCurrentVersion;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs
 {
@@ -55,13 +56,11 @@ namespace CalculateFunding.Services.Calcs
         private readonly ILogger _logger;
         private readonly ISearchRepository<CalculationIndex> _searchRepository;
         private readonly IBuildProjectsService _buildProjectsService;
-        private readonly ISpecificationRepository _specsRepository;
         private readonly ICacheProvider _cacheProvider;
         private readonly Polly.Policy _calculationRepositoryPolicy;
         private readonly Polly.Policy _calculationSearchRepositoryPolicy;
         private readonly Polly.Policy _cachePolicy;
         private readonly Polly.Policy _calculationVersionsRepositoryPolicy;
-        private readonly Polly.Policy _specificationsRepositoryPolicy;
         private readonly IVersionRepository<CalculationVersion> _calculationVersionRepository;
         private readonly ISourceCodeService _sourceCodeService;
         private readonly IFeatureToggle _featureToggle;
@@ -83,7 +82,6 @@ namespace CalculateFunding.Services.Calcs
             ILogger logger,
             ISearchRepository<CalculationIndex> searchRepository,
             IBuildProjectsService buildProjectsService,
-            ISpecificationRepository specificationRepository,
             IPoliciesApiClient policiesApiClient,
             ICacheProvider cacheProvider,
             ICalcsResiliencePolicies resiliencePolicies,
@@ -103,7 +101,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(logger, nameof(logger));
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(buildProjectsService, nameof(buildProjectsService));
-            Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
             Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(resiliencePolicies, nameof(resiliencePolicies));
@@ -121,7 +118,6 @@ namespace CalculateFunding.Services.Calcs
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsSearchRepository, nameof(resiliencePolicies.CalculationsSearchRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.CacheProviderPolicy, nameof(resiliencePolicies.CacheProviderPolicy));
-            Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsRepositoryPolicy, nameof(resiliencePolicies.SpecificationsRepositoryPolicy));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsVersionsRepositoryPolicy, nameof(resiliencePolicies.CalculationsVersionsRepositoryPolicy));
             Guard.ArgumentNotNull(resiliencePolicies?.BuildProjectRepositoryPolicy, nameof(resiliencePolicies.BuildProjectRepositoryPolicy));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
@@ -130,13 +126,11 @@ namespace CalculateFunding.Services.Calcs
             _calculationsRepository = calculationsRepository;
             _logger = logger;
             _searchRepository = searchRepository;
-            _specsRepository = specificationRepository;
             _cacheProvider = cacheProvider;
             _calculationRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _calculationVersionRepository = calculationVersionRepository;
             _calculationSearchRepositoryPolicy = resiliencePolicies.CalculationsSearchRepository;
             _cachePolicy = resiliencePolicies.CacheProviderPolicy;
-            _specificationsRepositoryPolicy = resiliencePolicies.SpecificationsRepositoryPolicy;
             _calculationVersionsRepositoryPolicy = resiliencePolicies.CalculationsVersionsRepositoryPolicy;
             _sourceCodeService = sourceCodeService;
             _featureToggle = featureToggle;
@@ -689,7 +683,7 @@ namespace CalculateFunding.Services.Calcs
                 buildProject = await UpdateBuildProject(calculation.SpecificationId);
             }
 
-            SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId);
+            SpecModel.SpecificationSummary specificationSummary = (await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId))).Content;
 
             string fundingStreamName = specificationSummary.FundingStreams.FirstOrDefault(_ => _.Id == calculation.FundingStreamId)?.Name;
 
@@ -766,11 +760,15 @@ namespace CalculateFunding.Services.Calcs
                 return new BadRequestObjectResult("Publish status can't be changed to Draft from Updated or Approved");
             }
 
-            SpecificationSummary specificationSummary = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId));
-            if (specificationSummary == null)
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId));
+
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
                 return new PreconditionFailedResult("Specification not found");
             }
+
+            SpecModel.SpecificationSummary specificationSummary = specificationApiResponse.Content;
 
             CalculationVersion previousCalculationVersion = calculation.Current;
 
@@ -845,20 +843,23 @@ namespace CalculateFunding.Services.Calcs
 
             IList<CalculationIndex> calcIndexItems = new List<CalculationIndex>();
 
-            Dictionary<string, SpecificationSummary> specifications = new Dictionary<string, SpecificationSummary>();
+            Dictionary<string, SpecModel.SpecificationSummary> specifications = new Dictionary<string, SpecModel.SpecificationSummary>();
 
             foreach (Calculation calculation in calculations)
             {
-                SpecificationSummary specification = null;
+                SpecModel.SpecificationSummary specification = null;
                 if (specifications.ContainsKey(calculation.SpecificationId))
                 {
                     specification = specifications[calculation.SpecificationId];
                 }
                 else
                 {
-                    specification = await _specificationsRepositoryPolicy.ExecuteAsync(() => _specsRepository.GetSpecificationSummaryById(calculation.SpecificationId));
-                    if (specification != null)
+                    ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculation.SpecificationId));
+
+                    if (specificationApiResponse.StatusCode.IsSuccess() && specificationApiResponse.Content != null)
                     {
+                        specification = specificationApiResponse.Content;
                         specifications.Add(calculation.SpecificationId, specification);
                     }
                 }
@@ -1013,12 +1014,12 @@ namespace CalculateFunding.Services.Calcs
                 _logger.Information("Starting migration for duplicate calc names");
 
                 Task<IEnumerable<Calculation>> getAllCalcsTask = _calculationRepositoryPolicy.ExecuteAsync(() => _calculationsRepository.GetAllCalculations());
-                Task<IEnumerable<SpecificationSummary>> getAllSpecsTask = _specsRepository.GetAllSpecificationSummaries();
+                Task<ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>> getAllSpecsTask = _specificationsApiClientPolicy.ExecuteAsync(()=> _specificationsApiClient.GetSpecificationSummaries());
 
                 await TaskHelper.WhenAllAndThrow(getAllCalcsTask, getAllSpecsTask);
 
                 IEnumerable<Calculation> allCalcs = getAllCalcsTask.Result;
-                IEnumerable<SpecificationSummary> allSpecs = getAllSpecsTask.Result;
+                IEnumerable<SpecModel.SpecificationSummary> allSpecs = getAllSpecsTask.Result.Content;
 
                 _logger.Information("Processing calcs for duplicate calc names migration");
 
@@ -1027,7 +1028,7 @@ namespace CalculateFunding.Services.Calcs
                     calculation.Current.SourceCodeName = VisualBasicTypeGenerator.GenerateIdentifier(calculation.Name);
                     await _calculationsRepository.UpdateCalculation(calculation);
 
-                    SpecificationSummary specificationSummary = allSpecs.SingleOrDefault(s => s.Id == calculation.SpecificationId);
+                    SpecModel.SpecificationSummary specificationSummary = allSpecs.SingleOrDefault(s => s.Id == calculation.SpecificationId);
 
                     if (specificationSummary != null)
                     {
@@ -1214,15 +1215,18 @@ namespace CalculateFunding.Services.Calcs
             Guard.IsNullOrWhiteSpace(templateVersion, nameof(templateVersion));
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
 
-            SpecificationSummary specificationSummary = await _specsRepository.GetSpecificationSummaryById(specificationId);
+            ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(specificationId));
 
-            if (specificationSummary == null)
+            if (!specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
             {
                 string message = $"No specification ID {specificationId} were returned from the repository, result came back null";
                 _logger.Error(message);
 
                 return new PreconditionFailedResult(message);
             }
+
+            SpecModel.SpecificationSummary specificationSummary = specificationApiResponse.Content;
 
             bool? specificationContainsGivenFundingStream = specificationSummary.FundingStreams?.Any(x => x.Id == fundingStreamId);
             if (!specificationContainsGivenFundingStream.GetValueOrDefault())

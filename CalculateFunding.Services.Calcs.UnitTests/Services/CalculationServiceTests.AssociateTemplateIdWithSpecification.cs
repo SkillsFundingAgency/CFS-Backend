@@ -9,7 +9,6 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.TemplateMetadata.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -19,6 +18,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
 using TemplateMetadataModels = CalculateFunding.Common.TemplateMetadata.Models;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -35,9 +35,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -46,9 +46,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -146,7 +146,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -160,7 +159,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -253,9 +251,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -264,9 +262,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -294,7 +292,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -308,7 +305,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -357,9 +353,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -368,9 +364,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -483,7 +479,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient);
 
             // Act
@@ -514,9 +510,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -525,9 +521,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -612,7 +608,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -621,7 +616,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -702,9 +696,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -713,9 +707,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -821,7 +815,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -830,7 +823,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -926,9 +918,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -937,9 +929,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -1043,7 +1035,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -1052,7 +1043,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -1140,9 +1130,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -1151,9 +1141,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -1230,7 +1220,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -1244,7 +1233,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -1313,9 +1301,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -1324,9 +1312,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -1405,7 +1393,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -1419,7 +1406,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -1495,9 +1481,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -1506,9 +1492,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -1624,7 +1610,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -1638,7 +1623,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -1714,9 +1698,9 @@ namespace CalculateFunding.Services.Calcs.Services
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 TemplateIds = new Dictionary<string, string> { { fundingStreamId, templateId } },
                 FundingStreams = new List<Reference>()
@@ -1725,9 +1709,9 @@ namespace CalculateFunding.Services.Calcs.Services
                 },
             };
 
-            specificationsRepository
+            specificationsApiClient
                .GetSpecificationSummaryById(specificationId)
-               .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
@@ -1843,7 +1827,6 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetFundingTemplateContents(fundingStreamId, templateVersion)
                 .Returns(new ApiResponse<TemplateMetadataContents>(HttpStatusCode.OK, fundingMetadataContents));
 
-            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             specificationsApiClient
                 .SetAssignedTemplateVersion(Arg.Is(specificationId), Arg.Is(templateVersion), Arg.Is(fundingStreamId))
                 .Returns(HttpStatusCode.OK);
@@ -1857,7 +1840,6 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 calculationsRepository: calculationsRepository,
-                specificationRepository: specificationsRepository,
                 policiesApiClient: policiesApiClient,
                 specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
@@ -1990,12 +1972,12 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string expectedErrorMessage = $"No specification ID {specificationId} were returned from the repository, result came back null";
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(specificationId)
-                .Returns<SpecificationSummary>(x => null);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
 
-            CalculationService service = CreateCalculationService(logger: logger, specificationRepository: specificationsRepository);
+            CalculationService service = CreateCalculationService(logger: logger, specificationsApiClient: specificationsApiClient);
 
             // Act
             IActionResult result = await service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
@@ -2025,14 +2007,14 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string expectedErrorMessage = $"Specification ID {specificationId} does not have contain given funding stream with ID {fundingStreamId}";
 
-            SpecificationSummary specificationSummary = new SpecificationSummary();
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary();
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(specificationId)
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
-            CalculationService service = CreateCalculationService(logger: logger, specificationRepository: specificationsRepository);
+            CalculationService service = CreateCalculationService(logger: logger, specificationsApiClient: specificationsApiClient);
 
             // Act
             IActionResult result = await service.AssociateTemplateIdWithSpecification(specificationId, templateId, fundingStreamId);
@@ -2062,7 +2044,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             string expectedErrorMessage = $"Retrieve funding template with fundingStreamId: {fundingStreamId} and templateId: {templateId} did not return OK.";
 
-            SpecificationSummary specificationSummary = new SpecificationSummary
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
             {
                 FundingStreams = new List<Reference>
                     {
@@ -2073,12 +2055,12 @@ namespace CalculateFunding.Services.Calcs.Services
                     }
             };
 
-            ISpecificationRepository specificationsRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
 
-            specificationsRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(specificationId)
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             var fundingTemplateApiResponse = new ApiResponse<TemplateMetadataContents>(HttpStatusCode.NotFound, null);
 
@@ -2088,7 +2070,7 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService service = CreateCalculationService(
                 logger: logger,
-                specificationRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 policiesApiClient: policiesApiClient);
 
             // Act

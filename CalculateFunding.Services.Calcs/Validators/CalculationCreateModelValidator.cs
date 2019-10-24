@@ -1,11 +1,15 @@
 ﻿using System.Linq;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Services.Calcs.Interfaces;
+using CalculateFunding.Services.Core.Extensions;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Polly;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Validators
 {
@@ -13,20 +17,25 @@ namespace CalculateFunding.Services.Calcs.Validators
     {
         private readonly ICalculationsRepository _calculationRepository;
         private readonly IPreviewService _previewService;
-        private readonly ISpecificationRepository _specificationRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly Policy _specificationsApiClientPolicy;
 
         public CalculationCreateModelValidator(
             ICalculationsRepository calculationRepository,
             IPreviewService previewService,
-            ISpecificationRepository specificationRepository)
+            ISpecificationsApiClient specificationsApiClient,
+            ICalcsResiliencePolicies calcsResiliencePolicies)
         {
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
             Guard.ArgumentNotNull(previewService, nameof(previewService));
-            Guard.ArgumentNotNull(specificationRepository, nameof(specificationRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
+            Guard.ArgumentNotNull(calcsResiliencePolicies, nameof(calcsResiliencePolicies));
+            Guard.ArgumentNotNull(calcsResiliencePolicies?.SpecificationsApiClient, nameof(calcsResiliencePolicies.SpecificationsApiClient));
 
             _calculationRepository = calculationRepository;
             _previewService = previewService;
-            _specificationRepository = specificationRepository;
+            _specificationsApiClient = specificationsApiClient;
+            _specificationsApiClientPolicy = calcsResiliencePolicies.SpecificationsApiClient;
 
             CascadeMode = CascadeMode.StopOnFirstFailure;
 
@@ -95,7 +104,7 @@ namespace CalculateFunding.Services.Calcs.Validators
              });
 
             RuleFor(model => model.FundingStreamId)
-             .Custom((fs, context) =>
+             .Custom(async (fs, context) =>
              {
                  CalculationCreateModel calculationCreateModel = context.ParentContext.InstanceToValidate as CalculationCreateModel;
                  
@@ -109,15 +118,16 @@ namespace CalculateFunding.Services.Calcs.Validators
                  }
                  else
                  {
-                     
-                     Models.Specs.SpecificationSummary specificationSummary = _specificationRepository.GetSpecificationSummaryById(calculationCreateModel.SpecificationId).Result;
+                     ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse = await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(calculationCreateModel.SpecificationId));
 
-                     if (specificationSummary == null)
+                     if (specificationApiResponse == null || !specificationApiResponse.StatusCode.IsSuccess() || specificationApiResponse.Content == null)
                      {
                          context.AddFailure("Failed to find specification for provided specification id.");
                      }
                      else
                      {
+                         SpecModel.SpecificationSummary specificationSummary = specificationApiResponse.Content;
+
                          //I don't want to have to fetch the spec summary again outside of this method to get the name and funding stream so we set them on input model here
                          calculationCreateModel.SpecificationName = specificationSummary.Name;
 

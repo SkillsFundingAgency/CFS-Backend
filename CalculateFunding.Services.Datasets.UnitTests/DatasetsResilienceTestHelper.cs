@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.Datasets
                 ProviderResultsRepository = Policy.NoOpAsync(),
                 DatasetSearchService = Policy.NoOpAsync(),
                 ProviderRepository = Policy.NoOpAsync(),
-                SpecificationsRepository = Policy.NoOpAsync(),
+                SpecificationsApiClient = Policy.NoOpAsync(),
                 DatasetDefinitionSearchRepository = Policy.NoOpAsync(),
                 BlobClient = Policy.NoOpAsync(),
                 JobsApiClient = Policy.NoOpAsync(),

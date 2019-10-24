@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
@@ -34,6 +37,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results.UnitTests.Services
 {
@@ -666,21 +670,21 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 .Index(Arg.Any<IEnumerable<ProviderCalculationResultsIndex>>())
                 .Returns(new[] { new IndexError { ErrorMessage = "an error" } });
 
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = providerResult.Content.SpecificationId,
                 Name = "spec name",
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             ResultsService resultsService = CreateResultsService(
                 resultsRepository: calculationResultsRepository,
                 calculationProviderResultsSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 logger: logger);
 
             //Act
@@ -709,21 +713,21 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
 
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = providerResult.Content.SpecificationId,
                 Name = "spec name",
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             ResultsService resultsService = CreateResultsService(
                 resultsRepository: calculationResultsRepository,
                 calculationProviderResultsSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexCalculationProviderResults();
@@ -792,21 +796,21 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = providerResult.Content.SpecificationId,
                 Name = "spec name",
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationSummary.Id))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             ResultsService resultsService = CreateResultsService(
                 resultsRepository: calculationResultsRepository,
                 calculationProviderResultsSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository);
+                specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult actionResult = await resultsService.ReIndexCalculationProviderResults();
@@ -1277,7 +1281,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ITelemetry telemetry = null,
             IProviderSourceDatasetRepository providerSourceDatasetRepository = null,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository = null,
-            ISpecificationsRepository specificationsRepository = null,
+            ISpecificationsApiClient specificationsApiClient = null,
             IResultsResiliencePolicies resiliencePolicies = null,
             ICacheProvider cacheProvider = null,
             IMessengerService messengerService = null,
@@ -1295,7 +1299,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 telemetry ?? CreateTelemetry(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
-                specificationsRepository ?? CreateSpecificationsRepository(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
                 resiliencePolicies ?? ResultsResilienceTestHelper.GenerateTestPolicies(),
                 cacheProvider ?? CreateCacheProvider(),
                 messengerService ?? CreateMessengerService(),
@@ -1354,9 +1358,9 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             return Substitute.For<ISearchRepository<ProviderCalculationResultsIndex>>();
         }
 
-        static ISpecificationsRepository CreateSpecificationsRepository()
+        static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
-            return Substitute.For<ISpecificationsRepository>();
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         static ICalculationsRepository CreateCalculationsRepository()

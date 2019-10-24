@@ -24,7 +24,6 @@ namespace CalculateFunding.Functions.Scenarios.UnitTests
                 scope.ServiceProvider.GetService<IScenariosRepository>().Should().NotBeNull(nameof(IScenariosRepository));
                 scope.ServiceProvider.GetService<IScenariosService>().Should().NotBeNull(nameof(IScenariosService));
                 scope.ServiceProvider.GetService<IScenariosSearchService>().Should().NotBeNull(nameof(IScenariosSearchService));
-                scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
                 scope.ServiceProvider.GetService<IBuildProjectRepository>().Should().NotBeNull(nameof(IBuildProjectRepository));
             }
         }

@@ -111,11 +111,6 @@ namespace CalculateFunding.Services.Datasets.Services
             return Substitute.For<ISearchRepository<DatasetVersionIndex>>();
         }
 
-        protected ISpecificationsRepository CreateSpecificationsRepository()
-        {
-            return Substitute.For<ISpecificationsRepository>();
-        }
-
         protected ICacheProvider CreateCacheProvider()
         {
             return Substitute.For<ICacheProvider>();

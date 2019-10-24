@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
@@ -15,7 +16,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
 using Newtonsoft.Json;
+using Polly;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Scenarios
 {
@@ -25,23 +28,28 @@ namespace CalculateFunding.Services.Scenarios
         private readonly ILogger _logger;
         private readonly ISearchRepository<ScenarioIndex> _searchRepository;
         private readonly IScenariosRepository _scenariosRepository;
-        private readonly ISpecificationsRepository _specificationsRepository;
+        private readonly ISpecificationsApiClient _specificationsApiClient;
+        private readonly Policy _specificationsApiClientPolicy;
 
         public ScenariosSearchService(
             ISearchRepository<ScenarioIndex> searchRepository,
             IScenariosRepository scenariosRepository,
-            ISpecificationsRepository specificationsRepository,
-            ILogger logger)
+            ISpecificationsApiClient specificationsApiClient,
+            ILogger logger,
+            IScenariosResiliencePolicies scenariosResiliencePolicies)
         {
             Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
             Guard.ArgumentNotNull(scenariosRepository, nameof(scenariosRepository));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
+            Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
             Guard.ArgumentNotNull(logger, nameof(logger));
+            Guard.ArgumentNotNull(scenariosResiliencePolicies, nameof(scenariosResiliencePolicies));
+            Guard.ArgumentNotNull(scenariosResiliencePolicies?.SpecificationsApiClient, nameof(scenariosResiliencePolicies.SpecificationsApiClient));
 
             _searchRepository = searchRepository;
             _scenariosRepository = scenariosRepository;
-            _specificationsRepository = specificationsRepository;
+            _specificationsApiClient = specificationsApiClient;
             _logger = logger;
+            _specificationsApiClientPolicy = scenariosResiliencePolicies.SpecificationsApiClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -106,16 +114,20 @@ namespace CalculateFunding.Services.Scenarios
             IEnumerable<DocumentEntity<TestScenario>> testScenarios = await _scenariosRepository.GetAllTestScenarios();
             List<ScenarioIndex> testScenarioIndexes = new List<ScenarioIndex>();
 
-            Dictionary<string, Models.Specs.SpecificationSummary> specifications = new Dictionary<string, Models.Specs.SpecificationSummary>();
+            Dictionary<string, SpecModel.SpecificationSummary> specifications = new Dictionary<string, SpecModel.SpecificationSummary>();
 
             foreach (DocumentEntity<TestScenario> entity in testScenarios)
             {
                 TestScenario testScenario = entity.Content;
 
-                Models.Specs.SpecificationSummary specificationSummary = null;
+                SpecModel.SpecificationSummary specificationSummary = null;
                 if (!specifications.ContainsKey(testScenario.SpecificationId))
                 {
-                    specificationSummary = await _specificationsRepository.GetSpecificationSummaryById(testScenario.SpecificationId);
+                    Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary> specificationApiResponse =
+                    await _specificationsApiClientPolicy.ExecuteAsync(() => _specificationsApiClient.GetSpecificationSummaryById(testScenario.SpecificationId));
+
+                    specificationSummary = specificationApiResponse.Content;
+
                     specifications.Add(testScenario.SpecificationId, specificationSummary);
                 }
                 else

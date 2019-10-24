@@ -14,7 +14,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
                 ProviderResultsRepository = Policy.NoOpAsync(),
                 ProviderSourceDatasetsRepository = Policy.NoOpAsync(),
                 ScenariosRepository = Policy.NoOpAsync(),
-                SpecificationRepository = Policy.NoOpAsync(),
+                SpecificationsApiClient = Policy.NoOpAsync(),
                 TestResultsRepository = Policy.NoOpAsync(),
                 TestResultsSearchRepository = Policy.NoOpAsync(),
             };

@@ -94,9 +94,6 @@ namespace CalculateFunding.Api.TestRunner
                 .AddSingleton<ITestResultsRepository, TestResultsRepository>();
 
             builder
-                .AddSingleton<ISpecificationRepository, SpecificationRepository>();
-
-            builder
                 .AddSingleton<IScenariosRepository, ScenariosRepository>();
 
             builder
@@ -191,7 +188,7 @@ namespace CalculateFunding.Api.TestRunner
 
             builder.AddFeatureToggling(Configuration);
 
-            builder.AddSingleton<ITestRunnerResiliencePolicies>((ctx) =>
+            builder.AddSingleton((System.Func<System.IServiceProvider, ITestRunnerResiliencePolicies>)((ctx) =>
             {
                 PolicySettings policySettings = ctx.GetService<PolicySettings>();
 
@@ -206,11 +203,11 @@ namespace CalculateFunding.Api.TestRunner
                     ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProviderSourceDatasetsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ScenariosRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(new[] { totalNetworkRequestsPolicy, redisPolicy }),
-                    SpecificationRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     TestResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     TestResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy)
                 };
-            });
+            }));
 
             builder.AddHealthCheckMiddleware();
         }

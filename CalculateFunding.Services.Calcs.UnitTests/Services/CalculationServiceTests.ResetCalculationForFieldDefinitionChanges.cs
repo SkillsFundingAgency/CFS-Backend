@@ -3,26 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
-using CalculateFunding.Models.Versioning;
-using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Calcs.Interfaces;
-using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.Logging;
 using FluentAssertions;
-using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -194,7 +189,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 SourceFiles = new List<SourceFile>()
             };
 
-            Models.Specs.SpecificationSummary specificationSummary = new Models.Specs.SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = specificationId,
                 Name = "Test Spec Name",
@@ -212,11 +207,11 @@ namespace CalculateFunding.Services.Calcs.Services
                 .UpdateCalculation(Arg.Any<Calculation>())
                 .Returns(HttpStatusCode.OK);
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             IBuildProjectsService buildProjectsService = CreateBuildProjectsService();
             buildProjectsService
@@ -237,8 +232,8 @@ namespace CalculateFunding.Services.Calcs.Services
 
             CalculationService calculationService = CreateCalculationService(
                 logger: logger, 
-                calculationsRepository: calculationsRepository, 
-                specificationRepository: specificationRepository,
+                calculationsRepository: calculationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 buildProjectsService: buildProjectsService,
                 sourceCodeService: sourceCodeService,
                 calculationVersionRepository: calculationVersionRepository,

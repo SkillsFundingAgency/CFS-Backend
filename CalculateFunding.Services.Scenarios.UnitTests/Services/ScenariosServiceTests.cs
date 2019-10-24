@@ -14,7 +14,6 @@ using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
@@ -35,6 +34,9 @@ using NSubstitute;
 using Serilog;
 using CalculateFunding.Models.Specs;
 using Calculation = CalculateFunding.Models.Calcs.Calculation;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Models;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Scenarios.Services
 {
@@ -122,12 +124,13 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns((SpecificationSummary)null);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
 
-            ScenariosService service = CreateScenariosService(logger: logger, specificationsRepository: specificationsRepository);
+
+            ScenariosService service = CreateScenariosService(logger: logger, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -167,7 +170,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -177,10 +180,10 @@ namespace CalculateFunding.Services.Scenarios.Services
                 FundingPeriod = new Reference("period-id", "period name")
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
@@ -189,7 +192,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ScenariosService service = CreateScenariosService(
                 logger: logger,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 scenariosRepository: scenariosRepository);
 
             //Act
@@ -229,7 +232,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -239,10 +242,10 @@ namespace CalculateFunding.Services.Scenarios.Services
                 FundingPeriod = new Reference("period-id", "period name")
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             IScenariosRepository scenariosRepository = CreateScenariosRepository();
             scenariosRepository
@@ -252,7 +255,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
             ScenariosService service = CreateScenariosService(logger: logger,
-                specificationsRepository: specificationsRepository, scenariosRepository: scenariosRepository,
+                specificationsApiClient: specificationsApiClient, scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository);
 
             scenariosRepository
@@ -313,7 +316,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -347,10 +350,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
 
@@ -362,7 +365,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 versionRepository: versionRepository);
 
             //Act
@@ -412,7 +415,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -449,15 +452,15 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specification.Id))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository);
+                specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -487,7 +490,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -524,10 +527,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specification.Id))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
             versionRepository
@@ -537,7 +540,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 versionRepository: versionRepository);
 
             //Act
@@ -577,7 +580,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -614,10 +617,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specification.Id))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             IVersionRepository<TestScenarioVersion> versionRepository = CreateVersionRepository();
             versionRepository
@@ -627,7 +630,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository, versionRepository: versionRepository);
+                specificationsApiClient: specificationsApiClient, versionRepository: versionRepository);
 
             //Act
             IActionResult result = await service.SaveVersion(request);
@@ -665,7 +668,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -699,10 +702,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
 
@@ -721,7 +724,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 versionRepository: versionRepository,
                 calcsRepository: calcsRepository,
                 jobsApiClient: jobsApiClient);
@@ -762,7 +765,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -804,10 +807,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
 
@@ -829,7 +832,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 versionRepository: versionRepository,
                 calcsRepository: calcsRepository,
                 jobsApiClient: jobsApiClient);
@@ -869,7 +872,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -917,10 +920,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
 
@@ -942,7 +945,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 versionRepository: versionRepository,
                 calcsRepository: calcsRepository,
                 jobsApiClient: jobsApiClient);
@@ -991,7 +994,7 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId,
                 FundingStreams = new List<Reference>()
@@ -1039,10 +1042,10 @@ namespace CalculateFunding.Services.Scenarios.Services
 
             ISearchRepository<ScenarioIndex> searchrepository = CreateSearchRepository();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             TestScenarioVersion testScenarioVersion = testScenario.Current.Clone() as TestScenarioVersion;
 
@@ -1064,7 +1067,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             ScenariosService service = CreateScenariosService(logger: logger,
                 scenariosRepository: scenariosRepository,
                 searchRepository: searchrepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 versionRepository: versionRepository,
                 calcsRepository: calcsRepository,
                 jobsApiClient: jobsApiClient);
@@ -1385,7 +1388,7 @@ namespace CalculateFunding.Services.Scenarios.Services
                     {
                         Author = new Reference("user-id", "username"),
                         Date = DateTimeOffset.Now,
-                        PublishStatus = PublishStatus.Draft,
+                        PublishStatus = Models.Versioning.PublishStatus.Draft,
                         Gherkin = "source code",
                         Version = 1
                     }
@@ -2224,7 +2227,7 @@ namespace CalculateFunding.Services.Scenarios.Services
         static ScenariosService CreateScenariosService(
             ILogger logger = null,
             IScenariosRepository scenariosRepository = null,
-            ISpecificationsRepository specificationsRepository = null,
+            ISpecificationsApiClient specificationsApiClient = null,
             IValidator<CreateNewTestScenarioVersion> createNewTestScenarioVersionValidator = null,
             ISearchRepository<ScenarioIndex> searchRepository = null,
             ICacheProvider cacheProvider = null,
@@ -2237,7 +2240,7 @@ namespace CalculateFunding.Services.Scenarios.Services
             return new ScenariosService(
                 logger ?? CreateLogger(),
                 scenariosRepository ?? CreateScenariosRepository(),
-                specificationsRepository ?? CreateSpecificationsRepository(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
                 createNewTestScenarioVersionValidator ?? CreateValidator(),
                 searchRepository ?? CreateSearchRepository(),
                 cacheProvider ?? CreateCacheProvider(),
@@ -2273,9 +2276,9 @@ namespace CalculateFunding.Services.Scenarios.Services
             return Substitute.For<IBuildProjectRepository>();
         }
 
-        static ISpecificationsRepository CreateSpecificationsRepository()
+        static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
-            return Substitute.For<ISpecificationsRepository>();
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         static IValidator<CreateNewTestScenarioVersion> CreateValidator(ValidationResult validationResult = null)

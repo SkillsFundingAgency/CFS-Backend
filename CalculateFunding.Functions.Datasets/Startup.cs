@@ -139,9 +139,6 @@ namespace CalculateFunding.Functions.Datasets
                .AddSingleton<IDefinitionSpecificationRelationshipService, DefinitionSpecificationRelationshipService>();
 
             builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
-
-            builder
                .AddSingleton<IExcelDatasetReader, ExcelDatasetReader>();
 
             builder
@@ -224,7 +221,7 @@ namespace CalculateFunding.Functions.Datasets
 
                 return new DatasetsResiliencePolicies()
                 {
-                    SpecificationsRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                    SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     CacheProviderRepository = redisPolicy,
                     ProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ProviderRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),

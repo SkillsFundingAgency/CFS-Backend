@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Services.CalcEngine.Interfaces;
 using CalculateFunding.Services.Core.Interfaces.Services;
 using CalculateFunding.Tests.Common;
@@ -24,7 +25,7 @@ namespace CalculateFunding.Functions.CalcEngine.UnitTests
                 // Assert
                 scope.ServiceProvider.GetService<ICalculationEngineService>().Should().NotBeNull(nameof(ICalculationEngineService));
                 scope.ServiceProvider.GetService<ICalculationsRepository>().Should().NotBeNull(nameof(ICalculationsRepository));
-                scope.ServiceProvider.GetService<ISpecificationsRepository>().Should().NotBeNull(nameof(ISpecificationsRepository));
+                scope.ServiceProvider.GetService<ISpecificationsApiClient>().Should().NotBeNull(nameof(ISpecificationsApiClient));
                 scope.ServiceProvider.GetService<ICalculationEngine>().Should().NotBeNull(nameof(ICalculationEngine));
                 scope.ServiceProvider.GetService<IAllocationFactory>().Should().NotBeNull(nameof(IAllocationFactory));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));

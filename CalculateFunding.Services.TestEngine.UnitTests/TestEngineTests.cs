@@ -11,6 +11,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.TestRunner.UnitTests
 {
@@ -28,7 +29,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             IEnumerable<TestScenario> scenarios = new TestScenario[0];
             IEnumerable<ProviderSourceDataset> providerSourceDatasets = new ProviderSourceDataset[0];
             IEnumerable<TestScenarioResult> testScenarioResults = new TestScenarioResult[0];
-            SpecificationSummary specificationSummary = new SpecificationSummary();
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary();
             BuildProject buildProject = new BuildProject();
 
             ILogger logger = CreateLogger();
@@ -57,7 +58,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             IEnumerable<TestScenario> scenarios = new TestScenario[0];
             IEnumerable<ProviderSourceDataset> providerSourceDatasets = new ProviderSourceDataset[0];
             IEnumerable<TestScenarioResult> testScenarioResults = new TestScenarioResult[0];
-            SpecificationSummary specificationSummary = new SpecificationSummary();
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary();
             BuildProject buildProject = new BuildProject();
 
             ILogger logger = CreateLogger();
@@ -86,7 +87,7 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             IEnumerable<TestScenario> scenarios = new[] { new TestScenario() };
             IEnumerable<ProviderSourceDataset> providerSourceDatasets = new ProviderSourceDataset[0];
             IEnumerable<TestScenarioResult> testScenarioResults = new TestScenarioResult[0];
-            SpecificationSummary specificationSummary = new SpecificationSummary();
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary();
             BuildProject buildProject = new BuildProject();
 
             ILogger logger = CreateLogger();
@@ -117,7 +118,8 @@ namespace CalculateFunding.Services.TestRunner.UnitTests
             IEnumerable<TestScenario> scenarios = new[] { new TestScenario() };
             IEnumerable<ProviderSourceDataset> providerSourceDatasets = new ProviderSourceDataset[0];
             IEnumerable<TestScenarioResult> testScenarioResults = new TestScenarioResult[0];
-            SpecificationSummary specificationSummary = new SpecificationSummary { Id = SpecificationId, Name = "spec-name" };
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary { Id = SpecificationId, Name = "spec-name" };
+
             BuildProject buildProject = new BuildProject();
 
             IEnumerable<ScenarioResult> scenarioResults = new[]

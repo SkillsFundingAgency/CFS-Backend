@@ -1,4 +1,6 @@
-﻿using CalculateFunding.Common.FeatureToggles;
+﻿using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
@@ -6,10 +8,8 @@ using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
-using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.UnitTests;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,9 +20,10 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Results.UnitTests.Services
 {
@@ -79,21 +80,21 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ILogger logger = CreateLogger();
 
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = providerResult.SpecificationId,
                 Name = "spec name",
             };
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaries()
-                .Returns(new List<SpecificationSummary> { specificationSummary });
+                .Returns(new ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>(HttpStatusCode.OK, new List<SpecModel.SpecificationSummary> { specificationSummary }));
 
             ProviderCalculationResultsReIndexerService service = CreateService(
                 resultsRepository: calculationResultsRepository,
                 providerCalculationResultsSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 logger: logger);
 
             //Act
@@ -129,7 +130,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
 
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateSearchRepository();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = providerResult.SpecificationId,
                 Name = "spec name",
@@ -143,17 +144,17 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                     y(new List<ProviderResult> { providerResult }).GetAwaiter().GetResult();
                 });
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaries()
-                .Returns(new List<SpecificationSummary> { specificationSummary });
+                .Returns(new ApiResponse<IEnumerable<SpecModel.SpecificationSummary>>(HttpStatusCode.OK, new List<SpecModel.SpecificationSummary> { specificationSummary }));
 
             IFeatureToggle featureToggle = CreateFeatureToggle(featureToggleEnabled);
 
             ProviderCalculationResultsReIndexerService service = CreateService(
                 resultsRepository: calculationResultsRepository,
                 providerCalculationResultsSearchRepository: searchRepository,
-                specificationsRepository: specificationsRepository,
+                specificationsApiClient: specificationsApiClient,
                 featureToggle: featureToggle);
 
             //Act
@@ -231,7 +232,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         public static ProviderCalculationResultsReIndexerService CreateService(
             ILogger logger = null,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
-            ISpecificationsRepository specificationsRepository = null,
+            ISpecificationsApiClient specificationsApiClient = null,
             ICalculationResultsRepository resultsRepository = null,
             IFeatureToggle featureToggle = null,
             IMessengerService messengerService = null)
@@ -239,7 +240,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             return new ProviderCalculationResultsReIndexerService(
                     logger ?? CreateLogger(),
                     providerCalculationResultsSearchRepository ?? CreateSearchRepository(),
-                    specificationsRepository ?? CreateSpecificationsRepository(),
+                    specificationsApiClient ?? CreateSpecificationsApiClient(),
                     resultsRepository ?? CreateCalculationResultsRepository(),
                     CreateResiliencePolicies(),
                     featureToggle ?? CreateFeatureToggle(),
@@ -257,10 +258,11 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             return Substitute.For<ISearchRepository<ProviderCalculationResultsIndex>>();
         }
 
-        private static ISpecificationsRepository CreateSpecificationsRepository()
+        static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
-            return Substitute.For<ISpecificationsRepository>();
+            return Substitute.For<ISpecificationsApiClient>();
         }
+
         private static ICalculationResultsRepository CreateCalculationResultsRepository()
         {
             return Substitute.For<ICalculationResultsRepository>();

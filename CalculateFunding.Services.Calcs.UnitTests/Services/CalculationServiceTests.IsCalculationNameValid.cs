@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Services
 {
@@ -58,12 +59,12 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             string specificationId = "spec1";
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns((SpecificationSummary)null);
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
 
-            CalculationService service = CreateCalculationService(specificationRepository: specificationRepository);
+            CalculationService service = CreateCalculationService(specificationsApiClient: specificationsApiClient);
 
             // Act
             IActionResult result = await service.IsCalculationNameValid(specificationId, "calc1", null);
@@ -80,17 +81,17 @@ namespace CalculateFunding.Services.Calcs.Services
             // Arrange
             string specificationId = "spec1";
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new SpecificationSummary { Id = specificationId });
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Id = specificationId }));
 
             ICalculationsRepository calculationsRepository = CreateCalculationsRepository();
             calculationsRepository
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(new List<Calculation>());
 
-            CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
+            CalculationService service = CreateCalculationService(specificationsApiClient: specificationsApiClient, calculationsRepository: calculationsRepository);
 
             // Act
             IActionResult result = await service.IsCalculationNameValid(specificationId, "calc1", null);
@@ -108,10 +109,10 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string calcName = "calc1";
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new SpecificationSummary { Id = specificationId });
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Id = specificationId }));
 
             List<Calculation> existingCalcs = new List<Calculation>
             {
@@ -131,7 +132,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(existingCalcs);
 
-            CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
+            CalculationService service = CreateCalculationService(specificationsApiClient: specificationsApiClient, calculationsRepository: calculationsRepository);
 
             // Act
             IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, null);
@@ -149,10 +150,10 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string calcName = "calc1";
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new SpecificationSummary { Id = specificationId });
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Id = specificationId }));
 
             List<Calculation> existingCalcs = new List<Calculation>
             {
@@ -172,7 +173,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(existingCalcs);
 
-            CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
+            CalculationService service = CreateCalculationService(specificationsApiClient: specificationsApiClient, calculationsRepository: calculationsRepository);
 
             // Act
             IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, null);
@@ -190,10 +191,10 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string calcName = "calc1";
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new SpecificationSummary { Id = specificationId });
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Id = specificationId }));
 
             List<Calculation> existingCalcs = new List<Calculation>
             {
@@ -213,7 +214,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(existingCalcs);
 
-            CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
+            CalculationService service = CreateCalculationService(specificationsApiClient: specificationsApiClient, calculationsRepository: calculationsRepository);
 
             // Act
             IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, null);
@@ -231,10 +232,10 @@ namespace CalculateFunding.Services.Calcs.Services
             string specificationId = "spec1";
             string calcName = "calc1";
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new SpecificationSummary { Id = specificationId });
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Id = specificationId }));
 
             List<Calculation> existingCalcs = new List<Calculation>
             {
@@ -254,7 +255,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(existingCalcs);
 
-            CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
+            CalculationService service = CreateCalculationService(specificationsApiClient: specificationsApiClient, calculationsRepository: calculationsRepository);
 
             // Act
             IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, null);
@@ -273,10 +274,10 @@ namespace CalculateFunding.Services.Calcs.Services
             string calcName = "calc1";
             string calcSpecId = "calc-1";
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(new SpecificationSummary { Id = specificationId });
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Id = specificationId }));
 
             List<Calculation> existingCalcs = new List<Calculation>
             {
@@ -297,7 +298,7 @@ namespace CalculateFunding.Services.Calcs.Services
                 .GetCalculationsBySpecificationId(Arg.Is(specificationId))
                 .Returns(existingCalcs);
 
-            CalculationService service = CreateCalculationService(specificationRepository: specificationRepository, calculationsRepository: calculationsRepository);
+            CalculationService service = CreateCalculationService(specificationsApiClient: specificationsApiClient, calculationsRepository: calculationsRepository);
 
             // Act
             IActionResult result = await service.IsCalculationNameValid(specificationId, calcName, calcSpecId);

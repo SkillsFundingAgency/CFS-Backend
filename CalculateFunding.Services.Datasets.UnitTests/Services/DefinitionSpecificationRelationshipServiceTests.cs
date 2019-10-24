@@ -12,29 +12,28 @@ using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.MappingProfiles;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Datasets.Interfaces;
-using CalculateFunding.Services.Datasets.MappingProfiles;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Datasets.Services
 {
@@ -177,13 +176,13 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinition(Arg.Is(datasetDefinitionId))
                 .Returns(definition);
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Any<string>())
-                .Returns((SpecificationSummary)null);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository);
+                datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.CreateRelationship(request);
@@ -214,7 +213,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             Models.Datasets.Schema.DatasetDefinition definition = new Models.Datasets.Schema.DatasetDefinition();
 
-            SpecificationSummary specification = new SpecificationSummary();
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
 
             CreateDefinitionSpecificationRelationshipModel model = new CreateDefinitionSpecificationRelationshipModel
             {
@@ -238,17 +237,17 @@ namespace CalculateFunding.Services.Datasets.Services
                 .GetDatasetDefinition(Arg.Is(datasetDefinitionId))
                 .Returns(definition);
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Any<string>())
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             datasetRepository
                 .SaveDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
                 .Returns(HttpStatusCode.BadRequest);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository);
+                datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.CreateRelationship(request);
@@ -282,7 +281,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 Id = datasetDefinitionId
             };
 
-            SpecificationSummary specification = new SpecificationSummary
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary
             {
                 Id = specificationId
             };
@@ -318,10 +317,10 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ICalcsRepository calcsRepository = new CalcsRepository(calcsClient, CreateMapper());
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Any<string>())
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             datasetRepository
                 .SaveDefinitionSpecificationRelationship(Arg.Any<DefinitionSpecificationRelationship>())
@@ -330,7 +329,7 @@ namespace CalculateFunding.Services.Datasets.Services
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                datasetRepository: datasetRepository, specificationsRepository: specificationsRepository, cacheProvider: cacheProvider, calcsRepository: calcsRepository);
+                datasetRepository: datasetRepository, specificationsApiClient: specificationsApiClient, cacheProvider: cacheProvider, calcsRepository: calcsRepository);
 
             //Act
             IActionResult result = await service.CreateRelationship(request);
@@ -631,12 +630,13 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns((SpecificationSummary)null);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
 
-            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, specificationsRepository: specificationsRepository);
+
+            DefinitionSpecificationRelationshipService service = CreateService(logger: logger, specificationsApiClient: specificationsApiClient);
 
             //Act
             IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
@@ -674,12 +674,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary();
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             IEnumerable<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
 
@@ -689,7 +689,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(relationships);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+                specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
             IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
@@ -732,12 +732,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary();
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             IList<DefinitionSpecificationRelationship> relationships = new List<DefinitionSpecificationRelationship>();
             relationships.Add(new DefinitionSpecificationRelationship
@@ -754,7 +754,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(relationships);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+                specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
             IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
@@ -803,12 +803,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary();
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
             {
@@ -837,7 +837,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(datasetDefinition);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+                specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
             IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
@@ -913,12 +913,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary();
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
             {
@@ -952,7 +952,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(datasetDefinition);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+                specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
             IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
@@ -1033,12 +1033,12 @@ namespace CalculateFunding.Services.Datasets.Services
 
             ILogger logger = CreateLogger();
 
-            SpecificationSummary specification = new SpecificationSummary();
+            SpecModel.SpecificationSummary specification = new SpecModel.SpecificationSummary();
 
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(specificationId))
-                .Returns(specification);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specification));
 
             Models.Datasets.Schema.DatasetDefinition datasetDefinition = new Models.Datasets.Schema.DatasetDefinition
             {
@@ -1081,7 +1081,7 @@ namespace CalculateFunding.Services.Datasets.Services
                 .Returns(dataset);
 
             DefinitionSpecificationRelationshipService service = CreateService(logger: logger,
-                specificationsRepository: specificationsRepository, datasetRepository: datasetRepository);
+                specificationsApiClient: specificationsApiClient, datasetRepository: datasetRepository);
 
             //Act
             IActionResult result = await service.GetCurrentRelationshipsBySpecificationId(request);
@@ -2006,12 +2006,12 @@ namespace CalculateFunding.Services.Datasets.Services
         }
 
         private static DefinitionSpecificationRelationshipService CreateService(IDatasetRepository datasetRepository = null,
-            ILogger logger = null, IMapper mapper = null, ISpecificationsRepository specificationsRepository = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
+            ILogger logger = null, IMapper mapper = null, ISpecificationsApiClient specificationsApiClient = null, IValidator<CreateDefinitionSpecificationRelationshipModel> relationshipModelValidator = null,
             IMessengerService messengerService = null, IDatasetService datasetService = null, ICalcsRepository calcsRepository = null,
             IDefinitionsService definitionsService = null, ICacheProvider cacheProvider = null, IJobsApiClient jobsApiClient = null)
         {
             return new DefinitionSpecificationRelationshipService(datasetRepository ?? CreateDatasetRepository(), logger ?? CreateLogger(),
-                specificationsRepository ?? CreateSpecificationsRepository(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(), relationshipModelValidator ?? CreateRelationshipModelValidator(),
                 messengerService ?? CreateMessengerService(), datasetService ?? CreateDatasetService(),
                 calcsRepository ?? CreateCalcsRepository(), definitionsService ?? CreateDefinitionService(), cacheProvider ?? CreateCacheProvider(),
                 DatasetsResilienceTestHelper.GenerateTestPolicies(), jobsApiClient ?? CreateJobsApiClient());
@@ -2036,11 +2036,6 @@ namespace CalculateFunding.Services.Datasets.Services
         private static IDefinitionsService CreateDefinitionService()
         {
             return Substitute.For<IDefinitionsService>();
-        }
-
-        private static ISpecificationsRepository CreateSpecificationsRepository()
-        {
-            return Substitute.For<ISpecificationsRepository>();
         }
 
         private static ICalcsRepository CreateCalcsRepository()
@@ -2075,6 +2070,11 @@ namespace CalculateFunding.Services.Datasets.Services
         private static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
+        }
+
+        private static ISpecificationsApiClient CreateSpecificationsApiClient()
+        {
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         private static ICacheProvider CreateCacheProvider()

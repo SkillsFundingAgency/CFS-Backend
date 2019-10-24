@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.CosmosDb;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.CalcEngine.Caching;
 using CalculateFunding.Services.CalcEngine.Interfaces;
@@ -15,6 +17,7 @@ using CalculateFunding.Services.Core.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using Serilog;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.CalcEngine.UnitTests
 {
@@ -46,11 +49,11 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsApiClient);
 
-            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -99,11 +102,11 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsApiClient);
 
-            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -177,11 +180,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsApiClient);
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository);
-
-            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -239,12 +241,12 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IProviderResultCalculationsHashProvider hashProvider = Substitute.For<IProviderResultCalculationsHashProvider>();
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository, calculationsHashProvider: hashProvider);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsApiClient, calculationsHashProvider: hashProvider);
 
-            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -303,11 +305,11 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsApiClient);
 
-            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -381,12 +383,12 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<CalculationProviderResultsIndex> searchRepository = CreateCalculationProviderResultsSearchRepository();
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             IProviderResultCalculationsHashProvider hashProvider = Substitute.For<IProviderResultCalculationsHashProvider>();
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsRepository, calculationsHashProvider: hashProvider);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, searchRepository, specificationsApiClient, calculationsHashProvider: hashProvider);
 
-            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -466,16 +468,16 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsNewProviderCalculationResultsIndexEnabled()
                 .Returns(true);
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsRepository: specificationsRepository, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient: specificationsApiClient, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
 
-            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -550,16 +552,16 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             // Arrange
             ICosmosRepository cosmosRepository = CreateCosmosRepository();
             ISearchRepository<ProviderCalculationResultsIndex> searchRepository = CreateProviderCalculationResultsSearchRepository();
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
             IFeatureToggle featureToggle = CreateFeatureToggle();
             featureToggle
                 .IsNewProviderCalculationResultsIndexEnabled()
                 .Returns(true);
 
-            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsRepository: specificationsRepository, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
+            ProviderResultsRepository repo = CreateProviderResultsRepository(cosmosRepository, specificationsApiClient: specificationsApiClient, providerCalculationResultsSearchRepository: searchRepository, featureToggle: featureToggle);
 
-            specificationsRepository.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new SpecificationSummary { Name = "Specification 1" });
+            specificationsApiClient.GetSpecificationSummaryById(Arg.Any<string>()).Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary { Name = "Specification 1" }));
 
             IEnumerable<ProviderResult> results = new List<ProviderResult>
             {
@@ -634,23 +636,30 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
         private static ProviderResultsRepository CreateProviderResultsRepository(
             ICosmosRepository cosmosRepository = null,
             ISearchRepository<CalculationProviderResultsIndex> searchRepository = null,
-            ISpecificationsRepository specificationsRepository = null,
+            ISpecificationsApiClient specificationsApiClient = null,
             ILogger logger = null,
             IFeatureToggle featureToggle = null,
             ISearchRepository<ProviderCalculationResultsIndex> providerCalculationResultsSearchRepository = null,
             EngineSettings engineSettings = null,
-            IProviderResultCalculationsHashProvider calculationsHashProvider = null)
+            IProviderResultCalculationsHashProvider calculationsHashProvider = null,
+            ICalculatorResiliencePolicies calculatorResiliencePolicies = null)
         {
 
             return new ProviderResultsRepository(
                 cosmosRepository ?? CreateCosmosRepository(),
                 searchRepository ?? CreateCalculationProviderResultsSearchRepository(),
-                specificationsRepository ?? CreateSpecificationsRepository(),
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
                 logger ?? CreateLogger(),
                 providerCalculationResultsSearchRepository ?? CreateProviderCalculationResultsSearchRepository(),
                 featureToggle ?? CreateFeatureToggle(),
                 engineSettings ?? CreateEngineSettings(),
-                calculationsHashProvider ?? CreateCalcHashProvider());
+                calculationsHashProvider ?? CreateCalcHashProvider(),
+                calculatorResiliencePolicies ?? CreateCalculatorResiliencePolicies());
+        }
+
+        private static ICalculatorResiliencePolicies CreateCalculatorResiliencePolicies()
+        {
+            return CalcEngineResilienceTestHelper.GenerateTestPolicies();
         }
 
         private static IProviderResultCalculationsHashProvider CreateCalcHashProvider()
@@ -678,9 +687,9 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             return Substitute.For<ISearchRepository<CalculationProviderResultsIndex>>();
         }
 
-        private static ISpecificationsRepository CreateSpecificationsRepository()
+        private static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
-            return Substitute.For<ISpecificationsRepository>();
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         private static EngineSettings CreateEngineSettings()

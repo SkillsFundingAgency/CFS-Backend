@@ -11,5 +11,7 @@ namespace CalculateFunding.Services.Scenarios.Interfaces
         Policy DatasetRepository { get; set; }
 
         Policy ScenariosRepository { get; set; }
+
+        Policy SpecificationsApiClient { get; set; }
     }
 }

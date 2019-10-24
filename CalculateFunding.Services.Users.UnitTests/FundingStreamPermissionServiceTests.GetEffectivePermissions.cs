@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Users;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Extensions;
@@ -13,6 +12,10 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using CalculateFunding.Common.ApiClient.Specifications;
+using CalculateFunding.Common.ApiClient.Models;
+using System.Net;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Users
 {
@@ -132,15 +135,16 @@ namespace CalculateFunding.Services.Users
                 .GetHashValue<EffectiveSpecificationPermission>(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"), Arg.Is(SpecificationId))
                 .Returns(cachedPermission);
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
 
-            SpecificationSummary specificationSummary = null;
-            specificationRepository
+            SpecModel.SpecificationSummary specificationSummary = null;
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
+
 
             FundingStreamPermissionService service = CreateService(
-                specificationRepository: specificationRepository,
+                specificationsApiClient: specificationsApiClient,
                 cacheProvider: cacheProvider);
 
 
@@ -173,7 +177,7 @@ namespace CalculateFunding.Services.Users
         {
             // Arrange
             IUserRepository userRepository = CreateUserRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             ICacheProvider cacheProvider = CreateCacheProvider();
             IMapper mapper = CreateMappingConfiguration();
 
@@ -187,7 +191,7 @@ namespace CalculateFunding.Services.Users
                 .HashSetExists(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"))
                 .Returns(false);
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = SpecificationId,
                 FundingStreams = new List<Reference>()
@@ -196,9 +200,9 @@ namespace CalculateFunding.Services.Users
                 }
             };
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             FundingStreamPermission fs1Permission = new FundingStreamPermission()
             {
@@ -223,7 +227,7 @@ namespace CalculateFunding.Services.Users
                 .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is("fs1"))
                 .Returns(fs1Permission);
 
-            FundingStreamPermissionService service = CreateService(userRepository, specificationRepository, cacheProvider: cacheProvider, mapper: mapper);
+            FundingStreamPermissionService service = CreateService(userRepository, specificationsApiClient, cacheProvider: cacheProvider, mapper: mapper);
 
 
             // Act
@@ -292,7 +296,7 @@ namespace CalculateFunding.Services.Users
         {
             // Arrange
             IUserRepository userRepository = CreateUserRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             ICacheProvider cacheProvider = CreateCacheProvider();
             IMapper mapper = CreateMappingConfiguration();
 
@@ -306,7 +310,7 @@ namespace CalculateFunding.Services.Users
                 .HashSetExists(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"))
                 .Returns(true);
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = SpecificationId,
                 FundingStreams = new List<Reference>()
@@ -315,9 +319,9 @@ namespace CalculateFunding.Services.Users
                 }
             };
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             FundingStreamPermission fs1Permission = new FundingStreamPermission()
             {
@@ -341,7 +345,7 @@ namespace CalculateFunding.Services.Users
                 .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is("fs1"))
                 .Returns(fs1Permission);
 
-            FundingStreamPermissionService service = CreateService(userRepository, specificationRepository, cacheProvider: cacheProvider, mapper: mapper);
+            FundingStreamPermissionService service = CreateService(userRepository, specificationsApiClient, cacheProvider: cacheProvider, mapper: mapper);
 
 
             // Act
@@ -409,7 +413,7 @@ namespace CalculateFunding.Services.Users
         {
             // Arrange
             IUserRepository userRepository = CreateUserRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             ICacheProvider cacheProvider = CreateCacheProvider();
             IMapper mapper = CreateMappingConfiguration();
 
@@ -419,7 +423,7 @@ namespace CalculateFunding.Services.Users
                 .GetHashValue<EffectiveSpecificationPermission>(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"), Arg.Is(SpecificationId))
                 .Returns(cachedPermission);
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = SpecificationId,
                 FundingStreams = new List<Reference>()
@@ -429,9 +433,9 @@ namespace CalculateFunding.Services.Users
                 }
             };
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             FundingStreamPermission fs1Permission = new FundingStreamPermission()
             {
@@ -477,7 +481,7 @@ namespace CalculateFunding.Services.Users
                 .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is("fs2"))
                 .Returns(fs2Permission);
 
-            FundingStreamPermissionService service = CreateService(userRepository, specificationRepository, cacheProvider: cacheProvider, mapper: mapper);
+            FundingStreamPermissionService service = CreateService(userRepository, specificationsApiClient, cacheProvider: cacheProvider, mapper: mapper);
 
 
             // Act
@@ -536,7 +540,7 @@ namespace CalculateFunding.Services.Users
         {
             // Arrange
             IUserRepository userRepository = CreateUserRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             ICacheProvider cacheProvider = CreateCacheProvider();
             IMapper mapper = CreateMappingConfiguration();
 
@@ -546,7 +550,7 @@ namespace CalculateFunding.Services.Users
                 .GetHashValue<EffectiveSpecificationPermission>(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"), Arg.Is(SpecificationId))
                 .Returns(cachedPermission);
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = SpecificationId,
                 FundingStreams = new List<Reference>()
@@ -555,9 +559,9 @@ namespace CalculateFunding.Services.Users
                 }
             };
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             FundingStreamPermission fs1Permission = null;
 
@@ -565,7 +569,7 @@ namespace CalculateFunding.Services.Users
                 .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is("fs1"))
                 .Returns(fs1Permission);
 
-            FundingStreamPermissionService service = CreateService(userRepository, specificationRepository, cacheProvider: cacheProvider, mapper: mapper);
+            FundingStreamPermissionService service = CreateService(userRepository, specificationsApiClient, cacheProvider: cacheProvider, mapper: mapper);
 
 
             // Act
@@ -624,7 +628,7 @@ namespace CalculateFunding.Services.Users
         {
             // Arrange
             IUserRepository userRepository = CreateUserRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             ICacheProvider cacheProvider = CreateCacheProvider();
             IMapper mapper = CreateMappingConfiguration();
 
@@ -634,7 +638,7 @@ namespace CalculateFunding.Services.Users
                 .GetHashValue<EffectiveSpecificationPermission>(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"), Arg.Is(SpecificationId))
                 .Returns(cachedPermission);
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = SpecificationId,
                 FundingStreams = new List<Reference>()
@@ -644,9 +648,9 @@ namespace CalculateFunding.Services.Users
                 }
             };
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             FundingStreamPermission fs1Permission = new FundingStreamPermission()
             {
@@ -692,7 +696,7 @@ namespace CalculateFunding.Services.Users
                 .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is("fs2"))
                 .Returns(fs2Permission);
 
-            FundingStreamPermissionService service = CreateService(userRepository, specificationRepository, cacheProvider: cacheProvider, mapper: mapper);
+            FundingStreamPermissionService service = CreateService(userRepository, specificationsApiClient, cacheProvider: cacheProvider, mapper: mapper);
 
 
             // Act
@@ -751,7 +755,7 @@ namespace CalculateFunding.Services.Users
         {
             // Arrange
             IUserRepository userRepository = CreateUserRepository();
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
             ICacheProvider cacheProvider = CreateCacheProvider();
             IMapper mapper = CreateMappingConfiguration();
 
@@ -761,7 +765,7 @@ namespace CalculateFunding.Services.Users
                 .GetHashValue<EffectiveSpecificationPermission>(Arg.Is($"{CacheKeys.EffectivePermissions}:{UserId}"), Arg.Is(SpecificationId))
                 .Returns(cachedPermission);
 
-            SpecificationSummary specificationSummary = new SpecificationSummary()
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary()
             {
                 Id = SpecificationId,
                 FundingStreams = new List<Reference>()
@@ -771,9 +775,9 @@ namespace CalculateFunding.Services.Users
                 }
             };
 
-            specificationRepository
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             FundingStreamPermission fs1Permission = null;
 
@@ -787,7 +791,7 @@ namespace CalculateFunding.Services.Users
                 .GetFundingStreamPermission(Arg.Is(UserId), Arg.Is("fs2"))
                 .Returns(fs2Permission);
 
-            FundingStreamPermissionService service = CreateService(userRepository, specificationRepository, cacheProvider: cacheProvider, mapper: mapper);
+            FundingStreamPermissionService service = CreateService(userRepository, specificationsApiClient, cacheProvider: cacheProvider, mapper: mapper);
 
 
             // Act

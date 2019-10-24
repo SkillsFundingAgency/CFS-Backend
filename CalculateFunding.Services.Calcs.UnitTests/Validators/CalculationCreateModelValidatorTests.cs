@@ -1,14 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using CalculateFunding.Common.ApiClient.Specifications;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Calcs.Interfaces;
 using FluentAssertions;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
+using SpecModel = CalculateFunding.Common.ApiClient.Specifications.Models;
 
 namespace CalculateFunding.Services.Calcs.Validators
 {
@@ -79,12 +81,12 @@ namespace CalculateFunding.Services.Calcs.Validators
             CalculationCreateModel model = CreateModel(CalculationType.Additional);
             model.FundingStreamId = string.Empty;
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
-                .Returns(new SpecificationSummary());
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, new SpecModel.SpecificationSummary()));
 
-            CalculationCreateModelValidator validator = CreateValidator(specificationRepository: specificationRepository);
+            CalculationCreateModelValidator validator = CreateValidator(specificationsApiClient: specificationsApiClient);
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -196,12 +198,12 @@ namespace CalculateFunding.Services.Calcs.Validators
             //Arrange
             CalculationCreateModel model = CreateModel();
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
-                .Returns((SpecificationSummary)null);
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, null));
 
-            CalculationCreateModelValidator validator = CreateValidator(specificationRepository: specificationRepository);
+            CalculationCreateModelValidator validator = CreateValidator(specificationsApiClient: specificationsApiClient);
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -219,17 +221,17 @@ namespace CalculateFunding.Services.Calcs.Validators
             //Arrange
             CalculationCreateModel model = CreateModel();
 
-            SpecificationSummary specificationSummary = new SpecificationSummary
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
             {
                 FundingStreams = new[] { new Reference() }
             };
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
-            CalculationCreateModelValidator validator = CreateValidator(specificationRepository: specificationRepository);
+            CalculationCreateModelValidator validator = CreateValidator(specificationsApiClient: specificationsApiClient);
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -253,19 +255,19 @@ namespace CalculateFunding.Services.Calcs.Validators
                 .GetCalculationsBySpecificationIdAndCalculationName(Arg.Is(model.SpecificationId), Arg.Is(model.Name))
                 .Returns((Calculation)null);
 
-            SpecificationSummary specificationSummary = new SpecificationSummary
+            SpecModel.SpecificationSummary specificationSummary = new SpecModel.SpecificationSummary
             {
                 Name = "spec name",
                 FundingStreams = new[] { new Reference(model.FundingStreamId, "funding stream name") }
             };
 
-            ISpecificationRepository specificationRepository = CreateSpecificationRepository();
-            specificationRepository
+            ISpecificationsApiClient specificationsApiClient = CreateSpecificationsApiClient();
+            specificationsApiClient
                 .GetSpecificationSummaryById(Arg.Is(model.SpecificationId))
-                .Returns(specificationSummary);
+                .Returns(new Common.ApiClient.Models.ApiResponse<SpecModel.SpecificationSummary>(HttpStatusCode.OK, specificationSummary));
 
             CalculationCreateModelValidator validator = CreateValidator(
-                calculationsRepository, specificationRepository: specificationRepository);
+                calculationsRepository, specificationsApiClient: specificationsApiClient);
 
             //Act
             ValidationResult result = await validator.ValidateAsync(model);
@@ -288,12 +290,13 @@ namespace CalculateFunding.Services.Calcs.Validators
         private static CalculationCreateModelValidator CreateValidator(
             ICalculationsRepository calculationRepository = null,
             IPreviewService previewService = null,
-            ISpecificationRepository specificationRepository = null)
+            ISpecificationsApiClient specificationsApiClient = null)
         {
             return new CalculationCreateModelValidator(
                 calculationRepository ?? CreateCalculationRepository(),
                 previewService ?? CreatePreviewService(),
-                specificationRepository ?? CreateSpecificationRepository());
+                specificationsApiClient ?? CreateSpecificationsApiClient(),
+                CalcsResilienceTestHelper.GenerateTestPolicies());
         }
 
         private static ICalculationsRepository CreateCalculationRepository()
@@ -324,9 +327,9 @@ namespace CalculateFunding.Services.Calcs.Validators
             return previewService;
         }
 
-        private static ISpecificationRepository CreateSpecificationRepository()
+        private static ISpecificationsApiClient CreateSpecificationsApiClient()
         {
-            return Substitute.For<ISpecificationRepository>();
+            return Substitute.For<ISpecificationsApiClient>();
         }
 
         private static CalculationCreateModel CreateModel(CalculationType calculationType = CalculationType.Template)
