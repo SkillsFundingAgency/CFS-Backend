@@ -61,7 +61,7 @@ namespace CalculateFunding.Services.Specs.Validators
                        return;
                    }
 
-                   Specification specification = _specificationsRepository.GetSpecificationByQuery(m => m.Name.Trim().ToLower() == specModel.Name.ToLower() && m.Id != specModel.SpecificationId).Result;
+                   Specification specification = _specificationsRepository.GetSpecificationByQuery(m => m.Name.ToLower() == specModel.Name.Trim().ToLower() && m.Id != specModel.SpecificationId).Result;
                    if (specification != null)
                        context.AddFailure($"You must give a unique specification name");
                });
