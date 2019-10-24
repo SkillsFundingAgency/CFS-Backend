@@ -408,7 +408,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             OkObjectResult objectResult = result as OkObjectResult;
 
-            IEnumerable<DefinitionSpecificationRelationship> items = objectResult.Value as IEnumerable<DefinitionSpecificationRelationship>;
+            IEnumerable<DatasetSpecificationRelationshipViewModel> items = objectResult.Value as IEnumerable<DatasetSpecificationRelationshipViewModel>;
 
             items
                 .Count()
@@ -458,7 +458,7 @@ namespace CalculateFunding.Services.Datasets.Services
 
             OkObjectResult objectResult = result as OkObjectResult;
 
-            IEnumerable<DefinitionSpecificationRelationship> items = objectResult.Value as IEnumerable<DefinitionSpecificationRelationship>;
+            IEnumerable<DatasetSpecificationRelationshipViewModel> items = objectResult.Value as IEnumerable<DatasetSpecificationRelationshipViewModel>;
 
             items
                 .Count()

@@ -213,7 +213,30 @@ namespace CalculateFunding.Services.Datasets
                 relationships = new DefinitionSpecificationRelationship[0];
             }
 
-            return new OkObjectResult(relationships);
+            IList<DatasetSpecificationRelationshipViewModel> relationshipViewModels = new List<DatasetSpecificationRelationshipViewModel>();
+
+            if (relationships.IsNullOrEmpty())
+            {
+                return new OkObjectResult(relationshipViewModels);
+            }
+
+            IList<Task<DatasetSpecificationRelationshipViewModel>> tasks = new List<Task<DatasetSpecificationRelationshipViewModel>>();
+
+            foreach (DefinitionSpecificationRelationship relationship in relationships)
+            {
+                Task<DatasetSpecificationRelationshipViewModel> task = CreateViewModel(relationship);
+
+                tasks.Add(task);
+            }
+
+            await Task.WhenAll(tasks);
+
+            foreach (Task<DatasetSpecificationRelationshipViewModel> task in tasks)
+            {
+                relationshipViewModels.Add(task.Result);
+            }
+
+            return new OkObjectResult(tasks.Select(m => m.Result));
         }
 
         public async Task<IActionResult> GetDataSourcesByRelationshipId(HttpRequest request)
