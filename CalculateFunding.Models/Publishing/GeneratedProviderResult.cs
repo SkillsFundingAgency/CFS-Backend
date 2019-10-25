@@ -30,6 +30,6 @@ namespace CalculateFunding.Models.Publishing
         /// <summary>
         /// Total Funding
         /// </summary>
-        public decimal TotalFunding { get; set; }
+        public decimal? TotalFunding { get; set; }
     }
 }

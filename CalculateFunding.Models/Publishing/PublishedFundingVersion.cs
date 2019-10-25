@@ -125,7 +125,7 @@ namespace CalculateFunding.Models.Publishing
         /// Total funding for this organisation group in pence
         /// </summary>
         [JsonProperty("totalFunding")]
-        public decimal TotalFunding { get; set; }
+        public decimal? TotalFunding { get; set; }
 
         /// <summary>
         /// Major version

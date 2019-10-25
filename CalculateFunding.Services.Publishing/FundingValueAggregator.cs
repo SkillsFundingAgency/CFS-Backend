@@ -10,7 +10,7 @@ namespace CalculateFunding.Services.Publishing
     public class FundingValueAggregator
     {
         private Dictionary<uint, (decimal, int)> aggregatedCalculations;
-        private Dictionary<uint, (decimal, IEnumerable<Models.Publishing.DistributionPeriod>)> aggregatedFundingLines;
+        private Dictionary<uint, (decimal?, IEnumerable<Models.Publishing.DistributionPeriod>)> aggregatedFundingLines;
         private Dictionary<string, decimal> aggregatedDistributionPeriods;
         private Dictionary<string, decimal> aggregatedProfilePeriods;
 
@@ -21,7 +21,7 @@ namespace CalculateFunding.Services.Publishing
         public IEnumerable<AggregateFundingLine> GetTotals(TemplateMetadataContents templateMetadataContent, IEnumerable<PublishedProviderVersion> publishedProviders)
         {
             aggregatedCalculations = new Dictionary<uint, (decimal, int)>();
-            aggregatedFundingLines = new Dictionary<uint, (decimal, IEnumerable<Models.Publishing.DistributionPeriod>)>();
+            aggregatedFundingLines = new Dictionary<uint, (decimal?, IEnumerable<Models.Publishing.DistributionPeriod>)>();
             aggregatedDistributionPeriods = new Dictionary<string, decimal>();
             aggregatedProfilePeriods = new Dictionary<string, decimal>();
 
@@ -31,7 +31,7 @@ namespace CalculateFunding.Services.Publishing
 
                 provider.Calculations?.ToList().ForEach(calculation => GetCalculation(calculations, calculation));
 
-                Dictionary<uint, decimal> fundingLines = new Dictionary<uint, decimal>();
+                Dictionary<uint, decimal?> fundingLines = new Dictionary<uint, decimal?>();
 
                 provider.FundingLines?.ToList().ForEach(fundingLine => GetFundingLine(fundingLines, fundingLine));
             });
@@ -51,7 +51,7 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public void GetFundingLine(Dictionary<uint, decimal> fundingLines, Models.Publishing.FundingLine fundingLine)
+        public void GetFundingLine(Dictionary<uint, decimal?> fundingLines, Models.Publishing.FundingLine fundingLine)
         {
             // if the calculation for the current provider has not been added to the aggregated total then add it only once.
             if (fundingLines.TryAdd(fundingLine.TemplateLineId, fundingLine.Value))
@@ -62,11 +62,11 @@ namespace CalculateFunding.Services.Publishing
             }
         }
 
-        public void AggregateFundingLine(uint key, decimal value, IEnumerable<Models.Publishing.DistributionPeriod> distributionPeriods)
+        public void AggregateFundingLine(uint key, decimal? value, IEnumerable<Models.Publishing.DistributionPeriod> distributionPeriods)
         {
-            if (aggregatedFundingLines.TryGetValue(key, out (decimal Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
+            if (aggregatedFundingLines.TryGetValue(key, out (decimal? Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
             {
-                aggregate = ( aggregate.Total + value, aggregate.DistributionPeriods );
+                aggregate = (aggregate.Total + value, aggregate.DistributionPeriods );
                 // aggregate the value
                 aggregatedFundingLines[key] = aggregate;
             }
@@ -152,7 +152,7 @@ namespace CalculateFunding.Services.Publishing
 
         public AggregateFundingLine GetAggregateFundingLine(Common.TemplateMetadata.Models.FundingLine fundingLine)
         {
-            if (aggregatedFundingLines.TryGetValue(fundingLine.TemplateLineId, out (decimal Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
+            if (aggregatedFundingLines.TryGetValue(fundingLine.TemplateLineId, out (decimal? Total, IEnumerable<Models.Publishing.DistributionPeriod> DistributionPeriods) aggregate))
             {
                 return new AggregateFundingLine
                 {

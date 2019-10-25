@@ -189,7 +189,7 @@ namespace CalculateFunding.Generators.Schema10
                    || fundingCalculation.Calculations?.Any() == true;
         }
 
-        private object DecimalAsObject(decimal value)
+        private object DecimalAsObject(decimal? value)
         {
             bool isWholeNumber = value % 1M == 0M;
 

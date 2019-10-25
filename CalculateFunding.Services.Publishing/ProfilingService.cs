@@ -42,11 +42,11 @@ namespace CalculateFunding.Services.Publishing
             Guard.IsNullOrWhiteSpace(fundingStreamId, nameof(fundingStreamId));
             Guard.IsNullOrWhiteSpace(fundingPeriodId, nameof(fundingPeriodId));
 
-            Dictionary<decimal, ProviderProfilingResponseModel> response =
-                  new Dictionary<decimal, ProviderProfilingResponseModel>();
+            Dictionary<decimal?, ProviderProfilingResponseModel> response =
+                  new Dictionary<decimal?, ProviderProfilingResponseModel>();
 
-            Dictionary<string, Dictionary<decimal, ProviderProfilingResponseModel>> profilingResponses =
-                new Dictionary<string, Dictionary<decimal, ProviderProfilingResponseModel>>();
+            Dictionary<string, Dictionary<decimal?, ProviderProfilingResponseModel>> profilingResponses =
+                new Dictionary<string, Dictionary<decimal?, ProviderProfilingResponseModel>>();
 
             if (fundingLineTotals.IsNullOrEmpty())
             {
@@ -127,7 +127,7 @@ namespace CalculateFunding.Services.Publishing
         }
 
         private void SaveFundingLineTotals(ref IEnumerable<FundingLine> fundingLineTotals,
-             Dictionary<string, Dictionary<decimal, ProviderProfilingResponseModel>> profilingResponses)
+             Dictionary<string, Dictionary<decimal?, ProviderProfilingResponseModel>> profilingResponses)
         {
             try
             {
@@ -195,7 +195,7 @@ namespace CalculateFunding.Services.Publishing
             return addedOrUpdated;
         }
 
-        private ProviderProfilingRequestModel ConstructProfilingRequest(string fundingPeriodId,string fundingStreamId, string fundingLineCodes, decimal fundingValue)
+        private ProviderProfilingRequestModel ConstructProfilingRequest(string fundingPeriodId,string fundingStreamId, string fundingLineCodes, decimal? fundingValue)
         {
             ProviderProfilingRequestModel requestModel = new ProviderProfilingRequestModel
             {

@@ -81,7 +81,7 @@ namespace CalculateFunding.Services.Publishing
                 // IEnumerable<Common.TemplateMetadata.Models.Calculation> calculationDefinitions = fundingLineDefinitons.SelectMany(_ => _.Calculations.Flatten(calculation => calculation.Calculations)) ?? new Calculation[0];
                 //IEnumerable<TemplateModels.ReferenceData> refernceData = calculations.Where(_ => _.ReferenceData != null)?.SelectMany(_ => _.ReferenceData) ?? new ReferenceData[0];
 
-                decimal totalFunding = publishedProviderVersionsForOrganisationGroup.Sum(c => c.TotalFunding);
+                decimal? totalFunding = publishedProviderVersionsForOrganisationGroup.Sum(c => c.TotalFunding);
 
                 PublishingModels.PublishedFundingVersion publishedFundingVersion = new PublishingModels.PublishedFundingVersion
                 {

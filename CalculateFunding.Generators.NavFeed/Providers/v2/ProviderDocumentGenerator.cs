@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CalculateFunding.Common.ApiClient.Calcs.Models;
 using CalculateFunding.Common.ApiClient.Providers;
+using CalculateFunding.Generators.Funding;
 using CalculateFunding.Generators.NavFeed.Options;
 using CalculateFunding.Generators.OrganisationGroup;
 using CalculateFunding.Generators.OrganisationGroup.Enums;
@@ -211,7 +212,15 @@ namespace CalculateFunding.Generators.NavFeed.Providers.v2
                 EarliestPaymentAvailableDate = hardcodedStatusDate.AddMinutes(fundingIndex)
             };
 
-            publishedFundingVersion.TotalFunding = decimal.ToInt32(publishedFundingVersion.FundingLines.Sum(x => x.Value));
+            if (publishedFundingVersion.FundingLines != null)
+            {
+                publishedFundingVersion.TotalFunding = publishedFundingVersion.FundingLines
+                    .Where(fundingLine => fundingLine != null)
+                    .Aggregate(
+                        (decimal?)null,
+                        (current, fundingLineTotal) => current.AddValueIfNotNull(fundingLineTotal.Value));
+            }
+
             return publishedFundingVersion;
         }
 
