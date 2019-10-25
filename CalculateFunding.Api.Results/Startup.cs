@@ -19,9 +19,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.MappingProfiles;
 using CalculateFunding.Services.Results.Repositories;
-using CalculateFunding.Services.Results.Validators;
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -83,9 +81,6 @@ namespace CalculateFunding.Api.Results
             builder
                 .AddSingleton<IResultsService, ResultsService>()
                 .AddSingleton<IHealthChecker, ResultsService>();
-            builder
-              .AddSingleton<IPublishedResultsService, PublishedResultsService>()
-              .AddSingleton<IHealthChecker, PublishedResultsService>();
 
             builder
                 .AddSingleton<IJobManagement, JobManagement>();
@@ -98,16 +93,9 @@ namespace CalculateFunding.Api.Results
                 .AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>()
                 .AddSingleton<IHealthChecker, CalculationProviderResultsSearchService>();
 
-            builder
-               .AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
-
-            builder.AddSingleton<IProviderVariationAssemblerService, ProviderVariationAssemblerService>();
-
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<DatasetsMappingProfile>();
-                c.AddProfile<ResultServiceMappingProfile>();
-                c.AddProfile<PolicyMappingProfile>();
             });
 
             builder
@@ -139,68 +127,10 @@ namespace CalculateFunding.Api.Results
                 return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
             });
 
-            builder.AddSingleton<IPublishedProviderResultsRepository, PublishedProviderResultsRepository>((ctx) =>
-            {
-                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
-
-                Configuration.Bind("CosmosDbSettings", resultsDbSettings);
-
-                resultsDbSettings.CollectionName = "publishedproviderresults";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
-
-                return new PublishedProviderResultsRepository(resultsRepostory);
-            });
-
-            builder.AddSingleton<IProviderChangesRepository, ProviderChangesRepository>((ctx) =>
-            {
-                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
-
-                Configuration.Bind("CosmosDbSettings", resultsDbSettings);
-
-                resultsDbSettings.CollectionName = "publishedproviderchanges";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
-
-                ILogger logger = ctx.GetService<ILogger>();
-
-                return new ProviderChangesRepository(resultsRepostory, logger);
-            });
-
             builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
-
-            builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
-
-            builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
 
             builder
                .AddSingleton<ICalculationsRepository, CalculationsRepository>();
-
-            builder
-               .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
-
-            builder.AddSingleton<IPublishedProviderResultsSettings, PublishedProviderResultsSettings>((ctx) =>
-            {
-                PublishedProviderResultsSettings settings = new PublishedProviderResultsSettings();
-
-                Configuration.Bind("PublishedProviderResultsSettings", settings);
-
-                return settings;
-            });
-
-            builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
-            {
-                CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
-
-                Configuration.Bind("CosmosDbSettings", versioningDbSettings);
-
-                versioningDbSettings.CollectionName = "publishedproviderresults";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(versioningDbSettings);
-
-                return new VersionRepository<PublishedAllocationLineResultVersion>(resultsRepostory);
-            });
 
             builder
                 .AddSingleton<IBlobClient, BlobClient>((ctx) =>
@@ -229,16 +159,12 @@ namespace CalculateFunding.Api.Results
 
             builder.AddSpecificationsInterServiceClient(Configuration);
             builder.AddCalculationsInterServiceClient(Configuration);
-            builder.AddJobsInterServiceClient(Configuration);
-            builder.AddPoliciesInterServiceClient(Configuration);
 
             builder.AddPolicySettings(Configuration);
 
             builder.AddHttpContextAccessor();
 
             builder.AddFeatureToggling(Configuration);
-
-            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService, PublishedAllocationLineLogicalResultVersionService>();
 
             builder.AddSingleton<IResultsResiliencePolicies>((ctx) =>
             {
@@ -252,7 +178,6 @@ namespace CalculateFunding.Api.Results
                     ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                    AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                     ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                     PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),

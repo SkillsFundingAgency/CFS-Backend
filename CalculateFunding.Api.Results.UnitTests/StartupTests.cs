@@ -27,26 +27,6 @@ namespace CalculateFunding.Api.Results.UnitTests
             ResolveType<ResultsController>().Should().NotBeNull(nameof(ResultsController));
         }
 
-        [TestMethod]
-        public void ConfigureServices_WhenMajorMinorVersioningIsEnabled_RegisterDependenciesCorrectly()
-        {
-            // Arrange
-            IConfigurationRoot configuration = CreateTestConfiguration();
-            Startup target = new Startup(configuration);
-
-            // Act
-            target.ConfigureServices(Services);
-
-            // Assert
-            IServiceProvider serviceProvider = target.ServiceProvider;
-
-            IPublishedAllocationLineLogicalResultVersionService service = (IPublishedAllocationLineLogicalResultVersionService)serviceProvider.GetService(typeof(IPublishedAllocationLineLogicalResultVersionService));
-
-            service
-              .Should()
-              .BeOfType<PublishedAllocationLineLogicalResultVersionService>();
-        }
-
         protected override Dictionary<string, string> AddToConfiguration()
         {
             var configData = new Dictionary<string, string>

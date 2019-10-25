@@ -12,7 +12,6 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
-using CalculateFunding.Models.Obsoleted;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
 using CalculateFunding.Models.Specs;
@@ -1286,7 +1285,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             ICacheProvider cacheProvider = null,
             IMessengerService messengerService = null,
             ICalculationsRepository calculationsRepository = null,
-            IValidator<MasterProviderModel> validatorForMasterProvider = null,
             IBlobClient blobClient = null)
         {
             IFeatureToggle featureToggle = Substitute.For<IFeatureToggle>();
@@ -1295,7 +1293,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 logger ?? CreateLogger(),
                 featureToggle,
                 resultsRepository ?? CreateResultsRepository(),
-                mapper ?? CreateMapper(),
                 telemetry ?? CreateTelemetry(),
                 providerSourceDatasetRepository ?? CreateProviderSourceDatasetRepository(),
                 calculationProviderResultsSearchRepository ?? CreateCalculationProviderResultsSearchRepository(),
@@ -1304,18 +1301,12 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 cacheProvider ?? CreateCacheProvider(),
                 messengerService ?? CreateMessengerService(),
                 calculationsRepository ?? CreateCalculationsRepository(),
-                validatorForMasterProvider ?? CreateMasterProviderModelValidator(),
                 blobClient ?? CreateBlobClient());
         }
 
         private static IBlobClient CreateBlobClient()
         {
             return Substitute.For<IBlobClient>();
-        }
-
-        static ISearchRepository<AllocationNotificationFeedIndex> CreateAllocationNotificationFeedSearchRepository()
-        {
-            return Substitute.For<ISearchRepository<AllocationNotificationFeedIndex>>();
         }
 
         static ICacheProvider CreateCacheProvider()
@@ -1343,11 +1334,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             return Substitute.For<IProviderSourceDatasetRepository>();
         }
 
-        static IMapper CreateMapper()
-        {
-            return Substitute.For<IMapper>();
-        }
-
         static IMessengerService CreateMessengerService()
         {
             return Substitute.For<IMessengerService>();
@@ -1366,16 +1352,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
-        }
-
-        private static IValidator<MasterProviderModel> CreateMasterProviderModelValidator()
-        {
-            IValidator<MasterProviderModel> mockValidator = Substitute.For<IValidator<MasterProviderModel>>();
-            mockValidator
-                .Validate(Arg.Any<MasterProviderModel>())
-                .Returns(new ValidationResult(Enumerable.Empty<ValidationFailure>()));
-
-            return mockValidator;
         }
         #endregion "Dependency creation"
 
@@ -1459,381 +1435,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                         EstablishmentNumber = "12345",
                         LACode = "la code",
                         DateOpened = DateTime.Now.AddDays(-7)
-                    }
-                }
-            };
-        }
-
-        static IEnumerable<MasterProviderModel> CreateProviderModels()
-        {
-            return new[]
-            {
-                new MasterProviderModel { MasterUKPRN = "1234" },
-                new MasterProviderModel { MasterUKPRN = "5678" },
-                new MasterProviderModel { MasterUKPRN = "1122" }
-            };
-        }
-
-        static IEnumerable<PublishedProviderResult> CreatePublishedProviderResults()
-        {
-            return new[]
-            {
-                new PublishedProviderResult
-                {
-                    SpecificationId = "spec-1",
-                    ProviderId = "1111",
-                    FundingStreamResult = new PublishedFundingStreamResult
-                    {
-                        FundingStream = new PublishedFundingStreamDefinition
-                        {
-                            Id = "fs-1",
-                            Name = "funding stream 1"
-                        },
-                        AllocationLineResult = new PublishedAllocationLineResult
-                        {
-                            AllocationLine = new PublishedAllocationLineDefinition
-                            {
-                                Id = "AAAAA",
-                                Name = "test allocation line 1",
-                                ShortName = "tal1",
-                                FundingRoute = PublishedFundingRoute.LA,
-                                IsContractRequired = true
-                            },
-                            Current = new PublishedAllocationLineResultVersion
-                            {
-                                Status = AllocationLineStatus.Held,
-                                Value = 50,
-                                Version = 1,
-                                Date = DateTimeOffset.Now,
-                                PublishedProviderResultId = "res1",
-                                ProviderId = "1111",
-                                Provider = new ProviderSummary
-                                {
-                                    URN = "12345",
-                                    UKPRN = "1111",
-                                    UPIN = "2222",
-                                    EstablishmentNumber = "es123",
-                                    Authority = "London",
-                                    ProviderType = "test type",
-                                    ProviderSubType = "test sub type",
-                                    DateOpened = DateTimeOffset.Now,
-                                    ProviderProfileIdType = "UKPRN",
-                                    LACode = "77777",
-                                    Id = "1111",
-                                    Name = "test provider name 1"
-                                }
-                            }
-                        }
-                    },
-                    FundingPeriod = new Period
-                    {
-                        Id = "Ay12345",
-                        Name = "fp-1"
-                    }
-                },
-                new PublishedProviderResult
-                {
-                    SpecificationId = "spec-1",
-                    ProviderId = "1111",
-                    FundingStreamResult = new PublishedFundingStreamResult
-                    {
-                        FundingStream = new PublishedFundingStreamDefinition
-                        {
-                            Id = "fs-1",
-                            Name = "funding stream 1"
-                        },
-                        AllocationLineResult = new PublishedAllocationLineResult
-                        {
-                            AllocationLine = new PublishedAllocationLineDefinition
-                            {
-                                Id = "AAAAA",
-                                Name = "test allocation line 1",
-                                ShortName = "tal1",
-                                FundingRoute = PublishedFundingRoute.LA,
-                                IsContractRequired = true
-                            },
-                            Current = new PublishedAllocationLineResultVersion
-                            {
-                                Status = AllocationLineStatus.Held,
-                                Value = 100,
-                                Version = 1,
-                                Date = DateTimeOffset.Now,
-                                PublishedProviderResultId = "res2",
-                                ProviderId = "1111",
-                                Provider = new ProviderSummary
-                                {
-                                    URN = "12345",
-                                    UKPRN = "1111",
-                                    UPIN = "2222",
-                                    EstablishmentNumber = "es123",
-                                    Authority = "London",
-                                    ProviderType = "test type",
-                                    ProviderSubType = "test sub type",
-                                    DateOpened = DateTimeOffset.Now,
-                                    ProviderProfileIdType = "UKPRN",
-                                    LACode = "77777",
-                                    Id = "1111",
-                                    Name = "test provider name 1"
-                                }
-                            }
-                        }
-                    },
-                    FundingPeriod = new Period
-                    {
-                        Id = "Ay12345",
-                        Name = "fp-1"
-                    }
-                },
-                new PublishedProviderResult
-                {
-                    SpecificationId = "spec-1",
-                    ProviderId = "1111",
-                    FundingStreamResult = new PublishedFundingStreamResult
-                    {
-                        FundingStream = new PublishedFundingStreamDefinition
-                        {
-                            Id = "fs-2",
-                            Name = "funding stream 2"
-                        },
-                        AllocationLineResult = new PublishedAllocationLineResult
-                        {
-                            AllocationLine = new PublishedAllocationLineDefinition
-                            {
-                                Id = "AAAAA",
-                                Name = "test allocation line 1",
-                                ShortName = "tal1",
-                                FundingRoute = PublishedFundingRoute.LA,
-                                IsContractRequired = true
-                            },
-                            Current = new PublishedAllocationLineResultVersion
-                            {
-                                Status = AllocationLineStatus.Held,
-                                Value = 100,
-                                Version = 1,
-                                Date = DateTimeOffset.Now,
-                                PublishedProviderResultId = "res3",
-                                ProviderId = "1111",
-                                Provider = new ProviderSummary
-                                {
-                                    URN = "12345",
-                                    UKPRN = "1111",
-                                    UPIN = "2222",
-                                    EstablishmentNumber = "es123",
-                                    Authority = "London",
-                                    ProviderType = "test type",
-                                    ProviderSubType = "test sub type",
-                                    DateOpened = DateTimeOffset.Now,
-                                    ProviderProfileIdType = "UKPRN",
-                                    LACode = "77777",
-                                    Id = "1111",
-                                    Name = "test provider name 1"
-                                }
-                            }
-                        }
-                    },
-                    FundingPeriod = new Period
-                    {
-                        Id = "Ay12345",
-                        Name = "fp-1"
-                    }
-                }
-            };
-        }
-
-        static IEnumerable<PublishedProviderResult> CreatePublishedProviderResultsWithDifferentProviders()
-        {
-            return new[]
-            {
-                new PublishedProviderResult
-                {
-                    SpecificationId = "spec-1",
-                    ProviderId = "1111",
-                    FundingStreamResult = new PublishedFundingStreamResult
-                    {
-                        FundingStream = new PublishedFundingStreamDefinition
-                        {
-                            Id = "fs-1",
-                            Name = "funding stream 1",
-                            ShortName = "fs1",
-                            PeriodType = new PublishedPeriodType
-                            {
-                                Id = "pt1",
-                                Name = "period-type 1",
-                                StartDay = 1,
-                                EndDay = 31,
-                                StartMonth = 8,
-                                EndMonth = 7
-                            }
-                        },
-                        AllocationLineResult = new PublishedAllocationLineResult
-                        {
-                            AllocationLine = new PublishedAllocationLineDefinition
-                            {
-                                Id = "AAAAA",
-                                Name = "test allocation line 1",
-                                ShortName = "tal1",
-                                FundingRoute = PublishedFundingRoute.LA,
-                                IsContractRequired = true
-                            },
-                            Current = new PublishedAllocationLineResultVersion
-                            {
-                                Status = AllocationLineStatus.Held,
-                                Value = 50,
-                                Version = 1,
-                                Date = DateTimeOffset.Now,
-                                PublishedProviderResultId = "res1",
-                                Provider = new ProviderSummary
-                                {
-                                    URN = "12345",
-                                    UKPRN = "1111",
-                                    UPIN = "2222",
-                                    EstablishmentNumber = "es123",
-                                    Authority = "London",
-                                    ProviderType = "test type",
-                                    ProviderSubType = "test sub type",
-                                    DateOpened = DateTimeOffset.Now,
-                                    ProviderProfileIdType = "UKPRN",
-                                    LACode = "77777",
-                                    Id = "1111",
-                                    Name = "test provider name 1"
-                                }
-                            }
-                        }
-                    },
-                    FundingPeriod = new Period
-                    {
-                        Id = "Ay12345",
-                        Name = "fp-1",
-                        StartDate = DateTimeOffset.Now,
-                        EndDate = DateTimeOffset.Now.AddYears(1)
-                    }
-                },
-                new PublishedProviderResult
-                {
-                    SpecificationId = "spec-1",
-                    ProviderId = "1111-1",
-                    FundingStreamResult = new PublishedFundingStreamResult
-                    {
-                        FundingStream = new PublishedFundingStreamDefinition
-                        {
-                            Id = "fs-1",
-                            Name = "funding stream 1",
-                            ShortName = "fs1",
-                            PeriodType = new PublishedPeriodType
-                            {
-                                Id = "pt1",
-                                Name = "period-type 1",
-                                StartDay = 1,
-                                EndDay = 31,
-                                StartMonth = 8,
-                                EndMonth = 7
-                            }
-                        },
-                        AllocationLineResult = new PublishedAllocationLineResult
-                        {
-                            AllocationLine = new PublishedAllocationLineDefinition
-                            {
-                                Id = "AAAAA",
-                                Name = "test allocation line 1",
-                                ShortName = "tal1",
-                                FundingRoute = PublishedFundingRoute.LA,
-                                IsContractRequired = true
-                            },
-                            Current = new PublishedAllocationLineResultVersion
-                            {
-                                Status = AllocationLineStatus.Held,
-                                Value = 100,
-                                Version = 1,
-                                Date = DateTimeOffset.Now,
-                                  PublishedProviderResultId = "res2",
-                                Provider = new ProviderSummary
-                                {
-                                    URN = "12345",
-                                    UKPRN = "1111-1",
-                                    UPIN = "2222",
-                                    EstablishmentNumber = "es123",
-                                    Authority = "London",
-                                    ProviderType = "test type",
-                                    ProviderSubType = "test sub type",
-                                    DateOpened = DateTimeOffset.Now,
-                                    ProviderProfileIdType = "UKPRN",
-                                    LACode = "77777",
-                                    Id = "1111-1",
-                                    Name = "test provider name 2"
-                                }
-                            }
-                        }
-                    },
-                    FundingPeriod = new Period
-                    {
-                        Id = "Ay12345",
-                        Name = "fp-1",
-                        StartDate = DateTimeOffset.Now,
-                        EndDate = DateTimeOffset.Now.AddYears(1)
-                    }
-                },
-                new PublishedProviderResult
-                {
-                    SpecificationId = "spec-1",
-                    ProviderId = "1111-2",
-                    FundingStreamResult = new PublishedFundingStreamResult
-                    {
-                        FundingStream = new PublishedFundingStreamDefinition
-                        {
-                            Id = "fs-1",
-                            Name = "funding stream 1",
-                            ShortName = "fs1",
-                            PeriodType = new PublishedPeriodType
-                            {
-                                Id = "pt1",
-                                Name = "period-type 1",
-                                StartDay = 1,
-                                EndDay = 31,
-                                StartMonth = 8,
-                                EndMonth = 7
-                            }
-                        },
-                        AllocationLineResult = new PublishedAllocationLineResult
-                        {
-                             AllocationLine = new PublishedAllocationLineDefinition
-                            {
-                                Id = "AAAAA",
-                                Name = "test allocation line 1",
-                                ShortName = "tal1",
-                                FundingRoute = PublishedFundingRoute.LA,
-                                IsContractRequired = true
-                            },
-                            Current = new PublishedAllocationLineResultVersion
-                            {
-                                Status = AllocationLineStatus.Held,
-                                Value = 100,
-                                Version = 1,
-                                Date = DateTimeOffset.Now,
-                                 PublishedProviderResultId = "res3",
-                                Provider = new ProviderSummary
-                                {
-                                    URN = "12345",
-                                    UKPRN = "1111-2",
-                                    UPIN = "2222",
-                                    EstablishmentNumber = "es123",
-                                    Authority = "London",
-                                    ProviderType = "test type",
-                                    ProviderSubType = "test sub type",
-                                    DateOpened = DateTimeOffset.Now,
-                                    ProviderProfileIdType = "UKPRN",
-                                    LACode = "77777",
-                                    Id = "1111-2",
-                                    Name = "test provider name 3"
-                                }
-                            }
-                        }
-                    },
-                    FundingPeriod = new Period
-                    {
-                        Id = "Ay12345",
-                        Name = "fp-1",
-                        StartDate = DateTimeOffset.Now,
-                        EndDate = DateTimeOffset.Now.AddYears(1)
                     }
                 }
             };

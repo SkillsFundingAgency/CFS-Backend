@@ -11,10 +11,6 @@ namespace CalculateFunding.Models.Results
         [JsonProperty("calculation")]
         public Reference Calculation { get; set; }
 
-        [Obsolete]
-        [JsonProperty("allocationLine")]
-        public Reference AllocationLine { get; set; }
-
         [JsonProperty("value")]
         public decimal? Value { get; set; }
 

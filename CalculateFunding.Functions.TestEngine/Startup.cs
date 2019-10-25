@@ -135,6 +135,7 @@ namespace CalculateFunding.Functions.TestEngine
             MapperConfiguration resultsMappingConfiguration = new MapperConfiguration(c =>
             {
                 c.AddProfile<ResultsMappingProfile>();
+                c.AddProfile<CalculationsMappingProfile>();
             });
 
             builder

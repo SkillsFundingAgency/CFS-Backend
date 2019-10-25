@@ -1,5 +1,4 @@
-﻿using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Results.Interfaces;
+﻿using CalculateFunding.Services.Results.Interfaces;
 using Polly;
 
 namespace CalculateFunding.Services.Results
@@ -13,8 +12,6 @@ namespace CalculateFunding.Services.Results
         public Policy ResultsSearchRepository { get; set; }
 
         public Policy SpecificationsApiClient { get; set; }
-
-        public Policy AllocationNotificationFeedSearchRepository { get; set; }
 
         public Policy ProviderProfilingRepository { get; set; }
 
@@ -30,7 +27,7 @@ namespace CalculateFunding.Services.Results
 
         public Policy ProviderChangesRepository { get; set; }
 
-        public Policy ProviderVersionsSearchRepository { get;  set; }
+        public Policy ProviderVersionsSearchRepository { get; set; }
 
         public Policy PoliciesApiClient { get; set; }
     }

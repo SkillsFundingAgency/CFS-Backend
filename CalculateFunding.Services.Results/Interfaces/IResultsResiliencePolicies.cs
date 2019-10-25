@@ -13,8 +13,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Policy SpecificationsApiClient { get; set; }
 
-        Policy AllocationNotificationFeedSearchRepository { get; set; }
-
         Policy ProviderProfilingRepository { get; set; }
 
         Policy PublishedProviderCalculationResultsRepository { get; set; }

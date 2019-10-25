@@ -11,7 +11,6 @@ namespace CalculateFunding.Api.Results.Controllers
     {
         private readonly IResultsService _resultsService;
         private readonly ICalculationProviderResultsSearchService _calculationProviderResultsSearchService;
-        private readonly IPublishedResultsService _publishedResultsService;
         private readonly IProviderCalculationResultsSearchService _providerCalculationResultsSearchService;
         private readonly IFeatureToggle _featureToggle;
         private readonly IProviderCalculationResultsReIndexerService _providerCalculationResultsReIndexerService;
@@ -19,20 +18,17 @@ namespace CalculateFunding.Api.Results.Controllers
         public ResultsController(
              IResultsService resultsService,
              ICalculationProviderResultsSearchService calculationProviderResultsSearchService,
-             IPublishedResultsService publishedResultsService,
              IProviderCalculationResultsSearchService providerCalculationResultsSearchService,
              IFeatureToggle featureToggle,
              IProviderCalculationResultsReIndexerService providerCalculationResultsReIndexerService)
         {
             Guard.ArgumentNotNull(resultsService, nameof(resultsService));
             Guard.ArgumentNotNull(calculationProviderResultsSearchService, nameof(calculationProviderResultsSearchService));
-            Guard.ArgumentNotNull(publishedResultsService, nameof(publishedResultsService));
             Guard.ArgumentNotNull(providerCalculationResultsSearchService, nameof(providerCalculationResultsSearchService));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(providerCalculationResultsReIndexerService, nameof(providerCalculationResultsReIndexerService));
 
             _calculationProviderResultsSearchService = calculationProviderResultsSearchService;
-            _publishedResultsService = publishedResultsService;
             _resultsService = resultsService;
             _providerCalculationResultsSearchService = providerCalculationResultsSearchService;
             _featureToggle = featureToggle;
@@ -109,48 +105,13 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _resultsService.GetFundingCalculationResultsForSpecifications(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/results/get-published-provider-results-for-specification")]
-        [HttpGet]
-        public async Task<IActionResult> RunGetPublishedProviderResultsForSpecification()
-        {
-            return await _publishedResultsService.GetPublishedProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/results/get-published-provider-results-for-funding-stream")]
-        [HttpGet]
-        public async Task<IActionResult> RunGetPublishedProviderResultsByFundingPeriodAndSpecificationAndFundingStream()
-        {
-            return await _publishedResultsService.GetPublishedProviderResultsByFundingPeriodIdAndSpecificationIdAndFundingStreamId(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/results/get-confirmation-details-for-approve-publish-provider-results")]
-        [HttpPost]
-        public async Task<IActionResult> RunGetConfirmationDetailsForApprovePublishProviderResults()
-        {
-            return await _publishedResultsService.GetConfirmationDetailsForApprovePublishProviderResults(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/results/update-published-allocationline-results-status")]
-        [HttpPost]
-        public async Task<IActionResult> RunUpdatePublishedAllocationLineResultsStatus()
-        {
-            return await _publishedResultsService.UpdatePublishedAllocationLineResultsStatus(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/results/get-specification-provider-results")]
         [HttpGet]
         public async Task<IActionResult> RunGetProviderResultsBySpecificationId()
         {
             return await _resultsService.GetProviderResultsBySpecificationId(ControllerContext.HttpContext.Request);
         }
-
-        [Route("api/results/reindex/allocation-feeds")]
-        [HttpGet]
-        public async Task<IActionResult> ReIndexAllocationFeeds()
-        {
-            return await _publishedResultsService.ReIndexAllocationNotificationFeeds(ControllerContext.HttpContext.Request);
-        }
-
+        
         [Route("api/results/hasCalculationResults/{calculationId}")]
         [HttpGet]
         public async Task<IActionResult> HasCalculationResults(string calculationId)
@@ -158,36 +119,11 @@ namespace CalculateFunding.Api.Results.Controllers
             return await _resultsService.HasCalculationResults(calculationId);
         }
 
-        [Route("api/results/migrate-feed-index-id")]
-        [HttpPost]
-        public async Task<IActionResult> RunMigratefeedIndexId()
-        {
-            return await _publishedResultsService.MigrateFeedIndexId(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/results/migrate-version-numbers")]
-        [HttpPost]
-        public async Task<IActionResult> RunMigrateVersionNumbers()
-        {
-            return await _publishedResultsService.MigrateVersionNumbers(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/results/reindex/calculation-results")]
         [HttpGet]
         public async Task<IActionResult> ReIndexCalculationResults()
         {
             return await _providerCalculationResultsReIndexerService.ReIndexCalculationResults(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("/api/results/published-provider-profile/providerId/{providerId}/specificationId/{specificationId}/fundingStreamId/{fundingStreamId}")]
-        [HttpGet]
-        public async Task<IActionResult> GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(
-            [FromRoute] string providerId,
-            [FromRoute] string specificationId,
-            [FromRoute] string fundingStreamId)
-        {
-            return await _publishedResultsService
-                .GetPublishedProviderProfileForProviderIdAndSpecificationIdAndFundingStreamId(providerId, specificationId, fundingStreamId);
         }
     }
 }

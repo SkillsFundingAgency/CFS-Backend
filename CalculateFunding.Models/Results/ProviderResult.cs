@@ -21,14 +21,5 @@ namespace CalculateFunding.Models.Results
 
         [JsonProperty("calcResults")]
         public List<CalculationResult> CalculationResults { get; set; }
-
-        [Obsolete]
-        [JsonProperty("allocationLineResults")]
-        public List<AllocationLineResult> AllocationLineResults { get; set; }
-
-        [Obsolete]
-        [JsonProperty("sourceDatasets")]
-        public List<object> SourceDatasets { get; set; }
     }
-
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using CalculateFunding.Common.Models;
-using CalculateFunding.Models.Obsoleted;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
 

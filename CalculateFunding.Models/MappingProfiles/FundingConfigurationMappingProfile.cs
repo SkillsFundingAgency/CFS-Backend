@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using CalculateFunding.Models.Datasets;
-using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Models.FundingPolicy;
 using CalculateFunding.Models.FundingPolicy.ViewModels;
 

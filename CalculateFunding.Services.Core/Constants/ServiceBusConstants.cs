@@ -36,12 +36,6 @@
 
             public const string UpdateBuildProjectRelationships = "calc-events-add-relationship-to-buildproject";
 
-            public const string PublishProviderResults = "publish-provider-results";
-
-            public const string PublishProviderResultsPoisoned = "publish-provider-results/$DeadLetterQueue";
-
-            public const string PublishProviderResultsPoisonedLocal = "publish-provider-results-poison";
-
             public const string PublishingApproveFunding = "publishing-approvefunding";
 
             public const string PublishingApproveFundingPoisoned = "publishing-approvefunding/$DeadLetterQueue";
@@ -59,30 +53,6 @@
             public const string PublishingPublishFundingPoisoned = "publishing-publishfunding/$DeadLetterQueue";
 
             public const string PublishingPublishFundingPoisonedLocal = "publishing-publishfunding-posion";
-
-            public const string FetchProviderProfile = "fetch-provider-profile";
-
-            public const string FetchProviderProfilePoisoned = "fetch-provider-profile/$DeadLetterQueue";
-
-            public const string FetchProviderProfilePoisonedLocal = "fetch-provider-profile-poison";
-
-            public const string MigrateResultVersions = "migrate-result-versions";
-
-            public const string MigrateFeedIndexId = "migrate-feed-index-id";
-
-            public const string AllocationLineResultStatusUpdates = "allocationline-result-status-updates";
-
-            public const string AllocationLineResultStatusUpdatesPoisoned = "allocationline-result-status-updates/$DeadLetterQueue";
-
-            public const string AllocationLineResultStatusUpdatesPoisonedLocal = "allocationline-result-status-updates-poison";
-
-            public const string InstructAllocationLineResultStatusUpdates = "allocationline-instruct-result-status-updates";
-
-            public const string InstructAllocationLineResultStatusUpdatesPoisoned = "allocationline-instruct-result-status-updates/$DeadLetterQueue";
-
-            public const string InstructAllocationLineResultStatusUpdatesPoisonedLocal = "allocationline-instruct-result-status-updates-poison";
-
-            public const string ReIndexAllocationNotificationFeedIndex = "reindex-allocation-notifcication-feed-index";
 
             public const string ReIndexCalculationResultsIndex = "reindex-calculation-results-index";
 

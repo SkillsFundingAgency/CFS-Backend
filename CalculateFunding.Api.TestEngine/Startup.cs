@@ -152,6 +152,7 @@ namespace CalculateFunding.Api.TestRunner
             MapperConfiguration mapperConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<ResultsMappingProfile>();
+                c.AddProfile<CalculationsMappingProfile>();
             });
 
             builder

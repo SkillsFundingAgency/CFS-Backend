@@ -40,7 +40,6 @@ namespace CalculateFunding.Services.Results
         private readonly ILogger _logger;
         private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
-        private readonly IMapper _mapper;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _calculationProviderResultsSearchRepository;
         private readonly Polly.Policy _resultsRepositoryPolicy;
@@ -51,14 +50,12 @@ namespace CalculateFunding.Services.Results
         private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
         private readonly Polly.Policy _calculationsRepositoryPolicy;
-        private readonly IValidator<MasterProviderModel> _masterProviderModelValidator;
         private readonly IFeatureToggle _featureToggle;
         private readonly IBlobClient _blobClient;
 
         public ResultsService(ILogger logger,
             IFeatureToggle featureToggle,
             ICalculationResultsRepository resultsRepository,
-            IMapper mapper,
             ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository,
@@ -67,11 +64,9 @@ namespace CalculateFunding.Services.Results
             ICacheProvider cacheProvider,
             IMessengerService messengerService,
             ICalculationsRepository calculationRepository,
-            IValidator<MasterProviderModel> masterProviderModelValidator,
             IBlobClient blobClient)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
             Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
             Guard.ArgumentNotNull(calculationProviderResultsSearchRepository, nameof(calculationProviderResultsSearchRepository));
@@ -83,13 +78,11 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
-            Guard.ArgumentNotNull(masterProviderModelValidator, nameof(masterProviderModelValidator));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
             Guard.ArgumentNotNull(blobClient, nameof(blobClient));
 
             _logger = logger;
             _resultsRepository = resultsRepository;
-            _mapper = mapper;
             _telemetry = telemetry;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
@@ -100,7 +93,6 @@ namespace CalculateFunding.Services.Results
             _cacheProvider = cacheProvider;
             _messengerService = messengerService;
             _calculationRepository = calculationRepository;
-            _masterProviderModelValidator = masterProviderModelValidator;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _featureToggle = featureToggle;
             _blobClient = blobClient;

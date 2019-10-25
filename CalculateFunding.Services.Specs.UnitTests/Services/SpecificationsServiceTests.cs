@@ -29,7 +29,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         const string FundingStreamId = "YAPGG";
         const string SpecificationId = "ffa8ccb3-eb8e-4658-8b3f-f1e4c3a8f313";
         const string PolicyId = "dda8ccb3-eb8e-4658-8b3f-f1e4c3a8f322";
-        const string AllocationLineId = "02a6eeaf-e1a0-476e-9cf9-8aa5d9129345";
         const string CalculationId = "22a6eeaf-e1a0-476e-9cf9-8aa6c51293433";
         const string FundingPeriodId = "18/19";
         const string SpecificationName = "Test Spec 001";

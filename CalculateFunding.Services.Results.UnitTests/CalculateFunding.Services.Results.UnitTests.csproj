@@ -5,6 +5,12 @@
     <RootNamespace>CalculateFunding.Services.Results</RootNamespace>
     <LangVersion>7.1</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Filtering\**" />
+    <EmbeddedResource Remove="Filtering\**" />
+    <None Remove="Filtering\**" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
@@ -18,9 +24,5 @@
   <ItemGroup>
     <ProjectReference Include="..\CalculateFunding.Models\CalculateFunding.Models.csproj" />
     <ProjectReference Include="..\CalculateFunding.Services.Results\CalculateFunding.Services.Results.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Filtering\" />
   </ItemGroup>
 </Project>

@@ -112,19 +112,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             {
                 new ProviderResult
                 {
-                    AllocationLineResults = new List<AllocationLineResult>
-                    {
-                        new AllocationLineResult
-                        {
-                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
-                            Value = 1112.3M
-                        }
-                    },
                     CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 1112.3M
@@ -189,19 +180,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             {
                 new ProviderResult
                 {
-                    AllocationLineResults = new List<AllocationLineResult>
-                    {
-                        new AllocationLineResult
-                        {
-                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
-                            Value = 1112.3M
-                        }
-                    },
                     CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Template,
                             Value = null
@@ -252,19 +234,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             {
                 new ProviderResult
                 {
-                    AllocationLineResults = new List<AllocationLineResult>
-                    {
-                        new AllocationLineResult
-                        {
-                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
-                            Value = 1112.3M
-                        }
-                    },
                     CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Template,
                             Value = null
@@ -315,19 +288,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             {
                 new ProviderResult
                 {
-                    AllocationLineResults = new List<AllocationLineResult>
-                    {
-                        new AllocationLineResult
-                        {
-                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
-                            Value = 1112.3M
-                        }
-                    },
                     CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Template,
                             Value = null
@@ -394,19 +358,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             {
                 new ProviderResult
                 {
-                    AllocationLineResults = new List<AllocationLineResult>
-                    {
-                        new AllocationLineResult
-                        {
-                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
-                            Value = 1112.3M
-                        }
-                    },
                     CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Template,
                             Value = null
@@ -483,19 +438,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             {
                 new ProviderResult
                 {
-                    AllocationLineResults = new List<AllocationLineResult>
-                    {
-                        new AllocationLineResult
-                        {
-                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
-                            Value = 1112.3M
-                        }
-                    },
                     CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Template,
                             Value = 1112.3M
@@ -567,19 +513,10 @@ namespace CalculateFunding.Services.CalcEngine.UnitTests
             {
                 new ProviderResult
                 {
-                    AllocationLineResults = new List<AllocationLineResult>
-                    {
-                        new AllocationLineResult
-                        {
-                            AllocationLine = new Reference{ Id = "alloc 1", Name = "Allocation one" },
-                            Value = 1112.3M
-                        }
-                    },
                     CalculationResults = new List<CalculationResult>
                     {
                         new CalculationResult
                         {
-                            AllocationLine = new Reference { Id = "alloc1", Name = "Allocation one" },
                             Calculation = new Reference { Id = "calc1", Name = "calculation one" },
                             CalculationType = Models.Calcs.CalculationType.Template,
                             Value = null

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
 using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
@@ -17,7 +16,7 @@ using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
-using CalculateFunding.Models.Obsoleted;
+using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Models.Specs.Messages;
@@ -40,7 +39,6 @@ using Newtonsoft.Json;
 using Serilog;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 using PublishStatus = CalculateFunding.Models.Versioning.PublishStatus;
-using Trigger = CalculateFunding.Common.ApiClient.Jobs.Models.Trigger;
 
 namespace CalculateFunding.Services.Specs
 {
@@ -667,14 +665,6 @@ namespace CalculateFunding.Services.Specs
 
             ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingPeriodById(createModel.FundingPeriodId));
             PolicyModels.FundingPeriod content = fundingPeriodResponse.Content;
-            
-            Period fundingPeriod = new Period
-            {
-                Id = content.Id,
-                Name = content.Period,
-                EndDate = content.EndDate,
-                StartDate = content.StartDate
-            };
 
             Reference user = request.GetUser();
 
@@ -688,7 +678,7 @@ namespace CalculateFunding.Services.Specs
             {
                 Name = createModel.Name,
                 ProviderVersionId = createModel.ProviderVersionId,
-                FundingPeriod = new Reference(fundingPeriod.Id, fundingPeriod.Name),
+                FundingPeriod = new Reference(content.Id, content.Name),
                 Description = createModel.Description,
                 DataDefinitionRelationshipIds = new List<string>(),
                 Author = user,
@@ -844,13 +834,14 @@ namespace CalculateFunding.Services.Specs
                     return new PreconditionFailedResult($"Unable to find funding period with ID '{editModel.FundingPeriodId}'.");
                 }
 
-                Period fundingPeriod = new Period
+                PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
                 {
                     Id = content.Id,
                     Name = content.Period,
                     StartDate = content.StartDate,
                     EndDate = content.EndDate
                 };
+
                 specificationVersion.FundingPeriod = new Reference { Id = fundingPeriod.Id, Name = fundingPeriod.Name };
             }
 
@@ -874,13 +865,7 @@ namespace CalculateFunding.Services.Specs
 
                     List<Reference> fundingStreamReferences = new List<Reference>();
 
-                    Dictionary<string, bool> allocationLines = new Dictionary<string, bool>();
-
                     fundingStreamReferences.Add(new Reference(fundingStream.Id, fundingStream.Name));
-                    foreach (AllocationLine allocationLine in fundingStream.AllocationLines)
-                    {
-                        allocationLines.Add(allocationLine.Id, true);
-                    }
 
                     specificationVersion.FundingStreams = fundingStreamReferences;
 

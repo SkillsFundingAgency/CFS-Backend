@@ -293,9 +293,6 @@ namespace CalculateFunding.Services.Core.Extensions
               .AddSingleton<ISearchRepository<DatasetDefinitionIndex>, SearchRepository<DatasetDefinitionIndex>>();
 
             builder
-                .AddSingleton<ISearchRepository<AllocationNotificationFeedIndex>, SearchRepository<AllocationNotificationFeedIndex>>();
-
-            builder
              .AddSingleton<ISearchRepository<ProviderCalculationResultsIndex>, SearchRepository<ProviderCalculationResultsIndex>>();
 
             builder

@@ -27,9 +27,7 @@ using CalculateFunding.Services.Core.Options;
 using CalculateFunding.Services.Core.Services;
 using CalculateFunding.Services.Results;
 using CalculateFunding.Services.Results.Interfaces;
-using CalculateFunding.Services.Results.MappingProfiles;
 using CalculateFunding.Services.Results.Repositories;
-using CalculateFunding.Services.Results.Validators;
 using FluentValidation;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -68,63 +66,23 @@ namespace CalculateFunding.Functions.Results
 
         private static IServiceProvider Register(IServiceCollection builder, IConfigurationRoot config)
         {
-            builder.AddSingleton<OnCreateAllocationLineResultStatusUpdates>();
-            builder.AddSingleton<OnCreateAllocationLineResultStatusUpdatesFailure>();
-            builder.AddSingleton<OnCreateInstructAllocationLineResultStatusUpdates>();
-            builder.AddSingleton<OnCreateInstructAllocationLineResultStatusUpdatesFailure>();
-            builder.AddSingleton<OnFetchProviderProfileEvent>();
-            builder.AddSingleton<OnFetchProviderProfileFailure>();
-            builder.AddSingleton<OnMigrateFeedIndexIdEvent>();
-            builder.AddSingleton<OnMigrateResultVersionsEvent>();
-            builder.AddSingleton<OnProviderResultsPublishedEvent>();
-            builder.AddSingleton<OnProviderResultsPublishedFailure>();
             builder.AddSingleton<OnProviderResultsSpecificationCleanup>();
-            builder.AddSingleton<OnReIndexAllocationNotificationFeeds>();
             builder.AddSingleton<OnReIndexCalculationResults>();
-            builder.AddSingleton<OnCreateAllocationLineResultStatusUpdates>();
-            builder.AddSingleton<OnCreateAllocationLineResultStatusUpdatesFailure>();
-            builder.AddSingleton<OnCreateInstructAllocationLineResultStatusUpdates>();
-            builder.AddSingleton<OnCreateInstructAllocationLineResultStatusUpdatesFailure>();
-            builder.AddSingleton<OnFetchProviderProfileEvent>();
-            builder.AddSingleton<OnFetchProviderProfileFailure>();
-            builder.AddSingleton<OnMigrateFeedIndexIdEvent>();
-            builder.AddSingleton<OnMigrateResultVersionsEvent>();
-            builder.AddSingleton<OnProviderResultsPublishedEvent>();
-            builder.AddSingleton<OnProviderResultsPublishedFailure>();
             builder.AddSingleton<OnProviderResultsSpecificationCleanup>();
-            builder.AddSingleton<OnReIndexAllocationNotificationFeeds>();
             builder.AddSingleton<OnReIndexCalculationResults>();
             builder.AddSingleton<OnCalculationResultsCsvGeneration>();
             builder.AddSingleton<OnCalculationResultsCsvGenerationTimer>();
             builder.AddSingleton<ICalculationResultsRepository, CalculationResultsRepository>();
             builder.AddSingleton<IResultsService, ResultsService>();
-            builder.AddSingleton<IPublishedResultsService, PublishedResultsService>();
             builder.AddSingleton<IJobManagement, JobManagement>();
             builder.AddSingleton<ICalculationProviderResultsSearchService, CalculationProviderResultsSearchService>();
-            builder.AddSingleton<IAllocationNotificationsFeedsSearchService, AllocationNotificationsFeedsSearchService>();
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
-            builder.AddSingleton<IValidator<MasterProviderModel>, MasterProviderModelValidator>();
-            builder.AddSingleton<IProviderVariationAssemblerService, ProviderVariationAssemblerService>();
-            builder.AddSingleton<IProviderVariationsService, ProviderVariationsService>();
             builder.AddSingleton<IJobHelperService, JobHelperService>();
             builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
-
-            builder.AddSingleton<IProviderVariationsStorageRepository, ProviderVariationsStorageRepository>((ctx) =>
-            {
-                BlobStorageOptions blobStorageOptions = new BlobStorageOptions();
-
-                config.Bind("CommonStorageSettings", blobStorageOptions);
-
-                blobStorageOptions.ContainerName = "providervariations";
-
-                return new ProviderVariationsStorageRepository(blobStorageOptions);
-            });
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
                 c.AddProfile<DatasetsMappingProfile>();
-                //c.AddProfile<ResultServiceMappingProfile>();
-                c.AddProfile<ProviderMappingProfile>();
             });
 
             builder
@@ -158,62 +116,6 @@ namespace CalculateFunding.Functions.Results
                 return new ProviderSourceDatasetRepository(calcsCosmosRepostory);
             });
 
-            builder.AddSingleton<IPublishedProviderResultsRepository, PublishedProviderResultsRepository>((ctx) =>
-            {
-                CosmosDbSettings resultsDbSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", resultsDbSettings);
-
-                resultsDbSettings.CollectionName = "publishedproviderresults";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(resultsDbSettings);
-
-                return new PublishedProviderResultsRepository(resultsRepostory);
-            });
-
-            builder.AddSingleton<IProviderChangesRepository, ProviderChangesRepository>((ctx) =>
-            {
-                CosmosDbSettings cosmosSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", cosmosSettings);
-
-                cosmosSettings.CollectionName = "publishedproviderchanges";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(cosmosSettings);
-
-                ILogger logger = ctx.GetService<ILogger>();
-
-                return new ProviderChangesRepository(resultsRepostory, logger);
-            });
-
-            builder
-                .AddSingleton<ISpecificationsRepository, SpecificationsRepository>();
-
-            builder
-               .AddSingleton<IPublishedProviderResultsAssemblerService, PublishedProviderResultsAssemblerService>();
-
-            builder.AddSingleton<IPublishedProviderResultsSettings, PublishedProviderResultsSettings>((ctx) =>
-            {
-                PublishedProviderResultsSettings settings = new PublishedProviderResultsSettings();
-
-                config.Bind("PublishedProviderResultsSettings", settings);
-
-                return settings;
-            });
-
-            builder.AddSingleton<IVersionRepository<PublishedAllocationLineResultVersion>, VersionRepository<PublishedAllocationLineResultVersion>>((ctx) =>
-            {
-                CosmosDbSettings versioningDbSettings = new CosmosDbSettings();
-
-                config.Bind("CosmosDbSettings", versioningDbSettings);
-
-                versioningDbSettings.CollectionName = "publishedproviderresults";
-
-                CosmosRepository resultsRepostory = new CosmosRepository(versioningDbSettings);
-
-                return new VersionRepository<PublishedAllocationLineResultVersion>(resultsRepostory);
-            });
-
             builder
                 .AddSingleton<IBlobClient, AzureStorage.BlobClient>((ctx) =>
                 {
@@ -245,8 +147,6 @@ namespace CalculateFunding.Functions.Results
             builder.AddPoliciesInterServiceClient(config);
 
             builder.AddFeatureToggling(config);
-
-            builder.AddSingleton<IPublishedAllocationLineLogicalResultVersionService, PublishedAllocationLineLogicalResultVersionService>();
 
             builder.AddSingleton<ICancellationTokenProvider, InactiveCancellationTokenProvider>();
 
@@ -321,7 +221,6 @@ namespace CalculateFunding.Functions.Results
                 ResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 ResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 SpecificationsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
-                AllocationNotificationFeedSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 ProviderProfilingRepository = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 PublishedProviderCalculationResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
                 PublishedProviderResultsRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),

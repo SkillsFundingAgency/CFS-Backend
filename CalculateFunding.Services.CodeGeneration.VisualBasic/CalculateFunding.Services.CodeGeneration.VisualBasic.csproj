@@ -35,7 +35,6 @@
     <EmbeddedResource Include="CodeResources\Common\Attributes\IsAggregableAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\FieldAttribute.vb" />
     <EmbeddedResource Include="CodeResources\Common\Attributes\DatasetRelationshipAttribute.vb" />
-    <EmbeddedResource Include="CodeResources\Common\Attributes\AllocationLineAttribute.vb" />
     <EmbeddedResource Include="CodeResources\CalculateFunding.vbproj" />
     <EmbeddedResource Include="CodeResources\Common\CalculationStackOverflowException.vb" />
     <EmbeddedResource Include="CodeResources\Common\ReferencedCalculationFailedException.vb" />
