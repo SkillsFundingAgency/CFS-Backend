@@ -1500,10 +1500,8 @@ Scenario Outline: Successful publishing of funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
 	And  the published funding contains a calculations in published provider with following calculation results
-		| Id				   | Value         |
-		| 2					   | 0			   |
-		| 3					   | 120		   |
-		| 4					   | 0			   |
+		| Id				   | Value         |		
+		| 3					   | 120		   |		
 		| 5					   | 1000		   |
 		| 6					   | 20			   |
 	And the following published funding is produced
@@ -1526,10 +1524,8 @@ Scenario Outline: Successful publishing of funding
 		| DistributionPeriodId | Type          | TypeValue | Year | Occurrence | ProfiledValue |
 		| FY-2021              | CalendarMonth | April     | 2021 | 1          | 20000         |
 	And  the published funding contains a calculations in published provider with following calculation results
-		| Id				   | Value         |
-		| 2					   | 0			   |
-		| 3					   | 120		   |
-		| 4					   | 0			   |
+		| Id				   | Value         |		
+		| 3					   | 120		   |		
 		| 5					   | 1000		   |
 		| 6					   | 20			   |	
 	And the published funding document produced is saved to blob storage for following file name
@@ -1537,7 +1533,7 @@ Scenario Outline: Successful publishing of funding
 		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000201-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-Information-Provider-1000202-1_0.json |
 		| <FundingStreamId>-<FundingPeriodId>-Payment-AcademyTrust-8000001-1_0.json |
-		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000001-1_0.json |
+		| <FundingStreamId>-<FundingPeriodId>-Payment-LocalAuthority-9000000-1_0.json |
 	And the published provider document produced is saved to blob storage for following file name
 		| PublishedProviderFiles							   |
 		| <FundingStreamId>-<FundingPeriodId>-1000000-1_0.json |

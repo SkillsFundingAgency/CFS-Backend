@@ -202,15 +202,17 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             var publishedFunding = _publishedFundingRepositoryStepContext.BlobRepo.GetFiles();
 
             _publishedFundingRepositoryStepContext.BlobRepo.Should().NotBeNull();
-            string fileName = table.Rows[0][0];
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                string fileName = table.Rows[i][0];
 
+                var content = Resources.ResourceManager.GetObject(fileName, Resources.Culture);
+                string expected = GetResourceContent(fileName);
 
-           var content = Resources.ResourceManager.GetObject(fileName, Resources.Culture);
-            string expected = GetResourceContent(fileName);
-
-            publishedFunding.TryGetValue(fileName, out string acutal);
-            acutal.Should()
-                    .Equals(expected);
+                publishedFunding.TryGetValue(fileName, out string acutal);
+                acutal.Should()
+                        .Equals(expected);
+            }
         }
 
         

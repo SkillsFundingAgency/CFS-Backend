@@ -137,6 +137,18 @@ namespace CalculateFunding.Services.Publishing
                         }
                 }
 
+                return GetAggregateCalculationForAggregatorType(calculation, aggregateValue);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private AggregateFundingCalculation GetAggregateCalculationForAggregatorType(Calculation calculation, decimal aggregateValue)
+        {
+            if (calculation.AggregationType != Common.TemplateMetadata.Enums.AggregationType.None)
+            {
                 return new AggregateFundingCalculation
                 {
                     TemplateCalculationId = calculation.TemplateCalculationId,

@@ -3,7 +3,9 @@ using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Properties;
 using FluentAssertions;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
@@ -32,15 +34,19 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             var publishedProviders = _publishedProviderStepContext.BlobRepo.GetFiles(); 
 
             _publishedProviderStepContext.BlobRepo.Should().NotBeNull();
-            string fileName = table.Rows[0][0];
 
+            for (int i = 0; i < table.Rows.Count; i++)
+            {
+                string fileName = table.Rows[i][0];
+                var content = Resources.ResourceManager.GetObject(fileName, Resources.Culture);
+                string expected = GetResourceContent(fileName);
 
-            var content = Resources.ResourceManager.GetObject(fileName, Resources.Culture);
-            string expected = GetResourceContent(fileName);
-
-            publishedProviders.TryGetValue(fileName, out string acutal);
-            acutal.Should()
-                    .Equals(expected);
+                publishedProviders.TryGetValue(fileName, out string acutal);
+                
+                acutal.Should()
+                        .Equals(expected);
+            }
+            
         }
 
         [Then(@"the following published provider search index items is produced for providerid with '(.*)' and '(.*)'")]
