@@ -12,22 +12,7 @@ namespace CalculateFunding.Models.Specs
         [JsonProperty("current")]
         public SpecificationVersion Current { get; set; }
 
-        [JsonProperty("publishedResultsRefreshedAt")]
-        public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
-
-        [JsonProperty("lastCalculationUpdatedAt")]
-        public DateTimeOffset? LastCalculationUpdatedAt { get; set; }
-
         [JsonProperty("variationDate")]
         public DateTimeOffset? VariationDate { get; set; }
-
-        [JsonIgnore]
-        public bool ShouldRefresh
-        {
-            get
-            {
-                return !PublishedResultsRefreshedAt.HasValue || (LastCalculationUpdatedAt.HasValue && LastCalculationUpdatedAt.Value > PublishedResultsRefreshedAt.Value);
-            }
-        }
     }
 }

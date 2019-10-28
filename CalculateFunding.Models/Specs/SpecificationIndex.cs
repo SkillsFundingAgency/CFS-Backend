@@ -52,9 +52,5 @@ namespace CalculateFunding.Models.Specs
         [IsFilterable, IsFacetable, IsRetrievable(true)]
         [JsonProperty("isSelectedForFunding")]
         public bool IsSelectedForFunding { get; set; }
-
-        [IsRetrievable(true)]
-        [JsonProperty("publishedResultsRefreshedAt")]
-        public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
     }
 }

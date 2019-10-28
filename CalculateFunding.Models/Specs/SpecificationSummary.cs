@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Versioning;
 using Newtonsoft.Json;
@@ -25,12 +24,6 @@ namespace CalculateFunding.Models.Specs
 
         [JsonProperty("approvalStatus")]
         public PublishStatus ApprovalStatus { get; set; }
-
-        [JsonProperty("publishedResultsRefreshedAt")]
-        public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
-
-        [JsonProperty("lastCalculationUpdatedAt")]
-        public DateTimeOffset? LastCalculationUpdatedAt { get; set; }
 
         [JsonProperty("templateIds")]
         public IDictionary<string, string> TemplateIds { get; set; } = new Dictionary<string, string>();

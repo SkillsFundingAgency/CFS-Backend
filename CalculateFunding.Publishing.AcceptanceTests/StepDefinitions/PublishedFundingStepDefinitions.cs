@@ -1,16 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Resources;
-using System.Text;
 using System.Threading.Tasks;
 using CalculateFunding.Common.Extensions;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
-using CalculateFunding.Models.Versioning;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Models;
 using CalculateFunding.Publishing.AcceptanceTests.Properties;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
 using Newtonsoft.Json;
 using TechTalk.SpecFlow;
@@ -144,7 +142,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
         [Then(@"the published funding contains a distribution period in funding line '(.*)' with id of '(.*)' has the following profiles")]
         public void ThenThePublishedFundingContainsADistributionPeriodInFundingLineWithIdOfHasTheFollowingProfiles(string fundingLineCode, string distributionPeriodId, Table table)
-        {            
+        {
 
             PublishedFunding publishedFunding = _publishedFundingResultStepContext.CurrentPublishedFunding;
 
@@ -184,10 +182,10 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .Should()
                 .NotBeNull("Calculations not found");
 
-          
+
             IEnumerable<CalculationResult> calculationResult = table.CreateSet<CalculationResult>();
 
-           foreach(var cals in calculationResult)
+            foreach (var cals in calculationResult)
             {
                 var calValue = calculations.SingleOrDefault(c => c.TemplateCalculationId.ToString() == cals.Id);
                 calValue
@@ -215,31 +213,22 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             }
         }
 
-        
-
         private static string GetResourceContent(string fileName)
         {
-            byte[] result = null;
+            Guard.IsNullOrWhiteSpace(fileName, nameof(fileName));
 
-            if (fileName == "PSG-AY-1920-Information-Provider-1000201-1_0.json")
+            string resourceName = $"CalculateFunding.Publishing.AcceptanceTests.Resources.PublishedFunding.{fileName}";
+
+            string result = typeof(PublishedFundingStepDefinitions)
+                .Assembly
+                .GetEmbeddedResourceFileContents(resourceName);
+
+            if (string.IsNullOrWhiteSpace(result))
             {
-                result = Resources.PSG_AY_1920_Information_Provider_1000201_1_0;
-            }
-            else if (fileName == "PSG-AY-1920-Information-Provider-1000202-1_0.json")
-            {
-                result = Resources.PSG_AY_1920_Information_Provider_1000202_1_0;
-            }
-            else if (fileName == "PSG-AY-1920-Payment-AcademyTrust-8000001-1_0.json")
-            {
-                result = Resources.PSG_AY_1920_Payment_AcademyTrust_8000001_1_0;
-            }
-            else if (fileName == "PSG-AY-1920-Payment-LocalAuthority-9000000-1_0.json")
-            {
-                result = Resources.PSG_AY_1920_Payment_LocalAuthority_9000000_1_0;
+                throw new InvalidOperationException($"Unable to find resource for filename '{fileName}'");
             }
 
-            return Encoding.UTF8.GetString(result, 0, result.Length);
+            return result;
         }
-
     }
 }

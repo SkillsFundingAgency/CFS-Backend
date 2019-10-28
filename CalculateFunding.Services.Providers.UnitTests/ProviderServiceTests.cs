@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.Caching;
-using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Providers;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -97,7 +96,7 @@ namespace CalculateFunding.Services.Providers.UnitTests
                     x.First().ReasonEstablishmentClosed == provider.ReasonEstablishmentClosed &&
                     x.First().ReasonEstablishmentOpened == provider.ReasonEstablishmentOpened &&
                     x.First().Successor == provider.Successor &&
-                    x.First().TrustStatus == Enum.Parse<Models.Results.TrustStatus>(provider.TrustStatus.ToString()) &&
+                    x.First().TrustStatus == provider.TrustStatus &&
                     x.First().TrustName == provider.TrustName &&
                     x.First().TrustCode == provider.TrustCode &&
                     x.First().Town == provider.Town &&
@@ -384,21 +383,21 @@ namespace CalculateFunding.Services.Providers.UnitTests
                 ReasonEstablishmentClosed = provider.ReasonEstablishmentClosed,
                 ReasonEstablishmentOpened = provider.ReasonEstablishmentOpened,
                 Successor = provider.Successor,
-                TrustStatus = Enum.Parse<Models.Results.TrustStatus>(provider.TrustStatus.ToString()),
+                TrustStatus = provider.TrustStatus,
                 TrustName = provider.TrustName,
                 TrustCode = provider.TrustCode,
                 Town = provider.Town,
                 Postcode = provider.Postcode,
-                LocalAuthorityName =provider.LocalAuthorityName,
+                LocalAuthorityName = provider.LocalAuthorityName,
                 CompaniesHouseNumber = provider.CompaniesHouseNumber,
                 GroupIdNumber = provider.GroupIdNumber,
-                RscRegionName =provider.RscRegionName,
-                RscRegionCode =provider.RscRegionCode,
-                GovernmentOfficeRegionName =provider.GovernmentOfficeRegionName,
+                RscRegionName = provider.RscRegionName,
+                RscRegionCode = provider.RscRegionCode,
+                GovernmentOfficeRegionName = provider.GovernmentOfficeRegionName,
                 GovernmentOfficeRegionCode = provider.GovernmentOfficeRegionCode,
                 DistrictName = provider.DistrictName,
-                DistrictCode =provider.DistrictCode,
-                WardName =provider.WardName,
+                DistrictCode = provider.DistrictCode,
+                WardName = provider.WardName,
                 WardCode = provider.WardCode,
                 CensusWardName = provider.CensusWardName,
                 CensusWardCode = provider.CensusWardCode,

@@ -22,7 +22,6 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Documents;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
@@ -107,7 +106,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
 
             ApiResponse<FundingConfiguration> fundingConfigResponse = new ApiResponse<FundingConfiguration>(HttpStatusCode.OK, new FundingConfiguration());
-            
+
             policiesApiClient
                 .GetFundingPeriodById(Arg.Is(fundingPeriodId))
                 .Returns(fundingPeriodResponse);
@@ -165,7 +164,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .Value
                 .Should()
-                .BeOfType<SpecificationCurrentVersion>()
+                .BeOfType<SpecificationVersion>()
                 .And
                 .NotBeNull();
 
@@ -347,7 +346,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .Value
                 .Should()
-                .BeOfType<SpecificationCurrentVersion>()
+                .BeOfType<SpecificationVersion>()
                 .And
                 .NotBeNull();
 

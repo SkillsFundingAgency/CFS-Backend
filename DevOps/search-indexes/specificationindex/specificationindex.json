@@ -143,19 +143,6 @@
 			"analyzer": null,
 			"searchAnalyzer": null,
 			"indexAnalyzer": null
-		},
-		{
-			"name": "publishedResultsRefreshedAt",
-			"type": "Edm.DateTimeOffset",
-			"key": false,
-			"facetable": false,
-			"filterable": false,
-			"retrievable": true,
-			"searchable": false,
-			"sortable": false,
-			"analyzer": null,
-			"searchAnalyzer": null,
-			"indexAnalyzer": null
 		}
 	],
 	"scoringProfiles": [],

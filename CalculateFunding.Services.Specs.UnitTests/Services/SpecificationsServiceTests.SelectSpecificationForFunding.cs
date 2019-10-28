@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using CalculateFunding.Common.ApiClient.Jobs;
-using CalculateFunding.Common.ApiClient.Jobs.Models;
 using CalculateFunding.Common.Caching;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
-using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
@@ -19,7 +16,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
 using Serilog;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
@@ -30,7 +26,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task SelectSpecificationForFunding_GivenNoFundingPeriodOnSpecification_ThrowsException()
         {
             HttpRequest request = Substitute.For<HttpRequest>();
-            
+
             request.Query = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "specificationId", new StringValues(SpecificationId) }
@@ -53,12 +49,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .Throw<ArgumentNullException>();
         }
-        
+
         [TestMethod]
         public async Task SelectSpecificationForFunding_GivenNoFundingStreamAlreadySelectedInPeriod_ReturnsConflict()
         {
             HttpRequest request = Substitute.For<HttpRequest>();
-            
+
             request.Query = new QueryCollection(new Dictionary<string, StringValues>
             {
                 { "specificationId", new StringValues(SpecificationId) }
@@ -68,9 +64,9 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             Specification specificationWithFundingStreamClash = CreateSpecification();
 
             SpecificationVersion currentVersionOfSpecification = specification.Current;
-            
+
             string commonFundingStreamId = currentVersionOfSpecification.FundingStreams.First().Id;
-            
+
             specificationWithFundingStreamClash.Current.FundingStreams.First().Id = commonFundingStreamId;
 
             ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
@@ -79,10 +75,10 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Returns(specification);
             specificationsRepository
                 .GetSpecificationsSelectedForFundingByPeriod(currentVersionOfSpecification.FundingPeriod.Id)
-                .Returns(new [] { specificationWithFundingStreamClash });
+                .Returns(new[] { specificationWithFundingStreamClash });
 
             IActionResult result = await CreateService(
-                logs: CreateLogger(), 
+                logs: CreateLogger(),
                 specificationsRepository: specificationsRepository)
                 .SelectSpecificationForFunding(request);
 
@@ -90,7 +86,7 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Should()
                 .BeOfType<ConflictResult>();
         }
-        
+
         [TestMethod]
         public async Task SelectSpecificationForFunding_GivenNoSpecificationId_ReturnsBadRequestObject()
         {
@@ -316,10 +312,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             await cacheProvider
                 .Received(1)
                 .RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-
-            await cacheProvider
-                .Received(1)
-                .RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
         }
 
         [TestMethod]
@@ -350,14 +342,11 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .UpdateSpecification(Arg.Is(specification))
                 .Returns(HttpStatusCode.OK);
 
-            IJobsApiClient jobsApiClient = CreateJobsApiClient();
-
             ICacheProvider cacheProvider = CreateCacheProvider();
 
             SpecificationsService service = CreateService(
                 logs: logger,
                 specificationsRepository: specificationsRepository,
-                jobsApiClient: jobsApiClient,
                 cacheProvider: cacheProvider);
 
             // Act
@@ -371,10 +360,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             await cacheProvider
                 .Received(1)
                 .RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-
-            await cacheProvider
-                .Received(1)
-                .RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
         }
     }
 }

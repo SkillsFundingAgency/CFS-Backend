@@ -52,7 +52,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             IValidator<SpecificationEditModel> specificationEditModelValidator = null,
             IResultsRepository resultsRepository = null,
             IVersionRepository<SpecificationVersion> specificationVersionRepository = null,
-            IJobsApiClient jobsApiClient = null,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobActions = null,
             ICalculationsApiClient calcsApiClient = null)
         {
@@ -68,7 +67,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 specificationEditModelValidator ?? CreateEditSpecificationValidator(),
                 resultsRepository ?? CreateResultsRepository(),
                 specificationVersionRepository ?? CreateVersionRepository(),
-                jobsApiClient ?? CreateJobsApiClient(),
                 SpecificationsResilienceTestHelper.GenerateTestPolicies(),
                 queueCreateSpecificationJobActions ?? Substitute.For<IQueueCreateSpecificationJobActions>(),
                 calcsApiClient ?? CreateCalcsApiClient());

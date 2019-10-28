@@ -19,7 +19,5 @@ namespace CalculateFunding.Models.Specs
         public string[] DataDefinitionRelationshipIds { get; set; }
 
         public bool IsSelectedForFunding { get; set; }
-
-        public DateTimeOffset? PublishedResultsRefreshedAt { get; set; }
     }
 }

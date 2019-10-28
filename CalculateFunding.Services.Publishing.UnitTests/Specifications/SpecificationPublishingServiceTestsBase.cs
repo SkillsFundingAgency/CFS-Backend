@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
 using CalculateFunding.Common.ApiClient.Jobs.Models;
@@ -14,7 +13,6 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
-using SpecModels = CalculateFunding.Models.Specs;
 
 namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 {
@@ -22,7 +20,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         where TJobDefinition : IJobDefinition
     {
         private ValidationResult _validationResult;
-        
+
         protected ISpecificationsApiClient Specifications { get; private set; }
         protected ICreateJobsForSpecifications<TJobDefinition> Jobs { get; private set; }
         protected IActionResult ActionResult { get; set; }
@@ -31,7 +29,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
         protected Reference User { get; private set; }
         protected ISpecificationIdServiceRequestValidator Validator { get; private set; }
         protected ResiliencePolicies ResiliencePolicies { get; private set; }
-        protected SpecModels.SpecificationApprovalModel CreateApprovalModel { get; private set; }
 
         [TestInitialize]
         public void TestBaseSetUp()
@@ -41,11 +38,6 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
             CorrelationId = NewRandomString();
             User = NewUser();
             Jobs = Substitute.For<ICreateJobsForSpecifications<TJobDefinition>>();
-
-            CreateApprovalModel = new SpecModels.SpecificationApprovalModel
-            {
-                FundingStreamId = NewRandomString(), Providers = new List<string> {NewRandomString(), NewRandomString()}
-            };
 
             Validator = Substitute.For<ISpecificationIdServiceRequestValidator>();
 
@@ -114,7 +106,7 @@ namespace CalculateFunding.Services.Publishing.UnitTests.Specifications
 
             if (matcher == null) return;
 
-            ((TActionResult) ActionResult)
+            ((TActionResult)ActionResult)
                 .Should()
                 .Match(matcher);
         }

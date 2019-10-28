@@ -1,12 +1,11 @@
-﻿using CalculateFunding.Common.ApiClient.Providers.Models;
+﻿using System;
+using System.Collections.Generic;
+using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Publishing;
 using CalculateFunding.Publishing.AcceptanceTests.Contexts;
 using CalculateFunding.Publishing.AcceptanceTests.Properties;
+using CalculateFunding.Tests.Common.Helpers;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 using TechTalk.SpecFlow;
 using TechTalk.SpecFlow.Assist;
 
@@ -30,8 +29,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
         public void ThenThePublishedProviderDocumentProducedIsSavedToBlobStorageForFollowingFileName(Table table)
         {
             _publishedProviderStepContext.Should().NotBeNull();
-           
-            var publishedProviders = _publishedProviderStepContext.BlobRepo.GetFiles(); 
+
+            var publishedProviders = _publishedProviderStepContext.BlobRepo.GetFiles();
 
             _publishedProviderStepContext.BlobRepo.Should().NotBeNull();
 
@@ -42,11 +41,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 string expected = GetResourceContent(fileName);
 
                 publishedProviders.TryGetValue(fileName, out string acutal);
-                
+
                 acutal.Should()
                         .Equals(expected);
             }
-            
+
         }
 
         [Then(@"the following published provider search index items is produced for providerid with '(.*)' and '(.*)'")]
@@ -56,7 +55,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
             IEnumerable<PublishedProviderIndex> providers = table.CreateSet<PublishedProviderIndex>();
 
-            foreach(var pubProvider in providers)
+            foreach (var pubProvider in providers)
             {
                 string key = $"{pubProvider.UKPRN}-{fundingPeriodId}-{fundingStreamid}";
                 var searchIndex = _publishedProviderStepContext.SearchRepo.PublishedProviderIndex;
@@ -71,31 +70,20 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
 
         private static string GetResourceContent(string fileName)
         {
-            byte[] result = null;
+            Guard.IsNullOrWhiteSpace(fileName, nameof(fileName));
 
-            switch (fileName)
+            string resourceName = $"CalculateFunding.Publishing.AcceptanceTests.Resources.PublishedProviders.{fileName}";
+
+            string result = typeof(PublishedFundingStepDefinitions)
+                .Assembly
+                .GetEmbeddedResourceFileContents(resourceName);
+
+            if (string.IsNullOrWhiteSpace(result))
             {
-                case "PSG-AY-1920-1000000-1_0.json":
-                    result = Resources.PSG_AY_1920_1000000_1_0;
-                    break;
-                case "PSG-AY-1920-1000002-1_0.json":
-                    result = Resources.PSG_AY_1920_1000002_1_0;
-                    break;
-                case "PSG-AY-1920-1000101-1_0.json":
-                    result = Resources.PSG_AY_1920_1000101_1_0;
-                    break;
-                case "PSG-AY-1920-1000102-1_0.json":
-                    result = Resources.PSG_AY_1920_1000102_1_0;
-                    break;
-                case "PSG-AY-1920-1000201-1_0.json":
-                    result = Resources.PSG_AY_1920_1000201_1_0;
-                    break;
-                case "PSG-AY-1920-1000202-1_0.json":
-                    result = Resources.PSG_AY_1920_1000202_1_0;
-                    break;
+                throw new InvalidOperationException($"Unable to find resource for filename '{fileName}'");
             }
 
-            return Encoding.UTF8.GetString(result, 0, result.Length);
+            return result;
         }
     }
 }

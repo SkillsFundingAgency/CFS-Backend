@@ -8,7 +8,6 @@ using CalculateFunding.Models.Datasets;
 using CalculateFunding.Models.Datasets.Schema;
 using CalculateFunding.Models.Gherkin;
 using CalculateFunding.Models.Scenarios;
-using CalculateFunding.Models.Specs;
 using Gherkin.Ast;
 
 namespace CalculateFunding.Services.TestRunner
@@ -20,7 +19,7 @@ namespace CalculateFunding.Services.TestRunner
             StepsAction = stepsActions.Select(x => x.GetType()).Where(x => x.GetCustomAttribute<TestStepAttribute>() != null).ToList();
         }
 
-        public IEnumerable<GherkinError> Validate(Step step, SpecificationCurrentVersion specification,
+        public IEnumerable<GherkinError> Validate(Step step,
             List<DefinitionSpecificationRelationship> dataRelationships,
             List<DatasetDefinition> dataDefinitions,
             IEnumerable<Calculation> calculations)
@@ -81,7 +80,7 @@ namespace CalculateFunding.Services.TestRunner
 
         private bool ValidateField(string datasetName, string fieldName, List<DefinitionSpecificationRelationship> dataRelationships, List<DatasetDefinition> datasetDefinitions)
         {
-            var datasets = datasetName != null ? dataRelationships.Where(x =>  x.Name == datasetName).Select(x => x.DatasetDefinition.Id).ToList() : null;
+            var datasets = datasetName != null ? dataRelationships.Where(x => x.Name == datasetName).Select(x => x.DatasetDefinition.Id).ToList() : null;
 
             if (fieldName != null)
             {
@@ -110,7 +109,7 @@ namespace CalculateFunding.Services.TestRunner
                         var instance = Activator.CreateInstance(stepAction) as GherkinStepAction;
                         foreach (var propertyInfo in stepAction.GetProperties().Where(x => x.GetCustomAttribute<TestStepArgumentAttribute>() != null))
                         {
-                            
+
                         }
                         return instance;
                     }

@@ -6,7 +6,6 @@ using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CalculateFunding.Common.ApiClient.Calcs;
-using CalculateFunding.Common.ApiClient.Jobs;
 using CalculateFunding.Common.ApiClient.Models;
 using CalculateFunding.Common.ApiClient.Policies;
 using CalculateFunding.Common.ApiClient.Policies.Models.FundingConfig;
@@ -14,7 +13,6 @@ using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
 using CalculateFunding.Common.Utility;
-using CalculateFunding.Models;
 using CalculateFunding.Models.Exceptions;
 using CalculateFunding.Models.Policy;
 using CalculateFunding.Models.Results;
@@ -57,13 +55,10 @@ namespace CalculateFunding.Services.Specs
         private readonly ICacheProvider _cacheProvider;
         private readonly IResultsRepository _resultsRepository;
         private readonly IVersionRepository<SpecificationVersion> _specificationVersionRepository;
-        private readonly Polly.Policy _jobsApiClientPolicy;
-        private readonly IJobsApiClient _jobsApiClient;
         private readonly IQueueCreateSpecificationJobActions _queueCreateSpecificationJobAction;
         private readonly ICalculationsApiClient _calcsApiClient;
         private readonly Polly.Policy _calcsApiClientPolicy;
 
-        // Ctor for use from functions
         public SpecificationsService(
             IMapper mapper,
             ISpecificationsRepository specificationsRepository,
@@ -77,65 +72,6 @@ namespace CalculateFunding.Services.Specs
             IValidator<SpecificationEditModel> specificationEditModelValidator,
             IResultsRepository resultsRepository,
             IVersionRepository<SpecificationVersion> specificationVersionRepository,
-            ISpecificationsResiliencePolicies resiliencePolicies,
-            IJobsApiClient jobsApiClient,
-            IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
-            ICalculationsApiClient calcsApiClient)
-        {
-            Guard.ArgumentNotNull(mapper, nameof(mapper));
-            Guard.ArgumentNotNull(specificationsRepository, nameof(specificationsRepository));
-            Guard.ArgumentNotNull(policiesApiClient, nameof(policiesApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
-            Guard.ArgumentNotNull(resiliencePolicies?.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
-            Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(specificationCreateModelValidator, nameof(specificationCreateModelValidator));
-            Guard.ArgumentNotNull(messengerService, nameof(messengerService));
-            Guard.ArgumentNotNull(searchRepository, nameof(searchRepository));
-            Guard.ArgumentNotNull(assignDefinitionRelationshipMessageValidator, nameof(assignDefinitionRelationshipMessageValidator));
-            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
-            Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
-            Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
-            Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
-            Guard.ArgumentNotNull(queueCreateSpecificationJobAction, nameof(queueCreateSpecificationJobAction));
-            Guard.ArgumentNotNull(calcsApiClient, nameof(calcsApiClient));
-
-            _mapper = mapper;
-            _specificationsRepository = specificationsRepository;
-            _policiesApiClient = policiesApiClient;
-            _policiesApiClientPolicy = resiliencePolicies.PoliciesApiClient;
-            _logger = logger;
-            _specificationCreateModelvalidator = specificationCreateModelValidator;
-            _messengerService = messengerService;
-            _searchRepository = searchRepository;
-            _assignDefinitionRelationshipMessageValidator = assignDefinitionRelationshipMessageValidator;
-            _cacheProvider = cacheProvider;
-            _specificationEditModelValidator = specificationEditModelValidator;
-            _resultsRepository = resultsRepository;
-            _specificationVersionRepository = specificationVersionRepository;
-            _jobsApiClient = jobsApiClient;
-            _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
-            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
-            _calcsApiClient = calcsApiClient;
-            _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
-        }
-
-        // Ctor for use from API
-        public SpecificationsService(
-            IMapper mapper,
-            ISpecificationsRepository specificationsRepository,
-            IPoliciesApiClient policiesApiClient,
-            ILogger logger,
-            IValidator<SpecificationCreateModel> specificationCreateModelValidator,
-            IMessengerService messengerService,
-            ISearchRepository<SpecificationIndex> searchRepository,
-            IValidator<AssignDefinitionRelationshipMessage> assignDefinitionRelationshipMessageValidator,
-            ICacheProvider cacheProvider,
-            IValidator<SpecificationEditModel> specificationEditModelValidator,
-            IResultsRepository resultsRepository,
-            IVersionRepository<SpecificationVersion> specificationVersionRepository,
-            IJobsApiClient jobsApiClient,
             ISpecificationsResiliencePolicies resiliencePolicies,
             IQueueCreateSpecificationJobActions queueCreateSpecificationJobAction,
             ICalculationsApiClient calcsApiClient)
@@ -152,7 +88,6 @@ namespace CalculateFunding.Services.Specs
             Guard.ArgumentNotNull(specificationEditModelValidator, nameof(specificationEditModelValidator));
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
             Guard.ArgumentNotNull(specificationVersionRepository, nameof(specificationVersionRepository));
-            Guard.ArgumentNotNull(jobsApiClient, nameof(jobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.PoliciesApiClient, nameof(resiliencePolicies.PoliciesApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.JobsApiClient, nameof(resiliencePolicies.JobsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalcsApiClient, nameof(resiliencePolicies.CalcsApiClient));
@@ -172,9 +107,7 @@ namespace CalculateFunding.Services.Specs
             _specificationEditModelValidator = specificationEditModelValidator;
             _resultsRepository = resultsRepository;
             _specificationVersionRepository = specificationVersionRepository;
-            _jobsApiClient = jobsApiClient;
             _queueCreateSpecificationJobAction = queueCreateSpecificationJobAction;
-            _jobsApiClientPolicy = resiliencePolicies.JobsApiClient;
             _calcsApiClient = calcsApiClient;
             _calcsApiClientPolicy = resiliencePolicies.CalcsApiClient;
         }
@@ -330,60 +263,6 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(result);
         }
 
-        public async Task<IActionResult> GetCurrentSpecificationById(HttpRequest request)
-        {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specification Id was provided to GetSpecificationById");
-
-                return new BadRequestObjectResult("Null or empty specification Id provided");
-            }
-
-            string cacheKey = $"{CacheKeys.SpecificationCurrentVersionById}{specificationId}";
-
-            SpecificationCurrentVersion result = await _cacheProvider.GetAsync<SpecificationCurrentVersion>(cacheKey);
-            if (result == null)
-            {
-                DocumentEntity<Specification> specification = await _specificationsRepository.GetSpecificationDocumentEntityById(specificationId);
-
-                if (specification == null)
-                {
-                    _logger.Warning($"A specification for id {specificationId} could not found");
-
-                    return new NotFoundResult();
-                }
-
-                if (specification.Content == null)
-                {
-                    return new InternalServerErrorResult("Specification content is null");
-                }
-
-                if (specification.Content.Current == null)
-                {
-                    return new InternalServerErrorResult("Specification current is null");
-                }
-
-                List<FundingStream> fundingStreams = new List<FundingStream>();
-                if (!specification.Content.Current.FundingStreams.IsNullOrEmpty())
-                {
-                    string[] fundingStreamIds = specification.Content.Current.FundingStreams.Select(p => p.Id).ToArray();
-                    Common.ApiClient.Models.ApiResponse<PolicyModels.FundingStream> fundingStreamResultResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamIds.FirstOrDefault()));
-                    FundingStream fundingStreamResult = _mapper.Map<FundingStream>(fundingStreamResultResponse?.Content);
-                    fundingStreams.Add(fundingStreamResult);
-                }
-
-                result = ConvertSpecificationToCurrentVersion(specification, fundingStreams);
-
-                await _cacheProvider.SetAsync(cacheKey, result, TimeSpan.FromDays(1), true);
-            }
-
-            return new OkObjectResult(result);
-        }
-
         public async Task<IActionResult> GetSpecificationsByFundingPeriodId(HttpRequest request)
         {
             request.Query.TryGetValue("fundingPeriodId", out StringValues yearId);
@@ -509,7 +388,7 @@ namespace CalculateFunding.Services.Specs
 
             return new OkObjectResult(specifications);
         }
-        
+
         public async Task<IActionResult> GetFundingStreamsSelectedForFundingBySpecification(HttpRequest request)
         {
             request.Query.TryGetValue("specificationId", out StringValues specId);
@@ -528,47 +407,6 @@ namespace CalculateFunding.Services.Specs
                     ).Select(s => _mapper.Map<FundingStream>(s));
 
             return new OkObjectResult(fundingStreams);
-        }
-
-        public async Task<IActionResult> UpdateCalculationLastUpdatedDate(HttpRequest request)
-        {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-
-            string specificationId = specId.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specification id was provided to UpdateCalculationLastUpdatedDate");
-
-                return new BadRequestObjectResult("Null or empty specification id was provided");
-            }
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-
-            if (specification == null)
-            {
-                _logger.Warning($"A specification for id {specificationId} could not found");
-
-                return new NotFoundResult();
-            }
-
-            specification.LastCalculationUpdatedAt = DateTimeOffset.Now.ToLocalTime();
-
-            HttpStatusCode result = await _specificationsRepository.UpdateSpecification(specification);
-
-            if (!result.IsSuccess())
-            {
-                string message = $"Failed to update calculation last updated date on specification {specificationId}";
-
-                _logger.Error(message);
-
-                return new InternalServerErrorResult(message);
-            }
-
-            await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-            await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
-
-            return new NoContentResult();
         }
 
         public async Task<IActionResult> GetSpecificationByName(HttpRequest request)
@@ -760,8 +598,6 @@ namespace CalculateFunding.Services.Specs
 
             string specificationId = specification.Id;
 
-            SpecificationCurrentVersion result = ConvertSpecificationToCurrentVersion(repositoryCreateResult, fundingStreamObjects);
-
             foreach (string fundingStreamId in specification.Current.FundingStreams.Select(m => m.Id))
             {
                 if (fundingConfigs.ContainsKey(fundingStreamId))
@@ -772,7 +608,7 @@ namespace CalculateFunding.Services.Specs
 
             await _queueCreateSpecificationJobAction.Run(specificationVersion, user, request.GetCorrelationId());
 
-            return new OkObjectResult(result);
+            return new OkObjectResult(specificationVersion);
         }
 
         public async Task<IActionResult> EditSpecification(HttpRequest request)
@@ -826,7 +662,7 @@ namespace CalculateFunding.Services.Specs
 
             if (editModel.FundingPeriodId != specificationVersion.FundingPeriod.Id)
             {
-                ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() => 
+                ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = await _policiesApiClientPolicy.ExecuteAsync(() =>
                     _policiesApiClient.GetFundingPeriodById(editModel.FundingPeriodId));
                 PolicyModels.FundingPeriod content = fundingPeriodResponse?.Content;
                 if (content == null)
@@ -853,7 +689,7 @@ namespace CalculateFunding.Services.Specs
             {
                 foreach (string fundingStreamId in editModel.FundingStreamIds)
                 {
-                    ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => 
+                    ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() =>
                         _policiesApiClient.GetFundingStreamById(fundingStreamId));
 
                     if (fundingStreamResponse?.Content == null)
@@ -878,7 +714,7 @@ namespace CalculateFunding.Services.Specs
                 return new StatusCodeResult((int)statusCode);
             }
 
-            await TaskHelper.WhenAllAndThrow(ReindexSpecification(specification), 
+            await TaskHelper.WhenAllAndThrow(ReindexSpecification(specification),
                 ClearSpecificationCacheItems(specificationVersion.FundingPeriod.Id),
                 _cacheProvider.RemoveAsync<List<ProviderSummary>>($"{CacheKeys.ScopedProviderSummariesPrefix}{specificationId}"));
 
@@ -996,70 +832,6 @@ namespace CalculateFunding.Services.Specs
             };
 
             return new OkObjectResult(result);
-        }
-
-        public async Task<IActionResult> UpdatePublishedRefreshedDate(HttpRequest request)
-        {
-            request.Query.TryGetValue("specificationId", out StringValues specId);
-            string specificationId = specId.FirstOrDefault();
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specification Id was provided to UpdatePublishedRefreshedDate");
-                return new BadRequestObjectResult("Null or empty specification Id provided");
-            }
-            string json = await request.GetRawBodyStringAsync();
-
-            UpdatePublishedRefreshedDateModel updateRefreshDateModel = null;
-
-            try
-            {
-                updateRefreshDateModel = JsonConvert.DeserializeObject<UpdatePublishedRefreshedDateModel>(json);
-
-                if (updateRefreshDateModel == null || updateRefreshDateModel.PublishedResultsRefreshedAt == DateTimeOffset.MinValue)
-                {
-                    _logger.Error("A null refresh date model was provided");
-                    return new BadRequestObjectResult("Null refresh date model provided");
-                }
-            }
-            catch (JsonReaderException jre)
-            {
-                _logger.Error(jre, $"An invalid refresh date was provided for specification: {specificationId}");
-
-                return new BadRequestObjectResult("An invalid refresh date was provided");
-            }
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                _logger.Warning($"Failed to find specification for id: {specificationId}");
-                return new NotFoundObjectResult("Specification not found");
-            }
-
-            specification.PublishedResultsRefreshedAt = updateRefreshDateModel.PublishedResultsRefreshedAt;
-            HttpStatusCode statusCode = await _specificationsRepository.UpdateSpecification(specification);
-
-            if (!statusCode.IsSuccess())
-            {
-                string error = $"Failed to set PublishedResultsRefreshedAt on specification for id: {specificationId} to value: {updateRefreshDateModel.PublishedResultsRefreshedAt.ToString()}";
-                _logger.Error(error);
-                return new InternalServerErrorResult(error);
-            }
-
-            await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-            await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
-
-            SpecificationIndex specificationIndex = CreateSpecificationIndex(specification);
-
-            IEnumerable<IndexError> errors = await _searchRepository.Index(new List<SpecificationIndex> { specificationIndex });
-
-            if (errors.Any())
-            {
-                string error = $"Failed to index search for specification {specificationId} with the following errors: {string.Join(";", errors.Select(m => m.ErrorMessage))}";
-                _logger.Error(error);
-                return new InternalServerErrorResult(error);
-            }
-
-            return new OkResult();
         }
 
         private async Task SendSpecificationComparisonModelMessageToTopic(string specificationId, string topicName, SpecificationVersion current, SpecificationVersion previous, HttpRequest request)
@@ -1193,7 +965,6 @@ WHERE   s.documentType = @DocumentType",
                     DataDefinitionRelationshipIds = specification.DataDefinitionRelationshipIds.IsNullOrEmpty()
                         ? new string[0]
                         : specification.DataDefinitionRelationshipIds,
-                    PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
                 }).ToList();
 
                 if (!specDocuments.IsNullOrEmpty())
@@ -1280,8 +1051,6 @@ WHERE   s.documentType = @DocumentType",
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>(
-                    $"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");               
             }
             catch (Exception ex)
             {
@@ -1296,8 +1065,6 @@ WHERE   s.documentType = @DocumentType",
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>(
                     $"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>(
-                    $"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
 
                 _logger.Error(ex, ex.Message);
 
@@ -1335,39 +1102,6 @@ WHERE   s.documentType = @DocumentType",
         {
             return specificationsInFundingPeriod.Any(_ =>
                 fundingStreams.Intersect(_.Current?.FundingStreams?.Select(fs => fs.Id)).Any());
-        }             
-
-        public async Task<IActionResult> CheckPublishResultStatus(HttpRequest request)
-        {
-            if (request == null)
-            {
-                _logger.Error("The http request is null");
-                return new BadRequestObjectResult("The request is null");
-            }
-
-            if (request.Query == null)
-            {
-                _logger.Error("The http request query is empty or null");
-                return new BadRequestObjectResult("the request query is empty or null");
-            }
-
-            request.Query.TryGetValue("specificationId", out StringValues specificationId);
-
-            try
-            {
-                SpecificationCalculationExecutionStatus specProgress = await _cacheProvider.GetAsync<SpecificationCalculationExecutionStatus>($"{CacheKeys.CalculationProgress}{specificationId}");
-                if (specProgress == null)
-                {
-                    _logger.Error("Cache returned null, couldn't find specification - {specificationId}", specificationId);
-                    return new BadRequestObjectResult($"Couldn't find progress statement for specification - {specificationId}");
-                }
-                return new OkObjectResult(specProgress);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Failed to retrieve calculation progress from cache - {specificationId}", specificationId);
-                return new InternalServerErrorResult(ex.Message);
-            }
         }
 
         public async Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId, string templateVersion)
@@ -1423,7 +1157,6 @@ WHERE   s.documentType = @DocumentType",
                 await _specificationVersionRepository.SaveVersion(specificationVersion);
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
             }
 
             return result;
@@ -1441,26 +1174,9 @@ WHERE   s.documentType = @DocumentType",
                 await _specificationVersionRepository.SaveVersion(specificationVersion);
 
                 await _cacheProvider.RemoveAsync<SpecificationSummary>($"{CacheKeys.SpecificationSummaryById}{specification.Id}");
-                await _cacheProvider.RemoveAsync<SpecificationCurrentVersion>($"{CacheKeys.SpecificationCurrentVersionById}{specification.Id}");
             }
 
             return result;
-        }
-
-        private void UpdateCacheWithCalculationStarted(string specificationId)
-        {
-            SpecificationCalculationExecutionStatus statusToCache = new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.NotStarted);
-            CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
-        }
-
-        private void UpdateCacheWithCalculationError(string specificationId, string errorMessage)
-        {
-            SpecificationCalculationExecutionStatus statusToCache =
-                new SpecificationCalculationExecutionStatus(specificationId, 0, CalculationProgressStatus.Error)
-                {
-                    ErrorMessage = errorMessage
-                };
-            CacheHelper.UpdateCacheForItem($"{CacheKeys.CalculationProgress}{specificationId}", statusToCache, _cacheProvider);
         }
 
         private async Task ClearSpecificationCacheItems(string fundingPeriodId)
@@ -1489,28 +1205,6 @@ WHERE   s.documentType = @DocumentType",
             return properties;
         }
 
-        [Obsolete]
-        private static SpecificationCurrentVersion ConvertSpecificationToCurrentVersion(DocumentEntity<Specification> specification, IEnumerable<FundingStream> fundingStreams)
-        {
-            return new SpecificationCurrentVersion()
-            {
-                DataDefinitionRelationshipIds = specification.Content.Current.DataDefinitionRelationshipIds,
-                Description = specification.Content.Current.Description,
-                FundingPeriod = specification.Content.Current.FundingPeriod,
-                Id = specification.Content.Id,
-                LastUpdatedDate = specification.UpdatedAt,
-                Name = specification.Content.Name,
-                ProviderVersionId = specification.Content.Current.ProviderVersionId,
-                FundingStreams = fundingStreams,
-                PublishStatus = specification.Content.Current.PublishStatus,
-                IsSelectedForFunding = specification.Content.IsSelectedForFunding,
-                PublishedResultsRefreshedAt = specification.Content.PublishedResultsRefreshedAt,
-                LastCalculationUpdatedAt = specification.Content.LastCalculationUpdatedAt,
-                VariationDate = specification.Content.Current.VariationDate,
-                TemplateIds = specification.Content.Current.TemplateIds.ToDictionary(_ => _.Key, _ => _.Value)
-            };
-        }
-
         private SpecificationIndex CreateSpecificationIndex(Specification specification)
         {
             SpecificationVersion specificationVersion = specification.Current.Clone() as SpecificationVersion;
@@ -1528,7 +1222,6 @@ WHERE   s.documentType = @DocumentType",
                 FundingPeriodName = specificationVersion.FundingPeriod.Name,
                 LastUpdatedDate = DateTimeOffset.Now,
                 DataDefinitionRelationshipIds = specificationVersion.DataDefinitionRelationshipIds.ToArraySafe(),
-                PublishedResultsRefreshedAt = specification.PublishedResultsRefreshedAt
             };
         }
 
@@ -1554,8 +1247,11 @@ WHERE   s.documentType = @DocumentType",
                 return new PreconditionFailedResult(message);
             }
 
-            return new OkObjectResult(new SpecificationPublishDateModel() { ExternalPublicationDate = specificationVersion.ExternalPublicationDate,
-                EarliestPaymentAvailableDate = specificationVersion.EarliestPaymentAvailableDate });
+            return new OkObjectResult(new SpecificationPublishDateModel()
+            {
+                ExternalPublicationDate = specificationVersion.ExternalPublicationDate,
+                EarliestPaymentAvailableDate = specificationVersion.EarliestPaymentAvailableDate
+            });
         }
 
         public async Task<IActionResult> SetPublishDates(string specificationId,
@@ -1565,7 +1261,7 @@ WHERE   s.documentType = @DocumentType",
             Guard.ArgumentNotNull(specificationId, nameof(specificationId));
             Guard.ArgumentNotNull(specificationPublishDateModel, nameof(specificationPublishDateModel));
 
-            
+
 
             Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
 
@@ -1582,7 +1278,7 @@ WHERE   s.documentType = @DocumentType",
             newSpecificationVersion.Version++;
             newSpecificationVersion.ExternalPublicationDate = specificationPublishDateModel.ExternalPublicationDate;
             newSpecificationVersion.EarliestPaymentAvailableDate = specificationPublishDateModel.EarliestPaymentAvailableDate;
-            
+
             HttpStatusCode updateSpecificationResult = await UpdateSpecification(specification, newSpecificationVersion, currentSpecificationVersion);
 
             if (!updateSpecificationResult.IsSuccess())

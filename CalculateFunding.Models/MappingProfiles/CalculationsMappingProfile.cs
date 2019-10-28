@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using AutoMapper;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Datasets.Schema;
 
 namespace CalculateFunding.Models.MappingProfiles
 {
+    [Obsolete("Move mapping profile into services, rather than models. Models common project shouldn't have API clients in it")]
     public class CalculationsMappingProfile : Profile
     {
         public CalculationsMappingProfile()

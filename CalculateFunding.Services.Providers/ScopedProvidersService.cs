@@ -206,7 +206,7 @@ namespace CalculateFunding.Services.Providers
                     ReasonEstablishmentClosed = x.ReasonEstablishmentClosed,
                     ReasonEstablishmentOpened = x.ReasonEstablishmentOpened,
                     Successor = x.Successor,
-                    TrustStatus = Enum.Parse<Models.Results.TrustStatus>(x.TrustStatus.ToString()),
+                    TrustStatus = x.TrustStatus,
                     TrustName = x.TrustName,
                     TrustCode = x.TrustCode,
                     Town = x.Town,

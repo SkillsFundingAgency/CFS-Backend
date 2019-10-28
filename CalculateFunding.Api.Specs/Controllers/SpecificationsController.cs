@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -49,13 +48,6 @@ namespace CalculateFunding.Api.Specs.Controllers
         public async Task<IActionResult> RunGetSpecificationSummaries()
         {
             return await _specService.GetSpecificationSummaries(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/specification-current-version-by-id")]
-        [HttpGet]
-        public async Task<IActionResult> RunGetCurrentSpecificationById()
-        {
-            return await _specService.GetCurrentSpecificationById(ControllerContext.HttpContext.Request);
         }
 
         [Route("api/specs/specifications")]
@@ -163,41 +155,20 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.SelectSpecificationForFunding(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/check-publish-result-status")]
-        [HttpPost]
-        public async Task<IActionResult> RunCheckPublishResultStatus()
-        {
-            return await _specService.CheckPublishResultStatus(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/update-published-refreshed-date")]
-        [HttpPost]
-        public async Task<IActionResult> RunUpdatePublishedRefreshedDate()
-        {
-            return await _specService.UpdatePublishedRefreshedDate(ControllerContext.HttpContext.Request);
-        }
-
-        [Route("api/specs/update-calculation-last-updated-date")]
-        [HttpPost]
-        public async Task<IActionResult> RunUpdateCalculationLastUpdatedDate()
-        {
-            return await _specService.UpdateCalculationLastUpdatedDate(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/specs/{specificationId}/templates/{fundingStreamId}/")]
         [HttpPut]
         public async Task<IActionResult> RunSetAssignedTemplateVersion([FromRoute]string specificationId, [FromRoute]string fundingStreamId, [FromBody]string templateVersion)
         {
             return await _specService.SetAssignedTemplateVersion(specificationId, fundingStreamId, templateVersion);
         }
-        
+
         [Route("/api/specs/{specificationId}/publishdates")]
         [HttpGet]
         public async Task<IActionResult> GetPublishDates([FromRoute]string specificationId)
         {
             return await _specService.GetPublishDates(specificationId);
         }
-              
+
 
         [Route("/api/specs/{specificationId}/publishdates")]
         [HttpPut]
@@ -206,6 +177,6 @@ namespace CalculateFunding.Api.Specs.Controllers
         {
             return await _specService.SetPublishDates(specificationId, specificationPublishDateModel);
         }
-       
+
     }
 }

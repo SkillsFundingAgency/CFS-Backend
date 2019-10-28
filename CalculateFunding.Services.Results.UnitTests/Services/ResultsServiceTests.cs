@@ -14,7 +14,6 @@ using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Calcs;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Results.Search;
-using CalculateFunding.Models.Specs;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
@@ -24,8 +23,6 @@ using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
 using FluentAssertions;
-using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
@@ -652,7 +649,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResultsButSearchRetuensErrors_ReturnsStatusCode500()
+        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResultsButSearchRetuensErrors_ReturnsStatusCode500()
         {
             //Arrange
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
@@ -700,7 +697,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResults_UpdatesSearchWithTwoDocumentsReturnsNoContent()
+        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithTwoCalcResults_UpdatesSearchWithTwoDocumentsReturnsNoContent()
         {
             //Arrange
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntity();
@@ -783,7 +780,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithCalcResultWithNullValue_UpdatesSearch_AndSetsIsExcluded_ThenReturnsNoContent()
+        public async Task ReIndexCalculationProviderResults_GivenResultReturnedFromDatabaseWithCalcResultWithNullValue_UpdatesSearch_AndSetsIsExcluded_ThenReturnsNoContent()
         {
             //Arrange
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntityWithNullCalculationResult();
@@ -846,7 +843,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task CleanupProviderResultsForSpecification_GivenProviderResultsBySpecificationIdAndProviders_ThenCallsDelete()
+        public async Task CleanupProviderResultsForSpecification_GivenProviderResultsBySpecificationIdAndProviders_ThenCallsDelete()
         {
             //Arrange
             DocumentEntity<ProviderResult> providerResult = CreateDocumentEntityWithNullCalculationResult();
@@ -881,7 +878,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task HasCalculationResults_GivenCalculationNotFound_ReturnNotFoundResult()
+        public async Task HasCalculationResults_GivenCalculationNotFound_ReturnNotFoundResult()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -913,7 +910,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task HasCalculationResults_GivenProviderResultNotFoundForSpecification_ReturnHasCalculationResultsFalse()
+        public async Task HasCalculationResults_GivenProviderResultNotFoundForSpecification_ReturnHasCalculationResultsFalse()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -951,7 +948,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoCalculations_ReturnHasCalculationResultsFalse()
+        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoCalculations_ReturnHasCalculationResultsFalse()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -991,7 +988,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoMatchingCalculations_ReturnHasCalculationResultsFalse()
+        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationButNoMatchingCalculations_ReturnHasCalculationResultsFalse()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -1044,7 +1041,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationWithMatchingCalculation_ReturnHasCalculationResultsTrue()
+        public async Task HasCalculationResults_GivenProviderResultFoundForSpecificationWithMatchingCalculation_ReturnHasCalculationResultsTrue()
         {
             //Arrange
             const string calculationId = "calc-1";
@@ -1099,7 +1096,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         [TestMethod]
         [DataRow(true, 1)]
         [DataRow(false, 0)]
-       public async Task QueueCsvGenerationMessage_RunsAsExpected(bool hasResults, int expectedOperations)
+        public async Task QueueCsvGenerationMessage_RunsAsExpected(bool hasResults, int expectedOperations)
         {
             //Arrange
             string specificationId = "12345";
@@ -1139,7 +1136,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task GenerateCalculationResultsCsv_MessageHasNoSpecificationId_ThrowsException()
+        public async Task GenerateCalculationResultsCsv_MessageHasNoSpecificationId_ThrowsException()
         {
             //Arrange
             string errorMessage = "Specification id missing";
@@ -1183,7 +1180,7 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         }
 
         [TestMethod]
-       public async Task GenerateCalculationResultsCsv_InputIsValid_RunsCorrectly()
+        public async Task GenerateCalculationResultsCsv_InputIsValid_RunsCorrectly()
         {
             //Arrange
             string specificationId = "123";
@@ -1273,7 +1270,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
             }
         }
 
-        #region "Dependency creation"
         static ResultsService CreateResultsService(ILogger logger = null,
             ICalculationResultsRepository resultsRepository = null,
             IMapper mapper = null,
@@ -1352,16 +1348,6 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
         static ICalculationsRepository CreateCalculationsRepository()
         {
             return Substitute.For<ICalculationsRepository>();
-        }
-        #endregion "Dependency creation"
-
-        #region "Test data"
-        static SpecificationCurrentVersion CreateSpecification(string specificationId)
-        {
-            return new SpecificationCurrentVersion
-            {
-                Id = specificationId
-            };
         }
 
         static DocumentEntity<ProviderResult> CreateDocumentEntity()
@@ -1488,6 +1474,5 @@ namespace CalculateFunding.Services.Results.UnitTests.Services
                 },
                 new ExpandoObject[] { alice, norman } };
         }
-        #endregion "Test data"
     }
 }

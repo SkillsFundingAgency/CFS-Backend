@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using CalculateFunding.Models.Specs;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -31,8 +30,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetSpecificationSummariesByIds(HttpRequest request);
 
-        Task<IActionResult> GetCurrentSpecificationById(HttpRequest request);
-
         Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request);
 
         Task AssignDataDefinitionRelationship(Message message);
@@ -45,13 +42,7 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetCurrentSpecificationsByFundingPeriodIdAndFundingStreamId(HttpRequest request);
 
-        Task<IActionResult> SelectSpecificationForFunding(HttpRequest request);       
-
-        Task<IActionResult> CheckPublishResultStatus(HttpRequest request);
-
-        Task<IActionResult> UpdatePublishedRefreshedDate(HttpRequest request);
-
-        Task<IActionResult> UpdateCalculationLastUpdatedDate(HttpRequest request);
+        Task<IActionResult> SelectSpecificationForFunding(HttpRequest request);
 
         Task<IActionResult> SetAssignedTemplateVersion(string specificationId, string fundingStreamId, string templateVersion);
 
