@@ -28,6 +28,7 @@ namespace CalculateFunding.Functions.Results.UnitTests
                 scope.ServiceProvider.GetService<ICalculationResultsRepository>().Should().NotBeNull(nameof(ICalculationResultsRepository));
                 scope.ServiceProvider.GetService<IProviderSourceDatasetRepository>().Should().NotBeNull(nameof(IProviderSourceDatasetRepository));
                 scope.ServiceProvider.GetService<IJobHelperService>().Should().NotBeNull(nameof(IJobHelperService));
+                scope.ServiceProvider.GetService<IProviderResultsCsvGeneratorService>().Should().NotBeNull(nameof(IJobHelperService));
             }
         }
 

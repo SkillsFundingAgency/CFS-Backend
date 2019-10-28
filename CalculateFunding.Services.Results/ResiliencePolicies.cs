@@ -30,5 +30,7 @@ namespace CalculateFunding.Services.Results
         public Policy ProviderVersionsSearchRepository { get; set; }
 
         public Policy PoliciesApiClient { get; set; }
+        
+        public Policy BlobClient { get; set; }
     }
 }

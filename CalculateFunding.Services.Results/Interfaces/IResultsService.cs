@@ -29,9 +29,5 @@ namespace CalculateFunding.Services.Results.Interfaces
         Task<IActionResult> HasCalculationResults(string calculationId);
 
         Task QueueCsvGenerationMessages();
-
-        Task QueueCsvGenerationMessage(string specificationId);
-
-        Task GenerateCalculationResultsCsv(Message message);
     }
 }

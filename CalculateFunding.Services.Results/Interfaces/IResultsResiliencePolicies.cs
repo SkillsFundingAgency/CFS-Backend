@@ -21,8 +21,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 
         Policy CalculationsRepository { get; set; }
 
-        Policy JobsApiClient { get; set; }
-
         Policy ProviderChangesRepository { get; set; }
 
         Policy ProviderCalculationResultsSearchRepository { get; set; }
@@ -30,5 +28,7 @@ namespace CalculateFunding.Services.Results.Interfaces
         Policy ProviderVersionsSearchRepository { get; set; }
 
         Policy PoliciesApiClient { get; set; }
+        
+        Policy BlobClient { get; set; }
     }
 }

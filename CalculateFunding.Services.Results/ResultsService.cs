@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient.Specifications;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.FeatureToggles;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Common.Models.HealthCheck;
@@ -20,11 +18,8 @@ using CalculateFunding.Services.Core;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
-using CalculateFunding.Services.Core.Interfaces.AzureStorage;
-using CalculateFunding.Services.Core.Interfaces.Logging;
 using CalculateFunding.Services.Core.Interfaces.ServiceBus;
 using CalculateFunding.Services.Results.Interfaces;
-using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Search.Models;
@@ -38,7 +33,6 @@ namespace CalculateFunding.Services.Results
     public class ResultsService : IResultsService, IHealthChecker
     {
         private readonly ILogger _logger;
-        private readonly ITelemetry _telemetry;
         private readonly ICalculationResultsRepository _resultsRepository;
         private readonly IProviderSourceDatasetRepository _providerSourceDatasetRepository;
         private readonly ISearchRepository<ProviderCalculationResultsIndex> _calculationProviderResultsSearchRepository;
@@ -46,28 +40,22 @@ namespace CalculateFunding.Services.Results
         private readonly ISpecificationsApiClient _specificationsApiClient;
         private readonly Polly.Policy _resultsSearchRepositoryPolicy;
         private readonly Polly.Policy _specificationsApiClientPolicy;
-        private readonly ICacheProvider _cacheProvider;
         private readonly IMessengerService _messengerService;
         private readonly ICalculationsRepository _calculationRepository;
         private readonly Polly.Policy _calculationsRepositoryPolicy;
         private readonly IFeatureToggle _featureToggle;
-        private readonly IBlobClient _blobClient;
 
         public ResultsService(ILogger logger,
             IFeatureToggle featureToggle,
             ICalculationResultsRepository resultsRepository,
-            ITelemetry telemetry,
             IProviderSourceDatasetRepository providerSourceDatasetRepository,
             ISearchRepository<ProviderCalculationResultsIndex> calculationProviderResultsSearchRepository,
             ISpecificationsApiClient specificationsApiClient,
             IResultsResiliencePolicies resiliencePolicies,
-            ICacheProvider cacheProvider,
             IMessengerService messengerService,
-            ICalculationsRepository calculationRepository,
-            IBlobClient blobClient)
+            ICalculationsRepository calculationRepository)
         {
             Guard.ArgumentNotNull(resultsRepository, nameof(resultsRepository));
-            Guard.ArgumentNotNull(telemetry, nameof(telemetry));
             Guard.ArgumentNotNull(providerSourceDatasetRepository, nameof(providerSourceDatasetRepository));
             Guard.ArgumentNotNull(calculationProviderResultsSearchRepository, nameof(calculationProviderResultsSearchRepository));
             Guard.ArgumentNotNull(specificationsApiClient, nameof(specificationsApiClient));
@@ -75,27 +63,22 @@ namespace CalculateFunding.Services.Results
             Guard.ArgumentNotNull(resiliencePolicies?.ResultsSearchRepository, nameof(resiliencePolicies.ResultsSearchRepository));
             Guard.ArgumentNotNull(resiliencePolicies?.SpecificationsApiClient, nameof(resiliencePolicies.SpecificationsApiClient));
             Guard.ArgumentNotNull(resiliencePolicies?.CalculationsRepository, nameof(resiliencePolicies.CalculationsRepository));
-            Guard.ArgumentNotNull(cacheProvider, nameof(cacheProvider));
             Guard.ArgumentNotNull(messengerService, nameof(messengerService));
             Guard.ArgumentNotNull(calculationRepository, nameof(calculationRepository));
             Guard.ArgumentNotNull(featureToggle, nameof(featureToggle));
-            Guard.ArgumentNotNull(blobClient, nameof(blobClient));
 
             _logger = logger;
             _resultsRepository = resultsRepository;
-            _telemetry = telemetry;
             _providerSourceDatasetRepository = providerSourceDatasetRepository;
             _calculationProviderResultsSearchRepository = calculationProviderResultsSearchRepository;
             _resultsRepositoryPolicy = resiliencePolicies.ResultsRepository;
             _specificationsApiClient = specificationsApiClient;
             _resultsSearchRepositoryPolicy = resiliencePolicies.ResultsSearchRepository;
             _specificationsApiClientPolicy = resiliencePolicies.SpecificationsApiClient;
-            _cacheProvider = cacheProvider;
             _messengerService = messengerService;
             _calculationRepository = calculationRepository;
             _calculationsRepositoryPolicy = resiliencePolicies.CalculationsRepository;
             _featureToggle = featureToggle;
-            _blobClient = blobClient;
         }
 
         public async Task<ServiceHealth> IsHealthOk()
@@ -190,7 +173,7 @@ namespace CalculateFunding.Services.Results
             return new OkObjectResult(await ProviderResultsBySpecificationId(specificationId, top));
         }
 
-        public async Task<IEnumerable<ProviderResult>> ProviderResultsBySpecificationId(string specificationId, string top)
+        private async Task<IEnumerable<ProviderResult>> ProviderResultsBySpecificationId(string specificationId, string top)
         {
             IEnumerable<ProviderResult> providerResults = null;
 
@@ -208,8 +191,10 @@ namespace CalculateFunding.Services.Results
 
             return providerResults;
         }
+        
+        //TODO; change this all to work in a batch basis
 
-        public async Task<IEnumerable<ProviderResult>> ProviderResultsBySpecificationId(string specificationId, int maxResults = -1)
+        private async Task<IEnumerable<ProviderResult>> ProviderResultsBySpecificationId(string specificationId, int maxResults = -1)
         {
             return await _resultsRepositoryPolicy.ExecuteAsync(() => _resultsRepository.GetProviderResultsBySpecificationId(specificationId, maxResults));
         }
@@ -540,56 +525,6 @@ namespace CalculateFunding.Services.Results
                     {
                         { "specification-id", specificationId }
                     });
-            }
-        }
-
-        public async Task GenerateCalculationResultsCsv(Message message)
-        {
-            string specificationId = message.GetUserProperty<string>("specification-id");
-
-            if (specificationId == null)
-            {
-                string error = "Specification id missing";
-
-                _logger.Error(error);
-                throw new NonRetriableException(error);
-            }
-
-            IEnumerable<ProviderResult> results = await ProviderResultsBySpecificationId(specificationId);
-
-            IEnumerable<ExpandoObject> resultsForOutput = ProcessProviderResultsForCsvOutput(results).ToList();
-
-            string csv = new CsvUtils().CreateCsvExpando(resultsForOutput);
-
-            ICloudBlob blob = await _blobClient.GetBlobReferenceFromServerAsync($"calculation-results-{specificationId}");
-
-            await _blobClient.UploadAsync(blob, csv);
-        }
-
-        public IEnumerable<ExpandoObject> ProcessProviderResultsForCsvOutput(IEnumerable<ProviderResult> results)
-        {
-            var calculationNames = results
-                .SelectMany(x => x.CalculationResults)
-                .Select(x => x.Calculation.Name)
-                .ToArray();
-
-            foreach (ProviderResult result in results)
-            {
-                dynamic csvRow = new ExpandoObject();
-                IDictionary<string, object> csvDict = csvRow as IDictionary<string, object>;
-
-                csvDict["UKPRN"] = result.Provider.UKPRN;
-                csvDict["ProviderName"] = result.Provider.Name;
-
-                foreach (string calculationName in calculationNames)
-                {
-                    csvDict[calculationName] = result.CalculationResults
-                        .Where(x => x.Calculation.Name == calculationName)
-                        .Select(x => x.Value.ToString())
-                        .FirstOrDefault();
-                }
-
-                yield return csvRow;
             }
         }
     }

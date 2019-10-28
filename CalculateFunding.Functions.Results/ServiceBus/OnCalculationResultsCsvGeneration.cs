@@ -12,29 +12,32 @@ namespace CalculateFunding.Functions.Results.ServiceBus
     public class OnCalculationResultsCsvGeneration
     {
         private readonly ILogger _logger;
-        private readonly IResultsService _resultsService;
+        private readonly IProviderResultsCsvGeneratorService _csvGeneratorService;
 
         public OnCalculationResultsCsvGeneration(
             ILogger logger,
-            IResultsService resultsService)
+            IProviderResultsCsvGeneratorService csvGeneratorService)
         {
             Guard.ArgumentNotNull(logger, nameof(logger));
-            Guard.ArgumentNotNull(resultsService, nameof(resultsService));
+            Guard.ArgumentNotNull(csvGeneratorService, nameof(csvGeneratorService));
 
             _logger = logger;
-            _resultsService = resultsService;
+            _csvGeneratorService = csvGeneratorService;
         }
 
         [FunctionName("on-calculation-results-csv-generation")]
-        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration, Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] Message message)
+        public async Task Run([ServiceBusTrigger(ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration, 
+            Connection = ServiceBusConstants.ConnectionStringConfigurationKey)] 
+            Message message)
         {
             try
             {
-                await _resultsService.GenerateCalculationResultsCsv(message);
+                await _csvGeneratorService.Run(message);
             }
             catch (Exception exception)
             {
                 _logger.Error(exception, $"An error occurred getting message from queue: {ServiceBusConstants.QueueNames.CalculationResultsCsvGeneration}");
+                
                 throw;
             }
         }

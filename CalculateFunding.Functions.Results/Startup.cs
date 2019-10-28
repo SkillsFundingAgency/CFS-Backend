@@ -79,6 +79,9 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<ICalculationsRepository, CalculationsRepository>();
             builder.AddSingleton<IJobHelperService, JobHelperService>();
             builder.AddSingleton<IProviderCalculationResultsReIndexerService, ProviderCalculationResultsReIndexerService>();
+            builder.AddSingleton<ICsvUtils, CsvUtils>();
+            builder.AddSingleton<IProviderResultsCsvGeneratorService, ProviderResultsCsvGeneratorService>();
+            builder.AddSingleton<IProverResultsToCsvRowsTransformation, ProverResultsToCsvRowsTransformation>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {
@@ -228,7 +231,8 @@ namespace CalculateFunding.Functions.Results
                 JobsApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
                 ProviderCalculationResultsSearchRepository = SearchResiliencePolicyHelper.GenerateSearchPolicy(totalNetworkRequestsPolicy),
                 ProviderChangesRepository = CosmosResiliencePolicyHelper.GenerateCosmosPolicy(totalNetworkRequestsPolicy),
-                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
+                PoliciesApiClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy),
+                BlobClient = ResiliencePolicyHelpers.GenerateRestRepositoryPolicy(totalNetworkRequestsPolicy)
             };
 
             return resiliencePolicies;

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Dynamic;
-using CalculateFunding.Services.Core.Helpers;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace CalculateFunding.Services.Core.UnitTests.Helpers
+namespace CalculateFunding.Services.Core.Helpers
 {
     [TestClass]
     public class CsvUtilsTests
@@ -13,32 +12,60 @@ namespace CalculateFunding.Services.Core.UnitTests.Helpers
 #endif
         [TestMethod]
         [DynamicData(nameof(CreateCsvExpandoTestCases), DynamicDataSourceType.Method)]
-        public void CreateCsvExpando_CreatesAsExpected(IEnumerable<ExpandoObject> input, string qualifier, CsvHeaderBehaviour headerBehaviour, string output)
+        public void CreateCsvExpando_CreatesAsExpected(IEnumerable<dynamic> input, string expectedOutput)
         {
-            CsvUtils utils = new CsvUtils();
-
-            string result = utils.CreateCsvExpando(input, qualifier, headerBehaviour);
-
-            Assert.AreEqual(output, result);
+            new CsvUtils()
+                .AsCsv(input)
+                .Should()
+                .Be(expectedOutput);
         }
 
         private static IEnumerable<object[]> CreateCsvExpandoTestCases()
         {
-            yield return new object[] { new ExpandoObject[0], "", CsvHeaderBehaviour.WriteIfData, "" };
-
-            dynamic expando1 = new ExpandoObject();
-            expando1.Name = "Elizabeth";
-            expando1.Country = "UK";
-
-            dynamic expando2 = new ExpandoObject();
-            expando2.Name = "Donald";
-            expando2.Country = "USA";
-
-            IEnumerable<ExpandoObject> expandoData = new List<ExpandoObject> { expando1, expando2 };
-
-            yield return new object[] { expandoData, "", CsvHeaderBehaviour.WriteAlways, "Name,Country\r\nElizabeth,UK\r\nDonald,USA\r\n" };
-            yield return new object[] { expandoData, "\"", CsvHeaderBehaviour.WriteAlways, "\"Name\",\"Country\"\r\n\"Elizabeth\",\"UK\"\r\n\"Donald\",\"USA\"\r\n" };
-            yield return new object[] { expandoData, "", CsvHeaderBehaviour.WriteNever, "Elizabeth,UK\r\nDonald,USA\r\n" };
+            yield return new object[]
+            {
+                new dynamic[0],
+                ""
+            };
+            yield return new object[]
+            {
+                new dynamic[]
+                {
+                    new
+                    {
+                        Name = "Elizabeth",
+                        Country = "UK"
+                    },
+                    new
+                    {
+                        Name = "Donald",
+                        Country = "USA"
+                    }
+                },
+                "\"Name\",\"Country\"\r\n\"Elizabeth\",\"UK\"\r\n\"Donald\",\"USA\"\r\n"
+            };
+            yield return new object[]
+            {
+                new dynamic[]
+                {
+                    new
+                    {
+                        Name = "Junior",
+                        Country = "SA"
+                    },
+                    new
+                    {
+                        Name = "Senior",
+                        Country = "GB"
+                    },
+                    new
+                    {
+                        Name = "Middle",
+                        Country = "JP"
+                    }
+                },
+                "\"Name\",\"Country\"\r\n\"Junior\",\"SA\"\r\n\"Senior\",\"GB\"\r\n\"Middle\",\"JP\"\r\n"
+            };
         }
     }
 }

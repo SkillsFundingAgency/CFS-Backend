@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Results.Repositories
             return _cosmosRepository.GetAllDocumentsAsync<ProviderResult>();
         }
 
-        public async Task ProviderResultsBatchProcessing(string specificationId, Func<List<ProviderResult>, Task> persistIndexBatch)
+        public async Task ProviderResultsBatchProcessing(string specificationId, Func<List<ProviderResult>, Task> processProcessProviderResultsBatch)
         {
             SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
             {
@@ -87,6 +87,8 @@ namespace CalculateFunding.Services.Results.Repositories
                                 ""providerType"" : c.content.provider.providerType,
                                 ""providerSubType"" : c.content.provider.providerSubType,
                                 ""authority"" : c.content.provider.authority,
+                                ""laCode"" : c.content.provider.laCode,
+                                ""localAuthorityName"" : c.content.provider.localAuthorityName,
                                 ""establishmentNumber"" : c.content.provider.establishmentNumber,
                                 ""dateOpened"" : c.content.provider.dateOpened }} AS provider,
                                 ARRAY(
@@ -105,7 +107,7 @@ namespace CalculateFunding.Services.Results.Repositories
                 }
             };
 
-            await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: persistIndexBatch, sqlQuerySpec: sqlQuerySpec);
+            await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: processProcessProviderResultsBatch, sqlQuerySpec: sqlQuerySpec);
         }
 
         public async Task DeleteCurrentProviderResults(IEnumerable<ProviderResult> providerResults)
