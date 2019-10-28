@@ -95,377 +95,377 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Features
 this.ScenarioInitialize(scenarioInfo);
             this.ScenarioStart();
 #line hidden
-            TechTalk.SpecFlow.Table table92 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table169 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table92.AddRow(new string[] {
+            table169.AddRow(new string[] {
                         "DefaultTemplateVersion",
                         "1.0"});
 #line 7
- testRunner.Given(string.Format("a funding configuration exists for funding stream \'{0}\' in funding period \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table92, "Given ");
+ testRunner.Given(string.Format("a funding configuration exists for funding stream \'{0}\' in funding period \'{1}\'", fundingStreamId, fundingPeriodId), ((string)(null)), table169, "Given ");
 #line hidden
-            TechTalk.SpecFlow.Table table93 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table170 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table93.AddRow(new string[] {
+            table170.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "UKPRN"});
-            table93.AddRow(new string[] {
+            table170.AddRow(new string[] {
                         "GroupingReason",
                         "Payment"});
-            table93.AddRow(new string[] {
+            table170.AddRow(new string[] {
                         "GroupTypeClassification",
                         "LegalEntity"});
-            table93.AddRow(new string[] {
+            table170.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "LocalAuthority"});
 #line 10
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table93, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table170, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table94 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table171 = new TechTalk.SpecFlow.Table(new string[] {
                         "ProviderType",
                         "ProviderSubtype"});
-            table94.AddRow(new string[] {
+            table171.AddRow(new string[] {
                         "LA maintained schools",
                         "Community school"});
-            table94.AddRow(new string[] {
+            table171.AddRow(new string[] {
                         "LA maintained schools",
                         "Foundation school"});
-            table94.AddRow(new string[] {
+            table171.AddRow(new string[] {
                         "LA maintained schools",
                         "Pupil referral unit"});
-            table94.AddRow(new string[] {
+            table171.AddRow(new string[] {
                         "LA maintained schools",
                         "Voluntary aided school"});
-            table94.AddRow(new string[] {
+            table171.AddRow(new string[] {
                         "LA maintained schools",
                         "Voluntary controlled school"});
-            table94.AddRow(new string[] {
+            table171.AddRow(new string[] {
                         "Special schools",
                         "Community special school"});
-            table94.AddRow(new string[] {
+            table171.AddRow(new string[] {
                         "Special schools",
                         "Foundation special school"});
 #line 16
- testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table94, "And ");
+ testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table171, "And ");
 #line 25
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table95 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table172 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table95.AddRow(new string[] {
+            table172.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "UKPRN"});
-            table95.AddRow(new string[] {
+            table172.AddRow(new string[] {
                         "GroupingReason",
                         "Payment"});
-            table95.AddRow(new string[] {
+            table172.AddRow(new string[] {
                         "GroupTypeClassification",
                         "LegalEntity"});
-            table95.AddRow(new string[] {
+            table172.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "AcademyTrust"});
 #line 26
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table95, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table172, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table96 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table173 = new TechTalk.SpecFlow.Table(new string[] {
                         "ProviderType",
                         "ProviderSubtype"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Free Schools",
                         "Free schools"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Free Schools",
                         "Free schools alternative provision"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Free Schools",
                         "Free schools special"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Free Schools",
                         "Free schools 16 to 19"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Independent schools",
                         "City technology college"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Academies",
                         "Academy alternative provision converter"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Academies",
                         "Academy alternative provision sponsor led"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Academies",
                         "Academy converter"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Academies",
                         "Academy special converter"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Academies",
                         "Academy special sponsor led"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Academies",
                         "Academy sponsor led"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Academies",
                         "Academy 16 to 19 sponsor led"});
-            table96.AddRow(new string[] {
+            table173.AddRow(new string[] {
                         "Academies",
                         "Academy 16-19 converter"});
 #line 32
- testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table96, "And ");
+ testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table173, "And ");
 #line 47
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table97 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table174 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table97.AddRow(new string[] {
+            table174.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "UKPRN"});
-            table97.AddRow(new string[] {
+            table174.AddRow(new string[] {
                         "GroupingReason",
                         "Information"});
-            table97.AddRow(new string[] {
+            table174.AddRow(new string[] {
                         "GroupTypeClassification",
                         "LegalEntity"});
-            table97.AddRow(new string[] {
+            table174.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "Provider"});
 #line 48
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table97, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table174, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table98 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table175 = new TechTalk.SpecFlow.Table(new string[] {
                         "ProviderType",
                         "ProviderSubtype"});
-            table98.AddRow(new string[] {
+            table175.AddRow(new string[] {
                         "Special schools",
                         "Non-maintained special school"});
 #line 54
- testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table98, "And ");
+ testRunner.And("the funding configuration has the following provider type matches", ((string)(null)), table175, "And ");
 #line 57
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table99 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table176 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table99.AddRow(new string[] {
+            table176.AddRow(new string[] {
                         "GroupTypeIdentifier",
                         "LACode"});
-            table99.AddRow(new string[] {
+            table176.AddRow(new string[] {
                         "GroupingReason",
                         "Information"});
-            table99.AddRow(new string[] {
+            table176.AddRow(new string[] {
                         "GroupTypeClassification",
                         "GeographicalBoundary"});
-            table99.AddRow(new string[] {
+            table176.AddRow(new string[] {
                         "OrganisationGroupTypeCode",
                         "LocalAuthority"});
 #line 58
- testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table99, "And ");
+ testRunner.And("the funding configuration has the following organisation group", ((string)(null)), table176, "And ");
 #line 64
  testRunner.And("the funding configuration is available in the policies repository", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table100 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table177 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table100.AddRow(new string[] {
+            table177.AddRow(new string[] {
                         "Id",
                         string.Format("{0}", fundingPeriodId)});
-            table100.AddRow(new string[] {
+            table177.AddRow(new string[] {
                         "Name",
                         string.Format("{0}", fundingPeriodName)});
-            table100.AddRow(new string[] {
+            table177.AddRow(new string[] {
                         "StartDate",
                         "2019-08-01 00:00:00"});
-            table100.AddRow(new string[] {
+            table177.AddRow(new string[] {
                         "EndDate",
                         "2020-07-31 00:00:00"});
-            table100.AddRow(new string[] {
+            table177.AddRow(new string[] {
                         "Period",
                         "1920"});
-            table100.AddRow(new string[] {
+            table177.AddRow(new string[] {
                         "Type",
                         "AY"});
 #line 65
- testRunner.And("the funding period exists in the policies service", ((string)(null)), table100, "And ");
+ testRunner.And("the funding period exists in the policies service", ((string)(null)), table177, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table101 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table178 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table101.AddRow(new string[] {
+            table178.AddRow(new string[] {
                         "Id",
                         "specForPublishing"});
-            table101.AddRow(new string[] {
+            table178.AddRow(new string[] {
                         "Name",
                         "Test Specification for Publishing"});
-            table101.AddRow(new string[] {
+            table178.AddRow(new string[] {
                         "IsSelectedForFunding",
                         "true"});
-            table101.AddRow(new string[] {
+            table178.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
 #line 73
- testRunner.And("the following specification exists", ((string)(null)), table101, "And ");
+ testRunner.And("the following specification exists", ((string)(null)), table178, "And ");
 #line 79
  testRunner.And(string.Format("the specification has the funding period with id \'{0}\' and name \'{1}\'", fundingPeriodId, fundingPeriodName), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table102 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table179 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "Id"});
-            table102.AddRow(new string[] {
+            table179.AddRow(new string[] {
                         "PE and Sports",
                         string.Format("{0}", fundingStreamId)});
 #line 80
- testRunner.And("the specification has the following funding streams", ((string)(null)), table102, "And ");
+ testRunner.And("the specification has the following funding streams", ((string)(null)), table179, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table103 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table180 = new TechTalk.SpecFlow.Table(new string[] {
                         "Key",
                         "Value"});
-            table103.AddRow(new string[] {
+            table180.AddRow(new string[] {
                         string.Format("{0}", fundingStreamId),
                         "1.0"});
 #line 83
- testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table103, "And ");
+ testRunner.And("the specification has the following template versions for funding streams", ((string)(null)), table180, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table104 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table181 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table104.AddRow(new string[] {
+            table181.AddRow(new string[] {
                         "StatusChangedDate",
                         "2019-09-27 00:00:00"});
-            table104.AddRow(new string[] {
+            table181.AddRow(new string[] {
                         "ExternalPublicationDate",
                         "2019-09-28 00:00:00"});
-            table104.AddRow(new string[] {
+            table181.AddRow(new string[] {
                         "EarliestPaymentAvailableDate",
                         "2019-09-29 00:00:00"});
 #line 86
- testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table104, "And ");
+ testRunner.And("the publishing dates for the specifcation are set as following", ((string)(null)), table181, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table105 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table182 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table105.AddRow(new string[] {
+            table182.AddRow(new string[] {
                         "JobDefinitionId",
                         "PublishFundingJob"});
-            table105.AddRow(new string[] {
+            table182.AddRow(new string[] {
                         "InvokerUserId",
                         "PublishUserId"});
-            table105.AddRow(new string[] {
+            table182.AddRow(new string[] {
                         "InvokerUserDisplayName",
                         "Invoker User"});
-            table105.AddRow(new string[] {
+            table182.AddRow(new string[] {
                         "ParentJobId",
                         ""});
 #line 91
- testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table105, "And ");
+ testRunner.And("the following job is requested to be queued for the current specification", ((string)(null)), table182, "And ");
 #line 97
  testRunner.And("the job is submitted to the job service", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table106 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table183 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table106.AddRow(new string[] {
+            table183.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table106.AddRow(new string[] {
+            table183.AddRow(new string[] {
                         "VersionType",
                         "Custom"});
-            table106.AddRow(new string[] {
+            table183.AddRow(new string[] {
                         "Name",
                         "PSG Provider Version"});
-            table106.AddRow(new string[] {
+            table183.AddRow(new string[] {
                         "Description",
                         "Acceptance Tests"});
-            table106.AddRow(new string[] {
+            table183.AddRow(new string[] {
                         "Version",
                         "1"});
-            table106.AddRow(new string[] {
+            table183.AddRow(new string[] {
                         "TargetDate",
                         "2019-12-12 00:00"});
-            table106.AddRow(new string[] {
+            table183.AddRow(new string[] {
                         "FundingStream",
                         string.Format("{0}", fundingStreamId)});
-            table106.AddRow(new string[] {
+            table183.AddRow(new string[] {
                         "Created",
                         "2019-12-11 00:00"});
 #line 98
- testRunner.And("the following provider version exists in the providers service", ((string)(null)), table106, "And ");
+ testRunner.And("the following provider version exists in the providers service", ((string)(null)), table183, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table107 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table184 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table107.AddRow(new string[] {
+            table184.AddRow(new string[] {
                         "ProviderId",
                         "1000000"});
-            table107.AddRow(new string[] {
+            table184.AddRow(new string[] {
                         "FundingStreamId",
                         string.Format("{0}", fundingStreamId)});
-            table107.AddRow(new string[] {
+            table184.AddRow(new string[] {
                         "FundingPeriodId",
                         string.Format("{0}", fundingPeriodId)});
-            table107.AddRow(new string[] {
+            table184.AddRow(new string[] {
                         "TemplateVersion",
                         string.Format("{0}", templateVersion)});
-            table107.AddRow(new string[] {
+            table184.AddRow(new string[] {
                         "Status",
                         "Approved"});
-            table107.AddRow(new string[] {
+            table184.AddRow(new string[] {
                         "TotalFunding",
                         "12000"});
-            table107.AddRow(new string[] {
+            table184.AddRow(new string[] {
                         "MajorVersion",
                         "0"});
-            table107.AddRow(new string[] {
+            table184.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
 #line 109
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table107, "And ");
+                    "ecification", ((string)(null)), table184, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table108 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table185 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "FundingLineCode",
                         "Value",
                         "TemplateLineId",
                         "Type"});
-            table108.AddRow(new string[] {
+            table185.AddRow(new string[] {
                         "Total Allocation",
                         "TotalAllocation",
                         "12000",
                         "1",
                         "Payment"});
 #line 119
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table108, "And ");
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table185, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table109 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table186 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Value"});
-            table109.AddRow(new string[] {
+            table186.AddRow(new string[] {
                         "FY-1920",
                         "7000"});
-            table109.AddRow(new string[] {
+            table186.AddRow(new string[] {
                         "FY-2021",
                         "5000"});
 #line 122
  testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table109, "And ");
+                    "talAllocation\'", ((string)(null)), table186, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table110 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table187 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Type",
                         "TypeValue",
                         "Year",
                         "Occurrence",
                         "ProfiledValue"});
-            table110.AddRow(new string[] {
+            table187.AddRow(new string[] {
                         "FY-1920",
                         "CalendarMonth",
                         "October",
                         "1920",
                         "1",
                         "7000"});
-            table110.AddRow(new string[] {
+            table187.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "April",
@@ -474,258 +474,258 @@ this.ScenarioInitialize(scenarioInfo);
                         "5000"});
 #line 126
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table110, "And ");
+                    "g line \'TotalAllocation\'", ((string)(null)), table187, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table111 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table188 = new TechTalk.SpecFlow.Table(new string[] {
                         "TemplateCalculationId",
                         "Value"});
-            table111.AddRow(new string[] {
+            table188.AddRow(new string[] {
                         "2",
                         "12000"});
-            table111.AddRow(new string[] {
+            table188.AddRow(new string[] {
                         "3",
                         "120"});
-            table111.AddRow(new string[] {
+            table188.AddRow(new string[] {
                         "4",
                         "500"});
-            table111.AddRow(new string[] {
+            table188.AddRow(new string[] {
                         "5",
                         "1000"});
-            table111.AddRow(new string[] {
+            table188.AddRow(new string[] {
                         "6",
                         "20"});
 #line 130
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table111, "And ");
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table188, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table112 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table189 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ProviderId",
                         "1000000"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "Name",
                         "Maintained School 1"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Maintained School 1"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "Status",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "Successor",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "Town",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "UKPRN",
                         "1000000"});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "URN",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table112.AddRow(new string[] {
+            table189.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 137
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table112, "And ");
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table189, "And ");
 #line 188
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table113 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table190 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table113.AddRow(new string[] {
+            table190.AddRow(new string[] {
                         "ProviderId",
                         "1000002"});
-            table113.AddRow(new string[] {
+            table190.AddRow(new string[] {
                         "FundingStreamId",
                         string.Format("{0}", fundingStreamId)});
-            table113.AddRow(new string[] {
+            table190.AddRow(new string[] {
                         "FundingPeriodId",
                         string.Format("{0}", fundingPeriodId)});
-            table113.AddRow(new string[] {
+            table190.AddRow(new string[] {
                         "TemplateVersion",
                         string.Format("{0}", templateVersion)});
-            table113.AddRow(new string[] {
+            table190.AddRow(new string[] {
                         "Status",
                         "Approved"});
-            table113.AddRow(new string[] {
+            table190.AddRow(new string[] {
                         "TotalFunding",
                         "24000"});
-            table113.AddRow(new string[] {
+            table190.AddRow(new string[] {
                         "MajorVersion",
                         "0"});
-            table113.AddRow(new string[] {
+            table190.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
 #line 189
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table113, "And ");
+                    "ecification", ((string)(null)), table190, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table114 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table191 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "FundingLineCode",
                         "Value",
                         "TemplateLineId",
                         "Type"});
-            table114.AddRow(new string[] {
+            table191.AddRow(new string[] {
                         "Total Allocation",
                         "TotalAllocation",
                         "24000",
                         "1",
                         "Payment"});
 #line 199
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table114, "And ");
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table191, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table115 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table192 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Value"});
-            table115.AddRow(new string[] {
+            table192.AddRow(new string[] {
                         "FY-1920",
                         "14000"});
-            table115.AddRow(new string[] {
+            table192.AddRow(new string[] {
                         "FY-2021",
                         "10000"});
 #line 202
  testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table115, "And ");
+                    "talAllocation\'", ((string)(null)), table192, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table116 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table193 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Type",
                         "TypeValue",
                         "Year",
                         "Occurrence",
                         "ProfiledValue"});
-            table116.AddRow(new string[] {
+            table193.AddRow(new string[] {
                         "FY-1920",
                         "CalendarMonth",
                         "October",
                         "1920",
                         "1",
                         "14000"});
-            table116.AddRow(new string[] {
+            table193.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "April",
@@ -734,258 +734,258 @@ this.ScenarioInitialize(scenarioInfo);
                         "10000"});
 #line 206
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table116, "And ");
+                    "g line \'TotalAllocation\'", ((string)(null)), table193, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table117 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table194 = new TechTalk.SpecFlow.Table(new string[] {
                         "TemplateCalculationId",
                         "Value"});
-            table117.AddRow(new string[] {
+            table194.AddRow(new string[] {
                         "2",
                         "24000"});
-            table117.AddRow(new string[] {
+            table194.AddRow(new string[] {
                         "3",
                         "120"});
-            table117.AddRow(new string[] {
+            table194.AddRow(new string[] {
                         "4",
                         "500"});
-            table117.AddRow(new string[] {
+            table194.AddRow(new string[] {
                         "5",
                         "1000"});
-            table117.AddRow(new string[] {
+            table194.AddRow(new string[] {
                         "6",
                         "20"});
 #line 210
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table117, "And ");
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table194, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table118 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table195 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ProviderId",
                         "1000002"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "Name",
                         "Maintained School 2"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "Status",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "Successor",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "Town",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "UKPRN",
                         "1000002"});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "URN",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table118.AddRow(new string[] {
+            table195.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 217
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table118, "And ");
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table195, "And ");
 #line 268
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table119 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table196 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table119.AddRow(new string[] {
+            table196.AddRow(new string[] {
                         "ProviderId",
                         "1000101"});
-            table119.AddRow(new string[] {
+            table196.AddRow(new string[] {
                         "FundingStreamId",
                         string.Format("{0}", fundingStreamId)});
-            table119.AddRow(new string[] {
+            table196.AddRow(new string[] {
                         "FundingPeriodId",
                         string.Format("{0}", fundingPeriodId)});
-            table119.AddRow(new string[] {
+            table196.AddRow(new string[] {
                         "TemplateVersion",
                         string.Format("{0}", templateVersion)});
-            table119.AddRow(new string[] {
+            table196.AddRow(new string[] {
                         "Status",
                         "Approved"});
-            table119.AddRow(new string[] {
+            table196.AddRow(new string[] {
                         "TotalFunding",
                         "24000"});
-            table119.AddRow(new string[] {
+            table196.AddRow(new string[] {
                         "MajorVersion",
                         "0"});
-            table119.AddRow(new string[] {
+            table196.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
 #line 270
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table119, "And ");
+                    "ecification", ((string)(null)), table196, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table120 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table197 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "FundingLineCode",
                         "Value",
                         "TemplateLineId",
                         "Type"});
-            table120.AddRow(new string[] {
+            table197.AddRow(new string[] {
                         "Total Allocation",
                         "TotalAllocation",
                         "24000",
                         "1",
                         "Payment"});
 #line 280
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table120, "And ");
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table197, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table121 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table198 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Value"});
-            table121.AddRow(new string[] {
+            table198.AddRow(new string[] {
                         "FY-1920",
                         "14000"});
-            table121.AddRow(new string[] {
+            table198.AddRow(new string[] {
                         "FY-2021",
                         "10000"});
 #line 283
  testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table121, "And ");
+                    "talAllocation\'", ((string)(null)), table198, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table122 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table199 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Type",
                         "TypeValue",
                         "Year",
                         "Occurrence",
                         "ProfiledValue"});
-            table122.AddRow(new string[] {
+            table199.AddRow(new string[] {
                         "FY-1920",
                         "CalendarMonth",
                         "October",
                         "1920",
                         "1",
                         "14000"});
-            table122.AddRow(new string[] {
+            table199.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "April",
@@ -994,258 +994,258 @@ this.ScenarioInitialize(scenarioInfo);
                         "10000"});
 #line 287
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table122, "And ");
+                    "g line \'TotalAllocation\'", ((string)(null)), table199, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table123 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table200 = new TechTalk.SpecFlow.Table(new string[] {
                         "TemplateCalculationId",
                         "Value"});
-            table123.AddRow(new string[] {
+            table200.AddRow(new string[] {
                         "2",
                         "24000"});
-            table123.AddRow(new string[] {
+            table200.AddRow(new string[] {
                         "3",
                         "120"});
-            table123.AddRow(new string[] {
+            table200.AddRow(new string[] {
                         "4",
                         "500"});
-            table123.AddRow(new string[] {
+            table200.AddRow(new string[] {
                         "5",
                         "1000"});
-            table123.AddRow(new string[] {
+            table200.AddRow(new string[] {
                         "6",
                         "20"});
 #line 291
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table123, "And ");
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table200, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table124 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table201 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ProviderId",
                         "1000101"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "Name",
                         "Academy 1"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ProviderType",
                         "Academies"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ProviderSubType",
                         "Academy special sponsor led"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "Status",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "Successor",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "Town",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "TrustCode",
                         "1001"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "TrustStatus",
                         "SupportedByAMultiAcademyTrust"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "UKPRN",
                         "1000101"});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "URN",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table124.AddRow(new string[] {
+            table201.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 298
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table124, "And ");
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table201, "And ");
 #line 349
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table125 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table202 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table125.AddRow(new string[] {
+            table202.AddRow(new string[] {
                         "ProviderId",
                         "1000102"});
-            table125.AddRow(new string[] {
+            table202.AddRow(new string[] {
                         "FundingStreamId",
                         string.Format("{0}", fundingStreamId)});
-            table125.AddRow(new string[] {
+            table202.AddRow(new string[] {
                         "FundingPeriodId",
                         string.Format("{0}", fundingPeriodId)});
-            table125.AddRow(new string[] {
+            table202.AddRow(new string[] {
                         "TemplateVersion",
                         string.Format("{0}", templateVersion)});
-            table125.AddRow(new string[] {
+            table202.AddRow(new string[] {
                         "Status",
                         "Approved"});
-            table125.AddRow(new string[] {
+            table202.AddRow(new string[] {
                         "TotalFunding",
                         "24000"});
-            table125.AddRow(new string[] {
+            table202.AddRow(new string[] {
                         "MajorVersion",
                         "0"});
-            table125.AddRow(new string[] {
+            table202.AddRow(new string[] {
                         "MinorVersion",
                         "1"});
 #line 350
  testRunner.And("the following Published Provider has been previously generated for the current sp" +
-                    "ecification", ((string)(null)), table125, "And ");
+                    "ecification", ((string)(null)), table202, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table126 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table203 = new TechTalk.SpecFlow.Table(new string[] {
                         "Name",
                         "FundingLineCode",
                         "Value",
                         "TemplateLineId",
                         "Type"});
-            table126.AddRow(new string[] {
+            table203.AddRow(new string[] {
                         "Total Allocation",
                         "TotalAllocation",
                         "24000",
                         "1",
                         "Payment"});
 #line 360
- testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table126, "And ");
+ testRunner.And("the Published Provider has the following funding lines", ((string)(null)), table203, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table127 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table204 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Value"});
-            table127.AddRow(new string[] {
+            table204.AddRow(new string[] {
                         "FY-1920",
                         "14000"});
-            table127.AddRow(new string[] {
+            table204.AddRow(new string[] {
                         "FY-2021",
                         "10000"});
 #line 363
  testRunner.And("the Published Provider has the following distribution period for funding line \'To" +
-                    "talAllocation\'", ((string)(null)), table127, "And ");
+                    "talAllocation\'", ((string)(null)), table204, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table128 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table205 = new TechTalk.SpecFlow.Table(new string[] {
                         "DistributionPeriodId",
                         "Type",
                         "TypeValue",
                         "Year",
                         "Occurrence",
                         "ProfiledValue"});
-            table128.AddRow(new string[] {
+            table205.AddRow(new string[] {
                         "FY-1920",
                         "CalendarMonth",
                         "October",
                         "1920",
                         "1",
                         "14000"});
-            table128.AddRow(new string[] {
+            table205.AddRow(new string[] {
                         "FY-2021",
                         "CalendarMonth",
                         "April",
@@ -1254,2490 +1254,2490 @@ this.ScenarioInitialize(scenarioInfo);
                         "10000"});
 #line 367
  testRunner.And("the Published Providers distribution period has the following profiles for fundin" +
-                    "g line \'TotalAllocation\'", ((string)(null)), table128, "And ");
+                    "g line \'TotalAllocation\'", ((string)(null)), table205, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table129 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table206 = new TechTalk.SpecFlow.Table(new string[] {
                         "TemplateCalculationId",
                         "Value"});
-            table129.AddRow(new string[] {
+            table206.AddRow(new string[] {
                         "2",
                         "24000"});
-            table129.AddRow(new string[] {
+            table206.AddRow(new string[] {
                         "3",
                         "120"});
-            table129.AddRow(new string[] {
+            table206.AddRow(new string[] {
                         "4",
                         "500"});
-            table129.AddRow(new string[] {
+            table206.AddRow(new string[] {
                         "5",
                         "1000"});
-            table129.AddRow(new string[] {
+            table206.AddRow(new string[] {
                         "6",
                         "20"});
 #line 371
- testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table129, "And ");
+ testRunner.And("the Published Provider contains the following calculation results", ((string)(null)), table206, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table130 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table207 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ProviderId",
                         "1000102"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "Name",
                         "Academy 2"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ProviderType",
                         "Academies"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ProviderSubType",
                         "Academy special sponsor led"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "Status",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "Successor",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "Town",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "TrustCode",
                         "1001"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "TrustStatus",
                         "SupportedByAMultiAcademyTrust"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "UKPRN",
                         "1000102"});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "URN",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table130.AddRow(new string[] {
+            table207.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 378
- testRunner.And("the Published Provider has the following provider information", ((string)(null)), table130, "And ");
+ testRunner.And("the Published Provider has the following provider information", ((string)(null)), table207, "And ");
 #line 429
  testRunner.And("the Published Provider is available in the repository for this specification", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table131 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table208 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ProviderId",
                         "1000000"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "Name",
                         "Maintained School 1"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Maintained School 1"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "Status",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "Successor",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "Town",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "UKPRN",
                         "1000000"});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "URN",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table131.AddRow(new string[] {
+            table208.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 431
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table131, "And ");
+                        "", providerVersionId), ((string)(null)), table208, "And ");
 #line 482
  testRunner.And(string.Format("the provider with id \'1000000\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table132 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table209 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ProviderId",
                         "1000002"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "Name",
                         "Maintained School 2"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "Status",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "Successor",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "Town",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "UKPRN",
                         "1000002"});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "URN",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table132.AddRow(new string[] {
+            table209.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 483
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table132, "And ");
+                        "", providerVersionId), ((string)(null)), table209, "And ");
 #line 534
  testRunner.And(string.Format("the provider with id \'1000002\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table133 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table210 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ProviderId",
                         "1000003"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "Name",
                         "Maintained School 3"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "Status",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "Successor",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "Town",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "UKPRN",
                         "1000003"});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "URN",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table133.AddRow(new string[] {
+            table210.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 535
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table133, "And ");
+                        "", providerVersionId), ((string)(null)), table210, "And ");
 #line 586
  testRunner.And(string.Format("the provider with id \'1000003\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table134 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table211 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ProviderId",
                         "1000004"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "Name",
                         "Maintained School 4"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "Authority",
                         "Local Authority 2"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "LACode",
                         "202"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 2"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "Status",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "Successor",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "Town",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "UKPRN",
                         "1000004"});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "URN",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table134.AddRow(new string[] {
+            table211.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 587
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table134, "And ");
+                        "", providerVersionId), ((string)(null)), table211, "And ");
 #line 638
  testRunner.And(string.Format("the provider with id \'1000004\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table135 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table212 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ProviderId",
                         "1000005"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "Name",
                         "Maintained School 5"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "Authority",
                         "Local Authority 2"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "LACode",
                         "202"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 2"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "Status",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "Successor",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "Town",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "UKPRN",
                         "1000005"});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "URN",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table135.AddRow(new string[] {
+            table212.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 639
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table135, "And ");
+                        "", providerVersionId), ((string)(null)), table212, "And ");
 #line 690
  testRunner.And(string.Format("the provider with id \'1000005\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table136 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table213 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ProviderId",
                         "1000009"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "Name",
                         "Maintained School 9  - Excluded for funding, but in scope for specification"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "Authority",
                         "Local Authority 3"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "LACode",
                         "203"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 3"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ProviderType",
                         "LA maintained schools"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ProviderSubType",
                         "Community school"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "Status",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "Successor",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "Town",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "UKPRN",
                         "1000009"});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "URN",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table136.AddRow(new string[] {
+            table213.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 691
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table136, "And ");
+                        "", providerVersionId), ((string)(null)), table213, "And ");
 #line 742
  testRunner.And(string.Format("the provider with id \'1000009\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table137 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table214 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ProviderId",
                         "1000101"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "Name",
                         "Academy 1"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ProviderType",
                         "Academies"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ProviderSubType",
                         "Academy special sponsor led"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "Status",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "Successor",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "Town",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "TrustCode",
                         "1001"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "TrustStatus",
                         "SupportedByAMultiAcademyTrust"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "UKPRN",
                         "1000101"});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "URN",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table137.AddRow(new string[] {
+            table214.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 744
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table137, "And ");
+                        "", providerVersionId), ((string)(null)), table214, "And ");
 #line 795
  testRunner.And(string.Format("the provider with id \'1000101\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table138 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table215 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ProviderId",
                         "1000102"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "Name",
                         "Academy 2"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ProviderType",
                         "Academies"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ProviderSubType",
                         "Academy special sponsor led"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "Status",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "Successor",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "Town",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "TrustCode",
                         "1001"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "TrustStatus",
                         "SupportedByAMultiAcademyTrust"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "UKPRN",
                         "1000102"});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "URN",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table138.AddRow(new string[] {
+            table215.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 796
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table138, "And ");
+                        "", providerVersionId), ((string)(null)), table215, "And ");
 #line 847
  testRunner.And(string.Format("the provider with id \'1000102\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table139 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table216 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ProviderId",
                         "1000103"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "Name",
                         "Academy 3"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "Authority",
                         "Local Authority 2"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "DateOpened",
                         "2013-04-16"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 2"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ProviderType",
                         "Free Schools"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ProviderSubType",
                         "Free Schools"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "Status",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "Successor",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "Town",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "TrustCode",
                         "1002"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "TrustStatus",
                         "SupportedByAMultiAcademyTrust"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "UKPRN",
                         "1000103"});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "URN",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table139.AddRow(new string[] {
+            table216.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 848
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table139, "And ");
+                        "", providerVersionId), ((string)(null)), table216, "And ");
 #line 899
  testRunner.And(string.Format("the provider with id \'1000103\' should be a scoped provider in the current specifi" +
                         "cation in provider version \'{0}\'", providerVersionId), ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table140 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table217 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ProviderId",
                         "9000000"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "Name",
                         "Local Authority 1"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "LACode",
                         "200"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ProviderType",
                         "Local Authority"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ProviderSubType",
                         "Local Authority"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "Status",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "Successor",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "Town",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "UKPRN",
                         "9000000"});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "URN",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table140.AddRow(new string[] {
+            table217.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 901
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table140, "And ");
+                        "", providerVersionId), ((string)(null)), table217, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table141 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table218 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ProviderId",
                         "9000002"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "Name",
                         "Local Authority 2"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "Authority",
                         "Local Authority 2"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "LACode",
                         "202"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 2"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ProviderType",
                         "Local Authority"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ProviderSubType",
                         "Local Authority"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "Status",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "Successor",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "Town",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "UKPRN",
                         "9000002"});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "URN",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table141.AddRow(new string[] {
+            table218.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 952
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table141, "And ");
+                        "", providerVersionId), ((string)(null)), table218, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table142 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table219 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ProviderId",
                         "9000003"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "Name",
                         "Local Authority 3"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "Authority",
                         "Local Authority 3"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "LACode",
                         "202"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 3"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ProviderType",
                         "Local Authority"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ProviderSubType",
                         "Local Authority"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "Status",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "Successor",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "Town",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "TrustCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "UKPRN",
                         "9000003"});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "URN",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table142.AddRow(new string[] {
+            table219.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 1003
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table142, "And ");
+                        "", providerVersionId), ((string)(null)), table219, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table143 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table220 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ProviderId",
                         "8000001"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "Name",
                         "Academy Trust 1"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "Authority",
                         "Local Authority 1"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "LACode",
                         "202"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Local Authority 1"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ProviderType",
                         "Academy Trust"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ProviderSubType",
                         "Academy Trust"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "Status",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "Successor",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "Town",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "TrustCode",
                         "1001"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "UKPRN",
                         "8000001"});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "URN",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table143.AddRow(new string[] {
+            table220.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 1055
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table143, "And ");
+                        "", providerVersionId), ((string)(null)), table220, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table144 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table221 = new TechTalk.SpecFlow.Table(new string[] {
                         "Field",
                         "Value"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ProviderId",
                         "8000002"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "Name",
                         "Academy Trust 2"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "Authority",
                         "Local Authority 2"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "CensusWardCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "CensusWardName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "CompaniesHouseNumber",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "CountryCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "CountryName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "CrmAccountId",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "DateClosed",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "DateOpened",
                         "2012-03-15"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "DfeEstablishmentNumber",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "DistrictCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "DistrictName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "EstablishmentNumber",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "GovernmentOfficeRegionCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "GovernmentOfficeRegionName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "GroupIdNumber",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "LACode",
                         "202"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "LegalName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "LocalAuthorityName",
                         "Academy Trust 1"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "LowerSuperOutputAreaCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "LowerSuperOutputAreaName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "MiddleSuperOutputAreaCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "MiddleSuperOutputAreaName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "NavVendorNo",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ParliamentaryConstituencyCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ParliamentaryConstituencyName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "PhaseOfEducation",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "Postcode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ProviderProfileIdType",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ProviderType",
                         "Academy Trust"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ProviderSubType",
                         "Academy Trust"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ProviderVersionId",
                         string.Format("{0}", providerVersionId)});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ReasonEstablishmentClosed",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "ReasonEstablishmentOpened",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "RscRegionCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "RscRegionName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "Status",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "Successor",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "Town",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "TrustCode",
                         "1002"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "TrustName",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "TrustStatus",
                         "Not Supported By A Trust"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "UKPRN",
                         "8000001"});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "UPIN",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "URN",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "WardCode",
                         ""});
-            table144.AddRow(new string[] {
+            table221.AddRow(new string[] {
                         "WardName",
                         ""});
 #line 1106
  testRunner.And(string.Format("the following provider exists within core provider data in provider version \'{0}\'" +
-                        "", providerVersionId), ((string)(null)), table144, "And ");
+                        "", providerVersionId), ((string)(null)), table221, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table145 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table222 = new TechTalk.SpecFlow.Table(new string[] {
                         "EntityType",
                         "CalculationId",
                         "TemplateId",
                         "Name"});
-            table145.AddRow(new string[] {
+            table222.AddRow(new string[] {
                         "Calculation",
                         "calculation1",
                         "2",
                         "Total Allocation"});
-            table145.AddRow(new string[] {
+            table222.AddRow(new string[] {
                         "Calculation",
                         "calculation2",
                         "3",
                         "Eligible Pupils"});
-            table145.AddRow(new string[] {
+            table222.AddRow(new string[] {
                         "Calculation",
                         "calculation3",
                         "4",
                         "Pupil rate threshold"});
-            table145.AddRow(new string[] {
+            table222.AddRow(new string[] {
                         "Calculation",
                         "calculation4",
                         "5",
                         "Rate"});
-            table145.AddRow(new string[] {
+            table222.AddRow(new string[] {
                         "Calculation",
                         "calculation5",
                         "6",
                         "Additional Rate"});
 #line 1157
- testRunner.And("template mapping exists", ((string)(null)), table145, "And ");
+ testRunner.And("template mapping exists", ((string)(null)), table222, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table146 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table223 = new TechTalk.SpecFlow.Table(new string[] {
                         "CalculationType",
                         "CalculationId",
                         "Name",
                         "PublishStatus"});
-            table146.AddRow(new string[] {
+            table223.AddRow(new string[] {
                         "Template",
                         "calculation1",
                         "Total Allocation",
                         "Approved"});
-            table146.AddRow(new string[] {
+            table223.AddRow(new string[] {
                         "Template",
                         "calculation2",
                         "Eligible Pupils",
                         "Approved"});
-            table146.AddRow(new string[] {
+            table223.AddRow(new string[] {
                         "Template",
                         "calculation3",
                         "Pupil rate threshold",
                         "Approved"});
-            table146.AddRow(new string[] {
+            table223.AddRow(new string[] {
                         "Template",
                         "calculation4",
                         "Rate",
                         "Approved"});
-            table146.AddRow(new string[] {
+            table223.AddRow(new string[] {
                         "Template",
                         "calculation5",
                         "Additional Rate",
                         "Approved"});
 #line 1164
- testRunner.And(string.Format("calculation meta data exists for \'{0}\'", fundingStreamId), ((string)(null)), table146, "And ");
+ testRunner.And(string.Format("calculation meta data exists for \'{0}\'", fundingStreamId), ((string)(null)), table223, "And ");
 #line hidden
-            TechTalk.SpecFlow.Table table147 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table224 = new TechTalk.SpecFlow.Table(new string[] {
                         "Value",
                         "CalculationId"});
-            table147.AddRow(new string[] {
+            table224.AddRow(new string[] {
                         "24000",
                         "calculation1"});
-            table147.AddRow(new string[] {
+            table224.AddRow(new string[] {
                         "120",
                         "calculation2"});
-            table147.AddRow(new string[] {
+            table224.AddRow(new string[] {
                         "500",
                         "calculation3"});
-            table147.AddRow(new string[] {
+            table224.AddRow(new string[] {
                         "1000",
                         "calculation4"});
-            table147.AddRow(new string[] {
+            table224.AddRow(new string[] {
                         "20",
                         "calculation5"});
 #line 1171
- testRunner.And("calculations exists", ((string)(null)), table147, "And ");
+ testRunner.And("calculations exists", ((string)(null)), table224, "And ");
 #line 1178
  testRunner.When("funding is refreshed", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
 #line 1179
  testRunner.Then("refresh succeeds", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
 #line hidden
-            TechTalk.SpecFlow.Table table148 = new TechTalk.SpecFlow.Table(new string[] {
+            TechTalk.SpecFlow.Table table225 = new TechTalk.SpecFlow.Table(new string[] {
                         "PublishedProviderId",
                         "Status"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000000-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Updated"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000002-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Updated"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000003-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Draft"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000004-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Draft"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000005-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Draft"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000009-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Draft"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000101-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Updated"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000102-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Updated"});
-            table148.AddRow(new string[] {
+            table225.AddRow(new string[] {
                         string.Format("publishedprovider-1000103-{0}-{1}", fundingPeriodId, fundingStreamId),
                         "Draft"});
 #line 1180
- testRunner.And("the following published provider ids are upserted", ((string)(null)), table148, "And ");
+ testRunner.And("the following published provider ids are upserted", ((string)(null)), table225, "And ");
 #line hidden
             this.ScenarioCleanup();
         }

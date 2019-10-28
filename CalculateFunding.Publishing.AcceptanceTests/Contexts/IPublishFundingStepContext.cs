@@ -11,6 +11,8 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
 
         bool RefreshSuccessful { get; set; }
 
+        bool ApproveFundingSuccessful { get; set; }
+
         TemplateMapping TemplateMapping { get; set; }
 
         IEnumerable<CalculationResult> CalculationResults { get; set; }
@@ -20,5 +22,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Contexts
         Task PublishFunding(string specificationId, string jobId, string userId, string userName);
 
         Task RefreshFunding(string specificationId, string jobId, string userId, string userName);
+
+        Task ApproveResults(string specificationId, string jobId, string userId, string userName);
     }
 }

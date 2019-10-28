@@ -42,6 +42,7 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
             PublishedFundingLookupModel lookupModel = table.CreateInstance<PublishedFundingLookupModel>();
 
             _publishedFundingRepositoryStepContext.Repo.Should().NotBeNull();
+            _publishedFundingResultStepContext.Should().NotBeNull();
 
             string fundingId = $"funding-{lookupModel.FundingStreamId}-{lookupModel.FundingPeriodId}-{lookupModel.GroupingReason}-{lookupModel.OrganisationGroupTypeCode}-{lookupModel.OrganisationGroupIdentifierValue}";
 
