@@ -99,8 +99,6 @@ namespace CalculateFunding.Publishing.AcceptanceTests.StepDefinitions
                 .BeEquivalentTo(expectedPublishedProviderIds);
         }
 
-
-
         [Then(@"the total funding is '(.*)'")]
         public void ThenTheTotalFundingIs(decimal expectedTotalFunding)
         {

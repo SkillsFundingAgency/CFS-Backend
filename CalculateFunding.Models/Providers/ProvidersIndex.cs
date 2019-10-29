@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace CalculateFunding.Models.Providers
 {
-    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "providersindex")]
+    [SearchIndex(IndexerType = IndexerType.Search, IndexName = "providersindex", IndexerName = "providersindexer")]
     public class ProvidersIndex
     {
         [Key]
