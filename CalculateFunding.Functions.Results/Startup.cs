@@ -18,6 +18,7 @@ using CalculateFunding.Models.MappingProfiles;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.AspNet;
+using CalculateFunding.Services.Core.Caching.FileSystem;
 using CalculateFunding.Services.Core.Extensions;
 using CalculateFunding.Services.Core.Helpers;
 using CalculateFunding.Services.Core.Interfaces;
@@ -82,6 +83,8 @@ namespace CalculateFunding.Functions.Results
             builder.AddSingleton<ICsvUtils, CsvUtils>();
             builder.AddSingleton<IProviderResultsCsvGeneratorService, ProviderResultsCsvGeneratorService>();
             builder.AddSingleton<IProverResultsToCsvRowsTransformation, ProverResultsToCsvRowsTransformation>();
+            builder.AddSingleton<IFileSystemAccess, FileSystemAccess>();
+            builder.AddSingleton<IFileSystemCacheSettings, FileSystemCacheSettings>();
 
             MapperConfiguration resultsConfig = new MapperConfiguration(c =>
             {

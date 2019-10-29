@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using CalculateFunding.Common.Models;
@@ -37,10 +38,10 @@ namespace CalculateFunding.Services.Results
                     .WithCalculationResults(NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Additional)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
                             .WithCalculation(NewReference(rf => rf.WithName("calc1")))
-                            .WithValue(123M)),
+                            .WithValue(999M)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
                             .WithCalculation(NewReference(rf => rf.WithName("calc2")))
-                            .WithValue(321M))),
+                            .WithValue(666M))),
                 _ => _.WithProviderSummary(
                         NewProviderSummary(
                             ps => ps.WithName("two")
@@ -52,10 +53,12 @@ namespace CalculateFunding.Services.Results
                                 .WithLocalProviderType("pt2")
                                 .WithLocalProviderSubType("pst2")))
                     .WithCalculationResults(NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Additional)),
-                        NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Additional)),
                         NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
-                            .WithCalculation(NewReference(rf => rf.WithName("calc3")))
-                            .WithValue(4444M))));
+                            .WithCalculation(NewReference(rf => rf.WithName("calc1")))
+                            .WithValue(123M)),
+                        NewCalculationResult(cr => cr.WithCalculationType(CalculationType.Template)
+                            .WithCalculation(NewReference(rf => rf.WithName("calc2")))
+                            .WithValue(null))));
 
             dynamic[] expectedCsvRows = {
                 new Dictionary<string, object>
@@ -68,9 +71,8 @@ namespace CalculateFunding.Services.Results
                     {"LA Name", "laname1"},
                     {"Provider Type", "pt1"},
                     {"Provider SubType", "pst1"},
-                    {"calc1", 123M.ToString(CultureInfo.InvariantCulture)},
-                    {"calc2", 321M.ToString(CultureInfo.InvariantCulture)},
-                    {"calc3", null},
+                    {"calc1", 999M.ToString(CultureInfo.InvariantCulture)},
+                    {"calc2", 666M.ToString(CultureInfo.InvariantCulture)},
                 },
                 new Dictionary<string, object>
                 {
@@ -82,19 +84,17 @@ namespace CalculateFunding.Services.Results
                     {"LA Name", "laname2"},
                     {"Provider Type", "pt2"},
                     {"Provider SubType", "pst2"},
-                    {"calc1", null},
+                    {"calc1", 123M.ToString(CultureInfo.InvariantCulture)},
                     {"calc2", null},
-                    {"calc3", 4444M.ToString(CultureInfo.InvariantCulture)},
                 }
             };
 
-            dynamic[] transformProviderResultsIntoCsvRows = _transformation.TransformProviderResultsIntoCsvRows(providerResults).ToArray();
+            ExpandoObject[] transformProviderResultsIntoCsvRows = _transformation.TransformProviderResultsIntoCsvRows(providerResults).ToArray();
 
             transformProviderResultsIntoCsvRows
                 .Should()
                 .BeEquivalentTo(expectedCsvRows,
                     cfg => cfg.WithStrictOrdering());
-
         }
 
         private static IEnumerable<ProviderResult> NewProviderResults(params Action<ProviderResultBuilder>[] setUps)

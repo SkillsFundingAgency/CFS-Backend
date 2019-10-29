@@ -6,6 +6,6 @@ namespace CalculateFunding.Services.Results.Interfaces
 {
     public interface IProverResultsToCsvRowsTransformation
     {
-        IEnumerable<dynamic> TransformProviderResultsIntoCsvRows(IEnumerable<ProviderResult> providerResults);
+        IEnumerable<ExpandoObject> TransformProviderResultsIntoCsvRows(IEnumerable<ProviderResult> providerResults);
     }
 }

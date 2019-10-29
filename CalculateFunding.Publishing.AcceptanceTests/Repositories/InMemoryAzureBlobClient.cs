@@ -59,6 +59,11 @@ namespace CalculateFunding.Publishing.AcceptanceTests.Repositories
             await Task.CompletedTask;
         }
 
+        public Task UploadAsync(ICloudBlob blob, Stream data)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<string> UploadFileAsync(string blobName, string fileContents)
         {
             Guard.IsNullOrWhiteSpace(blobName, nameof(blobName));

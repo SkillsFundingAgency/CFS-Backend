@@ -122,8 +122,16 @@ namespace CalculateFunding.Services.Core.AzureStorage
         {
             using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(data)))
             {
-                await blob.UploadFromStreamAsync(stream);
+                await UploadAsync(blob, stream);
             }
+        }
+
+        public async Task UploadAsync(ICloudBlob blob, Stream data)
+        {
+            //reset to start to handle resilience policy retrying on a single stream instance
+            data.Position = 0;
+            
+            await blob.UploadFromStreamAsync(data);
         }
     }
 }

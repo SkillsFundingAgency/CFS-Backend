@@ -1,9 +1,11 @@
 using System.Collections.Generic;
+using System.IO;
 
-namespace CalculateFunding.Services.Core.Helpers
+namespace CalculateFunding.Services.Core.Interfaces
 {
     public interface ICsvUtils
     {
-        string AsCsv(IEnumerable<object> documents);
+        StreamWriter AsCsvStream(IEnumerable<object> documents, bool outputHeaders);
+        void ReturnStreamWriter(StreamWriter streamWriter);
     }
 }

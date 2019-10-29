@@ -70,7 +70,7 @@ namespace CalculateFunding.Services.Results.Repositories
             return _cosmosRepository.GetAllDocumentsAsync<ProviderResult>();
         }
 
-        public async Task ProviderResultsBatchProcessing(string specificationId, Func<List<ProviderResult>, Task> processProcessProviderResultsBatch)
+        public async Task ProviderResultsBatchProcessing(string specificationId, Func<List<ProviderResult>, Task> processProcessProviderResultsBatch, int itemsPerPage = 1000)
         {
             SqlQuerySpec sqlQuerySpec = new SqlQuerySpec
             {
@@ -95,7 +95,8 @@ namespace CalculateFunding.Services.Results.Repositories
     	                            SELECT calcResult.calculation as calculation, 
     	                            calcResult[""value""],
     	                            calcResult.exceptionType as exceptionType,
-    	                            calcResult.exceptionMessage as exceptionMessage
+    	                            calcResult.exceptionMessage as exceptionMessage,
+    	                            calcResult.calculationType as calculationType
     	                            FROM calcResult IN c.content.calcResults) AS calcResults
                             FROM    calculationresults c
                             WHERE   c.content.specificationId = @SpecificationId 
@@ -107,7 +108,9 @@ namespace CalculateFunding.Services.Results.Repositories
                 }
             };
 
-            await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: processProcessProviderResultsBatch, sqlQuerySpec: sqlQuerySpec);
+            await _cosmosRepository.DocumentsBatchProcessingAsync(persistBatchToIndex: processProcessProviderResultsBatch, 
+                sqlQuerySpec: sqlQuerySpec, 
+                itemsPerPage: itemsPerPage);
         }
 
         public async Task DeleteCurrentProviderResults(IEnumerable<ProviderResult> providerResults)

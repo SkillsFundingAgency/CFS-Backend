@@ -44,6 +44,18 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
                 {
                 }
         }
+        [TestMethod]
+        public void DeleteRemovesTheFileAtTheSuppliedPath()
+        {
+            string existingFilePath = NewRandomTxtFilePath();
+
+            GivenTheFile(existingFilePath, NewRandomString());
+
+            WhenTheFileIsDeleted(existingFilePath);
+
+            ThenTheFileShouldNotExist(existingFilePath);
+        }
+        
 
         [TestMethod]
         public void WriteFailsIfFileAlreadyExists()
@@ -69,6 +81,32 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
             await WhenTheStreamIsWritten(newPath, expectedFileContents);
 
             ThenTheFileContentsShouldBe(newPath, expectedFileContents);
+        }
+        
+        [TestMethod]
+        public async Task AppendWritesAllBytesCreatesNewFilesIfTheyDontExist()
+        {
+            string newPath = NewRandomTxtFilePath();
+            string expectedFileContents = NewLongRandomString();
+
+            await WhenTheStreamIsAppended(newPath, expectedFileContents);
+
+            ThenTheFileContentsShouldBe(newPath, expectedFileContents);
+        }
+        
+        [TestMethod]
+        public async Task AppendAppendsAllBytesToExistingFilesIfTheyExist()
+        {
+            
+            string existingFilePath = NewRandomTxtFilePath();
+            string existingFileContents = NewLongRandomString();
+            string appendedFileContents = NewLongRandomString();
+            
+            GivenTheFile(existingFilePath, existingFileContents);
+
+            await WhenTheStreamIsAppended(existingFilePath, appendedFileContents);
+
+            ThenTheFileContentsShouldBe(existingFilePath, $"{existingFileContents}{appendedFileContents}");
         }
 
         [TestMethod]
@@ -113,10 +151,29 @@ namespace CalculateFunding.Services.Core.Caching.FileSystem
 
             _createdFiles.Add(path);
         }
+        
+        private async Task WhenTheStreamIsAppended(string path, string text)
+        {
+            await _fileSystemAccess.Append(path, new MemoryStream(GetBytes(text)), CancellationToken.None);
+
+            _createdFiles.Add(path);
+        }
+
+        private void WhenTheFileIsDeleted(string path)
+        {
+            _fileSystemAccess.Delete(path);
+        }
 
         private void GivenTheFile(string path, string contents)
         {
             _files.Add(new TempFile(path, contents));
+        }
+
+        private void ThenTheFileShouldNotExist(string path)
+        {
+            File.Exists(path)
+                .Should()
+                .BeFalse();
         }
 
         private void ThenTheFileContentsShouldBe(string path, string expectedFileContents)

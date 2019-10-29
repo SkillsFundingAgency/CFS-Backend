@@ -1,3 +1,5 @@
+using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -9,19 +11,19 @@ namespace CalculateFunding.Services.Results
 {
     public class ProverResultsToCsvRowsTransformation : IProverResultsToCsvRowsTransformation
     {
-        public IEnumerable<dynamic> TransformProviderResultsIntoCsvRows(IEnumerable<ProviderResult> providerResults)
+        private readonly ArrayPool<ExpandoObject> _expandoObjectsPool 
+            = ArrayPool<ExpandoObject>.Create(ProviderResultsCsvGeneratorService.BatchSize, 4);
+        
+        public IEnumerable<ExpandoObject> TransformProviderResultsIntoCsvRows(IEnumerable<ProviderResult> providerResults)
         {
-            string[] templateCalculationNames = providerResults
-                .SelectMany(_ => _.CalculationResults)
-                .Where(_ => _.CalculationType == CalculationType.Template)
-                .Select(_ => _.Calculation.Name)
-                .Distinct()
-                .ToArray();
+            int resultsCount = providerResults.Count();
+            
+            ExpandoObject[] resultsBatch = _expandoObjectsPool.Rent(resultsCount);
 
-            foreach (ProviderResult result in providerResults)
+            for (int resultCount = 0; resultCount < resultsCount; resultCount++)
             {
-                dynamic expandoObject = new ExpandoObject();
-                IDictionary<string, object> row = (IDictionary<string, object>) expandoObject;
+                ProviderResult result = providerResults.ElementAt(resultCount);
+                IDictionary<string, object> row = resultsBatch[resultCount] ?? (resultsBatch[resultCount] = new ExpandoObject());
 
                 ProviderSummary providerSummary = result.Provider;
 
@@ -34,17 +36,20 @@ namespace CalculateFunding.Services.Results
                 row["Provider Type"] = providerSummary.ProviderType;
                 row["Provider SubType"] = providerSummary.ProviderSubType;
 
-                Dictionary<string, decimal?> results = result.CalculationResults
-                    .Where(_ => _.CalculationType == CalculationType.Template)
-                    .ToDictionary(_ => _.Calculation.Name, _ => _.Value);
-
-                foreach (string calculationName in templateCalculationNames)
+                //all of the provider results inside a single specification id will share the same 
+                //lists of template calculations so we don't really need to handle missing calc results
+                //from provider result to provider result
+                foreach (CalculationResult templateCalculationResult in result.CalculationResults.Where(_ => 
+                    _.CalculationType == CalculationType.Template)
+                    .OrderBy(_ => _.Calculation.Name))
                 {
-                    row[calculationName] = results.TryGetValue(calculationName, out decimal? value) ? value.ToString() : null;
+                    row[templateCalculationResult.Calculation.Name] = templateCalculationResult.Value?.ToString();
                 }
 
-                yield return expandoObject;
+                yield return (ExpandoObject) row;
             }
+            
+            _expandoObjectsPool.Return(resultsBatch);
         }
     }
 }
