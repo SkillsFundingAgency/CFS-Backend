@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using CalculateFunding.Common.Utility;
+using CalculateFunding.Models.Datasets.ViewModels;
 using CalculateFunding.Services.Datasets.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -161,6 +162,13 @@ namespace CalculateFunding.Api.Datasets.Controllers
         public Task<IActionResult> RunDownloadDatasetFile()
         {
             return _datasetService.DownloadDatasetFile(ControllerContext.HttpContext.Request);
+        }
+
+        [HttpPost("api/datasets/upload-dataset-file/{filename}")]
+        [DisableRequestSizeLimitAttribute()]
+        public async Task<IActionResult> RunUploadDatasetFile([FromRoute]string filename, [FromBody]DatasetMetadataViewModel datasetMetadataViewModel)
+        {
+            return await _datasetService.UploadDatasetFile(filename, datasetMetadataViewModel);
         }
 
         [Route("api/datasets/reindex")]

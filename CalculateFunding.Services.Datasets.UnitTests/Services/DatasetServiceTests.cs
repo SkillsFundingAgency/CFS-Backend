@@ -822,6 +822,78 @@ namespace CalculateFunding.Services.Datasets.Services
 			    .BeOfType<BadRequestObjectResult>();
 	    }
 
+        [TestMethod]
+        public async Task UploadDatasetFile_GivenNewFIle_ReturnsOkResult()
+        {
+            const string authorId = "authId";
+            const string authorName = "Change Author";
+            const string datasetId = "ds1";
+            const string datasetName = "ds1";
+            const string dataDefinitionId = "dd1";
+            const string filename = "file.xls";
+
+            byte[] byteArray = Encoding.UTF8.GetBytes(filename);
+
+            DatasetMetadataViewModel datasetMetadataViewModel = new DatasetMetadataViewModel
+            {
+                AuthorId = authorId,
+                AuthorName = authorName,
+                DataDefinitionId = dataDefinitionId,
+                DatasetId = datasetId,
+                Name = datasetName,
+                Stream = byteArray
+            };
+
+            IBlobClient blobClient = CreateBlobClient();
+
+            ICloudBlob cloudBlob = CreateBlob();
+
+            DatasetService datasetService = CreateDatasetService(blobClient: blobClient);
+
+            blobClient.GetBlockBlobReference($"{datasetMetadataViewModel.DatasetId}/v1/{filename}")
+                .Returns(cloudBlob);
+
+            // Act
+            IActionResult result = await datasetService.UploadDatasetFile(filename, datasetMetadataViewModel);
+
+            // Assert
+            result
+                .Should()
+                .BeOfType<OkResult>();
+
+            await cloudBlob
+                .Received()
+                .UploadFromStreamAsync(Arg.Any<Stream>());
+
+            cloudBlob.Metadata["dataDefinitionId"]
+                .Should()
+                .Be(datasetMetadataViewModel.DataDefinitionId);
+
+            cloudBlob.Metadata["datasetId"]
+                .Should()
+                .Be(datasetMetadataViewModel.DatasetId);
+
+            cloudBlob.Metadata["authorId"]
+                .Should()
+                .Be(datasetMetadataViewModel.AuthorId);
+
+            cloudBlob.Metadata["authorName"]
+                .Should()
+                .Be(datasetMetadataViewModel.AuthorName);
+
+            cloudBlob.Metadata["name"]
+                .Should()
+                .Be(datasetMetadataViewModel.Name);
+
+            cloudBlob.Metadata["description"]
+                .Should()
+                .Be(datasetMetadataViewModel.Description); 
+            
+            cloudBlob
+                 .Received()
+                 .SetMetadata();
+        }
+
 		[TestMethod]
         public async Task DatasetVersionUpdate_WhenValidDatasetVersionUpdateRequested_ThenDatasetVersionAdded()
         {

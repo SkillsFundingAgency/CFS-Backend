@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using CalculateFunding.Common.Models;
+using CalculateFunding.Models.Datasets.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -23,6 +24,8 @@ namespace CalculateFunding.Services.Datasets.Interfaces
         Task<IActionResult> GetDatasetsByDefinitionId(HttpRequest request);
 
         Task<IActionResult> DownloadDatasetFile(HttpRequest request);
+
+        Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel datasetMetadataViewModel);
 
         Task<IActionResult> Reindex(HttpRequest request);
 

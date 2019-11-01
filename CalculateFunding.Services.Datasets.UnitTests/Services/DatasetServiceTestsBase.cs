@@ -16,6 +16,7 @@ using CalculateFunding.Services.DataImporter.Validators.Models;
 using CalculateFunding.Services.Datasets.Interfaces;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.Azure.Storage.Blob;
 using NSubstitute;
 using OfficeOpenXml;
 using Serilog;
@@ -215,6 +216,11 @@ namespace CalculateFunding.Services.Datasets.Services
         protected IBlobClient CreateBlobClient()
         {
             return Substitute.For<IBlobClient>();
+        }
+
+        protected static ICloudBlob CreateBlob()
+        {
+            return Substitute.For<ICloudBlob>();
         }
 
         protected ILogger CreateLogger()

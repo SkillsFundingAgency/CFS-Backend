@@ -630,6 +630,28 @@ namespace CalculateFunding.Services.Datasets
             await _cacheProvider.SetAsync<DatasetValidationStatusModel>($"{CacheKeys.DatasetValidationStatus}:{status.OperationId}", status);
         }
 
+        public async Task<IActionResult> UploadDatasetFile(string filename, DatasetMetadataViewModel datasetMetadataViewModel)
+        {
+            string datasetVerion = "v1";
+
+            ICloudBlob blob = _blobClient.GetBlockBlobReference($"{datasetMetadataViewModel.DatasetId}/{datasetVerion}/{filename}");
+
+            using (MemoryStream stream = new MemoryStream(datasetMetadataViewModel.Stream))
+            {
+                await blob.UploadFromStreamAsync(stream);
+            }
+
+            blob.Metadata["dataDefinitionId"] = datasetMetadataViewModel.DataDefinitionId;
+            blob.Metadata["datasetId"] = datasetMetadataViewModel.DatasetId;
+            blob.Metadata["authorId"] = datasetMetadataViewModel.AuthorId;
+            blob.Metadata["authorName"] = datasetMetadataViewModel.AuthorName;
+            blob.Metadata["name"] = datasetMetadataViewModel.Name;
+            blob.Metadata["description"] = datasetMetadataViewModel.Description;
+            blob.SetMetadata();
+
+            return new OkResult();
+        }
+
         public async Task<IActionResult> DownloadDatasetFile(HttpRequest request)
         {
             request.Query.TryGetValue("datasetId", out StringValues datasetId);
