@@ -103,32 +103,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
         }
 
         [TestMethod]
-        public void Validate_GivenEmptyFundingStreamId_ValidIsFalse()
-        {
-            //Arrange
-            SpecificationEditModel model = CreateModel();
-            model.FundingStreamIds = Enumerable.Empty<string>();
-            model.SpecificationId = "specId";
-
-            SpecificationEditModelValidator validator = CreateValidator();
-
-            //Act
-            ValidationResult result = validator.Validate(model);
-
-            //Assert
-            result
-                .IsValid
-                .Should()
-                .BeFalse();
-
-            result
-                .Errors
-                .Count
-                .Should()
-                .Be(1);
-        }
-
-        [TestMethod]
         public void Validate_GivenEmptyDescription_ValidIsFalse()
         {
             //Arrange
@@ -232,7 +206,6 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             {
                 ProviderVersionId = providerVersionId,
                 FundingPeriodId = fundingPeriodId,
-                FundingStreamIds = new List<string>() { fundingStreamId },
                 Description = description,
                 Name = name
             };

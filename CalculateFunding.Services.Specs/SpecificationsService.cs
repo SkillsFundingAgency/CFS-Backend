@@ -681,33 +681,6 @@ namespace CalculateFunding.Services.Specs
                 specificationVersion.FundingPeriod = new Reference { Id = fundingPeriod.Id, Name = fundingPeriod.Name };
             }
 
-            IEnumerable<string> existingFundingStreamIds = specificationVersion.FundingStreams?.Select(m => m.Id);
-
-            bool fundingStreamsChanged = !existingFundingStreamIds.SequenceEqual(editModel.FundingStreamIds);
-
-            if (fundingStreamsChanged)
-            {
-                foreach (string fundingStreamId in editModel.FundingStreamIds)
-                {
-                    ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() =>
-                        _policiesApiClient.GetFundingStreamById(fundingStreamId));
-
-                    if (fundingStreamResponse?.Content == null)
-                    {
-                        return new InternalServerErrorResult("No funding streams were retrieved to add to the Specification");
-                    }
-
-                    FundingStream fundingStream = _mapper.Map<FundingStream>(fundingStreamResponse?.Content);
-
-                    List<Reference> fundingStreamReferences = new List<Reference>();
-
-                    fundingStreamReferences.Add(new Reference(fundingStream.Id, fundingStream.Name));
-
-                    specificationVersion.FundingStreams = fundingStreamReferences;
-
-                }
-            }
-
             HttpStatusCode statusCode = await UpdateSpecification(specification, specificationVersion, previousSpecificationVersion);
             if (!statusCode.IsSuccess())
             {

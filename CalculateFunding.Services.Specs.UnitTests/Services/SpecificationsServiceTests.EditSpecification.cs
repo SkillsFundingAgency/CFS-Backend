@@ -5,10 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using AutoMapper;
 using CalculateFunding.Common.ApiClient.Models;
-using CalculateFunding.Common.ApiClient.Policies;
-using CalculateFunding.Common.Caching;
 using CalculateFunding.Common.Models;
 using CalculateFunding.Models.Results;
 using CalculateFunding.Models.Specs;
@@ -16,9 +13,6 @@ using CalculateFunding.Repositories.Common.Search;
 using CalculateFunding.Services.Core.Caching;
 using CalculateFunding.Services.Core.Constants;
 using CalculateFunding.Services.Core.Extensions;
-using CalculateFunding.Services.Core.Interfaces;
-using CalculateFunding.Services.Core.Interfaces.ServiceBus;
-using CalculateFunding.Services.Specs.Interfaces;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
@@ -29,65 +23,63 @@ using Microsoft.Extensions.Primitives;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NSubstitute;
-using Serilog;
 using PolicyModels = CalculateFunding.Common.ApiClient.Policies.Models;
 
 namespace CalculateFunding.Services.Specs.UnitTests.Services
 {
     public partial class SpecificationsServiceTests
     {
+        private readonly IQueryCollection _queryStringValues = 
+            new QueryCollection(new Dictionary<string, StringValues>
+            {
+                { "specificationId", new StringValues(SpecificationId) }
+            });
+        private readonly PolicyModels.FundingPeriod _fundingPeriod = new PolicyModels.FundingPeriod
+        {
+            Id = "fp10",
+            Name = "fp 10"
+        };
+        private readonly ApiResponse<PolicyModels.FundingPeriod> _fundingPeriodResponse;
+
+        public SpecificationsServiceTests()
+        {
+            _request.Query.Returns(_queryStringValues);
+            _request.HttpContext.Returns(_context);
+            _specificationsRepository = CreateSpecificationsRepository();
+            _specification = CreateSpecification();
+            _policiesApiClient = CreatePoliciesApiClient();
+            _mapper = CreateImplementedMapper();
+            _searchRepository = CreateSearchRepository();
+            _cacheProvider = CreateCacheProvider();
+            _messengerService = CreateMessengerService();
+            _versionRepository = CreateVersionRepository();
+            _fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(
+                HttpStatusCode.OK, _fundingPeriod);
+        }
 
         [TestMethod]
         public async Task EditSpecification_GivenNoSpecificationIdWasProvided_ReturnsBadRequest()
         {
-            //Arrange
-            HttpRequest request = Substitute.For<HttpRequest>();
+            SpecificationsService service = CreateService(logs: _logger);
+            _request.Query.Returns(new QueryCollection());
 
-            ILogger logger = CreateLogger();
+            IActionResult result = await service.EditSpecification(_request);
 
-            SpecificationsService service = CreateService(logs: logger);
-
-            //Act
-            IActionResult result = await service.EditSpecification(request);
-
-            //Arrange
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
+            result.Should().BeOfType<BadRequestObjectResult>();
+            _logger.Received(1)
                 .Error(Arg.Is("No specification Id was provided to EditSpecification"));
         }
 
         [TestMethod]
         public async Task EditSpecification_GivenNullEditModeldWasProvided_ReturnsBadRequest()
         {
-            //Arrange
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
+            _request.Query.Returns(_queryStringValues);
+            SpecificationsService service = CreateService(logs: _logger);
 
-            HttpRequest request = Substitute.For<HttpRequest>();
-            request
-                .Query
-                .Returns(queryStringValues);
+            IActionResult result = await service.EditSpecification(_request);
 
-            ILogger logger = CreateLogger();
-
-            SpecificationsService service = CreateService(logs: logger);
-
-            //Act
-            IActionResult result = await service.EditSpecification(request);
-
-            //Arrange
-            result
-                .Should()
-                .BeOfType<BadRequestObjectResult>();
-
-            logger
-                .Received(1)
+            result.Should().BeOfType<BadRequestObjectResult>();
+            _logger.Received(1)
                 .Error(Arg.Is("No edit modeld was provided to EditSpecification"));
         }
 
@@ -95,57 +87,25 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_WhenInvalidModelProvided_ThenValidationErrorReturned()
         {
             // Arrange
-            ValidationResult validationResult = new ValidationResult();
-            validationResult.Errors.Add(new ValidationFailure("error", "error"));
-
-            IValidator<SpecificationEditModel> validator = CreateEditSpecificationValidator(validationResult);
-
-            SpecificationsService specificationsService = CreateService(specificationEditModelValidator: validator);
-
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel();
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
+            ValidationResult validationResult = new ValidationResult()
             {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
+                Errors = { new ValidationFailure("error", "error") }
+            };
+            IValidator<SpecificationEditModel> validator = CreateEditSpecificationValidator(validationResult);
+            SpecificationsService specificationsService = CreateService(specificationEditModelValidator: validator);
+            SpecificationEditModel specificationEditModel = new SpecificationEditModel();
+            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
 
             // Act
-            IActionResult result = await specificationsService.EditSpecification(request);
+            IActionResult result = await specificationsService.EditSpecification(_request);
 
             // Assert
             result
-                .Should()
-                .BeOfType<BadRequestObjectResult>()
-                .Which
-                .Value
-                .Should()
-                .BeOfType<SerializableError>()
-                .Which
-                .Should()
-                .HaveCount(1);
-
+                .Should().BeOfType<BadRequestObjectResult>()
+                .Which.Value.Should().BeOfType<SerializableError>()
+                .Which.Should().HaveCount(1);
             await validator
-                .Received(1)
-                .ValidateAsync(Arg.Any<SpecificationEditModel>());
+                .Received(1).ValidateAsync(Arg.Any<SpecificationEditModel>());
         }
 
         [TestMethod]
@@ -153,53 +113,20 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         {
             //Arrange
             SpecificationEditModel specificationEditModel = new SpecificationEditModel();
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
+            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
+            _specificationsRepository.GetSpecificationById(Arg.Is(SpecificationId))
                 .Returns((Specification)null);
-
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            SpecificationsService service = CreateService(logs: _logger, specificationsRepository: _specificationsRepository);
 
             //Act
-            IActionResult result = await service.EditSpecification(request);
+            IActionResult result = await service.EditSpecification(_request);
 
-            //Arrange
+            //Assert
             result
-                .Should()
-                .BeOfType<NotFoundObjectResult>()
-                .Which
-                .Value
-                .Should()
+                .Should().BeOfType<NotFoundObjectResult>()
+                .Which.Value.Should()
                 .Be("Specification not found");
-
-            logger
+            _logger
                 .Received(1)
                 .Warning(Arg.Is($"Failed to find specification for id: {SpecificationId}"));
         }
@@ -212,208 +139,55 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
             {
                 FundingPeriodId = "fp10"
             };
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            SpecificationsService service = CreateService(logs: logger, specificationsRepository: specificationsRepository);
+            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
+            _specificationsRepository.GetSpecificationById(Arg.Is(SpecificationId))
+                .Returns(_specification);
+            SpecificationsService service = CreateService(logs: _logger, specificationsRepository: _specificationsRepository);
 
             //Act
-            IActionResult result = await service.EditSpecification(request);
+            IActionResult result = await service.EditSpecification(_request);
 
-            //Arrange
+            //Assert
             result
-                .Should()
-                .BeOfType<PreconditionFailedResult>()
-                .Which
-                .Value
-                .Should()
-                .Be($"Unable to find funding period with ID '{specificationEditModel.FundingPeriodId}'.");
+                .Should().BeOfType<PreconditionFailedResult>()
+                .Which.Value.Should().Be($"Unable to find funding period with ID '{specificationEditModel.FundingPeriodId}'.");
         }
 
         [TestMethod]
-        public async Task EditSpecification_GivenSpecificationWasFoundAndFundingPeriodChangedAndfundinfgStreamsChangedButFailsToFindFundingStreams_ReturnsInternalServerErrorResult()
+        public async Task EditSpecification_GivenFailsToUpdateCosmosWithBadRequest_ReturnsBadRequest()
         {
             //Arrange
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel
-            {
-                FundingPeriodId = "fp10",
-                FundingStreamIds = new List<string> { "fs10" }
-            };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            IMapper mapper = CreateImplementedMapper();
-
-            SpecificationsService service = CreateService(mapper: mapper, logs: logger, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient);
-
-            //Act
-            IActionResult result = await service.EditSpecification(request);
-
-            //Arrange
-            result
-                .Should()
-                .BeOfType<InternalServerErrorResult>()
-                .Which
-                .Value
-                .Should()
-                .Be("No funding streams were retrieved to add to the Specification");
-        }
-
-        [TestMethod]
-        public async Task EditSpecification_GivenFailsToUpdateCosomosWithBadRequest_ReturnsBadRequest()
-        {
-            //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10"
             };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
-                Id = "fs11",
+                Id = existingFundingStreams.First().Id,
+                Name = existingFundingStreams.First().Name
             };
-
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
+            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse =
+                new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
+            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
+            _specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            policiesApiClient
+                .Returns(_specification);
+            _policiesApiClient
+                .GetFundingPeriodById(Arg.Is(_fundingPeriod.Id))
+                .Returns(_fundingPeriodResponse);
+            _policiesApiClient
                 .GetFundingStreamById(Arg.Is(fundingStream.Id))
                 .Returns(fundingStreamResponse);
-
-            specificationsRepository
+            _specificationsRepository
                 .UpdateSpecification(Arg.Any<Specification>())
                 .Returns(HttpStatusCode.BadRequest);
-
-            IMapper mapper = CreateImplementedMapper();
-
-            SpecificationsService service = CreateService(mapper: mapper, logs: logger, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient);
+            SpecificationsService service = CreateService(mapper: _mapper, logs: _logger, specificationsRepository: _specificationsRepository, policiesApiClient: _policiesApiClient);
 
             //Act
-            IActionResult result = await service.EditSpecification(request);
+            IActionResult result = await service.EditSpecification(_request);
 
-            //Arrange
+            //Assert
             result
                 .Should()
                 .BeOfType<StatusCodeResult>()
@@ -427,103 +201,29 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChanges_UpdatesSearchAndSendsMessage()
         {
             //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
-                Name = "new spec name",
-                FundingStreamIds = new[] { "fs11" }
+                Name = "new spec name"
             };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
-                Id = "fs11",
+                Id = existingFundingStreams.First().Id
             };
-
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            policiesApiClient
-                .GetFundingStreamById(Arg.Is(fundingStream.Id))
-                .Returns(fundingStreamResponse);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
-                .Returns(HttpStatusCode.OK);
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
 
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-                .Returns(newSpecVersion);
-
-            IMapper mapper = CreateImplementedMapper();
-
-            SpecificationsService service = CreateService(
-                mapper: mapper, logs: logger, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient, searchRepository: searchRepository,
-                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
+            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(request);
+            IActionResult result = await service.EditSpecification(_request);
 
             //Arrange
             await
-                searchRepository
+                _searchRepository
                     .Received(1)
                     .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
                             m => m.First().Id == SpecificationId &&
@@ -531,14 +231,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                             m.First().FundingPeriodId == "fp10" &&
                             m.First().FundingStreamIds.Count() == 1
                         ));
-
             await
-                cacheProvider
+                _cacheProvider
                     .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{specification.Id}"));
-
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
             await
-                messengerService
+                _messengerService
                     .Received(1)
                     .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
                                 Arg.Is<SpecificationVersionComparisonModel>(
@@ -546,269 +244,91 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                                     m.Current.Name == "new spec name" &&
                                     m.Previous.Name == "Spec name"
                                     ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
-
             await
-              versionRepository
+              _versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
         }
 
-        [TestMethod]
-        public async Task EditSpecification_GivenChanges_CreatesNewVersion()
+        private SpecificationsService CreateSpecificationsService(PolicyModels.FundingStream fundingStream,
+            SpecificationEditModel specificationEditModel, SpecificationVersion newSpecVersion)
         {
-            //Arrange
-            SpecificationEditModel specificationEditModel = new SpecificationEditModel
-            {
-                FundingPeriodId = "fp10",
-                Name = "new spec name",
-                FundingStreamIds = new[] { "fs11" }
-            };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
-            PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
-            {
-                Id = "fs11",
-            };
-
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
+            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse =
+                new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
+            _request.Body.Returns(CreateMemoryStreamForModel(specificationEditModel));
+            _specificationsRepository
                 .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            policiesApiClient
-                .GetFundingStreamById(Arg.Is(fundingStream.Id))
-                .Returns(fundingStreamResponse);
-
-            specificationsRepository
+                .Returns(_specification);
+            _policiesApiClient
+                .GetFundingPeriodById(Arg.Is(_fundingPeriod.Id))
+                .Returns(_fundingPeriodResponse);
+            _specificationsRepository
                 .UpdateSpecification(Arg.Any<Specification>())
                 .Returns(HttpStatusCode.OK);
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-            newSpecVersion.Name = specificationEditModel.Name;
-            newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
-            newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
-
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
+            _versionRepository
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
                 .Returns(newSpecVersion);
-
-            IMapper mapper = CreateImplementedMapper();
-
             SpecificationsService service = CreateService(
-                mapper: mapper, logs: logger, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient, searchRepository: searchRepository,
-                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
-
-            //Act
-            IActionResult result = await service.EditSpecification(request);
-
-            //Arrange
-            await
-                searchRepository
-                    .Received(1)
-                    .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
-                            m => m.First().Id == SpecificationId &&
-                            m.First().Name == "new spec name" &&
-                            m.First().FundingPeriodId == "fp10" &&
-                            m.First().FundingStreamIds.Count() == 1
-                        ));
-
-            await
-                cacheProvider
-                    .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{specification.Id}"));
-
-            await
-                messengerService
-                    .Received(1)
-                    .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
-                                Arg.Is<SpecificationVersionComparisonModel>(
-                                    m => m.Id == SpecificationId &&
-                                    m.Current.Name == "new spec name" &&
-                                    m.Previous.Name == "Spec name"
-                                    ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
-
-            await
-              versionRepository
-               .Received(1)
-               .SaveVersion(Arg.Is(newSpecVersion));
+                mapper: _mapper, logs: _logger, specificationsRepository: _specificationsRepository,
+                policiesApiClient: _policiesApiClient, searchRepository: _searchRepository,
+                cacheProvider: _cacheProvider, messengerService: _messengerService,
+                specificationVersionRepository: _versionRepository);
+            return service;
         }
 
-        [TestMethod]
-        public async Task EditSpecification_GivenChanges_CreatesNewTrimmedVersion()
+        [DataTestMethod]
+        [DataRow("new spec name", "new spec name")]
+        [DataRow("   new spec name   ", "new spec name")]
+        public async Task EditSpecification_GivenChanges_CreatesNewVersionWithTrimmedName(string specificationEditModelName, string resultSpecificationName)
         {
             //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
-                Name = "   new spec name   ",
-                FundingStreamIds = new[] { "fs11" }
+                Name = specificationEditModelName
             };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
-                Id = "fs11",
+                Id = existingFundingStreams.First().Id
             };
-
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            policiesApiClient
-                .GetFundingStreamById(Arg.Is(fundingStream.Id))
-                .Returns(fundingStreamResponse);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
-                .Returns(HttpStatusCode.OK);
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name.Trim();
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
-
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
+            _versionRepository
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
                 .Returns(newSpecVersion);
-
-            IMapper mapper = CreateImplementedMapper();
-
-            SpecificationsService service = CreateService(
-                mapper: mapper, logs: logger, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient, searchRepository: searchRepository,
-                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
+            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(request);
+            IActionResult result = await service.EditSpecification(_request);
 
-            //Arrange
+            //Assert
             await
-                searchRepository
+                _searchRepository
                     .Received(1)
                     .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
                             m => m.First().Id == SpecificationId &&
-                            m.First().Name == "new spec name" &&
+                            m.First().Name == resultSpecificationName &&
                             m.First().FundingPeriodId == "fp10" &&
                             m.First().FundingStreamIds.Count() == 1
                         ));
-
             await
-                cacheProvider
+                _cacheProvider
                     .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{specification.Id}"));
-
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
             await
-                messengerService
+                _messengerService
                     .Received(1)
                     .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
                                 Arg.Is<SpecificationVersionComparisonModel>(
                                     m => m.Id == SpecificationId &&
-                                    m.Current.Name == "new spec name" &&
+                                    m.Current.Name == resultSpecificationName &&
                                     m.Previous.Name == "Spec name"
                                     ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
-
             await
-              versionRepository
+              _versionRepository
                .Received(1)
                .SaveVersion(Arg.Is(newSpecVersion));
         }
@@ -817,103 +337,31 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChangesAndSpecContainsCalculations_UpdatesSearchAndSendsMessage()
         {
             //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
-                Name = "new spec name",
-                FundingStreamIds = new[] { "fs11" }
+                Name = "new spec name"
             };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
-                Id = "fs11",
+                Id = existingFundingStreams.First().Id
             };
-
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            policiesApiClient
-                .GetFundingStreamById(Arg.Is(fundingStream.Id))
-                .Returns(fundingStreamResponse);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
-                .Returns(HttpStatusCode.OK);
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
-
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
+            _versionRepository
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
                 .Returns(newSpecVersion);
-
-            IMapper mapper = CreateImplementedMapper();
-
-            SpecificationsService service = CreateService(
-                mapper: mapper, policiesApiClient: policiesApiClient, logs: logger, specificationsRepository: specificationsRepository, searchRepository: searchRepository,
-                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
+            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(request);
+            IActionResult result = await service.EditSpecification(_request);
 
-            //Arrange
+            //Assert
             await
-                searchRepository
+                _searchRepository
                     .Received(1)
                     .Index(Arg.Is<IEnumerable<SpecificationIndex>>(
                             m => m.First().Id == SpecificationId &&
@@ -921,14 +369,12 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                             m.First().FundingPeriodId == "fp10" &&
                             m.First().FundingStreamIds.Count() == 1
                         ));
-
             await
-                cacheProvider
+                _cacheProvider
                     .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{specification.Id}"));
-
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
             await
-                messengerService
+                _messengerService
                     .Received(1)
                     .SendToTopic(Arg.Is(ServiceBusConstants.TopicNames.EditSpecification),
                                 Arg.Is<SpecificationVersionComparisonModel>(
@@ -936,9 +382,8 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                                     m.Current.Name == "new spec name" &&
                                     m.Previous.Name == "Spec name"
                                     ), Arg.Any<IDictionary<string, string>>(), Arg.Is(true));
-
             await
-               versionRepository
+               _versionRepository
                 .Received(1)
                 .SaveVersion(Arg.Is(newSpecVersion));
         }
@@ -947,110 +392,40 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChangesIncludingFundingPeriod_EnsuresCacheCorrectlyInvalidates()
         {
             //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
-                Name = "new spec name",
-                FundingStreamIds = new[] { "fs11" }
+                Name = "new spec name"
             };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
-                Id = "fs11",
+                Id = existingFundingStreams.First().Id
             };
-
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            policiesApiClient
-                .GetFundingStreamById(Arg.Is(fundingStream.Id))
-                .Returns(fundingStreamResponse);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
-                .Returns(HttpStatusCode.OK);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
+            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
+            _versionRepository
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
                 .Returns(newSpecVersion);
-
-            IMapper mapper = CreateImplementedMapper();
-
-            SpecificationsService service = CreateService(
-                mapper: mapper, logs: logger, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient, cacheProvider: cacheProvider, specificationVersionRepository: versionRepository);
+            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(request);
+            IActionResult result = await service.EditSpecification(_request);
 
-            //Arrange
+            //Assert
             await
-                cacheProvider
+                _cacheProvider
                     .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{specification.Id}"));
-
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
             await
-                cacheProvider
+                _cacheProvider
                     .Received(1)
                     .RemoveAsync<List<SpecificationSummary>>(Arg.Is($"{CacheKeys.SpecificationSummariesByFundingPeriodId}fp10"));
-
             await
-                cacheProvider
+                _cacheProvider
                     .Received(1)
-                    .RemoveAsync<List<ProviderSummary>>(Arg.Is($"{CacheKeys.ScopedProviderSummariesPrefix}{specification.Id}"));
-
+                    .RemoveAsync<List<ProviderSummary>>(Arg.Is($"{CacheKeys.ScopedProviderSummariesPrefix}{_specification.Id}"));
             await
-                versionRepository
+                _versionRepository
                  .Received(1)
                  .SaveVersion(Arg.Is(newSpecVersion));
         }
@@ -1059,110 +434,41 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_GivenChangesButFundingPeriodUnchanged_EnsuresCacheCorrectlyInvalidates()
         {
             //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
+
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "FP1",
-                Name = "new spec name",
-                FundingStreamIds = new[] { "fs11" }
+                Name = "new spec name"
             };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
-                Id = "fs11",
+                Id = existingFundingStreams.First().Id
             };
-
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            policiesApiClient
-                .GetFundingStreamById(Arg.Is(fundingStream.Id))
-                .Returns(fundingStreamResponse);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
-                .Returns(HttpStatusCode.OK);
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
-
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
+            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
+            _versionRepository
                 .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
                 .Returns(newSpecVersion);
-
-            IMapper mapper = CreateImplementedMapper();
-
-            SpecificationsService service = CreateService(
-                mapper: mapper, logs: logger, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient, cacheProvider: cacheProvider, specificationVersionRepository: versionRepository);
+            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
             //Act
-            IActionResult result = await service.EditSpecification(request);
+            IActionResult result = await service.EditSpecification(_request);
 
-            //Arrange
+            //Assert
             await
-                cacheProvider
+                _cacheProvider
                     .Received(1)
-                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{specification.Id}"));
-
+                    .RemoveAsync<SpecificationSummary>(Arg.Is($"{CacheKeys.SpecificationSummaryById}{_specification.Id}"));
             await
-                cacheProvider
+                _cacheProvider
                     .Received(1)
-                    .RemoveAsync<List<ProviderSummary>>(Arg.Is($"{CacheKeys.ScopedProviderSummariesPrefix}{specification.Id}"));
-
+                    .RemoveAsync<List<ProviderSummary>>(Arg.Is($"{CacheKeys.ScopedProviderSummariesPrefix}{_specification.Id}"));
             await
-                cacheProvider
+                _cacheProvider
                     .DidNotReceive()
                     .RemoveAsync<List<SpecificationSummary>>(Arg.Is($"{CacheKeys.SpecificationSummariesByFundingPeriodId}fp1"));
-
             await
-                versionRepository
+                _versionRepository
                  .Received(1)
                  .SaveVersion(Arg.Is(newSpecVersion));
         }
@@ -1171,105 +477,28 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
         public async Task EditSpecification_WhenIndexingReturnsErrors_ShouldThrowException()
         {
             //Arrange
+            var existingFundingStreams = _specification.Current.FundingStreams;
             const string errorMessage = "Encountered error 802 code";
-
             SpecificationEditModel specificationEditModel = new SpecificationEditModel
             {
                 FundingPeriodId = "fp10",
-                Name = "new spec name",
-                FundingStreamIds = new[] { "fs11" }
+                Name = "new spec name"
             };
-
-            PolicyModels.FundingPeriod fundingPeriod = new PolicyModels.FundingPeriod
-            {
-                Id = "fp10",
-                Name = "fp 10"
-            };
-
-            ApiResponse<PolicyModels.FundingPeriod> fundingPeriodResponse = new ApiResponse<PolicyModels.FundingPeriod>(HttpStatusCode.OK, fundingPeriod);
-
             PolicyModels.FundingStream fundingStream = new PolicyModels.FundingStream
             {
-                Id = "fs11",
+                Id = existingFundingStreams.First().Id
             };
-
-            ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = new ApiResponse<PolicyModels.FundingStream>(HttpStatusCode.OK, fundingStream);
-
-
-            string json = JsonConvert.SerializeObject(specificationEditModel);
-            byte[] byteArray = Encoding.UTF8.GetBytes(json);
-            MemoryStream stream = new MemoryStream(byteArray);
-
-            HttpContext context = Substitute.For<HttpContext>();
-
-            HttpRequest request = Substitute.For<HttpRequest>();
-
-            IQueryCollection queryStringValues = new QueryCollection(new Dictionary<string, StringValues>
-            {
-                { "specificationId", new StringValues(SpecificationId) },
-            });
-
-            request
-                .Query
-                .Returns(queryStringValues);
-            request
-                .Body
-                .Returns(stream);
-
-            request
-                .HttpContext
-                .Returns(context);
-
-            ILogger logger = CreateLogger();
-
-            Specification specification = CreateSpecification();
-
-            ISpecificationsRepository specificationsRepository = CreateSpecificationsRepository();
-            IPoliciesApiClient policiesApiClient = CreatePoliciesApiClient();
-
-            specificationsRepository
-                .GetSpecificationById(Arg.Is(SpecificationId))
-                .Returns(specification);
-
-            policiesApiClient
-                .GetFundingPeriodById(Arg.Is(fundingPeriod.Id))
-                .Returns(fundingPeriodResponse);
-
-            policiesApiClient
-                .GetFundingStreamById(Arg.Is(fundingStream.Id))
-                .Returns(fundingStreamResponse);
-
-            specificationsRepository
-                .UpdateSpecification(Arg.Any<Specification>())
-                .Returns(HttpStatusCode.OK);
-
-            ISearchRepository<SpecificationIndex> searchRepository = CreateSearchRepository();
-            searchRepository
-                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
-                .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
-
-            ICacheProvider cacheProvider = CreateCacheProvider();
-
-            IMessengerService messengerService = CreateMessengerService();
-
-            SpecificationVersion newSpecVersion = specification.Current.Clone() as SpecificationVersion;
+            SpecificationVersion newSpecVersion = _specification.Current.Clone() as SpecificationVersion;
             newSpecVersion.Name = specificationEditModel.Name;
             newSpecVersion.FundingPeriod.Id = specificationEditModel.FundingPeriodId;
             newSpecVersion.FundingStreams = new[] { new Reference { Id = "fs11" } };
-
-            IVersionRepository<SpecificationVersion> versionRepository = CreateVersionRepository();
-            versionRepository
-                .CreateVersion(Arg.Any<SpecificationVersion>(), Arg.Any<SpecificationVersion>())
-                .Returns(newSpecVersion);
-
-            IMapper mapper = CreateImplementedMapper();
-
-            SpecificationsService service = CreateService(
-                mapper: mapper, logs: logger, specificationsRepository: specificationsRepository, policiesApiClient: policiesApiClient, searchRepository: searchRepository,
-                cacheProvider: cacheProvider, messengerService: messengerService, specificationVersionRepository: versionRepository);
+            _searchRepository
+                .Index(Arg.Any<IEnumerable<SpecificationIndex>>())
+                .Returns(new[] { new IndexError() { ErrorMessage = errorMessage } });
+            var service = CreateSpecificationsService(fundingStream, specificationEditModel, newSpecVersion);
 
             //Act
-            Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(request);
+            Func<Task<IActionResult>> editSpecification = async () => await service.EditSpecification(_request);
 
             //Assert
             editSpecification
@@ -1278,7 +507,14 @@ namespace CalculateFunding.Services.Specs.UnitTests.Services
                 .Which
                 .Message
                 .Should()
-                .Be($"Could not index specification {specification.Current.Id} because: {errorMessage}");
+                .Be($"Could not index specification {_specification.Current.Id} because: {errorMessage}");
+        }
+
+        private static MemoryStream CreateMemoryStreamForModel(SpecificationEditModel specificationEditModel)
+        {
+            string json = JsonConvert.SerializeObject(specificationEditModel);
+            byte[] byteArray = Encoding.UTF8.GetBytes(json);
+            return new MemoryStream(byteArray);
         }
     }
 }

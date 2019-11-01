@@ -34,21 +34,6 @@ namespace CalculateFunding.Services.Specs.Validators
                     }
                 });
 
-            RuleFor(model => model.FundingStreamIds)
-              .NotNull()
-              .NotEmpty()
-              .WithMessage("You must select at least one funding stream")
-              .Custom((name, context) => {
-                  SpecificationEditModel specModel = context.ParentContext.InstanceToValidate as SpecificationEditModel;
-                  foreach(string fundingStreamId in specModel.FundingStreamIds)
-                  {
-                      if (string.IsNullOrWhiteSpace(fundingStreamId))
-                      {
-                          context.AddFailure($"A null or empty string funding stream ID was provided");
-                      }
-                  }
-              });
-
             RuleFor(model => model.Name)
                .NotEmpty()
                .WithMessage("You must give a unique specification name")
