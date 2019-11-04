@@ -1,4 +1,5 @@
-﻿using CalculateFunding.Common.ApiClient.Providers;
+﻿using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
 using FluentValidation;
@@ -9,19 +10,33 @@ namespace CalculateFunding.Services.Specs.Validators
     {
         private readonly ISpecificationsRepository _specificationsRepository;
         private readonly IProvidersApiClient _providersApiClient;
+        private readonly IPoliciesApiClient _policiesApiClient;
 
-        public SpecificationEditModelValidator(ISpecificationsRepository specificationsRepository, IProvidersApiClient providersApiClient)
+        public SpecificationEditModelValidator(
+            ISpecificationsRepository specificationsRepository, 
+            IProvidersApiClient providersApiClient,
+            IPoliciesApiClient policiesApiClient
+            )
         {
+            
             _specificationsRepository = specificationsRepository;
             _providersApiClient = providersApiClient;
+            _policiesApiClient = policiesApiClient;
 
             RuleFor(model => model.Description)
                .NotEmpty()
                .WithMessage("You must give a description for the specification");
 
             RuleFor(model => model.FundingPeriodId)
-               .NotEmpty()
-               .WithMessage("Null or empty academic year id provided");
+                .NotEmpty()
+                .WithMessage("Null or empty funding period id")
+                .Custom((name, context) => {
+                    SpecificationEditModel specModel = context.ParentContext.InstanceToValidate as SpecificationEditModel;
+                    if (_policiesApiClient.GetFundingPeriodById(specModel.FundingPeriodId).Result.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        context.AddFailure($"Funding period id selected does not exist");
+                    }
+                });
 
             RuleFor(model => model.ProviderVersionId)
                 .NotEmpty()

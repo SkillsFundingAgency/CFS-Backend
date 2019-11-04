@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
+using CalculateFunding.Common.ApiClient.Models;
+using CalculateFunding.Common.ApiClient.Policies;
+using CalculateFunding.Common.ApiClient.Policies.Models;
 using CalculateFunding.Common.ApiClient.Providers;
 using CalculateFunding.Models.Specs;
 using CalculateFunding.Services.Specs.Interfaces;
@@ -85,6 +88,31 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             model.SpecificationId = "specId";
 
             SpecificationEditModelValidator validator = CreateValidator();
+
+            //Act
+            ValidationResult result = validator.Validate(model);
+
+            //Assert
+            result
+                .IsValid
+                .Should()
+                .BeFalse();
+
+            result
+                .Errors
+                .Count
+                .Should()
+                .Be(1);
+        }
+
+                [TestMethod]
+        public void Validate_GivenNonExistingFundingPeriodId_ValidIsFalse()
+        {
+            //Arrange
+            SpecificationEditModel model = CreateModel();
+            model.FundingPeriodId = "A Non Existing ID";
+            model.SpecificationId = "specId";
+            SpecificationEditModelValidator validator = CreateValidator(policiesApiClient: CreatePoliciesApiClient(HttpStatusCode.NotFound));
 
             //Act
             ValidationResult result = validator.Validate(model);
@@ -233,9 +261,26 @@ namespace CalculateFunding.Services.Specs.UnitTests.Validators
             return providerApiClient;
         }
 
-        private static SpecificationEditModelValidator CreateValidator(ISpecificationsRepository repository = null, IProvidersApiClient providersApiClient = null)
+        private static IPoliciesApiClient CreatePoliciesApiClient(HttpStatusCode statusCode = HttpStatusCode.NoContent)
         {
-            return new SpecificationEditModelValidator(repository ?? CreateSpecificationsRepository(), providersApiClient ?? CreateProviderApiClient());
+            IPoliciesApiClient policiesApiClient = Substitute.For<IPoliciesApiClient>();
+
+            policiesApiClient
+                .GetFundingPeriodById(Arg.Any<string>())
+                .Returns(new ApiResponse<FundingPeriod>(statusCode));
+
+            return policiesApiClient;
+        }
+
+        private static SpecificationEditModelValidator CreateValidator(
+            ISpecificationsRepository repository = null,
+            IProvidersApiClient providersApiClient = null,
+            IPoliciesApiClient policiesApiClient = null)
+        {
+            return new SpecificationEditModelValidator(
+                repository ?? CreateSpecificationsRepository(),
+                providersApiClient ?? CreateProviderApiClient(),
+                policiesApiClient ?? CreatePoliciesApiClient());
         }
     }
 }
