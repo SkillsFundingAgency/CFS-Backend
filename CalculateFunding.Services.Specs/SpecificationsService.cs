@@ -436,51 +436,6 @@ namespace CalculateFunding.Services.Specs
             return new OkObjectResult(specifications.FirstOrDefault());
         }
 
-        public async Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request)
-        {
-            request.Query.TryGetValue("specificationId", out StringValues specificationIdParse);
-
-            string specificationId = specificationIdParse.FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(specificationId))
-            {
-                _logger.Error("No specificationId was provided to GetFundingStreamsForSpecificationById");
-
-                return new BadRequestObjectResult("Null or empty specificationId provided");
-            }
-
-            Specification specification = await _specificationsRepository.GetSpecificationById(specificationId);
-            if (specification == null)
-            {
-                return new PreconditionFailedResult("Specification not found");
-            }
-
-            if (!specification.Current.FundingStreams.Any())
-            {
-                return new InternalServerErrorResult("Specification contains no funding streams");
-            }
-
-            string[] fundingStreamIds = specification.Current.FundingStreams.Select(s => s.Id).ToArray();
-
-            List<PolicyModels.FundingStream> result = new List<PolicyModels.FundingStream>();
-
-            foreach (string fundingStreamId in fundingStreamIds)
-            {
-                ApiResponse<PolicyModels.FundingStream> fundingStreamResponse = await _policiesApiClientPolicy.ExecuteAsync(() => _policiesApiClient.GetFundingStreamById(fundingStreamId));
-                if (fundingStreamResponse?.Content == null)
-                {
-                    string message = $"Funding streams not returned for funding stream ID '{fundingStreamId}' in specification '{specification.Id}'";
-                    _logger.Error(message);
-
-                    return new InternalServerErrorResult(message);
-                }
-
-                result.Add(fundingStreamResponse.Content);
-            }
-
-            return new OkObjectResult(result);
-        }
-
         public async Task<IActionResult> CreateSpecification(HttpRequest request)
         {
             string json = await request.GetRawBodyStringAsync();

@@ -113,13 +113,6 @@ namespace CalculateFunding.Api.Specs.Controllers
             return await _specService.EditSpecificationStatus(ControllerContext.HttpContext.Request);
         }
 
-        [Route("api/specs/get-fundingstreams-for-specification")]
-        [HttpGet]
-        public async Task<IActionResult> RunGetFundingStreamsForSpecificationById()
-        {
-            return await _specService.GetFundingStreamsForSpecificationById(ControllerContext.HttpContext.Request);
-        }
-
         [Route("api/specs/reindex")]
         [HttpGet]
         public async Task<IActionResult> ReIndex()

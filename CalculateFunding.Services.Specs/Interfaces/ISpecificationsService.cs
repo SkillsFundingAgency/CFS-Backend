@@ -30,8 +30,6 @@ namespace CalculateFunding.Services.Specs.Interfaces
 
         Task<IActionResult> GetSpecificationSummariesByIds(HttpRequest request);
 
-        Task<IActionResult> GetFundingStreamsForSpecificationById(HttpRequest request);
-
         Task AssignDataDefinitionRelationship(Message message);
 
         Task<IActionResult> ReIndex();
